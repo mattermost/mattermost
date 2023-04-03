@@ -3038,10 +3038,10 @@ func (s *TimerLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	start := time.Now()
 
-	result, err := s.DraftStore.Save(d)
+	result, err := s.DraftStore.Upsert(d)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3049,23 +3049,7 @@ func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
-	start := time.Now()
-
-	result, err := s.DraftStore.Update(d)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Update", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Upsert", success, elapsed)
 	}
 	return result, err
 }
@@ -5483,22 +5467,6 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID strin
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetLastPostRowCreateAt()
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetLastPostRowCreateAt", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPostStore) GetMaxPostSize() int {
 	start := time.Now()
 
@@ -7366,22 +7334,6 @@ func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.Get", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
-	start := time.Now()
-
-	result, err := s.SessionStore.GetLastSessionRowCreateAt()
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLastSessionRowCreateAt", success, elapsed)
 	}
 	return result, err
 }

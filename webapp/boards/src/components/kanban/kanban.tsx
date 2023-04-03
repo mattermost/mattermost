@@ -7,7 +7,7 @@ import React, {
     useMemo,
     useEffect
 } from 'react'
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl'
+import {FormattedMessage} from 'react-intl'
 
 import withScrolling, {createHorizontalStrength, createVerticalStrength} from 'react-dnd-scrolling'
 
@@ -49,7 +49,6 @@ type Props = {
     visibleGroups: BoardGroup[]
     hiddenGroups: BoardGroup[]
     selectedCardIds: string[]
-    intl: IntlShape
     readonly: boolean
     onCardClicked: (e: React.MouseEvent, card: Card) => void
     addCard: (groupByOptionId?: string, show?: boolean) => Promise<void>
@@ -245,7 +244,6 @@ const Kanban = (props: Props) => {
                         group={group}
                         board={board}
                         activeView={activeView}
-                        intl={props.intl}
                         groupByProperty={groupByProperty}
                         addCard={props.addCard}
                         readonly={props.readonly}
@@ -342,7 +340,6 @@ const Kanban = (props: Props) => {
                                 key={group.option.id}
                                 group={group}
                                 activeView={activeView}
-                                intl={props.intl}
                                 readonly={props.readonly}
                                 onDrop={(card: Card) => onDropToColumn(group.option, card)}
                             />
@@ -360,4 +357,4 @@ const Kanban = (props: Props) => {
     )
 }
 
-export default injectIntl(Kanban)
+export default Kanban

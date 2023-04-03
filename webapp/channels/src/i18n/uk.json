@@ -2246,7 +2246,6 @@
   "modal.manual_status.title_offline": "Ваш статус встановлено на \"Offline\"",
   "modal.manual_status.title_ooo": "Ваш статус встановлено на \"За межами офісу\"",
   "more_channels.create": "Створити канал",
-  "more_channels.createClick": "Натисніть 'Створити новий канал' для створення нового каналу",
   "more_channels.next": "Далі",
   "more_channels.noMore": "Більше немає каналів для входу",
   "more_channels.prev": "Попередній",

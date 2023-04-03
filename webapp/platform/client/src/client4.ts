@@ -1784,9 +1784,10 @@ export default class Client4 {
         );
     };
 
-    getChannelStats = (channelId: string) => {
+    getChannelStats = (channelId: string, excludeFilesCount = false) => {
+        const param = excludeFilesCount ? `?exclude_files_count=${excludeFilesCount}` : '';
         return this.doFetch<ChannelStats>(
-            `${this.getChannelRoute(channelId)}/stats`,
+            `${this.getChannelRoute(channelId)}/stats${param}`,
             {method: 'get'},
         );
     };
@@ -4253,7 +4254,7 @@ export default class Client4 {
     }
 
     cwsAvailabilityCheck = () => {
-        return this.doFetch<StatusOK>(
+        return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,
             {method: 'get'},
         );

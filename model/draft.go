@@ -81,9 +81,11 @@ func (o *Draft) GetProps() StringInterface {
 func (o *Draft) PreSave() {
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
+		o.UpdateAt = o.CreateAt
+	} else {
+		o.UpdateAt = GetMillis()
 	}
 
-	o.UpdateAt = o.CreateAt
 	o.DeleteAt = 0
 	o.PreCommit()
 }
@@ -99,9 +101,4 @@ func (o *Draft) PreCommit() {
 
 	// There's a rare bug where the client sends up duplicate FileIds so protect against that
 	o.FileIds = RemoveDuplicateStrings(o.FileIds)
-}
-
-func (o *Draft) PreUpdate() {
-	o.UpdateAt = GetMillis()
-	o.PreCommit()
 }
