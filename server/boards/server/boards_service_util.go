@@ -62,6 +62,9 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 	if mmconfig.PluginSettings.Plugins[PluginName][SharedBoardsName] == true {
 		enablePublicSharedBoards = true
 	}
+	if mmconfig.ProductSettings.EnablePublicSharedBoards != nil {
+		enablePublicSharedBoards = *mmconfig.ProductSettings.EnablePublicSharedBoards
+	}
 
 	enableBoardsDeletion := false
 	if mmconfig.DataRetentionSettings.EnableBoardsDeletion != nil {
