@@ -146,7 +146,7 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		// if err is still not nil then it was not found via teams or workspace paths so we must
+		// if err is still not nil then it is an error other than `not found` so we must
 		// return the error to the requestor.  fileReader and Fileinfo are nil in this case.
 		a.errorResponse(w, r, err)
 	}
