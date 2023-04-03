@@ -21,7 +21,7 @@ export function markAsUnreadShouldBeAbsent(postId, prefix = 'post', location = '
         within(() => {
             cy.findByText('Mark as Unread').should('not.exist');
         });
-        cy.get('body').type('esc');
+    cy.get('body').type('esc');
 }
 
 export function switchToChannel(channel) {

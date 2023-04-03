@@ -32,7 +32,7 @@ Cypress.Commands.add('uiOpenTeamMenu', (item = '') => {
 
 Cypress.Commands.add('uiGetLHSAddChannelButton', () => {
     return cy.uiGetLHS().
-        find('.AddChannelDropdown_dropdownButton'); 
+        find('.AddChannelDropdown_dropdownButton');
 });
 
 Cypress.Commands.add('uiGetLHSTeamMenu', () => {
