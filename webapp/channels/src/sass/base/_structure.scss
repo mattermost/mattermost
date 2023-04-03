@@ -81,8 +81,6 @@ body {
 }
 
 .channel-view {
-    @include clearfix;
-
     position: relative;
     height: 100%;
 }
@@ -124,7 +122,6 @@ body.app__body #root {
     #channel_view,
     .product-wrapper {
         grid-area: center;
-        overflow: hidden;
     }
     .sidebar--right--width-holder {
         grid-area: rhs;
