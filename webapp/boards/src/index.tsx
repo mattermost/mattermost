@@ -360,10 +360,10 @@ export default class Plugin {
                 'Boards',
                 '/boards',
                 MainApp,
-                PublicMainApp,
                 HeaderComponent,
                 () => null,
                 true,
+                PublicMainApp,
             )
 
             const goToFocalboardTemplate = () => {

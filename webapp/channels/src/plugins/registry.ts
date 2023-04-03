@@ -981,24 +981,24 @@ export default class PluginRegistry {
         'switcherText',
         'switcherLinkURL',
         'mainComponent',
-        'publicComponent',
         'headerCentreComponent',
         'headerRightComponent',
         'showTeamSidebar',
         'showAppBar',
         'wrapped',
+        'publicComponent',
     ], ({
         baseURL,
         switcherIcon,
         switcherText,
         switcherLinkURL,
         mainComponent,
-        publicComponent,
         headerCentreComponent = () => null,
         headerRightComponent = () => null,
         showTeamSidebar = false,
         showAppBar = false,
         wrapped = true,
+        publicComponent,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
