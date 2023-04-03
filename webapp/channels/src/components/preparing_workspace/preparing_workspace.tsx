@@ -42,7 +42,7 @@ import {
 import Organization from './organization';
 import Plugins from './plugins';
 import Progress from './progress';
-import InviteMembers from './invite_members';
+import InviteMembers from './invite_members_cloud';
 import InviteMembersIllustration from './invite_members_illustration';
 import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
 
@@ -120,6 +120,7 @@ const PreparingWorkspace = (props: Props) => {
     const pluginsEnabled = config.PluginsEnabled === 'true';
     const showOnMountTimeout = useRef<NodeJS.Timeout>();
     const configSiteUrl = config.SiteURL;
+    const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
 
     const stepOrder = [
@@ -485,6 +486,18 @@ const PreparingWorkspace = (props: Props) => {
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}
+                    emails={form.teamMembers.invites}
+                    setEmails={(emails: string[]) => {
+                        setForm({
+                            ...form,
+                            teamMembers: {
+                                ...form.teamMembers,
+                                invites: emails,
+                            },
+                        });
+                    }}
+                    inferredProtocol={form.inferredProtocol}
+                    showInviteLink={false}
                 />
                 <LaunchingWorkspace
                     onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}

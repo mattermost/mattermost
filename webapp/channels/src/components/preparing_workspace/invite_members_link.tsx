@@ -11,28 +11,34 @@ import './invite_members_link.scss';
 
 type Props = {
     inviteURL: string;
+    showInput?: boolean;
 }
 
-const InviteMembersLink = (props: Props) => {
+const InviteMembersLink = ({
+    inviteURL,
+    showInput = true,
+}: Props) => {
     const copyText = useCopyText({
         trackCallback: () => trackEvent('first_admin_setup', 'admin_setup_click_copy_invite_link'),
-        text: props.inviteURL,
+        text: inviteURL,
     });
     const intl = useIntl();
 
     return (
         <div className='InviteMembersLink'>
-            <input
-                className='InviteMembersLink__input'
-                type='text'
-                readOnly={true}
-                value={props.inviteURL}
-                aria-label={intl.formatMessage({
-                    id: 'onboarding_wizard.invite_members.copy_link_input',
-                    defaultMessage: 'team invite link',
-                })}
-                data-testid='shareLinkInput'
-            />
+            {showInput &&
+                <input
+                    className='InviteMembersLink__input'
+                    type='text'
+                    readOnly={true}
+                    value={inviteURL}
+                    aria-label={intl.formatMessage({
+                        id: 'onboarding_wizard.invite_members.copy_link_input',
+                        defaultMessage: 'team invite link',
+                    })}
+                    data-testid='shareLinkInput'
+                />
+            }
             <button
                 className='InviteMembersLink__button'
                 onClick={copyText.onClick}
