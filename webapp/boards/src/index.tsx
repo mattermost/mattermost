@@ -305,7 +305,9 @@ export default class Plugin {
                 prevTeamId = currentTeamId
                 store.dispatch(setTeam(currentTeamId))
                 octoClient.teamId = currentTeamId
-                store.dispatch(initialLoad())
+                if(!window.location.pathname.includes('/boards/public')){
+                    store.dispatch(initialLoad())
+                }
             }
 
             if (currentTeamId && currentTeamId !== prevTeamId) {
