@@ -146,6 +146,7 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                     onKeyDown={this.onKeyDown}
                     maxLength={7}
                     disabled={this.props.isDisabled}
+                    data-testid='color-inputColorValue'
 
                 />
                 {!this.props.isDisabled &&
