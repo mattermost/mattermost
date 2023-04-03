@@ -2913,8 +2913,6 @@
   "modal.manual_status.title_offline": "狀態已設為\"離線\"",
   "modal.manual_status.title_ooo": "狀態已設為\"不在辦公室\"",
   "more_channels.create": "建立頻道",
-  "more_channels.createClick": "按下'建立頻道'來建立新頻道",
-  "more_channels.joining": "加入中...",
   "more_channels.next": "下一頁",
   "more_channels.noMore": "沒有可參加的頻道",
   "more_channels.prev": "上一頁",
