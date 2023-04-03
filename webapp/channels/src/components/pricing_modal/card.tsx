@@ -9,6 +9,11 @@ import {useSelector} from 'react-redux';
 import {cloudFreeDeprecationUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ExternalLink from 'components/external_link';
+
+import {HostedCustomerLinks} from 'utils/constants';
+
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
 import Illus from './illus.svg';
@@ -65,6 +70,7 @@ background-color: ${(props) => props.bgColor};
 
 export function BlankCard() {
     const {formatMessage} = useIntl();
+    const [, contactSalesLink] = useOpenSalesLink();
 
     return (
         <div className='BlankCard'>
@@ -79,7 +85,19 @@ export function BlankCard() {
                     </span>
                     <span className='contact'>
                         <a>
-                            {formatMessage({id: 'pricing_modal.contact_us', defaultMessage: 'Contact us'})}
+                            {formatMessage(
+                                {id: 'pricing_modal.contact_us', defaultMessage: '<a>Contact us</a>'},
+                                {
+                                    a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                        <ExternalLink
+                                            location='cloud_pricing_modal'
+                                            href={contactSalesLink}
+                                        >
+                                            {chunks}
+                                        </ExternalLink>
+                                    ),
+                                },
+                            )}
                         </a>
                     </span>
                 </div>
@@ -93,7 +111,19 @@ export function BlankCard() {
                 </span>
                 <span className='learn'>
                     <a>
-                        {formatMessage({id: 'pricing_modal.learn_more', defaultMessage: 'Learn more'})}
+                        {formatMessage(
+                            {id: 'pricing_modal.learn_more', defaultMessage: '<a>Learn more</a>'},
+                            {
+                                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <ExternalLink
+                                        location='cloud_pricing_modal'
+                                        href={HostedCustomerLinks.SELF_HOSTED_BILLING}
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                            },
+                        )}
                     </a>
                 </span>
             </div>
