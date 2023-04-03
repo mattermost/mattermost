@@ -19,7 +19,7 @@ import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {ActionsTutorialTip} from 'components/actions_menu/actions_menu_tutorial_tip';
 import {ModalData} from 'types/actions';
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal, {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
@@ -49,6 +49,7 @@ export type Props = {
     handleDismissTip: () => void;
     showPulsatingDot?: boolean;
     showTutorialTip: boolean;
+    canOpenMarketplace: boolean;
 
     /**
      * Components for overriding provided by plugins
@@ -145,9 +146,11 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     }
 
     handleOpenMarketplace = (): void => {
+        const openedFrom: OpenedFromType = 'actions_menu';
         const openMarketplaceData = {
             modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
             dialogType: MarketplaceModal,
+            dialogProps: {openedFrom},
         };
         this.props.actions.openModal(openMarketplaceData);
     };
@@ -341,7 +344,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         const {formatMessage} = this.props.intl;
 
         let marketPlace = null;
-        if (this.props.isSysAdmin) {
+        if (this.props.canOpenMarketplace) {
             marketPlace = (
                 <React.Fragment key={'marketplace'}>
                     {this.renderDivider('marketplace')}
@@ -363,11 +366,11 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         const hasPluginItems = Boolean(pluginItems?.length);
 
         const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables;
-        if (!this.props.isSysAdmin && !hasPluginMenuItems) {
+        if (!this.props.canOpenMarketplace && !hasPluginMenuItems) {
             return null;
         }
 
-        if (hasPluginItems || hasApps || hasPluggables) {
+        if (hasPluginMenuItems) {
             const pluggable = (
                 <Pluggable
                     postId={this.props.post.id}

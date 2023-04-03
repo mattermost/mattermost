@@ -4,7 +4,6 @@
 import React, {ReactElement, ReactNode} from 'react'
 import {render, screen, waitFor} from '@testing-library/react'
 
-import '@testing-library/jest-dom'
 
 import {mocked} from 'jest-mock'
 
@@ -35,7 +34,7 @@ const wrap = (child: ReactNode): ReactElement => (
 )
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 describe('components/addContentMenuItem', () => {
     beforeEach(() => {
@@ -66,7 +65,7 @@ describe('components/addContentMenuItem', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonElement = screen.getByRole('button', {name: 'text'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         await waitFor(() => expect(mockedMutator.insertBlock).toBeCalled())
     })
 
@@ -82,7 +81,7 @@ describe('components/addContentMenuItem', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonElement = screen.getByRole('button', {name: 'checkbox'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         await waitFor(() => expect(mockedMutator.insertBlock).toBeCalled())
     })
 
@@ -98,11 +97,12 @@ describe('components/addContentMenuItem', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonElement = screen.getByRole('button', {name: 'divider'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         await waitFor(() => expect(mockedMutator.insertBlock).toBeCalled())
     })
 
     test('return an error and empty element from unknown type', () => {
+        jest.spyOn(console, 'error').mockImplementation()
         const {container} = render(
             wrap(
                 <AddContentMenuItem
@@ -112,6 +112,8 @@ describe('components/addContentMenuItem', () => {
                 />,
             ),
         )
+        expect(console.error).toBeCalledWith(expect.stringContaining('addContentMenu, unknown content type: unknown'))
         expect(container).toMatchSnapshot()
+        
     })
 })

@@ -9656,22 +9656,6 @@
     "translation": "アーカイブされたチャンネルでは、確認応答を削除することはできません。"
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "開発チーム間で透明性の高いワークフローを作成し、機能開発プロセスをシームレスにすることができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Jira BotやGitHub Botと統合し、生産性を高めましょう。これらはあなたのためにダウンロードされます。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Boards、Playbooks、Botと簡単に接続できる Feature Release チャンネルでチームとチャットできます。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "スタンドアップなどの定期的なミーティングには Meeting Agenda Boardテンプレート、タスクの進捗管理には Project Task Boardをご利用ください。"
-  },
-  {
     "id": "worktemplate.category.product_teams",
     "translation": "製品チーム"
   },
@@ -9748,120 +9732,12 @@
     "translation": "総アクティブユーザー数を取得できませんでした"
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "プロジェクトを使うことでスプリント計画が楽になります。チャンネルは会話と質問に集中することができます。スプリント計画では、全員がその週のタスクに集中し、レトロスペクティブBoardでチームが一丸となって継続的に改善することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "チャンネルが必要な理由について"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Boardが必要な理由について"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "このプロジェクトで、すべてのバグに対応しましょう! Playbook、Board、Channelを使ってテンポ良く仕事を進めましょう。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "このプロジェクトで、製品リリース時の手順を見落とさないようにしましょう。Playbookのチェックリストからタスクを割り当て、Boardと共にマイルストーンを達成し、チャンネルを使用して全員が同じ情報を目にできるようにしましょう。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "すべてがうまくいかないとき、再現可能なプロセスを用意することは、正しい方向へ導くためのキーとなります。このプロジェクトは、Mattermostが提供するあらゆるものを組み合わせて、炎上を抑え、利害関係者に正しく情報を提供するものです。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "チームの成功には明確な焦点が必要です。このプロジェクトでは、専用のチャンネルに更新状況を投稿することで、チームの目標やOKRを文書化することができます。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "このProject Boardを使用してロードマップを計画し、このテンプレートで作成されたチャンネルでトピックについてコラボレーションを行うことができます。"
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "リーダーシップ"
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9998,5 +9874,213 @@
   {
     "id": "api.command_templates.unsupported.app_error",
     "translation": "あなたのデバイスではテンプレートコマンドはサポートされていません。"
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "ステータスの更新"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "ステータスを更新"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "次回更新のリマインド"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "other": "関係者に更新内容を提供します。この投稿は {{.Count}} チャンネルに配信されます。"
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "また、実行を終了としてマークする"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "実行を終了する"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "前回更新時からの変更点"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{{.Username}} は [{{.RunName}}]({{.RunURL}}) のステータス更新を有効化しました"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} は [{{.RunName}}]({{.RunURL}}) のステータス更新を無効化しました"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here — @{{.Name}} は [{{.RunName}}]({{.RunURL}}) のステータスの更新を要求しました。 \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} は実行の参加者で、このチャンネルへの参加を希望しています。チャンネルのメンバーなら誰でも招待できます。\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "実行終了の確認"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "実行を終了する"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "other": "**{{.Count}} 個の未解決タスク**があります。 本当に実行 *{{.RunName}}* を終了してもよろしいですか?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "実行のタイムラインに追加する"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "タイムラインに表示される短い要約"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "最大 64 文字"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "概要"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "実行のタイムラインに追加する"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Playbookを実行"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "新しいタスクを追加"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "タスクを追加"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "名前"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "説明"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Playbookを実行する"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "実行開始"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "実行名"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**オーナー** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "割り当てられたタスクがありません。"
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "other": "対応期限を迎えている{{.Count}}タスクが割り当てられています:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "other": "{{.Count}}タスクが割り当てられています:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "あなたに割り当てられたタスク"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "昨日で期限切れ"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "{{.Count}}日前に期限切れ"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "今日が期限です"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "other": "期限は{{.Count}}日後です"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "other": "**今日で期限切れとなるタスクが {{.Count}} 件**割り当てられています。"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "`/playbook todo`を使用すると、あなたのすべてのタスクを確認することができます。"
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "進行中の実行はありません。"
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "other": "現在、 {{.Count}} の実行が進行中です:"
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "進行中の実行"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "期限切れの実行は 0 です。"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "other": "ステータス更新の期日が過ぎた実行が {{.Count}} あります:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "期限切れステータスの更新"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "oauth データを削除することができませんでした。"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "コマンドを実行できませんでした。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "営業に問い合わせる"
   }
 ]

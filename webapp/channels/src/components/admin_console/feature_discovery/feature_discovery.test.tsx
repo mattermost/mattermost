@@ -17,7 +17,6 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    contactSalesLink='/sales'
                     titleID='translation.test.title'
                     titleDefault='Foo'
                     copyID='translation.test.copy'
@@ -46,7 +45,6 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    contactSalesLink='/sales'
                     titleID='translation.test.title'
                     titleDefault='Foo'
                     copyID='translation.test.copy'
@@ -76,7 +74,6 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    contactSalesLink='/sales'
                     titleID='translation.test.title'
                     titleDefault='Foo'
                     copyID='translation.test.copy'

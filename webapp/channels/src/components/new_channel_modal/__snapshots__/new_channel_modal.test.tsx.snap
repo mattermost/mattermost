@@ -4,6 +4,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
 <GenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={false}
+  bodyPadding={true}
   cancelButtonText="Cancel"
   className="new-channel-modal"
   compassDesign={true}
