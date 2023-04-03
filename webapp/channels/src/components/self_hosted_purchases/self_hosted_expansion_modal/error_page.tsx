@@ -13,6 +13,7 @@ import './error_page.scss';
 
 interface Props {
     canRetry: boolean;
+    tryAgain: () => void;
 }
 
 export default function SelfHostedExpansionErrorPage(props: Props) {
@@ -70,9 +71,7 @@ export default function SelfHostedExpansionErrorPage(props: Props) {
                 icon={icon}
                 error={true}
                 formattedButtonText={formattedButtonText}
-                buttonHandler={() => {
-                    //TODO: Open self hosted expansion modal
-                }}
+                buttonHandler={props.tryAgain}
                 formattedTertiaryButonText={tertiaryButtonText}
                 tertiaryButtonHandler={() => window.open(contactSupportLink, '_blank', 'noreferrer')}
             />

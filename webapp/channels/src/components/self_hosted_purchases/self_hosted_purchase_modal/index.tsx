@@ -53,23 +53,23 @@ import {
     SelfHostedSignupCustomerResponse,
 } from '@mattermost/types/hosted_customer';
 
-import {Seats, errorInvalidNumber} from '../seats_calculator';
+import {Seats, errorInvalidNumber} from '../../seats_calculator';
 
-import ContactSalesLink from './contact_sales_link';
+import ContactSalesLink from '../contact_sales_link';
 import Submitting, {convertProgressToBar} from './submitting';
 import ErrorPage from './error';
 import SuccessPage from './success_page';
 import SelfHostedCard from './self_hosted_card';
-import StripeProvider from './stripe_provider';
+import StripeProvider from '../stripe_provider';
 import Terms from './terms';
-import Address from './address';
+import Address from '../address';
 import useNoEscape from './useNoEscape';
 
 import {SetPrefix, UnionSetActions} from './types';
 
 import './self_hosted_purchase_modal.scss';
 
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
+import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from '../constants';
 
 export interface State {
 

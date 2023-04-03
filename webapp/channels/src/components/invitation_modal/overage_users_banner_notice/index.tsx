@@ -16,10 +16,13 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
-import {LicenseLinks, StatTypes, Preferences} from 'utils/constants';
+import {LicenseLinks, StatTypes, Preferences, ConsolePages} from 'utils/constants';
 
 import './overage_users_banner_notice.scss';
 import ExternalLink from 'components/external_link';
+import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
+import {NavLink} from 'react-router-dom';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 
 type AdminHasDismissedArgs = {
     preferenceName: string;
@@ -53,21 +56,24 @@ const OverageUsersBannerNotice = () => {
     const prefixLicenseId = (license.Id || '').substring(0, 8);
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
 
+    const isAirGapped = !useCWSAvailabilityCheck();
     const overageByUsers = activeUsers - seatsPurchased;
     const isOverageState = isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats;
     const hasPermission = isAdmin && isOverageState && !isCloud;
     const {
         cta,
-        expandableLink,
         trackEventFn,
         getRequestState,
         isExpandable,
+        expandableLink,
     } = useExpandOverageUsersCheck({
         shouldRequest: hasPermission && !adminHasDismissed({overagePreferences, preferenceName}),
         licenseId: license.Id,
         isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
         banner: 'invite modal',
     });
+
+    const selfHostedExpansionModal = useControlSelfHostedExpansionModal({trackingLocation: 'overage_user_banner_notice'});
 
     if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
         return null;
@@ -96,12 +102,31 @@ const OverageUsersBannerNotice = () => {
 
                         const handleClick = () => {
                             trackEventFn(isExpandable ? 'Self Serve' : 'Contact Sales');
+                            if (isExpandable) {
+                                selfHostedExpansionModal.open()
+                            }
                         };
+
+                        if (isAirGapped) {
+                            window.open(expandableLink(license.Id), '_blank');
+                        }
+
+                        if (isExpandable) {
+                            return (
+                                <NavLink
+                                    to={`${ConsolePages.LICENSE}?action=show_expansion_modal`}
+                                    target='_blank'
+                                    rel='noreferrer'
+                                >
+                                    {cta}
+                                </NavLink>
+                            )
+                        }
 
                         return (
                             <ExternalLink
                                 className='overage_users_banner__button'
-                                href={isExpandable ? expandableLink(license.Id) : LicenseLinks.CONTACT_SALES}
+                                href={LicenseLinks.CONTACT_SALES}
                                 onClick={handleClick}
                             >
                                 {cta}

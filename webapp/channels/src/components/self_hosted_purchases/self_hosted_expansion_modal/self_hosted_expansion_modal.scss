@@ -83,6 +83,10 @@
             }
         }
 
+        &--hide {
+            display: none;
+        }
+
         >.lhs {
             width: 25%;
         }

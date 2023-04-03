@@ -12,8 +12,8 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 
-import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from 'components/self_hosted_expansion_modal/constants';
-import SelfHostedExpansionModal from 'components/self_hosted_expansion_modal';
+import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
+import SelfHostedExpansionModal from 'components/self_hosted_purchases/self_hosted_expansion_modal';
 
 import {useControlModal, ControlModal} from './useControlModal';
 import useCanSelfHostedExpand from './useCanSelfHostedExpand';
