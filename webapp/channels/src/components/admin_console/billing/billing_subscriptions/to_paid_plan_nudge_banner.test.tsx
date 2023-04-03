@@ -63,7 +63,7 @@ describe('ToPaidPlanBannerDismissable', () => {
 
         renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
 
-        expect(screen.getByTestId('cloud-free-deprecation-announcement-bar')).toBeInTheDocument();
+        screen.getByTestId('cloud-free-deprecation-announcement-bar');
     });
 
     test('should NOT show for NON admins', () => {
@@ -192,7 +192,7 @@ describe('ToPaidNudgeBanner', () => {
 
         renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
 
-        expect(screen.getByTestId('cloud-free-deprecation-alert-banner')).toBeInTheDocument();
+        screen.getByTestId('cloud-free-deprecation-alert-banner');
     });
 
     test('should NOT show for cloud professional', () => {
