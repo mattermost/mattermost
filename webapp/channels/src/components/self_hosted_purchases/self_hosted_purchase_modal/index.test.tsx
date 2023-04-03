@@ -15,7 +15,7 @@ import {SelfHostedProducts, ModalIdentifiers} from 'utils/constants';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 
-import SelfHostedPurchaseModal, {makeInitialState, canSubmit, State} from './';
+import SelfHostedPurchaseModal, {makeInitialState, canSubmit, State} from '.';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;

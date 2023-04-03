@@ -11,10 +11,10 @@ import {StripeCardElementChangeEvent} from '@stripe/stripe-js';
 
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import RootPortal from 'components/root_portal';
-import ContactSalesLink from 'components/self_hosted_purchase_modal/contact_sales_link';
-import ErrorPage from 'components/self_hosted_expansion_modal/error_page';
-import SuccessPage from 'components/self_hosted_expansion_modal/success_page';
-import Submitting from 'components/self_hosted_purchase_modal/submitting';
+import ContactSalesLink from 'components/self_hosted_purchases/contact_sales_link';
+import ErrorPage from 'components/self_hosted_purchases/self_hosted_expansion_modal/error_page';
+import SuccessPage from 'components/self_hosted_purchases/self_hosted_expansion_modal/success_page';
+import Submitting from './submitting';
 
 import useLoadStripe from 'components/common/hooks/useLoadStripe';
 import CardInput, {CardInputType} from 'components/payment_form/card_input';
@@ -23,7 +23,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import StripeProvider from '../self_hosted_purchase_modal/stripe_provider';
+import StripeProvider from '../stripe_provider';
 
 import {closeModal} from 'actions/views/modals';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
@@ -46,11 +46,12 @@ import SelfHostedExpansionCard from './expansion_card';
 
 import './self_hosted_expansion_modal.scss';
 
-import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from './constants';
-import Address from 'components/self_hosted_purchase_modal/address';
+import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from '../constants';
+import Address from 'components/self_hosted_purchases/address';
 import ChooseDifferentShipping from 'components/choose_different_shipping';
-import Terms from 'components/self_hosted_purchase_modal/terms';
+import Terms from 'components/self_hosted_purchases/self_hosted_purchase_modal/terms';
 import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
+import classNames from 'classnames';
 
 export interface FormState {
     cardName: string;
@@ -189,6 +190,7 @@ export default function SelfHostedExpansionModal() {
     const [formState, setFormState] = useState<FormState>(initialState);
     const [show] = useState(true);
     const canRetry = formState.error !== '422';
+    const showForm = progress !== SelfHostedSignupProgress.PAID && progress !== SelfHostedSignupProgress.CREATED_LICENSE && !formState.submitting && !formState.error && !formState.succeeded;
 
     const title = intl.formatMessage({
         id: 'self_hosted_expansion.expansion_modal.title',
@@ -200,6 +202,7 @@ export default function SelfHostedExpansionModal() {
     const submit = async () => {
         let submitProgress = progress;
         let signupCustomerResult: SelfHostedSignupCustomerResponse | null = null;
+        setFormState({...formState, submitting: true});
         try {
             const [firstName, lastName] = inferNames(user, formState.cardName);
 
@@ -344,8 +347,7 @@ export default function SelfHostedExpansionModal() {
                     }}
                 >
                     <div className='SelfHostedExpansionModal'>
-                        <div className='form-view'>
-                            <div className='lhs'>
+                        {<div className={classNames('form-view', {'form-view--hide': !showForm})}>                            <div className='lhs'>
                                 <h2 className='title'>{title}</h2>
                                 <UpgradeSvg
                                     width={267}
@@ -503,21 +505,21 @@ export default function SelfHostedExpansionModal() {
                                     initialSeats={additionalSeats}
                                 />
                             </div>
-                        </div>
+                        </div>}
                         {((formState.succeeded || progress === SelfHostedSignupProgress.CREATED_LICENSE)) && !formState.error && !formState.submitting && (
                             <SuccessPage
                                 onClose={selfHostedExpansionModal.close}
                             />
                         )}
-                        {formState.submitting && !formState.error && (
+                        {formState.submitting && (
                             <Submitting
-                                desiredPlanName={currentPlan}
-                                progressBar={formState.progressBar}
+                                currentPlan={currentPlan}
                             />
                         )}
                         {formState.error && (
                             <ErrorPage
                                 canRetry={canRetry}
+                                tryAgain={() => {setFormState({...formState, submitting: false, error: ''})}}
                             />
                         )}
                         <div className='background-svg'>

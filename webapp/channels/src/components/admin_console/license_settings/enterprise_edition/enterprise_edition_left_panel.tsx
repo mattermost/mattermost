@@ -23,6 +23,8 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
 import {getExpandSeatsLink} from 'selectors/cloud';
 import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
+import {useQuery} from 'utils/http_utils';
+import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 
 const DAYS_UNTIL_EXPIRY_WARNING_DISPLAY_THRESHOLD = 30;
 const DAYS_UNTIL_EXPIRY_DANGER_DISPLAY_THRESHOLD = 5;
@@ -58,6 +60,19 @@ const EnterpriseEditionLeftPanel = ({
     const canExpand = useCanSelfHostedExpand();
     const selfHostedExpansionModal = useControlSelfHostedExpansionModal({trackingLocation: 'license_settings_add_seats'});
     const expandableLink = useSelector(getExpandSeatsLink);
+    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
+
+    const query = useQuery();
+    const actionQueryParam = query.get('action');
+
+    useEffect(() => {
+        console.log(actionQueryParam);
+        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedExpansionEnabled) {
+            console.log("Open modal!");
+            selfHostedExpansionModal.open();
+            query.set('action', '');
+        }
+    }, [])
 
     useEffect(() => {
         async function fetchUnSanitizedLicense() {
@@ -73,7 +88,6 @@ const EnterpriseEditionLeftPanel = ({
 
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
-    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
 
     const viewPlansButton = (
         <button

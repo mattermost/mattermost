@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 import {TestHelper as TH} from 'utils/test_helper';
 import {Client4} from 'mattermost-redux/client';
 
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchase_modal/constants';
+import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 
 import PurchaseInProgressModal from './';
 
