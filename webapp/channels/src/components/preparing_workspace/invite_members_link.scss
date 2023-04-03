@@ -1,3 +1,5 @@
+@import 'utils/mixins';
+
 .InviteMembersLink {
     display: flex;
 
@@ -15,28 +17,15 @@
         font-size: 16px;
     }
 
-    &__button {
+    button {
         display: flex;
         width: 180px;
         max-width: 382px;
-        height: 48px;
         flex-grow: 0;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--button-bg);
-        background: var(--center-channel-bg);
-        border-radius: 0 4px 4px 0;
-        color: var(--button-bg);
         font-size: 16px;
         font-weight: 600;
-
-        &:hover {
-            background: rgba(var(--button-bg-rgb), 0.08);
-        }
-
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.08);
-        }
 
         span {
             display: inline-block;
@@ -47,5 +36,27 @@
         svg {
             fill: var(--button-bg);
         }
+    }
+
+    &__button {
+        border: 1px solid var(--button-bg);
+        background: var(--center-channel-bg);
+        border-radius: 0 4px 4px 0;
+        color: var(--button-bg);
+        height: 48px;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    &__button--single {
+        @include tertiary-button;
+        height: 40px;
+        border-radius: 4px;
     }
 }

@@ -33,10 +33,13 @@ type Props = PreparingWorkspacePageProps & {
     browserSiteUrl: string;
     inferredProtocol: 'http' | 'https' | null;
     showInviteLink: boolean;
+    show: boolean;
 }
 
 const InviteMembers = (props: Props) => {
     const [email, setEmail] = useState('');
+    const [showSkipButton, setShowSkipButton] = useState(false);
+
     const {formatMessage} = useIntl();
     let className = 'InviteMembers-body';
     if (props.className) {
@@ -44,6 +47,15 @@ const InviteMembers = (props: Props) => {
     }
 
     useEffect(props.onPageView, []);
+
+    useEffect(() => {
+        setShowSkipButton(false);
+        const timer = setTimeout(() => {
+            setShowSkipButton(true);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [props.show]);
 
     const placeholder = formatMessage({
         id: 'onboarding_wizard.invite_members.placeholder',
@@ -111,7 +123,7 @@ const InviteMembers = (props: Props) => {
     const inviteLink = (
         <InviteMembersLink
             inviteURL={inviteURL}
-            showInput={false}
+            inputAndButtonStyle={false}
         />
     );
 
@@ -154,15 +166,17 @@ const InviteMembers = (props: Props) => {
 
                         </button>
                         {inviteLink}
-                        <button
-                            className='tertiary-button'
-                            onClick={props.skip}
-                        >
-                            <FormattedMessage
-                                id={'onboarding_wizard.invite_members.skip'}
-                                defaultMessage='Skip'
-                            />
-                        </button>
+                        {showSkipButton &&
+                            <button
+                                className='link-style fade-in-skip-button'
+                                onClick={props.skip}
+                            >
+                                <FormattedMessage
+                                    id={'onboarding_wizard.invite_members.skip'}
+                                    defaultMessage='Skip'
+                                />
+                            </button>
+                        }
                     </div>
                 </SingleColumnLayout>
             </div>

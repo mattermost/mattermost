@@ -7,16 +7,18 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import useCopyText from 'components/common/hooks/useCopyText';
 import {trackEvent} from 'actions/telemetry_actions';
 
+import classNames from 'classnames';
+
 import './invite_members_link.scss';
 
 type Props = {
     inviteURL: string;
-    showInput?: boolean;
+    inputAndButtonStyle?: boolean;
 }
 
 const InviteMembersLink = ({
     inviteURL,
-    showInput = true,
+    inputAndButtonStyle = false,
 }: Props) => {
     const copyText = useCopyText({
         trackCallback: () => trackEvent('first_admin_setup', 'admin_setup_click_copy_invite_link'),
@@ -26,7 +28,7 @@ const InviteMembersLink = ({
 
     return (
         <div className='InviteMembersLink'>
-            {showInput &&
+            {inputAndButtonStyle &&
                 <input
                     className='InviteMembersLink__input'
                     type='text'
@@ -40,7 +42,7 @@ const InviteMembersLink = ({
                 />
             }
             <button
-                className='InviteMembersLink__button'
+                className={`InviteMembersLink__button${inputAndButtonStyle ? '' : '--single'}`}
                 onClick={copyText.onClick}
                 data-testid='shareLinkInputButton'
             >
@@ -54,7 +56,7 @@ const InviteMembersLink = ({
                     </>
                 ) : (
                     <>
-                        <i className='icon icon-link-variant'/>
+                        {inputAndButtonStyle ? <i className='icon icon-link-variant'/> : <i className='icon icon-content-copy'/>}
                         <FormattedMessage
                             id='onboarding_wizard.invite_members.copy_link'
                             defaultMessage='Copy Link'

@@ -15,6 +15,26 @@
         display: flex;
         align-items: center;
         justify-content: flex-start;
+        width: 400px;
+    }
+}
+
+.InviteMembersLink__button--single {
+    margin-left: 12px;
+    margin-right: 8px;
+}
+
+.fade-in-skip-button {
+    opacity: 0;
+    animation: fade-in 2s forwards;
+}
+  
+@keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
 }
 
