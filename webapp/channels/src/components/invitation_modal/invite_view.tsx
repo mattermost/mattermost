@@ -101,6 +101,7 @@ export default function InviteView(props: Props) {
                 }, {inviteURL})
             }
             className='InviteView__copyLink'
+            aria-live='polite'
         >
             {!copyText.copiedRecently && (
                 <>
