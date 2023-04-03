@@ -70,7 +70,7 @@ describe('components/sidebarBoardItem', () => {
         },
     }
 
-    test('sidebar board item', () => {
+    test('sidebar board item', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
@@ -93,7 +93,7 @@ describe('components/sidebarBoardItem', () => {
         const {container} = render(component)
         const elementMenuWrapper = container.querySelector('.SidebarBoardItem div.MenuWrapper')
         expect(elementMenuWrapper).not.toBeNull()
-        userEvent.click(elementMenuWrapper!)
+        await userEvent.click(elementMenuWrapper!)
         expect(container).toMatchSnapshot()
     })
 
@@ -122,7 +122,7 @@ describe('components/sidebarBoardItem', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('sidebar board item for guest', () => {
+    test('sidebar board item for guest', async () => {
         const mockStore = configureStore([])
         const store = mockStore({...state, users: {me: {is_guest: true}}})
 
@@ -145,7 +145,7 @@ describe('components/sidebarBoardItem', () => {
         const {container} = render(component)
         const elementMenuWrapper = container.querySelector('.SidebarBoardItem div.MenuWrapper')
         expect(elementMenuWrapper).not.toBeNull()
-        userEvent.click(elementMenuWrapper!)
+        await userEvent.click(elementMenuWrapper!)
         expect(container).toMatchSnapshot()
     })
 })

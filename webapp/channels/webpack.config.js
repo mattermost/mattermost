@@ -217,6 +217,7 @@ var config = {
                 {from: 'src/images/cloud-laptop-error.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-warning.png', to: 'images'},
                 {from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images'},
+                {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
             ],
         }),
 
