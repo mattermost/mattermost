@@ -6298,7 +6298,6 @@ func (s *RetryLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId 
 
 }
 
-
 func (s *RetryLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
 
 	tries := 0

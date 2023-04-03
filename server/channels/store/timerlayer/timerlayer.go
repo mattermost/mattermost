@@ -5036,7 +5036,6 @@ func (s *TimerLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId 
 	return err
 }
 
-
 func (s *TimerLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
 	start := time.Now()
 
