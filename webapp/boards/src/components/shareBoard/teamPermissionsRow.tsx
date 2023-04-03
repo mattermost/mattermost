@@ -67,7 +67,7 @@ const TeamPermissionsRow = (): JSX.Element => {
             currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
         }
     } else {
-		currentRoleName = intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})
+        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})
     }
 
     const confirmationDialog = (
