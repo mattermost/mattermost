@@ -27,7 +27,7 @@ export default function SelfHostedExpansionErrorPage(props: Props) {
 
     let formattedButtonText = (
         <FormattedMessage
-            id='error_modal.try_again'
+            id='self_hosted_expansion.try_again'
             defaultMessage='Try again'
         />
     );
@@ -35,7 +35,7 @@ export default function SelfHostedExpansionErrorPage(props: Props) {
     if (!props.canRetry) {
         formattedButtonText = (
             <FormattedMessage
-                id='error_modal.close'
+                id='self_hosted_expansion.close'
                 defaultMessage='Close'
             />
         );

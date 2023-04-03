@@ -4724,6 +4724,7 @@
   "self_hosted_expansion.expansion_modal.title": "Provide your payment details",
   "self_hosted_expansion.license_applied": "The license has been automatically applied to your Mattermost instance. Your updated invoice will be visible in the <billing>Billing section</billing> of the system console.",
   "self_hosted_expansion.paymentFailed": "Payment failed. Please try again or contact support.",
+  "self_hosted_expansion.try_again": "Try again",
   "self_hosted_signup.air_gapped_content": "It appears that your instance is air-gapped, or it may not be connected to the internet. To purchase a license, please visit",
   "self_hosted_signup.air_gapped_title": "Purchase through the customer portal",
   "self_hosted_signup.close": "Close",

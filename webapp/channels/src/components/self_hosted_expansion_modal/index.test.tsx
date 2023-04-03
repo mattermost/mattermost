@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent, waitFor} from '@testing-library/react';
 
 import {GlobalState} from 'types/store';
 
@@ -252,15 +252,15 @@ function fillForm(form: PurchaseForm) {
     changeByPlaceholder('City', form.city);
     selectDropdownValue('selfHostedExpansionStateSelector', form.state);
     changeByPlaceholder('Zip/Postal Code', form.zip);
-    changeByTestId('seatsInput', form.seats);
     if (form.agree) {
         fireEvent.click(screen.getByText('I have read and agree', {exact: false}));
     }
 
+    // not changing the license seats number, because it is expected to be pre-filled,
+    // with the correct number of seats (current active users - current licensed seats, or 1 if the difference is 0).
+
     expect(document.getElementsByClassName('SelfHostedExpansionRHSCard__AddSeatsWarning')[0] as HTMLElement).toBeEnabled();
 
-    // not changing the license seats number,
-    // because it is expected to be pre-filled with the correct number of seats.
 
     const completeButton = screen.getByText('Complete purchase');
 
@@ -307,26 +307,27 @@ describe('SelfHostedExpansionModal Open', () => {
         expect(screen.getByText('You must add a seat to continue')).toBeVisible();
     });
 
-    // it('happy path submit shows success screen', async () => {
-    //     renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
-    //     expect(screen.getByText('Complete purchase')).toBeDisabled();
-    //     const upgradeButton = fillForm(defaultSuccessForm);
+    it('happy path submit shows success screen', async () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
+        const upgradeButton = fillForm(defaultSuccessForm);
 
-    //     upgradeButton.click();
-    //     await waitFor(() => expect(screen.getByText(`You're now subscribed to ${productName}`)).toBeTruthy(), {timeout: 1234});
-    // });
+        expect(upgradeButton).toBeEnabled();
+        upgradeButton.click();
+        await waitFor(() => expect(screen.getByText('You\'ve successfully updated your license seat count')).toBeTruthy(), {timeout: 1234});
+    });
 
-    // it('sad path submit shows error screen', async () => {
-    //     renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
-    //     expect(screen.getByText('Complete purchase')).toBeDisabled();
-    //     fillForm(defaultSuccessForm);
-    //     changeByPlaceholder('Organization Name', failOrg);
+    it('sad path submit shows error screen', async () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
+        fillForm(defaultSuccessForm);
+        changeByPlaceholder('Organization Name', failOrg);
 
-    //     const upgradeButton = screen.getByText('Complete purchase');
-    //     expect(upgradeButton).toBeEnabled();
-    //     upgradeButton.click();
-    //     await waitFor(() => expect(screen.getByText('Sorry, the payment verification failed')).toBeTruthy(), {timeout: 1234});
-    // });
+        const upgradeButton = screen.getByText('Complete purchase');
+        expect(upgradeButton).toBeEnabled();
+        upgradeButton.click();
+        await waitFor(() => expect(screen.getByText('Sorry, the payment verification failed')).toBeTruthy(), {timeout: 1234});
+    });
 });
 
 describe('SelfHostedExpansionModal RHS Card', () => {
