@@ -261,7 +261,6 @@ function fillForm(form: PurchaseForm) {
 
     expect(document.getElementsByClassName('SelfHostedExpansionRHSCard__AddSeatsWarning')[0] as HTMLElement).toBeEnabled();
 
-
     const completeButton = screen.getByText('Complete purchase');
 
     if (form === defaultSuccessForm) {
