@@ -29,6 +29,7 @@ const (
 	UserNotifyNone                 = "none"
 	DesktopNotifyProp              = "desktop"
 	DesktopSoundNotifyProp         = "desktop_sound"
+	DesktopNotificationSoundProp   = "desktop_notification_sound"
 	MarkUnreadNotifyProp           = "mark_unread"
 	PushNotifyProp                 = "push"
 	PushStatusNotifyProp           = "push_status"
