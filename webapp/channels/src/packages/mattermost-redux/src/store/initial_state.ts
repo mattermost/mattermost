@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import {SelfHostedSignupProgress, SelfHostedRenewalProgress} from '@mattermost/types/hosted_customer';
 import {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
@@ -217,6 +217,7 @@ const state: GlobalState = {
         },
         hostedCustomer: {
             signupProgress: SelfHostedSignupProgress.START,
+            renewalProgress: SelfHostedRenewalProgress.START,
             products: {
                 products: {},
                 productsLoaded: false,

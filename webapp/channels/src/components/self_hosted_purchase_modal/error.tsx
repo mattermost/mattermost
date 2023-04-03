@@ -12,6 +12,7 @@ import {useOpenSelfHostedZendeskSupportForm} from 'components/common/hooks/useOp
 import ExternalLink from 'components/external_link';
 
 interface Props {
+    isRenewal?: boolean;
     nextAction: () => void;
     canRetry: boolean;
     errorType: 'failed_export' | 'generic';
@@ -70,6 +71,15 @@ export default function ErrorPage(props: Props) {
             />
         );
 
+        if (props.isRenewal) {
+            formattedSubtitle = (
+                <FormattedMessage
+                    id='self_hosted_renewal.failed_export.subtitle'
+                    defaultMessage='We will check things on our side and get back to you within 3 days once your license is approved.'
+                />
+            );
+        }
+
         icon = (
             <AccessDeniedHappySvg
                 width={444}
@@ -90,7 +100,7 @@ export default function ErrorPage(props: Props) {
                 formattedLinkText={
                     <ExternalLink
                         href={contactSupportLink}
-                        location='self_hosted_purchase_modal_error'
+                        location={props.isRenewal ? 'self_hosted_renewal_modal_error' : 'self_hosted_purchase_modal_error'}
                     >
                         <FormattedMessage
                             id='admin.billing.subscription.privateCloudCard.contactSupport'

@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupProgress, HostedCustomerState, TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
+import {SelfHostedRenewalProgress, SelfHostedSignupProgress, HostedCustomerState, TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
 import {ValueOf} from '@mattermost/types/utilities';
 import {GlobalState} from '@mattermost/types/store';
 import {Invoice, Product} from '@mattermost/types/cloud';
 
 export function getSelfHostedSignupProgress(state: GlobalState): ValueOf<typeof SelfHostedSignupProgress> {
     return state.entities.hostedCustomer.signupProgress;
+}
+
+export function getSelfHostedRenewalProgress(state: GlobalState): ValueOf<typeof SelfHostedRenewalProgress> {
+    return state.entities.hostedCustomer.renewalProgress;
 }
 
 export function getSelfHostedProducts(state: GlobalState): Record<string, Product> {

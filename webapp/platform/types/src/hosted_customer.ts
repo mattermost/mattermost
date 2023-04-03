@@ -69,6 +69,7 @@ export type HostedCustomerState = {
         trueUpReview?: true;
     };
     signupProgress: ValueOf<typeof SelfHostedSignupProgress>;
+    renewalProgress: ValueOf<typeof SelfHostedRenewalProgress>;
     trueUpReviewStatus: TrueUpReviewStatusReducer;
     trueUpReviewProfile: TrueUpReviewProfileReducer;
 }

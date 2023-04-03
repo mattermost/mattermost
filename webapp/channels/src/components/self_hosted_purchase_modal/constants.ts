@@ -2,3 +2,4 @@
 // See LICENSE.txt for license information.
 
 export const STORAGE_KEY_PURCHASE_IN_PROGRESS = 'PURCHASE_IN_PROGRESS';
+export const STORAGE_KEY_RENEWAL_IN_PROGRESS = 'RENEWAL_IN_PROGRESS';

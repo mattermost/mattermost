@@ -13,7 +13,10 @@ import {
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 
-export default function ContactSalesLink() {
+interface Props {
+    isRenewal?: boolean
+}
+export default function ContactSalesLink(props: Props) {
     const [, contactSalesLink] = useOpenSalesLink();
     const intl = useIntl();
     return (
@@ -21,7 +24,7 @@ export default function ContactSalesLink() {
             className='footer-text'
             onClick={() => {
                 trackEvent(
-                    TELEMETRY_CATEGORIES.SELF_HOSTED_PURCHASING,
+                    props.isRenewal ? TELEMETRY_CATEGORIES.SELF_HOSTED_RENEWAL : TELEMETRY_CATEGORIES.SELF_HOSTED_PURCHASING,
                     'click_contact_sales',
                 );
             }}

@@ -3872,7 +3872,7 @@ export default class Client4 {
     };
 
     getAvailabilitySelfHostedSignup = () => {
-        return this.doFetch<void>(
+        return this.doFetch<{status: string}>(
             `${this.getHostedCustomerRoute()}/signup_available`,
             {method: 'get'},
         );

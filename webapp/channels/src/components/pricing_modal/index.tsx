@@ -21,6 +21,7 @@ type Props = {
     // callerCTA is information about the cta that opened this modal. This helps us provide a telemetry path
     // showing information about how the modal was opened all the way to more CTAs within the modal itself
     callerCTA?: string;
+    isRenewal?: boolean;
 }
 
 function PricingModal(props: Props) {
@@ -47,6 +48,7 @@ function PricingModal(props: Props) {
     ) : (
         <SelfHostedContent
             onHide={onHide}
+            isRenewal={props.isRenewal}
         />
     );
 
@@ -66,7 +68,6 @@ function PricingModal(props: Props) {
             aria-labelledby='pricing_modal_title'
         >
             {content}
-
         </Modal>
     );
 }

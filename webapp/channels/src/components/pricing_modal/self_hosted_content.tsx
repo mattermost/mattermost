@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
@@ -21,6 +21,7 @@ import {Client4} from 'mattermost-redux/client';
 import useFetchAdminConfig from 'components/common/hooks/useFetchAdminConfig';
 import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
 import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
+import useControlSelfHostedRenewalModal from 'components/common/hooks/useControlSelfHostedRenewalModal';
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 import PlanLabel from 'components/common/plan_label';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
@@ -42,6 +43,7 @@ import './content.scss';
 
 type ContentProps = {
     onHide: () => void;
+    isRenewal?: boolean;
 }
 
 const FALL_BACK_PROFESSIONAL_PRICE = '10';
@@ -57,6 +59,7 @@ function SelfHostedContent(props: ContentProps) {
     const professionalProductId = findSelfHostedProductBySku(products, SelfHostedProducts.PROFESSIONAL)?.id || '';
 
     const controlSelfHostedPurchaseModal = useControlSelfHostedPurchaseModal({productId: professionalProductId});
+    const controlSelfHostedRenewalModal = useControlSelfHostedRenewalModal({});
     const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
 
     useEffect(() => {
@@ -143,8 +146,10 @@ function SelfHostedContent(props: ContentProps) {
         );
     };
 
-    const trialButton = () => {
-        return (
+    let enterpriseAction;
+    let enterpriseTrialDisclaimer;
+    if (!props.isRenewal && !isPostSelfHostedEnterpriseTrial && isAdmin) {
+        enterpriseAction = (
             <StartTrialBtn
                 message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
                 telemetryId='start_trial_from_self_hosted_pricing_modal'
@@ -154,7 +159,26 @@ function SelfHostedContent(props: ContentProps) {
                 onClick={closePricingModal}
             />
         );
-    };
+        enterpriseTrialDisclaimer= <StartTrialCaution/>;
+    }
+    if (props.isRenewal && isAdmin) {
+        const renewText = (isEnterprise ?
+        <FormattedMessage
+            id="self_hosted_renewal.choose_renew"
+            defaultMessage="Renew"
+            />
+        : <FormattedMessage
+            id="self_hosted_renewal.choose_upgrade"
+            defaultMessage="Upgrade"
+            />);
+        enterpriseAction = (
+            <button
+                onClick={() => {controlSelfHostedRenewalModal.open(license?.SkuName || '')}}
+            >
+                {renewText}
+            </button>
+        )
+    }
 
     return (
         <div className='Content Content--self-hosted'>
@@ -286,18 +310,17 @@ function SelfHostedContent(props: ContentProps) {
                                     firstSvg={<CheckMarkSvg/>}
                                     renderLastDaysOnTrial={true}
                                 />) : undefined}
-                        buttonDetails={(isPostSelfHostedEnterpriseTrial || !isAdmin) ? {
+                        buttonDetails={((isPostSelfHostedEnterpriseTrial || !isAdmin) && !props.isRenewal) ? {
                             action: () => {
+
                                 trackEvent('self_hosted_pricing', 'click_enterprise_contact_sales');
                                 openContactSales();
                             },
                             text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
                             customClass: ButtonCustomiserClasses.active,
                         } : undefined}
-                        customButtonDetails={(!isPostSelfHostedEnterpriseTrial && isAdmin) ? (
-                            trialButton()
-                        ) : undefined}
-                        planTrialDisclaimer={(!isPostSelfHostedEnterpriseTrial && isAdmin) ? <StartTrialCaution/> : undefined}
+                        customButtonDetails={enterpriseAction}
+                        planTrialDisclaimer={enterpriseTrialDisclaimer}
                         contactSalesCTA={(isPostSelfHostedEnterpriseTrial || !isAdmin) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),

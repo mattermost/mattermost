@@ -8,7 +8,7 @@ import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {Invoice, Product} from '@mattermost/types/cloud';
-import {SelfHostedSignupProgress, TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
+import {SelfHostedRenewalProgress, SelfHostedSignupProgress, TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@mattermost/types/hosted_customer';
 
 interface SelfHostedProducts {
     products: Record<string, Product>;
@@ -78,6 +78,20 @@ function signupProgress(state = SelfHostedSignupProgress.START, action: GenericA
     case HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS: {
         if (!action.data) {
             throw new Error(`uh ohh, expect action to have data but it dit not. Action: ${JSON.stringify(action, null, 2)}`);
+        }
+        return action.data;
+    }
+    default:
+        return state;
+    }
+}
+
+type RenewalProgress = ValueOf<typeof SelfHostedRenewalProgress>;
+function renewalProgress(state = SelfHostedSignupProgress.START, action: GenericAction): RenewalProgress {
+    switch (action.type) {
+    case HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS: {
+        if (!action.data) {
+            throw new Error(`uh ohh, expected renewal action to have data but it dit not. Action: ${JSON.stringify(action, null, 2)}`);
         }
         return action.data;
     }
@@ -165,6 +179,7 @@ export default combineReducers({
     products,
     invoices,
     signupProgress,
+    renewalProgress,
     errors,
     trueUpReviewProfile,
     trueUpReviewStatus,
