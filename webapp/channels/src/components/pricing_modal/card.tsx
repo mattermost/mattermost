@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import {useSelector} from 'react-redux';
 
 import {cloudFreeDeprecationUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
@@ -104,6 +105,7 @@ function Card(props: CardProps) {
     const {formatMessage} = useIntl();
 
     const enabled = useSelector(cloudFreeDeprecationUIEnabled);
+    const isCloud = useSelector(isCurrentLicenseCloud);
 
     return (
         <div
@@ -111,7 +113,7 @@ function Card(props: CardProps) {
             className='PlanCard'
         >
             {props.planLabel}
-            {!enabled && (
+            {(!enabled || !isCloud) && (
                 <StyledDiv
                     className='top'
                     bgColor={props.topColor}
@@ -120,7 +122,7 @@ function Card(props: CardProps) {
 
             <div
                 className='bottom'
-                style={enabled ? {
+                style={(enabled && isCloud) ? {
                     border: '1px solid rgba(63, 67, 80, 0.16)',
                     borderRadius: '8px',
                 } : {}}
