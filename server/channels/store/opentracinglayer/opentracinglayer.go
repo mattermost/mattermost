@@ -6939,6 +6939,24 @@ func (s *OpenTracingLayerPostPersistentNotificationStore) GetSingle(postID strin
 	return result, err
 }
 
+func (s *OpenTracingLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.UpdateLastActivity")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPriorityStore.GetForPost")

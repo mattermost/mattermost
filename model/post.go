@@ -181,10 +181,9 @@ type PostPersistentNotifications struct {
 }
 
 type GetPersistentNotificationsPostsParams struct {
-	MaxCreateAt   int64
-	MaxLastSentAt int64
-	MaxSentCount  int16
-	PerPage       int
+	MaxTime      int64
+	MaxSentCount int16
+	PerPage      int
 }
 
 type SearchParameter struct {

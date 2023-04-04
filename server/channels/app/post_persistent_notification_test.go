@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDeletePersistentNotificationsPost(t *testing.T) {
+func TestResolvePersistentNotification(t *testing.T) {
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
@@ -36,41 +36,9 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
 
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, "", false)
+		err := th.App.ResolvePersistentNotification(th.Context, post, "")
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
-	})
-
-	t.Run("should delete without checking mentions when checkMentionedUser is false", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		post := &model.Post{Id: "test id"}
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-
-		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
-		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
-		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
-
-		mockChannel := storemocks.ChannelStore{}
-		mockStore.On("Channel").Return(&mockChannel)
-		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{}, nil)
-
-		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
-		cfg := th.App.Config()
-		*cfg.ServiceSettings.PostPriority = true
-		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
-
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, "", false)
-		require.Nil(t, err)
-
-		mockChannel.AssertNotCalled(t, "GetChannelsByIds", mock.Anything, mock.Anything)
-		mockPostPersistentNotification.AssertCalled(t, "Delete", mock.Anything)
 	})
 
 	t.Run("should delete for mentioned user", func(t *testing.T) {
@@ -116,15 +84,12 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
 
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user1.Id, true)
+		err := th.App.ResolvePersistentNotification(th.Context, post, user1.Id)
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertCalled(t, "Delete", mock.Anything)
 	})
 
-	t.Run("should not delete for post owner when checkMentionedUser is true", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
-
+	t.Run("should not delete for post owner", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
@@ -135,22 +100,10 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 
 		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
 		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
-		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
-		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
 
-		mockChannel := storemocks.ChannelStore{}
-		mockStore.On("Channel").Return(&mockChannel)
-		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{}, nil)
-
-		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
-		cfg := th.App.Config()
-		*cfg.ServiceSettings.PostPriority = true
-		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
-
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user1.Id, true)
+		err := th.App.ResolvePersistentNotification(th.Context, post, user1.Id)
 		require.Nil(t, err)
 
-		mockChannel.AssertNotCalled(t, "GetChannelsByIds", mock.Anything, mock.Anything)
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
 	})
 
@@ -198,9 +151,62 @@ func TestDeletePersistentNotificationsPost(t *testing.T) {
 		*cfg.ServiceSettings.PostPriority = true
 		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
 
-		err := th.App.DeletePersistentNotificationsPost(th.Context, post, user3.Id, true)
+		err := th.App.ResolvePersistentNotification(th.Context, post, user3.Id)
 		require.Nil(t, err)
 		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+}
+
+func TestDeletePersistentNotification(t *testing.T) {
+	t.Run("should not delete when no posts exist", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		post := &model.Post{Id: "test id"}
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(nil, &store.ErrNotFound{})
+		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = true
+
+		err := th.App.DeletePersistentNotification(th.Context, post)
+		require.Nil(t, err)
+		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+
+	t.Run("should delete", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		post := &model.Post{Id: "test id"}
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockPostPersistentNotification.On("GetSingle", mock.Anything).Return(&model.PostPersistentNotifications{PostId: post.Id}, nil)
+		mockPostPersistentNotification.On("Delete", mock.Anything).Return(nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+
+		err := th.App.DeletePersistentNotification(th.Context, post)
+		require.Nil(t, err)
+		mockPostPersistentNotification.AssertCalled(t, "Delete", mock.Anything)
 	})
 }
 

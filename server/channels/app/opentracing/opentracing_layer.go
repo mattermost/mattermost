@@ -3290,9 +3290,9 @@ func (a *OpenTracingAppLayer) DeleteOutgoingWebhook(hookID string) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, loggedInUserID string, checkMentionedUser bool) *model.AppError {
+func (a *OpenTracingAppLayer) DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePersistentNotificationsPost")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePersistentNotification")
 
 	a.ctx = newCtx
 	a.app.Srv().Store().SetContext(newCtx)
@@ -3302,7 +3302,7 @@ func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(c request.CTX, p
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeletePersistentNotificationsPost(c, post, loggedInUserID, checkMentionedUser)
+	resultVar0 := a.app.DeletePersistentNotification(c, post)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14434,6 +14434,28 @@ func (a *OpenTracingAppLayer) ResetSamlAuthDataToEmail(includeDeleted bool, dryR
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResolvePersistentNotification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ResolvePersistentNotification(c, post, loggedInUserID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {

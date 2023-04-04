@@ -48,53 +48,37 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 		params.PerPage = 1000
 	}
 
-	var transaction *sqlxTxWrapper
-	var err error
-
-	if transaction, err = s.GetMasterX().Beginx(); err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
 	builder := s.getQueryBuilder().
 		Select("PostId, CreateAt, LastSentAt, DeleteAt, SentCount").
 		From("PersistentNotifications").
 		Where(sq.And{
 			sq.Eq{"DeleteAt": 0},
-			sq.LtOrEq{"CreateAt": params.MaxCreateAt},
-			sq.LtOrEq{"LastSentAt": params.MaxLastSentAt},
+			sq.LtOrEq{"CreateAt": params.MaxTime},
+			sq.LtOrEq{"LastSentAt": params.MaxTime},
 			sq.Lt{"SentCount": params.MaxSentCount},
 		}).
 		Limit(uint64(params.PerPage)).
 		Suffix("for update")
 
 	var posts []*model.PostPersistentNotifications
-	err = transaction.SelectBuilder(&posts, builder)
+	// Replica may not have the latest changes(done by UpdateLastActivity func)
+	// by the time this Get func is called again in the loop.
+	err := s.GetMasterX().SelectBuilder(&posts, builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get notifications")
 	}
 
-	postIds := make([]string, len(posts))
-	for i := range posts {
-		postIds[i] = posts[i].PostId
-	}
-
-	s.updateLastActivity(transaction, postIds)
-
-	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
-	}
 	return posts, nil
 }
 
-func (s *SqlPostPersistentNotificationStore) updateLastActivity(transaction *sqlxTxWrapper, postIds []string) error {
+func (s *SqlPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
 	builder := s.getQueryBuilder().
 		Update("PersistentNotifications").
 		Set("LastSentAt", model.GetMillis()).
 		Set("SentCount", sq.Expr("SentCount+1")).
 		Where(sq.Eq{"PostId": postIds})
 
-	_, err := transaction.ExecBuilder(builder)
+	_, err := s.GetMasterX().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update last activity for posts %s", postIds)
 	}

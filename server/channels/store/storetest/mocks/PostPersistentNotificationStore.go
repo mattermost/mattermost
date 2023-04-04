@@ -115,3 +115,17 @@ func (_m *PostPersistentNotificationStore) GetSingle(postID string) (*model.Post
 
 	return r0, r1
 }
+
+// UpdateLastActivity provides a mock function with given fields: postIds
+func (_m *PostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
+	ret := _m.Called(postIds)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(postIds)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

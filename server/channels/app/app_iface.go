@@ -122,9 +122,8 @@ type AppIface interface {
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 	// groups of all group-constrained teams and channels.
 	DeleteGroupConstrainedMemberships(c *request.Context) error
-	// DeletePersistentNotificationsPost stops persistent notifications, if loggedInUserID(except post owner) reacts, reply or ack on the post.
-	// Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false".
-	DeletePersistentNotificationsPost(c request.CTX, post *model.Post, loggedInUserID string, checkMentionedUser bool) *model.AppError
+	// DeletePersistentNotification stops the persistent notifications.
+	DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError
 	// DeletePublicKey will delete plugin public key from the config.
 	DeletePublicKey(name string) *model.AppError
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
@@ -302,6 +301,9 @@ type AppIface interface {
 	RenameChannel(c request.CTX, channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError)
 	// RenameTeam is used to rename the team Name and the DisplayName fields
 	RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError)
+	// ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
+	// Post-owner can only delete the original post to stop the notifications.
+	ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError
 	// RevokeSessionsFromAllUsers will go through all the sessions active
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError

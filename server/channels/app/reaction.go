@@ -41,7 +41,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	}
 
 	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotificationsPost(c, post, reaction.UserId, true); appErr != nil {
+		if appErr := a.ResolvePersistentNotification(c, post, reaction.UserId); appErr != nil {
 			return nil, appErr
 		}
 	}

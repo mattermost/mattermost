@@ -41,7 +41,7 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 		}
 	}
 
-	if appErr := a.DeletePersistentNotificationsPost(c, post, userID, true); appErr != nil {
+	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
 		return nil, appErr
 	}
 

@@ -15,9 +15,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// DeletePersistentNotificationsPost stops persistent notifications, if loggedInUserID(except post owner) reacts, reply or ack on the post.
-// Post-owner can only delete the original post to stop the notifications, in which case "checkMentionedUser" must be "false".
-func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post, loggedInUserID string, checkMentionedUser bool) *model.AppError {
+// ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
+// Post-owner can only delete the original post to stop the notifications.
+func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError {
+	// Ignore the post owner's actions to their own post
+	if loggedInUserID == post.UserId {
+		return nil
+	}
+
 	if !a.IsPersistentNotificationsEnabled() {
 		return nil
 	}
@@ -30,7 +35,7 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 			// Either the notification post is already deleted or was never a notification post
 			return nil
 		default:
-			return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("ResolvePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -40,37 +45,58 @@ func (a *App) DeletePersistentNotificationsPost(c request.CTX, post *model.Post,
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return model.NewAppError("DeletePersistentNotificationsPost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+				return model.NewAppError("ResolvePersistentNotification", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return model.NewAppError("DeletePersistentNotificationsPost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return model.NewAppError("ResolvePersistentNotification", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 		if user.IsGuest() {
-			c.Logger().Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled for guests.")
 			return nil
 		}
 	}
 
-	// if checkMentionedUser is "false" that would mean user is already authorized to delete the persistent-notification
-	// and the mention-validation can be skipped, so shouldDeletePost will be "true".
-	shouldDeletePost := !checkMentionedUser
+	stopNotifications := false
+	if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		if mentions.isUserMentioned(loggedInUserID) {
+			stopNotifications = true
+		}
+		return nil
+	}); err != nil {
+		return model.NewAppError("ResolvePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
-	// post owner is not allowed to stop the persistent notifications via ack, reply or reaction.
-	if checkMentionedUser && loggedInUserID != post.UserId {
-		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
-			if mentions.isUserMentioned(loggedInUserID) {
-				shouldDeletePost = true
-			}
+	// Only mentioned users can stop the notifications
+	if !stopNotifications {
+		return nil
+	}
+
+	if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
+		return model.NewAppError("ResolvePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+// DeletePersistentNotification stops the persistent notifications.
+func (a *App) DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError {
+	if !a.IsPersistentNotificationsEnabled() {
+		return nil
+	}
+
+	_, err := a.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			// Either the notification post is already deleted or was never a notification post
 			return nil
-		}); err != nil {
-			return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		default:
+			return model.NewAppError("DeletePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	if shouldDeletePost {
-		if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
-			return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
+		return model.NewAppError("DeletePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -80,15 +106,15 @@ func (a *App) SendPersistentNotifications() error {
 	notificationInterval := time.Duration(*a.Config().ServiceSettings.PersistentNotificationIntervalMinutes) * time.Minute
 	notificationMaxCount := int16(*a.Config().ServiceSettings.PersistentNotificationMaxCount)
 
-	// fetch posts for which first notificationInterval duration has passed
-	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
+	// fetch posts for which the "notificationInterval duration" has passed
+	maxTime := time.Now().Add(-notificationInterval).UnixMilli()
 
 	// Pagination loop
 	for {
 		notificationPosts, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
-			MaxCreateAt:   maxCreateAt,
-			MaxLastSentAt: maxCreateAt,
-			MaxSentCount:  notificationMaxCount,
+			MaxTime:      maxTime,
+			MaxSentCount: notificationMaxCount,
+			PerPage:      500,
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to get posts for persistent notifications")
@@ -111,6 +137,10 @@ func (a *App) SendPersistentNotifications() error {
 		// Send notifications
 		if err := a.forEachPersistentNotificationPost(posts, a.sendPersistentNotifications); err != nil {
 			return err
+		}
+
+		if err := a.Srv().Store().PostPersistentNotification().UpdateLastActivity(postIds); err != nil {
+			return errors.Wrapf(err, "failed to update lastActivity for notifications: %v", postIds)
 		}
 	}
 

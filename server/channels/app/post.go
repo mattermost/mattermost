@@ -386,7 +386,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 
 	if rpost.RootId != "" {
-		if appErr := a.DeletePersistentNotificationsPost(c, parentPostList.Posts[post.RootId], rpost.UserId, true); appErr != nil {
+		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -1296,7 +1296,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 
 	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotificationsPost(c, post, "", false); appErr != nil {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
 			return nil, appErr
 		}
 	}
