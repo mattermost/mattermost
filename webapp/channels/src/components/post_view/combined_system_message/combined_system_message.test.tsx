@@ -164,4 +164,34 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledTimes(1);
         expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledWith(['user1']);
     });
+    test('should render messages in chronological order', () => {
+        const allUserIds = ['current_user_id', 'other_user_id_1', 'user_id_1', 'user_id_2', 'join_last'];
+        const messageData = [{
+            actorId: 'current_user_id',
+            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
+            userIds: ['removed_user_id_1'],
+        }, {
+            actorId: 'other_user_id_1',
+            postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
+            userIds: ['removed_user_id_2'],
+        }, {
+            actorId: 'other_user_id_1',
+            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
+            userIds: ['removed_user_id_2'],
+        }, {
+            actorId: 'user_id_1',
+            postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
+            userIds: ['user_id_2'],
+        }, {
+            actorId: 'join_last',
+            postType: Posts.POST_TYPES.JOIN_CHANNEL,
+            userIds: [''],
+        }];
+        const props = {...baseProps, messageData, allUserIds};
+        const wrapper = shallowWithIntl(
+            <CombinedSystemMessage {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
 });
