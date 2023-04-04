@@ -5,7 +5,6 @@ import React from 'react'
 import {render, act} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 
 import {mocked} from 'jest-mock'
 
@@ -22,7 +21,7 @@ import TextElement from './textElement'
 jest.mock('src/utils')
 jest.mock('src/mutator')
 jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
-const mockedUtils = mocked(Utils, true)
+const mockedUtils = mocked(Utils)
 mockedUtils.createGuid.mockReturnValue('test-id')
 const defaultBlock: TextBlock = {
     id: 'test-id',

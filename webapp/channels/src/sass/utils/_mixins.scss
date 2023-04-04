@@ -114,8 +114,12 @@
         display: flex;
         font-size: 18px;
 
-        &::before {
+        &:first-child::before {
             margin: 0 7px 0 0;
+        }
+
+        &:last-child::before {
+            margin: 0 0 0 7px;
         }
     }
 }
@@ -146,7 +150,7 @@
         outline: none;
     }
 
-    &:disabled {
+    &:disabled:not(.always-show-enabled) {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.32);
         cursor: not-allowed;

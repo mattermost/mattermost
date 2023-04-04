@@ -25,7 +25,7 @@ import {
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS, Preferences} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DeletePostModal from 'components/delete_post_modal';
 import DelayedAction from 'utils/delayed_action';
 import * as PostUtils from 'utils/post_utils';
@@ -33,12 +33,10 @@ import * as Menu from 'components/menu';
 import * as Utils from 'utils/utils';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import {ModalData} from 'types/actions';
-import {PluginComponent} from 'types/store/plugins';
 
 import {UserThread} from '@mattermost/types/threads';
 import {Post} from '@mattermost/types/posts';
 import ForwardPostModal from '../forward_post_modal';
-import Tag from '../widgets/tag/tag';
 
 import {ChangeEvent, trackDotMenuEvent} from './utils';
 
@@ -70,19 +68,10 @@ type Props = {
     postEditTimeLimit?: string; // TechDebt: Made non-mandatory while converting to typescript
     enableEmojiPicker?: boolean; // TechDebt: Made non-mandatory while converting to typescript
     channelIsArchived?: boolean; // TechDebt: Made non-mandatory while converting to typescript
-    currentTeamUrl?: string; // TechDebt: Made non-mandatory while converting to typescript
     teamUrl?: string; // TechDebt: Made non-mandatory while converting to typescript
     isMobileView: boolean;
-    showForwardPostNewLabel: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
-
-    /**
-     * Components for overriding provided by plugins
-     */
-    components: {
-        [componentName: string]: PluginComponent[];
-    };
 
     actions: {
 
@@ -292,9 +281,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             },
         };
 
-        if (this.props.showForwardPostNewLabel) {
-            this.props.actions.setGlobalItem(Preferences.FORWARD_POST_VIEWED, false);
-        }
         this.props.actions.openModal(forwardPostModalData);
     }
 
@@ -441,15 +427,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     id='forward_post_button.label'
                     defaultMessage='Forward'
                 />
-                {this.props.showForwardPostNewLabel && (
-                    <Tag
-                        variant='success'
-                        text={formatMessage({
-                            id: 'tag.default.new',
-                            defaultMessage: 'NEW',
-                        })}
-                    />
-                )}
             </span>
         );
 
@@ -519,12 +496,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
-                    'aria-label': this.props.intl.formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'Actions'}),
+                    'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'Actions'}),
                     children: <DotsHorizontalIcon size={16}/>,
                 }}
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,
-                    'aria-label': this.props.intl.formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
+                    'aria-label': formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
                     onKeyDown: this.onShortcutKeyDown,
                     width: '264px',
                     onToggle: this.handleMenuToggle,
@@ -532,7 +509,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }}
                 menuButtonTooltip={{
                     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
-                    text: this.props.intl.formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'More'}),
+                    text: formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'More'}),
                     class: 'hidden-xs',
                 }}
             >
