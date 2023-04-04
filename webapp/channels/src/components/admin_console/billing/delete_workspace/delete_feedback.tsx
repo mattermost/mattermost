@@ -56,7 +56,7 @@ const DeleteFeedbackModal = (props: Props) => {
                 defaultMessage: 'Moving to hosting my own Mattermost instance (self-hosted)',
             }),
             submissionValue: 'Moving to hosting my own Mattermost instance (self-hosted)',
-        }
+        },
     ];
 
     return (
