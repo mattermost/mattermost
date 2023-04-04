@@ -74,6 +74,8 @@ type FeatureFlags struct {
 	GlobalDrafts bool
 
 	OnboardingTourTips bool
+
+	AppsSidebarCategory bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -95,13 +97,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = false
+	f.WorkTemplate = true
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
+	f.AppsSidebarCategory = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

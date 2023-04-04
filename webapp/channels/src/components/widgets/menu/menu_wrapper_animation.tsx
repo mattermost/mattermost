@@ -13,6 +13,9 @@ type Props = {
     show: boolean;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
 export default function MenuWrapperAnimation(props: Props) {
     if (isMobile()) {
         if (props.show) {

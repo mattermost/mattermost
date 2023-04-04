@@ -17,10 +17,8 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
 import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {ActionsTutorialTip} from 'components/actions_menu/actions_menu_tutorial_tip';
 import {ModalData} from 'types/actions';
-import MarketplaceModal from 'components/plugin_marketplace';
-import {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
+import MarketplaceModal, {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
@@ -45,11 +43,6 @@ export type Props = {
     pluginMenuItems?: PluginComponent[];
     post: Post;
     teamId: string;
-    handleOpenTip: () => void;
-    handleNextTip: (e: React.MouseEvent) => void;
-    handleDismissTip: () => void;
-    showPulsatingDot?: boolean;
-    showTutorialTip: boolean;
     canOpenMarketplace: boolean;
 
     /**
@@ -237,14 +230,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         );
     }
 
-    handleActionsIconClick = (e: React.MouseEvent) => {
-        if (this.props.showPulsatingDot || this.props.showTutorialTip) {
-            this.props.handleOpenTip();
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    };
-
     renderDivider = (suffix: string): React.ReactNode => {
         return (
             <li
@@ -414,17 +399,8 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         })}
                         type='button'
                         aria-expanded='false'
-                        onClick={this.handleActionsIconClick}
                     >
                         <i className={'icon icon-apps'}/>
-                        {this.props.showPulsatingDot &&
-                            <ActionsTutorialTip
-                                showTip={this.props.showTutorialTip}
-                                handleNext={this.props.handleNextTip}
-                                handleOpen={this.props.handleOpenTip}
-                                handleDismiss={this.props.handleDismissTip}
-                            />
-                        }
                     </button>
                 </OverlayTrigger>
                 <Menu
