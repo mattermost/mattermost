@@ -356,98 +356,98 @@ export default function SelfHostedExpansionModal() {
                             <div className='footer-text'>{'Questions?'}</div>
                             <ContactSalesLink/>
                         </div>
-                            <div className='center'>
-                            <div
-                                    className='form'
-                                    data-testid='shpm-form'
-                                >
-                                    <span className='section-title'>
-                                    {intl.formatMessage({
+                        <div className='center'>
+                                <div
+                                className='form'
+                                data-testid='shpm-form'
+                            >
+                                <span className='section-title'>
+                                        {intl.formatMessage({
                                         id: 'payment_form.credit_card',
                                         defaultMessage: 'Credit Card',
                                     })}
-                                </span>
-                                    <div className='form-row'>
-                                    <CardInput
-                                            forwardedRef={cardRef}
-                                            required={true}
-                                            onCardInputChange={(event: StripeCardElementChangeEvent) => {
+                                    </span>
+                                <div className='form-row'>
+                                        <CardInput
+                                        forwardedRef={cardRef}
+                                        required={true}
+                                        onCardInputChange={(event: StripeCardElementChangeEvent) => {
                                             setFormState({...formState, cardFilled: event.complete});
                                         }}
-                                            theme={theme}
-                                        />
-                                </div>
-                                    <div className='form-row'>
-                                    <Input
-                                            name='organization'
-                                            type='text'
-                                            value={formState.organization}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        theme={theme}
+                                    />
+                                    </div>
+                                <div className='form-row'>
+                                        <Input
+                                        name='organization'
+                                        type='text'
+                                        value={formState.organization}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                             setFormState({...formState, organization: e.target.value});
                                         }}
-                                            placeholder={intl.formatMessage({
+                                        placeholder={intl.formatMessage({
                                             id: 'self_hosted_signup.organization',
                                             defaultMessage: 'Organization Name',
                                         })}
-                                            required={true}
-                                        />
-                                </div>
-                                    <div className='form-row'>
-                                    <Input
-                                            name='name'
-                                            type='text'
-                                            value={formState.cardName}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        required={true}
+                                    />
+                                    </div>
+                                <div className='form-row'>
+                                        <Input
+                                        name='name'
+                                        type='text'
+                                        value={formState.cardName}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                             setFormState({...formState, cardName: e.target.value});
                                         }}
-                                            placeholder={intl.formatMessage({
+                                        placeholder={intl.formatMessage({
                                             id: 'payment_form.name_on_card',
                                             defaultMessage: 'Name on Card',
                                         })}
-                                            required={true}
-                                        />
-                                </div>
-                                    <span className='section-title'>
-                                    <FormattedMessage
-                                            id='payment_form.billing_address'
-                                            defaultMessage='Billing address'
-                                        />
-                                </span>
-                                    <Address
-                                    testPrefix='selfHostedExpansion'
-                                    type='billing'
-                                    country={formState.country}
-                                    changeCountry={(option) => {
+                                        required={true}
+                                    />
+                                    </div>
+                                <span className='section-title'>
+                                        <FormattedMessage
+                                        id='payment_form.billing_address'
+                                        defaultMessage='Billing address'
+                                    />
+                                    </span>
+                                <Address
+                                        testPrefix='selfHostedExpansion'
+                                        type='billing'
+                                        country={formState.country}
+                                        changeCountry={(option) => {
                                         setFormState({...formState, country: option.value});
                                     }}
-                                    address={formState.address}
-                                    changeAddress={(e) => {
+                                        address={formState.address}
+                                        changeAddress={(e) => {
                                         setFormState({...formState, address: e.target.value});
                                     }}
-                                    address2={formState.address2}
-                                    changeAddress2={(e) => {
+                                        address2={formState.address2}
+                                        changeAddress2={(e) => {
                                         setFormState({...formState, address2: e.target.value});
                                     }}
-                                    city={formState.city}
-                                    changeCity={(e) => {
+                                        city={formState.city}
+                                        changeCity={(e) => {
                                         setFormState({...formState, city: e.target.value});
                                     }}
-                                    state={formState.state}
-                                    changeState={(state: string) => {
+                                        state={formState.state}
+                                        changeState={(state: string) => {
                                         setFormState({...formState, state});
                                     }}
-                                    postalCode={formState.postalCode}
-                                    changePostalCode={(e) => {
+                                        postalCode={formState.postalCode}
+                                        changePostalCode={(e) => {
                                         setFormState({...formState, postalCode: e.target.value});
                                     }}
-                                />
-                                    <ChooseDifferentShipping
-                                    shippingIsSame={formState.shippingSame}
-                                    setShippingIsSame={(val: boolean) => {
+                                    />
+                                <ChooseDifferentShipping
+                                        shippingIsSame={formState.shippingSame}
+                                        setShippingIsSame={(val: boolean) => {
                                         setFormState({...formState, shippingSame: val});
                                     }}
-                                />
-                                    {!formState.shippingSame && (
+                                    />
+                                {!formState.shippingSame && (
                                     <>
                                         <div className='section-title'>
                                             <FormattedMessage
@@ -485,14 +485,14 @@ export default function SelfHostedExpansionModal() {
                                         />
                                     </>
                                 )}
-                                    <Terms
-                                    agreed={formState.agreedTerms}
-                                    setAgreed={(data: boolean) => {
+                                <Terms
+                                        agreed={formState.agreedTerms}
+                                        setAgreed={(data: boolean) => {
                                         setFormState({...formState, agreedTerms: data});
                                     }}
-                                />
-                                </div>
-                        </div>
+                                    />
+                            </div>
+                            </div>
                             <div className='rhs'>
                             <SelfHostedExpansionCard
                                     updateSeats={(seats: number) => {
