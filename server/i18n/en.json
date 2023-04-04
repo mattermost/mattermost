@@ -5928,6 +5928,10 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} cannot be installed since it's already packaged with Mattermost."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
