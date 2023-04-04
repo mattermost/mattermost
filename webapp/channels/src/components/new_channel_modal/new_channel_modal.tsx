@@ -8,7 +8,7 @@ import {Tooltip} from 'react-bootstrap';
 
 import classNames from 'classnames';
 
-import { random as cryptoJSRandomWordArray} from 'crypto-js/lib-typedarrays';
+import {random as cryptoJSRandomWordArray} from 'crypto-js/lib-typedarrays';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import GenericModal from 'components/generic_modal';
