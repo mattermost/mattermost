@@ -222,6 +222,10 @@ export default class Plugin {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
     async initialize(registry: PluginRegistry, mmStore: Store<GlobalState, Action<Record<string, unknown>>>): Promise<void> {
+        if(window.location.pathname.includes('/boards/public')){
+            return
+        }
+
         const siteURL = mmStore.getState().entities.general.config.SiteURL
         const subpath = siteURL ? getSubpath(siteURL) : ''
         windowAny.frontendBaseURL = subpath + windowAny.frontendBaseURL
@@ -305,9 +309,7 @@ export default class Plugin {
                 prevTeamId = currentTeamId
                 store.dispatch(setTeam(currentTeamId))
                 octoClient.teamId = currentTeamId
-                if(!window.location.pathname.includes('/boards/public')){
-                    store.dispatch(initialLoad())
-                }
+                store.dispatch(initialLoad())
             }
 
             if (currentTeamId && currentTeamId !== prevTeamId) {
