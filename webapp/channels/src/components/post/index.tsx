@@ -4,7 +4,6 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {showActionsDropdownPulsatingDot} from 'selectors/actions_menu';
 import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
@@ -13,7 +12,6 @@ import {
     get,
     getBool,
     isCollapsedThreadsEnabled,
-    onboardingTourTipsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getCurrentTeamId, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -129,8 +127,7 @@ function makeMapStateToProps() {
         const user = getUser(state, post.user_id);
         const isBot = Boolean(user && user.is_bot);
         const highlightedPostId = getHighlightedPostId(state);
-        const showActionsMenuPulsatingDot = showActionsDropdownPulsatingDot(state);
-        const tourTipsEnabled = onboardingTourTipsEnabled(state);
+
         const selectedCard = getSelectedPostCard(state);
 
         let emojis: Emoji[] = [];
@@ -203,8 +200,7 @@ function makeMapStateToProps() {
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT) === 'true',
             shouldShowActionsMenu: shouldShowActionsMenu(state, post),
-            showActionsMenuPulsatingDot,
-            tourTipsEnabled,
+
             shortcutReactToLastPostEmittedFrom,
             isBot,
             collapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
