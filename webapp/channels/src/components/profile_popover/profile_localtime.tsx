@@ -17,7 +17,7 @@ type ProfileTimezoneProps = {
 
 const returnTimeDiff = (
     currentUserTimezone: string | undefined,
-    profileUserTimezone: UserTimezone | undefined,
+    profileUserTimezone: string | undefined,
 ) => {
     if (!currentUserTimezone || !profileUserTimezone) {
         return undefined;
