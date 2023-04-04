@@ -5,15 +5,17 @@ import React, {useEffect} from 'react';
 import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import {trackEvent} from 'actions/telemetry_actions';
 import Constants, {TELEMETRY_CATEGORIES} from 'utils/constants';
 import {isEnterpriseOrE20License} from 'utils/license_utils';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {Permissions} from 'mattermost-redux/constants';
+import {GlobalState} from 'types/store';
 import {Visibility, WorkTemplate} from '@mattermost/types/work_templates';
 import {ChannelType} from '@mattermost/types/channels';
+
 export interface CustomizeProps {
     className?: string;
     name: string;
@@ -38,6 +40,10 @@ const Customize = ({
     const templateHasChannels = template.content.findIndex((item) => item.channel) !== -1;
     const templateHasBoards = template.content.findIndex((item) => item.board) !== -1;
     const templateHasPlaybooks = template.content.findIndex((item) => item.playbook) !== -1;
+    const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
+    const canCreatePrivateChannel = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.CREATE_PRIVATE_CHANNEL));
+    const canCreatePublicPlaybook = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, 'playbook_public_create'));
+    const canCreatePrivatePlaybook = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, 'playbook_private_create'));
 
     useEffect(() => {
         trackEvent(TELEMETRY_CATEGORIES.WORK_TEMPLATES, 'pageview_customize');
@@ -49,10 +55,39 @@ const Customize = ({
     };
 
     let privateButtonProps = {};
-    if (templateHasPlaybooks && !licenseIsEnterprise) {
-        if (visibility === Visibility.Private) {
-            onVisibilityChanged(Visibility.Public);
+    let publicButtonProps = {};
+    if (templateHasPlaybooks) {
+        if (!canCreatePublicPlaybook) {
+            publicButtonProps = {
+                tooltip: formatMessage({id: 'work_templates.customize.public_playbook_permission_issue', defaultMessage: 'You do not have permission to create public playbooks.'}),
+                disabled: true,
+            };
         }
+        if (!canCreatePrivatePlaybook) {
+            privateButtonProps = {
+                tooltip: formatMessage({id: 'work_templates.customize.private_playbook_permission_issue', defaultMessage: 'You do not have permission to create private playbooks.'}),
+                disabled: true,
+            };
+        }
+    }
+
+    if (templateHasChannels) {
+        if (!canCreatePublicChannel) {
+            publicButtonProps = {
+                tooltip: formatMessage({id: 'work_templates.customize.public_channel_permission_issue', defaultMessage: 'You do not have permission to create public channels.'}),
+                disabled: true,
+            };
+        }
+        if (!canCreatePrivateChannel) {
+            privateButtonProps = {
+                tooltip: formatMessage({id: 'work_templates.customize.private_channel_permission_issue', defaultMessage: 'You do not have permission to create private channels.'}),
+                disabled: true,
+            };
+        }
+    }
+
+    // leave this rule last as it has priority
+    if (templateHasPlaybooks && !licenseIsEnterprise) {
         privateButtonProps = {
             tooltip: formatMessage({id: 'work_templates.customize.private_playbook_license_issue', defaultMessage: 'Private playbooks requires an Enterprise license.'}),
             locked: true,
@@ -98,6 +133,7 @@ const Customize = ({
                     selected={privacySelectorValue}
                     onChange={onPrivacySelectorChanged}
                     privateButtonProps={privateButtonProps}
+                    publicButtonProps={publicButtonProps}
                 />
             </div>
         </div>
@@ -146,4 +182,3 @@ const StyledCustomized = styled(Customize)`
 `;
 
 export default StyledCustomized;
-
