@@ -9540,10 +9540,6 @@
     "translation": "Nie można uzyskać priorytetu dla posta"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Nie można zaktualizować szkicu."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Nie można zapisać Szkicu."
   },

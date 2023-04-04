@@ -9540,10 +9540,6 @@
     "translation": "Невозможно получить приоритет для сообщения"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Невозможно обновить черновик."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Невозможно сохранить черновик."
   },

@@ -2192,7 +2192,6 @@
   "login.verified": "Електронну пошту підтверджено",
   "login_mfa.submit": "Відправити",
   "login_mfa.token": "Токен MFA",
-  "marketplace_list.count_total_page": "{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total, number} total",
   "marketplace_modal.install_plugins": "Встановлені плагіни:",
   "marketplace_modal.list.try_again": "Спробуй ще раз ",
   "marketplace_modal.list.update": "Оновити",

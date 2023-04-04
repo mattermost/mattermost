@@ -9520,10 +9520,6 @@
     "translation": "投稿に対する優先度を取得できませんでした"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "下書きを更新できませんでした。"
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "下書きを保存できませんでした。"
   },

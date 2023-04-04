@@ -8396,10 +8396,6 @@
     "translation": "평가판을 시작할 수 있는지 확인할 수 없습니다"
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": ""
-  },
-  {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
     "translation": "파일 저장소 설정에 설정되지 않은 값이 있습니다."
   },

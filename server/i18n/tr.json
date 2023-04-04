@@ -9567,10 +9567,6 @@
     "translation": "İletinin önceliği alınamadı"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Taslak güncellenemedi."
-  },
-  {
     "id": "app.draft.get_drafts.app_error",
     "translation": "Kullanıcının taslakları alınamadı."
   },
