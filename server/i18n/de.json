@@ -9023,50 +9023,6 @@
     "translation": "Fehler beim Zählen der Gruppen"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Erhöhe die Produktivität mit diesen tollen Funktionen"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hi {{.Name}}, wir haben bemerkt, dass Dein Mattermost Server etwas Staub ansetzt, Schau mal auf die neuen Funktionen, die Dir helfen die Belastung Deines Team zu senken."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Öffne Mattermost um Dein Team produktiver zu machen!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Verwalte Aufgaben mit "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Arbeitsablauf-Verwaltung mit "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Gastzugriff auf angegebene "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Komm und teste es!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Öffne Mattermost"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanäle"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Kann nicht alle Jobs nach Typ und Status holen."
   },
@@ -9169,10 +9125,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Die Elasticsearch-Einstellungen haben nicht definierte Werte."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Du hast diese einmalige E-Mail erhalten, weil dein Mattermost-Server für mehr als {{.Hours}} Stunden inaktiv war. Diese E-Mail wurde automatisch von deinem Mattermost-Server generiert."
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9509,10 +9461,6 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "Gruppenname existiert bereits als reservierter Name"
-  },
-  {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Plugin {{.Name}} kann im Produktmodus nicht aktiviert werden."
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",

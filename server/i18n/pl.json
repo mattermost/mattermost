@@ -9024,50 +9024,6 @@
     "translation": "błąd liczenia grup"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Odblokuj zwiększoną produktywność dzięki tym wspaniałym funkcjom"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hej {{.Name}}, zauważyliśmy, że twój serwer Mattermost zbiera trochę kurzu. Zapoznaj się z kilkoma funkcjami, które pomogą odciążyć Twój zespół."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Otwórz Mattermost, aby zwiększyć produktywność swojego zespołu!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Zarządzaj zadaniami za pomocą "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Zarządzanie przepływem pracy z "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Dostęp gości do określenia "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Przyjdź i sprawdź to!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Otwórz Mattermost"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooki"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanały"
-  },
-  {
-    "id": "Boards",
-    "translation": "Tablice"
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Maksymalna długość identyfikatora MattermostAppID wynosi 32 znaki."
   },
@@ -9170,10 +9126,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Ustawienia Elasticsearch mają nieustawione wartości."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9510,10 +9462,6 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "nazwa grupy już istnieje jako nazwa zastrzeżona"
-  },
-  {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Wtyczka {{.Name}} nie może być włączona w trybie produktu."
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",

@@ -8971,18 +8971,6 @@
     "translation": "Misslyckades att tolka onboarding-anropet."
   },
   {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanaler"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "api.custom_groups.no_remote_id",
     "translation": "remote_id måste vara tomt för anpassade grupper"
   },
@@ -9069,42 +9057,6 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Det går inte att få fram antalet filer i kanalen"
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Öka produktiviteten med dessa fantastiska funktioner"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hej {{.Name}}, vi ser att din Mattermost-server samlat lite damm. Ta en titt på några funktioner som kan hjälpa till att lätta på arbetsbördan för ditt team."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Öppna Mattermost för att öka teamets produktivitet!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Hantera uppgifter med hjälp av "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Hantera arbetsflöden med "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Gäståtkomst till specificerade "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Kom och kolla in det!"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Du fick det här engångsmejlet eftersom din Mattermost-server har varit inaktiv i mer än {{.Hours}} timmar. Det här e-postmeddelandet genererades automatiskt av din Mattermost-server."
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Öppna Mattermost"
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9521,10 +9473,6 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Ogiltigt tidsintervall."
-  },
-  {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Plugin {{.Name}} kan inte aktiveras i produktionsläge."
   },
   {
     "id": "app.collection.add_collection.exists.app_error",
