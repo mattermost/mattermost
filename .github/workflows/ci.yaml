@@ -1,0 +1,73 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+env:
+  TERM: xterm
+  GO_VERSION: 1.19.6
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+
+      - name: ci/setup-go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+
+      - name: ci/go-tidy
+        run: go mod tidy -v
+      
+      - name: ci/check-diff-on-gomod
+        run: git --no-pager diff --exit-code go.mod go.sum || (echo "Please run \"go mod tidy\" and commit the changes in go.mod and go.sum." && exit 1)
+      
+      - name: ci/run-mocks
+        run: make mock
+
+      - name: ci/check-diff-on-generated-mocks
+        run: git --no-pager diff --exit-code */mocks* || (echo "Please run \"make mock\" and commit the changes in the generated files." && exit 1)
+
+      - name: ci/checking-code-style
+        run: make check-style
+          
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+
+      - name: ci/setup-go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+
+      - name: ci/test
+        run: make test
+
+  coverage:
+    runs-on: ubuntu-22.04
+    needs:
+      - lint
+      - test
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+
+      - name: ci/setup-go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: "${{ env.GO_VERSION }}"
+
+      - name: ci/coverage
+        run: make coverage
+  
+      - name: ci/upload-coverage
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # v3.1.1
+        with:
+          files: coverage.txt

@@ -24,11 +24,11 @@ check-style:
 ## Generates mock golang interfaces for testing
 mock:
 	go install github.com/golang/mock/mockgen@v1.6.0
-	mockgen -destination experimental/panel/mocks/mock_panel.go -package mock_panel github.com/mattermost/mattermost-plugin-api/experimental/panel Panel
-	mockgen -destination experimental/panel/mocks/mock_panelStore.go -package mock_panel github.com/mattermost/mattermost-plugin-api/experimental/panel Store
-	mockgen -destination experimental/panel/mocks/mock_setting.go -package mock_panel github.com/mattermost/mattermost-plugin-api/experimental/panel/settings Setting
-	mockgen -destination experimental/bot/mocks/mock_bot.go -package mock_bot github.com/mattermost/mattermost-plugin-api/experimental/bot Bot
-	mockgen -destination experimental/bot/mocks/mock_logger.go -package mock_bot github.com/mattermost/mattermost-plugin-api/experimental/bot/logger Logger
-	mockgen -destination experimental/bot/mocks/mock_poster.go -package mock_bot github.com/mattermost/mattermost-plugin-api/experimental/bot/poster Poster
-	mockgen -destination experimental/oauther/mocks/mock_oauther.go -package mock_oauther github.com/mattermost/mattermost-plugin-api/experimental/oauther OAuther
-	mockgen -destination experimental/bot/poster/mock_import/mock_postapi.go -package mock_import github.com/mattermost/mattermost-plugin-api/experimental/bot/poster PostAPI
+	$(GOBIN)/mockgen -destination experimental/panel/mocks/mock_panel.go -package mock_panel github.com/mattermost/mattermost-plugin-api/experimental/panel Panel
+	$(GOBIN)/mockgen -destination experimental/panel/mocks/mock_panelStore.go -package mock_panel github.com/mattermost/mattermost-plugin-api/experimental/panel Store
+	$(GOBIN)/mockgen -destination experimental/panel/mocks/mock_setting.go -package mock_panel github.com/mattermost/mattermost-plugin-api/experimental/panel/settings Setting
+	$(GOBIN)/mockgen -destination experimental/bot/mocks/mock_bot.go -package mock_bot github.com/mattermost/mattermost-plugin-api/experimental/bot Bot
+	$(GOBIN)/mockgen -destination experimental/bot/mocks/mock_logger.go -package mock_bot github.com/mattermost/mattermost-plugin-api/experimental/bot/logger Logger
+	$(GOBIN)/mockgen -destination experimental/bot/mocks/mock_poster.go -package mock_bot github.com/mattermost/mattermost-plugin-api/experimental/bot/poster Poster
+	$(GOBIN)/mockgen -destination experimental/oauther/mocks/mock_oauther.go -package mock_oauther github.com/mattermost/mattermost-plugin-api/experimental/oauther OAuther
+	$(GOBIN)/mockgen -destination experimental/bot/poster/mock_import/mock_postapi.go -package mock_import github.com/mattermost/mattermost-plugin-api/experimental/bot/poster PostAPI
