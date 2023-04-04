@@ -11,7 +11,6 @@ TESTFLAGS=$5
 GOBIN=$6
 TIMEOUT=$7
 
-PACKAGES_COMMA=$(echo $PACKAGES | tr ' ' ',')
 export MM_SERVER_PATH=$PWD
 
 echo "Packages to test: $PACKAGES"
@@ -24,7 +23,7 @@ fi
 
 find . -type d -name data -not -path './data' | xargs rm -rf
 
-$GO test $GOFLAGS -run=$TESTS $TESTFLAGS -v -timeout=$TIMEOUT -exec $DIR/test-xprog.sh $PACKAGES 2>&1 > >( tee output )
+$GO test $GOFLAGS -run=$TESTS $TESTFLAGS -v -timeout=$TIMEOUT $PACKAGES 2>&1 > >( tee output )
 EXIT_STATUS=$?
 
 cat output | $GOBIN/go-junit-report > report.xml
