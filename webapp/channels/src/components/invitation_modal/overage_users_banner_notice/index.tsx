@@ -103,7 +103,7 @@ const OverageUsersBannerNotice = () => {
                         const handleClick = () => {
                             trackEventFn(isExpandable ? 'Self Serve' : 'Contact Sales');
                             if (isExpandable) {
-                                selfHostedExpansionModal.open()
+                                selfHostedExpansionModal.open();
                             }
                         };
 
@@ -120,7 +120,7 @@ const OverageUsersBannerNotice = () => {
                                 >
                                     {cta}
                                 </NavLink>
-                            )
+                            );
                         }
 
                         return (
