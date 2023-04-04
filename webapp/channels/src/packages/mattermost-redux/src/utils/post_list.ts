@@ -322,7 +322,7 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
     );
 }
 
-function extractUserActivityData(userActivities: ActivityEntry[]) {
+export function extractUserActivityData(userActivities: ActivityEntry[]) {
     const messageData: any[] = [];
     const allUserIds: string[] = [];
     const allUsernames: string[] = [];
@@ -332,10 +332,10 @@ function extractUserActivityData(userActivities: ActivityEntry[]) {
             if (usernames && userIds) {
                 messageData.push({postType, userIds: [...userIds], actorId: actorId[0]});
                 if (userIds.length > 0) {
-                    allUserIds.push(...userIds);
+                    allUserIds.push(...userIds.filter((userId) => userId));
                 }
                 if (usernames.length > 0) {
-                    allUsernames.push(...usernames);
+                    allUsernames.push(...usernames.filter((username) => username));
                 }
                 allUserIds.push(actorId[0]);
             }
