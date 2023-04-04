@@ -11,7 +11,7 @@
 
 import {HALF_SEC, ONE_SEC} from '../../../../fixtures/timeouts';
 
-describe('channels > rhs > checklist', () => {
+describe('channels > rhs > checklist', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

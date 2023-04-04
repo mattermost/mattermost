@@ -11,7 +11,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-describe('channels > rhs', () => {
+describe('channels > rhs', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;
