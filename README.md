@@ -1,7 +1,7 @@
 # mattermost-plugin-api
 
 [![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/mattermost/mattermost-plugin-api)
-[![Build Status](https://img.shields.io/circleci/project/github/mattermost/mattermost-plugin-api/master.svg)](https://circleci.com/gh/mattermost/mattermost-plugin-api)
+[![ci](https://github.com/mattermost/mattermost-plugin-api/actions/workflows/ci.yaml/badge.svg)](https://github.com/mattermost/mattermost-plugin-api/actions/workflows/ci.yaml)
 [![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mattermost-plugin-api/master.svg)](https://codecov.io/gh/mattermost/mattermost-plugin-api/branch/master)
 
 A hackathon project to explore reworking the Mattermost Plugin API.
