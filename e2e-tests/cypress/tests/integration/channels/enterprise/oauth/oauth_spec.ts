@@ -292,7 +292,7 @@ describe('Integrations page', () => {
         // * The app should no longer exist
         cy.get(`[data-app="${oauthClientID}"]`).should('not.exist');
 
-        // # Close the account settings modal
+        // # Close the profile settings modal
         cy.get('#accountSettingsHeader').within(() => {
             cy.get('button.close').click();
         });
