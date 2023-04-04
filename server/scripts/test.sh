@@ -19,10 +19,4 @@ then
 	export GOMAXPROCS=4
 fi
 
-$GO test $GOFLAGS -v -timeout=$TIMEOUT $PACKAGES 2>&1 > >( tee output )
-EXIT_STATUS=$?
-
-cat output | $GOBIN/go-junit-report > report.xml
-rm output
-
-exit $EXIT_STATUS
+$GOBIN/gotestsum --junitfile report.xml --jsonfile report.json --format testname --packages="$PACKAGES" -- $GOFLAGS -timeout=$TIMEOUT
