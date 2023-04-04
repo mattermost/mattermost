@@ -42,6 +42,7 @@ interface Props {
     updateSeats: (seats: Seats) => void;
     canSubmit: boolean;
     submit: () => void;
+    isRenewal?: boolean;
 }
 
 export default function SelfHostedCard(props: Props) {
