@@ -65,7 +65,7 @@ describe('components/Root', () => {
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
         },
-        permalinkRedirectTeamName: '',
+        permalinkRedirectTeamName: 'myTeam',
         showLaunchingWorkspace: false,
         plugins: [],
         products: [],

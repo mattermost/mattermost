@@ -85,11 +85,11 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
     />
     <Redirect
       from="/_redirect/integrations/:subpath*"
-      to="//integrations/:subpath*"
+      to="/myTeam/integrations/:subpath*"
     />
     <Redirect
       from="/_redirect/pl/:postid"
-      to="//pl/:postid"
+      to="/myTeam/pl/:postid"
     />
     <CompassThemeProvider
       theme={Object {}}

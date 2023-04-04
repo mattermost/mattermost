@@ -870,7 +870,7 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
           >
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
@@ -898,7 +898,7 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
@@ -1921,7 +1921,7 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
           >
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
@@ -1949,7 +1949,7 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
