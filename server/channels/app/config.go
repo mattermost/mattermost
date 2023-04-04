@@ -40,6 +40,10 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 	a.Srv().platform.UpdateConfig(f)
 }
 
+func (a *App) IsConfigReadOnly() bool {
+	return a.Srv().platform.IsConfigReadOnly()
+}
+
 func (a *App) ReloadConfig() error {
 	return a.Srv().platform.ReloadConfig()
 }
