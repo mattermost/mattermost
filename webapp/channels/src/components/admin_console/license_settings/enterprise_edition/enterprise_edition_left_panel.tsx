@@ -68,11 +68,11 @@ const EnterpriseEditionLeftPanel = ({
     useEffect(() => {
         console.log(actionQueryParam);
         if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedExpansionEnabled) {
-            console.log("Open modal!");
+            console.log('Open modal!');
             selfHostedExpansionModal.open();
             query.set('action', '');
         }
-    }, [])
+    }, []);
 
     useEffect(() => {
         async function fetchUnSanitizedLicense() {

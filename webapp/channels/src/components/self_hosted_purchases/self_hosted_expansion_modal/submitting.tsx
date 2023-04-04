@@ -93,7 +93,7 @@ export default function Submitting(props: Props) {
                 setBarProgress(Math.min(maxProgressForCurrentSignupProgress, barProgress + maxFakeProgressIncrement));
             }
         }, fakeProgressInterval);
-    
+
         return () => clearInterval(interval);
     }, [barProgress]);
 
