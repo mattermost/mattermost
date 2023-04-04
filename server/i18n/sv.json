@@ -9587,10 +9587,6 @@
     "translation": "Det går inte att få fram inläggets prioritet"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Kunde inte uppdatera utkastet."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Kunde inte spara utkastet."
   },

@@ -9668,10 +9668,6 @@
     "translation": "由于云订阅的限制，无法取得文件。"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "无法更新草稿。"
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "无法保存草稿。"
   },
