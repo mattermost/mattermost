@@ -44,32 +44,36 @@ export default function PaymentAnnouncementBar() {
 
     if (
         // Prevents banner flashes if the subscription hasn't been loaded yet
-        isEmpty(subscription)
-        || isStarterFree
-        || !isCloud
-        || !userIsAdmin
-        || isEmpty(customer)
-        || (!isCustomerCardExpired(customer) && !mostRecentPaymentFailed)
+        isEmpty(subscription) ||
+        isStarterFree ||
+        !isCloud ||
+        !userIsAdmin ||
+        isEmpty(customer) ||
+        (!isCustomerCardExpired(customer) && !mostRecentPaymentFailed)
     ) {
         return null;
     }
 
     const updatePaymentInfo = () => {
         getHistory().push('/admin_console/billing/payment_info');
-    }
+    };
 
-    let message = (<FormattedMessage
-        id="admin.billing.subscription.creditCardExpired"
-        defaultMessage="Your credit card has expired. Update your payment information to avoid disruption."
-    />);
+    let message = (
+        <FormattedMessage
+            id='admin.billing.subscription.creditCardExpired'
+            defaultMessage='Your credit card has expired. Update your payment information to avoid disruption.'
+        />
+    );
 
     if (mostRecentPaymentFailed) {
-        message = (<FormattedMessage
-            id="admin.billing.subscription.mostRecentPaymentFailed"
-            defaultMessage="Your most recent payment failed"
-        />);
+        message = (
+            <FormattedMessage
+                id='admin.billing.subscription.mostRecentPaymentFailed'
+                defaultMessage='Your most recent payment failed'
+            />
+        );
     }
-     
+
     return (
         <AnnouncementBar
             type={AnnouncementBarTypes.CRITICAL}
