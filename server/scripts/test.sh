@@ -21,14 +21,10 @@ then
 	export GOMAXPROCS=4
 fi
 
-find . -type d -name data -not -path './data' | xargs rm -rf
-
 $GO test $GOFLAGS -run=$TESTS $TESTFLAGS -v -timeout=$TIMEOUT $PACKAGES 2>&1 > >( tee output )
 EXIT_STATUS=$?
 
 cat output | $GOBIN/go-junit-report > report.xml
 rm output
-rm -f config/*.crt
-rm -f config/*.key
 
 exit $EXIT_STATUS
