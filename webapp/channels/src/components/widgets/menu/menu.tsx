@@ -31,6 +31,9 @@ type Props = {
     listId?: string;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
 export default class Menu extends React.PureComponent<Props> {
     public static Header = MenuHeader
     public static Group = MenuGroup

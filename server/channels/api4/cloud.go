@@ -246,16 +246,6 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
-		return
-	}
-
 	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(appErr)

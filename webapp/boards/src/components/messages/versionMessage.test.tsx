@@ -21,7 +21,7 @@ import {versionProperty} from 'src/store/users'
 import VersionMessage from './versionMessage'
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(client, true)
+const mockedOctoClient = mocked(client)
 
 describe('components/messages/VersionMessage', () => {
     beforeEach(() => {
@@ -98,7 +98,7 @@ describe('components/messages/VersionMessage', () => {
             expect(container.firstChild).toBeNull()
         })
 
-        test('show message, click close', () => {
+        test('show message, click close', async () => {
             const me: IUser = {
                 id: 'user-id-1',
                 username: 'username_1',
@@ -128,7 +128,7 @@ describe('components/messages/VersionMessage', () => {
 
             render(component)
             const buttonElement = screen.getByRole('button', {name: 'Close dialog'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             expect(mockedOctoClient.patchUserConfig).toBeCalledWith('user-id-1', {
                 updatedFields: {
                     [versionProperty]: 'true',

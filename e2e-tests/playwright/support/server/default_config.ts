@@ -697,6 +697,7 @@ const defaultServerConfig: AdminConfig = {
         ThreadsEverywhere: false,
         GlobalDrafts: true,
         OnboardingTourTips: true,
+        AppsSidebarCategory: false,
     },
     ImportSettings: {
         Directory: './import',

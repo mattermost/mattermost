@@ -116,6 +116,7 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
+    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -248,6 +249,11 @@ export type RequestLicenseBody = {
     users: number;
     terms_accepted: boolean;
     receive_emails_accepted: boolean;
+    contact_name: string;
+    contact_email: string;
+    company_name: string;
+    company_size: string;
+    company_country: string;
 }
 
 export type DataRetentionPolicy = {
