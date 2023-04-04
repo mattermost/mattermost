@@ -9000,38 +9000,6 @@
     "translation": "SAML的请求信息太长"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "解锁这些令人敬佩的、提高生产力的功能"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "嗨, {{.Name}}, 我们注意到您的 Mattermost 服务器集了一些“灰尘”（有一段时间没有维护了），快来看看可以帮助减轻团队工作量的一些功能."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "快来打开 Mattermost 以提高您团队的生产力！"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "管理任务由 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "工作流管理于 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "指定客户专访 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "快来看看吧!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "打开 Mattermost"
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
   },
@@ -9128,18 +9096,6 @@
     "translation": "统计“组”时出现错误"
   },
   {
-    "id": "Playbooks",
-    "translation": "规划书"
-  },
-  {
-    "id": "Channels",
-    "translation": "频道"
-  },
-  {
-    "id": "Boards",
-    "translation": "面板"
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID 的最大长度为 32 个字符。"
   },
@@ -9170,10 +9126,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "Insights 功能已禁用。"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9686,10 +9638,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "无法取得消息的优先级"
-  },
-  {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "在生产模式中无法启用 {{.Name}} 插件。"
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",

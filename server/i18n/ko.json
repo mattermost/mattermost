@@ -7860,10 +7860,6 @@
     "translation": "게시된 파일을 삭제하지 못했습니다."
   },
   {
-    "id": "Boards",
-    "translation": "보드"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch 설정에 설정되지 않은 값이 있습니다."
   },
@@ -7886,14 +7882,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "이미 관리자에게 통지됨"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "플레이북"
-  },
-  {
-    "id": "Channels",
-    "translation": "채널"
   },
   {
     "id": "api.custom_groups.feature_disabled",
