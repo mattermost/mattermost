@@ -133,7 +133,7 @@
             width: 280px;
 
             .description {
-                border-bottom: 1px solid rgba(63, 67, 80, 0.16);
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb) 0.16);
                 text-align: center;
 
                 .title {
@@ -147,7 +147,7 @@
 
                     .questions {
                         margin-right: 2px;
-                        color: #3f4350;
+                        color: var(--center-channel-color-rgb);
                     }
 
                     .contact {
@@ -157,7 +157,7 @@
 
                 .content {
                     margin-bottom: 25px;
-                    color: rgba(63, 67, 80, 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
                     font-family: 'Open Sans';
                     font-size: 14px;
                     font-style: normal;
@@ -169,7 +169,7 @@
             .self-hosted-interest {
                 padding: 8px;
                 margin-top: 24px;
-                background: rgba(28, 88, 217, 0.08);
+                background: rgba(var(--denim-button-bg-rgb), 0.08);
                 border-radius: 8px;
                 font-family: 'Open Sans';
                 font-size: 14px;
@@ -179,7 +179,7 @@
 
                 .interested {
                     margin-right: 2px;
-                    color: #3f4350;
+                    color: var(--center-channel-color-rgb);
                 }
 
                 .learn {

@@ -75,7 +75,7 @@ type FeatureFlags struct {
 
 	OnboardingTourTips bool
 
-	EnableCloudFreeDeprecationUI bool
+	DeprecateCloudFree bool
 
 	AppsSidebarCategory bool
 }
@@ -103,7 +103,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
-	f.EnableCloudFreeDeprecationUI = false
+	f.DeprecateCloudFree = true
 	f.WysiwygEditor = false
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true

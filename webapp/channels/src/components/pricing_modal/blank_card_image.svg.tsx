@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-const Illus = () => {
+const BlankCardImage = () => {
     return (
         <svg
             width='264'
@@ -520,4 +520,4 @@ const Illus = () => {
     );
 };
 
-export default Illus;
+export default BlankCardImage;

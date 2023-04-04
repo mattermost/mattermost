@@ -20,7 +20,7 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {cloudFreeDeprecationUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Feedback} from '@mattermost/types/cloud';
 import useGetUsage from 'components/common/hooks/useGetUsage';
@@ -70,7 +70,7 @@ function Content(props: ContentProps) {
     const currentProduct = useSelector(selectSubscriptionProduct);
     const products = useSelector(selectCloudProducts);
 
-    const enabled = useSelector(cloudFreeDeprecationUIEnabled);
+    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const yearlyProducts = findOnlyYearlyProducts(products || {}); // pricing modal should now only show yearly products
 
     const currentSubscriptionIsMonthly = currentProduct?.recurring_interval === RecurringIntervals.MONTH;
@@ -126,7 +126,7 @@ function Content(props: ContentProps) {
             return formatMessage({id: 'pricing_modal.btn.switch_to_annual', defaultMessage: 'Switch to annual billing'});
         }
 
-        if (enabled) {
+        if (cloudFreeDeprecated) {
             return formatMessage({id: 'pricing_modal.btn.purchase', defaultMessage: 'Purchase'});
         }
 
@@ -249,7 +249,7 @@ function Content(props: ContentProps) {
     };
 
     const enterpriseBtnDetails = () => {
-        if (enabled || (isPostTrial && isAdmin)) {
+        if (cloudFreeDeprecated || (isPostTrial && isAdmin)) {
             return {
                 action: () => {
                     trackEvent(TELEMETRY_CATEGORIES.CLOUD_PRICING, 'click_enterprise_contact_sales');
@@ -285,7 +285,7 @@ function Content(props: ContentProps) {
     };
 
     const enterpriseCustomBtnDetails = () => {
-        if (!isPostTrial && isAdmin && !enabled) {
+        if (!isPostTrial && isAdmin && !cloudFreeDeprecated) {
             return (
                 <CloudStartTrialButton
                     message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
@@ -326,7 +326,7 @@ function Content(props: ContentProps) {
                 />
             </Modal.Header>
             <Modal.Body>
-                {!enabled && (
+                {!cloudFreeDeprecated && (
                     <div className='pricing-options-container'>
                         <div className='alert-option-container'>
                             <div className='alert-option'>
@@ -348,9 +348,9 @@ function Content(props: ContentProps) {
 
                 <div
                     className='PricingModal__body'
-                    style={{marginTop: enabled ? '74px' : ''}}
+                    style={{marginTop: cloudFreeDeprecated ? '74px' : ''}}
                 >
-                    {!enabled && (
+                    {!cloudFreeDeprecated && (
                         <Card
                             id='free'
                             topColor='#339970'
@@ -479,7 +479,7 @@ function Content(props: ContentProps) {
                         buttonDetails={enterpriseBtnDetails()}
                         customButtonDetails={enterpriseCustomBtnDetails()}
                         planTrialDisclaimer={(!isPostTrial && isAdmin) ? <StartTrialCaution/> : undefined}
-                        contactSalesCTA={(isPostTrial || !isAdmin || enabled) ? undefined : <ContactSalesCTA/>}
+                        contactSalesCTA={(isPostTrial || !isAdmin || cloudFreeDeprecated) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
                             items: [
@@ -505,7 +505,7 @@ function Content(props: ContentProps) {
                             ],
                         }}
                     />
-                    {enabled && <BlankCard/>}
+                    {cloudFreeDeprecated && <BlankCard/>}
                 </div>
             </Modal.Body>
         </div>

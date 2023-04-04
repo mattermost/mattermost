@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {useSelector} from 'react-redux';
 
-import {cloudFreeDeprecationUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
@@ -16,7 +16,7 @@ import {HostedCustomerLinks} from 'utils/constants';
 
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
-import Illus from './illus.svg';
+import BlankCardImage from './blank_card_image.svg';
 
 export enum ButtonCustomiserClasses {
     grayed = 'grayed',
@@ -75,7 +75,7 @@ export function BlankCard() {
     return (
         <div className='BlankCard'>
             <div>
-                <Illus/>
+                <BlankCardImage/>
             </div>
 
             <div className='description'>
@@ -84,21 +84,12 @@ export function BlankCard() {
                         {formatMessage({id: 'pricing_modal.questions', defaultMessage: 'Questions?'})}
                     </span>
                     <span className='contact'>
-                        <a>
-                            {formatMessage(
-                                {id: 'pricing_modal.contact_us', defaultMessage: '<a>Contact us</a>'},
-                                {
-                                    a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                        <ExternalLink
-                                            location='cloud_pricing_modal'
-                                            href={contactSalesLink}
-                                        >
-                                            {chunks}
-                                        </ExternalLink>
-                                    ),
-                                },
-                            )}
-                        </a>
+                        <ExternalLink
+                            location='cloud_pricing_modal'
+                            href={contactSalesLink}
+                        >
+                            {formatMessage({id: 'pricing_modal.contact_us', defaultMessage: 'Contact us'})}
+                        </ExternalLink>
                     </span>
                 </div>
                 <div className='content'>
@@ -110,21 +101,12 @@ export function BlankCard() {
                     {formatMessage({id: 'pricing_modal.interested_self_hosting', defaultMessage: 'Interested in self-hosting?'})}
                 </span>
                 <span className='learn'>
-                    <a>
-                        {formatMessage(
-                            {id: 'pricing_modal.learn_more', defaultMessage: '<a>Learn more</a>'},
-                            {
-                                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                    <ExternalLink
-                                        location='cloud_pricing_modal'
-                                        href={HostedCustomerLinks.SELF_HOSTED_BILLING}
-                                    >
-                                        {chunks}
-                                    </ExternalLink>
-                                ),
-                            },
-                        )}
-                    </a>
+                    <ExternalLink
+                        location='cloud_pricing_modal'
+                        href={HostedCustomerLinks.SELF_HOSTED_BILLING}
+                    >
+                        {formatMessage({id: 'pricing_modal.learn_more', defaultMessage: 'Learn more'})}
+                    </ExternalLink>
                 </span>
             </div>
         </div>
@@ -134,7 +116,7 @@ export function BlankCard() {
 function Card(props: CardProps) {
     const {formatMessage} = useIntl();
 
-    const enabled = useSelector(cloudFreeDeprecationUIEnabled);
+    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const isCloud = useSelector(isCurrentLicenseCloud);
 
     return (
@@ -143,7 +125,7 @@ function Card(props: CardProps) {
             className='PlanCard'
         >
             {props.planLabel}
-            {(!enabled || !isCloud) && (
+            {(!cloudFreeDeprecated || !isCloud) && (
                 <StyledDiv
                     className='top'
                     bgColor={props.topColor}
@@ -152,7 +134,7 @@ function Card(props: CardProps) {
 
             <div
                 className='bottom'
-                style={(enabled && isCloud) ? {
+                style={(cloudFreeDeprecated && isCloud) ? {
                     border: '1px solid rgba(63, 67, 80, 0.16)',
                     borderRadius: '8px',
                 } : {}}
