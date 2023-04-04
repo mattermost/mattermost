@@ -1080,6 +1080,7 @@ export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
     SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
+    SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
 };
 
 export const DocLinks = {
