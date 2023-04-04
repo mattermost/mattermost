@@ -122,6 +122,7 @@
     "@testing-library/react": "12.1.4",
     "@types/bootstrap": "4.5.0",
     "@types/country-list": "2.1.0",
+    "@types/crypto-js": "4.1.1",
     "@types/enzyme": "3.10.11",
     "@types/highlight.js": "10.1.0",
     "@types/jest": "26.0.24",
