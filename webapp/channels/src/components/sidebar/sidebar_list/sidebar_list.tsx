@@ -69,7 +69,7 @@ export function renderThumbVertical(props: any) {
     );
 }
 
-const scrollbarStyles: CSSProperties = {position: 'absolute', overflow: 'initial'};
+const scrollbarStyles: CSSProperties = {position: 'absolute'};
 
 type Props = {
     currentTeam: Team;

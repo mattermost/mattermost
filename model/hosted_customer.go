@@ -8,6 +8,12 @@ type BootstrapSelfHostedSignupRequest struct {
 	Reset bool   `json:"reset"`
 }
 
+type SubscribeNewsletterRequest struct {
+	Email             string `json:"email"`
+	ServerID          string `json:"server_id"`
+	SubscribedContent string `json:"subscribed_content"`
+}
+
 type BootstrapSelfHostedSignupResponse struct {
 	Progress string `json:"progress"`
 	// email listed on the JWT claim
