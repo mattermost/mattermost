@@ -350,7 +350,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
 		if c.AppContext.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {
-			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionUseSlashCommands) {
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreatePost) {
 				c.SetPermissionError(model.PermissionCreatePost)
 				return
 			}
