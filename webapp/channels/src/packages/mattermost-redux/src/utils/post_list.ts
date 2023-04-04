@@ -330,7 +330,7 @@ function extractUserActivityData(userActivities: ActivityEntry[]) {
         if (isUsersRelatedPost(activity.postType)) {
             const {postType, actorId, userIds, usernames} = activity;
             if (usernames && userIds) {
-                messageData.push({postType, userIds: [...usernames, ...userIds], actorId: actorId[0]});
+                messageData.push({postType, userIds: [...userIds], actorId: actorId[0]});
                 if (userIds.length > 0) {
                     allUserIds.push(...userIds);
                 }
@@ -352,6 +352,7 @@ function extractUserActivityData(userActivities: ActivityEntry[]) {
         }
         return acc;
     }
+
     return {
         allUserIds: allUserIds.reduce(reduceUsers, []),
         allUsernames: allUsernames.reduce(reduceUsers, []),
@@ -397,4 +398,3 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
 
     return extractUserActivityData(userActivities);
 }
-
