@@ -6,10 +6,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 GO=$1
 GOFLAGS=$2
 PACKAGES=$3
-TESTS=$4
-TESTFLAGS=$5
-GOBIN=$6
-TIMEOUT=$7
+TESTFLAGS=$4
+GOBIN=$5
+TIMEOUT=$6
 
 export MM_SERVER_PATH=$PWD
 
@@ -21,7 +20,7 @@ then
 	export GOMAXPROCS=4
 fi
 
-$GO test $GOFLAGS -run=$TESTS $TESTFLAGS -v -timeout=$TIMEOUT $PACKAGES 2>&1 > >( tee output )
+$GO test $GOFLAGS $TESTFLAGS -v -timeout=$TIMEOUT $PACKAGES 2>&1 > >( tee output )
 EXIT_STATUS=$?
 
 cat output | $GOBIN/go-junit-report > report.xml
