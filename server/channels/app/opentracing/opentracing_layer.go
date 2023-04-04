@@ -11992,6 +11992,23 @@ func (a *OpenTracingAppLayer) IsCRTEnabledForUser(c request.CTX, userID string) 
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) IsConfigReadOnly() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsConfigReadOnly")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsConfigReadOnly()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) IsFirstAdmin(user *model.User) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsFirstAdmin")
