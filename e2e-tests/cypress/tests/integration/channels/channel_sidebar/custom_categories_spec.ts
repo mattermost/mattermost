@@ -34,7 +34,7 @@ describe('Channel sidebar', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Create new category from category menu
-        clickCategoryMenuItem(categoryName, 'Create new category');
+        clickCategoryMenuItem(categoryName, 'Create New Category');
 
         const newCategoryName = `category-${getRandomId()}`;
         cy.get('#editCategoryModal input').type(newCategoryName).type('{enter}');
