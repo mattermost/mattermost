@@ -14,12 +14,11 @@ import RadioButtonGroup from 'components/common/radio_group';
 import {ModalIdentifiers} from 'utils/constants';
 
 import './feedback.scss';
-import {string} from 'yargs';
 
 export interface FeedbackOption {
     translatedMessage: string;
     submissionValue: string;
-};
+}
 
 type Props = {
     onSubmit: (deleteFeedback: Feedback) => void;
