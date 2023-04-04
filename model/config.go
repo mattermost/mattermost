@@ -314,7 +314,7 @@ type ServiceSettings struct {
 	RestrictLinkPreviews                *string  `access:"site_posts"`
 	EnableTesting                       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	DeveloperFlags                      *string  `access:"environment_developer"`
+	DeveloperFlags                      *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging    *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                   *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert              *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`

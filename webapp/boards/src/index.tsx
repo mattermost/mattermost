@@ -6,15 +6,13 @@ import {Store, Action} from 'redux'
 import {Provider as ReduxProvider} from 'react-redux'
 import {createBrowserHistory, History} from 'history'
 
-import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder'
-
-import {GlobalState} from 'mattermost-redux/types/store'
-
-import {selectTeam} from 'mattermost-redux/actions/teams'
+import {GlobalState} from '@mattermost/types/store'
 
 import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
+
+import {rudderAnalytics, RudderTelemetryHandler} from 'src/rudder'
 
 import appBarIcon from 'static/app-bar-icon.png'
 
@@ -327,9 +325,13 @@ export default class Plugin {
             const currentUserId = mmStore.getState().entities.users.currentUserId
             if (currentTeamID !== fbPrevTeamID) {
                 fbPrevTeamID = currentTeamID
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                mmStore.dispatch(selectTeam(currentTeamID))
+
+                mmStore.dispatch({
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    type: 'SELECT_TEAM',
+                    data: currentTeamID,
+                })
                 localStorage.setItem(`user_prev_team:${currentUserId}`, currentTeamID)
             }
         })

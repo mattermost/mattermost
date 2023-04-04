@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 /* eslint-disable max-lines */
 import React, {useState, useEffect, useRef} from 'react'
-import {FormattedMessage, IntlShape, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 import {useDrop, useDrag} from 'react-dnd'
 
 import {Constants, Permission} from 'src/constants'
@@ -35,7 +35,6 @@ type Props = {
     activeView: BoardView
     group: BoardGroup
     groupByProperty?: IPropertyTemplate
-    intl: IntlShape
     readonly: boolean
     addCard: (groupByOptionId?: string, show?: boolean) => Promise<void>
     propertyNameChanged: (option: IPropertyOption, text: string) => Promise<void>

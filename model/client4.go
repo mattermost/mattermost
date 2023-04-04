@@ -7812,7 +7812,23 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 	return ch, BuildResponse(r), nil
 }
 
+func (c *Client4) RequestTrialLicenseWithExtraFields(trialRequest *TrialLicenseRequest) (*Response, error) {
+	b, err := json.Marshal(trialRequest)
+	if err != nil {
+		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost("/trial-license", string(b))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // RequestTrialLicense will request a trial license and install it in the server
+// DEPRECATED - USE RequestTrialLicenseWithExtraFields (this method remains for backwards compatibility)
 func (c *Client4) RequestTrialLicense(users int) (*Response, error) {
 	b, err := json.Marshal(map[string]any{"users": users, "terms_accepted": true})
 	if err != nil {
