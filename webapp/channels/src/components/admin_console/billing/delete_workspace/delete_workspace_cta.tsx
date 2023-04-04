@@ -80,17 +80,15 @@ export default function DeleteWorkspaceCTA() {
                         }}
                     />
                 </div>
-                <ExternalLink
-                    href=''
-                    location='delete_workspace_cta'
-                    className='cancelSubscriptionSection__contactUs'
+                <button
+                    className='btn cancelSubscriptionSection__contactUs'
                     onClick={handleOnClickDelete}
                 >
                     <FormattedMessage
                         id='admin.billing.subscription.deleteWorkspaceSection.delete'
                         defaultMessage='Delete Workspace'
                     />
-                </ExternalLink>
+                </button>
             </div>
         </div>
     );
