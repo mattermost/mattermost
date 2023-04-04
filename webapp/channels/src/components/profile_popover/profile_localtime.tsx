@@ -16,21 +16,14 @@ type ProfileTimezoneProps = {
 }
 
 const returnTimeDiff = (
-    currentUserTimezone: string | undefined,
-    profileUserTimezone: string | undefined,
+    currentUserTimezone: string | undefined | null,
+    profileUserTimezone: string,
 ) => {
-    if (!currentUserTimezone || !profileUserTimezone) {
-        return undefined;
+    if (!currentUserTimezone) {
+        return null;
     }
-
     const currentUserDate = DateTime.local().setZone(currentUserTimezone);
-    let profileUserDate = DateTime.local().setZone('UTC');
-
-    // There is a change that a user is created via API and never logged in, so they do not have any timezone properties set
-    // this defaults to UTC.
-    if (profileUserTimezone?.manualTimezone || profileUserTimezone?.automaticTimezone) {
-        profileUserDate = DateTime.local().setZone(profileUserTimezone?.manualTimezone || profileUserTimezone?.automaticTimezone);
-    }
+    const profileUserDate = DateTime.local().setZone(profileUserTimezone);
 
     const offset = Duration.fromObject({
         hours: (profileUserDate.offset - currentUserDate.offset) / 60,
@@ -63,7 +56,7 @@ export const ProfileTimezone = (
         profileUserTimezone,
     }: ProfileTimezoneProps,
 ) => {
-    const profileTimezone = getUserCurrentTimezone(profileUserTimezone);
+    const profileTimezone = getUserCurrentTimezone(profileUserTimezone) || 'UTC';
     const profileTimezoneShort = profileTimezone ? DateTime.now().setZone(profileTimezone).offsetNameShort : undefined;
 
     return (
