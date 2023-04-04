@@ -199,7 +199,7 @@ const Completed = (props: Props): JSX.Element => {
                             </span>
                             {isCloud ? (
                                 <CloudStartTrialButton
-                                    message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Try free for 30 days'})}
+                                    message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
                                     telemetryId={'start_cloud_trial_after_completing_steps'}
                                     extraClass={'btn btn-primary'}
                                     afterTrialRequest={dismissAction}
@@ -216,7 +216,7 @@ const Completed = (props: Props): JSX.Element => {
                                 className={'no-thanks-link style-link'}
                             >
                                 <FormattedMessage
-                                    id={'onboardingTask.checklist.no_tanks'}
+                                    id={'onboardingTask.checklist.no_thanks'}
                                     defaultMessage='No, thanks'
                                 />
                             </button>

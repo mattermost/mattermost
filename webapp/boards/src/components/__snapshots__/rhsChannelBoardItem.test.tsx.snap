@@ -110,7 +110,7 @@ exports[`components/rhsChannelBoardItem render board with menu open 1`] = `
                     <div
                       class="menu-subtext text-75 mt-1"
                     >
-                      You are not an admin of the board
+                      You're not an admin of the board
                     </div>
                   </div>
                   <div

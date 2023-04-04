@@ -93,6 +93,28 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               onChange={[Function]}
               value=""
             />
+            <div
+              className="newsletter"
+            >
+              <span
+                className="interested"
+              >
+                Interested in receiving Mattermost security updates via newsletter?
+              </span>
+              <span
+                className="link"
+              >
+                Sign up at 
+                <ExternalLink
+                  href="https://mattermost.com/security-updates/"
+                  key=".1"
+                  location="signup"
+                >
+                  https://mattermost.com/security-updates/
+                </ExternalLink>
+                .
+              </span>
+            </div>
             <SaveButton
               btnClass="btn-primary"
               defaultMessage="Create account"
@@ -244,6 +266,28 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               onChange={[Function]}
               value=""
             />
+            <div
+              className="newsletter"
+            >
+              <span
+                className="interested"
+              >
+                Interested in receiving Mattermost security updates via newsletter?
+              </span>
+              <span
+                className="link"
+              >
+                Sign up at 
+                <ExternalLink
+                  href="https://mattermost.com/security-updates/"
+                  key=".1"
+                  location="signup"
+                >
+                  https://mattermost.com/security-updates/
+                </ExternalLink>
+                .
+              </span>
+            </div>
             <SaveButton
               btnClass="btn-primary"
               defaultMessage="Create account"
