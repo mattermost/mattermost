@@ -15,8 +15,6 @@ import {isCloudLicense} from 'utils/license_utils';
 
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 
-import ExternalLink from 'components/external_link';
-
 import DeleteWorkspaceModal from './delete_workspace_modal';
 
 export default function DeleteWorkspaceCTA() {
