@@ -4,7 +4,7 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, screen} from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
 
@@ -173,12 +173,10 @@ describe('properties/person', () => {
         if (container) {
             // this is the actual element where the click event triggers
             // opening of the dropdown
-            const userProperty = container.querySelector('.Person > div > div:nth-child(1) > div:nth-child(2) > input')
+            const userProperty = screen.getByRole('combobox')
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            await act(() => userEvent.click(userProperty))
             expect(container).toMatchSnapshot()
         } else {
             throw new Error('container should have been initialized')

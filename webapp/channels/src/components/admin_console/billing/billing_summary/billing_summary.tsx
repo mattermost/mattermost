@@ -226,9 +226,9 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                                     currency='USD'
                                 />
                                 <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.userCount'
-                                    defaultMessage=' x {users} users'
-                                    values={{users: charge.quantity}}
+                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seatCount'
+                                    defaultMessage=' x {seats} seats'
+                                    values={{seats: charge.quantity}}
                                 />
                             </>
                         )}
@@ -309,9 +309,9 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                         >
                             <div className='BillingSummary__lastInvoice-chargeDescription'>
                                 <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.userCountPartial'
-                                    defaultMessage='{users} users'
-                                    values={{users: charge.quantity}}
+                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seatCountPartial'
+                                    defaultMessage='{seats} seats'
+                                    values={{seats: charge.quantity}}
                                 />
                             </div>
                             <div className='BillingSummary__lastInvoice-chargeAmount'>

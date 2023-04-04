@@ -249,6 +249,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         />
                     ),
                 });
+                return;
             } else if (this.state.pictureFile.size > this.props.maxFileSize) {
                 this.setState({
                     error: (
@@ -258,6 +259,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         />
                     ),
                 });
+                return;
             }
         }
 
