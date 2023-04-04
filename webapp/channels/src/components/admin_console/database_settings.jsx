@@ -407,7 +407,7 @@ export default class DatabaseSettings extends AdminSettings {
                         <div className='help-text'>
                             <FormattedMessage
                                 id='admin.database.search_backend.help_text'
-                                defaultMessage='Shows the currently active backend used for search.'
+                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc.'
                             />
                         </div>
                     </div>
