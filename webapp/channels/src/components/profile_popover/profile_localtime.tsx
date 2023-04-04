@@ -98,7 +98,7 @@ export const ProfileTimezone = (
                     }}
                 />
                 {' '}
-                {returnTimeDiff(currentUserTimezone, profileUserTimezone)}
+                {returnTimeDiff(currentUserTimezone, profileTimezone)}
             </span>
 
         </div>
