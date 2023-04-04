@@ -9457,7 +9457,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "产品团队"
+    "translation": "产品"
   },
   {
     "id": "worktemplate.category.leadership",
@@ -10030,5 +10030,69 @@
   {
     "id": "api.license.true_up_review.create_error",
     "translation": "无法创建真实的状态记录"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "无效的商务试用邮箱"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "通过集成大多您使用过的工具（比如 GitHub）在您的频道里提高生产力，实现你的功能发布。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "在一个频道与你的团队讨论任何的发布障碍和变动，并很容易的与你的面板，Playbook或者其他的集成功能连接。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "使用会议安排面板保持会议一起正常。使用项目任务面板管理你的工作量。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "通过集成大多您使用过的工具（比如Jira）在您的频道里提高生产力，跟踪你的Bug解决过程。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "在一单独频道与您的团队讨论优先级、添加利益相关者，提供更新，向解决的方向努力。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "使用事故解决面板来实现重复性的流程和分配跨越整个团队的任务。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "通过集成大多您使用过的工具在您的频道里提高生产力。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "与您的团队在一个协作频道里讨论新的项目并且决定如何你们将如此组织。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "使用看板面板定义和跟踪您的项目任务列表和进度。"
   }
 ]
