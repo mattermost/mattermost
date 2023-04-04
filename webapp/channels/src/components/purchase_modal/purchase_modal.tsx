@@ -730,7 +730,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         this.state.selectedProduct ? this.state.selectedProduct.name : '',
                     )}
                     price={yearlyProductMonthlyPrice}
-                    rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                    rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                         br: <br/>,
                         b: (chunks: React.ReactNode | React.ReactNodeArray) => (
                             <span style={{fontSize: '14px'}}>
