@@ -39,7 +39,7 @@ const GlobalHeader = (): JSX.Element | null => {
     const isLoggedIn = useIsLoggedIn();
     const currentProductID = useCurrentProductId();
 
-    if (window.location.pathname.includes('/boards/public') || !isLoggedIn) {
+    if (!isLoggedIn) {
         return null;
     }
 

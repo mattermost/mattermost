@@ -28,7 +28,7 @@ windowAny.baseURL = '/plugins/boards'
 windowAny.frontendBaseURL = '/boards'
 
 import App from 'src/app'
-import PublicApp from 'src/public/app'
+import PublicApp, {publicBaseURL} from 'src/public/app'
 
 import store from 'src/store'
 import WithWebSockets from 'src/components/withWebSockets'
@@ -181,6 +181,12 @@ const PublicMainApp = () => {
         document.body.classList.add('focalboard-body')
         const root = document.getElementById('root')
         if (root) {
+            while (root.firstElementChild) {
+                if( root.firstElementChild.id === 'focalboard-app'){
+                    break
+                }
+                root.removeChild(root.firstElementChild)
+            }
             root.classList.add('focalboard-plugin-root')
         }
 
@@ -220,10 +226,6 @@ export default class Plugin {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
     async initialize(registry: PluginRegistry, mmStore: Store<GlobalState, Action<Record<string, unknown>>>): Promise<void> {
-        if(window.location.pathname.includes('/boards/public')){
-            return
-        }
-
         const siteURL = mmStore.getState().entities.general.config.SiteURL
         const subpath = siteURL ? getSubpath(siteURL) : ''
         windowAny.frontendBaseURL = subpath + windowAny.frontendBaseURL
@@ -276,8 +278,6 @@ export default class Plugin {
             }
         })
 
-
-
         const initCurrentChannelId = mmStore.getState().entities.channels.currentChannelId
         const initCurrentChannel = mmStore.getState().entities.channels.channels[initCurrentChannelId]
         let lastViewedChannelId = initCurrentChannelId
@@ -307,7 +307,9 @@ export default class Plugin {
                 prevTeamId = currentTeamId
                 store.dispatch(setTeam(currentTeamId))
                 octoClient.teamId = currentTeamId
-                store.dispatch(initialLoad())
+                if(!window.location.pathname.includes(publicBaseURL())){
+                    store.dispatch(initialLoad())
+                }
             }
 
             if (currentTeamId && currentTeamId !== prevTeamId) {

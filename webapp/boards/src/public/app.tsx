@@ -19,9 +19,12 @@ import {Utils} from 'src/utils'
 import {getLanguage} from 'src/store/language'
 import {useAppSelector} from 'src/store/hooks'
 
+export const publicBaseURL = () => {
+    return Utils.getFrontendBaseURL() + '/public'
+}
+
 const PublicRouter = () => {
-    const publicBaseURL = Utils.getFrontendBaseURL() + '/public'
-    const history = createBrowserHistory({basename: publicBaseURL})
+    const history = createBrowserHistory({basename: publicBaseURL()})
 
     return (
         <Router history={history}>
