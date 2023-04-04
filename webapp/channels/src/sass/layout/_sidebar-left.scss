@@ -575,6 +575,19 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
+    @media screen and (min-width: 768px) {
+        .SidebarNavContainer {
+            .scrollbar--view {
+                overflow: initial !important;
+                max-width: 240px;
+            }
+        }
+
+        #SidebarContainer .SidebarChannelGroup .SidebarChannelGroupHeader {
+            max-width: 240px;
+        }
+    }
+
     .SidebarCategory_newLabel {
         display: flex;
         width: 32px;
@@ -741,6 +754,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .AddChannelsCtaDropdown .dropdown-menu {
+        min-width: 232px !important;
         margin-left: 20px;
     }
 
@@ -748,17 +762,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     #addChannelsCta {
         display: flex;
         width: 100%;
+        margin-top: -6px;
 
         &:hover {
             background-color: var(--sidebar-text-hover-bg);
-        }
-    }
-
-    #AddChannelCtaDropdown {
-        position: fixed;
-
-        ul {
-            min-width: 232px !important;
         }
     }
 
@@ -1021,7 +1028,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     /* Channels */
     .SidebarChannel {
         display: flex;
-        overflow: hidden;
         height: 32px;
 
         /* height required for transition animation */

@@ -54,6 +54,7 @@ exports[`SidebarList should match snapshot 1`] = `
       renderView={[Function]}
       style={
         Object {
+          "overflow": "initial",
           "position": "absolute",
         }
       }
