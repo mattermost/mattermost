@@ -5113,6 +5113,7 @@
   "widgets.users_emails_input.loading": "Cargando",
   "widgets.users_emails_input.no_user_found_matching": "No se ha encontrado a nadie que coincida con **{text}**. Introduce su correo electrónico para invitarle.",
   "widgets.users_emails_input.valid_email": "Agregar **{email}**",
+  "work_templates.preview.section.included": "included sp",
   "workspace_limits.archived_file.archived_compact": "(archivado)",
   "workspace_limits.file_storage": "Almacenamiento de archivos",
   "workspace_limits.file_storage.short": "Archivos",
