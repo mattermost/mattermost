@@ -18,8 +18,7 @@ import {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} fro
 import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {ModalData} from 'types/actions';
-import MarketplaceModal from 'components/plugin_marketplace';
-import {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
+import MarketplaceModal, {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';

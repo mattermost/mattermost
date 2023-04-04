@@ -216,7 +216,7 @@ const Completed = (props: Props): JSX.Element => {
                                 className={'no-thanks-link style-link'}
                             >
                                 <FormattedMessage
-                                    id={'onboardingTask.checklist.no_tanks'}
+                                    id={'onboardingTask.checklist.no_thanks'}
                                     defaultMessage='No, thanks'
                                 />
                             </button>
