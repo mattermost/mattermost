@@ -21,14 +21,12 @@ jest.mock('src/mutator')
 const mockedMutator = mocked(mutator)
 
 describe('properties/number', () => {
-    
     let board: Board
     let card: Card
     let propertyTemplate: IPropertyTemplate
     let baseProps: ComponentProps<typeof NumberEditor> 
     
     beforeEach(() => {
-
         board = TestBlockFactory.createBoard()
         card = TestBlockFactory.createCard()
         propertyTemplate = board.cardProperties[0]
@@ -43,8 +41,6 @@ describe('properties/number', () => {
             showEmptyPlaceholder: false,
         }
     })
-    
-    
 
     it('should match snapshot for number with empty value', () => {
         const {container} = setup(
