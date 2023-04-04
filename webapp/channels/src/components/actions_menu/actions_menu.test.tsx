@@ -38,12 +38,7 @@ describe('components/actions_menu/ActionsMenu', () => {
         isSysAdmin: true,
         pluginMenuItems: [],
         post: TestHelper.getPostMock({id: 'post_id_1', is_pinned: false, type: '' as PostType}),
-        showTutorialTip: false,
         components: {},
-        handleOpenTip: jest.fn(),
-        handleNextTip: jest.fn(),
-        handleDismissTip: jest.fn(),
-        showPulsatingDot: false,
         location: 'center',
         canOpenMarketplace: false,
         actions: {

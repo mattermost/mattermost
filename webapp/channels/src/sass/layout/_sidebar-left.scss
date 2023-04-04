@@ -578,7 +578,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     @media screen and (min-width: 768px) {
         .SidebarNavContainer {
             .scrollbar--view {
-                overflow: initial !important;
                 max-width: 240px;
             }
         }
@@ -754,7 +753,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .AddChannelsCtaDropdown .dropdown-menu {
-        min-width: 232px !important;
+        min-width: 210px !important;
         margin-left: 20px;
     }
 
