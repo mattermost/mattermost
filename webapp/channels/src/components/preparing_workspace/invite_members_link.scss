@@ -11,7 +11,7 @@
         border-right: 0;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
         border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        background: var(--center-channel-color-rgb);
         border-radius: 4px 0 0 4px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 16px;
@@ -19,7 +19,6 @@
 
     button {
         display: flex;
-        width: 180px;
         max-width: 382px;
         flex-grow: 0;
         align-items: center;
@@ -44,6 +43,7 @@
         border-radius: 0 4px 4px 0;
         color: var(--button-bg);
         height: 48px;
+        width: 180px;
 
         &:hover {
             background: rgba(var(--button-bg-rgb), 0.08);

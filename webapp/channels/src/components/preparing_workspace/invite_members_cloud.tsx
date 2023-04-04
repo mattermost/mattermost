@@ -19,8 +19,10 @@ import Description from './description';
 import PageBody from './page_body';
 import SingleColumnLayout from './single_column_layout';
 
-import './invite_members.scss';
+import PageLine from './page_line';
 import InviteMembersLink from './invite_members_link';
+
+import './invite_members.scss';
 
 type Props = PreparingWorkspacePageProps & {
     disableEdits: boolean;
@@ -32,7 +34,7 @@ type Props = PreparingWorkspacePageProps & {
     configSiteUrl?: string;
     browserSiteUrl: string;
     inferredProtocol: 'http' | 'https' | null;
-    showInviteLink: boolean;
+    isSelfHosted: boolean;
     show: boolean;
 }
 
@@ -127,6 +129,86 @@ const InviteMembers = (props: Props) => {
         />
     );
 
+    const inviteMemberBodyContent = () => {
+        if (props.isSelfHosted) {
+            return (
+                <>
+                    <Title>
+                        <FormattedMessage
+                            id={'onboarding_wizard.invite_members.title'}
+                            defaultMessage='Invite your team members'
+                        />
+                    </Title>
+                    <Description>
+                        <FormattedMessage
+                            id={'onboarding_wizard.invite_members.description_link'}
+                            defaultMessage='Collaboration is tough by yourself. Invite a few team members using the invitation link below.'
+                        />
+                    </Description>
+                    <PageBody>
+                        <InviteMembersLink inviteURL={inviteURL}/>
+                    </PageBody>
+                    <div className='InviteMembers__submit'>
+                        <button
+                            className='primary-button'
+                            disabled={props.disableEdits}
+                            onClick={props.next}
+                        >
+                            <FormattedMessage
+                                id={'onboarding_wizard.invite_members.next_link'}
+                                defaultMessage='Finish setup'
+                            />
+                        </button>
+                    </div>
+                </>
+            );
+        }
+        return (
+            <>
+                <Title>
+                    <FormattedMessage
+                        id={'onboarding_wizard.invite_members_cloud.title'}
+                        defaultMessage='Who works with you?'
+                    />
+                </Title>
+                <Description>
+                    <FormattedMessage
+                        id={'onboarding_wizard.invite_members.description'}
+                        defaultMessage='Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.'
+                    />
+                </Description>
+                <PageBody>
+                    {inviteInteraction}
+                </PageBody>
+                <div className='InviteMembers__submit'>
+                    <button
+                        className='primary-button'
+                        disabled={props.disableEdits || props.emails.length === 0}
+                        onClick={props.next}
+                    >
+                        <FormattedMessage
+                            id={'onboarding_wizard.invite_members.next'}
+                            defaultMessage='Send invites'
+                        />
+
+                    </button>
+                    {inviteLink}
+                    {showSkipButton &&
+                        <button
+                            className='link-style fade-in-skip-button'
+                            onClick={props.skip}
+                        >
+                            <FormattedMessage
+                                id={'onboarding_wizard.invite_members.skip'}
+                                defaultMessage='Skip'
+                            />
+                        </button>
+                    }
+                </div>
+            </>
+        );
+    };
+
     return (
         <CSSTransition
             in={props.show}
@@ -137,47 +219,24 @@ const InviteMembers = (props: Props) => {
         >
             <div className={className}>
                 <SingleColumnLayout>
+                    <PageLine
+                        style={{
+                            marginBottom: '50px',
+                            marginLeft: '50px',
+                            height: 'calc(25vh)',
+                        }}
+                        noLeft={true}
+                    />
                     {props.previous}
-                    <Title>
-                        <FormattedMessage
-                            id={'onboarding_wizard.invite_members_cloud.title'}
-                            defaultMessage='Who works with you?'
-                        />
-                    </Title>
-                    <Description>
-                        <FormattedMessage
-                            id={'onboarding_wizard.invite_members.description'}
-                            defaultMessage='Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.'
-                        />
-                    </Description>
-                    <PageBody>
-                        {inviteInteraction}
-                    </PageBody>
-                    <div className='InviteMembers__submit'>
-                        <button
-                            className='primary-button'
-                            disabled={props.disableEdits || (!props.showInviteLink && props.emails.length === 0)}
-                            onClick={props.next}
-                        >
-                            <FormattedMessage
-                                id={'onboarding_wizard.invite_members.next'}
-                                defaultMessage='Send invites'
-                            />
-
-                        </button>
-                        {inviteLink}
-                        {showSkipButton &&
-                            <button
-                                className='link-style fade-in-skip-button'
-                                onClick={props.skip}
-                            >
-                                <FormattedMessage
-                                    id={'onboarding_wizard.invite_members.skip'}
-                                    defaultMessage='Skip'
-                                />
-                            </button>
-                        }
-                    </div>
+                    {inviteMemberBodyContent()}
+                    <PageLine
+                        style={{
+                            marginTop: '50px',
+                            marginLeft: '50px',
+                            height: 'calc(35vh)',
+                        }}
+                        noLeft={true}
+                    />
                 </SingleColumnLayout>
             </div>
         </CSSTransition>

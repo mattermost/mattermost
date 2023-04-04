@@ -497,7 +497,7 @@ const PreparingWorkspace = (props: Props) => {
                         });
                     }}
                     inferredProtocol={form.inferredProtocol}
-                    showInviteLink={false}
+                    isSelfHosted={isSelfHosted}
                 />
                 <LaunchingWorkspace
                     onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}

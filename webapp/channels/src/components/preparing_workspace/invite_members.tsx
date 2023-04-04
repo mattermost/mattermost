@@ -45,13 +45,6 @@ const InviteMembers = (props: Props) => {
         return `${urlBase}/signup_user_complete/?id=${props.teamInviteId}`;
     }, [props.teamInviteId, props.configSiteUrl, props.browserSiteUrl, props.formUrl]);
 
-    const description = (
-        <FormattedMessage
-            id={'onboarding_wizard.invite_members.description_link'}
-            defaultMessage='Collaboration is tough by yourself. Invite a few team members using the invitation link below.'
-        />
-    );
-
     const inviteInteraction = <InviteMembersLink inviteURL={inviteURL}/>;
 
     return (
@@ -80,7 +73,10 @@ const InviteMembers = (props: Props) => {
                         />
                     </Title>
                     <Description>
-                        {description}
+                        <FormattedMessage
+                            id={'onboarding_wizard.invite_members.description_link'}
+                            defaultMessage='Collaboration is tough by yourself. Invite a few team members using the invitation link below.'
+                        />
                     </Description>
                     <PageBody>
                         {inviteInteraction}

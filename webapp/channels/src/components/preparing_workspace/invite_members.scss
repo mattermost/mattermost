@@ -8,6 +8,11 @@
     .UsersEmailsInput {
         max-width: 420px;
     }
+
+    .PreparingWorkspaceDescription span {
+        max-width: 500px;
+        display: inline-block;
+    }
 }
 
 .InviteMembers {
@@ -22,6 +27,8 @@
 .InviteMembersLink__button--single {
     margin-left: 12px;
     margin-right: 8px;
+    min-width: 148px;
+    width: fit-content;
 }
 
 .fade-in-skip-button {
