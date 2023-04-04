@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`properties/link should match snapshot for number with empty value 1`] = `
+exports[`properties/number should match snapshot for number with empty value 1`] = `
 <div>
   <input
     class="Editable octo-propertyvalue"
