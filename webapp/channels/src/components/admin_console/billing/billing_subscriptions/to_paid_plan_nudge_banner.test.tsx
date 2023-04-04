@@ -21,7 +21,7 @@ const initialState = {
         general: {
             config: {
                 CWSURL: '',
-                FeatureFlagEnableCloudFreeDeprecationUI: 'true',
+                FeatureFlagDeprecateCloudFree: 'true',
             },
             license: {
                 IsLicensed: 'true',
