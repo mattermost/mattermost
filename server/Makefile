@@ -54,10 +54,17 @@ ifeq ($(BUILD_NUMBER),dev)
 	export MM_FEATUREFLAGS_GRAPHQL = true
 endif
 
+# Ensure developer invocation and tests are anchored.
+MM_SERVER_PATH ?= $(ROOT)
+
+# Go test sum configuration
+GOTESTSUM_FORMAT ?= testname
+GOTESTSUM_JUNITFILE ?= report.xml
+GOTESTSUM_JSONFILE ?= gotestsum.json
+
 # mmctl
-MM_SERVER_PATH ?= $(PWD)
 MMCTL_BUILD_TAGS =
-MMCTL_TESTFLAGS = -timeout 30m -race -v
+MMCTL_TESTFLAGS = -timeout 30m -race
 MMCTL_PKG = github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/commands
 LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
 LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
@@ -431,10 +438,10 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
-go-junit-report:
-	$(GO) install github.com/jstemmer/go-junit-report@v1.0.0
+gotestsum:
+	$(GO) install gotest.tools/gotestsum@v1.7.0
 
-test-compile: ## Compile tests.
+test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
 
 	for package in $(SUITE_PACKAGES) $(EE_PACKAGES); do \
@@ -451,17 +458,28 @@ modules-tidy:
 		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
 
-test-server-pre: check-prereqs-enterprise start-docker go-junit-report ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
 	@echo Running only TE tests
 endif
 
+test-server-race: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server-race: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(GOBIN)" "90m"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(GOBIN)" "90m"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(GOBIN)" "90m"
+ifeq ($(IS_CI),true)
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+else
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+endif
+
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -471,8 +489,12 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
+test-server: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(GOBIN)" "90m"
+	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -482,17 +504,25 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server-ee: check-prereqs-enterprise start-docker go-junit-report ## Runs EE tests.
+test-server-ee: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server-ee: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-ee: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-ee: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests.
 	@echo Running only EE tests
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(GOBIN)" "20m"
+	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
+test-server-quick: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GO) test $(GOFLAGS) -short $(SUITE_PACKAGES) $(EE_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
 else
 	@echo Running only TE tests
-	$(GO) test $(GOFLAGS) -short $(SUITE_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES)" -- $(GOFLAGS) -short
 endif
 
 internal-test-web-client: ## Runs web client tests.
@@ -532,21 +562,37 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
 
-test-mmctl-unit:
+test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-mmctl-unit: gotestsum
 	@echo Running mmctl unit tests
-	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
-test-mmctl-e2e: start-docker
+test-mmctl-e2e: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-mmctl-e2e: gotestsum start-docker
 	@echo Running mmctl e2e tests
-	MM_SERVER_PATH=$(MM_SERVER_PATH) $(GO) test $(MMCTL_TESTFLAGS) -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
-test-mmctl: start-docker
+test-mmctl: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-mmctl: gotestsum start-docker
 	@echo Running all mmctl tests
-	MM_SERVER_PATH=$(MM_SERVER_PATH) $(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
-test-mmctl-coverage: start-docker
+test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-mmctl-coverage: gotestsum start-docker
 	@echo Running all mmctl tests with coverage
-	MM_SERVER_PATH=$(MM_SERVER_PATH) $(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
 	$(GO) tool cover -html=mmctlcover.out
 
 validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
