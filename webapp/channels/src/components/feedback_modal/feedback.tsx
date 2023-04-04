@@ -14,19 +14,25 @@ import RadioButtonGroup from 'components/common/radio_group';
 import {ModalIdentifiers} from 'utils/constants';
 
 import './feedback.scss';
+import {string} from 'yargs';
+
+export interface FeedbackOption {
+    translatedMessage: string;
+    submissionValue: string;
+};
 
 type Props = {
     onSubmit: (deleteFeedback: Feedback) => void;
     title: string;
     submitText: string;
-    feedbackOptions: string[];
+    feedbackOptions: FeedbackOption[];
     freeformTextPlaceholder: string;
 } & WrappedComponentProps
 
 function FeedbackModal(props: Props) {
     const maxFreeFormTextLength = 500;
-    const optionOther = props.intl.formatMessage({id: 'feedback.other', defaultMessage: 'Other'});
-    const feedbackModalOptions: string[] = [
+    const optionOther = {translatedMessage: props.intl.formatMessage({id: 'feedback.other', defaultMessage: 'Other'}), submissionValue: 'Other'};
+    const feedbackModalOptions: FeedbackOption[] = [
         ...props.feedbackOptions,
         optionOther,
     ];
@@ -34,9 +40,9 @@ function FeedbackModal(props: Props) {
     const [reason, setReason] = useState('');
     const [comments, setComments] = useState('');
     const reasonNotSelected = reason === '';
-    const reasonOther = reason === optionOther;
+    const reasonOther = reason === optionOther.submissionValue;
     const commentsNotProvided = comments.trim() === '';
-    const submitDisabled = reasonNotSelected || (reason === optionOther && commentsNotProvided);
+    const submitDisabled = reasonNotSelected || (reasonOther && commentsNotProvided);
 
     const dispatch = useDispatch();
 
@@ -71,15 +77,15 @@ function FeedbackModal(props: Props) {
                 testId='FeedbackModalRadioGroup'
                 values={feedbackModalOptions.map((option) => {
                     return {
-                        value: option,
-                        key: option,
-                        testId: option,
+                        value: option.submissionValue,
+                        key: option.translatedMessage,
+                        testId: option.submissionValue,
                     };
                 })}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
             />
-            {reason === optionOther &&
+            {reasonOther &&
                 <>
                     <textarea
                         data-testid={'FeedbackModal__TextInput'}
