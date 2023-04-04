@@ -9,10 +9,8 @@ import {GlobalState} from 'types/store';
 export const areWorkTemplatesEnabled = createSelector(
     'areWorktemplatesEnabled',
     (state: GlobalState) => getFeatureFlagValue(state, 'WorkTemplate') === 'true',
-    (state: GlobalState) => getFeatureFlagValue(state, 'BoardsProduct') === 'true',
-    (state: GlobalState) => Boolean(state.plugins.plugins?.playbooks),
-    (workTemplateFF, boardProductEnabled, pluginPlaybooksInstalled) => {
-        return workTemplateFF && boardProductEnabled && pluginPlaybooksInstalled;
+    (workTemplateFF) => {
+        return workTemplateFF;
     },
 );
 
