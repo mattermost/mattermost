@@ -51,6 +51,10 @@ button.InviteView__copyLink.tertiary-button:focus {
             display: none;
         }
 
+        &-guest {
+            justify-content: flex-end;
+        }
+
         .btn {
             font-weight: 600;
         }
