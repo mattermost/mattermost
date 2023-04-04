@@ -56,7 +56,7 @@ const DowngradeFeedbackModal = (props: Props) => {
                 defaultMessage: 'Too expensive',
             }),
             submissionValue: 'Too expensive',
-        }
+        },
     ];
 
     return (
