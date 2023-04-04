@@ -9543,10 +9543,6 @@
     "translation": "Unable to get post priority for post"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Unable to update the draft."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the draft."
   },

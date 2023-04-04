@@ -9563,10 +9563,6 @@
     "translation": "Kon geen berichtprioriteit ophalen voor bericht"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Kan het concept niet bijwerken."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Kan het concept niet opslaan."
   },

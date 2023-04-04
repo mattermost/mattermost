@@ -9535,10 +9535,6 @@
     "translation": "Die Priorität der Nachricht kann nicht ermittelt werden"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Die Aktualisierung des Entwurfs ist nicht möglich."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Der Entwurf kann nicht gespeichert werden."
   },
