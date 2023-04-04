@@ -434,7 +434,7 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
             <p
               class="CardDetail__limited-body"
             >
-              Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.
+              Upgrade to our Professional or Enterprise plan.
               <br />
               <a
                 class="CardDetail__limited-link"

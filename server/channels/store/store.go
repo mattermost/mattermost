@@ -986,11 +986,10 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
-	Save(d *model.Draft) (*model.Draft, error)
+	Upsert(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
-	Update(d *model.Draft) (*model.Draft, error)
 }
 
 type PostAcknowledgementStore interface {

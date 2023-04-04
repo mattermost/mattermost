@@ -34,7 +34,7 @@ export type Props = {
     enforceFocus?: boolean;
     container?: React.ReactNode | React.ReactNodeArray;
     ariaLabel?: string;
-    errorText?: string;
+    errorText?: string | React.ReactNode;
     compassDesign?: boolean;
     backdrop?: boolean;
     backdropClassName?: string;
@@ -42,6 +42,10 @@ export type Props = {
     children: React.ReactNode;
     autoFocusConfirmButton?: boolean;
     keyboardEscape?: boolean;
+    headerInput?: React.ReactNode;
+    bodyPadding?: boolean;
+    footerContent?: React.ReactNode;
+    footerDivider?: boolean;
 };
 
 type State = {
@@ -57,6 +61,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
         autoCloseOnConfirmButton: true,
         enforceFocus: true,
         keyboardEscape: true,
+        bodyPadding: true,
     };
 
     constructor(props: Props) {
@@ -197,7 +202,12 @@ export class GenericModal extends React.PureComponent<Props, State> {
                         className='GenericModal__wrapper-enter-key-press-catcher'
                     >
                         <Modal.Header closeButton={true}>
-                            {this.props.compassDesign && headerText}
+                            {this.props.compassDesign && (
+                                <>
+                                    {headerText}
+                                    {this.props.headerInput}
+                                </>
+                            )}
                         </Modal.Header>
                         <Modal.Body>
                             {this.props.compassDesign ? (
@@ -210,14 +220,22 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             ) : (
                                 headerText
                             )}
-                            <div className='GenericModal__body'>
+                            <div className={classNames('GenericModal__body', {padding: this.props.bodyPadding})}>
                                 {this.props.children}
                             </div>
                         </Modal.Body>
-                        {(cancelButton || confirmButton) && <Modal.Footer>
-                            {cancelButton}
-                            {confirmButton}
-                        </Modal.Footer>}
+                        {(cancelButton || confirmButton || this.props.footerContent) && (
+                            <Modal.Footer className={classNames({divider: this.props.footerDivider})}>
+                                {(cancelButton || confirmButton) ? (
+                                    <>
+                                        {cancelButton}
+                                        {confirmButton}
+                                    </>
+                                ) : (
+                                    this.props.footerContent
+                                )}
+                            </Modal.Footer>
+                        )}
                     </div>
                 </FocusTrap>
             </Modal>
