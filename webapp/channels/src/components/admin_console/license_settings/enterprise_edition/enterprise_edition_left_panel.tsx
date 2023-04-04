@@ -24,7 +24,6 @@ import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpa
 import {getExpandSeatsLink} from 'selectors/cloud';
 import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
 import {useQuery} from 'utils/http_utils';
-import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 
 const DAYS_UNTIL_EXPIRY_WARNING_DISPLAY_THRESHOLD = 30;
 const DAYS_UNTIL_EXPIRY_DANGER_DISPLAY_THRESHOLD = 5;
@@ -66,9 +65,7 @@ const EnterpriseEditionLeftPanel = ({
     const actionQueryParam = query.get('action');
 
     useEffect(() => {
-        console.log(actionQueryParam);
         if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedExpansionEnabled) {
-            console.log('Open modal!');
             selfHostedExpansionModal.open();
             query.set('action', '');
         }
