@@ -12,7 +12,7 @@ export function getAdminAccount() {
         username: Cypress.env('adminUsername'),
         password: Cypress.env('adminPassword'),
         email: Cypress.env('adminEmail'),
-    };
+    } as Cypress.UserProfile;
 }
 
 export function getDBConfig() {

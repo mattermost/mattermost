@@ -51,7 +51,7 @@ describe('AD / LDAP', () => {
             cy.apiUploadSAMLIDPCert('keycloak.crt');
 
             // # Create Keycloak user and login for the first time
-            cy.keycloakCreateUsers([samlLdapUser, nonLDAPUser]);
+            cy.keycloakCreateUser({samlLdapUser, nonLDAPUser});
 
             cy.doKeycloakLogin(samlLdapUser);
 
