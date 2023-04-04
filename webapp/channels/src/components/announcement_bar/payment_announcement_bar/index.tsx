@@ -18,7 +18,7 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import {getHistory} from 'utils/browser_history';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
-import {AnnouncementBarTypes, CloudProducts} from 'utils/constants';
+import {AnnouncementBarTypes, CloudProducts, ConsolePages} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import AnnouncementBar from '../default_announcement_bar';
@@ -33,12 +33,12 @@ export default function PaymentAnnouncementBar() {
     const isCloud = useSelector(getLicense).Cloud === 'true';
 
     useEffect(() => {
-        if (isEmpty(customer) && userIsAdmin && !requestedCustomer) {
+        if (isCloud && !isStarterFree && isEmpty(customer) && userIsAdmin && !requestedCustomer) {
             setRequestedCustomer(true);
             dispatch(getCloudCustomer());
         }
     },
-    [customer, userIsAdmin, requestedCustomer]);
+    [isCloud, isStarterFree, customer, userIsAdmin, requestedCustomer]);
 
     const mostRecentPaymentFailed = subscription?.last_invoice?.status === 'failed';
 
@@ -55,7 +55,7 @@ export default function PaymentAnnouncementBar() {
     }
 
     const updatePaymentInfo = () => {
-        getHistory().push('/admin_console/billing/payment_info');
+        getHistory().push(ConsolePages.PAYMENT_INFO);
     };
 
     let message = (
