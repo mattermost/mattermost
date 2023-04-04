@@ -1,9 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {randomUUID} from 'crypto';
+
 import nock from 'nock';
 
-import {randomUUID} from 'crypto';
+import General from 'mattermost-redux/constants/general';
+
+import {generateId} from 'mattermost-redux/utils/helpers';
 
 import {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
 import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
@@ -18,9 +22,6 @@ import {Scheme} from '@mattermost/types/schemes';
 import {FileInfo} from '@mattermost/types/files';
 
 import {Client4} from '@mattermost/client';
-
-import General from 'mattermost-redux/constants/general';
-import {generateId} from 'mattermost-redux/utils/helpers';
 
 export const DEFAULT_SERVER = 'http://localhost:8065';
 const PASSWORD = 'password1';
@@ -449,10 +450,13 @@ class TestHelper {
     fakeChannelNotifyProps = (override: Partial<ChannelNotifyProps>): ChannelNotifyProps => {
         return {
             desktop: 'default',
+            desktop_threads: 'default',
+            push_threads: 'default',
             email: 'default',
             mark_unread: 'mention',
             push: 'default',
             ignore_channel_mentions: 'default',
+            channel_auto_follow_threads: 'false',
             ...override,
         };
     }

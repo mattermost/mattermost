@@ -20,11 +20,14 @@ export type ChannelStats = {
 };
 
 export type ChannelNotifyProps = {
+    desktop_threads: 'default' | 'all' | 'mention' | 'none';
     desktop: 'default' | 'all' | 'mention' | 'none';
     email: 'default' | 'all' | 'mention' | 'none';
     mark_unread: 'all' | 'mention';
     push: 'default' | 'all' | 'mention' | 'none';
+    push_threads: 'default' | 'all' | 'mention' | 'none';
     ignore_channel_mentions: 'default' | 'off' | 'on';
+    channel_auto_follow_threads: 'true' | 'false';
 };
 
 export type Channel = {

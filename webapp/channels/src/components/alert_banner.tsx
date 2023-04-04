@@ -23,6 +23,7 @@ export type ModeType = 'danger' | 'warning' | 'info' | 'success';
 export type AlertBannerProps = {
     mode: ModeType;
     title?: React.ReactNode;
+    customIcon?: React.ReactNode;
     message?: React.ReactNode;
     children?: React.ReactNode;
     className?: string;
@@ -37,6 +38,7 @@ export type AlertBannerProps = {
 const AlertBanner = ({
     mode,
     title,
+    customIcon,
     message,
     className,
     variant = 'sys',
@@ -51,6 +53,9 @@ const AlertBanner = ({
     const [tooltipId] = useState(`alert_banner_close_btn_tooltip_${Math.random()}`);
 
     const bannerIcon = useCallback(() => {
+        if (customIcon) {
+            return customIcon;
+        }
         if (mode === 'danger' || mode === 'warning') {
             return (
                 <AlertOutlineIcon
@@ -66,7 +71,7 @@ const AlertBanner = ({
             <InformationOutlineIcon
                 size={24}
             />);
-    }, [mode]);
+    }, [mode, customIcon]);
 
     return (
         <div
