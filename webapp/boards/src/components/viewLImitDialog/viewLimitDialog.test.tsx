@@ -24,7 +24,7 @@ import client from 'src/octoClient'
 import {ViewLimitModal} from './viewLimitDialog'
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(client, true)
+const mockedOctoClient = mocked(client)
 
 declare let window: IAppWindow
 
@@ -74,13 +74,13 @@ describe('components/viewLimitDialog/ViewLiimitDialog', () => {
         expect(notifyBtn).toBeDefined()
         expect(notifyBtn).not.toBeNull()
         expect(notifyBtn!.textContent).toBe('Notify Admin')
-        userEvent.click(notifyBtn as Element)
+        await userEvent.click(notifyBtn as Element)
         await waitFor(() => expect(handleShowNotifyAdminSuccess).toBeCalledTimes(1))
 
         const cancelBtn = container.querySelector('button.cancel')
         expect(cancelBtn).toBeDefined()
         expect(cancelBtn).not.toBeNull()
-        userEvent.click(cancelBtn as Element)
+        await userEvent.click(cancelBtn as Element)
 
         // on close called twice.
         // once when clicking on notify admin btn
@@ -118,14 +118,14 @@ describe('components/viewLimitDialog/ViewLiimitDialog', () => {
         expect(notifyBtn).toBeDefined()
         expect(notifyBtn).not.toBeNull()
         expect(notifyBtn!.textContent).toBe('Upgrade')
-        userEvent.click(notifyBtn as Element)
+        await userEvent.click(notifyBtn as Element)
         expect(handleShowNotifyAdminSuccess).toBeCalledTimes(0)
         await waitFor(() => expect(handleOpenPricingModalEmbeddedFunc).toBeCalledTimes(1))
 
         const cancelBtn = container.querySelector('button.cancel')
         expect(cancelBtn).toBeDefined()
         expect(cancelBtn).not.toBeNull()
-        userEvent.click(cancelBtn as Element)
+        await userEvent.click(cancelBtn as Element)
 
         // on close called twice.
         // once when clicking on notify admin btn

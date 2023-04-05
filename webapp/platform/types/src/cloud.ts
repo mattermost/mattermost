@@ -220,6 +220,11 @@ export interface CreateSubscriptionRequest {
     internal_purchase_order?: string;
 }
 
+export interface NewsletterRequestBody {
+    email: string;
+    subscribed_content: string;
+}
+
 export const areShippingDetailsValid = (address: Address | null | undefined): boolean => {
     if (!address) {
         return false;
