@@ -4160,7 +4160,7 @@
   "more_channels.join": "Join",
   "more_channels.joining": "Joining...",
   "more_channels.next": "Next",
-  "more_channels.noMore": "No results for \"{text}\"",
+  "more_channels.noMore": "No more channels to join",
   "more_channels.prev": "Previous",
   "more_channels.show_archived_channels": "Channel Type: Archived",
   "more_channels.show_public_channels": "Channel Type: Public",
