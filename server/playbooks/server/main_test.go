@@ -117,7 +117,7 @@ func Setup(t *testing.T) *TestEnvironment {
 	config := configStore.Get()
 	// Force plugins to be disabled since we are in product mode
 	config.PluginSettings.Enable = model.NewBool(false)
-	config.ServiceSettings.ListenAddress = model.NewString("localhost:9056")
+	config.ServiceSettings.ListenAddress = model.NewString("localhost:0")
 	config.TeamSettings.MaxUsersPerTeam = model.NewInt(10000)
 	config.LocalizationSettings.SetDefaults()
 	config.SqlSettings = *sqlSettings
