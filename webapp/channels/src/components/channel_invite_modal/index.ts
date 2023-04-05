@@ -6,7 +6,7 @@ import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
-import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
+import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel, getProfileSetNotInTeam, getProfileSetNotInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
@@ -16,20 +16,18 @@ import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/ro
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {Permissions} from 'mattermost-redux/constants';
 
-import {Value} from 'components/multiselect/multiselect';
-
 import {addUsersToChannel} from 'actions/channel_actions';
 import {loadStatusesForProfilesList} from 'actions/status_actions';
 
 import {closeModal} from 'actions/views/modals';
+import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
 import {GlobalState} from 'types/store';
 
 import {getRecentProfilesFromDMs} from 'mattermost-redux/selectors/entities/channels';
+import {getAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 
 import ChannelInviteModal from './channel_invite_modal';
-
-type UserProfileValue = Value & UserProfile;
 
 type OwnProps = {
     channelId?: string;
@@ -48,18 +46,21 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
     }
 
     return (state: GlobalState, props: OwnProps) => {
-        let profilesNotInCurrentChannel: UserProfileValue[];
-        let profilesInCurrentChannel: UserProfileValue[];
-        let profilesNotInCurrentTeam: UserProfileValue[];
+        let profilesNotInCurrentChannel: UserProfile[];
+        let profilesInCurrentChannel: UserProfile[];
+        let profilesNotInCurrentTeam: UserProfile[];
+        let profileSetNotInCurrentTeam: string[];
 
         if (props.channelId && props.teamId) {
-            profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId) as UserProfileValue[];
-            profilesInCurrentChannel = doGetProfilesInChannel(state, props.channelId) as UserProfileValue[];
-            profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId) as UserProfileValue[];
+            profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId);
+            profilesInCurrentChannel = doGetProfilesInChannel(state, props.channelId);
+            profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId);
+            profileSetNotInCurrentTeam = getProfileSetNotInTeam(state, props.teamId);
         } else {
-            profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state) as UserProfileValue[];
-            profilesInCurrentChannel = getProfilesInCurrentChannel(state) as UserProfileValue[];
-            profilesNotInCurrentTeam = getProfilesNotInCurrentTeam(state) as UserProfileValue[];
+            profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state);
+            profilesInCurrentChannel = getProfilesInCurrentChannel(state);
+            profilesNotInCurrentTeam = getProfilesNotInCurrentTeam(state);
+            profileSetNotInCurrentTeam = getProfileSetNotInCurrentTeam(state);
         }
         const profilesFromRecentDMs = getRecentProfilesFromDMs(state);
         const config = getConfig(state);
@@ -76,16 +77,19 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         const userStatuses = getUserStatuses(state);
 
         const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
+        const groups = getAllAssociatedGroupsForReference(state);
 
         return {
             profilesNotInCurrentChannel,
             profilesInCurrentChannel,
             profilesNotInCurrentTeam,
+            profileSetNotInCurrentTeam,
             teammateNameDisplaySetting,
             profilesFromRecentDMs,
             userStatuses,
             canInviteGuests,
             emailInvitationsEnabled,
+            groups,
         };
     };
 }
@@ -98,6 +102,7 @@ type Actions = {
     searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     closeModal: (modalId: string) => void;
     getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
+    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<ActionResult>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -110,6 +115,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadStatusesForProfilesList,
             searchProfiles,
             closeModal,
+            searchAssociatedGroupsForReference,
         }, dispatch),
     };
 }

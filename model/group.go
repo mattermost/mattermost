@@ -45,6 +45,7 @@ type Group struct {
 	AllowReference              bool        `json:"allow_reference"`
 	ChannelMemberCount          *int        `db:"-" json:"channel_member_count,omitempty"`
 	ChannelMemberTimezonesCount *int        `db:"-" json:"channel_member_timezones_count,omitempty"`
+	MemberIDs                   []string    `db:"-" json:"member_ids"`
 }
 
 func (group *Group) Auditable() map[string]interface{} {
@@ -133,10 +134,12 @@ type GroupSearchOpts struct {
 
 	IncludeChannelMemberCount string
 	IncludeTimezones          bool
+	IncludeMemberIDs          bool
 }
 
 type GetGroupOpts struct {
 	IncludeMemberCount bool
+	IncludeMemberIDs   bool
 }
 
 type PageOpts struct {

@@ -5,6 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
+
 import GuestTag from 'components/widgets/tag/guest_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 
@@ -13,8 +15,10 @@ import {RelationOneToOne} from '@mattermost/types/utilities';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
 
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
+import {filterGroupsMatchingTerm, sortGroups} from 'mattermost-redux/utils/group_utils';
 import {localizeMessage} from 'utils/utils';
 import ProfilePicture from 'components/profile_picture';
 import MultiSelect, {Value} from 'components/multiselect/multiselect';
@@ -22,6 +26,8 @@ import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import InvitationModal from 'components/invitation_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
+
+import GroupOption from './group_option';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
@@ -31,10 +37,13 @@ const MAX_USERS = 25;
 
 type UserProfileValue = Value & UserProfile;
 
+type GroupValue = Value & Group;
+
 export type Props = {
-    profilesNotInCurrentChannel: UserProfileValue[];
-    profilesInCurrentChannel: UserProfileValue[];
-    profilesNotInCurrentTeam: UserProfileValue[];
+    profileSetNotInCurrentTeam: Array<UserProfile['id']>
+    profilesNotInCurrentChannel: UserProfile[];
+    profilesInCurrentChannel: UserProfile[];
+    profilesNotInCurrentTeam: UserProfile[];
     profilesFromRecentDMs: UserProfile[];
     userStatuses: RelationOneToOne<UserProfile, string>;
     onExited: () => void;
@@ -52,6 +61,7 @@ export type Props = {
     includeUsers?: Record<string, UserProfileValue>;
     canInviteGuests?: boolean;
     emailInvitationsEnabled?: boolean;
+    groups: Group[];
     actions: {
         addUsersToChannel: (channelId: string, userIds: string[]) => Promise<ActionResult>;
         getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number) => Promise<ActionResult>;
@@ -60,11 +70,13 @@ export type Props = {
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         closeModal: (modalId: string) => void;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<ActionResult>;
     };
 }
 
 type State = {
     values: UserProfileValue[];
+    valuesNotInTeam:string[];
     term: string;
     show: boolean;
     saving: boolean;
@@ -86,6 +98,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         super(props);
         this.state = {
             values: [],
+            valuesNotInTeam: [],
             term: '',
             show: true,
             saving: false,
@@ -93,12 +106,18 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         } as State;
     }
 
-    private addValue = (value: UserProfileValue): void => {
+    private addValue = (value: UserProfileValue | UserProfileValue[]): void => {
         const values: UserProfileValue[] = Object.assign([], this.state.values);
+        if (Array.isArray(value)) {
+            this.checkIfMissingFromTeam(values);
+            let newValues = values.concat(value);
+            newValues = Array.from(new Set(newValues));
+            this.setState({values: newValues});
+            return;
+        }
         if (values.indexOf(value) === -1) {
             values.push(value);
         }
-
         this.setState({values});
     };
 
@@ -118,6 +137,14 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
     };
 
+    checkIfMissingFromTeam = (profiles: UserProfileValue[]): void => {
+        profiles.forEach(profile => {
+            if (this.props.profileSetNotInCurrentTeam.includes(profile.id)) {
+                this.setState({valuesNotInTeam: [...this.state.valuesNotInTeam, profile.id]});
+            }
+        });
+    }
+
     public handleInviteError = (err: any): void => {
         if (err) {
             this.setState({
@@ -127,8 +154,8 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         }
     };
 
-    private handleDelete = (values: UserProfileValue[]): void => {
-        this.setState({values});
+    private handleDelete = (values: (UserProfileValue)[]): void => {
+            this.setState({values});
     };
 
     private setUsersLoadingState = (loadingState: boolean): void => {
@@ -190,24 +217,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             term,
         });
 
-        if (term) {
-            this.setUsersLoadingState(true);
-            this.searchTimeoutId = window.setTimeout(
-                async () => {
-                    const options = {
-                        team_id: this.props.channel.team_id,
-                        not_in_channel_id: this.props.channel.id,
-                        group_constrained: this.props.channel.group_constrained,
-                    };
-                    await this.props.actions.searchProfiles(term, options);
-                    this.setUsersLoadingState(false);
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
-        } else {
-            return;
-        }
-
         this.searchTimeoutId = window.setTimeout(
             async () => {
                 if (!term) {
@@ -219,18 +228,24 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                     not_in_channel_id: this.props.channel.id,
                     group_constrained: this.props.channel.group_constrained,
                 };
-                await this.props.actions.searchProfiles(term, options);
+                await Promise.all([
+                    this.props.actions.searchProfiles(term, options),
+                    this.props.actions.searchAssociatedGroupsForReference(term, this.props.channel.team_id, this.props.channel.id),
+                ])
                 this.setUsersLoadingState(false);
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS,
         );
     };
 
-    private renderAriaLabel = (option: UserProfileValue): string => {
+    private renderAriaLabel = (option: UserProfileValue | GroupValue): string => {
         if (!option) {
             return '';
         }
-        return option.username;
+        if ('username' in option) {
+            return option.username;
+        }
+        return option.name;
     }
 
     private filterOutDeletedAndExcludedAndNotInTeamUsers = (users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
@@ -239,66 +254,80 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         }) as UserProfileValue[];
     }
 
-    renderOption = (option: UserProfileValue, isSelected: boolean, onAdd: (user: UserProfileValue) => void, onMouseMove: (user: UserProfileValue) => void) => {
+    renderOption = (option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
         let rowSelected = '';
         if (isSelected) {
             rowSelected = 'more-modal__row--selected';
         }
 
-        const ProfilesInGroup = this.props.profilesInCurrentChannel.map((user) => user.id);
+        if ('username' in option) {
+            const ProfilesInGroup = this.props.profilesInCurrentChannel.map((user) => user.id);
 
-        const userMapping: Record<string, string> = {};
-
-        for (let i = 0; i < ProfilesInGroup.length; i++) {
-            userMapping[ProfilesInGroup[i]] = 'Already in channel';
+            const userMapping: Record<string, string> = {};
+    
+            for (let i = 0; i < ProfilesInGroup.length; i++) {
+                userMapping[ProfilesInGroup[i]] = 'Already in channel';
+            }
+    
+            const displayName = displayUsername(option, this.props.teammateNameDisplaySetting);
+    
+            return (
+                <div
+                    key={option.id}
+                    ref={isSelected ? this.selectedItemRef : option.id}
+                    className={'more-modal__row clickable ' + rowSelected}
+                    onClick={() => onAdd(option)}
+                    onMouseMove={() => onMouseMove(option)}
+                >
+                    <ProfilePicture
+                        src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}
+                        status={this.props.userStatuses[option.id]}
+                        size='md'
+                        username={option.username}
+                    />
+                    <div className='more-modal__details'>
+                        <div className='more-modal__name'>
+                            <span>
+                                {displayName}
+                                {option.is_bot && <BotTag/>}
+                                {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
+                                {displayName === option.username ?
+                                    null :
+                                    <span
+                                        className='ml-2 light'
+                                        style={{fontSize: '12px'}}
+                                    >
+                                        {'@'}{option.username}
+                                    </span>
+                                }
+                                <span
+                                    style={{position: 'absolute', right: 20}}
+                                    className='light'
+                                >
+                                    {userMapping[option.id]}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div className='more-modal__actions'>
+                        <div className='more-modal__actions--round'>
+                            <AddIcon/>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
-        const displayName = displayUsername(option, this.props.teammateNameDisplaySetting);
-
         return (
-            <div
+            <GroupOption 
+                group={option}
                 key={option.id}
-                ref={isSelected ? this.selectedItemRef : option.id}
-                className={'more-modal__row clickable ' + rowSelected}
-                onClick={() => onAdd(option)}
-                onMouseMove={() => onMouseMove(option)}
-            >
-                <ProfilePicture
-                    src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}
-                    status={this.props.userStatuses[option.id]}
-                    size='md'
-                    username={option.username}
-                />
-                <div className='more-modal__details'>
-                    <div className='more-modal__name'>
-                        <span>
-                            {displayName}
-                            {option.is_bot && <BotTag/>}
-                            {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
-                            {displayName === option.username ?
-                                null :
-                                <span
-                                    className='ml-2 light'
-                                    style={{fontSize: '12px'}}
-                                >
-                                    {'@'}{option.username}
-                                </span>
-                            }
-                            <span
-                                style={{position: 'absolute', right: 20}}
-                                className='light'
-                            >
-                                {userMapping[option.id]}
-                            </span>
-                        </span>
-                    </div>
-                </div>
-                <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
-                        <AddIcon/>
-                    </div>
-                </div>
-            </div>
+                addUserProfile={onAdd}
+                isSelected={isSelected}
+                rowSelected={rowSelected}
+                onMouseMove={onMouseMove}
+                selectedItemRef={this.selectedItemRef}
+            />
         );
     };
 
@@ -328,23 +357,25 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         } else {
             excludedAndNotInTeamUserIds = new Set(this.props.profilesNotInCurrentTeam.map((user) => user.id));
         }
-        let users = this.filterOutDeletedAndExcludedAndNotInTeamUsers(
+        let users: (UserProfileValue | GroupValue)[] = this.filterOutDeletedAndExcludedAndNotInTeamUsers(
             filterProfilesStartingWithTerm(
                 this.props.profilesNotInCurrentChannel.concat(this.props.profilesInCurrentChannel),
                 this.state.term),
             excludedAndNotInTeamUserIds);
+
         if (this.props.includeUsers) {
             const includeUsers = Object.values(this.props.includeUsers);
             users = [...users, ...includeUsers];
         }
+
         users = [
             ...this.filterOutDeletedAndExcludedAndNotInTeamUsers(
                 filterProfilesStartingWithTerm(this.props.profilesFromRecentDMs, this.state.term),
                 excludedAndNotInTeamUserIds).
                 slice(0, USERS_FROM_DMS) as UserProfileValue[],
+            ...filterGroupsMatchingTerm(this.props.groups, this.state.term).slice(0, 5) as GroupValue[],
             ...users,
-        ].
-            slice(0, MAX_USERS);
+        ].slice(0, MAX_USERS);
 
         users = Array.from(new Set(users));
 

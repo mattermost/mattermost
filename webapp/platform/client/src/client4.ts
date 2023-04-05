@@ -3592,6 +3592,7 @@ export default class Client4 {
             page,
             per_page: perPage,
             include_member_count: includeMemberCount,
+            include_member_ids: true,
         };
 
         if (hasFilterMember) {
@@ -3657,8 +3658,12 @@ export default class Client4 {
     }
 
     searchGroups = (params: GroupSearachParams) => {
+        const p = {
+            ...params,
+            include_member_ids: true,
+        };
         return this.doFetch<Group[]>(
-            `${this.getGroupsRoute()}${buildQueryString(params)}`,
+            `${this.getGroupsRoute()}${buildQueryString(p)}`,
             {method: 'get'},
         );
     }

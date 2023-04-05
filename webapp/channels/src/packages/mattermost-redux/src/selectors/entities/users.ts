@@ -262,6 +262,15 @@ export const getProfileSetNotInCurrentTeam: (state: GlobalState) => Array<UserPr
     },
 );
 
+export const getProfileSetNotInTeam: (state: GlobalState, teamId: Team['id']) => Array<UserProfile['id']> = createSelector(
+    'getProfileSetNotInTeam',
+    getUserIdsNotInTeams,
+    (state: GlobalState, teamId: Team['id']) => teamId,
+    (teamProfiles, teamId) => {
+        return teamProfiles[teamId];
+    },
+);
+
 const PROFILE_SET_ALL = 'all';
 function sortAndInjectProfiles(profiles: IDMappedObjects<UserProfile>, profileSet?: 'all' | Array<UserProfile['id']> | Set<UserProfile['id']>): UserProfile[] {
     const currentProfiles = injectProfiles(profiles, profileSet);

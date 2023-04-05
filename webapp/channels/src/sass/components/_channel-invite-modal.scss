@@ -90,6 +90,18 @@
         .more-modal__options {
             overflow: visible;
             min-height: auto;
+
+            .add-group-members {
+                font-family: 'Open Sans';
+                font-style: normal;
+                font-weight: 600;
+                font-size: 12px;
+                line-height: 16px;
+                min-width: 110px;
+                color: var(--button-bg);
+                display: flex;
+                margin-left: auto;
+            }
         }
     }
 

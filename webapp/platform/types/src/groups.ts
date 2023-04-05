@@ -41,6 +41,7 @@ export type Group = {
     allow_reference: boolean;
     channel_member_count?: number;
     channel_member_timezones_count?: number;
+    member_ids?: string[];
 };
 
 export enum GroupSource {
