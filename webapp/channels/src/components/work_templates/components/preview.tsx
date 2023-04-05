@@ -303,6 +303,7 @@ const StyledPreview = styled(Preview)`
         width: 387px;
         height: 416px;
         padding-right: 32px;
+        margin-top: 17px;
     }
 
     strong {
