@@ -50,7 +50,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
         if (this.props.installed && !this.props.installing && !this.props.error) {
             return (
                 <button
-                    className='btn btn-outline'
+                    className='app-installed'
                     disabled={true}
                 >
                     <FormattedMessage
@@ -81,7 +81,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
         return (
             <button
                 onClick={this.onInstall}
-                className='btn btn-primary'
+                className='app-install always-show-enabled'
                 disabled={this.props.installing}
             >
                 <LoadingWrapper

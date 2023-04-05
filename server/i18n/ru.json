@@ -8968,18 +8968,6 @@
     "translation": "функция пользовательских групп отключена"
   },
   {
-    "id": "Playbooks",
-    "translation": "Сценарии"
-  },
-  {
-    "id": "Channels",
-    "translation": "Каналы"
-  },
-  {
-    "id": "Boards",
-    "translation": "Доски"
-  },
-  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Ошибка при попытке получить первую завершенную настройку администратора из магазина."
   },
@@ -9036,34 +9024,6 @@
     "translation": "Ответ SAML слишком длинный"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Откройте для себя повышенную производительность с помощью этих замечательных функций"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Привет, {{.Name}}, мы заметили, что Ваш сервер Mattermost собирает немного пыли. Взгляните на некоторые функции, которые могут облегчить рабочую нагрузку в Вашей команде."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Откройте все возможности Mattermost, чтобы повысить производительность вашей команды!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Управляйте задачами с помощью "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Управление рабочим процессом с "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Приходите и проверьте это!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Открыть Mattermost"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP не настроен в Системной Консоли"
   },
@@ -9078,10 +9038,6 @@
   {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "Ошибка при попытке сохранить первую полную настройку администратора в магазине."
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Гостевой доступ к указанному "
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
@@ -9308,10 +9264,6 @@
     "translation": "Не удалось получить сведения об использовании команд"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Плагин {{.Name}} не может быть включен в продуктовом режиме."
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Невозможно отправить сообщение с уведомлением."
   },
@@ -9370,10 +9322,6 @@
   {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Не удалось получить облачные продукты"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Вы получили это одноразовое письмо, потому что ваш сервер Mattermost был неактивен более {{.Hours}} часов. Это письмо было автоматически сгенерировано вашим сервером Mattermost."
   },
   {
     "id": "api.templates.delinquency_90.title",
@@ -9592,10 +9540,6 @@
     "translation": "Невозможно получить приоритет для сообщения"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Невозможно обновить черновик."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Невозможно сохранить черновик."
   },
@@ -9662,22 +9606,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Вы не можете удалить подтверждение в архивированном канале."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Создайте прозрачные рабочие процессы между командами разработчиков, чтобы обеспечить бесперебойный процесс разработки функций."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Повысьте производительность вашего канала, интегрировав бота для Jira и бота для Github. Они будут загружены для вас."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Общайтесь со своей командой в канале Feature Release, который легко соединяется с вашими досками, сценариями и ботами приложений."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Используйте наш шаблон доски \"Повестка дня совещания\" для повторяющихся совещаний, например, совещаний по подготовке к работе, и доску \"Задачи проекта\" для управления ходом выполнения задач."
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9840,120 +9768,12 @@
     "translation": "Неверная служба авторизации: {{.AuthService}}"
   },
   {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Используйте проект, чтобы сделать планирование спринта легким. Канал позволяет сфокусировать разговор и вопросы. План спринта помогает всем выполнить задачи на неделю, а доска ретроспектив объединяет команду для постоянного совершенствования."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Описание того, зачем нужен канал(ы)"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Описание того, зачем нужна(ы) доска(и)"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Организуйтесь и уничтожьте все ошибки с помощью этого проекта! Создайте импульс и измерьте прогресс с помощью включенных в комплект Playbook, Board и Channel."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "С этим проектом вы не пропустите ни одного шага во время выпуска продукта. Назначайте задачи из контрольного списка Playbook и устанавливайте вехи на Досках. Используйте Каналы, чтобы все были вовлечены в процесс."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Когда все идет не так, как надо, наличие повторяющегося процесса является ключом к тому, чтобы все было исправлено как можно быстрее. Этот проект сочетает в себе все, что предлагает Mattermost, чтобы обеспечить разрешение трудностей и информирование заинтересованных сторон на этом пути."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Фокусировка необходима для успеха команды, и с помощью этого проекта вы можете документировать цели и OKR команды, а также публиковать обновления в специальном канале."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Планируйте дорожную карту с помощью этой проектной доски и сотрудничайте по теме в канале, созданном с помощью этого шаблона."
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "Лидерство"
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",

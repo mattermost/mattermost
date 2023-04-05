@@ -33,7 +33,7 @@ describe('Profile > Profile Settings> Full Name', () => {
 
     it('MM-T2046 Full Name - Truncated in popover', () => {
         // # Go to Profile -> Profile Settings -> Full Name -> Edit
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Open Full Name section
         cy.get('#nameDesc').click();
@@ -50,7 +50,7 @@ describe('Profile > Profile Settings> Full Name', () => {
         // * Full name field shows first and last name.
         cy.contains('#nameDesc', `${firstName} ${lastName}`);
 
-        // # Close account settings modal
+        // # Close profile settings modal
         cy.uiClose();
     });
 

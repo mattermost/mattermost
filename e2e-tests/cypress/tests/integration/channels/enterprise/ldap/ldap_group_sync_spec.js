@@ -230,7 +230,7 @@ context('ldap', () => {
 
             // # Go to team page to look for this channel in public channel directory
             cy.visit(`/${testTeam.name}`);
-            cy.uiBrowseOrCreateChannel('Browse Channels').click();
+            cy.uiBrowseOrCreateChannel('Browse channels').click();
 
             // * Search private channel name and make sure it isn't there in public channel directory
             cy.get('#searchChannelsTextbox').type(testChannel.display_name);
@@ -451,8 +451,8 @@ context('ldap', () => {
                 // # Visit off-topic channel
                 cy.visit(`/${testTeam.name}/channels/off-topic`);
 
-                // # Go to LHS and click 'Browse Channels'
-                cy.uiBrowseOrCreateChannel('Browse Channels').click();
+                // # Go to LHS and click 'Browse channels'
+                cy.uiBrowseOrCreateChannel('Browse channels').click();
 
                 // * Search public channel and ensure it appears in the list
                 cy.get('#searchChannelsTextbox').type(publicChannel.display_name);
@@ -468,8 +468,8 @@ context('ldap', () => {
                 // # Visit off-topic channel
                 cy.visit(`/${testTeam.name}/channels/off-topic`);
 
-                // # Go to LHS and click 'Browse Channels'
-                cy.uiBrowseOrCreateChannel('Browse Channels').click();
+                // # Go to LHS and click 'Browse channels'
+                cy.uiBrowseOrCreateChannel('Browse channels').click();
 
                 // * Search private channel name and make sure it isn't there in public channel directory
                 cy.get('#searchChannelsTextbox').type(publicChannel.display_name);

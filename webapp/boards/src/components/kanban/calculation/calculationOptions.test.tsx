@@ -44,7 +44,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('with submenu open', () => {
+    test('with submenu open', async () => {
         const component = wrapIntl(
             <KanbanCalculationOptions
                 value={'count'}
@@ -58,7 +58,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
         const {container, getByText} = render(component)
         const countUniqueValuesOption = getByText('Count Unique Values')
         expect(countUniqueValuesOption).toBeDefined()
-        userEvent.hover(countUniqueValuesOption)
+        await userEvent.hover(countUniqueValuesOption)
         expect(container).toMatchSnapshot()
     })
 
