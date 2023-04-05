@@ -36,8 +36,8 @@ function useConvertProgressToWaitingExplanation(progress: ValueOf<typeof SelfHos
             defaultMessage: 'Verifying payment details',
         });
     case SelfHostedSignupProgress.PAID:
-    case SelfHostedSignupProgress.PAID:
-    case SelfHostedRenewalProgress.CREATED_LICENSE:
+    case SelfHostedSignupProgress.CREATED_LICENSE:
+    case SelfHostedRenewalProgress.PAID:
     case SelfHostedRenewalProgress.CREATED_LICENSE:
         return intl.formatMessage({
             id: 'self_hosted_signup.progress_step.applying_license',
@@ -92,7 +92,6 @@ export function convertRenewalProgressToBar(progress: ValueOf<typeof SelfHostedR
         return 0;
     }
 }
-
 
 interface Props {
     desiredPlanName: string;

@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import classNames from 'classnames';
+
+import {Address} from '@mattermost/types/cloud';
 
 import {COUNTRIES} from 'utils/countries';
 
@@ -15,25 +17,52 @@ interface Props {
     type: 'shipping' | 'billing';
     testPrefix?: string;
 
-    country: string;
-    changeCountry: (option: {value: string}) => void;
-
-    address: string;
-    changeAddress: (e: React.ChangeEvent<HTMLInputElement>) => void;
-
-    address2: string;
-    changeAddress2: (e: React.ChangeEvent<HTMLInputElement>) => void;
-
-    city: string;
-    changeCity: (e: React.ChangeEvent<HTMLInputElement>) => void;
-
-    state: string;
-    changeState: (postalCode: string) => void;
-
-    postalCode: string;
-    changePostalCode: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    addressReducer: AddressReducer;
 }
-export default function Address(props: Props) {
+
+interface SetAddress {
+    city: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    country: (option: {value: string}) => void;
+    line1: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    line2: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    postalCode: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    state: (postalCode: string) => void;
+}
+
+interface AddressReducer {
+    address: Address;
+    set: SetAddress;
+}
+
+export function useAddressReducer(): AddressReducer {
+    const [city, setCity] = useState('');
+    const [country, setCountry] = useState('');
+    const [line1, setLine1] = useState('');
+    const [line2, setLine2] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [state, setState] = useState('');
+    return useMemo(() => ({
+        set: {
+            city: (e) => setCity(e.target.value),
+            country: (option) => setCountry(option.value),
+            line1: (e) => setLine1(e.target.value),
+            line2: (e) => setLine2(e.target.value),
+            postalCode: (e) => setPostalCode(e.target.value),
+            state: setState,
+        },
+        address: {
+            city,
+            country,
+            line1,
+            line2,
+            postal_code: postalCode,
+            state,
+        },
+
+    }), [city, country, line1, line2, postalCode, state]);
+}
+
+export default function AddressComponent(props: Props) {
     const testPrefix = props.testPrefix || 'selfHostedPurchase';
     const intl = useIntl();
     let countrySelectorId = `${testPrefix}CountrySelector`;
@@ -42,14 +71,15 @@ export default function Address(props: Props) {
         countrySelectorId += '_Shipping';
         stateSelectorId += '_Shipping';
     }
+    const {address, set} = props.addressReducer;
     return (
         <>
             <div className={classNames({'third-dropdown-sibling-wrapper': props.type === 'shipping'})}>
                 <DropdownInput
                     testId={countrySelectorId}
-                    onChange={props.changeCountry}
+                    onChange={set.country}
                     value={
-                        props.country ? {value: props.country, label: props.country} : undefined
+                        address.country ? {value: address.country, label: address.country} : undefined
                     }
                     options={COUNTRIES.map((country) => ({
                         value: country.name,
@@ -70,8 +100,8 @@ export default function Address(props: Props) {
                 <Input
                     name='address'
                     type='text'
-                    value={props.address}
-                    onChange={props.changeAddress}
+                    value={address.line1}
+                    onChange={set.line1}
                     placeholder={intl.formatMessage({
                         id: 'payment_form.address',
                         defaultMessage: 'Address',
@@ -83,8 +113,8 @@ export default function Address(props: Props) {
                 <Input
                     name='address2'
                     type='text'
-                    value={props.address2}
-                    onChange={props.changeAddress2}
+                    value={address.line2}
+                    onChange={set.line2}
                     placeholder={intl.formatMessage({
                         id: 'payment_form.address_2',
                         defaultMessage: 'Address 2',
@@ -95,8 +125,8 @@ export default function Address(props: Props) {
                 <Input
                     name='city'
                     type='text'
-                    value={props.city}
-                    onChange={props.changeCity}
+                    value={address.city}
+                    onChange={set.city}
                     placeholder={intl.formatMessage({
                         id: 'payment_form.city',
                         defaultMessage: 'City',
@@ -108,17 +138,17 @@ export default function Address(props: Props) {
                 <div className={classNames('form-row-third-1', {'second-dropdown-sibling-wrapper': props.type === 'billing', 'fourth-dropdown-sibling-wrapper': props.type === 'shipping'})}>
                     <StateSelector
                         testId={stateSelectorId}
-                        country={props.country}
-                        state={props.state}
-                        onChange={props.changeState}
+                        country={address.country}
+                        state={address.state}
+                        onChange={set.state}
                     />
                 </div>
                 <div className='form-row-third-2'>
                     <Input
                         name='postalCode'
                         type='text'
-                        value={props.postalCode}
-                        onChange={props.changePostalCode}
+                        value={address.postal_code}
+                        onChange={set.postalCode}
                         placeholder={intl.formatMessage({
                             id: 'payment_form.zipcode',
                             defaultMessage: 'Zip/Postal Code',

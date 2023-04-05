@@ -9,6 +9,7 @@ import ExternalLink from 'components/external_link';
 interface Props {
     agreed: boolean;
     setAgreed: (agreed: boolean) => void;
+    isRenewal?: boolean;
 }
 
 import {HostedCustomerLinks} from 'utils/constants';
@@ -35,7 +36,7 @@ export default function Terms(props: Props) {
                                     return (
                                         <ExternalLink
                                             href={HostedCustomerLinks.TERMS_AND_CONDITIONS}
-                                            location='self_hosted_purchase_modal_terms'
+                                            location={props.isRenewal ? 'self_hosted_renewal_modal_terms' : 'self_hosted_purchase_modal_terms'}
                                         >
                                             {chunks}
                                         </ExternalLink>

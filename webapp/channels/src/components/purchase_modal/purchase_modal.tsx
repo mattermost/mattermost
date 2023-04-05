@@ -646,13 +646,14 @@ class PurchaseModal extends React.PureComponent<Props, State> {
 
     getShippingAddressForProcessing = (): Address => {
         if (this.state.billingSameAsShipping) {
+            const address = this.state.billingDetails?.address;
             return {
-                line1: this.state.billingDetails?.address || '',
-                line2: this.state.billingDetails?.address2 || '',
-                city: this.state.billingDetails?.city || '',
-                state: this.state.billingDetails?.state || '',
-                postal_code: this.state.billingDetails?.postalCode || '',
-                country: this.state.billingDetails?.country || '',
+                line1: address?.line1 || '',
+                line2: address?.line2 || '',
+                city: address?.city || '',
+                state: address?.state || '',
+                postal_code: address?.postal_code || '',
+                country: address?.country || '',
             };
         }
 
@@ -807,12 +808,14 @@ class PurchaseModal extends React.PureComponent<Props, State> {
 
         if (this.props.customer?.billing_address && this.props.customer?.payment_method) {
             initialBillingDetails = {
-                address: this.props.customer?.billing_address.line1,
-                address2: this.props.customer?.billing_address.line2,
-                city: this.props.customer?.billing_address.city,
-                state: this.props.customer?.billing_address.state,
-                country: this.props.customer?.billing_address.country,
-                postalCode: this.props.customer?.billing_address.postal_code,
+                address: {
+                    line1: this.props.customer?.billing_address.line1,
+                    line2: this.props.customer?.billing_address.line2,
+                    city: this.props.customer?.billing_address.city,
+                    state: this.props.customer?.billing_address.state,
+                    country: this.props.customer?.billing_address.country,
+                    postal_code: this.props.customer?.billing_address.postal_code,
+                },
                 name: this.props.customer?.payment_method.name,
             } as BillingDetails;
 
@@ -907,7 +910,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                             address={
                                 this.state.shippingAddress ||
                                 getBlankAddressWithCountry(
-                                    this.state.billingDetails?.country || 'US',
+                                    this.state.billingDetails?.address.country || 'US',
                                 )
                             }
                         />

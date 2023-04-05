@@ -18,6 +18,14 @@ import {CloudTypes} from 'mattermost-redux/action_types';
 import {getBlankAddressWithCountry} from 'utils/utils';
 import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 
+function adaptAddressForCountry(addressWithFullCountry: Address): Address {
+    const {country, ...rest} = addressWithFullCountry;
+    return {
+        ...rest,
+        country: getCode(country)!,
+    };
+}
+
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(
     stripe: Stripe,
@@ -41,14 +49,7 @@ export function completeStripeAddPaymentMethod(
                     card: billingDetails.card,
                     billing_details: {
                         name: billingDetails.name,
-                        address: {
-                            line1: billingDetails.address,
-                            line2: billingDetails.address2,
-                            city: billingDetails.city,
-                            state: billingDetails.state,
-                            country: getCode(billingDetails.country),
-                            postal_code: billingDetails.postalCode,
-                        },
+                        address: adaptAddressForCountry(billingDetails.address),
                     },
                 },
             },

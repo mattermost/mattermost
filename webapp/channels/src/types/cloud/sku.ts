@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {StripeCardElement} from '@stripe/stripe-js';
+import {Address} from '@mattermost/types/cloud';
 
 export type StripeSetupIntent = {
     id: string;
@@ -9,16 +10,21 @@ export type StripeSetupIntent = {
 };
 
 export type BillingDetails = {
-    address: string;
-    address2: string;
-    city: string;
-    state: string;
-    country: string;
-    postalCode: string;
+    address: Address;
     name: string;
     card: StripeCardElement;
     agreedTerms?: boolean;
 };
+
+export function isAddressValid(address: Address): boolean {
+    return Boolean(
+        address.city &&
+        address.country &&
+        address.line1 &&
+        address.postal_code &&
+        address.state,
+    );
+}
 
 export const areBillingDetailsValid = (
     billingDetails: Omit<BillingDetails, 'card'> | null | undefined,
@@ -27,12 +33,5 @@ export const areBillingDetailsValid = (
         return false;
     }
 
-    return Boolean(
-        billingDetails.address &&
-      billingDetails.city &&
-      billingDetails.state &&
-      billingDetails.country &&
-      billingDetails.postalCode &&
-      billingDetails.name,
-    );
+    return Boolean(isAddressValid(billingDetails.address) && billingDetails.name);
 };

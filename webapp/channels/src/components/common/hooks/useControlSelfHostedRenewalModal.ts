@@ -7,9 +7,9 @@ import {useDispatch, useSelector} from 'react-redux';
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import SelfHostedRenewalModal from 'components/self_hosted_renewal_modal';
-import {STORAGE_KEY_RENEWAL_IN_PROGRESS } from 'components/self_hosted_purchase_modal/constants';
-import PurchaseInProgressModal from 'components/purchase_in_progress_modal';
+import SelfHostedRenewalModal from 'components/purchase/self_hosted_renewal_modal';
+import {STORAGE_KEY_RENEWAL_IN_PROGRESS} from 'components/purchase/constants';
+import PurchaseInProgressModal from 'components/purchase/in_progress_modal';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -66,12 +66,13 @@ export default function useControlSelfHostedRenewalModal(options: HookOptions) {
                 }
                 dispatch(closeModal(ModalIdentifiers.PRICING_MODAL));
                 dispatch(openModal({
-                  modalId: ModalIdentifiers.SELF_HOSTED_RENEWAL,
-                  dialogType: SelfHostedRenewalModal,
-                  dialogProps: {
-                      productId,
-                  },
+                    modalId: ModalIdentifiers.SELF_HOSTED_RENEWAL,
+                    dialogType: SelfHostedRenewalModal,
+                    dialogProps: {
+                        productId,
+                    },
                 }));
-        },
-    }}, [options.onClick, options.trackingLocation, comparingPlansWhilePurchasing]);
+            },
+        };
+    }, [options.onClick, options.trackingLocation, comparingPlansWhilePurchasing]);
 }

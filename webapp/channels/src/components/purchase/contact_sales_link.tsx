@@ -14,7 +14,7 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 
 interface Props {
-    isRenewal?: boolean
+    isRenewal?: boolean;
 }
 export default function ContactSalesLink(props: Props) {
     const [, contactSalesLink] = useOpenSalesLink();

@@ -14,6 +14,7 @@ import IconMessage from 'components/purchase_modal/icon_message';
 
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
+import type {OpenPricingProps} from 'components/common/hooks/useOpenPricingModal';
 
 import {closeModal} from 'actions/views/modals';
 import {ModalIdentifiers} from 'utils/constants';
@@ -24,7 +25,7 @@ import './style.scss';
 
 type Props = {
     onHide?: () => void;
-    backButtonAction?: () => void;
+    backButtonAction?: (props: OpenPricingProps) => void;
 };
 
 function ErrorModal(props: Props) {
@@ -39,7 +40,7 @@ function ErrorModal(props: Props) {
 
     const onBackButtonPress = () => {
         if (props.backButtonAction) {
-            props.backButtonAction();
+            props.backButtonAction({});
         }
         dispatch(closeModal(ModalIdentifiers.ERROR_MODAL));
     };

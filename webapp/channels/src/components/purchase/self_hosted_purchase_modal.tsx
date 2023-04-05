@@ -22,6 +22,7 @@ import {trackEvent, pageVisited} from 'actions/telemetry_actions';
 import {confirmSelfHostedSignup} from 'actions/hosted_customer';
 
 import {GlobalState} from 'types/store';
+import {isAddressValid} from 'types/cloud/sku';
 
 import {isModalOpen} from 'selectors/views/modals';
 import {isDevModeEnabled} from 'selectors/general';
@@ -44,8 +45,10 @@ import useLoadStripe from 'components/common/hooks/useLoadStripe';
 import useControlSelfHostedPurchaseModal from 'components/common/hooks/useControlSelfHostedPurchaseModal';
 import useFetchStandardAnalytics from 'components/common/hooks/useFetchStandardAnalytics';
 import ChooseDifferentShipping from 'components/choose_different_shipping';
+import StripeProvider from 'components/stripe_provider';
 
 import {ValueOf} from '@mattermost/types/utilities';
+import {Address} from '@mattermost/types/cloud';
 import {UserProfile} from '@mattermost/types/users';
 import {
     SelfHostedSignupProgress,
@@ -59,9 +62,8 @@ import Submitting, {convertProgressToBar} from './submitting';
 import ErrorPage from './error';
 import SuccessPage from './success_page';
 import SelfHostedCard from './self_hosted_card';
-import StripeProvider from './stripe_provider';
 import Terms from './terms';
-import Address from './address';
+import AddressComponent, {useAddressReducer} from './address';
 import useNoEscape from './useNoEscape';
 
 import {SetPrefix, UnionSetActions} from './types';
@@ -71,24 +73,7 @@ import './self_hosted_purchase_modal.scss';
 import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
 
 export interface State {
-
-    // billing address
-    address: string;
-    address2: string;
-    city: string;
-    state: string;
-    country: string;
-    postalCode: string;
-
-    // shipping address
     shippingSame: boolean;
-    shippingAddress: string;
-    shippingAddress2: string;
-    shippingCity: string;
-    shippingState: string;
-    shippingCountry: string;
-    shippingPostalCode: string;
-
     cardName: string;
     organization: string;
     agreedTerms: boolean;
@@ -117,21 +102,7 @@ type SetActions = UnionSetActions<State>;
 type Action = SetActions | UpdateProgressBarFake | UpdateSucceeded | ClearError
 export function makeInitialState(): State {
     return {
-        address: '',
-        address2: '',
-        city: '',
-        state: '',
-        country: '',
-        postalCode: '',
-
         shippingSame: true,
-        shippingAddress: '',
-        shippingAddress2: '',
-        shippingCity: '',
-        shippingState: '',
-        shippingCountry: '',
-        shippingPostalCode: '',
-
         cardName: '',
         organization: '',
         agreedTerms: false,
@@ -185,22 +156,7 @@ function simpleSet(keys: Array<Extract<keyof State, string>>, state: State, acti
 
 // properties we can set the field on directly without needing to consider or modify other properties
 const simpleSetters: Array<Extract<keyof State, string>> = [
-    'address',
-    'address2',
-    'city',
-    'country',
-    'state',
-    'postalCode',
-
-    // shipping address
     'shippingSame',
-    'shippingAddress',
-    'shippingAddress2',
-    'shippingCity',
-    'shippingState',
-    'shippingCountry',
-    'shippingPostalCode',
-
     'agreedTerms',
     'cardFilled',
     'cardName',
@@ -244,28 +200,14 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-export function canSubmit(state: State, progress: ValueOf<typeof SelfHostedSignupProgress>) {
+export function canSubmit(state: State, billingAddress: Address, shippingAddress: Address, progress: ValueOf<typeof SelfHostedSignupProgress>) {
     if (state.submitting) {
         return false;
     }
 
-    let validAddress = Boolean(
-        state.organization &&
-            state.address &&
-            state.city &&
-            state.state &&
-            state.postalCode &&
-            state.country,
-    );
+    let validAddress = state.organization && isAddressValid(billingAddress);
     if (!state.shippingSame) {
-        validAddress = validAddress && Boolean(
-            state.shippingAddress &&
-            state.shippingCity &&
-            state.shippingState &&
-            state.shippingPostalCode &&
-            state.shippingCountry,
-
-        );
+        validAddress = validAddress && isAddressValid(shippingAddress);
     }
     const validCard = Boolean(
         state.cardName &&
@@ -341,6 +283,8 @@ export default function SelfHostedPurchaseModal(props: Props) {
     });
 
     const [state, dispatch] = useReducer(reducer, initialState);
+    const shippingAddressReducer = useAddressReducer();
+    const billingAddressReducer = useAddressReducer();
     const reduxDispatch = useDispatch<DispatchFunc>();
 
     const cardRef = useRef<CardInputType | null>(null);
@@ -405,26 +349,11 @@ export default function SelfHostedPurchaseModal(props: Props) {
         try {
             const [firstName, lastName] = inferNames(user, state.cardName);
 
-            const billingAddress = {
-                city: state.city,
-                country: state.country,
-                line1: state.address,
-                line2: state.address2,
-                postal_code: state.postalCode,
-                state: state.state,
-            };
             signupCustomerResult = await Client4.createCustomerSelfHostedSignup({
                 first_name: firstName,
                 last_name: lastName,
-                billing_address: billingAddress,
-                shipping_address: state.shippingSame ? billingAddress : {
-                    city: state.shippingCity,
-                    country: state.shippingCountry,
-                    line1: state.shippingAddress,
-                    line2: state.shippingAddress2,
-                    postal_code: state.shippingPostalCode,
-                    state: state.shippingState,
-                },
+                billing_address: billingAddressReducer.address,
+                shipping_address: state.shippingSame ? billingAddressReducer.address : shippingAddressReducer.address,
                 organization: state.organization,
             });
         } catch {
@@ -465,12 +394,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
                 },
                 isDevMode,
                 {
-                    address: state.address,
-                    address2: state.address2,
-                    city: state.city,
-                    state: state.state,
-                    country: state.country,
-                    postalCode: state.postalCode,
+                    address: billingAddressReducer.address,
                     name: state.cardName,
                     card,
                 },
@@ -512,7 +436,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
             dispatch({type: 'set_error', data: 'unable to complete signup'});
         }
     }
-    const canSubmitForm = canSubmit(state, progress);
+    const canSubmitForm = canSubmit(state, billingAddressReducer.address, shippingAddressReducer.address, progress);
 
     const title = (
         <FormattedMessage
@@ -634,32 +558,9 @@ export default function SelfHostedPurchaseModal(props: Props) {
                                             defaultMessage='Billing address'
                                         />
                                     </div>
-                                    <Address
+                                    <AddressComponent
                                         type='billing'
-                                        country={state.country}
-                                        changeCountry={(option) => {
-                                            dispatch({type: 'set_country', data: option.value});
-                                        }}
-                                        address={state.address}
-                                        changeAddress={(e) => {
-                                            dispatch({type: 'set_address', data: e.target.value});
-                                        }}
-                                        address2={state.address2}
-                                        changeAddress2={(e) => {
-                                            dispatch({type: 'set_address2', data: e.target.value});
-                                        }}
-                                        city={state.city}
-                                        changeCity={(e) => {
-                                            dispatch({type: 'set_city', data: e.target.value});
-                                        }}
-                                        state={state.state}
-                                        changeState={(state: string) => {
-                                            dispatch({type: 'set_state', data: state});
-                                        }}
-                                        postalCode={state.postalCode}
-                                        changePostalCode={(e) => {
-                                            dispatch({type: 'set_postalCode', data: e.target.value});
-                                        }}
+                                        addressReducer={billingAddressReducer}
                                     />
                                     <ChooseDifferentShipping
                                         shippingIsSame={state.shippingSame}
@@ -675,32 +576,9 @@ export default function SelfHostedPurchaseModal(props: Props) {
                                                     defaultMessage='Shipping Address'
                                                 />
                                             </div>
-                                            <Address
+                                            <AddressComponent
                                                 type='shipping'
-                                                country={state.shippingCountry}
-                                                changeCountry={(option) => {
-                                                    dispatch({type: 'set_shippingCountry', data: option.value});
-                                                }}
-                                                address={state.shippingAddress}
-                                                changeAddress={(e) => {
-                                                    dispatch({type: 'set_shippingAddress', data: e.target.value});
-                                                }}
-                                                address2={state.shippingAddress2}
-                                                changeAddress2={(e) => {
-                                                    dispatch({type: 'set_shippingAddress2', data: e.target.value});
-                                                }}
-                                                city={state.shippingCity}
-                                                changeCity={(e) => {
-                                                    dispatch({type: 'set_shippingCity', data: e.target.value});
-                                                }}
-                                                state={state.shippingState}
-                                                changeState={(state: string) => {
-                                                    dispatch({type: 'set_shippingState', data: state});
-                                                }}
-                                                postalCode={state.shippingPostalCode}
-                                                changePostalCode={(e) => {
-                                                    dispatch({type: 'set_shippingPostalCode', data: e.target.value});
-                                                }}
+                                                addressReducer={shippingAddressReducer}
                                             />
                                         </>
                                     )}

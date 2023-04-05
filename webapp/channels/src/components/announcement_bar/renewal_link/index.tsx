@@ -12,7 +12,7 @@ import {openModal} from 'actions/views/modals';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import { ModalIdentifiers } from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import useControlSelfHostedRenewalModal from 'components/common/hooks/useControlSelfHostedRenewalModal';
 
@@ -91,7 +91,7 @@ const RenewalLink = (props: RenewalLinkProps) => {
                         trackEvent('renew_license', props.telemetryInfo.success);
                     }
                     window.open(renewalLink, '_blank');
-                };
+                }
                 break;
             }
             case 'sales': {
@@ -133,6 +133,6 @@ const RenewalLink = (props: RenewalLinkProps) => {
             {btnText}
         </button>
     );
-}
+};
 
 export default RenewalLink;

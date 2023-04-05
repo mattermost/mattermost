@@ -12,7 +12,7 @@ import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/c
 import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct as selectSubscriptionProduct, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import useOpenPricingModal, {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingModal, {OpenPricingProps} from 'components/common/hooks/useOpenPricingModal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
@@ -32,7 +32,7 @@ letter-spacing: 0.02em;
 color: var(--button-color);
 `;
 
-let openPricingModal: (telemetryProps?: TelemetryProps) => void;
+let openPricingModal: (props: OpenPricingProps) => void;
 
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();

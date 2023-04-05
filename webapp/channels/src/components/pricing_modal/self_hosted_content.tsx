@@ -159,25 +159,31 @@ function SelfHostedContent(props: ContentProps) {
                 onClick={closePricingModal}
             />
         );
-        enterpriseTrialDisclaimer= <StartTrialCaution/>;
+        enterpriseTrialDisclaimer = <StartTrialCaution/>;
     }
     if (props.isRenewal && isAdmin) {
         const renewText = (isEnterprise ?
-        <FormattedMessage
-            id="self_hosted_renewal.choose_renew"
-            defaultMessage="Renew"
-            />
-        : <FormattedMessage
-            id="self_hosted_renewal.choose_upgrade"
-            defaultMessage="Upgrade"
-            />);
+            (
+                <FormattedMessage
+                    id='self_hosted_renewal.choose_renew'
+                    defaultMessage='Renew'
+                />
+            ) :
+            (
+                <FormattedMessage
+                    id='self_hosted_renewal.choose_upgrade'
+                    defaultMessage='Upgrade'
+                />
+            ));
         enterpriseAction = (
             <button
-                onClick={() => {controlSelfHostedRenewalModal.open(license?.SkuName || '')}}
+                onClick={() => {
+                    controlSelfHostedRenewalModal.open(license?.SkuName || '');
+                }}
             >
                 {renewText}
             </button>
-        )
+        );
     }
 
     return (
@@ -312,7 +318,6 @@ function SelfHostedContent(props: ContentProps) {
                                 />) : undefined}
                         buttonDetails={((isPostSelfHostedEnterpriseTrial || !isAdmin) && !props.isRenewal) ? {
                             action: () => {
-
                                 trackEvent('self_hosted_pricing', 'click_enterprise_contact_sales');
                                 openContactSales();
                             },

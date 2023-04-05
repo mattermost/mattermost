@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-import RenewalLink from './renewal_link';
+import RenewalLink from './';
 
 const initialState = {
     views: {
@@ -59,11 +59,7 @@ describe('components/RenewalLink', () => {
         jest.clearAllMocks();
     });
 
-    const props = {
-        actions: {
-            openModal: jest.fn,
-        },
-    };
+    const props = {};
 
     test('should show Renew now when a renewal link is successfully returned', async () => {
         const getRenewalLinkSpy = jest.spyOn(Client4, 'getRenewalLink');

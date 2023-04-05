@@ -38,7 +38,7 @@ const PaymentInfoEdit: React.FC = () => {
     const history = useHistory();
 
     const isDevMode = useSelector(isDevModeEnabled);
-    const paymentInfo = useSelector((state: GlobalState) => state.entities.cloud.customer);
+    const billingAddress = useSelector((state: GlobalState) => state.entities.cloud.customer)?.billing_address;
     const theme = useSelector(getTheme);
 
     const [showCreditCardWarning, setShowCreditCardWarning] = useState(true);
@@ -46,12 +46,14 @@ const PaymentInfoEdit: React.FC = () => {
     const [isValid, setIsValid] = useState<boolean | undefined>(undefined);
     const [isServerError, setIsServerError] = useState(false);
     const [billingDetails, setBillingDetails] = useState<BillingDetails>({
-        address: paymentInfo?.billing_address?.line1 || '',
-        address2: paymentInfo?.billing_address?.line2 || '',
-        city: paymentInfo?.billing_address?.city || '',
-        state: paymentInfo?.billing_address?.state || '',
-        country: paymentInfo?.billing_address?.country || '',
-        postalCode: paymentInfo?.billing_address?.postal_code || '',
+        address: {
+            line1: billingAddress?.line1 || '',
+            line2: billingAddress?.line2 || '',
+            city: billingAddress?.city || '',
+            state: billingAddress?.state || '',
+            country: billingAddress?.country || '',
+            postal_code: billingAddress?.postal_code || '',
+        },
         name: '',
         card: {} as any,
     });

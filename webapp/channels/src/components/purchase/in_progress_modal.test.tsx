@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 import {TestHelper as TH} from 'utils/test_helper';
 import {Client4} from 'mattermost-redux/client';
 
-import PurchaseInProgressModal from './';
+import PurchaseInProgressModal from './in_progress_modal';
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');

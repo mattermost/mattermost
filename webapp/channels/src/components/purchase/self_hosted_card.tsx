@@ -43,6 +43,7 @@ interface Props {
     canSubmit: boolean;
     submit: () => void;
     isRenewal?: boolean;
+    currentProductSku?: string;
 }
 
 export default function SelfHostedCard(props: Props) {
@@ -73,6 +74,13 @@ export default function SelfHostedCard(props: Props) {
         </div>
     );
 
+    let ctaText = intl.formatMessage({id: 'self_hosted_signup.cta', defaultMessage: 'Upgrade'});
+    if (props.isRenewal) {
+        ctaText = props.currentProductSku === props.desiredProduct.sku ?
+            intl.formatMessage({id: 'self_hosted_renewal.finalize_existing', defaultMessage: 'Renew'}) :
+            intl.formatMessage({id: 'self_hosted_renewal.finalize_upgrade', defaultMessage: 'Complete the purchase'});
+    }
+
     return (
         <>
             {comparePlanWrapper}
@@ -102,13 +110,13 @@ export default function SelfHostedCard(props: Props) {
                 afterButtonContent={
                     <Consequences
                         isCloud={false}
-                        licenseAgreementBtnText={intl.formatMessage({id: 'self_hosted_signup.cta', defaultMessage: 'Upgrade'})}
+                        licenseAgreementBtnText={ctaText}
                     />
                 }
                 buttonDetails={{
                     action: props.submit,
                     disabled: !props.canSubmit,
-                    text: intl.formatMessage({id: 'self_hosted_signup.cta', defaultMessage: 'Upgrade'}),
+                    text: ctaText,
                     customClass: props.canSubmit ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.grayed,
                 }}
                 planLabel={

@@ -53,14 +53,7 @@ export function confirmSelfHostedSignup(
                         card: billingDetails.card,
                         billing_details: {
                             name: billingDetails.name,
-                            address: {
-                                line1: billingDetails.address,
-                                line2: billingDetails.address2,
-                                city: billingDetails.city,
-                                state: billingDetails.state,
-                                country: getCode(billingDetails.country),
-                                postal_code: billingDetails.postalCode,
-                            },
+                            address: billingDetails.address,
                         },
                     },
                 },
@@ -125,6 +118,7 @@ export function confirmSelfHostedRenewal(
     cardName: string,
     card: StripeCardElement,
     initialProgress: ValueOf<typeof SelfHostedRenewalProgress>,
+
     // subscriptionRequest: CreateSubscriptionRequest,
 ): ActionFunc {
     return async (dispatch: DispatchFunc) => {
@@ -189,7 +183,7 @@ export function confirmSelfHostedRenewal(
                 product_id: 'prod_K3evf2gg2LIzrD',
                 add_ons: [],
                 seats: 9001,
-            })
+            });
             dispatch({
                 type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS,
                 data: confirmResult.progress,

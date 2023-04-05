@@ -22,8 +22,6 @@ import {isChannels} from 'utils/products';
 
 import {isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
 
-import SelfHostedRenewalModal from 'components/self_hosted_renewal_modal/index';
-
 import AtMentionsButton from './at_mentions_button/at_mentions_button';
 import SavedPostsButton from './saved_posts_button/saved_posts_button';
 import SettingsButton from './settings_button';
@@ -73,7 +71,6 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                     pluggableId={productId}
                 />
             )}
-<SelfHostedRenewalModal />
             <StatusDropdown/>
         </RightControlsContainer>
     );

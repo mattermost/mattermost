@@ -4712,6 +4712,8 @@
   "select_team.private.icon": "Private Team",
   "self_hosted_renewal.choose_renew": "Renew",
   "self_hosted_renewal.choose_upgrade": "Upgrade",
+  "self_hosted_renewal.finalize_existing": "Renew",
+  "self_hosted_renewal.finalize_upgrade": "Complete the purchase",
   "self_hosted_renewal.failed_export.subtitle": "We will check things on our side and get back to you within 3 days once your license is approved.",
   "self_hosted_signup.air_gapped_content": "It appears that your instance is air-gapped, or it may not be connected to the internet. To purchase a license, please visit",
   "self_hosted_signup.air_gapped_title": "Purchase through the customer portal",

@@ -14,7 +14,7 @@ export type TelemetryProps = {
     trackingLocation?: string;
 }
 
-type OpenPricingProps = TelemetryProps & {
+export type OpenPricingProps = TelemetryProps & {
     isRenewal?: boolean;
 }
 

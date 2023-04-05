@@ -38,14 +38,29 @@ type Props = {
 };
 
 type State = {
-    address: string;
-    address2: string;
+    line1: string;
+    line2: string;
     city: string;
     state: string;
     country: string;
     postalCode: string;
     name: string;
     changePaymentMethod: boolean;
+}
+
+function stateToBillingDetails(state: State, card: BillingDetails['card']): BillingDetails {
+    return {
+        name: state.name,
+        card,
+        address: {
+            line1: state.line1,
+            line2: state.line2,
+            city: state.city,
+            state: state.state,
+            country: state.country,
+            postal_code: state.postalCode,
+        },
+    };
 }
 
 export default class PaymentForm extends React.PureComponent<Props, State> {
@@ -85,12 +100,12 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         const billingDetails = initialBillingDetails || {} as BillingDetails;
 
         return {
-            address: billingDetails.address,
-            address2: billingDetails.address2,
-            city: billingDetails.city,
-            state: billingDetails.state,
-            country: getName(billingDetails.country || '') || getName('US') || '',
-            postalCode: billingDetails.postalCode,
+            line1: billingDetails.address.line1,
+            line2: billingDetails.address.line2,
+            city: billingDetails.address.city,
+            state: billingDetails.address.state,
+            country: getName(billingDetails.address.country || '') || getName('US') || '',
+            postalCode: billingDetails.address.postal_code,
             name: billingDetails.name,
             changePaymentMethod: paymentMethod == null,
         };
@@ -109,7 +124,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
 
         const {onInputChange} = this.props;
         if (onInputChange) {
-            onInputChange({...this.state, ...newStateValue, card: this.cardRef.current?.getCard()} as BillingDetails);
+            onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, this.cardRef.current?.getCard()!));
         }
     }
 
@@ -126,7 +141,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         this.setState(newStateValue);
 
         if (this.props.onInputChange) {
-            this.props.onInputChange({...this.state, ...newStateValue, card: this.cardRef.current?.getCard()} as BillingDetails);
+            this.props.onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, this.cardRef.current?.getCard()!));
         }
     }
 
@@ -137,14 +152,14 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         this.setState(newStateValue);
 
         if (this.props.onInputChange) {
-            this.props.onInputChange({...this.state, ...newStateValue, card: this.cardRef.current?.getCard()} as BillingDetails);
+            this.props.onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, this.cardRef.current?.getCard()!));
         }
     }
 
     private onBlur = () => {
         const {onInputBlur} = this.props;
         if (onInputBlur) {
-            onInputBlur({...this.state, card: this.cardRef.current?.getCard()} as BillingDetails);
+            onInputBlur(stateToBillingDetails(this.state, this.cardRef.current?.getCard()!));
         }
     }
 
@@ -213,7 +228,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
                         <Input
                             name='address'
                             type='text'
-                            value={this.state.address}
+                            value={this.state.line1}
                             onChange={this.handleInputChange}
                             onBlur={this.onBlur}
                             placeholder={Utils.localizeMessage(
@@ -227,7 +242,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
                         <Input
                             name='address2'
                             type='text'
-                            value={this.state.address2}
+                            value={this.state.line2}
                             onChange={this.handleInputChange}
                             onBlur={this.onBlur}
                             placeholder={Utils.localizeMessage(
@@ -307,8 +322,8 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
                 if (this.state.state) {
                     addressDetails = (
                         <React.Fragment>
-                            {this.state.address}
-                            {this.state.address2}
+                            {this.state.line1}
+                            {this.state.line2}
                             <br/>
                             {`${this.state.city}, ${this.state.state}, ${this.state.country}`}
                             <br/>
