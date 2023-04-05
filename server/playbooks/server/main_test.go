@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -218,7 +219,7 @@ func (e *TestEnvironment) CreateClients() {
 	require.Nil(e.T, appErr)
 	e.RegularUserNotInTeam = notInTeam
 
-	siteURL := "http://localhost:9056"
+	siteURL := fmt.Sprintf("http://localhost:%v", e.A.Srv().ListenAddr.Port)
 
 	serverAdminClient := model.NewAPIv4Client(siteURL)
 	_, _, err := serverAdminClient.Login(admin.Email, userPassword)
