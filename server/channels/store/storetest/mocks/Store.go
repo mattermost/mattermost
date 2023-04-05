@@ -337,22 +337,6 @@ func (_m *Store) GetInternalReplicaDB() *sql.DB {
 	return r0
 }
 
-// GetInternalReplicaDBs provides a mock function with given fields:
-func (_m *Store) GetInternalReplicaDBs() []*sql.DB {
-	ret := _m.Called()
-
-	var r0 []*sql.DB
-	if rf, ok := ret.Get(0).(func() []*sql.DB); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*sql.DB)
-		}
-	}
-
-	return r0
-}
-
 // Group provides a mock function with given fields:
 func (_m *Store) Group() store.GroupStore {
 	ret := _m.Called()

@@ -33,7 +33,7 @@ func TestSqlX(t *testing.T) {
 				settings:  settings,
 			}
 
-			store.initConnection()
+			require.NoError(t, store.initConnection())
 
 			defer store.Close()
 
