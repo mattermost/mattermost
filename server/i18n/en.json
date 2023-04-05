@@ -9232,6 +9232,10 @@
     "translation": "Invalid job type."
   },
   {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Invalid value for bytes when uploading a license."
+  },
+  {
     "id": "model.license_record.is_valid.create_at.app_error",
     "translation": "Invalid value for create_at when uploading a license."
   },
