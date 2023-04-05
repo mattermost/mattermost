@@ -14,8 +14,8 @@ export const areWorkTemplatesEnabled = createSelector(
     (state: GlobalState) => getFeatureFlagValue(state, 'WorkTemplate') === 'true',
     (state: GlobalState) => getLicense(state),
     (state: GlobalState) => haveICurrentTeamPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) || haveICurrentTeamPermission(state, Permissions.CREATE_PRIVATE_CHANNEL),
-    (state: GlobalState) => haveICurrentTeamPermission(state, 'playbook_public_create'),
-    (state: GlobalState) => haveICurrentTeamPermission(state, 'playbook_private_create'),
+    (state: GlobalState) => haveICurrentTeamPermission(state, Permissions.PLAYBOOK_PUBLIC_CREATE),
+    (state: GlobalState) => haveICurrentTeamPermission(state, Permissions.PLAYBOOK_PRIVATE_CREATE),
     (workTemplateFF, license, canCreateChannel, canCreatePublicPlaybook, canCreatePrivatePlaybook) => {
         const licenseIsEnterprise = isEnterpriseOrE20License(license);
         const canCreatePlaybook = canCreatePublicPlaybook || (canCreatePrivatePlaybook && licenseIsEnterprise);

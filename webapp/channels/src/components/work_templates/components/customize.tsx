@@ -5,6 +5,7 @@ import React, {useEffect} from 'react';
 import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import {trackEvent} from 'actions/telemetry_actions';
 import Constants, {TELEMETRY_CATEGORIES} from 'utils/constants';
@@ -42,8 +43,8 @@ const Customize = ({
     const templateHasPlaybooks = template.content.findIndex((item) => item.playbook) !== -1;
     const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.CREATE_PRIVATE_CHANNEL));
-    const canCreatePublicPlaybook = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, 'playbook_public_create'));
-    const canCreatePrivatePlaybook = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, 'playbook_private_create'));
+    const canCreatePublicPlaybook = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.PLAYBOOK_PUBLIC_CREATE));
+    const canCreatePrivatePlaybook = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.PLAYBOOK_PRIVATE_CREATE));
 
     useEffect(() => {
         trackEvent(TELEMETRY_CATEGORIES.WORK_TEMPLATES, 'pageview_customize');
