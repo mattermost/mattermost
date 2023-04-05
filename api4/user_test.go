@@ -4142,7 +4142,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
-		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		rtoken, _, err := th.Client.CreateUserAccessToken(th.BasicUser2.Id, "test token")
 		require.NoError(t, err)
@@ -4160,7 +4160,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
-		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, resp, err := th.Client.CreateUserAccessToken(th.SystemAdminUser.Id, "test token")
 		require.Error(t, err)
