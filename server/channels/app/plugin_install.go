@@ -92,8 +92,8 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 
 	manifest, appErr := ch.installPluginLocally(reader, signature, installPluginLocallyAlways)
 	if appErr != nil {
-		// A log line already appears if the plugin is on the blocklist
-		if appErr.Id != "app.plugin.blocked.app_error" {
+		// A log line already appears if the plugin is on the blocklist or skipped
+		if appErr.Id != "app.plugin.blocked.app_error" && appErr.Id != "app.plugin.skip_installation.app_error" {
 			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		}
 		return
@@ -368,7 +368,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 			if version.LTE(existingVersion) {
 				mlog.Debug("Skipping local installation of plugin since existing version is newer", mlog.String("plugin_id", manifest.Id))
-				return nil, nil
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.skip_installation.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 			}
 		}
 

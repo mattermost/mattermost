@@ -175,6 +175,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		_, appErr := installPlugin(t, th, "playbooks", "0.0.1", installPluginLocallyAlways)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.plugin.blocked.app_error", appErr.Id)
+		assertBundleInfoManifests(t, th, []*model.Manifest{})
 	})
 
 	t.Run("different plugin already installed", func(t *testing.T) {
@@ -220,9 +221,9 @@ func TestInstallPluginLocally(t *testing.T) {
 			require.Nil(t, appErr)
 			require.NotNil(t, existingManifest)
 
-			manifest, appErr := installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNewOrUpgrade)
-			require.Nil(t, appErr)
-			require.Nil(t, manifest)
+			_, appErr = installPlugin(t, th, "valid", "0.0.1", installPluginLocallyOnlyIfNewOrUpgrade)
+			require.NotNil(t, appErr)
+			require.Equal(t, "app.plugin.skip_installation.app_error", appErr.Id)
 
 			assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
 		})
@@ -236,9 +237,9 @@ func TestInstallPluginLocally(t *testing.T) {
 			require.Nil(t, appErr)
 			require.NotNil(t, existingManifest)
 
-			manifest, appErr := installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
-			require.Nil(t, appErr)
-			require.Nil(t, manifest)
+			_, appErr = installPlugin(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
+			require.NotNil(t, appErr)
+			require.Equal(t, "app.plugin.skip_installation.app_error", appErr.Id)
 
 			assertBundleInfoManifests(t, th, []*model.Manifest{existingManifest})
 		})
