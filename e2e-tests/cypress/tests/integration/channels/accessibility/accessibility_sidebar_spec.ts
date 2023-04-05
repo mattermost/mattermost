@@ -69,7 +69,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         cy.uiGetLHSAddChannelButton().focus().tab().tab({shift: true});
 
         // * Verify if the Plus button has focus
-        cy.findByRole('button', {name: 'Add Channel Dropdown'}).should('be.focused');
+        cy.uiGetLHSAddChannelButton().should('be.focused');
         cy.focused().tab();
 
         // * Verify if the Plus button has focus
