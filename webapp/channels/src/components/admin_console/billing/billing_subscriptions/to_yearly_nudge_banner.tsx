@@ -4,6 +4,7 @@
 import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIntl, FormattedMessage} from 'react-intl';
+import moment from 'moment';
 
 import AlertBanner from 'components/alert_banner';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
@@ -22,6 +23,8 @@ import {GlobalState} from '@mattermost/types/store';
 
 import './to_yearly_nudge_banner.scss';
 
+const cloudProMonthlyCloseMoment = '20230415'; // TBD, final day of cloud free
+
 const ToYearlyNudgeBannerDismissable = () => {
     const dispatch = useDispatch();
 
@@ -34,6 +37,10 @@ const ToYearlyNudgeBannerDismissable = () => {
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
     const currentProductIsMonthly = product?.recurring_interval === RecurringIntervals.MONTH;
     const currentProductProMonthly = currentProductProfessional && currentProductIsMonthly;
+
+    const now = moment(Date.now());
+    const proMonthlyEndDate = moment(cloudProMonthlyCloseMoment, 'YYYYMMDD');
+    const daysToProMonthlyEnd = proMonthlyEndDate.diff(now, 'days');
 
     const savedDismissedPref = () => {
         dispatch(savePreferences(currentUser.id, [{
@@ -58,13 +65,18 @@ const ToYearlyNudgeBannerDismissable = () => {
 
     const message = {
         id: 'cloud_billing.nudge_to_yearly.announcement_bar',
-        defaultMessage: 'Simplify your billing and switch to an annual plan today',
+        defaultMessage: 'Monthly billing will be discontinued in {days} days . Switch to annual billing',
+        values: {
+            days: daysToProMonthlyEnd,
+        },
     };
+
+    const announcementType = (daysToProMonthlyEnd <= 10) ? AnnouncementBarTypes.CRITICAL : AnnouncementBarTypes.ANNOUNCEMENT;
 
     return (
         <AnnouncementBar
-            type={AnnouncementBarTypes.ANNOUNCEMENT}
-            showCloseButton={true}
+            type={announcementType}
+            showCloseButton={false}
             onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
             modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
             modalButtonDefaultText='Learn more'
@@ -90,17 +102,22 @@ const ToYearlyNudgeBanner = () => {
         return null;
     }
 
+    const now = moment(Date.now());
+    const proMonthlyEndDate = moment(cloudProMonthlyCloseMoment, 'YYYYMMDD');
+    const daysToProMonthlyEnd = proMonthlyEndDate.diff(now, 'days');
+
     const title = (
         <FormattedMessage
             id='cloud_billing.nudge_to_yearly.title'
-            defaultMessage='Switch to an annual plan today'
+            defaultMessage='Action required: Switch to annual billing to keep your workspace.'
         />
     );
 
     const description = (
         <FormattedMessage
             id='cloud_billing.nudge_to_yearly.description'
-            defaultMessage='Simplify your billing by switching to an annual subscription.'
+            defaultMessage='Monthly billing will be discontinued on {date}. To keep your workspace, switch to annual billing.'
+            values={{date: moment(cloudProMonthlyCloseMoment, 'YYYYMMDD').format('MMMM DD, YYYY')}}
         />
     );
 
@@ -122,9 +139,11 @@ const ToYearlyNudgeBanner = () => {
         </button>
     );
 
+    const bannerMode = (daysToProMonthlyEnd <= 10) ? 'danger' : 'info';
+
     return (
         <AlertBanner
-            mode='info'
+            mode={bannerMode}
             title={title}
             message={description}
             className='ToYearlyNudgeBanner'
