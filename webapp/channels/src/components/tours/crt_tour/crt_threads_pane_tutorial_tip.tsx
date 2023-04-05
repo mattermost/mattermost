@@ -9,7 +9,7 @@ import {Constants, Preferences} from 'utils/constants';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
+import {TourTip, useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
 
 const translate = {x: 2, y: 25};
 
@@ -17,6 +17,9 @@ const CRTThreadsPaneTutorialTip = () => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
+
+    const dimensions = useFollowElementDimensions('sidebar-right');
+
     const title = (
         <FormattedMessage
             id='tutorial_threads.threads_pane.title'
@@ -60,7 +63,7 @@ const CRTThreadsPaneTutorialTip = () => {
         dispatch(savePreferences(currentUserId, preferences));
     };
 
-    const overlayPunchOut = useMeasurePunchouts(['rhsContainer'], []);
+    const overlayPunchOut = useMeasurePunchouts(['rhsContainer'], [dimensions?.width]);
 
     return (
         <TourTip

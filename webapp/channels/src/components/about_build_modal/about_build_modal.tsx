@@ -32,11 +32,6 @@ type Props = {
      * Global license object
      */
     license: ClientLicense;
-
-    /**
-     * Webapp build hash override. By default, webpack sets this (so it must be overridden in tests).
-     */
-    webappBuildHash?: string;
 };
 
 type State = {
@@ -330,17 +325,6 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                             />
                             <Nbsp/>
                             {config.BuildHashEnterprise}
-                            <br/>
-                            <FormattedMessage
-                                id='about.hashwebapp'
-                                defaultMessage='Webapp Build Hash:'
-                            />
-                            <Nbsp/>
-                            {
-                                /* global COMMIT_HASH */ this.props.
-                                    webappBuildHash ||
-                                    (typeof COMMIT_HASH === 'undefined' ? '' : COMMIT_HASH)
-                            }
                         </p>
                         <p>
                             <FormattedMessage
