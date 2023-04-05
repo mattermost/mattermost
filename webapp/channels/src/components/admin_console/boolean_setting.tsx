@@ -15,7 +15,7 @@ type Props = {
     onChange: (id: string, foo: boolean) => void;
     trueText?: React.ReactNode;
     falseText?: React.ReactNode;
-    disabled: boolean | undefined;
+    disabled?: boolean;
     setByEnv: boolean;
     disabledText?: React.ReactNode;
     helpText: React.ReactNode;

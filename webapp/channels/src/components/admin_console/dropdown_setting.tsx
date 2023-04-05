@@ -10,7 +10,7 @@ type Props = {
     values: Array<{ text: string; value: string }>;
     label: React.ReactNode;
     value: string;
-    onChange(id: string, value: any): void;
+    onChange(id: string, value: string | boolean): void;
     disabled?: boolean;
     setByEnv: boolean;
     helpText?: React.ReactNode;
@@ -29,18 +29,6 @@ const DropdownSetting = ({
         onChange(id, e.target.value);
     };
 
-    const options = [];
-    for (const {value, text} of values) {
-        options.push(
-            <option
-                value={value}
-                key={value}
-            >
-                {text}
-            </option>,
-        );
-    }
-
     return (
         <Setting
             label={label}
@@ -56,7 +44,16 @@ const DropdownSetting = ({
                 onChange={handleChange}
                 disabled={disabled || setByEnv}
             >
-                {options}
+                {values.map(({value: v, text}) => {
+                    return (
+                        <option
+                            value={v}
+                            key={value}
+                        >
+                            {text}
+                        </option>
+                    );
+                })}
             </select>
         </Setting>
     );

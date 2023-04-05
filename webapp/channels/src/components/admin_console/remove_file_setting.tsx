@@ -50,10 +50,7 @@ const RemoveFileSetting = ({
                 <button
                     type='button'
                     className='btn btn-danger'
-                    onClick={handleRemove}
-
-                    // I'm not sure what this is for, but it's in the original code.
-                    // ref={this.removeButtonRef}
+                    onClick={handleRemove}// ref={this.removeButtonRef}
                     disabled={disabled}
                 >
                     {removing && (

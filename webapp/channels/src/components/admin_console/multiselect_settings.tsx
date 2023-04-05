@@ -42,19 +42,6 @@ const MultiSelectSetting = ({
             return;
         }
 
-        // const values = newValues.map((n) => {
-        //     return n.value;
-        // });
-
-        // eslint-disable-next-line no-console
-        console.log({
-            newValues,
-        });
-
-        /**
-            NEED TO VALIDATE THIS BEHAVIOR MORE
-        */
-
         onChange(id, newValues);
         setHasError(false);
     };
@@ -65,16 +52,6 @@ const MultiSelectSetting = ({
                 return e.value === item;
             });
         }).map((item) => ({value: item, text: item}));
-
-        // return selected.reduce((values, item) => {
-        //     const found = values.find((e) => {
-        //         return e.value === item;
-        //     });
-        //     if (found !== null) {
-        //         values.push(found);
-        //     }
-        //     return values;
-        // }, []);
     };
 
     const getOptionLabel = ({text}: {text: string}) => text;
