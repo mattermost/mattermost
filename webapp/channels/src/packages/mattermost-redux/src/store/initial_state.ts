@@ -80,6 +80,7 @@ const state: GlobalState = {
             },
             limitedViews: zeroStateLimitedViews,
             acknowledgements: {},
+            errors: {},
         },
         threads: {
             threadsInTeam: {},
