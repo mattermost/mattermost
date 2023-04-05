@@ -18,6 +18,8 @@ import PricingModal from 'components/pricing_modal';
 
 import { ModalData } from 'types/actions';
 
+import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
+
 import {
     Preferences,
     CloudBanners,
@@ -50,6 +52,7 @@ const MAX_DAYS_BANNER = 'max_days_banner';
 const THREE_DAYS_BANNER = '3_days_banner';
 class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
     async componentDidMount() {
+        console.log(this.props);
         if (!isEmpty(this.props.subscription) && this.shouldShowBanner()) {
             const {daysLeftOnTrial} = this.props;
             if (this.isDismissable()) {
@@ -87,6 +90,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
     }
 
     shouldShowBanner = () => {
+        return true;
         const {isFreeTrial, userIsAdmin, isCloud} = this.props;
         return isFreeTrial && userIsAdmin && isCloud;
     }
@@ -139,9 +143,16 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
                 defaultMessage='Your trial has started! There are {daysLeftOnTrial} days left'
                 values={{ daysLeftOnTrial }}
             />
-        );;
+        );
+
         let modalButtonText = t('admin.billing.subscription.cloudTrial.subscribeButton');
         let modalButtonDefaultText = 'Upgrade Now';
+
+        if (this.props.reverseTrial) {
+            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
+            modalButtonDefaultText = 'Review your options';
+        }
+
 
         if (this.props.reverseTrial) {
             const trialEnd = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do');
@@ -153,8 +164,6 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
                 />
             );
 
-            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
-            modalButtonDefaultText = 'Review your options';
         }
 
         let trialLessThan7DaysMsg = (
@@ -173,8 +182,6 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
                     values={{daysLeftOnTrial}}
                 />
             );
-            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
-            modalButtonDefaultText = 'Review your options';
         }
 
         const userEndTrialDate = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do YYYY');
@@ -198,19 +205,18 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             );
         }
 
-
         let bannerMessage;
         let icon;
 
         if (daysLeftOnTrial >= TrialPeriodDays.TRIAL_2_DAYS && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) {
             bannerMessage = trialLessThan7DaysMsg;
-            icon = <i className='icon-check-outline-cirlce' />;
+            icon = <AlertCircleOutlineIcon size={18} />;
         } else if (daysLeftOnTrial <= TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial >= TrialPeriodDays.TRIAL_0_DAYS) {
             bannerMessage = trialLastDaysMsg;
-            <i className='icon icon-alert-outline' />
+            icon = <AlertOutlineIcon size={18} />;
         } else {
             bannerMessage = trialMoreThan7DaysMsg;
-            icon = <i className='icon-check-outline-circle' />;
+            icon = <AlertCircleOutlineIcon size={18} />;
         }
 
         const dismissable = this.isDismissable();

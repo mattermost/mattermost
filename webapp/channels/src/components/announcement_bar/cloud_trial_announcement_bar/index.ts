@@ -42,13 +42,13 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         isFreeTrial,
-        daysLeftOnTrial,
+        daysLeftOnTrial: 1,
         userIsAdmin: isCurrentUserSystemAdmin(state),
         currentUser: getCurrentUser(state),
         isCloud,
         subscription,
         preferences: getCategory(state, Preferences.CLOUD_TRIAL_BANNER),
-        reverseTrial: Boolean(config.FeatureFlags?.CloudReverseTrial),
+        reverseTrial: true,
     };
 }
 
