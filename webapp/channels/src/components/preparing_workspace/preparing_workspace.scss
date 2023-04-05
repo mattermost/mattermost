@@ -65,6 +65,12 @@
         @include button-medium;
     }
 
+    .link-style {
+        @include link;
+        background: transparent;
+        font-size: 14px;
+    }
+
     .child-page {
         // needed for smooth cross-page transition;
         position: absolute;

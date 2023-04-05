@@ -5,7 +5,6 @@ import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RouterProps} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {CSSTransition} from 'react-transition-group';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
@@ -38,7 +37,6 @@ import {
     mapStepToSubmitFail,
     PLUGIN_NAME_TO_ID_MAP,
     mapStepToPrevious,
-    mapAnimationReasonToClass,
 } from './steps';
 
 import Organization from './organization';

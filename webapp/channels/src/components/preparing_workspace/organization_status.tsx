@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {BadUrlReasons, UrlValidationCheck} from 'utils/url';
 import Constants from 'utils/constants';
+import ExternalLink from 'components/external_link';
 
 const OrganizationStatus = (props: {error: UrlValidationCheck['error']}): JSX.Element => {
     let children = null;
@@ -41,13 +42,13 @@ const OrganizationStatus = (props: {error: UrlValidationCheck['error']}): JSX.El
                     defaultMessage='Organization name may not <a>start with a reserved word</a>.'
                     values={{
                         a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                            <a
-                                href='https://docs.mattermost.com/messaging/creating-teams.html#team-url'
+                            <ExternalLink
+                                href='https://docs.mattermost.com/welcome/about-teams.html#team-url'
                                 target='_blank'
                                 rel='noreferrer'
                             >
                                 {chunks}
-                            </a>
+                            </ExternalLink>
                         ),
                     }}
                 />

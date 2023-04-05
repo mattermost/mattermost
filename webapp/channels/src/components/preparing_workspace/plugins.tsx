@@ -198,12 +198,12 @@ const Plugins = (props: Props) => {
                             />
                         </button>
                         <button
-                            className='tertiary-button'
+                            className='link-style plugins-skip-btn'
                             onClick={props.skip}
                         >
                             <FormattedMessage
-                                id={'onboarding_wizard.skip'}
-                                defaultMessage='Skip for now'
+                                id={'onboarding_wizard.skip-button'}
+                                defaultMessage='Skip'
                             />
                         </button>
                     </div>
