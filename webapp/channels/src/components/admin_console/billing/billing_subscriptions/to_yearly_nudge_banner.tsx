@@ -23,7 +23,7 @@ import {GlobalState} from '@mattermost/types/store';
 
 import './to_yearly_nudge_banner.scss';
 
-const cloudProMonthlyCloseMoment = '20230415'; // TBD, final day of cloud free
+const cloudProMonthlyCloseMoment = '20230415'; // TBD, final day of cloud PRO monthly
 
 const ToYearlyNudgeBannerDismissable = () => {
     const dispatch = useDispatch();
