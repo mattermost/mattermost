@@ -9023,50 +9023,6 @@
     "translation": "gruplar sayılırken sorun çıktı"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Bu harika özelliklerle üretkenliğinizi artırın"
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Ekibinizin üretkenliğini arttırmak için Mattermost açın!"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Merhaba {{.Name}}, Mattermost sunucunuzun biraz toz tuttuğunu fark ettik. Ekibinizin iş yükünü hafifletmeye yardımcı olabilecek bazı özelliklere göz atın."
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Belirtilen konuk erişimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Görev yönetimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "İş akışı yönetimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Gelin ve inceleyin!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermost uygulamasını aç"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Senaryolar"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanallar"
-  },
-  {
-    "id": "Boards",
-    "translation": "Panolar"
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Türe ve duruma göre tüm görevler alınamadı."
   },
@@ -9165,10 +9121,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost üst tarifeye geçme onayı"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Bu bir kerelik e-posta Mattermost sunucunuz {{.Hours}} saatten uzun süredir etkin olmadığı için gönderildi. Bu e-posta Mattermost sunucunuz tarafından otomatik olarak oluşturuldu."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -9511,10 +9463,6 @@
     "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
   },
@@ -9557,22 +9505,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Arşivlenmiş bir kanaldaki bir onayı kaldıramazsınız."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Özellik geliştirme sürecinizin sorunsuz olmasını sağlamak için geliştirme ekipleri arasında şeffaf iş akışları oluşturun."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Bir Jira botu ve Github botu ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bu botlar sizin için indirilir."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Panolarınıza, senaryolarınıza ve uygulama botlarınıza kolayca bağlanan bir özellik yayını kanalında ekibinizle sohbet edin."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Ayaküstü gibi yinelenen toplantılar için toplantı gündemi panosu kalıbımızı ve yol boyunca görevlerin ilerleyişini yönetmek için proje görevleri panomuzu kullanın."
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9633,10 +9565,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "İletinin önceliği alınamadı"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Taslak güncellenemedi."
   },
   {
     "id": "app.draft.get_drafts.app_error",
@@ -9843,120 +9771,12 @@
     "translation": "Geliştirme işlemleri"
   },
   {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Kimlik doğrulama hizmeti geçersiz: {{.AuthService}}"
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Bu hizmet yalnızca Mattermost Enterprise sürümüyle kullanılabilir"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Kanallara neden gerek duyulduğunun açıklaması"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Panolara neden gerek duyulduğunun açıklaması"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
   },
   {
     "id": "app.worktemplates.execute_work_template.name_too_long",

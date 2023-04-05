@@ -4,6 +4,7 @@
 import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
+import classNames from 'classnames';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {Channel} from '@mattermost/types/channels';
@@ -101,6 +102,7 @@ export default function InviteView(props: Props) {
                 }, {inviteURL})
             }
             className='InviteView__copyLink'
+            aria-live='polite'
         >
             {!copyText.copiedRecently && (
                 <>
@@ -259,8 +261,8 @@ export default function InviteView(props: Props) {
                 )}
                 <OverageUsersBannerNotice/>
             </Modal.Body>
-            <Modal.Footer className={'InviteView__footer ' + props.footerClass}>
-                {copyButton}
+            <Modal.Footer className={classNames('InviteView__footer', props.footerClass, {'InviteView__footer-guest': props.inviteType === InviteType.GUEST})}>
+                {props.inviteType === InviteType.MEMBER && copyButton}
                 <button
                     disabled={!isInviteValid}
                     onClick={props.invite}
