@@ -167,7 +167,6 @@
     "enzyme": "3.11.0",
     "enzyme-adapter-react-17-updated": "1.0.2",
     "enzyme-to-json": "3.6.2",
-    "eslint": "8.37.0",
     "eslint-import-resolver-webpack": "0.13.2",
     "eslint-plugin-cypress": "2.11.3",
     "eslint-plugin-formatjs": "4.9.1",

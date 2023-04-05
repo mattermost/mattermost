@@ -11,7 +11,7 @@
     "import",
     "cypress",
     "no-only-tests",
-    "@typescript-eslint",
+    "@typescript-eslint/eslint-plugin",
     "formatjs"
   ],
   "parser": "@typescript-eslint/parser",
