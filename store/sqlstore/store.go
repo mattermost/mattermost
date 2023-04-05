@@ -225,7 +225,9 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 	}
 
 	for i := 0; i < DBPingAttempts; i++ {
-		mlog.Info("Pinging SQL", mlog.String("database", connType))
+		// At this point, we have passed sql.Open, so we deliberately ignore any errors.
+		sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
+		mlog.Info("Pinging SQL", mlog.String("database", connType), mlog.String("dataSource", sanitized))
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
