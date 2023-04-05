@@ -17,7 +17,6 @@ import {t} from 'utils/i18n';
 import PricingModal from 'components/pricing_modal';
 
 import { ModalData } from 'types/actions';
-import {DateTime} from 'luxon';
 
 import {
     Preferences,
@@ -208,6 +207,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             icon = <i className='icon-check-outline-cirlce' />;
         } else if (daysLeftOnTrial <= TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial >= TrialPeriodDays.TRIAL_0_DAYS) {
             bannerMessage = trialLastDaysMsg;
+            <i className='icon icon-alert-outline' />
         } else {
             bannerMessage = trialMoreThan7DaysMsg;
             icon = <i className='icon-check-outline-circle' />;
