@@ -177,7 +177,7 @@ describe('Collapsed Reply Threads', () => {
         });
     });
 
-    it('should auto-scroll to bottom upon pasting long text in reply', () => {
+    it('MM-T5413 should auto-scroll to bottom upon pasting long text in reply', () => {
         // # Post a root post as current user
         cy.postMessageAs({
             sender: testUser,
