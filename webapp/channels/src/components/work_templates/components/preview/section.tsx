@@ -127,7 +127,6 @@ const IntegrationsPreview = ({items, categoryId}: IntegrationPreviewSectionProps
                             </div>
                             {item.installed &&
                                 <div className='icon-check-circle preview-integrations-plugins-item__icon_blue'/>}
-                            {!item.installed && <div className='icon-download-outline'/>}
                         </div>);
                 })}
             </div>
