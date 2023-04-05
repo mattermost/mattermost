@@ -1078,6 +1078,8 @@ export const HostedCustomerLinks = {
     SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
     SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
+    NEWSLETTER_UNSUBSCRIBE_LINK: 'https://forms.mattermost.com/UnsubscribePage.html',
+    PRIVACY: 'https://mattermost.com/privacy-policy/',
 };
 
 export const DocLinks = {
