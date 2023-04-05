@@ -4,7 +4,7 @@ This folder contains the client code for the Mattermost web app. It's broken up 
 
 ## npm Workspaces
 
-To interact with a workspace using npm, such as to add a dependency or run a script, use the `--workspace` (or `--workspaces`) flag. This can be done when using built-in npm commands such as `npm add` or when running scripts. These should be done from this folder without cding into any of the package directories.
+To interact with a workspace using npm, such as to add a dependency or run a script, use the `--workspace` (or `--workspaces`) flag. This can be done when using built-in npm commands such as `npm add` or when running scripts. Those commands should be run from this directory.
 
 ```sh
 # Add a dependency to a single package
