@@ -4159,7 +4159,7 @@
   "more_channels.join": "Beitreten",
   "more_channels.joining": "Beitreten...",
   "more_channels.next": "Weiter",
-  "more_channels.noMore": "Keine weiteren Kanäle, denen beigetreten werden kann",
+  "more_channels.noMore": "Keine Ergebnisse für \"{text}\"",
   "more_channels.prev": "Zurück",
   "more_channels.show_archived_channels": "Anzeigen: Archivierte Kanäle",
   "more_channels.show_public_channels": "Anzeigen: Öffentliche Kanäle",
