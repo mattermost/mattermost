@@ -84,7 +84,7 @@ export const BoardsUnfurl = (props: Props): JSX.Element => {
                 ],
             )
             const [firstCard] = cards as Card[]
-            if (!firstCard || !fetchedBoard) {
+            if (!firstCard || !fetchedBoard || firstCard.type !== 'card') {
                 setLoading(false)
                 return null
             }
@@ -116,7 +116,7 @@ export const BoardsUnfurl = (props: Props): JSX.Element => {
     useWebsockets(currentTeamId, (wsClient: WSClient) => {
         const onChangeHandler = (_: WSClient, blocks: Block[]): void => {
             const cardBlock: Block|undefined = blocks.find((b) => b.id === cardID)
-            if (cardBlock && !cardBlock.deleteAt) {
+            if (cardBlock && !cardBlock.deleteAt && cardBlock.type === 'card') {
                 setCard(cardBlock as Card)
             }
 

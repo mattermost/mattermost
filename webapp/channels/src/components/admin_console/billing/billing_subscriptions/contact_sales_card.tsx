@@ -10,21 +10,19 @@ import {CloudLinks, CloudProducts} from 'utils/constants';
 import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
 import {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 
 type Props = {
-    contactSalesLink: any;
     isFreeTrial: boolean;
-    trialQuestionsLink: any;
     subscriptionPlan: string | undefined;
     onUpgradeMattermostCloud: (telemetryProps?: TelemetryProps | undefined) => void;
 }
 
 const ContactSalesCard = (props: Props) => {
+    const [openSalesLink, contactSalesLink] = useOpenSalesLink();
     const {
-        contactSalesLink,
         isFreeTrial,
-        trialQuestionsLink,
         subscriptionPlan,
         onUpgradeMattermostCloud,
     } = props;
@@ -145,7 +143,7 @@ const ContactSalesCard = (props: Props) => {
                 {(isFreeTrial || subscriptionPlan === CloudProducts.ENTERPRISE || isCloudLegacyPlan) &&
                     <ExternalLink
                         location='contact_sales_card'
-                        href={isFreeTrial ? trialQuestionsLink : contactSalesLink}
+                        href={contactSalesLink}
                         className='PrivateCloudCard__actionButton'
                         onClick={() => trackEvent('cloud_admin', 'click_contact_sales')}
                     >
@@ -163,7 +161,7 @@ const ContactSalesCard = (props: Props) => {
                             if (subscriptionPlan === CloudProducts.STARTER) {
                                 onUpgradeMattermostCloud({trackingLocation: 'admin_console_subscription_card_upgrade_now_button'});
                             } else {
-                                window.open(contactSalesLink, '_blank');
+                                openSalesLink();
                             }
                         }}
                         className='PrivateCloudCard__actionButton'

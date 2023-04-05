@@ -3703,32 +3703,11 @@ func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([
 
 }
 
-func (s *RetryLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.Save(d)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
-
-	tries := 0
-	for {
-		result, err := s.DraftStore.Update(d)
+		result, err := s.DraftStore.Upsert(d)
 		if err == nil {
 			return result, nil
 		}
@@ -3892,11 +3871,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
+func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, channelID string, creatorID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
+		err := s.FileInfoStore.AttachToPost(fileID, postID, channelID, creatorID)
 		if err == nil {
 			return nil
 		}
@@ -6319,6 +6298,27 @@ func (s *RetryLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId 
 
 }
 
+func (s *RetryLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
+
+	tries := 0
+	for {
+		err := s.OAuthStore.RemoveAuthDataByUserId(userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 
 	tries := 0
@@ -6840,27 +6840,6 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID strin
 	tries := 0
 	for {
 		result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetLastPostRowCreateAt()
 		if err == nil {
 			return result, nil
 		}
@@ -9288,27 +9267,6 @@ func (s *RetryLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 	tries := 0
 	for {
 		result, err := s.SessionStore.Get(ctx, sessionIDOrToken)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.SessionStore.GetLastSessionRowCreateAt()
 		if err == nil {
 			return result, nil
 		}
