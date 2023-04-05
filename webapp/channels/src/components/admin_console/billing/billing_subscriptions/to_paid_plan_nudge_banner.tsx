@@ -230,10 +230,12 @@ export const ToPaidNudgeBanner = () => {
         </button>
     );
 
+    const bannerMode = (daysToCloudFreeEnd <= 10) ? 'danger' : 'info';
+
     return (
         <AlertBanner
             id='cloud-free-deprecation-alert-banner'
-            mode='info'
+            mode={bannerMode}
             title={title}
             message={description}
             className='ToYearlyNudgeBanner'
