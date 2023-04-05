@@ -1,6 +1,8 @@
+@import './mixins';
+
 .PaymentForm {
-    padding-right: 96px;
-    padding-left: 96px;
+    @include payment-form-padding;
+
     margin: 0 auto;
 
     .form-row {

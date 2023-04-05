@@ -18,8 +18,8 @@ export default function InvoiceUserCount({invoice}: {invoice: Invoice}): JSX.Ele
     if (onPremUsers) {
         return (
             <FormattedMessage
-                id='admin.billing.history.onPremUsers'
-                defaultMessage='{num} users'
+                id='admin.billing.history.onPremSeats'
+                defaultMessage='{num} seats'
                 values={{
 
                     // should always be a whole number, but truncate just in case
@@ -32,12 +32,12 @@ export default function InvoiceUserCount({invoice}: {invoice: Invoice}): JSX.Ele
         if (fullUsers || partialUsers) {
             return (
                 <FormattedMessage
-                    id='admin.billing.history.fractionalAndRatedUsers'
-                    defaultMessage='{fractionalUsers} metered users, {fullUsers} users at full rate, {partialUsers} users with partial charges'
+                    id='admin.billing.history.fractionalAndRatedSeats'
+                    defaultMessage='{fractionalSeats} metered seats, {fullSeats} seats at full rate, {partialSeats} seats with partial charges'
                     values={{
-                        fractionalUsers: numberToFixedDynamic(meteredUsers, 2),
-                        fullUsers: fullUsers.toFixed(0),
-                        partialUsers: partialUsers.toFixed(0),
+                        fractionalSeats: numberToFixedDynamic(meteredUsers, 2),
+                        fullSeats: fullUsers.toFixed(0),
+                        partialSeats: partialUsers.toFixed(0),
                     }}
                 />
             );
@@ -45,10 +45,10 @@ export default function InvoiceUserCount({invoice}: {invoice: Invoice}): JSX.Ele
 
         return (
             <FormattedMessage
-                id='admin.billing.history.fractionalUsers'
-                defaultMessage='{fractionalUsers} users'
+                id='admin.billing.history.fractionalSeats'
+                defaultMessage='{fractionalSeats} seats'
                 values={{
-                    fractionalUsers: numberToFixedDynamic(meteredUsers, 2),
+                    fractionalSeats: numberToFixedDynamic(meteredUsers, 2),
                 }}
             />
         );
@@ -56,11 +56,11 @@ export default function InvoiceUserCount({invoice}: {invoice: Invoice}): JSX.Ele
 
     return (
         <FormattedMessage
-            id='admin.billing.history.usersAndRates'
-            defaultMessage='{fullUsers} users at full rate, {partialUsers} users with partial charges'
+            id='admin.billing.history.seatsAndRates'
+            defaultMessage='{fullSeats} seats at full rate, {partialSeats} seats with partial charges'
             values={{
-                fullUsers: fullUsers.toFixed(0),
-                partialUsers: partialUsers.toFixed(0),
+                fullSeats: fullUsers.toFixed(0),
+                partialSeats: partialUsers.toFixed(0),
             }}
         />
     );

@@ -41,8 +41,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	EnableInactivityCheckJob bool
-
 	// Enable special onboarding flow for first admin
 	UseCaseOnboarding bool
 
@@ -52,9 +50,6 @@ type FeatureFlags struct {
 	InsightsEnabled bool
 
 	CommandPalette bool
-
-	// Enable Boards as a product (multi-product architecture)
-	BoardsProduct bool
 
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
@@ -79,6 +74,8 @@ type FeatureFlags struct {
 	GlobalDrafts bool
 
 	OnboardingTourTips bool
+
+	AppsSidebarCategory bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -92,23 +89,22 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
-	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = false
+	f.WorkTemplate = true
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
+	f.AppsSidebarCategory = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
