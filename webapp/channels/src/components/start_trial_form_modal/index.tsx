@@ -129,7 +129,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             company_country: country,
             company_size: orgSize,
         };
-        const error = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
+        const {error, data} = await dispatch(requestTrialLicense(trialRequestBody, props.page || 'license'));
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
             let title;
@@ -137,7 +137,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
-            if (error?.data.status === 422) {
+            if (data.status === 422) {
                 title = (<></>);
                 subtitle = (
                     <FormattedMessage

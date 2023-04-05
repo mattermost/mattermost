@@ -442,7 +442,7 @@ func (lr *LicenseRecord) IsValid() *AppError {
 	}
 
 	if lr.Bytes == "" || len(lr.Bytes) > 10000 {
-		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.bytes.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
