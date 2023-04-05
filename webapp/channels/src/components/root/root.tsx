@@ -67,7 +67,6 @@ const LazyTermsOfService = React.lazy(() => import('components/terms_of_service'
 const LazyShouldVerifyEmail = React.lazy(() => import('components/should_verify_email/should_verify_email'));
 const LazyDoVerifyEmail = React.lazy(() => import('components/do_verify_email/do_verify_email'));
 const LazyClaimController = React.lazy(() => import('components/claim'));
-const LazyHelpController = React.lazy(() => import('components/help/help_controller'));
 const LazyLinkingLandingPage = React.lazy(() => import('components/linking_landing_page'));
 const LazySelectTeam = React.lazy(() => import('components/select_team'));
 const LazyAuthorize = React.lazy(() => import('components/authorize'));
@@ -106,7 +105,6 @@ const Signup = makeAsyncComponent('SignupController', LazySignup);
 const ShouldVerifyEmail = makeAsyncComponent('ShouldVerifyEmail', LazyShouldVerifyEmail);
 const DoVerifyEmail = makeAsyncComponent('DoVerifyEmail', LazyDoVerifyEmail);
 const ClaimController = makeAsyncComponent('ClaimController', LazyClaimController);
-const HelpController = makeAsyncComponent('HelpController', LazyHelpController);
 const LinkingLandingPage = makeAsyncComponent('LinkingLandingPage', LazyLinkingLandingPage);
 const SelectTeam = makeAsyncComponent('SelectTeam', LazySelectTeam);
 const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
@@ -579,10 +577,6 @@ export default class Root extends React.PureComponent<Props, State> {
                     <HFTRoute
                         path={'/claim'}
                         component={ClaimController}
-                    />
-                    <HFTRoute
-                        path={'/help'}
-                        component={HelpController}
                     />
                     <LoggedInRoute
                         path={'/terms_of_service'}
