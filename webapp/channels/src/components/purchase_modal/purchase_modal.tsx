@@ -18,7 +18,6 @@ import ComplianceScreenFailedSvg from 'components/common/svg_images_components/a
 import AddressForm from 'components/payment_form/address_form';
 
 import {t} from 'utils/i18n';
-import {Address, CloudCustomer, Product, Invoice, areShippingDetailsValid, Feedback} from '@mattermost/types/cloud';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {localizeMessage, getNextBillingDate, getBlankAddressWithCountry} from 'utils/utils';
@@ -34,6 +33,7 @@ import {
     ModalIdentifiers,
     RecurringIntervals,
 } from 'utils/constants';
+import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
 import PaymentDetails from 'components/admin_console/billing/payment_details';
 import {STRIPE_CSS_SRC, STRIPE_PUBLIC_KEY} from 'components/payment_form/stripe';
@@ -53,6 +53,8 @@ import SwitchToYearlyPlanConfirmModal from 'components/switch_to_yearly_plan_con
 import {ModalData} from 'types/actions';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {Address, CloudCustomer, Product, Invoice, areShippingDetailsValid, Feedback} from '@mattermost/types/cloud';
 
 import {areBillingDetailsValid, BillingDetails} from '../../types/cloud/sku';
 
@@ -463,6 +465,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
     }
 
     confirmSwitchToAnnual = () => {
+        const {customer} = this.props;
         this.props.actions.openModal({
             modalId: ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY,
             dialogType: SwitchToYearlyPlanConfirmModal,
@@ -476,7 +479,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         TELEMETRY_CATEGORIES.CLOUD_ADMIN,
                         'confirm_switch_to_annual_click_contact_sales',
                     );
-                    window.open(this.props.contactSalesLink, '_blank');
+                    const customerEmail = customer?.email || '';
+                    const firstName = customer?.contact_first_name || '';
+                    const lastName = customer?.contact_last_name || '';
+                    const companyName = customer?.name || '';
+                    goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, 'mattermost', 'in-product-cloud');
                 },
             },
         });
@@ -723,7 +730,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         this.state.selectedProduct ? this.state.selectedProduct.name : '',
                     )}
                     price={yearlyProductMonthlyPrice}
-                    rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                    rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                         br: <br/>,
                         b: (chunks: React.ReactNode | React.ReactNodeArray) => (
                             <span style={{fontSize: '14px'}}>
@@ -1013,7 +1020,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                                             });
                                         }}
                                         contactSupportLink={
-                                            this.props.contactSalesLink
+                                            this.props.contactSupportLink
                                         }
                                         currentTeam={this.props.currentTeam}
                                         onSuccess={() => {

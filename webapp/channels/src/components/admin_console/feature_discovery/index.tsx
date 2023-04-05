@@ -7,10 +7,8 @@ import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {Action, GenericAction} from 'mattermost-redux/types/actions';
-import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
+import {checkHadPriorTrial, getCloudCustomer} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
-import {getCloudContactUsLink, InquiryType} from 'selectors/cloud';
 
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
@@ -30,7 +28,7 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = isCloudLicense(license);
     const hasPriorTrial = checkHadPriorTrial(state);
     const isCloudTrial = subscription?.is_free_trial === 'true';
-    const contactSalesLink = getCloudContactUsLink(state)(InquiryType.Sales);
+    const customer = getCloudCustomer(state);
     return {
         stats: state.entities.admin.analytics,
         prevTrialLicense: state.entities.admin.prevTrialLicense,
@@ -39,7 +37,7 @@ function mapStateToProps(state: GlobalState) {
         isSubscriptionLoaded: subscription !== undefined && subscription !== null,
         hadPrevCloudTrial: hasPriorTrial,
         isPaidSubscription: isCloud && license?.SkuShortName !== LicenseSkus.Starter && !isCloudTrial,
-        contactSalesLink,
+        customer,
     };
 }
 

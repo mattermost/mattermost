@@ -20,8 +20,7 @@ import (
 )
 
 func TestGraphQLRunList(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("list by participantOrFollower", func(t *testing.T) {
@@ -206,8 +205,7 @@ func TestGraphQLRunList(t *testing.T) {
 }
 
 func TestGraphQLChangeRunParticipants(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	user3, _, err := e.ServerAdminClient.CreateUser(&model.User{
@@ -669,8 +667,7 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 }
 
 func TestGraphQLChangeRunOwner(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	// create a third user to test change owner
@@ -713,8 +710,7 @@ func TestGraphQLChangeRunOwner(t *testing.T) {
 }
 
 func TestSetRunFavorite(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -800,8 +796,7 @@ func TestSetRunFavorite(t *testing.T) {
 }
 
 func TestResolverFavorites(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -833,8 +828,7 @@ func TestResolverFavorites(t *testing.T) {
 }
 
 func TestResolverPlaybooks(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -860,8 +854,7 @@ func TestResolverPlaybooks(t *testing.T) {
 }
 
 func TestUpdateRun(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -977,8 +970,7 @@ func TestUpdateRun(t *testing.T) {
 }
 
 func TestUpdateRunTaskActions(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("task actions mutation create and update", func(t *testing.T) {
@@ -1071,8 +1063,7 @@ func TestUpdateRunTaskActions(t *testing.T) {
 }
 
 func TestBadGraphQLRequest(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	testRunsQuery := `
