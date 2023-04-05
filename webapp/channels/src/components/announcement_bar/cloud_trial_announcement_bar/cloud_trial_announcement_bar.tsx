@@ -16,7 +16,8 @@ import {trackEvent} from 'actions/telemetry_actions';
 import {t} from 'utils/i18n';
 import PricingModal from 'components/pricing_modal';
 
-import {ModalData} from 'types/actions';
+import { ModalData } from 'types/actions';
+import {DateTime} from 'luxon';
 
 import {
     Preferences,
@@ -38,6 +39,7 @@ type Props = {
     daysLeftOnTrial: number;
     isCloud: boolean;
     subscription?: Subscription;
+    reverseTrial: boolean;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         getCloudSubscription: () => void;
@@ -132,15 +134,31 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             return null;
         }
 
-        const trialMoreThan3DaysMsg = (
+        let trialMoreThan7DaysMsg = (
             <FormattedMessage
                 id='admin.billing.subscription.cloudTrial.moreThan3Days'
                 defaultMessage='Your trial has started! There are {daysLeftOnTrial} days left'
-                values={{daysLeftOnTrial}}
+                values={{ daysLeftOnTrial }}
             />
-        );
+        );;
+        let modalButtonText = t('admin.billing.subscription.cloudTrial.subscribeButton');
+        let modalButtonDefaultText = 'Upgrade Now';
 
-        const trialLessThan3DaysMsg = (
+        if (this.props.reverseTrial) {
+            const trialEnd = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do');
+            trialMoreThan7DaysMsg = (
+                <FormattedMessage
+                    id='admin.billing.subscription.cloudTrial.moreThan3Days'
+                    defaultMessage='Your 30 day Enterprise trial has started! Purchase before {trialEnd} to keep your workspace.'
+                    values={{ trialEnd }}
+                />
+            );
+
+            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
+            modalButtonDefaultText = 'Review your options';
+        }
+
+        let trialLessThan7DaysMsg = (
             <FormattedMessage
                 id='admin.billing.subscription.cloudTrial.daysLeftOnTrial'
                 defaultMessage='There are {daysLeftOnTrial} days left on your free trial'
@@ -148,10 +166,22 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             />
         );
 
-        const userEndTrialDate = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do YYYY');
-        const userEndTrialHour = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'HH:mm:ss', this.props.currentUser.timezone?.automaticTimezone as string);
+        if (this.props.reverseTrial) {
+            trialLessThan7DaysMsg = (
+                <FormattedMessage
+                    id='admin.billing.subscription.cloudReverseTrial.daysLeftOnTrial'
+                    defaultMessage='{daysLeftOnTrial} days left on your trial. Purchase a plan or contact sales to keep your workspace.'
+                    values={{daysLeftOnTrial}}
+                />
+            );
+            modalButtonText = t('admin.billing.subscription.cloudReverseTrial.subscribeButton');
+            modalButtonDefaultText = 'Review your options';
+        }
 
-        const trialLastDaysMsg = (
+        const userEndTrialDate = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'MMMM Do YYYY');
+        const userEndTrialHour = getLocaleDateFromUTC((this.props.subscription?.trial_end_at as number / 1000), 'HH:mm', this.props.currentUser.timezone?.automaticTimezone as string);
+
+        let trialLastDaysMsg = (
             <FormattedMessage
                 id='admin.billing.subscription.cloudTrial.lastDay'
                 defaultMessage='This is the last day of your free trial. Your access will expire on {userEndTrialDate} at {userEndTrialHour}.'
@@ -159,21 +189,28 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             />
         );
 
+        if (this.props.reverseTrial) {
+            trialLastDaysMsg = (
+                <FormattedMessage
+                    id='admin.billing.subscription.cloudReverseTrial.lastDay'
+                    defaultMessage='This is the last day of your trial. Purchase a plan before {userEndTrialHour} or contact sales'
+                    values={{userEndTrialHour}}
+                />
+            );
+        }
+
+
         let bannerMessage;
         let icon;
-        switch (daysLeftOnTrial) {
-        case TrialPeriodDays.TRIAL_WARNING_THRESHOLD:
-        case TrialPeriodDays.TRIAL_2_DAYS:
-            bannerMessage = trialLessThan3DaysMsg;
-            break;
-        case TrialPeriodDays.TRIAL_1_DAY:
-        case TrialPeriodDays.TRIAL_0_DAYS:
+
+        if (daysLeftOnTrial >= TrialPeriodDays.TRIAL_2_DAYS && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) {
+            bannerMessage = trialLessThan7DaysMsg;
+            icon = <i className='icon-check-outline-cirlce' />;
+        } else if (daysLeftOnTrial <= TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial >= TrialPeriodDays.TRIAL_0_DAYS) {
             bannerMessage = trialLastDaysMsg;
-            break;
-        default:
-            bannerMessage = trialMoreThan3DaysMsg;
-            icon = <i className='icon-check-outline-circle'/>;
-            break;
+        } else {
+            bannerMessage = trialMoreThan7DaysMsg;
+            icon = <i className='icon-check-outline-circle' />;
         }
 
         const dismissable = this.isDismissable();
@@ -184,8 +221,8 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
                 showCloseButton={dismissable}
                 handleClose={this.handleClose}
                 onButtonClick={this.showModal}
-                modalButtonText={t('admin.billing.subscription.cloudTrial.subscribeButton')}
-                modalButtonDefaultText={'Upgrade Now'}
+                modalButtonText={modalButtonText}
+                modalButtonDefaultText={modalButtonDefaultText}
                 message={bannerMessage}
                 showLinkAsButton={true}
                 icon={icon}

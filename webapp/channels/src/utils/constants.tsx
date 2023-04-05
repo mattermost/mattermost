@@ -176,7 +176,7 @@ export const Unique = {
 export const TrialPeriodDays = {
     TRIAL_30_DAYS: 30,
     TRIAL_14_DAYS: 14,
-    TRIAL_WARNING_THRESHOLD: 3,
+    TRIAL_WARNING_THRESHOLD: 7,
     TRIAL_2_DAYS: 2,
     TRIAL_1_DAY: 1,
     TRIAL_0_DAYS: 0,
