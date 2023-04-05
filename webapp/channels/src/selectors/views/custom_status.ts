@@ -5,6 +5,7 @@ import moment from 'moment-timezone';
 
 import {createSelector} from 'reselect';
 
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -15,7 +16,6 @@ import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
 import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
 import {GlobalState} from 'types/store';
-import {getCurrentUserTimezone} from 'selectors/general';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus {
@@ -39,7 +39,7 @@ export function isCustomStatusExpired(state: GlobalState, customStatus?: UserCus
     }
 
     const expiryTime = moment(customStatus.expires_at);
-    const timezone = getCurrentUserTimezone(state);
+    const timezone = getCurrentTimezone(state);
     const currentTime = getCurrentMomentForTimezone(timezone);
     return currentTime.isSameOrAfter(expiryTime);
 }
