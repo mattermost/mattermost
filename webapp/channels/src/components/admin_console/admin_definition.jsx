@@ -2497,11 +2497,7 @@ const AdminDefinition = {
                             it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                             it.stateIsFalse('EmailSettings.SendEmailNotifications'),
                         ),
-
-                        // MM-50952
-                        // If the setting is hidden, then it is not being set in state so there is
-                        // nothing to validate, and validation would fail anyways and prevent saving
-                        validate: it.configIsFalse('ExperimentalSettings', 'RestrictSystemAdmin') && validators.isRequired(t('admin.environment.notifications.feedbackEmail.required'), '"Notification From Address" is required'),
+                        validate: validators.isRequired(t('admin.environment.notifications.feedbackEmail.required'), '"Notification From Address" is required'),
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_TEXT,
