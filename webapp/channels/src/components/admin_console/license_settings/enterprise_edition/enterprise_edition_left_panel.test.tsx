@@ -82,7 +82,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             return n.children().length === 2 &&
                    n.childAt(0).type() === 'span' &&
                    !n.childAt(0).text().includes('ACTIVE') &&
-                   n.childAt(0).text().includes('USERS');
+                   n.childAt(0).text().includes('LICENSED SEATS');
         });
 
         expect(item.text()).toContain('1,000,000');

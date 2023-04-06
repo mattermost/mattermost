@@ -223,4 +223,15 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         // * Verify invite more button is present
         cy.findByTestId('invite-more').should('be.visible');
     });
+
+    it('hides the copy link button when inviting guests', () => {
+        // # Open team menu and click 'Invite People'
+        cy.uiOpenTeamMenu('Invite People');
+
+        // # Select Guest
+        cy.findByTestId('inviteGuestLink').should('be.visible').click();
+
+        // * The button "Copy invite link" should not exist
+        cy.findByTestId('InviteView__copyInviteLink').should('not.exist');
+    });
 });

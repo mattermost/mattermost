@@ -5555,6 +5555,24 @@ func (s *OpenTracingLayerOAuthStore) RemoveAuthDataByClientId(clientId string, u
 	return err
 }
 
+func (s *OpenTracingLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.RemoveAuthDataByUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.OAuthStore.RemoveAuthDataByUserId(userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.SaveAccessData")

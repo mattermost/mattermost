@@ -403,7 +403,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     previousPostId={getPreviousPostId(data, index)}
                     teamId={this.props.teamId}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
-                    lastPost={this.props.lastPost}
                 />
             </div>
         );
