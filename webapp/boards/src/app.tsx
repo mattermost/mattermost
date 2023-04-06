@@ -22,42 +22,42 @@ import FocalboardRouter from './router'
 import {IUser} from './user'
 
 type Props = {
-    history?: History<unknown>
+history?: History<unknown>
 }
 
 const App = (props: Props): JSX.Element => {
-    const language = useAppSelector<string>(getLanguage)
-    const me = useAppSelector<IUser|null>(getMe)
-    const dispatch = useAppDispatch()
+const language = useAppSelector<string>(getLanguage)
+const me = useAppSelector<IUser|null>(getMe)
+const dispatch = useAppDispatch()
 
-    useEffect(() => {
-        dispatch(fetchLanguage())
-        dispatch(fetchMe())
-        dispatch(fetchClientConfig())
-    }, [])
+useEffect(() => {
+dispatch(fetchLanguage())
+dispatch(fetchMe())
+dispatch(fetchClientConfig())
+}, [])
 
-    useEffect(() => {
-        if (me) {
-            TelemetryClient.setUser(me)
-        }
-    }, [me])
+useEffect(() => {
+if (me) {
+TelemetryClient.setUser(me)
+}
+}, [me])
 
-    return (
-        <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
-        >
-            <DndProvider backend={Utils.isMobile() ? TouchBackend : HTML5Backend}>
-                <FlashMessages milliseconds={2000}/>
-                <div id='frame'>
-                    <div id='main'>
-                        <NewVersionBanner/>
-                        <FocalboardRouter history={props.history}/>
-                    </div>
-                </div>
-            </DndProvider>
-        </IntlProvider>
-    )
+return (
+<IntlProvider
+locale={language.split(/[_]/)[0]}
+messages={getMessages(language)}
+>
+<DndProvider backend={Utils.isMobile() ? TouchBackend : HTML5Backend}>
+<FlashMessages milliseconds={2000}/>
+<div id='frame'>
+<div id='main'>
+<NewVersionBanner/>
+<FocalboardRouter history={props.history}/>
+</div>
+</div>
+</DndProvider>
+</IntlProvider>
+)
 }
 
 export default React.memo(App)
