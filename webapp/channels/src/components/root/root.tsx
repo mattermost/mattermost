@@ -650,6 +650,23 @@ export default class Root extends React.PureComponent<Props, State> {
                         <TeamSidebar/>
                         <DelinquencyModalController/>
                         <Switch>
+                            {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
+                                <Route
+                                    key={`${product.id}-public`}
+                                    path={`${product.baseURL}/public`}
+                                    render={(props) => {
+                                        return (
+                                            <Pluggable
+                                                pluggableName={'Product'}
+                                                subComponentName={'publicComponent'}
+                                                pluggableId={product.id}
+                                                css={{gridArea: 'center'}}
+                                                {...props}
+                                            />
+                                        );
+                                    }}
+                                />
+                            ))}
                             {this.props.products?.map((product) => (
                                 <Route
                                     key={product.id}
