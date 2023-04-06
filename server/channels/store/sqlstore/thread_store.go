@@ -683,10 +683,6 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 }
 
 func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
-	if opts.Unread {
-		return 0, errors.New("GetTotalThreadsForChannel does not support the Unread flag; use GetTotalUnreadThreadsForChannel instead")
-	}
-
 	query := s.getQueryBuilder().
 		Select("COUNT(Threads.PostId)").
 		From("Threads").
