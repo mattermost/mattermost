@@ -1,0 +1,24 @@
+name: Playbooks
+
+on:
+  pull_request:
+    paths:
+      - 'webapp/channels/src/mattermost-redux/**/*'
+      - 'webapp/platform/**/*'
+      - 'webapp/playbooks/**/*'
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+      - hh_webapp-ci
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
+
+jobs:
+  web-app-ci:
+    uses: ./.github/workflows/webapp-shared.yml
+    with:
+      workspace-argument: --workspace=playbooks
