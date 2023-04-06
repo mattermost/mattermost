@@ -43,12 +43,12 @@ enum TrialLoadStatus {
 }
 
 // Marker functions so i18n-extract doesn't remove strings
-t('ONE_TO_50')
-t('FIFTY_TO_100')
-t('ONE_HUNDRED_TO_500')
-t('FIVE_HUNDRED_TO_1000')
-t('ONE_THOUSAND_TO_2500')
-t('TWO_THOUSAND_FIVE_HUNDRED_AND_UP')
+t('ONE_TO_50');
+t('FIFTY_TO_100');
+t('ONE_HUNDRED_TO_500');
+t('FIVE_HUNDRED_TO_1000');
+t('ONE_THOUSAND_TO_2500');
+t('TWO_THOUSAND_FIVE_HUNDRED_AND_UP');
 
 export enum OrgSize {
     ONE_TO_50 = '1-50',
@@ -58,7 +58,6 @@ export enum OrgSize {
     ONE_THOUSAND_TO_2500 = '1001-2500',
     TWO_THOUSAND_FIVE_HUNDRED_AND_UP = '2501+',
 }
-
 
 type Props = {
     onClose?: () => void;
