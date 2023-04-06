@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -18,13 +19,13 @@ func TestElasticsearchTest(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := th.Client.TestElasticsearch()
+		resp, err := th.Client.TestElasticsearch(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.TestElasticsearch()
+		resp, err := th.SystemAdminClient.TestElasticsearch(context.Background())
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
@@ -37,7 +38,7 @@ func TestElasticsearchTest(t *testing.T) {
 		data, err := json.Marshal(cfg)
 		require.NoError(t, err)
 
-		resp, err := th.SystemAdminClient.DoAPIPost("/elasticsearch/test", string(data))
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/elasticsearch/test", string(data))
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -48,7 +49,7 @@ func TestElasticsearchTest(t *testing.T) {
 			*cfg.ExperimentalSettings.RestrictSystemAdmin = true
 		})
 
-		resp, err := th.SystemAdminClient.TestElasticsearch()
+		resp, err := th.SystemAdminClient.TestElasticsearch(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -59,13 +60,13 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := th.Client.PurgeElasticsearchIndexes()
+		resp, err := th.Client.PurgeElasticsearchIndexes(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes(context.Background())
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
@@ -73,7 +74,7 @@ func TestElasticsearchPurgeIndexes(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes()
+		resp, err := th.SystemAdminClient.PurgeElasticsearchIndexes(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -1027,7 +1028,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		UserId:      model.NewId(),
 	}
 
-	createdBot, resp, err := th.Client.CreateBot(bot)
+	createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(createdBot.UserId)
@@ -1103,7 +1104,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 	})
 	// deactivate basicuser1
-	_, err = th.Client.DeleteUser(basicUser1.Id)
+	_, err = th.Client.DeleteUser(context.Background(), basicUser1.Id)
 	require.NoError(t, err)
 	// deactivated users DMs should show in topDMs
 	t.Run("get top dms for basic user 1", func(t *testing.T) {
@@ -1125,37 +1126,37 @@ func TestNewTeamMembersSince(t *testing.T) {
 	team := th.CreateTeam()
 
 	t.Run("accepts only starter or professional license skus", func(t *testing.T) {
-		_, resp, _ := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, _ := th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE10))
-		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, _ = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
-		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, _ = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, err := th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		_, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, err = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
 
 	t.Run("rejects guests", func(t *testing.T) {
-		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, err := th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		th.App.DemoteUserToGuest(th.Context, th.BasicUser)
 		defer th.App.PromoteGuestToUser(th.Context, th.BasicUser, "")
 
-		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		_, resp, _ = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		CheckNotImplementedStatus(t, resp)
 	})
 
@@ -1178,17 +1179,17 @@ func TestNewTeamMembersSince(t *testing.T) {
 		}
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		list, resp, err := th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		checkUser(list.Items[0], false)
 
 		data, err := testutils.ReadTestFile("test.png")
 		require.NoError(t, err)
-		_, err = th.Client.SetProfileImage(th.BasicUser.Id, data)
+		_, err = th.Client.SetProfileImage(context.Background(), th.BasicUser.Id, data)
 		require.NoError(t, err)
 
-		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		list, resp, err = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 5)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		checkUser(list.Items[0], true)
@@ -1196,7 +1197,7 @@ func TestNewTeamMembersSince(t *testing.T) {
 
 	t.Run("implements pagination", func(t *testing.T) {
 		// check the first page of results
-		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		list, resp, err := th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 2)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1205,7 +1206,7 @@ func TestNewTeamMembersSince(t *testing.T) {
 		require.False(t, list.HasNext)
 
 		// check the 2nd page
-		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 1, 2)
+		list, resp, err = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 1, 2)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1218,14 +1219,14 @@ func TestNewTeamMembersSince(t *testing.T) {
 		_, appErr = th.App.AddTeamMember(th.Context, team.Id, user.Id)
 		require.Nil(t, appErr)
 
-		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		list, resp, err = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 2)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, 3, int(list.TotalCount))
 		require.Len(t, list.Items, 2)
 		require.True(t, list.HasNext)
 
-		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 1, 2)
+		list, resp, err = th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 1, 2)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, int(list.TotalCount), 3)
@@ -1236,7 +1237,7 @@ func TestNewTeamMembersSince(t *testing.T) {
 	t.Run("get-new-team-members-since invalid license", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense(""))
 
-		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		_, resp, err := th.Client.GetNewTeamMembersSince(context.Background(), team.Id, model.TimeRangeToday, 0, 2)
 		assert.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})

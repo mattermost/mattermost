@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sort"
@@ -53,7 +54,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	t.Run("get shared channels paginated", func(t *testing.T) {
 		channelIds := make([]string, 0, 21)
 		for i := 0; i < pages; i++ {
-			channels, _, err := th.Client.GetAllSharedChannels(th.BasicTeam.Id, i, pageSize)
+			channels, _, err := th.Client.GetAllSharedChannels(context.Background(), th.BasicTeam.Id, i, pageSize)
 			require.NoError(t, err)
 			channelIds = append(channelIds, getIds(channels)...)
 		}
@@ -64,7 +65,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 	})
 
 	t.Run("get shared channels for invalid team", func(t *testing.T) {
-		_, _, err := th.Client.GetAllSharedChannels(model.NewId(), 0, 100)
+		_, _, err := th.Client.GetAllSharedChannels(context.Background(), model.NewId(), 0, 100)
 		require.Error(t, err)
 	})
 
@@ -77,7 +78,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 		team, _, err := th.SystemAdminClient.CreateTeam(team)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.GetAllSharedChannels(team.Id, 0, 100)
+		_, _, err = th.Client.GetAllSharedChannels(context.Background(), team.Id, 0, 100)
 		require.Error(t, err)
 	})
 }
@@ -140,13 +141,13 @@ func TestGetRemoteClusterById(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("valid remote, user is member", func(t *testing.T) {
-		rcInfo, _, err := th.Client.GetRemoteClusterInfo(rc.RemoteId)
+		rcInfo, _, err := th.Client.GetRemoteClusterInfo(context.Background(), rc.RemoteId)
 		require.NoError(t, err)
 		assert.Equal(t, rc.Name, rcInfo.Name)
 	})
 
 	t.Run("invalid remote", func(t *testing.T) {
-		_, resp, err := th.Client.GetRemoteClusterInfo(model.NewId())
+		_, resp, err := th.Client.GetRemoteClusterInfo(context.Background(), model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})

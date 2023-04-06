@@ -135,7 +135,7 @@ func TestCreateScheme(t *testing.T) {
 		Description: model.NewId(),
 		Scope:       model.SchemeScopeTeam,
 	}
-	_, r5, err := th.Client.CreateScheme(scheme5)
+	_, r5, err := th.Client.CreateScheme(context.Background(), scheme5)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, r5)
 
@@ -243,7 +243,7 @@ func TestGetScheme(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetScheme(s1.Id)
 	require.NoError(t, err)
 
-	_, r7, err := th.Client.GetScheme(s1.Id)
+	_, r7, err := th.Client.GetScheme(context.Background(), s1.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, r7)
 
@@ -302,12 +302,12 @@ func TestGetSchemes(t *testing.T) {
 	_, r6, _ := th.SystemAdminClient.GetSchemes("asdf", 0, 100)
 	CheckBadRequestStatus(t, r6)
 
-	th.Client.Logout()
-	_, r7, _ := th.Client.GetSchemes("", 0, 100)
+	th.Client.Logout(context.Background())
+	_, r7, _ := th.Client.GetSchemes(context.Background(), "", 0, 100)
 	CheckUnauthorizedStatus(t, r7)
 
-	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, r8, err := th.Client.GetSchemes("", 0, 100)
+	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, r8, err := th.Client.GetSchemes(context.Background(), "", 0, 100)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, r8)
 
@@ -383,12 +383,12 @@ func TestGetTeamsForScheme(t *testing.T) {
 	_, ri2, _ := th.SystemAdminClient.GetTeamsForScheme("", 0, 100)
 	CheckBadRequestStatus(t, ri2)
 
-	th.Client.Logout()
-	_, ri3, _ := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
+	th.Client.Logout(context.Background())
+	_, ri3, _ := th.Client.GetTeamsForScheme(context.Background(), model.NewId(), 0, 100)
 	CheckUnauthorizedStatus(t, ri3)
 
-	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, ri4, err := th.Client.GetTeamsForScheme(model.NewId(), 0, 100)
+	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, ri4, err := th.Client.GetTeamsForScheme(context.Background(), model.NewId(), 0, 100)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, ri4)
 
@@ -478,12 +478,12 @@ func TestGetChannelsForScheme(t *testing.T) {
 	_, ri2, _ := th.SystemAdminClient.GetChannelsForScheme("", 0, 100)
 	CheckBadRequestStatus(t, ri2)
 
-	th.Client.Logout()
-	_, ri3, _ := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)
+	th.Client.Logout(context.Background())
+	_, ri3, _ := th.Client.GetChannelsForScheme(context.Background(), model.NewId(), 0, 100)
 	CheckUnauthorizedStatus(t, ri3)
 
-	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-	_, ri4, err := th.Client.GetChannelsForScheme(model.NewId(), 0, 100)
+	th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	_, ri4, err := th.Client.GetChannelsForScheme(context.Background(), model.NewId(), 0, 100)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, ri4)
 
@@ -595,7 +595,7 @@ func TestPatchScheme(t *testing.T) {
 	CheckBadRequestStatus(t, r9)
 
 	// Test without required permissions.
-	_, r10, err := th.Client.PatchScheme(s6.Id, schemePatch)
+	_, r10, err := th.Client.PatchScheme(context.Background(), s6.Id, schemePatch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, r10)
 
@@ -808,7 +808,7 @@ func TestDeleteScheme(t *testing.T) {
 		CheckBadRequestStatus(t, r3)
 
 		// Test without required permissions.
-		r4, err := th.Client.DeleteScheme(s1.Id)
+		r4, err := th.Client.DeleteScheme(context.Background(), s1.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, r4)
 
@@ -867,14 +867,14 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 
 		th.LoginBasic()
 
-		_, _, err := th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		_, _, err := th.Client.CreateChannel(context.Background(), &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.NoError(t, err)
 
 		team.SchemeId = &teamScheme.Id
 		team, appErr = th.App.UpdateTeamScheme(team)
 		require.Nil(t, appErr)
 
-		_, _, err = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
+		_, _, err = th.Client.CreateChannel(context.Background(), &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.Error(t, err)
 	})
 }

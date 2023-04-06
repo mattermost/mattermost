@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -45,7 +46,7 @@ func TestGetOldClientLicense(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
 		"expected 400 Bad Request")
 
-	license, _, err = th.SystemAdminClient.GetOldClientLicense("")
+	license, _, err = th.SystemAdminClient.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)
 
 	require.NotEmpty(t, license["IsLicensed"], "license not returned correctly")
@@ -72,7 +73,7 @@ func TestUploadLicenseFile(t *testing.T) {
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -115,7 +116,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
-		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
+		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte("sadasdasdasdasdasdsa"))
 		CheckErrorID(t, err, "api.license.request-trial.can-start-trial.not-allowed")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -146,7 +147,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseBytes))
 		utils.LicenseValidator = &mockLicenseValidator
 
-		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte(""))
+		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte(""))
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
@@ -184,7 +185,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
-		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
+		resp, err := th.SystemAdminClient.UploadLicenseFile(context.Background(), []byte("sadasdasdasdasdasdsa"))
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -210,7 +211,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := th.SystemAdminClient.RemoveLicenseFile()
+		resp, err := th.SystemAdminClient.RemoveLicenseFile(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -251,7 +252,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 	}
 
 	t.Run("permission denied", func(t *testing.T) {
-		resp, err := th.Client.RequestTrialLicenseWithExtraFields(&model.TrialLicenseRequest{})
+		resp, err := th.Client.RequestTrialLicenseWithExtraFields(context.Background(), &model.TrialLicenseRequest{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -287,7 +288,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 		cloud.On("ValidateBusinessEmail", mock.Anything, mock.Anything).Return(nil)
 
-		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(validTrialRequest)
+		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
@@ -318,7 +319,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
 		}(originalCwsUrl)
 
-		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(validTrialRequest)
+		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
 		require.Error(t, err)
 		require.Equal(t, resp.StatusCode, 451)
 	})
@@ -357,14 +358,14 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 
 		cloud.On("ValidateBusinessEmail", mock.Anything, mock.Anything).Return(nil)
 
-		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(validTrialRequest)
+		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
 		CheckErrorID(t, err, "api.license.request-trial.bad-request")
 		CheckBadRequestStatus(t, resp)
 	})
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(validTrialRequest)
+		resp, err := th.SystemAdminClient.RequestTrialLicenseWithExtraFields(context.Background(), validTrialRequest)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
@@ -382,7 +383,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 
 	t.Run("permission denied", func(t *testing.T) {
-		resp, err := th.Client.RequestTrialLicense(1000)
+		resp, err := th.Client.RequestTrialLicense(context.Background(), 1000)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -417,7 +418,7 @@ func TestRequestTrialLicense(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
 		}(originalCwsUrl)
 
-		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
+		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), nUsers)
 		CheckErrorID(t, err, "api.license.add_license.unique_users.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
@@ -448,14 +449,14 @@ func TestRequestTrialLicense(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.CloudSettings.CWSURL = requestTrialURL })
 		}(originalCwsUrl)
 
-		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
+		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), nUsers)
 		require.Error(t, err)
 		require.Equal(t, resp.StatusCode, 451)
 	})
 
 	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.RequestTrialLicense(1)
+		resp, err := th.SystemAdminClient.RequestTrialLicense(context.Background(), 1)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
@@ -471,7 +472,7 @@ func TestRequestRenewalLink(t *testing.T) {
 			th.App.Srv().Cloud = cloudImpl
 		}()
 		th.App.Srv().Cloud = nil
-		resp, err := th.SystemAdminClient.DoAPIGet("/license/renewal", "")
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/renewal", "")
 		CheckErrorID(t, err, "app.license.generate_renewal_token.no_license")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -484,7 +485,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/license/review", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -492,7 +493,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/license/review", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 
@@ -500,7 +501,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
-		resp, err := th.Client.DoAPIPost("/license/review", "")
+		resp, err := th.Client.DoAPIPost(context.Background(), "/license/review", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -508,7 +509,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 	t.Run("returns 400 when license is nil", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
 
-		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/license/review", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -521,7 +522,7 @@ func TestTrueUpReviewStatus(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("returns 200 when status retrieved", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/review/status", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -529,7 +530,7 @@ func TestTrueUpReviewStatus(t *testing.T) {
 	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/review/status", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 
@@ -537,7 +538,7 @@ func TestTrueUpReviewStatus(t *testing.T) {
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
-		resp, err := th.Client.DoAPIGet("/license/review/status", "")
+		resp, err := th.Client.DoAPIGet(context.Background(), "/license/review/status", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -545,7 +546,7 @@ func TestTrueUpReviewStatus(t *testing.T) {
 	t.Run("returns 400 when license is nil", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
 
-		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/license/review/status", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})

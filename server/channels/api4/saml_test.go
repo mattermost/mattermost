@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -65,7 +66,7 @@ func TestSamlResetId(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	_, resp, err := th.Client.ResetSamlAuthDataToEmail(false, false, nil)
+	_, resp, err := th.Client.ResetSamlAuthDataToEmail(context.Background(), false, false, nil)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 

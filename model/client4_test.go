@@ -4,6 +4,7 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -73,7 +74,7 @@ func TestClient4CreatePost(t *testing.T) {
 	}))
 
 	client := NewAPIv4Client(server.URL)
-	_, resp, err := client.CreatePost(post)
+	_, resp, err := client.CreatePost(context.Background(), post)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
@@ -100,7 +101,7 @@ func TestClient4SetToken(t *testing.T) {
 	client := NewAPIv4Client(server.URL)
 	client.SetToken(expected)
 
-	_, resp, err := client.GetMe("")
+	_, resp, err := client.GetMe(context.Background(), "")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

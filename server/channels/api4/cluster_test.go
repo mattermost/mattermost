@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,7 +17,7 @@ func TestGetClusterStatus(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
-		_, resp, err := th.Client.GetClusterStatus()
+		_, resp, err := th.Client.GetClusterStatus(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

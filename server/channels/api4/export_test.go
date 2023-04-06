@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ func TestListExports(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		exports, _, err := th.Client.ListExports()
+		exports, _, err := th.Client.ListExports(context.Background())
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 		require.Nil(t, exports)
@@ -82,7 +83,7 @@ func TestDeleteExport(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
-		_, err := th.Client.DeleteExport("export.zip")
+		_, err := th.Client.DeleteExport(context.Background(), "export.zip")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
@@ -124,7 +125,7 @@ func TestDownloadExport(t *testing.T) {
 
 	t.Run("no permissions", func(t *testing.T) {
 		var buf bytes.Buffer
-		n, _, err := th.Client.DownloadExport("export.zip", &buf, 0)
+		n, _, err := th.Client.DownloadExport(context.Background(), "export.zip", &buf, 0)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 		require.Zero(t, n)

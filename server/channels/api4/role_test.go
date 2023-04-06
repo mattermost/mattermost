@@ -31,7 +31,7 @@ func TestGetAllRoles(t *testing.T) {
 	})
 
 	t.Run("NormalClient", func(t *testing.T) {
-		_, resp, err := th.Client.GetAllRoles()
+		_, resp, err := th.Client.GetAllRoles(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -270,11 +270,11 @@ func TestPatchRole(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	_, resp, err := th.Client.PatchRole(model.NewId(), patch)
+	_, resp, err := th.Client.PatchRole(context.Background(), model.NewId(), patch)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, err = th.Client.PatchRole(role.Id, patch)
+	_, resp, err = th.Client.PatchRole(context.Background(), role.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 

@@ -205,8 +205,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	trueString := trueValues[rand.Intn(len(trueValues))]
 	falseString := falseValues[rand.Intn(len(falseValues))]
 	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
-	th.Client.SetBoolString(true, trueString)
-	th.Client.SetBoolString(false, falseString)
+	th.Client.SetBoolString(context.Background(), true, trueString)
+	th.Client.SetBoolString(context.Background(), false, falseString)
 
 	th.LocalClient = th.CreateLocalClient(*memoryConfig.ServiceSettings.LocalModeSocketLocation)
 
@@ -472,7 +472,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
-	th.Client.DeleteChannel(th.BasicDeletedChannel.Id)
+	th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
 

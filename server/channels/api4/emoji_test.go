@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"image"
 	_ "image/gif"
 	"os"
@@ -313,10 +314,10 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, _, err = client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
-	_, err = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
+	_, err = th.SystemAdminClient.DeleteEmoji(context.Background(), newEmoji.Id)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.GetEmoji(newEmoji.Id)
+	_, _, err = th.SystemAdminClient.GetEmoji(context.Background(), newEmoji.Id)
 	require.Error(t, err, "expected error fetching deleted emoji")
 
 	// Try to delete just deleted emoji

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -104,7 +105,7 @@ func TestPlugin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-		_, resp, err = th.Client.InstallPluginFromURL(url, false)
+		_, resp, err = th.Client.InstallPluginFromURL(context.Background(), url, false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -158,7 +159,7 @@ func TestPlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-		_, resp, err = th.Client.UploadPlugin(bytes.NewReader(tarData))
+		_, resp, err = th.Client.UploadPlugin(context.Background(), bytes.NewReader(tarData))
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -237,7 +238,7 @@ func TestPlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-		_, resp, err = th.Client.GetPlugins()
+		_, resp, err = th.Client.GetPlugins(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -245,7 +246,7 @@ func TestPlugin(t *testing.T) {
 		_, err = client.EnablePlugin(manifest.Id)
 		require.NoError(t, err)
 
-		manifests, _, err := th.Client.GetWebappPlugins()
+		manifests, _, err := th.Client.GetWebappPlugins(context.Background())
 		require.NoError(t, err)
 
 		found = false
@@ -272,7 +273,7 @@ func TestPlugin(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-		resp, err = th.Client.RemovePlugin(manifest.Id)
+		resp, err = th.Client.RemovePlugin(context.Background(), manifest.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -517,7 +518,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceURL = "invalid.com"
 		})
 
-		plugins, resp, err := th.Client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		plugins, resp, err := th.Client.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, plugins)
@@ -1411,7 +1412,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceURL = "invalid.com"
 		})
 
-		plugin, resp, err := th.Client.InstallMarketplacePlugin(request)
+		plugin, resp, err := th.Client.InstallMarketplacePlugin(context.Background(), request)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, plugin)

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -334,7 +335,7 @@ func TestLogoutTestCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, _, err := th.Client.ExecuteCommand(th.BasicChannel.Id, "/logout")
+	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/logout")
 	require.NoError(t, err)
 }
 
@@ -420,7 +421,7 @@ func TestSearchCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, _, err := th.Client.ExecuteCommand(th.BasicChannel.Id, "/search")
+	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/search")
 	require.NoError(t, err)
 }
 
@@ -428,7 +429,7 @@ func TestSettingsCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, _, err := th.Client.ExecuteCommand(th.BasicChannel.Id, "/settings")
+	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/settings")
 	require.NoError(t, err)
 }
 
@@ -436,7 +437,7 @@ func TestShortcutsCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, _, err := th.Client.ExecuteCommand(th.BasicChannel.Id, "/shortcuts")
+	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/shortcuts")
 	require.NoError(t, err)
 }
 

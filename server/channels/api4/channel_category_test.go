@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -118,7 +119,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			Channels: []string{th.BasicChannel.Id, "notachannel", th.BasicChannel2.Id},
 		}
 
-		received, _, err := th.Client.CreateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, category)
+		received, _, err := th.Client.CreateSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, category)
 		require.NoError(t, err)
 
 		testCategories := []*model.SidebarCategoryWithChannels{
@@ -134,7 +135,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			},
 		}
 
-		testCategories, _, err = th.Client.UpdateSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, testCategories)
+		testCategories, _, err = th.Client.UpdateSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, testCategories)
 		require.NoError(t, err)
 
 		b, err := json.Marshal(testCategories)

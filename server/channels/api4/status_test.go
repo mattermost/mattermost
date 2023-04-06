@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -222,7 +223,7 @@ func TestUpdateUserStatus(t *testing.T) {
 
 	t.Run("set status for other user as admin user", func(t *testing.T) {
 		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
-		updateUserStatus, _, _ := th.SystemAdminClient.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		updateUserStatus, _, _ := th.SystemAdminClient.UpdateUserStatus(context.Background(), th.BasicUser2.Id, toUpdateUserStatus)
 		assert.Equal(t, "online", updateUserStatus.Status)
 	})
 

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -283,7 +284,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 		},
 	}
 
-	_, err = th.Client.UpdatePreferences(userId, preferences)
+	_, err = th.Client.UpdatePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
 	timeout := time.After(300 * time.Millisecond)
@@ -324,14 +325,14 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		team1 := th.CreateTeam()
 		th.LinkUserToTeam(user, team1)
 
-		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 
 		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
@@ -339,7 +340,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -350,7 +351,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// Confirm that the channel was added to the Favorites
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Contains(t, categories.Categories[0].Channels, channel.Id)
@@ -358,7 +359,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -369,7 +370,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// The channel should've been removed from the Favorites
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
@@ -392,7 +393,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user2)
 
 		// Favorite the channel
-		_, err := th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err := th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -403,14 +404,14 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// Confirm that the channel was added to the Favorites on all teams
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Contains(t, categories.Categories[0].Channels, dmChannel.Id)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team2.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team2.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Contains(t, categories.Categories[0].Channels, dmChannel.Id)
@@ -418,7 +419,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
 		// And unfavorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -429,14 +430,14 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// The channel should've been removed from the Favorites on all teams
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, dmChannel.Id)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 		assert.Contains(t, categories.Categories[2].Channels, dmChannel.Id)
 
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team2.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team2.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, dmChannel.Id)
@@ -458,7 +459,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		th.LinkUserToTeam(user, team1)
 		th.LinkUserToTeam(user2, team1)
 
-		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		_, _, err = client2.GetSidebarCategoriesForTeamForUser(user2.Id, team1.Id, "")
 		require.NoError(t, err)
@@ -468,7 +469,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		th.AddUserToChannel(user2, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
@@ -483,7 +484,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -521,7 +522,7 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -606,7 +607,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			Name:     model.NewId(),
 		},
 	}
-	_, err := th.Client.UpdatePreferences(userId, preferences)
+	_, err := th.Client.UpdatePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -616,7 +617,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	wsResp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, model.StatusOk, wsResp.Status, "should have responded OK to authentication challenge")
 
-	_, err = th.Client.DeletePreferences(userId, preferences)
+	_, err = th.Client.DeletePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
 	timeout := time.After(30000 * time.Millisecond)
@@ -657,14 +658,14 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		team1 := th.CreateTeam()
 		th.LinkUserToTeam(user, team1)
 
-		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 
 		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
 		th.AddUserToChannel(user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
@@ -672,7 +673,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -682,7 +683,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		})
 		require.NoError(t, err)
 		// Confirm that the channel was added to the Favorites
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Contains(t, categories.Categories[0].Channels, channel.Id)
@@ -690,7 +691,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel by deleting the preference
-		_, err = th.Client.DeletePreferences(user.Id, model.Preferences{
+		_, err = th.Client.DeletePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -700,7 +701,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// The channel should've been removed from the Favorites
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
@@ -723,7 +724,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user2)
 
 		// Favorite the channel
-		_, err := th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err := th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -734,14 +735,14 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// Confirm that the channel was added to the Favorites on all teams
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Contains(t, categories.Categories[0].Channels, dmChannel.Id)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team2.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team2.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Contains(t, categories.Categories[0].Channels, dmChannel.Id)
@@ -749,7 +750,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
 
 		// And unfavorite the channel by deleting the preference
-		_, err = th.Client.DeletePreferences(user.Id, model.Preferences{
+		_, err = th.Client.DeletePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -759,14 +760,14 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.NoError(t, err)
 
 		// The channel should've been removed from the Favorites on all teams
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, dmChannel.Id)
 		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
 		assert.Contains(t, categories.Categories[2].Channels, dmChannel.Id)
 
-		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team2.Id, "")
+		categories, _, err = th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team2.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, dmChannel.Id)
@@ -788,7 +789,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		th.LinkUserToTeam(user, team1)
 		th.LinkUserToTeam(user2, team1)
 
-		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		_, _, err = client2.GetSidebarCategoriesForTeamForUser(user2.Id, team1.Id, "")
 		require.NoError(t, err)
@@ -798,7 +799,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		th.AddUserToChannel(user2, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
-		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
@@ -813,7 +814,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		require.Contains(t, categories.Categories[1].Channels, channel.Id)
 
 		// Favorite the channel for both users
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -842,7 +843,7 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
 
 		// And unfavorite the channel for the first user by deleting the preference
-		_, err = th.Client.UpdatePreferences(user.Id, model.Preferences{
+		_, err = th.Client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
 			{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,

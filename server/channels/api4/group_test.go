@@ -30,7 +30,7 @@ func TestGetGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	_, response, err := th.Client.GetGroup(g.Id, "")
+	_, response, err := th.Client.GetGroup(context.Background(), g.Id, "")
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -186,20 +186,20 @@ func TestDeleteGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	_, response, err := th.Client.DeleteGroup(g.Id)
+	_, response, err := th.Client.DeleteGroup(context.Background(), g.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
-	_, response, err = th.Client.DeleteGroup(g.Id)
+	_, response, err = th.Client.DeleteGroup(context.Background(), g.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, err = th.Client.DeleteGroup(g.Id)
+	_, response, err = th.Client.DeleteGroup(context.Background(), g.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
+	_, response, err = th.Client.DeleteGroup(context.Background(), "wertyuijhbgvfcde")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
@@ -210,7 +210,7 @@ func TestDeleteGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	_, response, err = th.Client.DeleteGroup(validGroup.Id)
+	_, response, err = th.Client.DeleteGroup(context.Background(), validGroup.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 }
@@ -228,21 +228,21 @@ func TestUndeleteGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	_, response, err := th.Client.DeleteGroup(validGroup.Id)
+	_, response, err := th.Client.DeleteGroup(context.Background(), validGroup.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 	// shouldn't allow restoring unless user has required permission
-	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
 	th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
-	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	_, response, err = th.Client.RestoreGroup(validGroup.Id, "")
+	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 }
@@ -281,7 +281,7 @@ func TestPatchGroup(t *testing.T) {
 		Description: &newDescription,
 	}
 
-	_, response, err := th.Client.PatchGroup(g.Id, gp)
+	_, response, err := th.Client.PatchGroup(context.Background(), g.Id, gp)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -367,7 +367,7 @@ func TestLinkGroupTeam(t *testing.T) {
 		AutoAdd: model.NewBool(true),
 	}
 
-	_, response, err := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -377,14 +377,14 @@ func TestLinkGroupTeam(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, _, err = th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, _, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Error(t, err)
 
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	th.Client.Logout(context.Background())
+	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-	groupTeam, response, _ := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	groupTeam, response, _ := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupTeam)
 
@@ -398,7 +398,7 @@ func TestLinkGroupTeam(t *testing.T) {
 	})
 	assert.Nil(t, app2Err)
 
-	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, err = th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 }
@@ -421,7 +421,7 @@ func TestLinkGroupChannel(t *testing.T) {
 		AutoAdd: model.NewBool(true),
 	}
 
-	_, response, err := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -431,17 +431,17 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	groupTeam, response, _ := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	groupTeam, response, _ := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.Equal(t, th.BasicChannel.TeamId, groupTeam.TeamID)
 	assert.NotNil(t, groupTeam)
 
 	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	th.Client.Logout(context.Background())
+	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-	_, _, err = th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, _, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Error(t, err)
 
 	gid := model.NewId()
@@ -454,7 +454,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	})
 	assert.Nil(t, app2Err)
 
-	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, err = th.Client.LinkGroupSyncable(context.Background(), g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 }
@@ -484,7 +484,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	th.App.Srv().SetLicense(nil)
 
-	response, err := th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	response, err := th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -494,18 +494,18 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, err = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	_, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	assert.Error(t, err)
 	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	response, err = th.Client.Logout()
+	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
-	_, response, err = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	_, response, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 
-	response, err = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	response, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 }
@@ -535,7 +535,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(nil)
 
-	response, err := th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	response, err := th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -547,18 +547,18 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.NoError(t, err)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	th.Client.Logout(context.Background())
+	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-	_, err = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	_, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 	assert.Error(t, err)
 
 	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_admin channel_user")
 	require.NoError(t, err)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	th.Client.Logout(context.Background())
+	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-	_, err = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	_, err = th.Client.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 	assert.NoError(t, err)
 }
 
@@ -576,7 +576,7 @@ func TestGetGroupTeam(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	_, response, err := th.Client.GetGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
+	_, response, err := th.Client.GetGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -638,7 +638,7 @@ func TestGetGroupChannel(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	_, response, err := th.Client.GetGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
+	_, response, err := th.Client.GetGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -714,7 +714,7 @@ func TestGetGroupTeams(t *testing.T) {
 
 	th.App.Srv().SetLicense(nil)
 
-	_, response, err := th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	_, response, err := th.Client.GetGroupSyncables(context.Background(), g.Id, model.GroupSyncableTypeTeam, "")
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -724,7 +724,7 @@ func TestGetGroupTeams(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, response, _ = th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
+	_, response, _ = th.Client.GetGroupSyncables(context.Background(), g.Id, model.GroupSyncableTypeTeam, "")
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
 
 	groupSyncables, response, err := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeTeam, "")
@@ -767,7 +767,7 @@ func TestGetGroupChannels(t *testing.T) {
 
 	th.App.Srv().SetLicense(nil)
 
-	_, response, err := th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	_, response, err := th.Client.GetGroupSyncables(context.Background(), g.Id, model.GroupSyncableTypeChannel, "")
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
@@ -777,7 +777,7 @@ func TestGetGroupChannels(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	_, response, _ = th.Client.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
+	_, response, _ = th.Client.GetGroupSyncables(context.Background(), g.Id, model.GroupSyncableTypeChannel, "")
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
 
 	groupSyncables, response, _ := th.SystemAdminClient.GetGroupSyncables(g.Id, model.GroupSyncableTypeChannel, "")
@@ -816,7 +816,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
 
-	_, response, _ = th.Client.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response, _ = th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
 
 	th.App.Srv().SetLicense(nil)
@@ -894,7 +894,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})
 	require.Nil(t, appErr)
 
-	_, response, _ = th.Client.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	_, response, _ = th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
 
 	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &originalPermissions})
@@ -999,7 +999,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 
-	_, _, response, err := th.Client.GetGroupsByChannel(privateChannel.Id, opts)
+	_, _, response, err := th.Client.GetGroupsByChannel(context.Background(), privateChannel.Id, opts)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
@@ -1258,12 +1258,12 @@ func TestGetGroups(t *testing.T) {
 	_, err = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.NoError(t, err)
 
-	_, _, err = th.Client.GetGroups(opts)
+	_, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 
 	// test "since", should only return group created in this test, not th.Group
 	opts.Since = start
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	// test correct group returned
@@ -1271,20 +1271,20 @@ func TestGetGroups(t *testing.T) {
 
 	// delete group, should still return
 	th.App.DeleteGroup(group.Id)
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group.Id)
 
 	// test with current since value, return none
 	opts.Since = model.GetMillis()
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Empty(t, groups)
 
 	// make sure delete group is not returned without Since
 	opts.Since = 0
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	//'Normal getGroups should not return delete groups
 	assert.Len(t, groups, 1)
@@ -1292,7 +1292,7 @@ func TestGetGroups(t *testing.T) {
 	assert.Equal(t, groups[0].Id, th.Group.Id)
 
 	opts.Source = model.GroupSourceCustom
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Id, group2.Id)
@@ -1325,20 +1325,20 @@ func TestGetGroups(t *testing.T) {
 
 	// Specify custom groups source when feature is disabled
 	opts.Source = model.GroupSourceCustom
-	_, response, err := th.Client.GetGroups(opts)
+	_, response, err := th.Client.GetGroups(context.Background(), opts)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
 	// Specify ldap groups source when custom groups feature is disabled
 	opts.Source = model.GroupSourceLdap
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 
 	// don't include source and should only get ldap groups in response
 	opts.Source = ""
-	groups, _, err = th.Client.GetGroups(opts)
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
 	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
@@ -1396,15 +1396,15 @@ func TestGetGroupsByUserId(t *testing.T) {
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
 	// test permissions
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	_, response, err = th.Client.GetGroupsByUserId(user1.Id)
+	th.Client.Logout(context.Background())
+	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	_, response, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
-	th.Client.Logout()
-	th.Client.Login(user1.Email, user1.Password)
-	groups, _, err = th.Client.GetGroupsByUserId(user1.Id)
+	th.Client.Logout(context.Background())
+	th.Client.Login(context.Background(), user1.Email, user1.Password)
+	groups, _, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
@@ -1433,8 +1433,8 @@ func TestGetGroupStats(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	t.Run("Requires manage system permission to access group stats", func(t *testing.T) {
-		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-		_, response, err := th.Client.GetGroupStats(group.Id)
+		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, response, err := th.Client.GetGroupStats(context.Background(), group.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
@@ -1579,7 +1579,7 @@ func TestAddMembersToGroup(t *testing.T) {
 	assert.Equal(t, count, int64(2))
 
 	// 2. Test invalid group ID
-	_, response, upsertErr = th.Client.UpsertGroupMembers("abc123", members)
+	_, response, upsertErr = th.Client.UpsertGroupMembers(context.Background(), "abc123", members)
 	require.Error(t, upsertErr)
 	CheckBadRequestStatus(t, response)
 
@@ -1653,7 +1653,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	assert.Equal(t, users[0].Id, user2.Id)
 
 	// 2. Test invalid group ID
-	_, response, deleteErr = th.Client.DeleteGroupMembers("abc123", members)
+	_, response, deleteErr = th.Client.DeleteGroupMembers(context.Background(), "abc123", members)
 	require.Error(t, deleteErr)
 	CheckBadRequestStatus(t, response)
 

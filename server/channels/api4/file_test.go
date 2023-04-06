@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
@@ -1168,7 +1169,7 @@ func TestSearchFiles(t *testing.T) {
 	require.NoError(t, err)
 	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
-	th.Client.DeleteChannel(archivedChannel.Id)
+	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
 
 	terms := "search"
 	isOrSearch := false

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -72,13 +73,13 @@ func TestDeleteBrandImage(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	resp, err = th.Client.DeleteBrandImage()
+	resp, err = th.Client.DeleteBrandImage(context.Background())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout()
+	th.Client.Logout(context.Background())
 
-	resp, err = th.Client.DeleteBrandImage()
+	resp, err = th.Client.DeleteBrandImage(context.Background())
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 

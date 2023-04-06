@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -149,7 +150,7 @@ func TestUpdateCommand(t *testing.T) {
 
 		cmd2.TeamId = team.Id
 
-		_, resp, err = th.Client.UpdateCommand(cmd2)
+		_, resp, err = th.Client.UpdateCommand(context.Background(), cmd2)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -207,7 +208,7 @@ func TestMoveCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	resp, err := th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
+	resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd2.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -265,7 +266,7 @@ func TestDeleteCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	resp, err := th.Client.DeleteCommand(rcmd2.Id)
+	resp, err := th.Client.DeleteCommand(context.Background(), rcmd2.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -570,24 +571,24 @@ func TestGetCommand(t *testing.T) {
 		})
 	})
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
-		_, resp, err := th.Client.GetCommandById(newCmd.Id)
+		_, resp, err := th.Client.GetCommandById(context.Background(), newCmd.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
-		th.Client.Logout()
+		th.Client.Logout(context.Background())
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
-		th.Client.Login(user.Email, user.Password)
-		_, resp, err := th.Client.GetCommandById(newCmd.Id)
+		th.Client.Login(context.Background(), user.Email, user.Password)
+		_, resp, err := th.Client.GetCommandById(context.Background(), newCmd.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
-		th.Client.Logout()
-		_, resp, err := th.Client.GetCommandById(newCmd.Id)
+		th.Client.Logout(context.Background())
+		_, resp, err := th.Client.GetCommandById(context.Background(), newCmd.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -917,7 +918,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 
 	// make a channel on that team, ensuring that our test user isn't in it
 	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, team2.Id)
-	_, err := th.Client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id)
+	_, err := th.Client.RemoveUserFromChannel(context.Background(), channel2.Id, th.BasicUser.Id)
 	require.NoError(t, err, "Failed to remove user from channel")
 
 	// we should not be able to run the slash command in channel2, because we aren't in it
@@ -1052,7 +1053,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	// if the user is removed from the team, they should NOT be able to run the slash command in the DM channel
-	_, err = th.Client.RemoveTeamMember(team2.Id, th.BasicUser.Id)
+	_, err = th.Client.RemoveTeamMember(context.Background(), team2.Id, th.BasicUser.Id)
 	require.NoError(t, err, "Failed to remove user from team")
 
 	_, resp, err = client.ExecuteCommandWithTeam(dmChannel.Id, team2.Id, "/postcommand")

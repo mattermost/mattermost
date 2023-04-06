@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"sort"
@@ -307,7 +308,7 @@ func TestGraphQLTeamMembersAsGuest(t *testing.T) {
 	}
 
 	var err error
-	team, _, err = th.Client.CreateTeam(team)
+	team, _, err = th.Client.CreateTeam(context.Background(), team)
 	require.NoError(t, err)
 	th.BasicTeam = team
 

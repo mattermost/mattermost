@@ -72,10 +72,10 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("unauthenticated receives 403", func(t *testing.T) {
-		th.Client.Logout()
+		th.Client.Logout(context.Background())
 
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-		_, resp, err := th.Client.CreateTeam(team)
+		_, resp, err := th.Client.CreateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
@@ -90,7 +90,7 @@ func TestCreateTeam(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionCreateTeam.Id, model.SystemUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateTeam.Id, model.SystemAdminRoleId)
 
-		_, resp, err = th.Client.CreateTeam(team)
+		_, resp, err = th.Client.CreateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -135,7 +135,7 @@ func TestCreateTeam(t *testing.T) {
 			},
 		}, nil).Once()
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-		_, resp, err := th.Client.CreateTeam(team)
+		_, resp, err := th.Client.CreateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -156,7 +156,7 @@ func TestCreateTeam(t *testing.T) {
 			},
 		}, nil).Once()
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-		_, resp, err := th.Client.CreateTeam(team)
+		_, resp, err := th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 	})
@@ -177,7 +177,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			AllowedDomains: "simulator.amazonses.com,localhost",
 		}
 
-		rteam, _, err := th.Client.CreateTeam(team)
+		rteam, _, err := th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
@@ -258,7 +258,7 @@ func TestGetTeamSanitization(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -295,7 +295,7 @@ func TestGetTeamSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin", func(t *testing.T) {
-		rteam, _, err := th.Client.GetTeam(team.Id, "")
+		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
@@ -352,7 +352,7 @@ func TestUpdateTeam(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
-		team, _, err := th.Client.CreateTeam(team)
+		team, _, err := th.Client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
 		team.Description = "updated description"
@@ -418,7 +418,7 @@ func TestUpdateTeam(t *testing.T) {
 
 		teamJSON, jsonErr := json.Marshal(team)
 		require.NoError(t, jsonErr)
-		r, err := th.Client.DoAPIPut("/teams/"+originalTeamId, string(teamJSON))
+		r, err := th.Client.DoAPIPut(context.Background(), "/teams/"+originalTeamId, string(teamJSON))
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
@@ -429,8 +429,8 @@ func TestUpdateTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		th.Client.Logout() // for non-local clients
-		_, resp, err = th.Client.UpdateTeam(team)
+		th.Client.Logout(context.Background()) // for non-local clients
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		th.LoginBasic()
@@ -451,7 +451,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -463,7 +463,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	// Non-admin users cannot update the team
 
 	t.Run("team admin", func(t *testing.T) {
-		rteam, _, err := th.Client.UpdateTeam(team)
+		rteam, _, err := th.Client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
@@ -484,7 +484,7 @@ func TestPatchTeam(t *testing.T) {
 	defer th.TearDown()
 
 	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
-	team, _, _ = th.Client.CreateTeam(team)
+	team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
 	patch := &model.TeamPatch{}
 	patch.DisplayName = model.NewString("Other name")
@@ -492,17 +492,17 @@ func TestPatchTeam(t *testing.T) {
 	patch.CompanyName = model.NewString("Other company name")
 	patch.AllowOpenInvite = model.NewBool(true)
 
-	_, resp, err := th.Client.PatchTeam(GenerateTestId(), patch)
+	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestId(), patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout()
-	_, resp, err = th.Client.PatchTeam(team.Id, patch)
+	th.Client.Logout(context.Background())
+	_, resp, err = th.Client.PatchTeam(context.Background(), team.Id, patch)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
-	_, resp, err = th.Client.PatchTeam(team.Id, patch)
+	_, resp, err = th.Client.PatchTeam(context.Background(), team.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	th.LoginBasic()
@@ -700,7 +700,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -712,7 +712,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 	// Non-admin users cannot update the team
 
 	t.Run("team admin", func(t *testing.T) {
-		rteam, _, err := th.Client.PatchTeam(team.Id, &model.TeamPatch{})
+		rteam, _, err := th.Client.PatchTeam(context.Background(), team.Id, &model.TeamPatch{})
 		require.NoError(t, err)
 
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
@@ -918,18 +918,18 @@ func TestSoftDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	resp, err := th.Client.SoftDeleteTeam(th.BasicTeam.Id)
+	resp, err := th.Client.SoftDeleteTeam(context.Background(), th.BasicTeam.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.Client.Logout()
-	resp, err = th.Client.SoftDeleteTeam(th.BasicTeam.Id)
+	th.Client.Logout(context.Background())
+	resp, err = th.Client.SoftDeleteTeam(context.Background(), th.BasicTeam.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen}
-	team, _, _ = th.Client.CreateTeam(team)
+	team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		_, err2 := client.SoftDeleteTeam(team.Id)
@@ -962,9 +962,9 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 	t.Run("Permanent deletion not available through API if EnableAPITeamDeletion is not set", func(t *testing.T) {
 		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen}
-		team, _, _ = th.Client.CreateTeam(team)
+		team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
-		resp, err := th.Client.PermanentDeleteTeam(team.Id)
+		resp, err := th.Client.PermanentDeleteTeam(context.Background(), team.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
@@ -975,7 +975,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 	t.Run("Permanent deletion available through local mode even if EnableAPITeamDeletion is not set", func(t *testing.T) {
 		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen}
-		team, _, _ = th.Client.CreateTeam(team)
+		team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
 		_, err := th.LocalClient.PermanentDeleteTeam(team.Id)
 		require.NoError(t, err)
@@ -1269,7 +1269,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:     t.Name() + "_1",
 		Name:            GenerateTestTeamName(),
 		Email:           th.GenerateTestEmail(),
@@ -1294,7 +1294,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		teamFound := false
 		team2Found := false
 
-		rteams, _, err := th.Client.GetAllTeams("", 0, 1000)
+		rteams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 1000)
 		require.NoError(t, err)
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id {
@@ -1352,8 +1352,8 @@ func TestGetTeamByName(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	th.Client.Logout()
-	_, resp, err := th.Client.GetTeamByName(team.Name, "")
+	th.Client.Logout(context.Background())
+	_, resp, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -1363,19 +1363,19 @@ func TestGetTeamByName(t *testing.T) {
 	th.LoginTeamAdmin()
 
 	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
-	rteam2, _, _ := th.Client.CreateTeam(team2)
+	rteam2, _, _ := th.Client.CreateTeam(context.Background(), team2)
 
 	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamInvite, AllowOpenInvite: true}
-	rteam3, _, _ := th.Client.CreateTeam(team3)
+	rteam3, _, _ := th.Client.CreateTeam(context.Background(), team3)
 
 	th.LoginBasic()
 	// AllowInviteOpen is false and team is open, and user is not on team
-	_, resp, err = th.Client.GetTeamByName(rteam2.Name, "")
+	_, resp, err = th.Client.GetTeamByName(context.Background(), rteam2.Name, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// AllowInviteOpen is true and team is invite only, and user is not on team
-	_, resp, err = th.Client.GetTeamByName(rteam3.Name, "")
+	_, resp, err = th.Client.GetTeamByName(context.Background(), rteam3.Name, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
@@ -1384,7 +1384,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -1422,7 +1422,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin/non-admin", func(t *testing.T) {
-		rteam, _, err := th.Client.GetTeamByName(team.Name, "")
+		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
@@ -1451,23 +1451,23 @@ func TestSearchAllTeams(t *testing.T) {
 	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamInvite}
-	th.Client.CreateTeam(pTeam)
+	th.Client.CreateTeam(context.Background(), pTeam)
 
-	rteams, _, err := th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	rteams, _, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.Name})
 	require.NoError(t, err)
 	require.Empty(t, rteams, "should have not returned team")
 
-	rteams, _, err = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	rteams, _, err = th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.DisplayName})
 	require.NoError(t, err)
 	require.Empty(t, rteams, "should have not returned team")
 
-	th.Client.Logout()
+	th.Client.Logout(context.Background())
 
-	_, resp, err := th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	_, resp, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.Name})
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp, err = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	_, resp, err = th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.DisplayName})
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -1667,7 +1667,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		})
 	}
 
-	_, _, resp, err := th.Client.SearchTeamsPaged(&model.TeamSearch{Term: commonRandom, PerPage: model.NewInt(100)})
+	_, _, resp, err := th.Client.SearchTeamsPaged(context.Background(), &model.TeamSearch{Term: commonRandom, PerPage: model.NewInt(100)})
 	CheckErrorID(t, err, "api.team.search_teams.pagination_not_implemented.public_team_search")
 	require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 }
@@ -1676,7 +1676,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -1684,7 +1684,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	require.NoError(t, err)
-	team2, _, err := th.Client.CreateTeam(&model.Team{
+	team2, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_2",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -1722,7 +1722,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin", func(t *testing.T) {
-		rteams, _, err := th.Client.SearchTeams(&model.TeamSearch{Term: t.Name()})
+		rteams, _, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: t.Name()})
 		require.NoError(t, err)
 		for _, rteam := range rteams {
 			if rteam.Id == team.Id || rteam.Id == team2.Id || rteam.Id == th.BasicTeam.Id {
@@ -1788,7 +1788,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	team, _, err := th.Client.CreateTeam(&model.Team{
+	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -1796,7 +1796,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		AllowedDomains: "simulator.amazonses.com,localhost",
 	})
 	require.NoError(t, err)
-	team2, _, err := th.Client.CreateTeam(&model.Team{
+	team2, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_2",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
@@ -1845,7 +1845,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin", func(t *testing.T) {
-		rteams, _, err := th.Client.GetTeamsForUser(th.BasicUser.Id, "")
+		rteams, _, err := th.Client.GetTeamsForUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		for _, rteam := range rteams {
 			if rteam.Id != team.Id && rteam.Id != team2.Id {
@@ -1856,7 +1856,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 		*th.App.Config().PrivacySettings.ShowEmailAddress = false
-		rteams, _, err2 := th.Client.GetTeamsForUser(th.BasicUser.Id, "")
+		rteams, _, err2 := th.Client.GetTeamsForUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err2)
 		for _, rteam := range rteams {
 			if rteam.Id != team.Id && rteam.Id != team2.Id {
@@ -2933,7 +2933,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	th.LoginBasic2()
-	resp, err = th.Client.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
+	resp, err = th.Client.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s4)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -3153,7 +3153,7 @@ func TestImportTeam(t *testing.T) {
 		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
 
 		// Import the channels/users/posts
-		_, resp, err := th.Client.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		_, resp, err := th.Client.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -3720,7 +3720,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Test that permissions are required.
-	resp, err = th.Client.UpdateTeamScheme(team.Id, teamScheme.Id)
+	resp, err = th.Client.UpdateTeamScheme(context.Background(), team.Id, teamScheme.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -3769,7 +3769,7 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// No permissions
-	_, _, _, err := th.Client.TeamMembersMinusGroupMembers(team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
+	_, _, _, err := th.Client.TeamMembersMinusGroupMembers(context.Background(), team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
 	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	testCases := map[string]struct {
@@ -3841,7 +3841,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("Forbidden when request performed by system user", func(t *testing.T) {
-		res, err := th.Client.InvalidateEmailInvites()
+		res, err := th.Client.InvalidateEmailInvites(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, res)
 	})
@@ -3849,7 +3849,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionInvalidateEmailInvite.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(model.PermissionInvalidateEmailInvite.Id, model.SystemUserRoleId)
-		res, err := th.Client.InvalidateEmailInvites()
+		res, err := th.Client.InvalidateEmailInvites(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, res)
 	})

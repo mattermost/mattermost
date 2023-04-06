@@ -80,7 +80,7 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("with file uploaded by different user", func(t *testing.T) {
-		fileResp, _, err := th.SystemAdminClient.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
+		fileResp, _, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
 		require.NoError(t, err)
 		fileId := fileResp.FileInfos[0].Id
 
@@ -206,7 +206,7 @@ func TestCreatePost(t *testing.T) {
 
 	post.ChannelId = th.BasicChannel.Id
 	post.CreateAt = 123
-	rpost, _, err = th.SystemAdminClient.CreatePost(post)
+	rpost, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
 }
@@ -240,7 +240,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 	require.Nil(t, appErr, "should create a session")
 
-	post, _, err := th.Client.CreatePost(&model.Post{
+	post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
 		ChannelId: th.BasicPost.ChannelId,
 		Message:   "test message",
 	})
@@ -415,7 +415,7 @@ func testCreatePostWithOutgoingHook(
 		CallbackURLs: []string{ts.URL},
 	}
 
-	hook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	hook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(context.Background(), hook)
 	require.NoError(t, err)
 
 	// create a post to trigger the webhook
@@ -425,7 +425,7 @@ func testCreatePostWithOutgoingHook(
 		FileIds:   fileIds,
 	}
 
-	post, _, err = th.SystemAdminClient.CreatePost(post)
+	post, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
 	wait <- true
@@ -441,7 +441,7 @@ func testCreatePostWithOutgoingHook(
 
 	if commentPostType {
 		time.Sleep(time.Millisecond * 100)
-		postList, _, err := th.SystemAdminClient.GetPostThread(post.Id, "", false)
+		postList, _, err := th.SystemAdminClient.GetPostThread(context.Background(), post.Id, "", false)
 		require.NoError(t, err)
 		require.Equal(t, post.Id, postList.Order[0], "wrong order")
 
@@ -902,7 +902,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("different user, but system admin", func(t *testing.T) {
-		_, _, err := th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+		_, _, err := th.SystemAdminClient.UpdatePost(context.Background(), rpost.Id, rpost)
 		require.NoError(t, err)
 	})
 }
@@ -924,11 +924,11 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, _, err := th.Client.CreatePost(post)
+	post, _, err := th.Client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
 	post.Message = "changed"
-	_, _, err = th.SystemAdminClient.UpdatePost(post.Id, post)
+	_, _, err = th.SystemAdminClient.UpdatePost(context.Background(), post.Id, post)
 	require.NoError(t, err)
 }
 
@@ -1042,7 +1042,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("different user, but system admin", func(t *testing.T) {
 		patch := &model.PostPatch{}
-		_, _, err := th.SystemAdminClient.PatchPost(post.Id, patch)
+		_, _, err := th.SystemAdminClient.PatchPost(context.Background(), post.Id, patch)
 		require.NoError(t, err)
 	})
 
@@ -1075,13 +1075,13 @@ func TestPatchPost(t *testing.T) {
 			Message:   "#hashtag a message",
 			CreateAt:  model.GetMillis() - 2000,
 		}
-		post2, _, err := th.SystemAdminClient.CreatePost(post2)
+		post2, _, err := th.SystemAdminClient.CreatePost(context.Background(), post2)
 		require.NoError(t, err)
 
 		patch2 := &model.PostPatch{
 			Message: model.NewString("new message"),
 		}
-		_, resp, err := th.SystemAdminClient.PatchPost(post2.Id, patch2)
+		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), post2.Id, patch2)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
@@ -1114,7 +1114,7 @@ func TestPinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, err = th.SystemAdminClient.PinPost(post.Id)
+	_, err = th.SystemAdminClient.PinPost(context.Background(), post.Id)
 	require.NoError(t, err)
 }
 
@@ -1144,7 +1144,7 @@ func TestUnpinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, err = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
+	_, err = th.SystemAdminClient.UnpinPost(context.Background(), pinnedPost.Id)
 	require.NoError(t, err)
 }
 
@@ -1308,7 +1308,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		channel := th.CreatePublicChannel()
 		th.CreatePostWithClient(th.SystemAdminClient, channel)
-		th.SystemAdminClient.DeleteChannel(channel.Id)
+		th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
 
 		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
@@ -1517,13 +1517,13 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUserInChannel(context.Background(), user.Id, channel1.Id, 0, 10)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUserInTeam(context.Background(), user.Id, team1.Id, 0, 10)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	_, _, err = th.SystemAdminClient.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 10)
 	require.NoError(t, err)
 
 	mockStore := mocks.Store{}
@@ -1543,7 +1543,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockStore.On("Close").Return(nil)
 	th.App.Srv().SetStore(&mockStore)
 
-	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 10)
 	require.Error(t, err)
 	CheckInternalErrorStatus(t, resp)
 }
@@ -2168,7 +2168,7 @@ func TestGetPost(t *testing.T) {
 	require.NoError(t, err)
 
 	// Delete post
-	th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+	th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
 
 	// Normal client should get 404 when trying to access deleted post normally
 	_, resp, err = client.GetPost(th.BasicPost.Id, "")
@@ -2181,12 +2181,12 @@ func TestGetPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// System client should get 404 when trying to access deleted post normally
-	_, resp, err = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
+	_, resp, err = th.SystemAdminClient.GetPost(context.Background(), th.BasicPost.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// System client should be able to access deleted post with include_deleted param
-	post, _, err := th.SystemAdminClient.GetPostIncludeDeleted(th.BasicPost.Id, "")
+	post, _, err := th.SystemAdminClient.GetPostIncludeDeleted(context.Background(), th.BasicPost.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, th.BasicPost.Id, post.Id)
 
@@ -2238,7 +2238,7 @@ func TestDeletePost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, err = th.SystemAdminClient.DeletePost(post.Id)
+	_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
 	require.NoError(t, err)
 }
 
@@ -2251,7 +2251,7 @@ func TestDeletePostEvent(t *testing.T) {
 	WebSocketClient.Listen()
 	defer WebSocketClient.Close()
 
-	_, err = th.SystemAdminClient.DeletePost(th.BasicPost.Id)
+	_, err = th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
 	require.NoError(t, err)
 
 	var received bool
@@ -2303,7 +2303,7 @@ func TestDeletePostMessage(t *testing.T) {
 
 			post := th.CreatePost()
 
-			_, err = th.SystemAdminClient.DeletePost(post.Id)
+			_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
 			require.NoError(t, err)
 
 			timeout := time.After(5 * time.Second)
@@ -2395,7 +2395,7 @@ func TestGetPostThread(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.GetPostThread(th.BasicPost.Id, "", false)
+	_, _, err = th.SystemAdminClient.GetPostThread(context.Background(), th.BasicPost.Id, "", false)
 	require.NoError(t, err)
 }
 
@@ -2429,7 +2429,7 @@ func TestSearchPosts(t *testing.T) {
 
 	archivedChannel := th.CreatePublicChannel()
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
-	th.Client.DeleteChannel(archivedChannel.Id)
+	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
 
 	otherTeam := th.CreateTeam()
 	channelInOtherTeam := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, otherTeam.Id)
@@ -2792,7 +2792,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Delete post
-	th.SystemAdminClient.DeletePost(post.Id)
+	th.SystemAdminClient.DeletePost(context.Background(), post.Id)
 
 	// Normal client should get 404 when trying to access deleted post normally
 	_, resp, err = client.GetFileInfosForPost(post.Id, "")
@@ -2805,12 +2805,12 @@ func TestGetFileInfosForPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// System client should get 404 when trying to access deleted post normally
-	_, resp, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "")
+	_, resp, err = th.SystemAdminClient.GetFileInfosForPost(context.Background(), post.Id, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// System client should be able to access deleted post with include_deleted param
-	infos, _, err = th.SystemAdminClient.GetFileInfosForPostIncludeDeleted(post.Id, "")
+	infos, _, err = th.SystemAdminClient.GetFileInfosForPostIncludeDeleted(context.Background(), post.Id, "")
 	require.NoError(t, err)
 
 	require.Len(t, infos, 3, "missing file infos")
@@ -2829,7 +2829,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "")
+	_, _, err = th.SystemAdminClient.GetFileInfosForPost(context.Background(), th.BasicPost.Id, "")
 	require.NoError(t, err)
 }
 
@@ -2840,7 +2840,7 @@ func TestSetChannelUnread(t *testing.T) {
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
 	s2, _ := th.App.GetSession(th.Client.AuthToken)
-	th.Client.Login(u1.Email, u1.Password)
+	th.Client.Login(context.Background(), u1.Email, u1.Password)
 	c1 := th.BasicChannel
 	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}
 	now := utils.MillisFromTime(time.Now())
@@ -2867,7 +2867,7 @@ func TestSetChannelUnread(t *testing.T) {
 	require.Equal(t, int64(0), unread.MsgCount)
 
 	t.Run("Unread last one", func(t *testing.T) {
-		r, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
+		r, err := th.Client.SetPostUnread(context.Background(), u1.Id, p2.Id, true)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
 		unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
@@ -2895,7 +2895,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 
-		r, _ := th.Client.SetPostUnread(u1.Id, p.Id, false)
+		r, _ := th.Client.SetPostUnread(context.Background(), u1.Id, p.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -2908,7 +2908,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 
-		r, _ = th.Client.SetPostUnread(u1.Id, p1.Id, false)
+		r, _ = th.Client.SetPostUnread(context.Background(), u1.Id, p1.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -2939,7 +2939,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Equal(t, int64(0), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
 
-		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
+		r, _ := th.Client.SetPostUnread(context.Background(), u1.Id, rootPost.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -2954,7 +2954,7 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Equal(t, int64(0), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
 
-		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
+		r, _ = th.Client.SetPostUnread(context.Background(), u1.Id, reply2.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
@@ -2963,12 +2963,12 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Unread on a private channel", func(t *testing.T) {
-		r, _ := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
+		r, _ := th.Client.SetPostUnread(context.Background(), u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, appErr := th.App.GetChannelUnread(th.Context, th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(1), unread.MsgCount)
-		r, _ = th.Client.SetPostUnread(u1.Id, pp1.Id, true)
+		r, _ = th.Client.SetPostUnread(context.Background(), u1.Id, pp1.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
 		unread, appErr = th.App.GetChannelUnread(th.Context, th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, appErr)
@@ -2976,7 +2976,7 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
-		r, _ := th.Client.SetPostUnread(u1.Id, "invalid4ofngungryquinj976y", true)
+		r, _ := th.Client.SetPostUnread(context.Background(), u1.Id, "invalid4ofngungryquinj976y", true)
 		assert.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
@@ -2996,8 +2996,8 @@ func TestSetChannelUnread(t *testing.T) {
 	})
 
 	t.Run("Can't unread if user is not logged in", func(t *testing.T) {
-		th.Client.Logout()
-		response, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
+		th.Client.Logout(context.Background())
+		response, err := th.Client.SetPostUnread(context.Background(), u1.Id, p2.Id, true)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, response)
 	})
@@ -3040,7 +3040,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		defer userWSClient.Close()
 		userWSClient.Listen()
 
-		_, err = th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
+		_, err = th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -3088,7 +3088,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	})
 
 	t.Run("Mark root post as unread", func(t *testing.T) {
-		_, err := th.Client.SetPostUnread(th.BasicUser.Id, rootPost1.Id, false)
+		_, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, rootPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -3306,7 +3306,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			}
 
 			// update user's notify props
-			_, _, err = th.Client.PatchUser(th.BasicUser.Id, patch)
+			_, _, err = th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
 			require.NoError(t, err)
 
 			// post a reply on the thread
@@ -3750,7 +3750,7 @@ func TestAcknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.AcknowledgePost(post.Id, th.SystemAdminUser.Id)
+	_, _, err = th.SystemAdminClient.AcknowledgePost(context.Background(), post.Id, th.SystemAdminUser.Id)
 	require.NoError(t, err)
 }
 

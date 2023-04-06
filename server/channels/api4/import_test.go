@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -50,7 +51,7 @@ func TestListImports(t *testing.T) {
 	}
 
 	t.Run("no permissions", func(t *testing.T) {
-		imports, _, err := th.Client.ListImports()
+		imports, _, err := th.Client.ListImports(context.Background())
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 		require.Nil(t, imports)

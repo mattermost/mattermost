@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,7 +70,7 @@ func TestGetJob(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = th.Client.GetJob(job.Id)
+	_, resp, err = th.Client.GetJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -121,7 +122,7 @@ func TestGetJobs(t *testing.T) {
 
 	require.Equal(t, jobs[1].Id, received[0].Id, "should've received oldest job last")
 
-	_, resp, err := th.Client.GetJobs(0, 60)
+	_, resp, err := th.Client.GetJobs(context.Background(), 0, 60)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
@@ -183,7 +184,7 @@ func TestGetJobsByType(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = th.Client.GetJobsByType(jobType, 0, 60)
+	_, resp, err = th.Client.GetJobsByType(context.Background(), jobType, 0, 60)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -206,7 +207,7 @@ func TestDownloadJob(t *testing.T) {
 	}
 
 	// DownloadExportResults is not set to true so we should get a not implemented error status
-	_, resp, err := th.Client.DownloadJob(job.Id)
+	_, resp, err := th.Client.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
@@ -215,7 +216,7 @@ func TestDownloadJob(t *testing.T) {
 	})
 
 	// Normal user cannot download the results of these job (non-existent job)
-	_, resp, err = th.Client.DownloadJob(job.Id)
+	_, resp, err = th.Client.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -236,7 +237,7 @@ func TestDownloadJob(t *testing.T) {
 	os.Create(filePath)
 
 	// Normal user cannot download the results of these job (not the right permission)
-	_, resp, err = th.Client.DownloadJob(job.Id)
+	_, resp, err = th.Client.DownloadJob(context.Background(), job.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	th.SystemManagerClient.DownloadJob(job.Id)
@@ -317,7 +318,7 @@ func TestCancelJob(t *testing.T) {
 		defer th.App.Srv().Store().Job().Delete(job.Id)
 	}
 
-	resp, err := th.Client.CancelJob(jobs[0].Id)
+	resp, err := th.Client.CancelJob(context.Background(), jobs[0].Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
