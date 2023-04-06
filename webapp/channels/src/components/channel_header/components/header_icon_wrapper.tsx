@@ -66,7 +66,7 @@ const HeaderIconWrapper = (props: Props) => {
             class: 'channel-threads',
             id: 'channelThreads',
             messageID: t('channel_header.channelThreads'),
-            message: 'Recent threads',
+            message: 'All threads',
         },
         recentMentions: {
             class: '',
