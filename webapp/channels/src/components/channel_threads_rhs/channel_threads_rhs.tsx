@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 
 import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
@@ -26,7 +26,7 @@ export type Props = {
         closeRightHandSide: () => void;
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
-        getThreadsInChannel: (id: Channel['id']) => Promise<void>;
+        getThreadsForChannel: (id: Channel['id']) => Promise<void>;
     };
 }
 
@@ -42,13 +42,13 @@ function ChannelThreads({
     const history = useHistory();
     const [isLoading, setIsLoading] = useState(false);
 
-    useCallback(() => {
+    useEffect(() => {
         const fetchThreads = async () => {
             if (!threads.length) {
                 setIsLoading(true);
             }
             try {
-                await actions.getThreadsInChannel(channel.id);
+                await actions.getThreadsForChannel(channel.id);
             } finally {
                 setIsLoading(false);
             }

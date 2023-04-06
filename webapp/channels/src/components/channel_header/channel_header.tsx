@@ -583,6 +583,14 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     {memberListButton}
 
                     <HeaderIconWrapper
+                        iconComponent={threadsIcon}
+                        ariaLabel={true}
+                        buttonClass={threadsIconClass}
+                        buttonId={'channelThreads'}
+                        onClick={this.showThreadsForChannel}
+                        tooltipKey={'channelThreads'}
+                    />
+                    <HeaderIconWrapper
                         iconComponent={pinnedIcon}
                         ariaLabel={true}
                         buttonClass={pinnedIconClass}
@@ -600,14 +608,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             tooltipKey={'channelFiles'}
                         />
                     }
-                    <HeaderIconWrapper
-                        iconComponent={threadsIcon}
-                        ariaLabel={true}
-                        buttonClass={threadsIconClass}
-                        buttonId={'channelThreads'}
-                        onClick={this.showThreadsForChannel}
-                        tooltipKey={'channelThreads'}
-                    />
                     {hasGuestsText}
                     <div
                         className='header-popover-text-measurer'
@@ -701,6 +701,14 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     {memberListButton}
 
                     <HeaderIconWrapper
+                        iconComponent={threadsIcon}
+                        ariaLabel={true}
+                        buttonClass={threadsIconClass}
+                        buttonId={'channelThreads'}
+                        onClick={this.showThreadsForChannel}
+                        tooltipKey={'channelThreads'}
+                    />
+                    <HeaderIconWrapper
                         iconComponent={pinnedIcon}
                         ariaLabel={true}
                         buttonClass={pinnedIconClass}
@@ -718,14 +726,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             tooltipKey={'channelFiles'}
                         />
                     }
-                    <HeaderIconWrapper
-                        iconComponent={threadsIcon}
-                        ariaLabel={true}
-                        buttonClass={threadsIconClass}
-                        buttonId={'channelThreads'}
-                        onClick={this.showThreadsForChannel}
-                        tooltipKey={'channelThreads'}
-                    />
                     {hasGuestsText}
                     {editMessage}
                 </div>

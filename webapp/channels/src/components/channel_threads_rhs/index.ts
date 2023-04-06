@@ -56,7 +56,6 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             goBack,
             selectPostFromRightHandSideSearchByPostId,
             getThreadsForChannel,
-
         }, dispatch),
     };
 }
