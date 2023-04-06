@@ -244,6 +244,7 @@
                         text-align: center;
 
                         h3 {
+                            margin-top: 32px;
                             color: var(--center-channel-color);
                             font-family: 'Metropolis';
                             font-size: 24px;
@@ -251,7 +252,6 @@
                             font-weight: 700;
                             line-height: 31px;
                             text-align: center;
-                            margin-top: 32px;
                         }
 
                         h1 {
@@ -284,8 +284,8 @@
                     }
 
                     .contact_sales_cta__reduced {
-                        margin-top: 0;
                         height: 32px;
+                        margin-top: 0;
                     }
 
                     .plan_limits_cta {
