@@ -2371,7 +2371,7 @@
         text-align: center;
 
         .edit-post-history__error_heading {
-            padding-top: 20px;
+            padding-top: 26px;
             color: var(--center-channel-color);
             font-size: 20px;
             font-weight: 600;
@@ -2381,6 +2381,10 @@
         .edit-post-history__error_subheading {
             color: rgba(var(--center-channel-color-rgb), 0.72);
             font-weight: 400;
+        }
+
+        .edit-post-history__icon {
+            height: 67px;
         }
     }
 }

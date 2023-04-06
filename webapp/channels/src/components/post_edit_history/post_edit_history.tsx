@@ -12,7 +12,7 @@ import LoadingScreen from 'components/loading_screen';
 import EditedPostItem from './edited_post_item';
 
 import {PropsFromRedux} from '.';
-import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import alertIcon from 'images/icons/alert-icon.svg';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div
@@ -56,7 +56,11 @@ const PostEditHistory = ({
     const errorContainer: JSX.Element = (
         <div className='edit-post-history__error_container'>
             <div className='edit-post-history__error_item'>
-                <AlertOutlineIcon size={67}/>
+                <img
+                    className='edit-post-history__icon'
+                    alt=''
+                    src={alertIcon}
+                />
                 <p className='edit-post-history__error_heading'>
                     {formatMessage({id: 'post_info.edit.history.retrieveError', defaultMessage: 'Unable to load edit history'})}
                 </p>
