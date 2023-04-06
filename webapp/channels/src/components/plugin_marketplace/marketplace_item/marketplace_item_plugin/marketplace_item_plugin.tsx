@@ -294,7 +294,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
                 >
                     <button
                         onClick={this.onConfigure}
-                        className='btn btn-outline'
+                        className='plugin-configure'
                     >
                         <FormattedMessage
                             id='marketplace_modal.list.configure'
@@ -325,7 +325,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         return (
             <button
                 onClick={this.onInstall}
-                className='btn btn-primary'
+                className='plugin-install always-show-enabled'
                 disabled={this.props.installing}
             >
                 <LoadingWrapper
