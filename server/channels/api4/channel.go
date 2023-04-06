@@ -1885,34 +1885,14 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// TODO: check if the user has permissions to view the channel
 
 	opts := model.GetChannelThreadsOpts{
-		PageSize:    30,
-		Extended:    false,
-		Deleted:     false,
-		Since:       0,
-		Before:      "",
-		After:       "",
-		Unread:      false,
-		TotalsOnly:  false,
-		ThreadsOnly: false,
+		PageSize: 30,
 	}
 
 	queryValues := r.URL.Query()
 
-	if deletedParam := queryValues.Get("deleted"); deletedParam != "" {
-		if deleted, err := strconv.ParseBool(deletedParam); err == nil {
-			opts.Deleted = deleted
-		}
-	}
-	if totalsOnlyParam := queryValues.Get("totals_only"); totalsOnlyParam != "" {
-		if totalsOnly, err := strconv.ParseBool(totalsOnlyParam); err == nil {
-			opts.TotalsOnly = totalsOnly
-		}
-	}
-	if threadsOnlyParam := queryValues.Get("threads_only"); threadsOnlyParam != "" {
-		if threadsOnly, err := strconv.ParseBool(threadsOnlyParam); err == nil {
-			opts.ThreadsOnly = threadsOnly
-		}
-	}
+	opts.Deleted, _ = strconv.ParseBool(queryValues.Get("deleted"))
+	opts.TotalsOnly, _ = strconv.ParseBool(queryValues.Get("totalsOnly"))
+	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get("threadsOnly"))
 
 	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, opts)
 	if appErr != nil {
