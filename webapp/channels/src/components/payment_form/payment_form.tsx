@@ -124,7 +124,13 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
 
         const {onInputChange} = this.props;
         if (onInputChange) {
-            onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, this.cardRef.current?.getCard()!));
+            const card = this.cardRef.current?.getCard();
+            if (!card) {
+                // eslint-disable-next-line no-console
+                console.error('expected to have card object');
+                return;
+            }
+            onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, card));
         }
     }
 
@@ -141,7 +147,13 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         this.setState(newStateValue);
 
         if (this.props.onInputChange) {
-            this.props.onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, this.cardRef.current?.getCard()!));
+            const card = this.cardRef.current?.getCard();
+            if (!card) {
+                // eslint-disable-next-line no-console
+                console.error('expected to have card object');
+                return;
+            }
+            this.props.onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, card));
         }
     }
 
@@ -152,14 +164,26 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         this.setState(newStateValue);
 
         if (this.props.onInputChange) {
-            this.props.onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, this.cardRef.current?.getCard()!));
+            const card = this.cardRef.current?.getCard();
+            if (!card) {
+                // eslint-disable-next-line no-console
+                console.error('expected to have card object');
+                return;
+            }
+            this.props.onInputChange(stateToBillingDetails({...this.state, ...newStateValue}, card));
         }
     }
 
     private onBlur = () => {
         const {onInputBlur} = this.props;
         if (onInputBlur) {
-            onInputBlur(stateToBillingDetails(this.state, this.cardRef.current?.getCard()!));
+            const card = this.cardRef.current?.getCard();
+            if (!card) {
+                // eslint-disable-next-line no-console
+                console.error('expected to have card object');
+                return;
+            }
+            onInputBlur(stateToBillingDetails(this.state, card));
         }
     }
 

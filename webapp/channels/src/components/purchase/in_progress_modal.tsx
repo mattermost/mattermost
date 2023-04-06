@@ -13,25 +13,34 @@ import {Client4} from 'mattermost-redux/client';
 
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import {useControlPurchaseInProgressModal} from 'components/common/hooks/useControlModal';
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
+import {STORAGE_KEY_RENEWAL_IN_PROGRESS, STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
 
 import './in_progress_modal.scss';
 import {GlobalState} from '@mattermost/types/store';
 
 interface Props {
     purchaserEmail: string;
+    isRenewal?: boolean;
 }
 
 export default function PurchaseInProgressModal(props: Props) {
     const {close} = useControlPurchaseInProgressModal();
     const currentUser = useSelector(getCurrentUser);
     const purchaserUser = useSelector((state: GlobalState) => getUserByEmail(state, props.purchaserEmail));
-    const header = (
+    let header = (
         <FormattedMessage
             id='self_hosted_signup.purchase_in_progress.title'
             defaultMessage='Purchase in progress'
         />
     );
+    if (props.isRenewal) {
+        header = (
+            <FormattedMessage
+                id='self_hosted_renewal.renewal_in_progress.title'
+                defaultMessage='Renewal in progress'
+            />
+        );
+    }
 
     const sameUserAlreadyPurchasing = props.purchaserEmail === currentUser.email;
     let username = '@' + purchaserUser.username;
@@ -64,7 +73,7 @@ export default function PurchaseInProgressModal(props: Props) {
         );
 
         genericModalProps.handleConfirm = () => {
-            localStorage.removeItem(STORAGE_KEY_PURCHASE_IN_PROGRESS);
+            localStorage.removeItem(props.isRenewal ? STORAGE_KEY_RENEWAL_IN_PROGRESS : STORAGE_KEY_PURCHASE_IN_PROGRESS);
             Client4.bootstrapSelfHostedSignup(true);
             close();
         };

@@ -53,6 +53,7 @@ export default function useControlSelfHostedRenewalModal(options: HookOptions) {
                         dialogType: PurchaseInProgressModal,
                         dialogProps: {
                             purchaserEmail: currentUser.email,
+                            isRenewal: true,
                         },
                     }));
                     return;

@@ -8,18 +8,20 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import classNames from 'classnames';
 import {StripeCardElementChangeEvent} from '@stripe/stripe-js';
 
+import {ValueOf} from '@mattermost/types/utilities';
+import {Address} from '@mattermost/types/cloud';
+import {SelfHostedRenewalProgress} from '@mattermost/types/hosted_customer';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAdminAnalytics} from 'mattermost-redux/selectors/entities/admin';
-import {getSelfHostedProducts, getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getSelfHostedRenewalProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
 import {Client4} from 'mattermost-redux/client';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent, pageVisited} from 'actions/telemetry_actions';
-import {confirmSelfHostedSignup} from 'actions/hosted_customer';
+import {confirmSelfHostedRenewal} from 'actions/hosted_customer';
 
 import {GlobalState} from 'types/store';
 import {isAddressValid} from 'types/cloud/sku';
@@ -36,39 +38,30 @@ import {
 import CardInput, {CardInputType} from 'components/payment_form/card_input';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
-
 import Input from 'components/widgets/inputs/input/input';
-
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 import RootPortal from 'components/root_portal';
 import useLoadStripe from 'components/common/hooks/useLoadStripe';
+import useGetSelfHostedProducts from 'components/common/hooks/useGetSelfHostedProducts';
 import useControlSelfHostedRenewalModal from 'components/common/hooks/useControlSelfHostedRenewalModal';
 import useFetchStandardAnalytics from 'components/common/hooks/useFetchStandardAnalytics';
 import ChooseDifferentShipping from 'components/choose_different_shipping';
+import StripeProvider from 'components/stripe_provider';
 
-import {ValueOf} from '@mattermost/types/utilities';
-import {Address} from '@mattermost/types/cloud';
-import {UserProfile} from '@mattermost/types/users';
-import {
-    SelfHostedSignupProgress,
-    SelfHostedSignupCustomerResponse,
-} from '@mattermost/types/hosted_customer';
-
-import {Seats, errorInvalidNumber} from '../seats_calculator';
+import {MIN_PURCHASE_SEATS, validateSeats, Seats, errorInvalidNumber} from '../seats_calculator';
 
 import ContactSalesLink from './contact_sales_link';
-import Submitting, {convertProgressToBar} from './submitting';
+import Submitting, {convertRenewalProgressToBar} from './submitting';
 import ErrorPage from './error';
 import SuccessPage from './success_page';
 import SelfHostedCard from './self_hosted_card';
-import StripeProvider from 'components/stripe_provider';
 import Terms from './terms';
 import AddressComponent, {useAddressReducer} from './address';
 import useNoEscape from './useNoEscape';
 
 import {SetPrefix, UnionSetActions} from './types';
 
-import 'components/self_hosted_purchase_modal/self_hosted_purchase_modal.scss';
+import './self_hosted_purchase_modal.scss';
 
 import {STORAGE_KEY_RENEWAL_IN_PROGRESS} from './constants';
 
@@ -173,8 +166,8 @@ function reducer(state: State, action: Action): State {
     }
     switch (action.type) {
     case 'update_progress_bar_fake': {
-        const firstLongStep = SelfHostedSignupProgress.CONFIRMED_INTENT;
-        if (state.progressBar >= convertProgressToBar(firstLongStep) && state.progressBar <= maxFakeProgress - maxFakeProgressIncrement) {
+        const firstLongStep = SelfHostedRenewalProgress.CONFIRMED_INTENT;
+        if (state.progressBar >= convertRenewalProgressToBar(firstLongStep) && state.progressBar <= maxFakeProgress - maxFakeProgressIncrement) {
             return {...state, progressBar: state.progressBar + maxFakeProgressIncrement};
         }
         return state;
@@ -201,7 +194,7 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-export function canSubmit(state: State, billingAddress: Address, shippingAddress: Address, progress: ValueOf<typeof SelfHostedSignupProgress>) {
+export function canSubmit(state: State, billingAddress: Address, shippingAddress: Address, progress: ValueOf<typeof SelfHostedRenewalProgress>) {
     if (state.submitting) {
         return false;
     }
@@ -216,20 +209,20 @@ export function canSubmit(state: State, billingAddress: Address, shippingAddress
     );
     const validSeats = !state.seats.error;
     switch (progress) {
-    case SelfHostedSignupProgress.PAID:
-    case SelfHostedSignupProgress.CREATED_LICENSE:
-    case SelfHostedSignupProgress.CREATED_SUBSCRIPTION:
+    case SelfHostedRenewalProgress.PAID:
+    case SelfHostedRenewalProgress.CREATED_LICENSE:
+    case SelfHostedRenewalProgress.CREATED_SUBSCRIPTION:
         return true;
-    case SelfHostedSignupProgress.CONFIRMED_INTENT: {
+    case SelfHostedRenewalProgress.CONFIRMED_INTENT: {
         return Boolean(
             validAddress &&
             validSeats &&
             state.agreedTerms,
         );
     }
-    case SelfHostedSignupProgress.START:
-    case SelfHostedSignupProgress.CREATED_CUSTOMER:
-    case SelfHostedSignupProgress.CREATED_INTENT:
+    case SelfHostedRenewalProgress.START:
+    case SelfHostedRenewalProgress.CREATED_CUSTOMER:
+    case SelfHostedRenewalProgress.CREATED_INTENT:
         return Boolean(
             validCard &&
             validAddress &&
@@ -252,27 +245,16 @@ interface FakeProgress {
     intervalId?: NodeJS.Timeout;
 }
 
-function inferNames(user: UserProfile, cardName: string): [string, string] {
-    if (user.first_name) {
-        return [user.first_name, user.last_name];
-    }
-    const names = cardName.split(' ');
-    if (cardName.length === 2) {
-        return [names[0], names[1]];
-    }
-    return [names[0], names.slice(1).join(' ')];
-}
-
 export default function SelfHostedPurchaseModal(props: Props) {
     useFetchStandardAnalytics();
     useNoEscape();
     const controlModal = useControlSelfHostedRenewalModal({});
-    const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.SELF_HOSTED_PURCHASE));
-    const progress = useSelector(getSelfHostedSignupProgress);
-    const user = useSelector(getCurrentUser);
+    const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.SELF_HOSTED_RENEWAL));
+    const progress = useSelector(getSelfHostedRenewalProgress);
     const theme = useSelector(getTheme);
     const analytics = useSelector(getAdminAnalytics) || {};
-    const desiredProduct = useSelector(getSelfHostedProducts)[props.productId];
+    const [products, productsLoaded] = useGetSelfHostedProducts();
+    const desiredProduct = products[props.productId];
     const desiredProductName = desiredProduct?.name || '';
     const desiredPlanName = getPlanNameFromProductName(desiredProductName);
     const currentUsers = analytics[StatTypes.TOTAL_USERS] as number;
@@ -295,17 +277,18 @@ export default function SelfHostedPurchaseModal(props: Props) {
     const [stripeLoadHint, setStripeLoadHint] = useState(Math.random());
 
     const stripeRef = useLoadStripe(stripeLoadHint);
-    const showForm = progress !== SelfHostedSignupProgress.PAID && progress !== SelfHostedSignupProgress.CREATED_LICENSE && !state.submitting && !state.error && !state.succeeded;
+    const showForm = progress !== SelfHostedRenewalProgress.PAID && progress !== SelfHostedRenewalProgress.CREATED_LICENSE && !state.submitting && !state.error && !state.succeeded;
 
     useEffect(() => {
+        if (!desiredProduct?.price_per_seat) {
+            return;
+        }
         if (typeof currentUsers === 'number' && (currentUsers > parseInt(state.seats.quantity, 10) || !parseInt(state.seats.quantity, 10))) {
             dispatch({type: 'set_seats',
-                data: {
-                    quantity: currentUsers.toString(),
-                    error: null,
-                }});
+                data: validateSeats(Math.max(currentUsers, MIN_PURCHASE_SEATS).toString(), desiredProduct.price_per_seat * 12, currentUsers, false),
+            });
         }
-    }, [currentUsers]);
+    }, [currentUsers, desiredProduct?.price_per_seat]);
     useEffect(() => {
         pageVisited(
             TELEMETRY_CATEGORIES.SELF_HOSTED_RENEWAL,
@@ -319,7 +302,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
     }, []);
 
     useEffect(() => {
-        const progressBar = convertProgressToBar(progress);
+        const progressBar = convertRenewalProgressToBar(progress);
         if (progressBar > state.progressBar) {
             dispatch({type: 'set_progressBar', data: progressBar});
         }
@@ -345,35 +328,34 @@ export default function SelfHostedPurchaseModal(props: Props) {
         dispatch({type: 'set_cardFilled', data: event.complete});
     };
 
+    if (!productsLoaded) {
+        return null;
+    }
+
     async function submit() {
         let submitProgress = progress;
         dispatch({type: 'set_submitting', data: true});
-        let signupCustomerResult: SelfHostedSignupCustomerResponse | null = null;
+        let renewCustomerResult;
         try {
-            const [firstName, lastName] = inferNames(user, state.cardName);
-
-            signupCustomerResult = await Client4.createCustomerSelfHostedSignup({
-                first_name: firstName,
-                last_name: lastName,
+            renewCustomerResult = await Client4.renewCustomerSelfHostedSignup({
                 billing_address: billingAddressReducer.address,
                 shipping_address: state.shippingSame ? billingAddressReducer.address : shippingAddressReducer.address,
-                organization: state.organization,
             });
         } catch {
             dispatch({type: 'set_error', data: 'Failed to submit payment information'});
             return;
         }
-
-        if (signupCustomerResult === null || !signupCustomerResult.progress) {
+        if (!renewCustomerResult || !renewCustomerResult.progress) {
             dispatch({type: 'set_error', data: 'Failed to submit payment information'});
             return;
         }
-        if (progress === SelfHostedSignupProgress.START || progress === SelfHostedSignupProgress.CREATED_CUSTOMER) {
+
+        if (progress === SelfHostedRenewalProgress.START || progress === SelfHostedRenewalProgress.CREATED_CUSTOMER) {
             reduxDispatch({
-                type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
-                data: signupCustomerResult.progress,
+                type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS,
+                data: renewCustomerResult.progress,
             });
-            submitProgress = signupCustomerResult.progress;
+            submitProgress = renewCustomerResult.progress;
         }
         if (stripeRef.current === null) {
             setStripeLoadHint(Math.random());
@@ -389,36 +371,29 @@ export default function SelfHostedPurchaseModal(props: Props) {
                 dispatch({type: 'set_error', data: message});
                 return;
             }
-            const finished = await reduxDispatch(confirmSelfHostedSignup(
-                stripeRef.current,
+            const finished = await reduxDispatch(confirmSelfHostedRenewal(
+                stripeRef.current!,
                 {
-                    id: signupCustomerResult.setup_intent_id,
-                    client_secret: signupCustomerResult.setup_intent_secret,
+                    id: renewCustomerResult.setup_intent_id,
+                    client_secret: renewCustomerResult.setup_intent_secret,
                 },
                 isDevMode,
-                {
-                    address: billingAddressReducer.address,
-                    name: state.cardName,
-                    card,
-                },
+                billingAddressReducer.address,
+                state.cardName,
+                card!,
                 submitProgress,
-                {
-                    product_id: props.productId,
-                    add_ons: [],
-                    seats: parseInt(state.seats.quantity, 10),
-                },
             ));
             if (finished.data) {
                 trackEvent(
-                    TELEMETRY_CATEGORIES.SELF_HOSTED_PURCHASING,
+                    TELEMETRY_CATEGORIES.SELF_HOSTED_RENEWAL,
                     'purchase_success',
                     {seats: parseInt(finished.data?.Users, 10) || 0, users: currentUsers},
                 );
                 dispatch({type: 'succeeded'});
 
                 reduxDispatch({
-                    type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
-                    data: SelfHostedSignupProgress.CREATED_LICENSE,
+                    type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS,
+                    data: SelfHostedRenewalProgress.CREATED_LICENSE,
                 });
 
                 // Reload license in background.
@@ -454,7 +429,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
             Client4.bootstrapSelfHostedSignup(true).
                 then((data) => {
                     reduxDispatch({
-                        type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
+                        type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_RENEWAL_PROGRESS,
                         data: data.progress,
                     });
                 });
@@ -463,7 +438,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
         }
     };
     const errorAction = () => {
-        if (canRetry && (progress === SelfHostedSignupProgress.CREATED_SUBSCRIPTION || progress === SelfHostedSignupProgress.PAID || progress === SelfHostedSignupProgress.CREATED_LICENSE)) {
+        if (canRetry && (progress === SelfHostedRenewalProgress.CREATED_SUBSCRIPTION || progress === SelfHostedRenewalProgress.PAID || progress === SelfHostedRenewalProgress.CREATED_LICENSE)) {
             submit();
             dispatch({type: 'clear_error'});
             return;
@@ -488,7 +463,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
                     ariaLabelledBy='self_hosted_purchase_modal_title'
                     onClose={() => {
                         trackEvent(
-                            TELEMETRY_CATEGORIES.SELF_HOSTED_PURCHASING,
+                            TELEMETRY_CATEGORIES.SELF_HOSTED_RENEWAL,
                             'click_close_purchasing_screen',
                         );
                         resetToken();
@@ -610,10 +585,11 @@ export default function SelfHostedPurchaseModal(props: Props) {
                                 />
                             </div>
                         </div>}
-                        {((state.succeeded || progress === SelfHostedSignupProgress.CREATED_LICENSE) && hasLicense) && !state.error && !state.submitting && (
+                        {((state.succeeded || progress === SelfHostedRenewalProgress.CREATED_LICENSE) && hasLicense) && !state.error && !state.submitting && (
                             <SuccessPage
                                 onClose={controlModal.close}
                                 planName={desiredPlanName}
+                                isRenewal={true}
                             />
                         )}
                         {state.submitting && (
@@ -638,71 +614,3 @@ export default function SelfHostedPurchaseModal(props: Props) {
         </StripeProvider>
     );
 }
-
-// // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// // See LICENSE.txt for license information.
-
-// import React, {useEffect, useRef, useReducer, useState} from 'react';
-// import {useSelector, useDispatch} from 'react-redux';
-
-// import {StripeCardElementChangeEvent} from '@stripe/stripe-js';
-
-// import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-// import {DispatchFunc} from 'mattermost-redux/types/actions';
-// import {Client4} from 'mattermost-redux/client';
-// import {confirmSelfHostedRenewal} from 'actions/hosted_customer';
-
-// import StripeProvider from 'components/self_hosted_purchase_modal/stripe_provider';
-// import useLoadStripe from 'components/common/hooks/useLoadStripe';
-// import CardInput, {CardInputType} from 'components/payment_form/card_input';
-
-// interface Props {
-//     productId: string;
-// }
-
-// export default function SelfHostedRenewalModal(props: Props) {
-//     const [stripeLoadHint, setStripeLoadHint] = useState(Math.random());
-
-//     const handleCardInputChange = (event: StripeCardElementChangeEvent) => {
-//     };
-//     const cardRef = useRef<CardInputType | null>(null);
-//     const theme = useSelector(getTheme);
-//     const stripeRef = useLoadStripe(stripeLoadHint);
-//     const reduxDispatch = useDispatch<DispatchFunc>();
-//   async function renew() {
-//         const billingAddress ={
-//                     city: 'state.city',
-//                     country: 'state.country',
-//                     line1: 'state.address',
-//                     line2: 'state.address2',
-//                     postal_code: 'state.postalCode',
-//                     state: 'state.state',
-//                 };
-//             const signupCustomerResult = await Client4.renewCustomerSelfHostedSignup({
-//                 billing_address: billingAddress,
-//                 shipping_address: {
-//                     city: 'state.city',
-//                     country: 'state.country',
-//                     line1: 'state.address',
-//                     line2: 'state.address2',
-//                     postal_code: 'state.postalCode',
-//                     state: 'state.state',
-//                 },
-//             });
-
-//             const card = cardRef.current?.getCard();
-//         reduxDispatch(confirmSelfHostedRenewal(stripeRef.current!, {id: signupCustomerResult.setup_intent_id, client_secret: signupCustomerResult.setup_intent_secret}, false, billingAddress, 'my card name', card!, 'START'));
-//         }
-//   return (<StripeProvider
-//             stripeRef={stripeRef}
-//         >
-//                                         <CardInput
-//                                             forwardedRef={cardRef}
-//                                             required={true}
-//                                             onCardInputChange={handleCardInputChange}
-//                                             theme={theme}
-//                                         />
-//   <button onClick={renew}>'do it'</button >
-//   </StripeProvider>
-// )
-// }

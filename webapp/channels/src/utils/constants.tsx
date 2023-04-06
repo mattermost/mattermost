@@ -2005,6 +2005,7 @@ export const ConsolePages = {
     WEB_SERVER: '/admin_console/environment/web_server',
     PUSH_NOTIFICATION_CENTER: '/admin_console/environment/push_notification_server',
     SMTP: '/admin_console/environment/smtp',
+    BILLING_HISTORY: '/admin_console/billing/billing-history',
 };
 
 export const WindowSizes = {

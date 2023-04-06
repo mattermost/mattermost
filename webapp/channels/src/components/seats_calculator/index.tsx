@@ -42,7 +42,19 @@ export const errorInvalidNumber = (
     />
 );
 
-function validateSeats(seats: string, annualPricePerSeat: number, minSeats: number, cloud: boolean): Seats {
+export const MIN_PURCHASE_SEATS = 10;
+
+export const errorMinPurchase = (
+    <FormattedMessage
+        id='self_hosted_signup.error_min_purchase'
+        defaultMessage='Must purchase at least {seats} seats'
+        values={{
+            seats: MIN_PURCHASE_SEATS,
+        }}
+    />
+);
+
+export function validateSeats(seats: string, annualPricePerSeat: number, minSeats: number, cloud: boolean): Seats {
     if (seats === '') {
         return {
             quantity: '',
@@ -100,6 +112,13 @@ function validateSeats(seats: string, annualPricePerSeat: number, minSeats: numb
         return {
             quantity: seats,
             error: tooFewUsersErrorMessage,
+        };
+    }
+
+    if (seatsNumber < MIN_PURCHASE_SEATS) {
+        return {
+            quantity: seats,
+            error: errorMinPurchase,
         };
     }
 

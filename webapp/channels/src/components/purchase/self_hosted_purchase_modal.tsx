@@ -55,7 +55,7 @@ import {
     SelfHostedSignupCustomerResponse,
 } from '@mattermost/types/hosted_customer';
 
-import {Seats, errorInvalidNumber} from '../seats_calculator';
+import {Seats, validateSeats, errorInvalidNumber} from '../seats_calculator';
 
 import ContactSalesLink from './contact_sales_link';
 import Submitting, {convertProgressToBar} from './submitting';
@@ -297,10 +297,8 @@ export default function SelfHostedPurchaseModal(props: Props) {
     useEffect(() => {
         if (typeof currentUsers === 'number' && (currentUsers > parseInt(state.seats.quantity, 10) || !parseInt(state.seats.quantity, 10))) {
             dispatch({type: 'set_seats',
-                data: {
-                    quantity: currentUsers.toString(),
-                    error: null,
-                }});
+                data: validateSeats(currentUsers.toString(), desiredProduct.price_per_seat * 12, currentUsers, false),
+            });
         }
     }, [currentUsers]);
     useEffect(() => {

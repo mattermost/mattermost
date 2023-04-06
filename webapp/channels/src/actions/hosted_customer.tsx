@@ -32,6 +32,14 @@ function selfHostedNeedsConfirmation(progress: ValueOf<typeof SelfHostedSignupPr
 const STRIPE_UNEXPECTED_STATE = 'setup_intent_unexpected_state';
 const STRIPE_ALREADY_SUCCEEDED = 'You cannot update this SetupIntent because it has already succeeded.';
 
+function adaptAddressForCountry(addressWithFullCountry: Address): Address {
+    const {country, ...rest} = addressWithFullCountry;
+    return {
+        ...rest,
+        country: getCode(country)!,
+    };
+}
+
 export function confirmSelfHostedSignup(
     stripe: Stripe,
     stripeSetupIntent: StripeSetupIntent,
@@ -53,7 +61,7 @@ export function confirmSelfHostedSignup(
                         card: billingDetails.card,
                         billing_details: {
                             name: billingDetails.name,
-                            address: billingDetails.address,
+                            address: adaptAddressForCountry(billingDetails.address),
                         },
                     },
                 },

@@ -32,7 +32,7 @@ letter-spacing: 0.02em;
 color: var(--button-color);
 `;
 
-let openPricingModal: (props: OpenPricingProps) => void;
+let openPricingModal: (props?: OpenPricingProps) => void;
 
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();

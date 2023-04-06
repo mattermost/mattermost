@@ -22,7 +22,7 @@ export default function useOpenPricingModal() {
     const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
     let category;
-    return (props: OpenPricingProps) => {
+    return (props?: OpenPricingProps) => {
         if (isCloud) {
             category = TELEMETRY_CATEGORIES.CLOUD_PRICING;
         } else {
@@ -36,7 +36,7 @@ export default function useOpenPricingModal() {
             dialogType: PricingModal,
             dialogProps: {
                 callerCTA: props?.trackingLocation,
-                isRenewal: props.isRenewal,
+                isRenewal: props?.isRenewal,
             },
         }));
     };
