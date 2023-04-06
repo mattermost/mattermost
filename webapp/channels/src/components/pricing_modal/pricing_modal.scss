@@ -132,9 +132,13 @@
             position: relative;
             width: 280px;
 
+            .image {
+                margin-top: 8px;
+            }
+
             .description {
                 border-bottom: 1px solid rgba(var(--center-channel-color-rgb) 0.16);
-                text-align: center;
+                text-align: left;
 
                 .title {
                     margin-top: 24px;
@@ -247,6 +251,7 @@
                             font-weight: 700;
                             line-height: 31px;
                             text-align: center;
+                            margin-top: 32px;
                         }
 
                         h1 {
@@ -276,6 +281,11 @@
                         height: 49px;
                         margin-top: 16px;
                         text-align: center;
+                    }
+
+                    .contact_sales_cta__reduced {
+                        margin-top: 0;
+                        height: 32px;
                     }
 
                     .plan_limits_cta {
@@ -414,6 +424,11 @@
                         margin-left: 20px;
                     }
                 }
+            }
+
+            .bottom__round {
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 8px;
             }
         }
     }

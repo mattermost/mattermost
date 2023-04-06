@@ -103,7 +103,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
-	f.DeprecateCloudFree = true
+	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true

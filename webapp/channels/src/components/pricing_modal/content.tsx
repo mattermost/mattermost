@@ -224,7 +224,7 @@ function Content(props: ContentProps) {
                 action: () => openPurchaseModal('click_pricing_modal_professional_card_upgrade_button'),
                 text: adminProfessionalTierText,
                 disabled: isProfessionalAnnual || (isEnterprise && !isEnterpriseTrial),
-                customClass: isPostTrial ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
+                customClass: (cloudFreeDeprecated || isPostTrial) ? ButtonCustomiserClasses.special : ButtonCustomiserClasses.active,
             };
         }
 
@@ -358,6 +358,8 @@ function Content(props: ContentProps) {
                             planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                             price='$0'
                             rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
+                            isCloud={true}
+                            cloudFreeDeprecated={cloudFreeDeprecated}
                             planLabel={
                                 isStarter ? (
                                     <PlanLabel
@@ -419,16 +421,22 @@ function Content(props: ContentProps) {
                         id='professional'
                         topColor='var(--denim-button-bg)'
                         plan='Professional'
-                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions for growing teams'})}
+                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
+                            br: <br/>,
+                        })}
                         price={`$${professionalPrice}`}
                         rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                             br: <br/>,
                             b: (chunks: React.ReactNode | React.ReactNodeArray) => (
                                 <span style={{fontSize: '14px'}}>
-                                    <b>{chunks}</b>
+                                    {
+                                        cloudFreeDeprecated ? chunks : (<b>{chunks}</b>)
+                                    }
                                 </span>
                             ),
                         })}
+                        isCloud={true}
+                        cloudFreeDeprecated={cloudFreeDeprecated}
                         planLabel={isProfessional ? (
                             <PlanLabel
                                 text={professionalPlanLabelText()}
@@ -438,7 +446,7 @@ function Content(props: ContentProps) {
                             />) : undefined}
                         buttonDetails={professionalBtnDetails()}
                         briefing={{
-                            title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
+                            title: cloudFreeDeprecated ? formatMessage({id: 'pricing_modal.briefing.title_no_limit', defaultMessage: 'No limits on your team’s usage'}) : formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
                             items: [
                                 formatMessage({id: 'pricing_modal.briefing.professional.messageBoardsIntegrationsCalls', defaultMessage: 'Unlimited access to messages and files'}),
                                 formatMessage({id: 'pricing_modal.briefing.professional.unLimitedTeams', defaultMessage: 'Unlimited teams'}),
@@ -467,6 +475,8 @@ function Content(props: ContentProps) {
                         topColor='#E07315'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
+                        isCloud={true}
+                        cloudFreeDeprecated={cloudFreeDeprecated}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel
@@ -481,7 +491,7 @@ function Content(props: ContentProps) {
                         planTrialDisclaimer={(!isPostTrial && isAdmin) ? <StartTrialCaution/> : undefined}
                         contactSalesCTA={(isPostTrial || !isAdmin || cloudFreeDeprecated) ? undefined : <ContactSalesCTA/>}
                         briefing={{
-                            title: formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
+                            title: cloudFreeDeprecated ? formatMessage({id: 'pricing_modal.briefing.title_large_scale', defaultMessage: 'Large scale collaboration'}) : formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
                             items: [
                                 formatMessage({id: 'pricing_modal.briefing.enterprise.groupSync', defaultMessage: 'AD/LDAP group sync'}),
                                 formatMessage({id: 'pricing_modal.briefing.enterprise.rolesAndPermissions', defaultMessage: 'Advanced roles and permissions'}),

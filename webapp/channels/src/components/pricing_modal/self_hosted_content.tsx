@@ -186,6 +186,8 @@ function SelfHostedContent(props: ContentProps) {
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                         price='$0'
                         rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isStarter ? (
                                 <PlanLabel
@@ -219,6 +221,8 @@ function SelfHostedContent(props: ContentProps) {
                                 </span>
                             ),
                         })}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isProfessional ? (
                                 <PlanLabel
@@ -277,6 +281,8 @@ function SelfHostedContent(props: ContentProps) {
                         topColor='#E07315'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel

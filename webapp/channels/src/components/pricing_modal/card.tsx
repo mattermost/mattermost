@@ -4,10 +4,7 @@
 import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
-import {useSelector} from 'react-redux';
-
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import classNames from 'classnames';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
@@ -48,7 +45,7 @@ type CardProps = {
     topColor: string;
     planLabel?: JSX.Element;
     plan: string;
-    planSummary?: string;
+    planSummary?: ReactNode;
     price?: string;
     rate?: ReactNode;
     planExtraInformation?: JSX.Element;
@@ -58,6 +55,8 @@ type CardProps = {
     briefing: PlanBriefing;
     planAddonsInfo?: PlanAddonsInfo;
     planTrialDisclaimer?: JSX.Element;
+    isCloud: boolean;
+    cloudFreeDeprecated: boolean;
 }
 
 type StyledProps = {
@@ -74,7 +73,7 @@ export function BlankCard() {
 
     return (
         <div className='BlankCard'>
-            <div>
+            <div className='image'>
                 <BlankCardImage/>
             </div>
 
@@ -103,7 +102,7 @@ export function BlankCard() {
                 <span className='learn'>
                     <ExternalLink
                         location='cloud_pricing_modal'
-                        href={HostedCustomerLinks.SELF_HOSTED_BILLING}
+                        href={HostedCustomerLinks.DOWNLOAD}
                     >
                         {formatMessage({id: 'pricing_modal.learn_more', defaultMessage: 'Learn more'})}
                     </ExternalLink>
@@ -115,9 +114,13 @@ export function BlankCard() {
 
 function Card(props: CardProps) {
     const {formatMessage} = useIntl();
+    const bottomClassName = classNames('bottom', {
+        bottom__round: props.cloudFreeDeprecated && props.isCloud,
+    });
 
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
-    const isCloud = useSelector(isCurrentLicenseCloud);
+    const contactSalesCTAClassName = classNames('contact_sales_cta', {
+        contact_sales_cta__reduced: props.cloudFreeDeprecated && props.isCloud,
+    });
 
     return (
         <div
@@ -125,20 +128,14 @@ function Card(props: CardProps) {
             className='PlanCard'
         >
             {props.planLabel}
-            {(!cloudFreeDeprecated || !isCloud) && (
+            {(!props.cloudFreeDeprecated || !props.isCloud) && (
                 <StyledDiv
                     className='top'
                     bgColor={props.topColor}
                 />
             )}
 
-            <div
-                className='bottom'
-                style={(cloudFreeDeprecated && isCloud) ? {
-                    border: '1px solid rgba(63, 67, 80, 0.16)',
-                    borderRadius: '8px',
-                } : {}}
-            >
+            <div className={bottomClassName}>
                 <div className='bottom_container'>
                     <div className='plan_price_rate_section'>
                         <h3>{props.plan}</h3>
@@ -164,7 +161,7 @@ function Card(props: CardProps) {
                         )}
                     </div>
 
-                    <div className='contact_sales_cta'>
+                    <div className={contactSalesCTAClassName}>
                         {props.contactSalesCTA && (
                             <div>
                                 <p>{formatMessage({id: 'pricing_modal.or', defaultMessage: 'or'})}</p>
@@ -173,7 +170,7 @@ function Card(props: CardProps) {
                     </div>
 
                     <div className='plan_briefing'>
-                        <hr/>
+                        {!props.cloudFreeDeprecated && <hr/>}
                         {props.planTrialDisclaimer}
                         <div className='plan_briefing_content'>
                             <span className='title'>{props.briefing.title}</span>
