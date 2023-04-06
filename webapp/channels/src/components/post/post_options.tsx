@@ -19,6 +19,7 @@ import CommentIcon from 'components/common/comment_icon';
 
 import {Emoji} from '@mattermost/types/emojis';
 import {Post} from '@mattermost/types/posts';
+import classnames from 'classnames';
 
 type Props = {
     post: Post;
@@ -235,7 +236,7 @@ const PostOptions = (props: Props): JSX.Element => {
             <div
                 ref={dotMenuRef}
                 data-testid={`post-menu-${props.post.id}`}
-                className='col post-menu'
+                className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >
                 {!collapsedThreadsEnabled && !showRecentlyUsedReactions && dotMenu}
                 {showRecentReactions}
