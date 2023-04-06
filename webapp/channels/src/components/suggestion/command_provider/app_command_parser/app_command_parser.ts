@@ -1122,7 +1122,7 @@ export class AppCommandParser {
         }
 
         return suggestions.map((suggestion) => this.decorateSuggestionComplete(parsed, suggestion));
-    }
+    };
 
     getNoMatchingSuggestion = () => {
         return [{
