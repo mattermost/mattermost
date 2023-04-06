@@ -7,7 +7,7 @@
   "private": true,
   "engines": {
     "npm": ">=7.0.0",
-    "node": ">=16.10.0"
+    "node": ">=16.4.0"
   },
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
