@@ -48,7 +48,7 @@ const sessionLength = (
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
     options: Options,
 ): ItemModel => {
-    const status = config.ServiceSettings?.SessionLengthWebInDays === 30 ? ItemStatus.OK : ItemStatus.WARNING;
+    const status = config.ServiceSettings?.SessionLengthMobileInHours === 720 ? ItemStatus.WARNING : ItemStatus.OK;
     return {
         id: 'session-length',
         title: formatMessage({
