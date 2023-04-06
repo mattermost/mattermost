@@ -29,6 +29,8 @@ export function fetchAppBindings(channelID: string): ActionFunc {
     };
 }
 
+// test comment don't commit
+
 export function fetchRHSAppsBindings(channelID: string): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
