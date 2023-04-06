@@ -32,9 +32,9 @@ import PriorityBadge from 'components/post_priority/post_priority_badge';
 import {Channel} from '@mattermost/types/channels';
 import {Post, PostPriority} from '@mattermost/types/posts';
 import {UserThread} from '@mattermost/types/threads';
+import {ThreadRouting} from 'components/threading/hooks';
 
 import {THREADING_TIME} from '../../common/options';
-import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
 import Attachment from './attachments';
@@ -45,6 +45,7 @@ export type OwnProps = {
     threadId: UserThread['id'];
     style?: any;
     isFirstThreadInList: boolean;
+    routing: ThreadRouting;
 };
 
 type Props = {
@@ -75,9 +76,10 @@ function ThreadItem({
     threadId,
     isFirstThreadInList,
     isPostPriorityEnabled,
+    routing,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
-    const {select, goToInChannel, currentTeamId} = useThreadRouting();
+    const {select, goToInChannel, currentTeamId} = routing;
     const {formatMessage} = useIntl();
     const isMobileView = useSelector(getIsMobileView);
     const currentUserId = useSelector(getCurrentUserId);

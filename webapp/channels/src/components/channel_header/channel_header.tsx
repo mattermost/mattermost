@@ -47,6 +47,7 @@ import {RhsState} from 'types/store/rhs';
 import {ModalData} from 'types/actions';
 
 import LocalizedIcon from 'components/localized_icon';
+import ThreadsIcon from 'components/threading/global_threads_link/threads_icon';
 
 import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';
@@ -76,6 +77,7 @@ export type Props = {
         favoriteChannel: (channelId: string) => void;
         unfavoriteChannel: (channelId: string) => void;
         showPinnedPosts: (channelId?: string) => void;
+        showThreadsForChannel: (channelId?: string) => void;
         showChannelFiles: (channelId: string) => void;
         closeRightHandSide: () => void;
         getCustomEmojisInText: (text: string) => void;
@@ -187,6 +189,15 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             this.props.actions.closeRightHandSide();
         } else {
             this.props.actions.showPinnedPosts();
+        }
+    };
+
+    showThreadsForChannel = (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (this.props.rhsState === RHSStates.CHANNEL_THREADS) {
+            this.props.actions.closeRightHandSide();
+        } else {
+            this.props.actions.showThreadsForChannel();
         }
     };
 
@@ -477,6 +488,17 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 className='icon icon-pin-outline channel-header__pin'
             />
         );
+        const threadsIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left', {
+            'channel-header__icon--active': rhsState === RHSStates.CHANNEL_THREADS,
+        });
+
+        const threadsIcon = (
+            <ThreadsIcon
+                width={16}
+                height={16}
+                className='icon channel-header__threads'
+            />
+        );
 
         let memberListButton = null;
         if (!isDirect) {
@@ -578,6 +600,14 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             tooltipKey={'channelFiles'}
                         />
                     }
+                    <HeaderIconWrapper
+                        iconComponent={threadsIcon}
+                        ariaLabel={true}
+                        buttonClass={threadsIconClass}
+                        buttonId={'channelThreads'}
+                        onClick={this.showThreadsForChannel}
+                        tooltipKey={'channelThreads'}
+                    />
                     {hasGuestsText}
                     <div
                         className='header-popover-text-measurer'
@@ -688,6 +718,14 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             tooltipKey={'channelFiles'}
                         />
                     }
+                    <HeaderIconWrapper
+                        iconComponent={threadsIcon}
+                        ariaLabel={true}
+                        buttonClass={threadsIconClass}
+                        buttonId={'channelThreads'}
+                        onClick={this.showThreadsForChannel}
+                        tooltipKey={'channelThreads'}
+                    />
                     {hasGuestsText}
                     {editMessage}
                 </div>

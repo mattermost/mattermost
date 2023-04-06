@@ -2114,6 +2114,38 @@ export default class Client4 {
         );
     };
 
+    getThreadsForChannel = (
+        channelId: string,
+        {
+            before = '',
+            after = '',
+            perPage = PER_PAGE_DEFAULT,
+            extended = false,
+            deleted = false,
+            since = 0,
+            totalsOnly = false,
+            threadsOnly = false,
+        },
+    ) => {
+        const url = `${this.getChannelRoute(channelId)}/threads`;
+        const options = {
+            before,
+            after,
+            perPage,
+            extended,
+            deleted,
+            since,
+            totalsOnly,
+            threadsOnly,
+        };
+
+        return this.doFetch<UserThreadList>(
+            `${url}${buildQueryString(options)}`,
+            {method: 'get'},
+        );
+    };
+
+
     getFileInfosForPost = (postId: string) => {
         return this.doFetch<FileInfo[]>(
             `${this.getPostRoute(postId)}/files/info`,

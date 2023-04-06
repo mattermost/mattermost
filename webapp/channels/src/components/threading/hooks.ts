@@ -5,11 +5,24 @@ import {useMemo, useCallback} from 'react';
 import {useParams, useHistory} from 'react-router-dom';
 import {useSelector, shallowEqual} from 'react-redux';
 
-import {UserThread} from '@mattermost/types/threads';
-import {Team} from '@mattermost/types/teams';
-
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
+import type {History} from 'history';
+
+import type {UserThread} from '@mattermost/types/threads';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+export type ThreadRouting = {
+    currentTeamId: Team['id'];
+    currentUserId?: UserProfile['id'];
+    history?: History;
+
+    clear?: () => void;
+    goToInChannel: (id: UserThread['id'], teamName?: Team['name']) => void;
+    select: (threadId?: UserThread['id']) => void;
+}
 
 /**
  * GlobalThreads-specific hook for nav/routing, selection, and common data needed for actions.

@@ -62,6 +62,12 @@ const HeaderIconWrapper = (props: Props) => {
             messageID: t('channel_header.pinnedPosts'),
             message: 'Pinned posts',
         },
+        channelThreads: {
+            class: 'channel-threads',
+            id: 'channelThreads',
+            messageID: t('channel_header.channelThreads'),
+            message: 'Recent threads',
+        },
         recentMentions: {
             class: '',
             id: 'recentMentionsTooltip',

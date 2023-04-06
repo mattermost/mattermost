@@ -4,6 +4,8 @@
 import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
 
+import type {ThreadRouting} from 'components/threading/hooks';
+
 import VirtualizedThreadList from './virtualized_thread_list';
 
 describe('components/threading/global_threads/thread_list/virtualized_thread_list', () => {
@@ -20,6 +22,7 @@ describe('components/threading/global_threads/thread_list/virtualized_thread_lis
             total: 3,
             isLoading: false,
             addNoMoreResultsItem: false,
+            routing: {} as ThreadRouting,
         };
     });
 

@@ -53,6 +53,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
         case RHSStates.MENTION:
         case RHSStates.FLAG:
         case RHSStates.PIN:
+        case RHSStates.CHANNEL_THREADS:
             this.props.goBack();
             break;
         default:
@@ -117,6 +118,16 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                     <FormattedMessage
                         id='rhs_header.backToPinnedTooltip'
                         defaultMessage='Back to pinned posts'
+                    />
+                </Tooltip>
+            );
+            break;
+        case RHSStates.CHANNEL_THREADS:
+            backToResultsTooltip = (
+                <Tooltip id='backToResultsTooltip'>
+                    <FormattedMessage
+                        id='rhs_header.backToAllThreads'
+                        defaultMessage='Back to all threads'
                     />
                 </Tooltip>
             );

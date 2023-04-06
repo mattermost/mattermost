@@ -94,4 +94,6 @@ export default keyMirror({
     DECREMENT_PINNED_POST_COUNT: null,
 
     INCREMENT_FILE_COUNT: null,
+
+    RECEIVED_CHANNEL_THREADS: null,
 });

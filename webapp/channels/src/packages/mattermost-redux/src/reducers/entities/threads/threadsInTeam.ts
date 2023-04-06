@@ -5,52 +5,11 @@ import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'matter
 import type {GenericAction} from 'mattermost-redux/types/actions';
 import type {Team} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread} from '@mattermost/types/threads';
-import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
+import {shouldAddThreadId, handlePostRemoved, handleReceivedThread as handleSingleTeamReceivedThread, handleReceiveThreads} from './utils';
 
 import type {ExtraData} from './types';
 
 type State = ThreadsState['threadsInTeam'] | ThreadsState['unreadThreadsInTeam'];
-
-// return true only if it's 'newer' than other threads
-// older threads will be added by scrolling so no need to manually add.
-// furthermore manually adding older thread will BREAK pagination
-function shouldAddThreadId(ids: Array<UserThread['id']>, thread: UserThread, threads: IDMappedObjects<UserThread>) {
-    return ids.some((id) => {
-        const t = threads![id];
-        return thread.last_reply_at > t.last_reply_at;
-    });
-}
-
-function handlePostRemoved(state: State, action: GenericAction): State {
-    const post = action.data;
-    if (post.root_id) {
-        return state;
-    }
-
-    const teams = Object.keys(state).
-        filter((id) => state[id].indexOf(post.id) !== -1);
-
-    if (!teams?.length) {
-        return state;
-    }
-
-    const teamState: RelationOneToMany<Team, UserThread> = {};
-
-    for (let i = 0; i < teams.length; i++) {
-        const teamId = teams[i];
-        const index = state[teamId].indexOf(post.id);
-
-        teamState[teamId] = [
-            ...state[teamId].slice(0, index),
-            ...state[teamId].slice(index + 1),
-        ];
-    }
-
-    return {
-        ...state,
-        ...teamState,
-    };
-}
 
 // adds thread to all teams in state
 function handleAllTeamsReceivedThread(state: State, thread: UserThread, teamId: Team['id'], extra: ExtraData) {
@@ -58,34 +17,10 @@ function handleAllTeamsReceivedThread(state: State, thread: UserThread, teamId: 
 
     let newState = {...state};
     for (const teamId of teamIds) {
-        newState = handleSingleTeamReceivedThread(newState, thread, teamId, extra);
+        newState = handleSingleTeamReceivedThread<State>(newState, thread, teamId, extra);
     }
 
     return newState;
-}
-
-// adds thread to single team
-function handleSingleTeamReceivedThread(state: State, thread: UserThread, teamId: Team['id'], extra: ExtraData) {
-    const nextSet = new Set(state[teamId] || []);
-
-    // thread exists in state
-    if (nextSet.has(thread.id)) {
-        return state;
-    }
-
-    // check if thread is newer than any of the existing threads
-    const shouldAdd = shouldAddThreadId([...nextSet], thread, extra.threads);
-
-    if (shouldAdd) {
-        nextSet.add(thread.id);
-
-        return {
-            ...state,
-            [teamId]: [...nextSet],
-        };
-    }
-
-    return state;
 }
 
 export function handleReceivedThread(state: State, action: GenericAction, extra: ExtraData) {
@@ -95,7 +30,7 @@ export function handleReceivedThread(state: State, action: GenericAction, extra:
         return handleAllTeamsReceivedThread(state, thread, teamId, extra);
     }
 
-    return handleSingleTeamReceivedThread(state, thread, teamId, extra);
+    return handleSingleTeamReceivedThread<State>(state, thread, teamId, extra);
 }
 
 // add the thread only if it's 'newer' than other threads
@@ -137,19 +72,6 @@ export function handleFollowChanged(state: State, action: GenericAction, extra: 
     }
 
     return state;
-}
-
-function handleReceiveThreads(state: State, action: GenericAction) {
-    const nextSet = new Set(state[action.data.team_id] || []);
-
-    action.data.threads.forEach((thread: UserThread) => {
-        nextSet.add(thread.id);
-    });
-
-    return {
-        ...state,
-        [action.data.team_id]: [...nextSet],
-    };
 }
 
 function handleLeaveChannel(state: State, action: GenericAction, extra: ExtraData) {
@@ -247,7 +169,7 @@ export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, 
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_THREADS:
-        return handleReceiveThreads(state, action);
+        return handleReceiveThreads(state, action, action.data.team_id);
     case TeamTypes.LEAVE_TEAM:
         return handleLeaveTeam(state, action);
     case UserTypes.LOGOUT_SUCCESS:
@@ -284,7 +206,7 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_UNREAD_THREADS:
-        return handleReceiveThreads(state, action);
+        return handleReceiveThreads(state, action, action.data.team_id);
     case TeamTypes.LEAVE_TEAM:
         return handleLeaveTeam(state, action);
     case UserTypes.LOGOUT_SUCCESS:

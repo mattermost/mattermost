@@ -120,6 +120,12 @@ describe('components/threading/global_threads/thread_item', () => {
             thread: mockThread,
             threadId: mockThread.id,
             isPostPriorityEnabled: false,
+            routing: {
+                currentUserId: '7n4ach3i53bbmj84dfmu5b7c1c',
+                currentTeamId: 'tid',
+                goToInChannel: jest.fn(),
+                select: jest.fn(),
+            },
         };
     });
 

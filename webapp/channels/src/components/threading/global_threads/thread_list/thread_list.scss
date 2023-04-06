@@ -43,8 +43,16 @@
     }
 
     .threads {
-        margin-right: 5px;
         grid-area: list;
+    }
+
+    .channel-threads {
+        height: 100%;
+    }
+
+    .channel-threads,
+    .threads {
+        margin-right: 5px;
 
         .no-results__wrapper {
             position: relative;

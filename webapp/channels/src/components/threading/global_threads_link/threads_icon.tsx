@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes} from 'react';
+import React, {SVGProps, ReactElement} from 'react';
 
-const ThreadsIcon = (attrs: HTMLAttributes<SVGElement>) => {
+const ThreadsIcon = (attrs: SVGProps<SVGSVGElement>): ReactElement => {
     return (
         <svg
             width='14'

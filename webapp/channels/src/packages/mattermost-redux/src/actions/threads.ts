@@ -7,7 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {UserThread, UserThreadList} from '@mattermost/types/threads';
 import {Post} from '@mattermost/types/posts';
 
-import {ThreadTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
+import {ThreadTypes, PostTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import ThreadConstants from 'mattermost-redux/constants/threads';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
@@ -433,3 +433,43 @@ export function decrementThreadCounts(post: ExtendedPost) {
         });
     };
 }
+
+export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = true, extended = false, since = 0} = {}) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let data: undefined | UserThreadList;
+
+        try {
+            data = await Client4.getThreadsForChannel(channelId, {before, after, perPage, extended, totalsOnly, threadsOnly, since});
+
+            if (!data) {
+                return {error: true};
+            }
+
+            if (data?.threads?.length) {
+                await dispatch(getMissingProfilesByIds(uniq(data.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
+
+                dispatch({
+                    type: PostTypes.RECEIVED_POSTS,
+                    data: {posts: data.threads.map(({post}) => ({...post, update_at: 0}))},
+                });
+
+                dispatch(getMissingFilesByPosts(uniq(data.threads.map(({post}) => post))));
+            }
+
+            dispatch({
+                type: ChannelTypes.RECEIVED_CHANNEL_THREADS,
+                data: {
+                    threads: data?.threads ?? [],
+                    channel_id: channelId,
+                },
+            });
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+

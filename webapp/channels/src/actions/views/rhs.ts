@@ -621,3 +621,23 @@ export function setEditChannelMembers(active: boolean) {
         return {data: true};
     };
 }
+
+export function showThreadsForChannel(channelId?: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState() as GlobalState;
+        const currentChannelId = getCurrentChannelId(state);
+
+        let previousRhsState = getRhsState(state);
+        if (previousRhsState === RHSStates.CHANNEL_THREADS) {
+            previousRhsState = getPreviousRhsState(state);
+        }
+
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            channelId: channelId || currentChannelId,
+            state: RHSStates.CHANNEL_THREADS,
+            previousRhsState,
+        });
+    };
+}
+

@@ -11,6 +11,7 @@ import {UserThread} from '@mattermost/types/threads';
 import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
+import type {ThreadRouting} from 'components/threading/hooks';
 
 type Props = {
     ids: Array<UserThread['id']>;
@@ -19,6 +20,7 @@ type Props = {
     total: number;
     isLoading?: boolean;
     addNoMoreResultsItem?: boolean;
+    routing: ThreadRouting;
 };
 
 const style = {
@@ -32,6 +34,7 @@ function VirtualizedThreadList({
     total,
     isLoading,
     addNoMoreResultsItem,
+    routing,
 }: Props) {
     const infiniteLoaderRef = React.useRef<any>();
     const startIndexRef = React.useRef<number>(0);
@@ -58,9 +61,10 @@ function VirtualizedThreadList({
             {
                 ids: addNoMoreResultsItem && ids.length === total ? [...ids, Constants.THREADS_NO_RESULTS_ITEM_ID] : (isLoading && ids.length !== total && [...ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID]) || ids,
                 selectedThreadId,
+                routing,
             }
         ),
-        [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total],
+        [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total, routing],
     );
 
     const itemKey = useCallback((index, data) => data.ids[index], []);

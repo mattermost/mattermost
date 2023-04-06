@@ -20,6 +20,7 @@ import RhsThread from 'components/rhs_thread';
 import RhsCard from 'components/rhs_card';
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
+import ChannelThreadsRhs from 'components/channel_threads_rhs';
 import Search from 'components/search/index';
 import PostEditHistory from 'components/post_edit_history';
 import LoadingScreen from 'components/loading_screen';
@@ -42,6 +43,7 @@ type Props = {
     isChannelMembers: boolean;
     isPluginView: boolean;
     isPostEditHistory: boolean;
+    isThreadsForChannel: boolean;
     previousRhsState: RhsState;
     rhsChannel: Channel;
     selectedPostId: string;
@@ -88,6 +90,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
             isPostEditHistory: this.props.isPostEditHistory,
+            isThreadsForChannel: this.props.isThreadsForChannel,
             selectedPostId: this.props.selectedPostId,
             selectedPostCardId: this.props.selectedPostCardId,
             previousRhsState: this.props.previousRhsState,
@@ -213,6 +216,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelMembers,
             isExpanded,
             isPostEditHistory,
+            isThreadsForChannel,
         } = this.props;
 
         if (!isOpen) {
@@ -244,6 +248,9 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <ChannelMembersRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
+        } else if (isThreadsForChannel) {
+            currentChannelNeeded = true;
+            content = <ChannelThreadsRhs/>;
         }
 
         const isRHSLoading = Boolean(

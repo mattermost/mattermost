@@ -594,15 +594,14 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
 		Columns(
-			"ThreadMemberships.LastViewed as LastViewedAt",
-			"ThreadMemberships.UnreadMentions as UnreadMentions",
+			"COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt",
+			"COALESCE(ThreadMemberships.UnreadMentions, 0) as UnreadMentions",
 		).
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
-		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
 
 	query = query.
-		Where(sq.Eq{"ThreadMemberships.Following": true}).
 		Where(sq.Eq{"Threads.ChannelId": channelID})
 
 	if opts.IncludeIsUrgent {

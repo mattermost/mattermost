@@ -36,6 +36,7 @@ import {goToLastViewedChannel} from 'actions/views/channel';
 import {openModal, closeModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
+    showThreadsForChannel,
     showChannelFiles,
     closeRightHandSide,
     showChannelMembers,
@@ -125,6 +126,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         favoriteChannel,
         unfavoriteChannel,
         showPinnedPosts,
+        showThreadsForChannel,
         showChannelFiles,
         closeRightHandSide,
         getCustomEmojisInText,

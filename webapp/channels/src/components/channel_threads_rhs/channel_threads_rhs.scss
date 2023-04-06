@@ -1,0 +1,38 @@
+.ChannelThreadList {
+    overflow: hidden;
+
+    .channel-threads {
+        margin-right: 5px;
+        height: 100%;
+
+        .no-results__wrapper {
+            position: relative;
+            top: -28px;
+            max-width: 100%;
+
+            .thread-no-results-title {
+                margin-bottom: 0;
+                font-size: 16px;
+                line-height: 24px;
+            }
+
+            .thread-no-results-subtitle {
+                max-width: 100%;
+                font-size: 12px;
+
+                .thread-no-results-subtitle-shortcut {
+                    margin: 0;
+                }
+            }
+        }
+    }
+
+    .ThreadItem {
+        border-bottom: var(--border);
+    }
+
+    .virtualized-thread-list {
+        scrollbar-color: var(--center-channel-color-32) #fff0;
+        scrollbar-width: thin;
+    }
+}

@@ -60,7 +60,8 @@ const ThreadList = ({
     const unread = ThreadFilter.unread === currentFilter;
     const data = unread ? unreadIds : ids;
     const ref = React.useRef<HTMLDivElement>(null);
-    const {currentTeamId, currentUserId, clear, select} = useThreadRouting();
+    const routing = useThreadRouting();
+    const {currentTeamId, currentUserId, clear, select} = routing;
     const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const showUnreadTutorialTip = tipStep === CrtTutorialSteps.UNREAD_POPOVER;
@@ -258,6 +259,7 @@ const ThreadList = ({
                     total={unread ? totalUnread : total}
                     isLoading={isLoading}
                     addNoMoreResultsItem={hasLoaded && !unread}
+                    routing={routing}
                 />
                 {showListTutorialTip && !isMobileView && <CRTListTutorialTip/>}
                 {unread && !someUnread && isEmpty(unreadIds) ? (

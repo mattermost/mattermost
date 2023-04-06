@@ -198,3 +198,16 @@ export const getThreadItemsInChannel: (
             filter((item) => item.post.channel_id === channelID);
     },
 );
+
+export function makeGetThreadsInChannelView() {
+    const empty = Object.freeze([]);
+
+    return createSelector(
+        'makeGetThreadsInChannelView',
+        (state: GlobalState) => state.entities.threads.threadsInChannel,
+        (_state: GlobalState, channelId: Channel['id']) => channelId,
+        (threadsInChannel, channelId) => {
+            return threadsInChannel[channelId] || empty;
+        },
+    );
+}

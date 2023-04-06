@@ -12,16 +12,19 @@ import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsLayout} from 'components/no_results_indicator/types';
 import {SearchShortcut} from 'components/search_shortcut/search_shortcut';
 import {ShortcutKeyVariant} from 'components/shortcut_key';
+import SearchHintSVG from 'components/common/svg_images_components/search_hint_svg';
 
 import {Constants} from 'utils/constants';
 
-import SearchHintSVG from 'components/common/svg_images_components/search_hint_svg';
+import type {ThreadRouting} from 'components/threading/hooks';
+
 import ThreadItem from '../thread_item';
 
 type Props = {
     data: {
         ids: Array<UserThread['id']>;
         selectedThreadId?: UserThread['id'];
+        routing: ThreadRouting;
     };
     index: number;
     style: any;
@@ -79,6 +82,7 @@ function Row({index, style, data}: Props) {
             style={style}
             threadId={itemId}
             isFirstThreadInList={index === 0}
+            routing={data.routing}
         />
     );
 }

@@ -9,12 +9,14 @@ import {UserProfile} from '@mattermost/types/users';
 import {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
+import {threadsInChannelReducer} from './threadsInChannel';
 import {countsReducer, countsIncludingDirectReducer} from './counts';
 
 import {ExtraData} from './types';
 
 export const threadsReducer = (state: ThreadsState['threads'] = {}, action: GenericAction, extra: ExtraData) => {
     switch (action.type) {
+    case ChannelTypes.RECEIVED_CHANNEL_THREADS:
     case ThreadTypes.RECEIVED_UNREAD_THREADS:
     case ThreadTypes.RECEIVED_THREADS: {
         const {threads} = action.data;
@@ -160,6 +162,7 @@ const initialState = {
     unreadThreadsInTeam: {},
     counts: {},
     countsIncludingDirect: {},
+    threadsInChannel: {},
 };
 
 // custom combineReducers function
@@ -195,6 +198,9 @@ function reducer(state: ThreadsState = initialState, action: GenericAction): Thr
 
         // Object mapping teams ids to unread counts including direct channels
         countsIncludingDirect: countsIncludingDirectReducer(state.countsIncludingDirect, action, extra),
+
+        // Object mapping teams ids to thread ids
+        threadsInChannel: threadsInChannelReducer(state.threadsInChannel, action, extra),
     };
 
     if (

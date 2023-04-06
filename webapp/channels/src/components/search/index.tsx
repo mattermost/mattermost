@@ -53,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
             RHSStates.CHANNEL_INFO,
             RHSStates.CHANNEL_MEMBERS,
             RHSStates.EDIT_HISTORY,
+            RHSStates.CHANNEL_THREADS,
         ].includes(rhsState)),
         hideMobileSearchBarInRHS: isMobileView && isRhsOpen && rhsState === RHSStates.CHANNEL_INFO,
         isMentionSearch: rhsState === RHSStates.MENTION,
