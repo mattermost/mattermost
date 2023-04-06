@@ -88,7 +88,7 @@ function validateSeats(seats: string, annualPricePerSeat: number, minSeats: numb
             {errorPrefix}
             <FormattedMessage
                 id='self_hosted_signup.error_max_seats'
-                defaultMessage=' license purchase only supports purchases up to {num} users'
+                defaultMessage=' license purchase only supports purchases up to {num} seats'
                 values={{
                     num: <FormattedNumber value={maxSeats}/>,
                 }}
@@ -167,7 +167,7 @@ export default function SeatsCalculator(props: Props) {
                             type='text'
                             value={props.seats.quantity}
                             onChange={onChange}
-                            placeholder={intl.formatMessage({id: 'self_hosted_signup.seats', defaultMessage: 'User seats'})}
+                            placeholder={intl.formatMessage({id: 'self_hosted_signup.seats', defaultMessage: 'Seats'})}
                             wrapperClassName='user_seats'
                             inputClassName='user_seats'
                             maxLength={maxSeats.toString().length + 1}
@@ -197,7 +197,7 @@ export default function SeatsCalculator(props: Props) {
                     <div className='SeatsCalculator__seats-label'>
                         <FormattedMessage
                             id='self_hosted_signup.line_item_subtotal'
-                            defaultMessage='{num} users × 12 mo.'
+                            defaultMessage='{num} seats × 12 mo.'
                             values={{
                                 num: props.seats.quantity || '0',
                             }}
