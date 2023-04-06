@@ -1,4 +1,4 @@
-name: Web App CI
+name: Shared Web App
 
 on:
   workflow_call:
@@ -13,6 +13,7 @@ defaults:
 
 jobs:
   web-app-ci:
+    name: Web App CI
     runs-on: ubuntu-22.04
     defaults:
       run:

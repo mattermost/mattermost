@@ -1,4 +1,4 @@
-name: Playbooks
+name: Playbooks Web App
 
 on:
   pull_request:
@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   web-app-ci:
+    name: ''
     uses: ./.github/workflows/webapp-shared.yml
     with:
       workspace-argument: --workspace=playbooks
