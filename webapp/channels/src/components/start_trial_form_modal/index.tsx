@@ -33,8 +33,6 @@ import './start_trial_form_modal.scss';
 import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import AirGappedModal from './air_gapped_modal';
 
-// TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
-
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
 enum TrialLoadStatus {
@@ -48,6 +46,9 @@ export enum OrgSize {
     ONE_TO_50 = '1-50',
     FIFTY_TO_100 = '51-100',
     ONE_HUNDRED_TO_500 = '101-500',
+    FIVE_HUNDRED_TO_1000 = '501-1000',
+    ONE_THOUSAND_TO_2500 = '1001-2500',
+    TWO_THOUSAND_FIVE_HUNDRED_AND_UP = '2501+',
 }
 
 type Props = {
