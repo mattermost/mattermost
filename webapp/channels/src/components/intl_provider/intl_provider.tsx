@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactNode} from 'react';
-import {IntlProvider as BaseIntlProvider} from 'react-intl';
-
-import {MessageFormatElement} from '@formatjs/icu-messageformat-parser';
+import {IntlProvider as BaseIntlProvider, IntlConfig} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
@@ -16,8 +14,8 @@ import {ActionFunc} from 'mattermost-redux/types/actions';
 
 type Props = {
     children: ReactNode;
-    locale: string;
-    translations?: Record<string, string> | Record<string, MessageFormatElement[]>;
+    locale: IntlConfig['locale'];
+    translations?: IntlConfig['messages'];
     actions: {
         loadTranslations: ((locale: string, url: string) => ActionFunc) | (() => void);
     };
