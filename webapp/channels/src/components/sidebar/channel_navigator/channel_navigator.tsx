@@ -59,7 +59,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
             modalId: ModalIdentifiers.QUICK_SWITCH,
             dialogType: QuickSwitchModal,
         });
-    }
+    };
 
     handleShortcut = (e: KeyboardEvent) => {
         const {actions: {closeModal}} = this.props;
@@ -83,7 +83,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                 this.toggleQuickSwitchModal();
             }
         }
-    }
+    };
 
     toggleQuickSwitchModal = () => {
         const {isQuickSwitcherOpen, actions: {openModal, closeModal}} = this.props;
@@ -96,17 +96,17 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                 dialogType: QuickSwitchModal,
             });
         }
-    }
+    };
 
     goBack = () => {
         trackEvent('ui', 'ui_history_back');
         this.props.actions.goBack();
-    }
+    };
 
     goForward = () => {
         trackEvent('ui', 'ui_history_forward');
         this.props.actions.goForward();
-    }
+    };
 
     render() {
         return (

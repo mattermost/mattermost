@@ -29,7 +29,7 @@ export default class EmojiListItem extends React.PureComponent<Props> {
         emoji: {} as CustomEmoji,
         currentUserId: '',
         creatorDisplayName: '',
-    }
+    };
 
     handleDelete = (): void => {
         if (this.props.onDelete) {
@@ -37,7 +37,7 @@ export default class EmojiListItem extends React.PureComponent<Props> {
         }
 
         this.props.actions.deleteCustomEmoji(this.props.emoji.id);
-    }
+    };
 
     render(): JSX.Element {
         const emoji = this.props.emoji;

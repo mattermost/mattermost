@@ -63,7 +63,7 @@ export default class PostView extends React.PureComponent<Props, State> {
                 });
             });
         });
-    }
+    };
 
     toggleShouldStartFromBottomWhenUnread = () => {
         this.setState((state) => ({
@@ -76,7 +76,7 @@ export default class PostView extends React.PureComponent<Props, State> {
                 });
             });
         });
-    }
+    };
 
     render() {
         if (this.props.channelLoading || this.state.loaderForChangeOfPostsChunk) {
