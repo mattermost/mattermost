@@ -1,17 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {AdminConfig} from '@mattermost/types/config';
 import {useIntl} from 'react-intl';
 import {ConsolePages, DocLinks} from 'utils/constants';
-import {ItemModel, ItemStatus} from '../dashboard.type';
+import {ItemModel, ItemStatus, Options} from '../dashboard.type';
 import {impactModifiers} from '../dashboard.data';
 
 /**
  *
  * @description This checks to see if the user's active session is done over https. This does not check if the server is configured to use https.
  */
-const ssl = (config: Partial<AdminConfig>, formatMessage: ReturnType<typeof useIntl>['formatMessage']): ItemModel => {
+const ssl = (
+    config: Partial<AdminConfig>,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+    options: Options,
+): ItemModel => {
     const status = document.location.protocol === 'https:' ? ItemStatus.OK : ItemStatus.ERROR;
 
     return {
@@ -37,7 +43,11 @@ const ssl = (config: Partial<AdminConfig>, formatMessage: ReturnType<typeof useI
  *
  * @description This checks to see if the user has adjusted the default session lengths to something other than 30 days.
  */
-const sessionLength = (config: Partial<AdminConfig>, formatMessage: ReturnType<typeof useIntl>['formatMessage']): ItemModel => {
+const sessionLength = (
+    config: Partial<AdminConfig>,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+    options: Options,
+): ItemModel => {
     const status = config.ServiceSettings?.SessionLengthWebInDays === 30 ? ItemStatus.OK : ItemStatus.WARNING;
     return {
         id: 'session-length',
@@ -60,7 +70,15 @@ const sessionLength = (config: Partial<AdminConfig>, formatMessage: ReturnType<t
     };
 };
 
-export const configChecks = [
-    ssl,
-    sessionLength,
-];
+export const runConfigChecks = async (
+    config: Partial<AdminConfig>,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+    options: Options,
+) => {
+    const checks = [
+        ssl,
+        sessionLength,
+    ];
+    const results = await Promise.all(checks.map((check) => check(config, formatMessage, options)));
+    return results;
+};
