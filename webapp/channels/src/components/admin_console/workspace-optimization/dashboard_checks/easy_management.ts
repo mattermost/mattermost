@@ -39,6 +39,7 @@ const usesLDAP = async (
 
     // something feels flawed in this check.
     const status = options.analytics?.TOTAL_USERS as number > 100 ? await testLdap(config, options) : ItemStatus.OK;
+
     return {
         id: 'ad-ldap',
         title: formatMessage({
@@ -51,7 +52,7 @@ const usesLDAP = async (
         }),
         ...(options.isLicensed && !options.isStarterLicense ? {
             configUrl: ConsolePages.AD_LDAP,
-            configText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.configureLDAP', defaultMessage: 'Try AD/LDAP'}),
+            configText: formatMessage({id: 'admin.reporting.workspace_optimization.ease_of_management.ldap.cta', defaultMessage: 'Try AD/LDAP'}),
         } : options.trialOrEnterpriseCtaConfig),
         infoUrl: DocLinks.AD_LDAP,
         infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),

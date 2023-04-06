@@ -8,6 +8,10 @@ import {Client4} from 'mattermost-redux/client';
 import {ItemStatus, Options} from '../dashboard.type';
 import {AdminConfig} from '@mattermost/types/config';
 
+/**
+ *
+ * @description Checks if they they have a global policy deletion enabled, or if a custom policy has been created.
+ */
 const dataRetentionCheck = async (
     config: Partial<AdminConfig>,
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
@@ -18,16 +22,15 @@ const dataRetentionCheck = async (
         options: Options,
     ) => {
         if (!options.isLicensed || !options.isEnterpriseLicense) {
-            return ItemStatus.OK;
+            return ItemStatus.INFO;
         }
 
         if (config.DataRetentionSettings?.EnableMessageDeletion || config.DataRetentionSettings?.EnableFileDeletion) {
             return ItemStatus.OK;
         }
 
-        const result = await fetch(`${Client4.getBaseRoute()}/data_retention/policies?page=0&per_page=0`).then((result) => result.json());
-
-        return result.total_count > 0 ? ItemStatus.OK : ItemStatus.INFO;
+        const policyCount: {total_count: number} = await fetch(`${Client4.getBaseRoute()}/data_retention/policies_count`).then((result) => result.json());
+        return policyCount.total_count > 0 ? ItemStatus.OK : ItemStatus.INFO;
     };
 
     const status = await testDataRetention(config, options);
@@ -43,7 +46,7 @@ const dataRetentionCheck = async (
         }),
         ...(options.isLicensed && options.isEnterpriseLicense ? {
             configUrl: ConsolePages.DATA_RETENTION,
-            configText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.configureDataRetention', defaultMessage: 'Try data retention'}),
+            configText: formatMessage({id: 'admin.reporting.workspace_optimization.data_privacy.retention.cta', defaultMessage: 'Try data retention'}),
         } : options.trialOrEnterpriseCtaConfig),
         infoUrl: DocLinks.DATA_RETENTION_POLICY,
         infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),

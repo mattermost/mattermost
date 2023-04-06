@@ -70,7 +70,7 @@ const testServerVersion = async (
         }, {type: serverVersion.type}),
         description: serverVersion.description,
         configUrl: CloudLinks.DOWNLOAD_UPDATE,
-        configText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.downloadUpdate', defaultMessage: 'Download update'}),
+        configText: formatMessage({id: 'admin.reporting.workspace_optimization.updates.server_version.cta', defaultMessage: 'Download update'}),
         infoUrl: DocLinks.UPGRADE_SERVER,
         infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),
         telemetryAction: 'server-version',

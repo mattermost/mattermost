@@ -12,10 +12,15 @@ export type DataModel = {
     };
 }
 
-// this conflicts with another type in consts. The only diff is it uses "SUCCESS = 'success'" instead of "OK = 'ok'"
 export enum ItemStatus {
+
+    /** Return NONE if it's not relevant, not configured, or not an option */
     NONE = 'none',
+
+    /** Return OK if all checks for this have passed */
     OK = 'ok',
+
+    /** Return info if it might not be relevant to them, but they could utilize it */
     INFO = 'info',
     WARNING = 'warning',
     ERROR = 'error',

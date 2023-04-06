@@ -41,14 +41,14 @@ const ssl = (
 
 /**
  *
- * @description This checks to see if the user has adjusted the default session lengths to something other than 30 days.
+ * @description This checks to see if the user has adjusted the default session lengths to something other than 720 hours.
  */
 const sessionLength = (
     config: Partial<AdminConfig>,
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
     options: Options,
 ): ItemModel => {
-    const status = config.ServiceSettings?.SessionLengthMobileInHours === 720 ? ItemStatus.WARNING : ItemStatus.OK;
+    const status = config.ServiceSettings?.SessionLengthMobileInHours === 720 ? ItemStatus.INFO : ItemStatus.OK;
     return {
         id: 'session-length',
         title: formatMessage({

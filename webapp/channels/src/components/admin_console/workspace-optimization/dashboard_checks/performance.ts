@@ -47,7 +47,7 @@ const search = async (
         }),
         ...(options.isLicensed && options.isEnterpriseLicense ? {
             configUrl: ConsolePages.ELASTICSEARCH,
-            configText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.configureElasticsearch', defaultMessage: 'Try Elasticsearch'}),
+            configText: formatMessage({id: 'admin.reporting.workspace_optimization.search.cta', defaultMessage: 'Try Elasticsearch'}),
         } : options.trialOrEnterpriseCtaConfig),
         infoUrl: DocLinks.ELASTICSEARCH,
         infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),
