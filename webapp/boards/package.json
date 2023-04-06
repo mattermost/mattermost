@@ -46,7 +46,6 @@
 		"glob-parent": "6.0.2",
 		"lodash": "^4.17.21",
 		"marked": "4.0.17",
-		"mini-create-react-context": "^0.4.1",
 		"moment": "^2.29.1",
 		"nanoevents": "^5.1.13",
 		"react": "17.0.2",
