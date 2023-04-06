@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useIntl, FormattedMessage} from 'react-intl';
 import moment from 'moment';
@@ -23,14 +23,36 @@ import {GlobalState} from '@mattermost/types/store';
 
 import './to_yearly_nudge_banner.scss';
 
-const cloudProMonthlyCloseMoment = '20230415'; // TBD, final day of cloud PRO monthly
+enum DismissShowRange {
+    GreaterThanEqual90 = '>=90',
+    BetweenNinetyAnd60 = '89-61',
+    SixtyTo31 = '60-31',
+    ThirtyTo11 = '30-11',
+    TenTo1 = '10-1',
+    Zero = '0'
+}
+
+// eslint-disable-next-line no-process-env
+const cloudProMonthlyCloseMoment = process.env.CLOUD_PRO_MONTHLY_DEPRECATION_DATE || '20230416';
+
+interface ToYearlyPlanDismissPreference {
+
+    // range represents the range for the days to the deprecation of cloud free e.g. in 30 to 10 days to deprecate cloud free
+    // Incase of dismissing the banner, range represents the time (days) period when this banner was dismissed.
+    // This is important because in case the banner was dismissed for a certain period, it helps us know that we should not show it again for that period.
+    range: DismissShowRange;
+    show: boolean;
+}
 
 const ToYearlyNudgeBannerDismissable = () => {
     const dispatch = useDispatch();
 
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
-    const nudgeDismissed = useSelector((state: GlobalState) => getPreference(state, Preferences.CLOUD_YEARLY_NUDGE_BANNER, CloudBanners.NUDGE_TO_YEARLY_BANNER_DISMISSED)) === 'true';
+    const snoozePreferenceVal = useSelector((state: GlobalState) => getPreference(state, Preferences.TO_CLOUD_YEARLY_PLAN_NUDGE, CloudBanners.NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED, '{"range": 0, "show": true}'));
+    const snoozeInfo = JSON.parse(snoozePreferenceVal) as ToYearlyPlanDismissPreference;
+    const show = snoozeInfo.show;
+
     const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
@@ -42,16 +64,71 @@ const ToYearlyNudgeBannerDismissable = () => {
     const proMonthlyEndDate = moment(cloudProMonthlyCloseMoment, 'YYYYMMDD');
     const daysToProMonthlyEnd = proMonthlyEndDate.diff(now, 'days');
 
-    const savedDismissedPref = () => {
+    const snoozedForRange = (range: DismissShowRange) => {
+        return snoozeInfo.range === range;
+    };
+
+    useEffect(() => {
+        if (!snoozeInfo.show) {
+            if (daysToProMonthlyEnd >= 90 && !snoozedForRange(DismissShowRange.GreaterThanEqual90)) {
+                showBanner(true);
+            }
+
+            if (daysToProMonthlyEnd < 90 && daysToProMonthlyEnd > 60 && !snoozedForRange(DismissShowRange.BetweenNinetyAnd60)) {
+                showBanner(true);
+            }
+
+            if (daysToProMonthlyEnd <= 60 && daysToProMonthlyEnd > 30 && !snoozedForRange(DismissShowRange.SixtyTo31)) {
+                showBanner(true);
+            }
+
+            if (daysToProMonthlyEnd <= 30 && daysToProMonthlyEnd > 10 && !snoozedForRange(DismissShowRange.ThirtyTo11)) {
+                showBanner(true);
+            }
+
+            if (daysToProMonthlyEnd <= 10) {
+                showBanner(true);
+            }
+        }
+    }, []);
+
+    const showBanner = (show = false) => {
+        let dRange = DismissShowRange.Zero;
+        if (daysToProMonthlyEnd >= 90) {
+            dRange = DismissShowRange.GreaterThanEqual90;
+        }
+
+        if (daysToProMonthlyEnd < 90 && daysToProMonthlyEnd > 60) {
+            dRange = DismissShowRange.BetweenNinetyAnd60;
+        }
+
+        if (daysToProMonthlyEnd <= 60 && daysToProMonthlyEnd > 30) {
+            dRange = DismissShowRange.SixtyTo31;
+        }
+
+        if (daysToProMonthlyEnd <= 30 && daysToProMonthlyEnd > 10) {
+            dRange = DismissShowRange.ThirtyTo11;
+        }
+
+        // ideally this case should not happen because snooze button is not shown when TenTo1 days are remaining
+        if (daysToProMonthlyEnd <= 10 && daysToProMonthlyEnd > 0) {
+            dRange = DismissShowRange.TenTo1;
+        }
+
+        const snoozeInfo: ToYearlyPlanDismissPreference = {
+            range: dRange,
+            show,
+        };
+
         dispatch(savePreferences(currentUser.id, [{
-            category: Preferences.CLOUD_YEARLY_NUDGE_BANNER,
-            name: CloudBanners.NUDGE_TO_YEARLY_BANNER_DISMISSED,
+            category: Preferences.TO_CLOUD_YEARLY_PLAN_NUDGE,
+            name: CloudBanners.NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED,
             user_id: currentUser.id,
-            value: 'true',
+            value: JSON.stringify(snoozeInfo),
         }]));
     };
 
-    if (nudgeDismissed) {
+    if (!show) {
         return null;
     }
 
@@ -75,14 +152,15 @@ const ToYearlyNudgeBannerDismissable = () => {
 
     return (
         <AnnouncementBar
+            id='cloud-pro-monthly-deprecation-announcement-bar'
             type={announcementType}
-            showCloseButton={false}
+            showCloseButton={daysToProMonthlyEnd > 10}
             onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
             modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
             modalButtonDefaultText='Learn more'
             message={<FormattedMessage {...message}/>}
             showLinkAsButton={true}
-            handleClose={savedDismissedPref}
+            handleClose={showBanner}
         />
     );
 };
@@ -143,6 +221,7 @@ const ToYearlyNudgeBanner = () => {
 
     return (
         <AlertBanner
+            id='cloud-pro-monthly-deprecation-alert-banner'
             mode={bannerMode}
             title={title}
             message={description}
