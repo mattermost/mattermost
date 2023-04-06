@@ -12,6 +12,10 @@ on:
       - cloud
       - release-*
       - hh_webapp-ci
+    paths:
+      - 'webapp/channels/src/mattermost-redux/**/*'
+      - 'webapp/platform/**/*'
+      - 'webapp/playbooks/**/*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

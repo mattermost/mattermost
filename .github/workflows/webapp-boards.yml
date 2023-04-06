@@ -11,6 +11,9 @@ on:
       - cloud
       - release-*
       - hh_webapp-ci
+    paths:
+      - 'webapp/boards/**/*'
+      - 'webapp/platform/**/*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
