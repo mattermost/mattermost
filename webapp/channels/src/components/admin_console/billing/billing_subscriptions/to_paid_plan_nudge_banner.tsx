@@ -33,7 +33,8 @@ enum DismissShowRange {
     Zero = '0'
 }
 
-const cloudFreeCloseMoment = '20230327'; // TBD, final day of cloud free
+// eslint-disable-next-line no-process-env
+const cloudFreeCloseMoment = process.env.CLOUD_FREE_DEPRECATION_DATE || '20230327';
 
 interface ToPaidPlanDismissPreference {
 
