@@ -188,6 +188,11 @@ export type ProductComponent = {
     mainComponent: React.ComponentType;
 
     /**
+     * The public component to be displayed when a public route is active.
+     */
+    publicComponent: React.ComponentType | null;
+
+    /**
      * A component to fill the generic area in the center of
      * the global header when your route is active.
      */

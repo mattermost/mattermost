@@ -146,6 +146,7 @@ const PostComponent = (props: Props): JSX.Element => {
 
     const handleA11yActivateEvent = () => setA11y(true);
     const handleA11yDeactivateEvent = () => setA11y(false);
+    const handleAlt = (e: KeyboardEvent) => setAlt(e.altKey);
 
     useEffect(() => {
         if (a11yActive) {
@@ -154,13 +155,8 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [a11yActive]);
 
     useEffect(() => {
-        const handleAlt = (e: KeyboardEvent) => {
-            setAlt(e.altKey);
-        };
         let removeEventListener: (type: string, listener: EventListener) => void;
 
-        document.addEventListener('keydown', handleAlt);
-        document.addEventListener('keyup', handleAlt);
         if (postRef.current) {
             postRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
             postRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
@@ -168,14 +164,24 @@ const PostComponent = (props: Props): JSX.Element => {
         }
 
         return () => {
-            document.removeEventListener('keydown', handleAlt);
-            document.removeEventListener('keyup', handleAlt);
             if (removeEventListener) {
                 removeEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
                 removeEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (hover) {
+            document.addEventListener('keydown', handleAlt);
+            document.addEventListener('keyup', handleAlt);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleAlt);
+            document.removeEventListener('keyup', handleAlt);
+        };
+    }, [hover]);
 
     const hasSameRoot = (props: Props) => {
         if (props.isFirstReply) {
