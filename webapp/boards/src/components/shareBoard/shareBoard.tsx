@@ -278,7 +278,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
     const shareTemplateTitle = (
         <FormattedMessage
             id={'ShareTemplate.Title'}
-            defaultMessage={'Share Template'}
+            defaultMessage={'Share template'}
         />
     )
 
