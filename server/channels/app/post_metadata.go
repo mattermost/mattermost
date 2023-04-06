@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"image"
@@ -764,7 +765,24 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
 }
 
+// peekContentType peeks at the first 512 bytes of p, and attempts to detect
+// the content type.  Returns empty string if error occurs.
+func peekContentType(p *bufio.Reader) string {
+	byt, err := p.Peek(512)
+	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+		return ""
+	}
+	return http.DetectContentType(byt)
+}
+
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
+	bufRd := bufio.NewReader(body)
+
+	if contentType == "" {
+		// If the content-type is missing we try to detect it from the actual data.
+		contentType = peekContentType(bufRd)
+	}
+
 	if contentType == "image/svg+xml" {
 		image := &model.PostImage{
 			Format: "svg",
@@ -772,10 +790,10 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 
 		return nil, image, nil
 	} else if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
+		image, err := parseImages(io.LimitReader(bufRd, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
-		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
+		og := a.parseOpenGraphMetadata(requestURL, bufRd, contentType)
 
 		// The OpenGraph library and Go HTML library don't error for malformed input, so check that at least
 		// one of these required fields exists before returning the OpenGraph data
