@@ -9023,50 +9023,6 @@
     "translation": "gruplar sayılırken sorun çıktı"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Bu harika özelliklerle üretkenliğinizi artırın"
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Ekibinizin üretkenliğini arttırmak için Mattermost açın!"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Merhaba {{.Name}}, Mattermost sunucunuzun biraz toz tuttuğunu fark ettik. Ekibinizin iş yükünü hafifletmeye yardımcı olabilecek bazı özelliklere göz atın."
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Belirtilen konuk erişimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Görev yönetimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "İş akışı yönetimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Gelin ve inceleyin!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermost uygulamasını aç"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Senaryolar"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanallar"
-  },
-  {
-    "id": "Boards",
-    "translation": "Panolar"
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Türe ve duruma göre tüm görevler alınamadı."
   },
@@ -9165,10 +9121,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost üst tarifeye geçme onayı"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Bu bir kerelik e-posta Mattermost sunucunuz {{.Hours}} saatten uzun süredir etkin olmadığı için gönderildi. Bu e-posta Mattermost sunucunuz tarafından otomatik olarak oluşturuldu."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -9511,10 +9463,6 @@
     "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
   },
@@ -9617,10 +9565,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "İletinin önceliği alınamadı"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Taslak güncellenemedi."
   },
   {
     "id": "app.draft.get_drafts.app_error",

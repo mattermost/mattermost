@@ -213,7 +213,7 @@ declare global {
              * @param {string} item - dropdown menu. If set, it will do click action.
              *
              * @example
-             *   cy.uiBrowseOrCreateChannel('Browse Channels');
+             *   cy.uiBrowseOrCreateChannel('Browse channels');
              */
             uiBrowseOrCreateChannel(item: string): Chainable;
 
