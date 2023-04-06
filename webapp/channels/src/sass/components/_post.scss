@@ -2395,8 +2395,7 @@
 
 .post.current--user {
     &.other--root,
-    &.post--root,
-    &.post--comment {
+    &.post--root, {
         .post__header-set-custom-status {
             display: revert;
             padding: 0 6px;

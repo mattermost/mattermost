@@ -152,14 +152,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
             "openedFrom": "product_menu",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={
           <Icon
             glyph="view-grid-plus-outline"
@@ -360,14 +353,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
             "openedFrom": "product_menu",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={
           <Icon
             glyph="view-grid-plus-outline"
@@ -688,14 +674,7 @@ exports[`components/global/product_switcher_menu should show integrations should
             "openedFrom": "product_menu",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={
           <Icon
             glyph="view-grid-plus-outline"

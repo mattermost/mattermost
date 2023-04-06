@@ -2592,6 +2592,10 @@
     "translation": "Service only available in Mattermost Enterprise edition"
   },
   {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server failed to subscribe to newsletter."
+  },
+  {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Portal unavailable for self-hosted signup."
   },
@@ -9226,6 +9230,10 @@
   {
     "id": "model.job.is_valid.type.app_error",
     "translation": "Invalid job type."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Invalid value for bytes when uploading a license."
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
