@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
 import AdminTextSetting from './text_setting';
+import {renderWithIntl} from 'tests/react_testing_utils';
+import {screen} from '@testing-library/react';
 
 describe('components/admin_console/TextSetting', () => {
     test('render component with required props', () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        renderWithIntl(
             <AdminTextSetting
                 id='string.id'
                 label='some label'
@@ -23,19 +24,9 @@ describe('components/admin_console/TextSetting', () => {
                 type='input'
             />,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <TextSetting
-              disabled={false}
-              id="string.id"
-              inputClassName="col-sm-8"
-              label="some label"
-              labelClassName="col-sm-4"
-              maxLength={-1}
-              onChange={[MockFunction]}
-              resizable={true}
-              type="input"
-              value="some value"
-            />
-        `);
+
+        screen.getByText('some label', {exact: false});
+        expect(screen.getByTestId('string.idinput')).toHaveProperty('id', 'string.id');
+        expect(screen.getByTestId('string.idinput')).toHaveValue('some value');
     });
 });

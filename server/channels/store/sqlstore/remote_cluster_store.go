@@ -22,6 +22,25 @@ func newSqlRemoteClusterStore(sqlStore *SqlStore) store.RemoteClusterStore {
 	return &sqlRemoteClusterStore{sqlStore}
 }
 
+func remoteClusterFields(prefix string) []string {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
+		prefix = prefix + "."
+	}
+	return []string{
+		prefix + "RemoteId",
+		prefix + "RemoteTeamId",
+		prefix + "Name",
+		prefix + "DisplayName",
+		prefix + "SiteURL",
+		prefix + "CreateAt",
+		prefix + "LastPingAt",
+		prefix + "Token",
+		prefix + "RemoteToken",
+		prefix + "Topics",
+		prefix + "CreatorId",
+	}
+}
+
 func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.RemoteCluster, error) {
 	remoteCluster.PreSave()
 	if err := remoteCluster.IsValid(); err != nil {
@@ -89,7 +108,7 @@ func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
 
 func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(remoteClusterFields("")...).
 		From("RemoteClusters").
 		Where(sq.Eq{"RemoteId": remoteId})
 
@@ -107,7 +126,7 @@ func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error
 
 func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
-		Select("rc.*").
+		Select(remoteClusterFields("rc")...).
 		From("RemoteClusters rc")
 
 	if filter.InChannel != "" {

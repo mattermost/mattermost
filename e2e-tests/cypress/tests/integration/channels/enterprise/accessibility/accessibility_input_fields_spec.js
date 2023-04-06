@@ -196,7 +196,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_ul').should('be.focused').and('have.attr', 'aria-label', 'bulleted list').tab();
 
             // * Verify if the focus is on the numbered list button
-            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab();
+            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab().tab();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();

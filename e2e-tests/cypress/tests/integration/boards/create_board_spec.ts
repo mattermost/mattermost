@@ -47,6 +47,57 @@ describe('Create and delete board / card', () => {
             should('have.value', 'Testing');
     });
 
+    it('MM-T4275 Set up Board description', () => {
+        cy.visit('/boards');
+
+        // # Create an empty board and change tile to Testing
+        cy.findByText('Create an empty board').should('exist').click({force: true});
+        cy.get('.BoardComponent').should('exist');
+
+        // # Change Title
+        cy.findByPlaceholderText('Untitled board').should('be.visible').wait(timeouts.HALF_SEC);
+
+        // * Assert that the title is changed to "testing"
+        cy.findByPlaceholderText('Untitled board').
+            clear().
+            type('Testing').
+            type('{enter}').
+            should('have.value', 'Testing');
+
+        // # "Add icon" and "Show description" options appear
+        cy.findByText('Add icon').should('exist').click({force: true});
+        cy.findByText('show description').should('exist').click({force: true});
+
+        // # Click on "Add a description" below the board title and type "for testing purposes only"
+        cy.findByText('Add a description...').should('be.visible').wait(timeouts.HALF_SEC);
+
+        // * Assert that the editable description should be visible
+        cy.findByText('Add a description...').should('be.visible');
+        cy.findByText('Add a description...').click({force: true});
+        cy.get('.description').
+            click().
+            get('.description .MarkdownEditorInput').
+            type('for testing purposes only');
+
+        // # Click to other element to give some time for the description to be saved.
+        cy.findByPlaceholderText('Untitled board').click();
+
+        // * Assert that the description is changed to "for testing purposes only"
+        cy.findByText('for testing purposes only').should('be.visible');
+
+        // # Hide Description options should appear and click on it to hide description
+        cy.findByText('hide description').should('exist').click({force: true});
+
+        // * Assert that description should not appear"
+        cy.get('.description').should('not.exist');
+
+        // # Show Description options should appear and click on it to show description
+        cy.findByText('show description').should('exist').click({force: true});
+
+        // * Assert that the description "for testing purposes should be visible"
+        cy.findByText('for testing purposes only').should('be.visible');
+    });
+
     it('MM-T5397 Can create and delete a board and a card', () => {
         // Visit a page and create new empty board
         cy.visit('/boards');
