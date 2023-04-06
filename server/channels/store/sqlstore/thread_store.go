@@ -617,10 +617,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 	}
 
 	if !opts.Deleted {
-		query = query.Where(sq.Or{
-			sq.Eq{"Threads.ThreadDeleteAt": nil},
-			sq.Eq{"Threads.ThreadDeleteAt": 0},
-		})
+		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
 
 	if opts.Since > 0 {
