@@ -31,14 +31,23 @@ jobs:
         run: |
           make node_modules
       - name: ci/check-lint
+        id: check-lint
         run: |
           npm run check ${{ inputs.workspace-argument }}
+        continue-on-error: true
       - name: ci/check-types
+        id: check-types
         run: |
           npm run check-types ${{ inputs.workspace-argument }}
+        continue-on-error: true
       - name: ci/test
+        id: test
         run: |
           npm test ${{ inputs.workspace-argument }}
+        continue-on-error: true
+      - name: ci/check-for-failures
+        if: steps.check-lint.outcome != 'success' || steps.check-types.outcome != 'success' || steps.test.outcome != 'success'
+        run: exit 1
       - name: ci/build
         run: |
           npm run build ${{ inputs.workspace-argument }}
