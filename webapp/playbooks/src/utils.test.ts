@@ -2,6 +2,10 @@ import {uniqueId} from './utils';
 
 describe('utils', () => {
     describe('uniqueId', () => {
+        it('should fail', () => {
+            expect(1).toBe(2);
+        });
+
         it('should handle a missing prefix', () => {
             const id1 = uniqueId();
             const id2 = uniqueId();
