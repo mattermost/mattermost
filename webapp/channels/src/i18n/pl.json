@@ -229,7 +229,7 @@
     "admin.authentication.ldap": "AD/LDAP",
     "admin.authentication.mfa": "Wieloskładnikowe uwierzytelnianie",
     "admin.authentication.oauth": "OAuth 2.0",
-    "admin.authentication.openid": "OpenID Connect",
+    "admin.authentication.openid": "Połączenie OpenID",
     "admin.authentication.saml": "SAML 2.0",
     "admin.authentication.signup": "Zarejestruj się",
     "admin.banner.heading": "Uwaga:",
