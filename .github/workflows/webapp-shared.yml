@@ -12,8 +12,7 @@ defaults:
     shell: bash
 
 jobs:
-  web-app-ci:
-    name: Web App CI
+  ci:
     runs-on: ubuntu-22.04
     defaults:
       run:

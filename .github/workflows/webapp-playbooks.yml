@@ -1,4 +1,4 @@
-name: Playbooks Web App
+name: Playbooks
 
 on:
   pull_request:
@@ -18,8 +18,7 @@ concurrency:
   cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
 
 jobs:
-  web-app-ci:
-    name: ''
+  web-app:
     uses: ./.github/workflows/webapp-shared.yml
     with:
       workspace-argument: --workspace=playbooks
