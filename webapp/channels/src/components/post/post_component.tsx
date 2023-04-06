@@ -175,10 +175,12 @@ const PostComponent = (props: Props): JSX.Element => {
         if (hover) {
             document.addEventListener('keydown', handleAlt);
             document.addEventListener('keyup', handleAlt);
-        } else {
+        }
+
+        return () => {
             document.removeEventListener('keydown', handleAlt);
             document.removeEventListener('keyup', handleAlt);
-        }
+        };
     }, [hover]);
 
     const hasSameRoot = (props: Props) => {
