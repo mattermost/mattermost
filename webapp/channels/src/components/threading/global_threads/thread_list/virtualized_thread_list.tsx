@@ -57,13 +57,20 @@ function VirtualizedThreadList({
     }, [selectedThreadId]);
 
     const data = useMemo(
-        () => (
-            {
-                ids: addNoMoreResultsItem && ids.length === total ? [...ids, Constants.THREADS_NO_RESULTS_ITEM_ID] : (isLoading && ids.length !== total && [...ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID]) || ids,
+        () => {
+            const cids = [...ids];
+            if (addNoMoreResultsItem && ids.length === total) {
+                cids.push(Constants.THREADS_NO_RESULTS_ITEM_ID);
+            } else if (isLoading && ids.length !== total) {
+                cids.push(Constants.THREADS_LOADING_INDICATOR_ITEM_ID);
+            }
+
+            return {
+                ids: cids,
                 selectedThreadId,
                 routing,
-            }
-        ),
+            };
+        },
         [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total, routing],
     );
 
