@@ -602,7 +602,8 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
 
 	query = query.
-		Where(sq.Eq{"ThreadMemberships.Following": true})
+		Where(sq.Eq{"ThreadMemberships.Following": true}).
+		Where(sq.Eq{"Threads.ChannelId": channelID})
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -648,7 +649,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 		Limit(pageSize)
 
 	q, args, _ := query.ToSql()
-	mlog.Debug("GetThreadsForTeam", mlog.String("query", q), mlog.Any("args", args))
+	mlog.Debug("GetThreadsForChannel", mlog.String("query", q), mlog.Any("args", args))
 
 	var threads []*JoinedThread
 	if err := s.GetReplicaX().SelectBuilder(&threads, query); err != nil {
