@@ -15,6 +15,7 @@ import Root from 'components/root/root';
 import * as GlobalActions from 'actions/global_actions';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
 import matchMedia from 'tests/helpers/match_media.mock';
+import {ProductComponent} from 'types/store/plugins';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -64,7 +65,7 @@ describe('components/Root', () => {
             registerCustomPostRenderer: jest.fn(),
             initializeProducts: jest.fn(),
         },
-        permalinkRedirectTeamName: '',
+        permalinkRedirectTeamName: 'myTeam',
         showLaunchingWorkspace: false,
         plugins: [],
         products: [],
@@ -322,6 +323,35 @@ describe('components/Root', () => {
 
             expect(props.actions.emitBrowserWindowResized.mock.calls[0][0]).toBe(WindowSizes.MOBILE_VIEW);
 
+            wrapper.unmount();
+        });
+    });
+
+    describe('Routes', () => {
+        test('Should mount public product routes', () => {
+            const mainComponent = () => (<p>{'TestMainComponent'}</p>);
+            const publicComponent = () => (<p>{'TestPublicProduct'}</p>);
+
+            const props = {
+                ...baseProps,
+                products: [{
+                    id: 'productwithpublic',
+                    baseURL: '/productwithpublic',
+                    mainComponent,
+                    publicComponent,
+                } as unknown as ProductComponent,
+                {
+                    id: 'productwithoutpublic',
+                    baseURL: '/productwithoutpublic',
+                    mainComponent,
+                    publicComponent: null,
+                } as unknown as ProductComponent],
+            };
+
+            const wrapper = shallow(<Root {...props}/>);
+
+            (wrapper.instance() as any).setState({configLoaded: true});
+            expect(wrapper).toMatchSnapshot();
             wrapper.unmount();
         });
     });
