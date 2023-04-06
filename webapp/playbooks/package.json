@@ -6,9 +6,9 @@
     "node": ">=16.4.0"
   },
   "dependencies": {
-    "@mattermost/client": "*",
     "@apollo/client": "3.7.3",
     "@floating-ui/react-dom-interactions": "0.6.3",
+    "@mattermost/client": "*",
     "@mattermost/compass-icons": "0.1.32",
     "@mattermost/types": "*",
     "@mdi/js": "^6.5.95",
@@ -55,7 +55,6 @@
     "@graphql-codegen/client-preset": "1.2.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@testing-library/react-hooks": "8.0.0",
-    "@types/classnames": "2.3.1",
     "@types/debounce": "1.2.1",
     "@types/history": "4.7.8",
     "@types/jest": "27.4.0",
