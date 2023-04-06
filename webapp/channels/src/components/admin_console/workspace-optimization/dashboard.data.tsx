@@ -21,49 +21,11 @@ import {GlobalState} from '@mattermost/types/store';
 import {CloudLinks, ConsolePages, DocLinks} from 'utils/constants';
 import {daysToLicenseExpire, isEnterpriseOrE20License, getIsStarterLicense} from '../../../utils/license_utils';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import {AdminConfig} from '@mattermost/types/config';
+import {configChecks} from './dashboard_checks/config_checks';
+import {ItemStatus, UpdatesParam} from './dashboard.type';
 
-export type DataModel = {
-    [key: string]: {
-        title: string;
-        description: string;
-        descriptionOk: string;
-        items: ItemModel[];
-        icon: React.ReactNode;
-        hide?: boolean;
-    };
-}
-
-export enum ItemStatus {
-    NONE = 'none',
-    OK = 'ok',
-    INFO = 'info',
-    WARNING = 'warning',
-    ERROR = 'error',
-}
-
-export type ItemModel = {
-    id: string;
-    title: string;
-    description: string;
-    status: ItemStatus;
-    scoreImpact: number;
-    impactModifier: number;
-    configUrl?: string;
-    configText?: string;
-    telemetryAction?: string;
-    infoUrl?: string;
-    infoText?: string;
-}
-
-export type UpdatesParam = {
-    serverVersion: {
-        type: string;
-        status: ItemStatus;
-        description: string;
-    };
-}
-
-const impactModifiers: Record<ItemStatus, number> = {
+export const impactModifiers: Record<ItemStatus, number> = {
     [ItemStatus.NONE]: 1,
     [ItemStatus.OK]: 1,
     [ItemStatus.INFO]: 0.5,
@@ -133,16 +95,7 @@ const useMetricsData = () => {
         ],
     });
 
-    type ConfigurationParam = {
-        ssl: {
-            status: ItemStatus;
-        };
-        sessionLength: {
-            status: ItemStatus;
-        };
-    }
-
-    const getConfigurationData = (data: ConfigurationParam) => ({
+    const getConfigurationData = (config: Partial<AdminConfig>) => ({
         title: formatMessage({
             id: 'admin.reporting.workspace_optimization.configuration.title',
             defaultMessage: 'Configuration',
@@ -164,44 +117,7 @@ const useMetricsData = () => {
                 />
             </div>
         ),
-        items: [
-            {
-                id: 'ssl',
-                title: formatMessage({
-                    id: 'admin.reporting.workspace_optimization.configuration.ssl.title',
-                    defaultMessage: 'Configure SSL to make your server more secure',
-                }),
-                description: formatMessage({
-                    id: 'admin.reporting.workspace_optimization.configuration.ssl.description',
-                    defaultMessage: 'We strongly recommend securing your Mattermost workspace by configuring SSL in production environments.',
-                }),
-                infoUrl: DocLinks.SSL_CERTIFICATE,
-                infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),
-                telemetryAction: 'ssl',
-                status: data.ssl.status,
-                scoreImpact: 25,
-                impactModifier: impactModifiers[data.ssl.status],
-            },
-            {
-                id: 'session-length',
-                title: formatMessage({
-                    id: 'admin.reporting.workspace_optimization.configuration.session_length.title',
-                    defaultMessage: 'Session lengths is set to default',
-                }),
-                description: formatMessage({
-                    id: 'admin.reporting.workspace_optimization.configuration.session_length.description',
-                    defaultMessage: 'Your session length is set to the default of 30 days. A longer session length provides convenience, and a shorter session provides tighter security. We recommend adjusting this based on your organization\'s security policies.',
-                }),
-                configUrl: ConsolePages.SESSION_LENGTHS,
-                configText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.configureSessionLength', defaultMessage: 'Configure session length'}),
-                infoUrl: DocLinks.SESSION_LENGTHS,
-                infoText: formatMessage({id: 'admin.reporting.workspace_optimization.cta.learnMore', defaultMessage: 'Learn more'}),
-                telemetryAction: 'session-length',
-                status: data.sessionLength.status,
-                scoreImpact: 8,
-                impactModifier: impactModifiers[data.sessionLength.status],
-            },
-        ],
+        items: configChecks.map((check) => check(config, formatMessage)),
     });
 
     type AccessParam = {

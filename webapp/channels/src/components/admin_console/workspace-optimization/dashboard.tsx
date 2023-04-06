@@ -22,10 +22,11 @@ import {Props} from '../admin_console';
 import ChipsList, {ChipsInfoType} from './chips_list';
 import CtaButtons from './cta_buttons';
 
-import useMetricsData, {DataModel, ItemStatus, UpdatesParam} from './dashboard.data';
+import useMetricsData from './dashboard.data';
 
 import './dashboard.scss';
 import OverallScore from './overall-score';
+import {DataModel, ItemStatus, UpdatesParam} from './dashboard.type';
 
 const AccordionItem = styled.div`
     padding: 12px;
@@ -75,9 +76,6 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
         // TeamSettings,
         // GuestAccountsSettings,
     } = props.config;
-    const {location} = document;
-
-    const sessionLengthWebInHours = ServiceSettings?.SessionLengthWebInHours || -1;
 
     const testURL = () => {
         if (!ServiceSettings?.SiteURL) {
@@ -205,11 +203,12 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
     }, [props.config, isLicensed, isEnterpriseLicense]);
 
     const data: DataModel = {
-        updates: getUpdatesData({serverVersion: versionData}),
-        configuration: getConfigurationData({
-            ssl: {status: location.protocol === 'https:' ? ItemStatus.OK : ItemStatus.ERROR},
-            sessionLength: {status: sessionLengthWebInHours === 720 ? ItemStatus.INFO : ItemStatus.OK},
-        }),
+        updates: getUpdatesData(
+            {
+                serverVersion: versionData,
+            },
+        ),
+        configuration: getConfigurationData(props.config),
         access: getAccessData({siteUrl: {status: liveUrlStatus}}),
         performance: getPerformanceData({
             search: {
