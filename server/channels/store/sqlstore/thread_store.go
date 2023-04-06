@@ -631,10 +631,6 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 			})
 	}
 
-	if opts.Unread {
-		query = query.Where(sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt"))
-	}
-
 	order := "DESC"
 	if opts.Before != "" {
 		query = query.Where(sq.Expr(`Threads.LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before))

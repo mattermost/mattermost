@@ -72,9 +72,6 @@ type GetChannelThreadsOpts struct {
 	// After specifies thread id as a cursor for pagination and will return `PageSize` threads after the cursor
 	After string
 
-	// Unread will make sure that only threads with unread replies are returned
-	Unread bool
-
 	// TotalsOnly will not fetch any threads and just fetch the total counts
 	TotalsOnly bool
 
