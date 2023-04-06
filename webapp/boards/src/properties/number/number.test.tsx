@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react'
-import {screen} from '@testing-library/react'
+import {render, screen} from '@testing-library/react'
 import {mocked} from 'jest-mock'
 
-import {setup, wrapIntl} from 'src/testUtils'
+import userEvent from '@testing-library/user-event'
+
+import {wrapIntl} from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import mutator from 'src/mutator'
 
@@ -43,7 +45,7 @@ describe('properties/number', () => {
     })
 
     it('should match snapshot for number with empty value', () => {
-        const {container} = setup(
+        const {container} = render(
             wrapIntl((
                 <NumberEditor
                     {...baseProps}
@@ -54,7 +56,7 @@ describe('properties/number', () => {
     })
 
     it('should fire change event when valid number value is entered', async () => {
-        const {user} = setup(
+        render(
             wrapIntl(
                 <NumberEditor
                     {...baseProps}
@@ -63,7 +65,7 @@ describe('properties/number', () => {
         )
         const value = '42'
         const input = screen.getByRole('textbox')
-        await user.type(input, `${value}{Enter}`)
+        userEvent.type(input, `${value}{Enter}`)
 
         expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, `${value}`)
     })
