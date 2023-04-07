@@ -64,6 +64,7 @@ function makeMapStateToProps() {
         const err = state.requests.posts.createPost.error || {};
 
         const draft = getPostDraft(state, StoragePrefixes.COMMENT_DRAFT, ownProps.rootId);
+        const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.COMMENT_DRAFT}${ownProps.rootId}`];
 
         const channelMembersCount = getAllChannelStats(state)[ownProps.channelId] ? getAllChannelStats(state)[ownProps.channelId].member_count : 1;
         const messageInHistory = getMessageInHistoryItem(state);
@@ -91,6 +92,7 @@ function makeMapStateToProps() {
         return {
             currentTeamId,
             draft,
+            isRemoteDraft,
             messageInHistory,
             channelMembersCount,
             currentUserId,

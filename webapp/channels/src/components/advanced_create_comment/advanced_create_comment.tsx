@@ -73,6 +73,9 @@ type Props = {
     // The current draft of the comment
     draft: PostDraft;
 
+    // Data used for knowing if the draft came from a WS event
+    isRemoteDraft: boolean;
+
     // Determines if the submit button should be rendered
     enableAddButton?: boolean;
 
@@ -232,7 +235,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const rootChanged = props.rootId !== state.rootId;
         const messageInHistoryChanged = props.messageInHistory !== state.messageInHistory;
-        if (rootChanged || messageInHistoryChanged || props.draft.remote) {
+        if (rootChanged || messageInHistoryChanged || props.isRemoteDraft) {
             updatedState = {...updatedState, draft: {...props.draft, uploadsInProgress: rootChanged ? [] : props.draft.uploadsInProgress}};
         }
 
