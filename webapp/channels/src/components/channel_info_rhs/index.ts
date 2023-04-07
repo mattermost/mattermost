@@ -7,7 +7,7 @@ import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
+import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts, showThreadsForChannel} from 'actions/views/rhs';
 
 import {GlobalState} from 'types/store';
 
@@ -93,6 +93,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             showPinnedPosts,
             showChannelMembers,
             getChannelStats,
+            showThreadsForChannel,
         }, dispatch),
     };
 }

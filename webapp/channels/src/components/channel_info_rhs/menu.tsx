@@ -100,6 +100,7 @@ interface MenuProps {
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
         getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        showThreadsForChannel: (channelId?: string) => void;
     };
 }
 
@@ -147,6 +148,12 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
                 opensSubpanel={true}
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
+            />
+            <MenuItem
+                icon={<i className='icon icon-pin-outline'/>}
+                text={formatMessage({id: 'channel_info_rhs.menu.threads', defaultMessage: 'Threads'})}
+                opensSubpanel={true}
+                onClick={() => actions.showThreadsForChannel(channel.id)}
             />
             <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
