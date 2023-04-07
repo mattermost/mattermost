@@ -88,6 +88,7 @@ const state: GlobalState = {
             threadsInChannel: {},
             counts: {},
             countsIncludingDirect: {},
+            countsInChannel: {},
         },
         preferences: {
             myPreferences: {},

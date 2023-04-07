@@ -1885,7 +1885,7 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// TODO: check if the user has permissions to view the channel
 
 	opts := model.GetChannelThreadsOpts{
-		PageSize: 30,
+		PageSize: uint64(c.Params.PerPage),
 	}
 
 	queryValues := r.URL.Query()
@@ -1893,6 +1893,20 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts.Deleted, _ = strconv.ParseBool(queryValues.Get("deleted"))
 	opts.TotalsOnly, _ = strconv.ParseBool(queryValues.Get("totalsOnly"))
 	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get("threadsOnly"))
+	opts.Before = queryValues.Get("before")
+	opts.After = queryValues.Get("after")
+
+	// parameters are mutually exclusive
+	if opts.Before != "" && opts.After != "" {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// parameters are mutually exclusive
+	if opts.TotalsOnly && opts.ThreadsOnly {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, opts)
 	if appErr != nil {

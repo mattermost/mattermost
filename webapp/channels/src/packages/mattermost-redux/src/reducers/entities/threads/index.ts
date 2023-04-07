@@ -10,7 +10,7 @@ import {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
 import {threadsInChannelReducer} from './threadsInChannel';
-import {countsReducer, countsIncludingDirectReducer} from './counts';
+import {countsReducer, countsIncludingDirectReducer, countsInChannelReducer} from './counts';
 
 import {ExtraData} from './types';
 
@@ -163,6 +163,7 @@ const initialState = {
     counts: {},
     countsIncludingDirect: {},
     threadsInChannel: {},
+    countsInChannel: {},
 };
 
 // custom combineReducers function
@@ -201,14 +202,19 @@ function reducer(state: ThreadsState = initialState, action: GenericAction): Thr
 
         // Object mapping teams ids to thread ids
         threadsInChannel: threadsInChannelReducer(state.threadsInChannel, action, extra),
+
+        // Object mapping channel ids to total count of threads in channel
+        countsInChannel: countsInChannelReducer(state.countsInChannel, action),
     };
 
     if (
         state.threads === nextState.threads &&
         state.threadsInTeam === nextState.threadsInTeam &&
         state.unreadThreadsInTeam === nextState.unreadThreadsInTeam &&
+        state.threadsInChannel === nextState.threadsInChannel &&
         state.counts === nextState.counts &&
-        state.countsIncludingDirect === nextState.countsIncludingDirect
+        state.countsIncludingDirect === nextState.countsIncludingDirect &&
+        state.countsInChannel === nextState.countsInChannel
     ) {
         // None of the children have changed so don't even let the parent object change
         return state;

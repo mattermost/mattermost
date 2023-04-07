@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {getThreadsForChannel} from 'mattermost-redux/actions/threads';
+import {getThreadsCountsForChannel, getThreadsForChannel} from 'mattermost-redux/actions/threads';
 
 import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
 import {getPreviousRhsState} from 'selectors/rhs';
@@ -16,11 +16,12 @@ import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {GlobalState} from 'types/store';
 
 import ChannelThreads, {Props} from './channel_threads_rhs';
-import {makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
+import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 function makeMapStateToProps() {
     const getThreadsInChannelView = makeGetThreadsInChannelView();
+    const getThreadCountInChannelView = makeGetThreadCountsInChannelView();
 
     return (state: GlobalState) => {
         const channel = getCurrentChannel(state);
@@ -37,6 +38,7 @@ function makeMapStateToProps() {
         }
 
         const threads = getThreadsInChannelView(state, channel.id);
+        const counts = getThreadCountInChannelView(state, channel.id);
 
         return {
             canGoBack: Boolean(prevRhsState),
@@ -44,7 +46,7 @@ function makeMapStateToProps() {
             currentTeamId: team.id,
             currentTeamName: team.name,
             threads,
-            total: threads.length,
+            total: counts.total || 0,
         };
     };
 }
@@ -56,6 +58,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             goBack,
             selectPostFromRightHandSideSearchByPostId,
             getThreadsForChannel,
+            getThreadsCountsForChannel,
         }, dispatch),
     };
 }

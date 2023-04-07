@@ -95,5 +95,6 @@ export default keyMirror({
 
     INCREMENT_FILE_COUNT: null,
 
+    RECEIVED_CHANNEL_THREAD_COUNTS: null,
     RECEIVED_CHANNEL_THREADS: null,
 });

@@ -12,6 +12,8 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import Header from './header';
 
+import type {FetchThreadOptions} from 'mattermost-redux/actions/threads';
+
 import './channel_threads_rhs.scss';
 
 export type Props = {
@@ -26,7 +28,8 @@ export type Props = {
         closeRightHandSide: () => void;
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
-        getThreadsForChannel: (id: Channel['id']) => Promise<void>;
+        getThreadsForChannel: (id: Channel['id'], options?: FetchThreadOptions) => any;
+        getThreadsCountsForChannel: (id: Channel['id']) => any;
     };
 }
 
@@ -43,23 +46,21 @@ function ChannelThreads({
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const fetchThreads = async () => {
-            if (!threads.length) {
-                setIsLoading(true);
-            }
-            try {
-                await actions.getThreadsForChannel(channel.id);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        let after = '';
+        if (threads.length) {
+            after = threads[0];
+        }
 
-        fetchThreads();
+        actions.getThreadsCountsForChannel(channel.id);
+        actions.getThreadsForChannel(channel.id, {after, perPage: 5});
     }, [channel.id]);
 
-    const handleLoadMoreItems = useCallback(async () => {
-        return [];
-    }, []);
+    const handleLoadMoreItems = useCallback(async (startIndex) => {
+        setIsLoading(true);
+        const before = threads[startIndex - 1];
+        await actions.getThreadsForChannel(channel.id, {before, perPage: 5});
+        setIsLoading(false);
+    }, [currentTeamId, threads]);
 
     const select = useCallback((threadId?: UserThread['id']) => {
         if (threadId) {

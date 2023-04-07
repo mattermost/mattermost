@@ -621,10 +621,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 
 	if opts.Since > 0 {
 		query = query.
-			Where(sq.Or{
-				sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since},
-				sq.GtOrEq{"Threads.LastReplyAt": opts.Since},
-			})
+			Where(sq.GtOrEq{"Threads.LastReplyAt": opts.Since})
 	}
 
 	order := "DESC"

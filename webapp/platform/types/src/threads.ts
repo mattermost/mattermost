@@ -70,4 +70,7 @@ export type ThreadsState = {
         total_unread_mentions: number;
         total_unread_urgent_mentions?: number;
     }>;
+    countsInChannel: RelationOneToOne<Channel, {
+        total: number;
+    }>;
 };

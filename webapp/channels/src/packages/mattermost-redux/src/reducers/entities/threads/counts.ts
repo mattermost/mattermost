@@ -260,3 +260,37 @@ export function countsReducer(state: ThreadsState['counts'] = {}, action: Generi
     }
     return state;
 }
+
+export function countsInChannelReducer(state: ThreadsState['countsInChannel'], action: GenericAction) {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_CHANNEL_DELETED:
+    case ChannelTypes.LEAVE_CHANNEL: {
+        const channel: Channel = action.data;
+
+        if (!state[channel.id]) {
+            return state;
+        }
+
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channel.id);
+
+        return nextState;
+    }
+    case ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS: {
+        const {total, channel_id: channelId} = action.data;
+        if (state[channelId]?.total === total) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [channelId]: {
+                total,
+            },
+        };
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    }
+    return state;
+}

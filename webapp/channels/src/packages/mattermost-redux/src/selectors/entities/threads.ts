@@ -199,15 +199,30 @@ export const getThreadItemsInChannel: (
     },
 );
 
-export function makeGetThreadsInChannelView() {
+export function makeGetThreadsInChannelView(): (state: GlobalState, channelId: Channel['id']) => Array<UserThread['id']> {
     const empty = Object.freeze([]);
 
     return createSelector(
         'makeGetThreadsInChannelView',
+        getThreads,
         (state: GlobalState) => state.entities.threads.threadsInChannel,
         (_state: GlobalState, channelId: Channel['id']) => channelId,
-        (threadsInChannel, channelId) => {
-            return threadsInChannel[channelId] || empty;
+        (allThreads, threadsInChannel, channelId) => {
+            const ids = threadsInChannel[channelId] || empty;
+            return sortByLastReply(ids, allThreads);
+        },
+    );
+}
+
+export function makeGetThreadCountsInChannelView(): (state: GlobalState, channelId: Channel['id']) => {total: number} {
+    const empty = Object.freeze({});
+
+    return createSelector(
+        'makeGetThreadCountsInChannelView',
+        (state: GlobalState) => state.entities.threads.countsInChannel,
+        (_state: GlobalState, channelId: Channel['id']) => channelId,
+        (counts, channelId) => {
+            return counts[channelId] || empty;
         },
     );
 }

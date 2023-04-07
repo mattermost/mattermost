@@ -2131,7 +2131,7 @@ export default class Client4 {
         const options = {
             before,
             after,
-            perPage,
+            per_page: perPage,
             extended,
             deleted,
             since,

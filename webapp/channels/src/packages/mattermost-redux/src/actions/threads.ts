@@ -26,7 +26,18 @@ import {getPostThread} from './posts';
 
 type ExtendedPost = Post & { system_post_ids?: string[] };
 
-export function fetchThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, totalsOnly = false, threadsOnly = false, extended = false, since = 0} = {}) {
+export type FetchThreadOptions = {
+    after?: string;
+    before?: string;
+    extended?: boolean;
+    perPage?: number;
+    since?: number;
+    threadsOnly?: boolean;
+    totalsOnly?: boolean;
+    unread?: boolean;
+};
+
+export function fetchThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, totalsOnly = false, threadsOnly = false, extended = false, since = 0}: FetchThreadOptions = {}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data: undefined | UserThreadList;
 
@@ -42,7 +53,7 @@ export function fetchThreads(userId: string, teamId: string, {before = '', after
     };
 }
 
-export function getThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, extended = true} = {}) {
+export function getThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, extended = true}: FetchThreadOptions = {}) {
     return async (dispatch: DispatchFunc) => {
         const response = await dispatch(fetchThreads(userId, teamId, {before, after, perPage, unread, totalsOnly: false, threadsOnly: true, extended}));
 
@@ -434,7 +445,7 @@ export function decrementThreadCounts(post: ExtendedPost) {
     };
 }
 
-export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = true, extended = false, since = 0} = {}) {
+export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = true, extended = false, since = 0}: FetchThreadOptions = {}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data: undefined | UserThreadList;
 
@@ -460,6 +471,34 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
                 type: ChannelTypes.RECEIVED_CHANNEL_THREADS,
                 data: {
                     threads: data?.threads ?? [],
+                    channel_id: channelId,
+                },
+            });
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
+export function getThreadsCountsForChannel(channelId: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let data: undefined | UserThreadList;
+
+        try {
+            data = await Client4.getThreadsForChannel(channelId, {totalsOnly: true, perPage: 1});
+
+            if (!data) {
+                return {error: true};
+            }
+
+            dispatch({
+                type: ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS,
+                data: {
+                    total: data.total,
                     channel_id: channelId,
                 },
             });

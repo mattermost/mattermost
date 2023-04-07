@@ -623,7 +623,7 @@ export function setEditChannelMembers(active: boolean) {
 }
 
 export function showThreadsForChannel(channelId?: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const currentChannelId = getCurrentChannelId(state);
 
@@ -638,6 +638,7 @@ export function showThreadsForChannel(channelId?: string) {
             state: RHSStates.CHANNEL_THREADS,
             previousRhsState,
         });
+
+        return {data: true};
     };
 }
-

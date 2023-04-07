@@ -23,8 +23,8 @@
     }
 
     .icon {
-        font-size: 16px;
         fill: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
 
         svg {
             width: 16px;
@@ -51,8 +51,8 @@
         }
 
         .icon {
-            fill: v(button-bg);
             color: v(button-bg);
+            fill: v(button-bg);
         }
     }
 
