@@ -259,10 +259,9 @@ func SetupConnection(connType string, dataSource string, settings *model.SqlSett
 		} else {
 			if i == attempts-1 {
 				return nil, err
-			} else {
-				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
-				time.Sleep(DBPingTimeoutSecs * time.Second)
 			}
+			mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
+			time.Sleep(DBPingTimeoutSecs * time.Second)
 		}
 	}
 
@@ -327,7 +326,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err := SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -342,7 +341,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err := SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -1193,9 +1192,9 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		if err != nil {
 			return err
 		}
-		db, err := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
-		if err != nil {
-			return err
+		db, err2 := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
+		if err2 != nil {
+			return err2
 		}
 		driver, err = ms.WithInstance(db)
 		defer db.Close()
