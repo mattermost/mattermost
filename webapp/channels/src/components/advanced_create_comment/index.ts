@@ -121,11 +121,11 @@ function makeMapStateToProps() {
 }
 
 function makeOnUpdateCommentDraft(rootId: string, channelId: string) {
-    return (draft?: PostDraft, save = false) => updateCommentDraft(rootId, draft ? {...draft, channelId, remote: false} : draft, save);
+    return (draft?: PostDraft, save = false) => updateCommentDraft(rootId, draft ? {...draft, channelId} : draft, save);
 }
 
 function makeUpdateCommentDraftWithRootId(channelId: string) {
-    return (rootId: string, draft?: PostDraft, save = false) => updateCommentDraft(rootId, draft ? {...draft, channelId, remote: false} : draft, save);
+    return (rootId: string, draft?: PostDraft, save = false) => updateCommentDraft(rootId, draft ? {...draft, channelId} : draft, save);
 }
 
 type Actions = {

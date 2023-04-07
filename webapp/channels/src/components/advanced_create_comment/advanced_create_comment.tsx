@@ -342,7 +342,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const updatedDraft = {
             ...this.state.draft,
             show: !isDraftEmpty(this.state.draft),
-            remote: false,
         } as PostDraft;
 
         this.props.onUpdateCommentDraft(updatedDraft, true);
@@ -355,7 +354,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     draft: {
                         ...prev.draft,
                         show: !isDraftEmpty(prev.draft),
-                        remote: false,
                     } as PostDraft,
                 };
             }
