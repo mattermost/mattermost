@@ -137,7 +137,7 @@ function ChannelThreads({
         if (selected === Tabs.FOLLOWING) {
             return formatMessage({
                 id: 'channel_threads.noResults.following',
-                defaultMessage: 'There are no threads in this channel.',
+                defaultMessage: 'You don’t follow any threads in this channel.',
             });
         }
         if (selected === Tabs.CREATED) {
@@ -146,12 +146,12 @@ function ChannelThreads({
                 defaultMessage: 'You don’t have any threads that you created in this channel.',
             });
         }
-
         return formatMessage({
             id: 'channel_threads.noResults.all',
-            defaultMessage: 'You don’t have any threads that you’re following in this channel.',
+            defaultMessage: 'There are no threads in this channel.',
         });
     }, [selected]);
+
     return (
         <div
             id='rhsContainer'
