@@ -254,6 +254,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             serverError: null,
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
+            caretPosition: props.draft.caretPosition,
         };
 
         this.textboxRef = React.createRef();
