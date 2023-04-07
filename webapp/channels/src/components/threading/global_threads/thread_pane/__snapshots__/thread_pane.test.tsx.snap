@@ -43,6 +43,14 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
         <Memo(ThreadMenu)
           hasUnreads={false}
           isFollowing={true}
+          routing={
+            Object {
+              "currentTeamId": "tid",
+              "currentUserId": "uid",
+              "goToInChannel": [MockFunction],
+              "select": [MockFunction],
+            }
+          }
           threadId="1y8hpek81byspd4enyk9mp1ncw"
           unreadTimestamp={1611786714912}
         >

@@ -141,6 +141,20 @@ exports[`components/ChannelHeader should match snapshot with last active display
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -443,6 +457,20 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
               id="status_dropdown.set_offline"
             />
           </span>
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
@@ -751,6 +779,20 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -1050,6 +1092,20 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             }
             onClick={[Function]}
             tooltipKey="channelMembers"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
           />
           <HeaderIconWrapper
             ariaLabel={true}
@@ -1357,6 +1413,20 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -1659,6 +1729,20 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           />
           <HeaderIconWrapper
             ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left channel-header__icon--active"
             buttonId="channelHeaderPinButton"
             iconComponent={
@@ -1928,6 +2012,20 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             }
             onClick={[Function]}
             tooltipKey="channelMembers"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
           />
           <HeaderIconWrapper
             ariaLabel={true}
@@ -2267,6 +2365,20 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -2566,6 +2678,20 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             }
             onClick={[Function]}
             tooltipKey="channelMembers"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
           />
           <HeaderIconWrapper
             ariaLabel={true}
@@ -2890,6 +3016,20 @@ exports[`components/ChannelHeader should render properly when custom status is e
               />
             </span>
           </span>
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
@@ -3238,6 +3378,20 @@ exports[`components/ChannelHeader should render properly when custom status is s
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -3539,6 +3693,20 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             }
             onClick={[Function]}
             tooltipKey="channelMembers"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
           />
           <HeaderIconWrapper
             ariaLabel={true}
@@ -3846,6 +4014,20 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -4145,6 +4327,20 @@ exports[`components/ChannelHeader should render properly when populated with cha
             }
             onClick={[Function]}
             tooltipKey="channelMembers"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
           />
           <HeaderIconWrapper
             ariaLabel={true}
@@ -4483,6 +4679,20 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           <HeaderIconWrapper
             ariaLabel={true}
             buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
             buttonId="channelHeaderPinButton"
             iconComponent={
               <i
@@ -4784,6 +4994,20 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             }
             onClick={[Function]}
             tooltipKey="channelMembers"
+          />
+          <HeaderIconWrapper
+            ariaLabel={true}
+            buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left"
+            buttonId="channelThreads"
+            iconComponent={
+              <ThreadsIcon
+                className="icon channel-header__threads"
+                height={16}
+                width={16}
+              />
+            }
+            onClick={[Function]}
+            tooltipKey="channelThreads"
           />
           <HeaderIconWrapper
             ariaLabel={true}

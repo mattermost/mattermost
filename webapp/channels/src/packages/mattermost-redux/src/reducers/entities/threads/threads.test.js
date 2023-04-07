@@ -401,8 +401,10 @@ describe('threads', () => {
                     id: 't3',
                 },
             },
+            threadsInChannel: {},
             counts: {},
             countsIncludingDirect: {},
+            countsInChannel: {},
         });
 
         const nextState = threadsReducer(state, {
@@ -432,8 +434,10 @@ describe('threads', () => {
                     id: 't2',
                 },
             },
+            threadsInChannel: {},
             counts: {},
             countsIncludingDirect: {},
+            countsInChannel: {},
         });
 
         const nextState = threadsReducer(state, {
@@ -539,6 +543,8 @@ describe('threads', () => {
                     total_unread_mentions: 0,
                 },
             },
+            threadsInChannel: {},
+            countsInChannel: {},
         });
 
         const nextState = threadsReducer(state, {
@@ -599,33 +605,35 @@ describe('threads', () => {
                     last_reply_at: 20,
                 },
             },
+            threadsInChannel: {},
             counts: {},
             countsIncludingDirect: {},
+            countsInChannel: {},
         });
 
         test.each([
-            ['a', {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            ['a', {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
 
             // DM/GM threads
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            [undefined, {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1', 't3'], unread: []}}],
+            [undefined, {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
+            [undefined, {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
+            [undefined, {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            [undefined, {id: 't3', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            [undefined, {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
+            [undefined, {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
+            [undefined, {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
+            [undefined, {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            [undefined, {id: 't2', post: {channel_id: 'channel_id'}, last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
         ])('should handle "%s" team and thread %o', (teamId, thread, expected) => {
             const nextState = threadsReducer(state, {
                 type: ThreadTypes.RECEIVED_THREAD,
