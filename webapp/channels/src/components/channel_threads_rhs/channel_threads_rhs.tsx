@@ -3,9 +3,11 @@
 
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useHistory} from 'react-router-dom';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
+import NoResultsIndicator from 'components/no_results_indicator';
 import Button from 'components/threading/common/button';
+import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -13,11 +15,11 @@ import type {UserThread} from '@mattermost/types/threads';
 import type {UserProfile} from '@mattermost/types/users';
 
 import Header from './header';
+import BugSearchIllustration from './channel_search_illustration';
 
 import type {FetchThreadOptions} from 'mattermost-redux/actions/threads';
 
 import './channel_threads_rhs.scss';
-import {FormattedMessage} from 'react-intl';
 
 export type Props = {
     all: Array<UserThread['id']>;
@@ -29,6 +31,7 @@ export type Props = {
     currentUserId: UserProfile['id'];
     following: Array<UserThread['id']>;
     total: number;
+    isSideBarExpanded: boolean;
 
     actions: {
         closeRightHandSide: () => void;
@@ -36,6 +39,7 @@ export type Props = {
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
         getThreadsForChannel: (id: Channel['id'], options?: FetchThreadOptions) => any;
         getThreadsCountsForChannel: (id: Channel['id']) => any;
+        toggleRhsExpanded: () => void;
     };
 }
 
@@ -56,7 +60,9 @@ function ChannelThreads({
     currentUserId,
     following,
     total,
+    isSideBarExpanded,
 }: Props) {
+    const {formatMessage} = useIntl();
     const history = useHistory();
     const [selected, setSelected] = useState(Tabs.ALL);
     const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +72,6 @@ function ChannelThreads({
         if (all.length) {
             after = all[0];
         }
-
         actions.getThreadsCountsForChannel(channel.id);
         actions.getThreadsForChannel(channel.id, {after, perPage: 5});
     }, [channel.id]);
@@ -113,9 +118,6 @@ function ChannelThreads({
     }, [select, goToInChannel, currentTeamId]);
 
     const ids = useMemo(() => {
-        if (selected === Tabs.ALL) {
-            return all;
-        }
         if (selected === Tabs.FOLLOWING) {
             return following;
         }
@@ -123,7 +125,7 @@ function ChannelThreads({
             return created;
         }
 
-        return [];
+        return all;
     }, [
         selected,
         all,
@@ -131,16 +133,37 @@ function ChannelThreads({
         created,
     ]);
 
+    const noResultsSubtitle = useMemo(() => {
+        if (selected === Tabs.FOLLOWING) {
+            return formatMessage({
+                id: 'channel_threads.noResults.following',
+                defaultMessage: 'There are no threads in this channel.',
+            });
+        }
+        if (selected === Tabs.CREATED) {
+            return formatMessage({
+                id: 'channel_threads.noResults.created',
+                defaultMessage: 'You don’t have any threads that you created in this channel.',
+            });
+        }
+
+        return formatMessage({
+            id: 'channel_threads.noResults.all',
+            defaultMessage: 'You don’t have any threads that you’re following in this channel.',
+        });
+    }, [selected]);
     return (
         <div
             id='rhsContainer'
             className='sidebar-right__body ChannelThreadList'
         >
             <Header
-                channel={channel}
                 canGoBack={canGoBack}
-                onClose={actions.closeRightHandSide}
+                channel={channel}
                 goBack={actions.goBack}
+                isExpanded={isSideBarExpanded}
+                onClose={actions.closeRightHandSide}
+                toggleRhsExpanded={actions.toggleRhsExpanded}
             />
             <div className='tab-buttons'>
                 <div className='tab-button-wrapper'>
@@ -181,13 +204,25 @@ function ChannelThreads({
                 </div>
             </div>
             <div className='channel-threads'>
-                <VirtualizedThreadList
-                    ids={ids}
-                    total={total}
-                    isLoading={isLoading}
-                    loadMoreItems={handleLoadMoreItems}
-                    routing={routing}
-                />
+                {ids.length ? (
+                    <VirtualizedThreadList
+                        ids={ids}
+                        total={total}
+                        isLoading={isLoading}
+                        loadMoreItems={handleLoadMoreItems}
+                        routing={routing}
+                    />
+                ) : (
+                    <NoResultsIndicator
+                        expanded={true}
+                        iconGraphic={BugSearchIllustration}
+                        subtitle={noResultsSubtitle}
+                        title={formatMessage({
+                            id: 'channel_threads.noResults.title',
+                            defaultMessage: 'No threads here',
+                        })}
+                    />
+                )}
             </div>
         </div>
     );

@@ -41,6 +41,7 @@
         align-items: center;
         gap: 4px;
         padding: 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
         .tab-button-wrapper {
             display: flex;
@@ -50,4 +51,7 @@
         }
     }
 
+    .no-results__text-container {
+        padding-top: 23px;
+    }
 }

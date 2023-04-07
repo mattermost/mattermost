@@ -10,8 +10,8 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
 
-import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
-import {getPreviousRhsState} from 'selectors/rhs';
+import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId, toggleRhsExpanded} from 'actions/views/rhs';
+import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
@@ -52,6 +52,7 @@ function makeMapStateToProps() {
             currentTeamName: team.name,
             currentUserId,
             following,
+            isSideBarExpanded: getIsRhsExpanded(state),
             total: counts.total || 0,
         };
     };
@@ -61,10 +62,11 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
     return {
         actions: bindActionCreators({
             closeRightHandSide,
+            getThreadsCountsForChannel,
+            getThreadsForChannel,
             goBack,
             selectPostFromRightHandSideSearchByPostId,
-            getThreadsForChannel,
-            getThreadsCountsForChannel,
+            toggleRhsExpanded,
         }, dispatch),
     };
 }

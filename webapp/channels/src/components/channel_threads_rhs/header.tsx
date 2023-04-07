@@ -11,13 +11,16 @@ import LocalizedIcon from 'components/localized_icon';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import {t} from 'utils/i18n';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
-interface Props {
-    channel: Channel;
+type Props = {
     canGoBack: boolean;
+    channel: Channel;
+    isExpanded: boolean;
 
-    onClose: () => void;
     goBack: () => void;
+    onClose: () => void;
+    toggleRhsExpanded: () => void;
 }
 
 const BackButton = styled.button`
@@ -29,12 +32,47 @@ const HeaderTitle = styled.span`
     line-height: 2.4rem;
 `;
 
-const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
+const Header = ({
+    canGoBack,
+    channel,
+    goBack,
+    isExpanded,
+    onClose,
+    toggleRhsExpanded,
+}: Props) => {
     const closeSidebarTooltip = (
         <Tooltip id='closeSidebarTooltip'>
             <FormattedMessage
                 id='rhs_header.closeSidebarTooltip'
                 defaultMessage='Close'
+            />
+        </Tooltip>
+    );
+
+    const expandSidebarTooltip = (
+        <Tooltip id='expandSidebarTooltip'>
+            <FormattedMessage
+                id='rhs_header.expandSidebarTooltip'
+                defaultMessage='Expand the right sidebar'
+            />
+            <KeyboardShortcutSequence
+                shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
+                hideDescription={true}
+                isInsideTooltip={true}
+            />
+        </Tooltip>
+    );
+
+    const shrinkSidebarTooltip = (
+        <Tooltip id='shrinkSidebarTooltip'>
+            <FormattedMessage
+                id='rhs_header.collapseSidebarTooltip'
+                defaultMessage='Collapse the right sidebar'
+            />
+            <KeyboardShortcutSequence
+                shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
+                hideDescription={true}
+                isInsideTooltip={true}
             />
         </Tooltip>
     );
@@ -70,6 +108,27 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     </span>
                 }
             </span>
+
+            <OverlayTrigger
+                delayShow={Constants.OVERLAY_TIME_DELAY}
+                placement='bottom'
+                overlay={isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
+            >
+                <button
+                    type='button'
+                    className='sidebar--right__expand btn-icon'
+                    onClick={toggleRhsExpanded}
+                >
+                    <LocalizedIcon
+                        className='icon icon-arrow-expand'
+                        ariaLabel={{id: t('rhs_header.expandSidebarTooltip.icon'), defaultMessage: 'Expand Sidebar Icon'}}
+                    />
+                    <LocalizedIcon
+                        className='icon icon-arrow-collapse'
+                        ariaLabel={{id: t('rhs_header.collapseSidebarTooltip.icon'), defaultMessage: 'Collapse Sidebar Icon'}}
+                    />
+                </button>
+            </OverlayTrigger>
 
             <OverlayTrigger
                 delayShow={Constants.OVERLAY_TIME_DELAY}
