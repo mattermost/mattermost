@@ -261,6 +261,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	}
 
 	log("Created temporary " + driver + " database " + dbName)
+	settings.ReplicaMonitorIntervalSeconds = model.NewInt(5)
 
 	return settings
 }
