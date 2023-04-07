@@ -460,7 +460,7 @@ const PreparingWorkspace = (props: Props) => {
                     transitionDirection={getTransitionDirection(WizardSteps.InviteMembers)}
                     disableEdits={submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail}
                     className='child-page'
-                    teamInviteId={form.teamMembers.inviteId}
+                    teamInviteId={team.invite_id || form.teamMembers.inviteId}
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}

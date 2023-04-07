@@ -4,18 +4,22 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {CSSTransition} from 'react-transition-group';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
 import debounce from 'lodash/debounce';
 
+import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
 import QuickInput from 'components/quick_input';
+
 import {trackEvent} from 'actions/telemetry_actions';
+
+import {getTeams} from 'mattermost-redux/actions/teams';
+import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
 import {teamNameToUrl} from 'utils/url';
 import Constants from 'utils/constants';
 
-import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
-
 import OrganizationStatus from './organization_status';
-
 import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
 import PageLine from './page_line';
 import Title from './title';
@@ -39,11 +43,20 @@ const reportValidationError = debounce(() => {
 
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
+
     const [triedNext, setTriedNext] = useState(false);
     const inputRef = useRef<HTMLInputElement>();
     const validation = teamNameToUrl(props.organization || '');
 
     useEffect(props.onPageView, []);
+
+    const teams = useSelector(getActiveTeamsList);
+    useEffect(() => {
+        if (!teams) {
+            dispatch(getTeams(0, 10000));
+        }
+    }, [teams]);
 
     const updateTeamNameFromOrgName = async () => {
         if (!inputRef.current?.value) {
@@ -69,6 +82,8 @@ const Organization = (props: Props) => {
         }
         const name = inputRef.current?.value.trim();
 
+        console.log('>>> create orgname', {name});
+
         if (name) {
             const {error, newTeam} = await props.createTeam(name);
             if (error !== null) {
@@ -85,13 +100,16 @@ const Organization = (props: Props) => {
                 return;
             }
         }
+
         if (!triedNext) {
             setTriedNext(true);
         }
 
-        if (!triedNext && props.isSelfHosted) {
+        // if there is already a team, maybe because a page reload, then just update the teamname
+        const thereIsAlreadyATeam = teams.length > 0;
+        if (!triedNext && !thereIsAlreadyATeam && props.isSelfHosted) {
             createTeamFromOrgName();
-        } else if (triedNext && props.isSelfHosted) {
+        } else if ((triedNext || thereIsAlreadyATeam) && props.isSelfHosted) {
             updateTeamNameFromOrgName();
         }
 
