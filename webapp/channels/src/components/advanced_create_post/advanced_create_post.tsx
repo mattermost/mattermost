@@ -297,8 +297,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            message: this.props.draft.message,
-            caretPosition: this.props.draft.message.length,
+            message: props.draft.message,
+            caretPosition: props.draft.message.length,
             submitting: false,
             showEmojiPicker: false,
             uploadsProgressPercent: {},
