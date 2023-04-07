@@ -177,7 +177,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*cfg.PasswordSettings.Symbol = false
 		*cfg.PasswordSettings.Number = false
 
-		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
 	if err := th.Server.Start(); err != nil {
 		panic(err)

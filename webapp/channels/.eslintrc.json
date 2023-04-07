@@ -5,7 +5,7 @@
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "@babel/eslint-plugin",
+    "@babel",
     "mattermost",
     "import",
     "no-only-tests",
