@@ -151,7 +151,7 @@ class SelectBinding extends React.PureComponent<Props, State> {
             this.props.actions.postEphemeralCallResponseForPost(callResp, errorMessage, post);
         }
         }
-    }
+    };
 
     render() {
         if (!this.nOptions) {

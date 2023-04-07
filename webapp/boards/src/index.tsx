@@ -28,6 +28,7 @@ windowAny.baseURL = '/plugins/boards'
 windowAny.frontendBaseURL = '/boards'
 
 import App from 'src/app'
+import PublicApp, {publicBaseURL} from 'src/public/app'
 
 import store from 'src/store'
 import WithWebSockets from 'src/components/withWebSockets'
@@ -175,10 +176,44 @@ const MainApp = (props: Props) => {
     )
 }
 
+const PublicMainApp = () => {
+    useEffect(() => {
+        document.body.classList.add('focalboard-body')
+        const root = document.getElementById('root')
+        if (root) {
+            while (root.firstElementChild) {
+                if( root.firstElementChild.id === 'focalboard-app'){
+                    break
+                }
+                root.removeChild(root.firstElementChild)
+            }
+            root.classList.add('focalboard-plugin-root')
+        }
+
+        return () => {
+            document.body.classList.remove('focalboard-body')
+            if (root) {
+                root.classList.remove('focalboard-plugin-root')
+            }
+        }
+    }, [])
+
+    return (
+        <ErrorBoundary>
+            <ReduxProvider store={store}>
+                <div id='focalboard-app'>
+                    <PublicApp />
+                </div>
+                <div id='focalboard-root-portal' />
+            </ReduxProvider>
+        </ErrorBoundary>
+    )
+}
+
 const HeaderComponent = () => {
     return (
         <ErrorBoundary>
-            <GlobalHeader history={browserHistory}/>
+            <GlobalHeader history={browserHistory} />
         </ErrorBoundary>
     )
 }
@@ -243,8 +278,6 @@ export default class Plugin {
             }
         })
 
-
-
         const initCurrentChannelId = mmStore.getState().entities.channels.currentChannelId
         const initCurrentChannel = mmStore.getState().entities.channels.channels[initCurrentChannelId]
         let lastViewedChannelId = initCurrentChannelId
@@ -274,7 +307,9 @@ export default class Plugin {
                 prevTeamId = currentTeamId
                 store.dispatch(setTeam(currentTeamId))
                 octoClient.teamId = currentTeamId
-                store.dispatch(initialLoad())
+                if(!window.location.pathname.includes(publicBaseURL())){
+                    store.dispatch(initialLoad())
+                }
             }
 
             if (currentTeamId && currentTeamId !== prevTeamId) {
@@ -336,6 +371,9 @@ export default class Plugin {
                 HeaderComponent,
                 () => null,
                 true,
+                true,
+                true,
+                PublicMainApp,
             )
 
             const goToFocalboardTemplate = () => {

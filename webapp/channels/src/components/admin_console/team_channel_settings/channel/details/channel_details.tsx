@@ -272,7 +272,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             return g;
         });
         this.processGroupsChange(groups);
-    }
+    };
 
     private channelPermissionsChanged = (name: string, channelRole: ChannelModerationRoles) => {
         const currentValueIndex = this.state.channelPermissions.findIndex((element) => element.name === name);
@@ -321,7 +321,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         };
         this.setState({channelPermissions, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     private handleGroupChange = (groupIDs: string[]) => {
         const groups = [...this.state.groups, ...groupIDs.map((gid: string) => this.props.allGroups[gid])];
@@ -607,20 +607,20 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         const {isLocalArchived} = this.state;
         const isServerArchived = this.props.channel.delete_at !== 0;
         return isLocalArchived && !isServerArchived;
-    }
+    };
 
     private channelToBeRestored = (): boolean => {
         const {isLocalArchived} = this.state;
         const isServerArchived = this.props.channel.delete_at !== 0;
         return !isLocalArchived && isServerArchived;
-    }
+    };
 
     private addRolesToUpdate = (userId: string, schemeUser: boolean, schemeAdmin: boolean) => {
         const {rolesToUpdate} = this.state;
         rolesToUpdate[userId] = {schemeUser, schemeAdmin};
         this.setState({rolesToUpdate: {...rolesToUpdate}, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     private addUserToRemove = (user: UserProfile) => {
         let {usersToRemoveCount} = this.state;
@@ -634,7 +634,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         delete rolesToUpdate[user.id];
         this.setState({usersToRemove: {...usersToRemove}, usersToAdd: {...usersToAdd}, rolesToUpdate: {...rolesToUpdate}, usersToRemoveCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     private addUsersToAdd = (users: UserProfile[]) => {
         let {usersToRemoveCount} = this.state;
@@ -649,7 +649,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         });
         this.setState({usersToAdd: {...usersToAdd}, usersToRemove: {...usersToRemove}, usersToRemoveCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     private onToggleArchive = () => {
         const {isLocalArchived, serverError, previousServerError} = this.state;

@@ -52,14 +52,14 @@ export default class TeamList extends React.PureComponent<Props, State> {
 
     componentDidMount = () => {
         this.loadPage(0, PAGE_SIZE * 2);
-    }
+    };
 
     private setStateLoading = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
     private setStatePage = (page: number) => {
         this.setState({page});
-    }
+    };
 
     private loadPage = async (page: number, pageSize = PAGE_SIZE) => {
         if (this.props.policyId) {
@@ -67,26 +67,26 @@ export default class TeamList extends React.PureComponent<Props, State> {
             await this.props.actions.getDataRetentionCustomPolicyTeams(this.props.policyId, page, pageSize);
             this.setStateLoading(false);
         }
-    }
+    };
 
     private nextPage = () => {
         const page = this.state.page + 1;
         this.loadPage(page + 1);
         this.setStatePage(page);
-    }
+    };
 
     private previousPage = () => {
         const page = this.state.page - 1;
         this.loadPage(page + 1);
         this.setStatePage(page);
-    }
+    };
 
     private getVisibleTotalCount = (): number => {
         const {teamsToAdd, teamsToRemove, totalCount} = this.props;
         const teamsToAddCount = Object.keys(teamsToAdd).length;
         const teamsToRemoveCount = Object.keys(teamsToRemove).length;
         return totalCount + (teamsToAddCount - teamsToRemoveCount);
-    }
+    };
 
     public getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
         const {page} = this.state;
@@ -98,7 +98,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         endCount = endCount > total ? total : endCount;
 
         return {startCount, endCount, total};
-    }
+    };
 
     private removeTeam = (team: Team) => {
         const {teamsToRemove} = this.props;
@@ -115,7 +115,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         }
 
         this.setStatePage(page);
-    }
+    };
 
     getColumns = (): Column[] => {
         const name = (
@@ -139,7 +139,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                 className: 'TeamList__actionColumn',
             },
         ];
-    }
+    };
 
     getRows = () => {
         const {page} = this.state;
@@ -203,11 +203,11 @@ export default class TeamList extends React.PureComponent<Props, State> {
                 },
             };
         });
-    }
+    };
 
     onSearch = async (searchTerm: string) => {
         this.props.actions.setTeamListSearch(searchTerm);
-    }
+    };
     public async componentDidUpdate(prevProps: Props) {
         const {searchTerm} = this.props;
         const searchTermModified = prevProps.searchTerm !== this.props.searchTerm;

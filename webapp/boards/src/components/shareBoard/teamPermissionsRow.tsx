@@ -52,19 +52,22 @@ const TeamPermissionsRow = (): JSX.Element => {
         }
     }
 
-    let currentRoleName = intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})
-    if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Admin) {
-        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})
-    } else if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Editor) {
-        if (board.isTemplate) {
+    let currentRoleName = intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})
+    if (board.type === BoardTypeOpen) {
+        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})
+        if (board.minimumRole === MemberRole.Editor) {
+            if (board.isTemplate) {
+                currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
+            } else {
+                currentRoleName = intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})
+            }
+        } else if (board.minimumRole === MemberRole.Commenter) {
+            currentRoleName = intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})
+        } else if (board.minimumRole === MemberRole.Viewer) {
             currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
-        } else {
-            currentRoleName = intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})
         }
-    } else if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Commenter) {
-        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})
-    } else if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Viewer) {
-        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
+    } else {
+        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})
     }
 
     const confirmationDialog = (
