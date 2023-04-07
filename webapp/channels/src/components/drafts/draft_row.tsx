@@ -14,9 +14,10 @@ type Props = {
     status: UserStatus['status'];
     displayName: string;
     draft: Draft;
+    draftRemotes: Record<string, boolean>;
 }
 
-function DraftRow({draft, user, status, displayName}: Props) {
+function DraftRow({draft, user, status, displayName, draftRemotes}: Props) {
     switch (draft.type) {
     case 'channel':
         return (
@@ -26,6 +27,7 @@ function DraftRow({draft, user, status, displayName}: Props) {
                 user={user}
                 status={status}
                 displayName={displayName}
+                isRemote={draftRemotes[draft.key]}
             />
         );
     case 'thread':
@@ -37,6 +39,7 @@ function DraftRow({draft, user, status, displayName}: Props) {
                 user={user}
                 status={status}
                 displayName={displayName}
+                isRemote={draftRemotes[draft.key]}
             />
         );
     default:
