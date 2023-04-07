@@ -43,6 +43,7 @@ describe('channel_info_rhs', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            showThreadsForChannel: jest.fn(),
             getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {}})),
         },
     };

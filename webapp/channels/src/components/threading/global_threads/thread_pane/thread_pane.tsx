@@ -38,12 +38,13 @@ const ThreadPane = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const routing = useThreadRouting();
     const {
         currentTeamId,
         currentUserId,
         goToInChannel,
         select,
-    } = useThreadRouting();
+    } = routing;
 
     const {
         id: threadId,
@@ -117,6 +118,7 @@ const ThreadPane = ({
                             isFollowing={isFollowing}
                             hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
+                            routing={routing}
                         >
                             <SimpleTooltip
                                 id='threadActionMenu'

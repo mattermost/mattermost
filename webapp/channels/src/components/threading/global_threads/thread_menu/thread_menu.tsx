@@ -24,9 +24,8 @@ import {copyToClipboard} from 'utils/utils';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {GlobalState} from 'types/store';
-
-import {useThreadRouting} from '../../hooks';
+import type {GlobalState} from 'types/store';
+import type {ThreadRouting} from '../../hooks';
 
 import './thread_menu.scss';
 
@@ -36,6 +35,7 @@ type Props = {
     hasUnreads: boolean;
     children: ReactNode;
     unreadTimestamp: number;
+    routing: ThreadRouting;
 };
 
 function ThreadMenu({
@@ -44,17 +44,18 @@ function ThreadMenu({
     unreadTimestamp,
     hasUnreads,
     children,
+    routing,
 }: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const {
-        params: {
-            team,
-        },
+        params,
         currentTeamId,
         currentUserId,
         goToInChannel,
-    } = useThreadRouting();
+    } = routing;
+
+    const teamName = params?.team;
 
     const isSaved = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_FLAGGED_POST, threadId, null) != null, shallowEqual);
 
@@ -147,8 +148,8 @@ function ThreadMenu({
                         defaultMessage: 'Copy link',
                     })}
                     onClick={useCallback(() => {
-                        copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
-                    }, [team, threadId])}
+                        copyToClipboard(`${getSiteURL()}/${teamName}/pl/${threadId}`);
+                    }, [teamName, threadId])}
                 />
             </Menu>
         </MenuWrapper>

@@ -221,6 +221,7 @@ function ThreadItem({
                     isFollowing={isFollowing ?? false}
                     hasUnreads={Boolean(newReplies)}
                     unreadTimestamp={unreadTimestamp}
+                    routing={routing}
                 >
                     <SimpleTooltip
                         id='threadActionMenu'

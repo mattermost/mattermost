@@ -5,6 +5,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
   isFirstThreadInList={false}
   isSelected={false}
   key="2"
+  routing={Object {}}
   style={Object {}}
   threadId="2"
 />

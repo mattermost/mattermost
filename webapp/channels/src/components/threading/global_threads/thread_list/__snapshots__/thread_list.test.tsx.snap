@@ -85,6 +85,14 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
       isLoading={false}
       key="threads_list_"
       loadMoreItems={[Function]}
+      routing={
+        Object {
+          "currentTeamId": "tid",
+          "currentUserId": "uid",
+          "goToInChannel": [MockFunction],
+          "select": [MockFunction],
+        }
+      }
       total={0}
     />
   </div>

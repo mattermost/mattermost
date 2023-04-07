@@ -16,8 +16,11 @@ import type {UserProfile} from '@mattermost/types/users';
 
 export type ThreadRouting = {
     currentTeamId: Team['id'];
-    currentUserId?: UserProfile['id'];
+    currentUserId: UserProfile['id'];
     history?: History;
+    params?: {
+        team?: Team['name'];
+    };
 
     clear?: () => void;
     goToInChannel: (id: UserThread['id'], teamName?: Team['name']) => void;
@@ -28,7 +31,7 @@ export type ThreadRouting = {
  * GlobalThreads-specific hook for nav/routing, selection, and common data needed for actions.
  */
 export function useThreadRouting() {
-    const matchParams = useParams<{team: string; threadIdentifier?: UserThread['id']}>();
+    const matchParams = useParams<{team: Team['name']; threadIdentifier?: UserThread['id']}>();
     const params = useMemo(() => matchParams, [matchParams.threadIdentifier, matchParams.team]);
     const history = useHistory();
 

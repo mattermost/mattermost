@@ -25,6 +25,7 @@ import {fakeDate} from 'tests/helpers/date';
 import {GlobalState} from 'types/store';
 jest.mock('utils/utils');
 
+import {ThreadRouting} from 'components/threading/hooks';
 const mockRouting = {
     params: {
         team: 'team-name-1',
@@ -33,11 +34,6 @@ const mockRouting = {
     currentTeamId: 'tid',
     goToInChannel: jest.fn(),
 };
-jest.mock('../../hooks', () => {
-    return {
-        useThreadRouting: () => mockRouting,
-    };
-});
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;
@@ -60,6 +56,7 @@ describe('components/threading/common/thread_menu', () => {
             children: (
                 <button>{'test'}</button>
             ),
+            routing: mockRouting as unknown as ThreadRouting,
         };
 
         mockState = {entities: {preferences: {myPreferences: {}}}} as GlobalState;

@@ -5,19 +5,18 @@ import {connect} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
 import {getThreadsCountsForChannel, getThreadsForChannel} from 'mattermost-redux/actions/threads';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
 
 import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId} from 'actions/views/rhs';
 import {getPreviousRhsState} from 'selectors/rhs';
 
 import type {Channel} from '@mattermost/types/channels';
-
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-
 import type {GlobalState} from 'types/store';
 
 import ChannelThreads, {Props} from './channel_threads_rhs';
-import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 function makeMapStateToProps() {
     const getThreadsInChannelView = makeGetThreadsInChannelView();
@@ -26,6 +25,7 @@ function makeMapStateToProps() {
     return (state: GlobalState) => {
         const channel = getCurrentChannel(state);
         const team = getCurrentTeam(state);
+        const currentUserId = getCurrentUserId(state);
         const prevRhsState = getPreviousRhsState(state);
 
         if (!channel || !team) {
@@ -45,6 +45,7 @@ function makeMapStateToProps() {
             channel,
             currentTeamId: team.id,
             currentTeamName: team.name,
+            currentUserId,
             threads,
             total: counts.total || 0,
         };

@@ -9,6 +9,7 @@ import VirtualizedThreadList from 'components/threading/global_threads/thread_li
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
+import type {UserProfile} from '@mattermost/types/users';
 
 import Header from './header';
 
@@ -21,6 +22,7 @@ export type Props = {
     canGoBack: boolean;
     currentTeamId: Team['id'];
     currentTeamName: Team['name'];
+    currentUserId: UserProfile['id'];
     threads: Array<UserThread['id']>;
     total: number;
 
@@ -39,6 +41,7 @@ function ChannelThreads({
     channel,
     currentTeamId,
     currentTeamName,
+    currentUserId,
     threads,
     total,
 }: Props) {
@@ -77,6 +80,10 @@ function ChannelThreads({
             select,
             goToInChannel,
             currentTeamId,
+            currentUserId,
+            params: {
+                team: currentTeamName,
+            },
         };
     }, [select, goToInChannel, currentTeamId]);
 
