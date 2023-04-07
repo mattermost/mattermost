@@ -5,7 +5,7 @@ import React from 'react';
 import {shallow, ReactWrapper} from 'enzyme';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
-import {act} from '@testing-library/react';
+import {act, screen} from '@testing-library/react';
 
 import * as global_actions from 'actions/global_actions';
 
@@ -15,16 +15,18 @@ import Signup from 'components/signup/signup';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 import SaveButton from 'components/save_button';
+import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 import {ClientConfig} from '@mattermost/types/config';
 import {GlobalState} from 'types/store';
 import {WindowSizes} from 'utils/constants';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};
 const mockHistoryPush = jest.fn();
-let mockLicense = {IsLicensed: 'true'};
+let mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 let mockConfig: Partial<ClientConfig>;
 let mockDispatch = jest.fn();
 
@@ -96,7 +98,7 @@ describe('components/signup/Signup', () => {
     beforeEach(() => {
         mockLocation = {pathname: '', search: '', hash: ''};
 
-        mockLicense = {IsLicensed: 'true'};
+        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
         mockState = {
             entities: {
@@ -178,7 +180,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should match snapshot for all signup options enabled with isLicensed disabled', () => {
-        mockLicense = {IsLicensed: 'false'};
+        mockLicense = {IsLicensed: 'false', Cloud: 'false'};
 
         const wrapper = shallow(
             <Signup/>,
@@ -294,5 +296,46 @@ describe('components/signup/Signup', () => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(wrapper.find('.content-layout-column-title').text()).toEqual('This invite link is invalid');
         });
+    });
+
+    it('should show newsletter check box opt-in for self-hosted non airgapped workspaces', async () => {
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
+        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+
+        const {container: signupContainer} = renderWithIntlAndStore(
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>, {});
+
+        screen.getByTestId('signup-body-card-form-check-newsletter');
+        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
+        expect(checkInput).toHaveAttribute('type', 'checkbox');
+
+        expect(signupContainer).toHaveTextContent(/I would like to receive Mattermost security updates via newsletter. Data Terms and Conditions apply/);
+    });
+
+    it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => false);
+        mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+
+        const {container: signupContainer} = renderWithIntlAndStore(
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>, {});
+
+        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
+        expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
+    });
+
+    it('should not show any newsletter related opt-in or text for cloud', async () => {
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
+        mockLicense = {IsLicensed: 'true', Cloud: 'true'};
+
+        renderWithIntlAndStore(
+            <BrowserRouter>
+                <Signup/>
+            </BrowserRouter>, {});
+
+        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
     });
 });

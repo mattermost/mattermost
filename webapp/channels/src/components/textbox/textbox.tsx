@@ -44,6 +44,7 @@ export type Props = {
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
+    onFocus?: (e: FocusEvent<TextboxElement>) => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
     onPaste?: (e: ClipboardEvent) => void;
@@ -312,6 +313,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     onKeyUp={this.handleKeyUp}
                     onComposition={this.props.onComposition}
                     onBlur={this.handleBlur}
+                    onFocus={this.props.onFocus}
                     onHeightChange={this.props.onHeightChange}
                     onWidthChange={this.props.onWidthChange}
                     onPaste={this.props.onPaste}

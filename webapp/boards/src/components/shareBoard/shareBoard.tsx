@@ -6,7 +6,7 @@ import React, {useState, useEffect} from 'react'
 import {useIntl, FormattedMessage} from 'react-intl'
 import {generatePath, useRouteMatch} from 'react-router-dom'
 import Select from 'react-select/async'
-import {CSSObject} from '@emotion/serialize'
+import {StylesConfig} from 'react-select'
 
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentBoard, getCurrentBoardMembers} from 'src/store/boards'
@@ -26,7 +26,7 @@ import {BoardMember, createBoard, MemberRole} from 'src/blocks/board'
 import client from 'src/octoClient'
 import Dialog from 'src/components/dialog'
 import ConfirmationDialog from 'src/components/confirmationDialogBox'
-import {IUser} from 'src/user'
+import {IUser, isUser} from 'src/user'
 import Switch from 'src/widgets/switch'
 import Button from 'src/widgets/buttons/button'
 import {sendFlashMessage} from 'src/components/flashMessages'
@@ -58,11 +58,11 @@ type Props = {
     enableSharedBoards: boolean
 }
 
-const baseStyles = getSelectBaseStyle()
+const baseStyles = getSelectBaseStyle<IUser | Channel>()
 
-const styles = {
+const styles: StylesConfig<IUser | Channel> = {
     ...baseStyles,
-    control: (): CSSObject => ({
+    control: () => ({
         border: 0,
         width: '100%',
         height: '100%',
@@ -70,7 +70,7 @@ const styles = {
         display: 'flex',
         flexDirection: 'row',
     }),
-    menu: (provided: CSSObject): CSSObject => ({
+    menu: (provided) => ({
         ...provided,
         minWidth: '100%',
         width: 'max-content',
@@ -78,8 +78,8 @@ const styles = {
         left: '0',
         marginBottom: '0',
     }),
-    singleValue: (provided: CSSObject): CSSObject => ({
-        ...baseStyles.singleValue(provided),
+    singleValue: (...props) => ({
+        ...baseStyles.singleValue?.(...props),
         opacity: '0.8',
         fontSize: '12px',
         right: '0',
@@ -259,7 +259,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         viewId: match.params.viewId,
         teamId: match.params.teamId,
     })
-    shareUrl.pathname = newPath
+    shareUrl.pathname = `/boards/public${newPath}`
 
     const boardPath = generatePath('/team/:teamId/:boardId/:viewId', {
         boardId: match.params.boardId,
@@ -344,7 +344,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                 <div className='share-input__container'>
                     <div className='share-input'>
                         <SearchIcon/>
-                        <Select
+                        <Select<IUser | Channel>
                             styles={styles}
                             value={selectedUser}
                             className={'userSearchInput'}
@@ -377,19 +377,19 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                             components={{DropdownIndicator: () => null, IndicatorSeparator: () => null}}
                             defaultOptions={true}
                             formatOptionLabel={formatOptionLabel}
-                            getOptionValue={(u) => u.id}
-                            getOptionLabel={(u: IUser|Channel) => (u as IUser).username || (u as Channel).display_name}
+                            getOptionValue={({id}) => id}
+                            getOptionLabel={(x) => isUser(x) ? x.username : x.display_name}
                             isMulti={false}
                             placeholder={board.isTemplate ?
                                 intl.formatMessage({id: 'ShareTemplate.searchPlaceholder', defaultMessage: 'Search for people'}) :
                                 intl.formatMessage({id: 'ShareBoard.searchPlaceholder', defaultMessage: 'Search for people and channels'})
                             }
                             onChange={(newValue) => {
-                                if (newValue && (newValue as IUser).username) {
-                                    addUser(newValue as IUser)
+                                if (newValue && isUser(newValue)) {
+                                    addUser(newValue)
                                     setSelectedUser(null)
                                 } else if (newValue) {
-                                    onLinkBoard(newValue as Channel)
+                                    onLinkBoard(newValue)
                                 }
                             }}
                         />

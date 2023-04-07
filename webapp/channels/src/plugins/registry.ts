@@ -986,6 +986,7 @@ export default class PluginRegistry {
         'showTeamSidebar',
         'showAppBar',
         'wrapped',
+        'publicComponent',
     ], ({
         baseURL,
         switcherIcon,
@@ -997,6 +998,7 @@ export default class PluginRegistry {
         showTeamSidebar = false,
         showAppBar = false,
         wrapped = true,
+        publicComponent,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
@@ -1016,6 +1018,7 @@ export default class PluginRegistry {
                 showTeamSidebar,
                 showAppBar,
                 wrapped,
+                publicComponent,
             },
         });
 

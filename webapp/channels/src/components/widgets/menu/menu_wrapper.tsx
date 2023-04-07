@@ -29,6 +29,9 @@ type State = {
     open: boolean;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
 export default class MenuWrapper extends React.PureComponent<Props, State> {
     private node: React.RefObject<HTMLDivElement>;
 

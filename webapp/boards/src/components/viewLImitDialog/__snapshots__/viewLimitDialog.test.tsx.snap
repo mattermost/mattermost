@@ -53,7 +53,7 @@ exports[`components/viewLimitDialog/ViewLiimitDialog show notify upgrade button 
           <p
             class="text-heading1"
           >
-            Notify your Admin to upgrade to our Professional or Enterprise plan to have unlimited views per boards, unlimited cards, and more.
+            Notify your Admin to upgrade to our Professional or Enterprise plan.
           </p>
         </div>
         <div
@@ -135,7 +135,7 @@ exports[`components/viewLimitDialog/ViewLiimitDialog show upgrade button for sys
           <p
             class="text-heading1"
           >
-            Upgrade to our Professional or Enterprise plan to have unlimited views per boards, unlimited cards, and more.
+            Upgrade to our Professional or Enterprise plan.
             <a
               href="https://mattermost.com/pricing/"
               rel="noreferrer"

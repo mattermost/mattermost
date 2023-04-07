@@ -51,7 +51,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
       >
         <MemoizedFormattedMessage
           defaultMessage="No, thanks"
-          id="onboardingTask.checklist.no_tanks"
+          id="onboardingTask.checklist.no_thanks"
         />
       </button>
       <div

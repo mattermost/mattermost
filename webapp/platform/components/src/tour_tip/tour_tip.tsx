@@ -90,14 +90,9 @@ export const TourTip = ({
 }: Props) => {
     const FIRST_STEP_INDEX = 0;
     const triggerRef = useRef(null);
-    const [useBackdrop, setUseBackdrop] = useState(!hideBackdrop);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
-
-    useClickOutsideRef(triggerRef, () => {
-        setUseBackdrop(false);
-    });
 
     // This needs to be changed if root-portal node isn't available to maybe body
     const rootPortal = document.getElementById('root-portal');
@@ -214,7 +209,7 @@ export const TourTip = ({
             >
                 <PulsatingDot/>
             </div>
-            {useBackdrop && <TourTipBackdrop
+            <TourTipBackdrop
                 show={show}
                 onDismiss={handleDismiss}
                 onPunchOut={handlePunchOut}
@@ -222,7 +217,7 @@ export const TourTip = ({
                 overlayPunchOut={overlayPunchOut}
                 appendTo={rootPortal!}
                 transparent={hideBackdrop}
-            />}
+            />
             {show && (
                 <Tippy
                     showOnCreate={show}

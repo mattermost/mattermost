@@ -6,7 +6,6 @@ import {render, screen} from '@testing-library/react'
 
 import {mocked} from 'jest-mock'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {wrapIntl} from 'src/testUtils'
@@ -22,8 +21,8 @@ jest.mock('src/components/flashMessages')
 jest.mock('src/mutator')
 
 const mockedCopy = jest.spyOn(Utils, 'copyTextToClipboard').mockImplementation(() => true)
-const mockedSendFlashMessage = mocked(sendFlashMessage, true)
-const mockedMutator = mocked(mutator, true)
+const mockedSendFlashMessage = mocked(sendFlashMessage)
+const mockedMutator = mocked(mutator)
 
 describe('properties/link', () => {
     beforeEach(jest.clearAllMocks)
@@ -71,7 +70,7 @@ describe('properties/link', () => {
         expect(container).toMatchSnapshot()
     })
 
-    it('should change to link after entering url', () => {
+    it('should change to link after entering url', async () => {
         render(
             wrapIntl(
                 <Url
@@ -83,12 +82,12 @@ describe('properties/link', () => {
 
         const url = 'https://mattermost.com'
         const input = screen.getByRole('textbox')
-        userEvent.type(input, `${url}{enter}`)
+        await userEvent.type(input, `${url}{enter}`)
 
         expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, url)
     })
 
-    it('should allow to edit link url', () => {
+    it('should allow to edit link url', async () => {
         render(
             wrapIntl(
                 <Url
@@ -101,8 +100,8 @@ describe('properties/link', () => {
         screen.getByRole('button', {name: 'Edit'}).click()
         const newURL = 'https://github.com/mattermost'
         const input = screen.getByRole('textbox')
-        userEvent.clear(input)
-        userEvent.type(input, `${newURL}{enter}`)
+        await userEvent.clear(input)
+        await userEvent.type(input, `${newURL}{enter}`)
         expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, newURL)
     })
 

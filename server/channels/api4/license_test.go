@@ -120,7 +120,7 @@ func TestUploadLicenseFile(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("try to get gone through trial, with TE build", func(t *testing.T) {
+	t.Run("try to get one through trial, with TE build", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
 		th.App.Srv().Platform().SetLicenseManager(nil)
 

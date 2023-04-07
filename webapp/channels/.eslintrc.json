@@ -2,22 +2,19 @@
   "root": true,
   "extends": [
     "plugin:mattermost/react",
-    "plugin:cypress/recommended",
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "@babel/eslint-plugin",
+    "@babel",
     "mattermost",
     "import",
-    "cypress",
     "no-only-tests",
     "@typescript-eslint",
     "formatjs"
   ],
   "parser": "@typescript-eslint/parser",
   "env": {
-    "jest": true,
-    "cypress/globals": true
+    "jest": true
   },
   "settings": {
     "import/resolver": "webpack",
@@ -176,17 +173,6 @@
         "no-import-assign": 0,
         "no-process-env": 0,
         "prefer-arrow-callback": 0
-      }
-    },
-    {
-      "files": ["e2e/**"],
-      "rules": {
-        "@babel/no-unused-expressions": 0,
-        "func-names": 0,
-        "import/no-unresolved": 0,
-        "max-nested-callbacks": 0,
-        "no-process-env": 0,
-        "no-unused-expressions": 0
       }
     }
   ]

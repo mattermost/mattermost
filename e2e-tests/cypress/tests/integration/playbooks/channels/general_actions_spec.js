@@ -10,7 +10,7 @@
 // Group: @playbooks
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-describe('channels > general actions', () => {
+describe('channels > general actions', {testIsolation: true}, () => {
     let testTeam;
     let testSysadmin;
     let testUser;

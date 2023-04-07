@@ -116,6 +116,7 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
+    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -260,6 +261,8 @@ export type DataRetentionPolicy = {
     file_deletion_enabled: boolean;
     message_retention_cutoff: number;
     file_retention_cutoff: number;
+    boards_retention_cutoff: number;
+    boards_deletion_enabled: boolean;
 };
 
 export type ServiceSettings = {

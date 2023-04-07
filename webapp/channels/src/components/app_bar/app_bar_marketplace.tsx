@@ -10,7 +10,7 @@ import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-di
 
 import {openModal} from 'actions/views/modals';
 
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';

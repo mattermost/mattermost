@@ -10,6 +10,8 @@ import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import FileInfoPreview from 'components/file_info_preview';
 
+import {getSiteURL} from 'utils/url';
+
 const INITIAL_RENDERED_PAGES = 3;
 
 export default class PDFPreview extends React.PureComponent {
@@ -149,7 +151,11 @@ export default class PDFPreview extends React.PureComponent {
             const worker = await import('pdfjs-dist/build/pdf.worker.entry.js');
             PDFJS.GlobalWorkerOptions.workerSrc = worker;
 
-            const pdf = await PDFJS.getDocument(this.props.fileUrl).promise;
+            const pdf = await PDFJS.getDocument({
+                url: this.props.fileUrl,
+                cMapUrl: getSiteURL() + '/static/cmaps/',
+                cMapPacked: true,
+            }).promise;
             this.onDocumentLoad(pdf);
         } catch (err) {
             this.onDocumentLoadError(err);
