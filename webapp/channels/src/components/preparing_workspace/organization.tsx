@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {CSSTransition} from 'react-transition-group';
 import {FormattedMessage, useIntl} from 'react-intl';
 import debounce from 'lodash/debounce';
@@ -28,6 +28,9 @@ type Props = PreparingWorkspacePageProps & {
     organization: Form['organization'];
     setOrganization: (organization: Form['organization']) => void;
     className?: string;
+    createTeam?: any;
+    setInviteId: (inviteId: string) => void;
+    isSelfHosted: boolean;
 }
 
 const reportValidationError = debounce(() => {
@@ -37,9 +40,44 @@ const reportValidationError = debounce(() => {
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
     const [triedNext, setTriedNext] = useState(false);
+    const inputRef = useRef<HTMLInputElement>();
     const validation = teamNameToUrl(props.organization || '');
 
     useEffect(props.onPageView, []);
+
+    const updateTeamNameFromOrgName = async () => {
+        if (!inputRef.current?.value) {
+            return;
+        }
+        const name = inputRef.current?.value.trim();
+
+        console.log('>>> update orgname', {name});
+
+        // if (name) {
+        //     const {error, newTeam} = await props.createTeam(name);
+        //     if (error !== null) {
+        //         props.setInviteId('');
+        //         return;
+        //     }
+        //     props.setInviteId(newTeam.invite_id);
+        // }
+    };
+
+    const createTeamFromOrgName = async () => {
+        if (!inputRef.current?.value) {
+            return;
+        }
+        const name = inputRef.current?.value.trim();
+
+        if (name) {
+            const {error, newTeam} = await props.createTeam(name);
+            if (error !== null) {
+                props.setInviteId('');
+                return;
+            }
+            props.setInviteId(newTeam.invite_id);
+        }
+    };
 
     const onNext = (e?: React.KeyboardEvent | React.MouseEvent) => {
         if (e && (e as React.KeyboardEvent).key) {
@@ -49,6 +87,12 @@ const Organization = (props: Props) => {
         }
         if (!triedNext) {
             setTriedNext(true);
+        }
+
+        if (!triedNext && props.isSelfHosted) {
+            createTeamFromOrgName();
+        } else if (triedNext && props.isSelfHosted) {
+            updateTeamNameFromOrgName();
         }
 
         if (validation.error) {
@@ -110,6 +154,7 @@ const Organization = (props: Props) => {
                                     onChange={(e) => props.setOrganization(e.target.value)}
                                     onKeyUp={onNext}
                                     autoFocus={true}
+                                    ref={inputRef as unknown as any}
                                 />
                                 <OrganizationStatus error={triedNext && validation.error}/>
                             </PageBody>

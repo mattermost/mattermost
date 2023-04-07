@@ -150,12 +150,14 @@ export type Form = {
         skipped: boolean;
     };
     teamMembers: {
+        inviteId: string;
         invites: string[];
         skipped: boolean;
     };
 }
 
 export const emptyForm = deepFreeze({
+    organization: '',
     inferredProtocol: null,
     urlSkipped: false,
     useCase: {
@@ -178,6 +180,7 @@ export const emptyForm = deepFreeze({
         skipped: false,
     },
     teamMembers: {
+        inviteId: '',
         invites: [],
         skipped: false,
     },

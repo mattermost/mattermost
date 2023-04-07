@@ -204,19 +204,26 @@ const PreparingWorkspace = (props: Props) => {
         trackSubmitFail[redirectTo]();
     }, []);
 
+    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | null}> => {
+        const data = await props.actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
+        if (data.error) {
+            return {error: genericSubmitError, newTeam: null};
+        }
+        return {error: null, newTeam: data.data};
+    };
+
     const sendForm = async () => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
 
-        if (form.organization) {
+        if (form.organization && !isSelfHosted) {
             try {
-                // eslint-disable-next-line
-                const data = await props.actions.createTeam(makeNewTeam(form.organization, teamNameToUrl(form.organization || '').url));
-                if (data.error) {
+                const {error, newTeam} = await createTeam(form.organization);
+                if (error !== null) {
                     redirectWithError(WizardSteps.Organization, genericSubmitError);
                     return;
                 }
-                team = data.data;
+                team = newTeam as Team;
             } catch (e) {
                 redirectWithError(WizardSteps.Organization, genericSubmitError);
                 return;
@@ -391,7 +398,18 @@ const PreparingWorkspace = (props: Props) => {
                             organization,
                         });
                     }}
+                    setInviteId={(inviteId: string) => {
+                        setForm({
+                            ...form,
+                            teamMembers: {
+                                ...form.teamMembers,
+                                inviteId,
+                            },
+                        });
+                    }}
                     className='child-page'
+                    createTeam={createTeam}
+                    isSelfHosted={isSelfHosted}
                 />
 
                 <Plugins
@@ -442,7 +460,7 @@ const PreparingWorkspace = (props: Props) => {
                     transitionDirection={getTransitionDirection(WizardSteps.InviteMembers)}
                     disableEdits={submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail}
                     className='child-page'
-                    teamInviteId={(currentTeam || myTeams?.[0])?.invite_id || ''}
+                    teamInviteId={form.teamMembers.inviteId}
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}

@@ -19,7 +19,7 @@ import './invite_members.scss';
 type Props = PreparingWorkspacePageProps & {
     disableEdits: boolean;
     className?: string;
-    teamInviteId: string;
+    teamInviteId?: string;
     formUrl: Form['url'];
     configSiteUrl?: string;
     browserSiteUrl: string;
