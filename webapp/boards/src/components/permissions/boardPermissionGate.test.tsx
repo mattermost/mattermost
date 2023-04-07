@@ -5,7 +5,6 @@ import React from 'react'
 import {render} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import {Permission} from 'src/constants'
