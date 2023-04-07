@@ -35,4 +35,19 @@
         scrollbar-color: var(--center-channel-color-32) #fff0;
         scrollbar-width: thin;
     }
+
+    .tab-buttons {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 16px;
+
+        .tab-button-wrapper {
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
 }

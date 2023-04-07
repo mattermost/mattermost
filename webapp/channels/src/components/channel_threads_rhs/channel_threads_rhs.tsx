@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 
 import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
+import Button from 'components/threading/common/button';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -16,14 +17,17 @@ import Header from './header';
 import type {FetchThreadOptions} from 'mattermost-redux/actions/threads';
 
 import './channel_threads_rhs.scss';
+import {FormattedMessage} from 'react-intl';
 
 export type Props = {
-    channel: Channel;
+    all: Array<UserThread['id']>;
     canGoBack: boolean;
+    channel: Channel;
+    created: Array<UserThread['id']>;
     currentTeamId: Team['id'];
     currentTeamName: Team['name'];
     currentUserId: UserProfile['id'];
-    threads: Array<UserThread['id']>;
+    following: Array<UserThread['id']>;
     total: number;
 
     actions: {
@@ -35,23 +39,32 @@ export type Props = {
     };
 }
 
+enum Tabs {
+    ALL,
+    FOLLOWING,
+    CREATED,
+}
+
 function ChannelThreads({
     actions,
+    all,
     canGoBack,
     channel,
+    created,
     currentTeamId,
     currentTeamName,
     currentUserId,
-    threads,
+    following,
     total,
 }: Props) {
     const history = useHistory();
+    const [selected, setSelected] = useState(Tabs.ALL);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         let after = '';
-        if (threads.length) {
-            after = threads[0];
+        if (all.length) {
+            after = all[0];
         }
 
         actions.getThreadsCountsForChannel(channel.id);
@@ -60,10 +73,10 @@ function ChannelThreads({
 
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setIsLoading(true);
-        const before = threads[startIndex - 1];
+        const before = all[startIndex - 1];
         await actions.getThreadsForChannel(channel.id, {before, perPage: 5});
         setIsLoading(false);
-    }, [currentTeamId, threads]);
+    }, [currentTeamId, all]);
 
     const select = useCallback((threadId?: UserThread['id']) => {
         if (threadId) {
@@ -74,6 +87,18 @@ function ChannelThreads({
     const goToInChannel = useCallback((threadId: UserThread['id']) => {
         return history.push(`/${currentTeamName}/pl/${threadId}`);
     }, [currentTeamName]);
+
+    const handleAll = useCallback(() => {
+        setSelected(Tabs.ALL);
+    }, []);
+
+    const handleFollowed = useCallback(() => {
+        setSelected(Tabs.FOLLOWING);
+    }, []);
+
+    const handleCreated = useCallback(() => {
+        setSelected(Tabs.CREATED);
+    }, []);
 
     const routing = useMemo(() => {
         return {
@@ -87,6 +112,25 @@ function ChannelThreads({
         };
     }, [select, goToInChannel, currentTeamId]);
 
+    const ids = useMemo(() => {
+        if (selected === Tabs.ALL) {
+            return all;
+        }
+        if (selected === Tabs.FOLLOWING) {
+            return following;
+        }
+        if (selected === Tabs.CREATED) {
+            return created;
+        }
+
+        return [];
+    }, [
+        selected,
+        all,
+        following,
+        created,
+    ]);
+
     return (
         <div
             id='rhsContainer'
@@ -98,9 +142,47 @@ function ChannelThreads({
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
             />
+            <div className='tab-buttons'>
+                <div className='tab-button-wrapper'>
+                    <Button
+                        className='Button___large Margined'
+                        isActive={selected === Tabs.ALL}
+                        onClick={handleAll}
+                    >
+                        <FormattedMessage
+                            id='channel_threads.filters.all'
+                            defaultMessage='All'
+                        />
+                    </Button>
+                </div>
+                <div className='tab-button-wrapper'>
+                    <Button
+                        className='Button___large Margined'
+                        isActive={selected === Tabs.FOLLOWING}
+                        onClick={handleFollowed}
+                    >
+                        <FormattedMessage
+                            id='channel_threads.filters.following'
+                            defaultMessage='Following'
+                        />
+                    </Button>
+                </div>
+                <div className='tab-button-wrapper'>
+                    <Button
+                        className='Button___large Margined'
+                        isActive={selected === Tabs.CREATED}
+                        onClick={handleCreated}
+                    >
+                        <FormattedMessage
+                            id='channel_threads.filters.createdByMe'
+                            defaultMessage='Created by me'
+                        />
+                    </Button>
+                </div>
+            </div>
             <div className='channel-threads'>
                 <VirtualizedThreadList
-                    ids={threads}
+                    ids={ids}
                     total={total}
                     isLoading={isLoading}
                     loadMoreItems={handleLoadMoreItems}

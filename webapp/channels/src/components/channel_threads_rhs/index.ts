@@ -37,16 +37,21 @@ function makeMapStateToProps() {
             } as unknown as Props;
         }
 
-        const threads = getThreadsInChannelView(state, channel.id);
         const counts = getThreadCountInChannelView(state, channel.id);
 
+        const all = getThreadsInChannelView(state, channel.id);
+        const following: string[] = [];
+        const created: string[] = [];
+
         return {
+            all,
             canGoBack: Boolean(prevRhsState),
             channel,
+            created,
             currentTeamId: team.id,
             currentTeamName: team.name,
             currentUserId,
-            threads,
+            following,
             total: counts.total || 0,
         };
     };
