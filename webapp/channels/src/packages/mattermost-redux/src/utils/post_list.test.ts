@@ -1025,7 +1025,7 @@ describe('makeGenerateCombinedPost', () => {
                         },
                         {
                             postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
-                            userIds: ['alice', 'joe', 'user3', 'user2'],
+                            userIds: ['user3', 'user2'],
                             actorId: 'user1',
                         },
                     ],
