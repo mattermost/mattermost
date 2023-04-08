@@ -51,11 +51,17 @@ const Sidebar = (props: SidebarProps) => {
                     delay={OVERLAY_DELAY}
                     shouldUpdatePosition={true}
                     overlay={
-                        <Tooltip id='team-name__tooltip'>{team?.description?.length ? team.description : 'No team is selected'}</Tooltip>
+                        <Tooltip id='team-name__tooltip'>
+                            {
+                                team?.description?.length ? team.description : 'No team is selected' // eslint-disable-line formatjs/no-literal-string-in-jsx
+                            }
+                        </Tooltip>
                     }
                 >
                     <TeamName>
-                        {team?.display_name?.length ? team.display_name : 'All Teams'}
+                        {
+                            team?.display_name?.length ? team.display_name : 'All Teams' // eslint-disable-line formatjs/no-literal-string-in-jsx
+                        }
                     </TeamName>
                 </OverlayTrigger>
                 {props.headerDropdown}
