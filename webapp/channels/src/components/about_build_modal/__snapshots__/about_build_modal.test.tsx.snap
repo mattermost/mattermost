@@ -282,13 +282,6 @@ exports[`components/AboutBuildModal should match snapshot for enterprise edition
         />
         <Nbsp />
         0123456789abcdef
-        <br />
-        <MemoizedFormattedMessage
-          defaultMessage="Webapp Build Hash:"
-          id="about.hashwebapp"
-        />
-        <Nbsp />
-        0a1b2c3d4f
       </p>
       <p>
         <MemoizedFormattedMessage
@@ -513,13 +506,6 @@ exports[`components/AboutBuildModal should match snapshot for team edition 1`] =
           id="about.hashee"
         />
         <Nbsp />
-        <br />
-        <MemoizedFormattedMessage
-          defaultMessage="Webapp Build Hash:"
-          id="about.hashwebapp"
-        />
-        <Nbsp />
-        0a1b2c3d4f
       </p>
       <p>
         <MemoizedFormattedMessage
@@ -755,13 +741,6 @@ exports[`components/AboutBuildModal should show ci if a ci build 1`] = `
           id="about.hashee"
         />
         <Nbsp />
-        <br />
-        <MemoizedFormattedMessage
-          defaultMessage="Webapp Build Hash:"
-          id="about.hashwebapp"
-        />
-        <Nbsp />
-        0a1b2c3d4f
       </p>
       <p>
         <MemoizedFormattedMessage
@@ -986,13 +965,6 @@ exports[`components/AboutBuildModal should show dev if this is a dev build 1`] =
           id="about.hashee"
         />
         <Nbsp />
-        <br />
-        <MemoizedFormattedMessage
-          defaultMessage="Webapp Build Hash:"
-          id="about.hashwebapp"
-        />
-        <Nbsp />
-        0a1b2c3d4f
       </p>
       <p>
         <MemoizedFormattedMessage

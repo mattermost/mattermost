@@ -42,9 +42,7 @@ type TestHelper struct {
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
 
-	tempWorkspace            string
-	boardsProductEnvValue    string
-	playbooksDisableEnvValue string
+	tempWorkspace string
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, options []Option, tb testing.TB) *TestHelper {
@@ -62,17 +60,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
-
-	// disable Boards through the feature flag
-	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
-	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
-	memoryConfig.FeatureFlags.BoardsProduct = false
-
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
-
 	configStore.Set(memoryConfig)
 
 	buffer := &mlog.Buffer{}
@@ -103,21 +90,19 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:                      New(ServerConnector(s.Channels())),
-		Context:                  request.EmptyContext(testLogger),
-		Server:                   s,
-		LogBuffer:                buffer,
-		TestLogger:               testLogger,
-		IncludeCacheLayer:        includeCacheLayer,
-		boardsProductEnvValue:    boardsProductEnvValue,
-		playbooksDisableEnvValue: playbooksDisableEnvValue,
+		App:               New(ServerConnector(s.Channels())),
+		Context:           request.EmptyContext(testLogger),
+		Server:            s,
+		LogBuffer:         buffer,
+		TestLogger:        testLogger,
+		IncludeCacheLayer: includeCacheLayer,
 	}
 	th.Context.SetLogger(testLogger)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
@@ -184,10 +169,16 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
 	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
+
+	pluginMock := mocks.PluginStore{}
+	pluginMock.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.PluginKeyValue{}, nil)
+
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
+	emptyMockStore.On("Plugin").Return(&pluginMock).Maybe()
 	th.App.Srv().SetStore(&emptyMockStore)
+
 	return th
 }
 
@@ -553,17 +544,6 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	// reset board and playbooks product setting to original
-	if th.boardsProductEnvValue != "" {
-		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
-	}
-
-	if th.playbooksDisableEnvValue != "" {
-		os.Setenv("MM_DISABLE_PLAYBOOKS", th.playbooksDisableEnvValue)
-	} else {
-		os.Unsetenv("MM_DISABLE_PLAYBOOKS")
-	}
-
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()

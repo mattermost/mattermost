@@ -40,7 +40,7 @@ import Tooltip from 'components/tooltip';
 import ProfilePopoverCallButton from 'components/profile_popover_call_button';
 
 import {ServerError} from '@mattermost/types/errors';
-import {UserCustomStatus, UserProfile, UserTimezone, CustomStatusDuration} from '@mattermost/types/users';
+import {UserCustomStatus, UserProfile, CustomStatusDuration} from '@mattermost/types/users';
 
 import './profile_popover.scss';
 import BotTag from '../widgets/tag/bot_tag';
@@ -339,7 +339,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
         } else if (Utils.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             this.returnFocus();
         }
-    }
+    };
     renderCustomStatus() {
         const {
             customStatus,
@@ -587,7 +587,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                     <Timestamp
                         useRelative={false}
                         useDate={false}
-                        userTimezone={this.props.user?.timezone as UserTimezone | undefined}
+                        userTimezone={this.props.user?.timezone}
                         useTime={{
                             hour: 'numeric',
                             minute: 'numeric',

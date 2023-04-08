@@ -33,7 +33,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
 
         return config;
-    }
+    };
 
     getStateFromConfig(config) {
         return {
@@ -83,17 +83,17 @@ export default class ElasticsearchSettings extends AdminSettings {
         }
 
         this.handleChange(id, value);
-    }
+    };
 
     handleSaved = () => {
         this.setState({
             canPurgeAndIndex: this.state.enableIndexing,
         });
-    }
+    };
 
     canSave = () => {
         return this.state.canSave;
-    }
+    };
 
     doTestConfig = (success, error) => {
         const config = JSON.parse(JSON.stringify(this.props.config));
@@ -116,7 +116,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                 error(err);
             },
         );
-    }
+    };
 
     getExtraInfo(job) {
         if (job.status === JobStatuses.IN_PROGRESS) {
@@ -470,5 +470,5 @@ export default class ElasticsearchSettings extends AdminSettings {
                 />
             </SettingsGroup>
         );
-    }
+    };
 }

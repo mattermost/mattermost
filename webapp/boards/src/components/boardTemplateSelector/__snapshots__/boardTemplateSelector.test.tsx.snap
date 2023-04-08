@@ -132,7 +132,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
                 class="CompassIcon icon-kanban"
               />
               <span>
-                Create empty board
+                Create an empty board
               </span>
             </button>
           </div>
@@ -284,7 +284,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
                 class="CompassIcon icon-kanban"
               />
               <span>
-                Create empty board
+                Create an empty board
               </span>
             </button>
           </div>
@@ -436,7 +436,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
                 class="CompassIcon icon-kanban"
               />
               <span>
-                Create empty board
+                Create an empty board
               </span>
             </button>
           </div>
