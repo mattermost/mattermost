@@ -6,6 +6,7 @@
 import React, {ReactNode} from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 
+import classnames from 'classnames';
 import {Stripe, StripeCardElementChangeEvent} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import {Elements} from '@stripe/react-stripe-js';
@@ -17,7 +18,6 @@ import ComplianceScreenFailedSvg from 'components/common/svg_images_components/a
 import AddressForm from 'components/payment_form/address_form';
 
 import {t} from 'utils/i18n';
-import {Address, CloudCustomer, Product, Invoice, areShippingDetailsValid, Feedback} from '@mattermost/types/cloud';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {localizeMessage, getNextBillingDate, getBlankAddressWithCountry} from 'utils/utils';
@@ -33,6 +33,7 @@ import {
     ModalIdentifiers,
     RecurringIntervals,
 } from 'utils/constants';
+import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
 import PaymentDetails from 'components/admin_console/billing/payment_details';
 import {STRIPE_CSS_SRC, STRIPE_PUBLIC_KEY} from 'components/payment_form/stripe';
@@ -52,6 +53,8 @@ import SwitchToYearlyPlanConfirmModal from 'components/switch_to_yearly_plan_con
 import {ModalData} from 'types/actions';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {Address, CloudCustomer, Product, Invoice, areShippingDetailsValid, Feedback} from '@mattermost/types/cloud';
 
 import {areBillingDetailsValid, BillingDetails} from '../../types/cloud/sku';
 
@@ -421,11 +424,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             totalOwed += invoice.total;
         });
         return `$${totalOwed / 100}`;
-    }
+    };
 
     onPaymentInput = (billing: BillingDetails) => {
         this.setState({billingDetails: billing}, this.isFormComplete);
-    }
+    };
 
     isFormComplete = () => {
         let paymentInfoIsValid = areBillingDetailsValid(this.state.billingDetails) && this.state.cardInputComplete;
@@ -433,7 +436,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             paymentInfoIsValid = paymentInfoIsValid && areShippingDetailsValid(this.state.shippingAddress);
         }
         this.setState({paymentInfoIsValid});
-    }
+    };
 
     handleShippingSameAsBillingChange(value: boolean) {
         this.setState({billingSameAsShipping: value}, this.isFormComplete);
@@ -441,7 +444,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
 
     onShippingInput = (address: Address) => {
         this.setState({shippingAddress: {...this.state.shippingAddress, ...address}}, this.isFormComplete);
-    }
+    };
 
     handleCardInputChange = (event: StripeCardElementChangeEvent) => {
         this.setState({
@@ -449,7 +452,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 areBillingDetailsValid(this.state.billingDetails) && event.complete,
         });
         this.setState({cardInputComplete: event.complete});
-    }
+    };
 
     handleSubmitClick = async (callerInfo: string) => {
         const update = {
@@ -459,9 +462,10 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             processing: true,
         } as unknown as Pick<State, keyof State>;
         this.setState(update);
-    }
+    };
 
     confirmSwitchToAnnual = () => {
+        const {customer} = this.props;
         this.props.actions.openModal({
             modalId: ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY,
             dialogType: SwitchToYearlyPlanConfirmModal,
@@ -475,15 +479,19 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         TELEMETRY_CATEGORIES.CLOUD_ADMIN,
                         'confirm_switch_to_annual_click_contact_sales',
                     );
-                    window.open(this.props.contactSalesLink, '_blank');
+                    const customerEmail = customer?.email || '';
+                    const firstName = customer?.contact_first_name || '';
+                    const lastName = customer?.contact_last_name || '';
+                    const companyName = customer?.name || '';
+                    goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, 'mattermost', 'in-product-cloud');
                 },
             },
         });
-    }
+    };
 
     setIsUpgradeFromTrialToFalse = () => {
         this.setState({isUpgradeFromTrial: false});
-    }
+    };
 
     openPricingModal = (callerInfo: string) => {
         this.props.actions.openModal({
@@ -526,7 +534,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 {text}
             </ExternalLink>
         );
-    }
+    };
 
     learnMoreLink = () => {
         return (
@@ -547,7 +555,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </ExternalLink>
         );
-    }
+    };
 
     editPaymentInfoHandler = () => {
         this.setState((prevState: State) => {
@@ -556,7 +564,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 editPaymentInfo: !prevState.editPaymentInfo,
             };
         });
-    }
+    };
 
     paymentFooterText = () => {
         const normalPaymentText = (
@@ -625,7 +633,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             payment = prorratedPaymentText;
         }
         return payment;
-    }
+    };
 
     getPlanNameFromProductName = (productName: string): string => {
         if (productName.length > 0) {
@@ -634,7 +642,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return productName;
-    }
+    };
 
     getShippingAddressForProcessing = (): Address => {
         if (this.state.billingSameAsShipping) {
@@ -649,7 +657,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return this.state.shippingAddress as Address;
-    }
+    };
 
     handleViewBreakdownClick = () => {
         this.props.actions.openModal({
@@ -659,7 +667,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 invoices: this.props.invoices,
             },
         });
-    }
+    };
 
     purchaseScreenCard = () => {
         if (this.props.isDelinquencyModal) {
@@ -722,7 +730,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         this.state.selectedProduct ? this.state.selectedProduct.name : '',
                     )}
                     price={yearlyProductMonthlyPrice}
-                    rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                    rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                         br: <br/>,
                         b: (chunks: React.ReactNode | React.ReactNodeArray) => (
                             <span style={{fontSize: '14px'}}>
@@ -784,7 +792,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </>
         );
-    }
+    };
 
     purchaseScreen = () => {
         const title = (
@@ -812,7 +820,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className={this.state.processing ? 'processing' : ''}>
+            <div className={classnames('PurchaseModal__purchase-body', {processing: this.state.processing})}>
                 <div className='LHS'>
                     <h2 className='title'>{title}</h2>
                     <UpgradeSvg
@@ -908,7 +916,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 <div className='RHS'>{this.purchaseScreenCard()}</div>
             </div>
         );
-    }
+    };
 
     render() {
         if (this.props.isComplianceBlocked) {
@@ -1012,7 +1020,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                                             });
                                         }}
                                         contactSupportLink={
-                                            this.props.contactSalesLink
+                                            this.props.contactSupportLink
                                         }
                                         currentTeam={this.props.currentTeam}
                                         onSuccess={() => {

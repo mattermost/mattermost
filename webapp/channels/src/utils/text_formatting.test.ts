@@ -7,7 +7,13 @@ import EmojiMap from 'utils/emoji_map';
 import {getEmojiMap} from 'selectors/emojis';
 import store from 'stores/redux_store.jsx';
 
-import {formatText, autolinkAtMentions, highlightSearchTerms, handleUnicodeEmoji, parseSearchTerms} from 'utils/text_formatting';
+import {
+    formatText,
+    autolinkAtMentions,
+    highlightSearchTerms,
+    handleUnicodeEmoji,
+    parseSearchTerms, autolinkChannelMentions, ChannelNamesMap,
+} from 'utils/text_formatting';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
 
 const emptyEmojiMap = new EmojiMap(new Map());
@@ -173,6 +179,26 @@ describe('highlightSearchTerms', () => {
         const output = highlightSearchTerms(text, tokens, searchPatterns);
         expect(output).toBe('$MM_SEARCHTERM1$');
         expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight">$MM_HASHTAG0$</span>');
+    });
+});
+
+describe('autolink channel mentions', () => {
+    test('link a channel mention', () => {
+        const mention = '~test-channel';
+        const leadingText = 'pre blah blah ';
+        const trailingText = ' post blah blah';
+        const text = `${leadingText}${mention}${trailingText}`;
+        const tokens = new Map();
+        const channelNamesMap: ChannelNamesMap = {
+            'test-channel': {
+                team_name: 'ad-1',
+                display_name: 'Test Channel',
+            },
+        };
+
+        const output = autolinkChannelMentions(text, tokens, channelNamesMap);
+        expect(output).toBe(`${leadingText}$MM_CHANNELMENTION0$${trailingText}`);
+        expect(tokens.get('$MM_CHANNELMENTION0$').value).toBe('<a class="mention-link" href="/ad-1/channels/test-channel" data-channel-mention-team="ad-1" data-channel-mention="test-channel">~Test Channel</a>');
     });
 });
 

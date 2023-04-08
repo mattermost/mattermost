@@ -57,7 +57,7 @@ export class Search extends PureComponent<Props> {
     loadMore = () => {
         const {searchText} = this.props;
         this.props.searchGfycat({searchText});
-    }
+    };
 
     render() {
         const {handleItemClick, searchText, onCategories} = this.props;

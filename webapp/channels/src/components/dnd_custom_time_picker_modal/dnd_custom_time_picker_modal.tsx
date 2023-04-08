@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {DayPickerProps} from 'react-day-picker';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import classNames from 'classnames';
 
@@ -87,7 +87,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
 
     formatDate = (date: Date): string => {
         return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
-    }
+    };
 
     getText = () => {
         const modalHeaderText = (
@@ -107,7 +107,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
             modalHeaderText,
             confirmButtonText,
         };
-    }
+    };
 
     handleConfirm = async () => {
         if (this.state.isPopperOpen) {
@@ -128,7 +128,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
             last_activity_at: toUTCUnix(this.props.currentDate),
         });
         this.props.onExited();
-    }
+    };
 
     handleDaySelection = (day: Date) => {
         this.setState({
@@ -168,9 +168,9 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
             timeMenuList: timeMenuItems,
             selectedTime: timeMenuItems[0],
         };
-    }
+    };
 
-    handlePopperOpenState= (isOpen: boolean) => {
+    handlePopperOpenState = (isOpen: boolean) => {
         this.setState({
             isPopperOpen: isOpen,
         });

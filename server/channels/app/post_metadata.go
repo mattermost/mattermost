@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
@@ -362,6 +363,12 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 	}
 
 	for _, imageURL := range imageURLs {
+		// prevent infinite loop if a OG image URL is the same post's permalink
+		resolvedURL := resolveMetadataURL(imageURL, a.GetSiteURL())
+		if looksLikeAPermalink(resolvedURL, a.GetSiteURL()) {
+			continue
+		}
+
 		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
 			appErr, ok := err.(*model.AppError)
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
@@ -443,14 +450,42 @@ func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions 
 }
 
 func (a *App) isLinkAllowedForPreview(link string) bool {
-	domains := a.normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
+	domains := normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
 	for _, d := range domains {
-		if strings.Contains(link, d) {
+		parsed, err := url.Parse(link)
+		if err != nil {
+			a.Log().Warn("Unable to parse the link", mlog.String("link", link), mlog.Err(err))
+			// We disable link preview if link is badly formed
+			// to remain on the safe side
+			return false
+		}
+		// Conforming to IDNA2008 using the UTS-46 standard.
+		cleaned, err := idna.Lookup.ToASCII(parsed.Hostname())
+		if err != nil {
+			a.Log().Warn("Unable to lookup hostname to ASCII", mlog.String("hostname", parsed.Hostname()), mlog.Err(err))
+			// Same applies if compatibility processing fails.
+			return false
+		}
+		if strings.Contains(cleaned, d) {
 			return false
 		}
 	}
 
 	return true
+}
+
+func normalizeDomains(domains string) []string {
+	// commas and @ signs are optional
+	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
+	return strings.Fields(
+		strings.TrimSpace(
+			strings.ToLower(
+				strings.ReplaceAll(
+					strings.ReplaceAll(domains, "@", " "),
+					",", " "),
+			),
+		),
+	)
 }
 
 // Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
@@ -622,6 +657,9 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 			var res *http.Response
 			res, err = client.Do(request)
+			if err != nil {
+				mlog.Warn("error fetching OG image data", mlog.Err(err))
+			}
 
 			if res != nil {
 				body = res.Body

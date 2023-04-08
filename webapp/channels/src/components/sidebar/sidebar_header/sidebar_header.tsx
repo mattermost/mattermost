@@ -5,8 +5,8 @@ import React, {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Flex from '@mattermost/compass-components/utilities/layout/Flex';
-import Heading from '@mattermost/compass-components/components/heading';
+import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
+import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {GlobalState} from 'types/store';

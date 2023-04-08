@@ -44,7 +44,7 @@ exports[`components/sidebarSidebar dont show hidden boards 1`] = `
         />
         <div>
           <span>
-            Find Boards
+            Find boards
           </span>
         </div>
       </div>
@@ -184,7 +184,7 @@ exports[`components/sidebarSidebar should assign default category if current boa
         />
         <div>
           <span>
-            Find Boards
+            Find boards
           </span>
         </div>
       </div>
@@ -379,7 +379,7 @@ exports[`components/sidebarSidebar shouldnt do any category assignment is board 
         />
         <div>
           <span>
-            Find Boards
+            Find boards
           </span>
         </div>
       </div>
@@ -729,7 +729,7 @@ exports[`components/sidebarSidebar sidebar hidden 1`] = `
         />
         <div>
           <span>
-            Find Boards
+            Find boards
           </span>
         </div>
       </div>
@@ -962,7 +962,7 @@ exports[`components/sidebarSidebar some categories hidden 1`] = `
         />
         <div>
           <span>
-            Find Boards
+            Find boards
           </span>
         </div>
       </div>
