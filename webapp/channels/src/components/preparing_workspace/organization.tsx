@@ -15,6 +15,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
+import {Team} from '@mattermost/types/src/teams';
 
 import {teamNameToUrl} from 'utils/url';
 import Constants from 'utils/constants';
@@ -32,7 +33,8 @@ type Props = PreparingWorkspacePageProps & {
     organization: Form['organization'];
     setOrganization: (organization: Form['organization']) => void;
     className?: string;
-    createTeam?: any;
+    createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null}>;
+    updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
     isSelfHosted: boolean;
 }
@@ -64,16 +66,12 @@ const Organization = (props: Props) => {
         }
         const name = inputRef.current?.value.trim();
 
-        console.log('>>> update orgname', {name});
-
-        // if (name) {
-        //     const {error, newTeam} = await props.createTeam(name);
-        //     if (error !== null) {
-        //         props.setInviteId('');
-        //         return;
-        //     }
-        //     props.setInviteId(newTeam.invite_id);
-        // }
+        if (name) {
+            const {error} = await props.updateTeam({...teams[0], display_name: name});
+            if (error !== null) {
+                // TODO: do something
+            }
+        }
     };
 
     const createTeamFromOrgName = async () => {
@@ -81,8 +79,6 @@ const Organization = (props: Props) => {
             return;
         }
         const name = inputRef.current?.value.trim();
-
-        console.log('>>> create orgname', {name});
 
         if (name) {
             const {error, newTeam} = await props.createTeam(name);
@@ -107,11 +103,14 @@ const Organization = (props: Props) => {
 
         // if there is already a team, maybe because a page reload, then just update the teamname
         const thereIsAlreadyATeam = teams.length > 0;
+
         if (!triedNext && !thereIsAlreadyATeam && props.isSelfHosted) {
             createTeamFromOrgName();
         } else if ((triedNext || thereIsAlreadyATeam) && props.isSelfHosted) {
             updateTeamNameFromOrgName();
         }
+
+        // TODO: verify potential errors and stop the flow and show the error ?
 
         if (validation.error) {
             reportValidationError();

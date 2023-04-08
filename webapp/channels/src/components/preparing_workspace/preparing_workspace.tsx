@@ -63,6 +63,7 @@ const WAIT_FOR_REDIRECT_TIME = 2000 - START_TRANSITIONING_OUT;
 
 export type Actions = {
     createTeam: (team: Team) => ActionResult;
+    updateTeam: (team: Team) => ActionResult;
     checkIfTeamExists: (teamName: string) => ActionResult;
     getProfiles: (page: number, perPage: number, options: Record<string, any>) => ActionResult;
 }
@@ -212,6 +213,14 @@ const PreparingWorkspace = (props: Props) => {
         return {error: null, newTeam: data.data};
     };
 
+    const updateTeam = async (teamToUpdate: Team): Promise<{error: string | null; updatedTeam: Team | null}> => {
+        const data = await props.actions.updateTeam(teamToUpdate);
+        if (data.error) {
+            return {error: genericSubmitError, updatedTeam: null};
+        }
+        return {error: null, updatedTeam: data.data};
+    };
+
     const sendForm = async () => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
@@ -233,6 +242,7 @@ const PreparingWorkspace = (props: Props) => {
         // send plugins
         const {skipped: skippedPlugins, ...pluginChoices} = form.plugins;
         let pluginsToSetup: string[] = [];
+
         if (!skippedPlugins) {
             pluginsToSetup = Object.entries(pluginChoices).reduce(
                 (acc: string[], [k, v]): string[] => (v ? [...acc, PLUGIN_NAME_TO_ID_MAP[k as keyof Omit<Form['plugins'], 'skipped'>]] : acc), [],
@@ -245,6 +255,7 @@ const PreparingWorkspace = (props: Props) => {
             organization: form.organization,
             install_plugins: pluginsToSetup,
         };
+
         try {
             await Client4.completeSetup(completeSetupRequest);
             dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
@@ -260,6 +271,7 @@ const PreparingWorkspace = (props: Props) => {
 
         const sendFormEnd = Date.now();
         const timeToWait = WAIT_FOR_REDIRECT_TIME - (sendFormEnd - sendFormStart);
+
         if (timeToWait > 0) {
             setTimeout(goToChannels, timeToWait);
         } else {
@@ -276,6 +288,7 @@ const PreparingWorkspace = (props: Props) => {
 
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
     const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage;
+
     useEffect(() => {
         if (shouldRedirect) {
             props.history.push('/');
@@ -312,6 +325,7 @@ const PreparingWorkspace = (props: Props) => {
         trackEvent('first_admin_setup', mapStepToPrevious(currentStep));
         setStepHistory([currentStep, stepOrder[stepIndex - 1]]);
     }, [currentStep]);
+
     const skipPlugins = useCallback((skipped: boolean) => {
         if (skipped === form.plugins.skipped) {
             return;
@@ -324,6 +338,7 @@ const PreparingWorkspace = (props: Props) => {
             },
         });
     }, [form]);
+
     const skipTeamMembers = useCallback((skipped: boolean) => {
         if (skipped === form.teamMembers.skipped) {
             return;
@@ -409,6 +424,7 @@ const PreparingWorkspace = (props: Props) => {
                     }}
                     className='child-page'
                     createTeam={createTeam}
+                    updateTeam={updateTeam}
                     isSelfHosted={isSelfHosted}
                 />
 
@@ -460,7 +476,7 @@ const PreparingWorkspace = (props: Props) => {
                     transitionDirection={getTransitionDirection(WizardSteps.InviteMembers)}
                     disableEdits={submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail}
                     className='child-page'
-                    teamInviteId={team.invite_id || form.teamMembers.inviteId}
+                    teamInviteId={team?.invite_id || form.teamMembers.inviteId}
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}
