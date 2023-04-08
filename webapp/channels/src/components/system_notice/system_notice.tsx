@@ -68,7 +68,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
             return notice;
         }
         return null;
-    }
+    };
 
     hide = (remind = false) => {
         const notice = this.getCurrentNotice();
@@ -86,15 +86,15 @@ export default class SystemNotice extends React.PureComponent<Props> {
         }
 
         this.props.actions.dismissNotice(notice.name);
-    }
+    };
 
     hideAndRemind = () => {
         this.hide(true);
-    }
+    };
 
     hideAndForget = () => {
         this.hide(false);
-    }
+    };
 
     render() {
         const notice = this.getCurrentNotice();

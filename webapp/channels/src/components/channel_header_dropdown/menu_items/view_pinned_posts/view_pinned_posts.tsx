@@ -37,7 +37,7 @@ export default class ViewPinnedPosts extends React.PureComponent<Props> {
         } else {
             showPinnedPosts(channel.id);
         }
-    }
+    };
 
     render() {
         return (

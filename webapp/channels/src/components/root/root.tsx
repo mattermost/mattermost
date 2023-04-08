@@ -328,7 +328,7 @@ export default class Root extends React.PureComponent<Props, State> {
         }
 
         Utils.applyTheme(this.props.theme);
-    }
+    };
 
     componentDidUpdate(prevProps: Props) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
@@ -423,7 +423,7 @@ export default class Root extends React.PureComponent<Props, State> {
         }
 
         this.onConfigLoaded();
-    }
+    };
 
     componentDidMount() {
         this.mounted = true;
@@ -495,7 +495,7 @@ export default class Root extends React.PureComponent<Props, State> {
             }
             window.addEventListener('focus', reloadOnFocus);
         }
-    }
+    };
 
     handleWindowResizeEvent = throttle(() => {
         this.props.actions.emitBrowserWindowResized();
@@ -505,7 +505,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (e.matches) {
             this.updateWindowSize();
         }
-    }
+    };
 
     setRootMeta = () => {
         const root = document.getElementById('root')!;
@@ -517,7 +517,7 @@ export default class Root extends React.PureComponent<Props, State> {
         })) {
             root.classList.toggle(className, enabled);
         }
-    }
+    };
 
     updateWindowSize = () => {
         switch (true) {
@@ -534,7 +534,7 @@ export default class Root extends React.PureComponent<Props, State> {
             this.props.actions.emitBrowserWindowResized(WindowSizes.MOBILE_VIEW);
             break;
         }
-    }
+    };
 
     render() {
         if (!this.state.configLoaded) {
