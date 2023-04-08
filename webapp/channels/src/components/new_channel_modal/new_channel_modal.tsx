@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 
 import classNames from 'classnames';
+import crypto from 'crypto';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import GenericModal from 'components/generic_modal';
@@ -103,8 +104,6 @@ const NewChannelModal = () => {
 
     const [canCreateFromPluggable, setCanCreateFromPluggable] = useState(true);
     const [actionFromPluggable, setActionFromPluggable] = useState<((currentTeamId: string, channelId: string) => Promise<Board>) | undefined>(undefined);
-
-    const crypto = require('crypto');
 
     const handleOnModalConfirm = async () => {
         if (!canCreate) {
