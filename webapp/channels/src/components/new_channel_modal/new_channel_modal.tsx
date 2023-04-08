@@ -8,8 +8,6 @@ import {Tooltip} from 'react-bootstrap';
 
 import classNames from 'classnames';
 
-import {random as cryptoJSRandomWordArray} from 'crypto-js/lib-typedarrays';
-
 import OverlayTrigger from 'components/overlay_trigger';
 import GenericModal from 'components/generic_modal';
 import Input from 'components/widgets/inputs/input/input';
@@ -105,6 +103,8 @@ const NewChannelModal = () => {
 
     const [canCreateFromPluggable, setCanCreateFromPluggable] = useState(true);
     const [actionFromPluggable, setActionFromPluggable] = useState<((currentTeamId: string, channelId: string) => Promise<Board>) | undefined>(undefined);
+
+    const crypto = require('crypto');
 
     const handleOnModalConfirm = async () => {
         if (!canCreate) {
@@ -236,7 +236,7 @@ const NewChannelModal = () => {
 
     const handleOnDisplayNameBlur = () => {
         if (displayName && !url) {
-            setURL(cryptoJSRandomWordArray(16).toString());
+            setURL(crypto.randomBytes(16).toString('hex'));
         }
         if (!displayNameModified) {
             setDisplayNameModified(true);
