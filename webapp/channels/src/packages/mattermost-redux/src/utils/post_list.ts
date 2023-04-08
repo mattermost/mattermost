@@ -374,14 +374,17 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
     systemPosts.reverse().forEach((post: Post) => {
         const postType = post.type;
         const actorId = post.user_id;
+
+        // When combining removed posts, the actorId does not need to be the same for each post.
+        // All removed posts will be combined regardless of their respective actorIds.
+        const isRemovedPost = post.type === Posts.POST_TYPES.REMOVE_FROM_CHANNEL;
         const userId = isUsersRelatedPost(postType) ? post.props.addedUserId || post.props.removedUserId : '';
         const username = isUsersRelatedPost(postType) ? post.props.addedUsername || post.props.removedUsername : '';
-
         const prevPost = userActivities[userActivities.length - 1];
         const isSamePostType = prevPost && prevPost.postType === post.type;
         const isSameActor = prevPost && prevPost.actorId[0] === post.user_id;
 
-        if (isSamePostType && isSameActor && prevPost) {
+        if ((isSamePostType && isSameActor && prevPost) || (isSamePostType && prevPost && isRemovedPost)) {
             prevPost.userIds.push(userId);
             prevPost.usernames.push(username);
         } else if (isSamePostType && !isSameActor && !isUsersRelatedPost(postType)) {
