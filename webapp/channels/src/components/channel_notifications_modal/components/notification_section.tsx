@@ -9,16 +9,60 @@ import CollapseView from './collapse_view';
 import ExpandView from './expand_view';
 
 type Props = {
+
+    /**
+     * Notification section
+     */
     section: string;
+
+    /**
+     * Expand if true, else collapse the section
+     */
     expand: boolean;
+
+    /**
+     * Member's desktop notification level
+     */
     memberNotificationLevel: string;
+
+    /**
+     * Member's desktop_threads notification level
+     */
     memberThreadsNotificationLevel?: string;
+
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
     ignoreChannelMentions?: string;
+
+    /**
+     * User's global notification level
+     */
     globalNotificationLevel?: string;
+
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
     onChange: (value: string) => void;
+
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
     onChangeThreads?: (value: string) => void | any;
+
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
     onSubmit: () => void;
+
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
     onUpdateSection: (value: string) => void;
+
+    /**
+     * Ignore channel-wide mentions @channel, @here and @all
+     */
     serverError?: string;
 }
 export default class NotificationSection extends React.PureComponent<Props> {
@@ -32,9 +76,7 @@ export default class NotificationSection extends React.PureComponent<Props> {
 
     handleOnChangeThreads = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
-        if (this.props.onChangeThreads) {
-            this.props.onChangeThreads(value);
-        }
+        this.props.onChangeThreads?.(value);
     }
 
     handleExpandSection = () => {

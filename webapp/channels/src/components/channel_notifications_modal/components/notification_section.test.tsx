@@ -6,7 +6,7 @@ import {shallow} from 'enzyme';
 
 import {NotificationLevels, NotificationSections} from 'utils/constants';
 
-import NotificationSection from 'components/channel_notifications_modal/components/notification_section.tsx';
+import NotificationSection from 'components/channel_notifications_modal/components/notification_section';
 
 describe('components/channel_notifications_modal/NotificationSection', () => {
     const baseProps = {
@@ -15,10 +15,10 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
         memberNotificationLevel: NotificationLevels.ALL,
         memberThreadsNotificationLevel: NotificationLevels.ALL,
         globalNotificationLevel: NotificationLevels.DEFAULT,
-        onChange: () => {}, //eslint-disable-line no-empty-function
-        onChangeThreads: () => {}, //eslint-disable-line no-empty-function
-        onSubmit: () => {}, //eslint-disable-line no-empty-function
-        onUpdateSection: () => {}, //eslint-disable-line no-empty-function
+        onChange: jest.fn(),
+        onChangeThreads: jest.fn(),
+        onSubmit: jest.fn(),
+        onUpdateSection: jest.fn(),
         serverError: '',
     };
 
@@ -31,7 +31,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, DESKTOP on expanded view', () => {
-        const props = {...baseProps, expand: true};
+        const props= {...baseProps, expand: true};
         const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
@@ -58,7 +58,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, MARK_UNREAD on collapsed view', () => {
-        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, globalNotificationLevel: null};
+        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, globalNotificationLevel: NotificationLevels.NONE};
         const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
@@ -67,7 +67,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, MARK_UNREAD on expanded view', () => {
-        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, expand: true, globalNotificationLevel: null};
+        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, expand: true, globalNotificationLevel: NotificationLevels.NONE};
         const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
