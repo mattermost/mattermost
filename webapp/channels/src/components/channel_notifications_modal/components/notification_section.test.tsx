@@ -23,7 +23,7 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     };
 
     test('should match snapshot, DESKTOP on collapsed view', () => {
-        const wrapper= shallow(
+        const wrapper = shallow(
             <NotificationSection {...baseProps}/>,
         );
 
@@ -31,8 +31,8 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, DESKTOP on expanded view', () => {
-        const props= {...baseProps, expand: true};
-        const wrapper= shallow(
+        const props = {...baseProps, expand: true};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
 
@@ -40,8 +40,8 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, PUSH on collapsed view', () => {
-        const props= {...baseProps, section: NotificationSections.PUSH};
-        const wrapper= shallow(
+        const props = {...baseProps, section: NotificationSections.PUSH};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
 
@@ -49,8 +49,8 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, PUSH on expanded view', () => {
-        const props= {...baseProps, section: NotificationSections.PUSH, expand: true};
-        const wrapper= shallow(
+        const props = {...baseProps, section: NotificationSections.PUSH, expand: true};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
 
@@ -58,8 +58,8 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, MARK_UNREAD on collapsed view', () => {
-        const props= {...baseProps, section: NotificationSections.MARK_UNREAD, globalNotificationLevel: NotificationLevels.NONE};
-        const wrapper= shallow(
+        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, globalNotificationLevel: NotificationLevels.NONE};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
 
@@ -67,8 +67,8 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot, MARK_UNREAD on expanded view', () => {
-        const props= {...baseProps, section: NotificationSections.MARK_UNREAD, expand: true, globalNotificationLevel: NotificationLevels.NONE};
-        const wrapper= shallow(
+        const props = {...baseProps, section: NotificationSections.MARK_UNREAD, expand: true, globalNotificationLevel: NotificationLevels.NONE};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
 
@@ -76,9 +76,9 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should have called onChange when handleOnChange is called', () => {
-        const onChange= jest.fn();
-        const props= {...baseProps, expand: true, onChange};
-        const wrapper= shallow(
+        const onChange = jest.fn();
+        const props = {...baseProps, expand: true, onChange};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
         wrapper.instance().handleOnChange({target: {value: NotificationLevels.ALL}});
@@ -87,9 +87,9 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should have called onUpdateSection when handleExpandSection is called', () => {
-        const onUpdateSection= jest.fn();
-        const props= {...baseProps, expand: true, onUpdateSection};
-        const wrapper= shallow(
+        const onUpdateSection = jest.fn();
+        const props = {...baseProps, expand: true, onUpdateSection};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
         wrapper.instance().handleExpandSection({preventDefault: jest.fn()});
@@ -98,9 +98,9 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should have called onUpdateSection when handleCollapseSection is called', () => {
-        const onUpdateSection= jest.fn();
-        const props= {...baseProps, expand: true, onUpdateSection};
-        const wrapper= shallow(
+        const onUpdateSection = jest.fn();
+        const props = {...baseProps, expand: true, onUpdateSection};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
         wrapper.instance().handleCollapseSection({preventDefault: jest.fn()});
@@ -109,8 +109,8 @@ describe('components/channel_notifications_modal/NotificationSection', () => {
     });
 
     test('should match snapshot on server error', () => {
-        const props= {...baseProps, serverError: 'server error occurred'};
-        const wrapper= shallow(
+        const props = {...baseProps, serverError: 'server error occurred'};
+        const wrapper = shallow(
             <NotificationSection {...props}/>,
         );
 
