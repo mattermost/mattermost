@@ -579,14 +579,14 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 	// Remote Cluster service
 
-	// License check
-	if !*license.Features.RemoteClusterService {
+	// License check (assume enabled if shared channels enabled)
+	if !*license.Features.RemoteClusterService && !license.HasSharedChannels() {
 		mlog.Debug("License does not have Remote Cluster services enabled")
 		return nil
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService {
+	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -606,7 +606,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	s.remoteClusterService = rcs
 	s.serviceMux.Unlock()
 
-	// Shared Channels service
+	// Shared Channels service (depends on remote cluster service)
 
 	// License check
 	if !license.HasSharedChannels() {
