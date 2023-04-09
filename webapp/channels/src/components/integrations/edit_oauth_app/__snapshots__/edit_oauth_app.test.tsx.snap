@@ -1,0 +1,257 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] = `
+<ConfirmModal
+  confirmButtonClass="btn btn-primary"
+  confirmButtonText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Update"
+      id="update_command.update"
+    />
+  }
+  message={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
+      id="update_oauth_app.question"
+    />
+  }
+  modalClass=""
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  show={false}
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Edit OAuth 2.0 application"
+      id="update_oauth_app.confirm"
+    />
+  }
+/>
+`;
+
+exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
+<AbstractOAuthApp
+  action={[Function]}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialApp={
+    Object {
+      "callback_urls": Array [
+        "https://test.com/callback",
+        "https://test.com/callback2",
+      ],
+      "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+      "create_at": 1501365458934,
+      "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+      "description": "testing",
+      "homepage": "https://test.com",
+      "icon_url": "https://test.com/icon",
+      "id": "facxd9wpzpbpfp8pad78xj75pr",
+      "is_trusted": true,
+      "name": "testApp",
+      "update_at": 1501365458934,
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  renderExtra={
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Update"
+          id="update_command.update"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
+          id="update_oauth_app.question"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Edit OAuth 2.0 application"
+          id="update_oauth_app.confirm"
+        />
+      }
+    />
+  }
+  serverError=""
+  team={
+    Object {
+      "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+      "name": "test",
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditOAuthApp should match snapshot when EnableOAuthServiceProvider is false 1`] = `
+<AbstractOAuthApp
+  action={[Function]}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialApp={
+    Object {
+      "callback_urls": Array [
+        "https://test.com/callback",
+        "https://test.com/callback2",
+      ],
+      "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+      "create_at": 1501365458934,
+      "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+      "description": "testing",
+      "homepage": "https://test.com",
+      "icon_url": "https://test.com/icon",
+      "id": "facxd9wpzpbpfp8pad78xj75pr",
+      "is_trusted": true,
+      "name": "testApp",
+      "update_at": 1501365458934,
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  renderExtra={
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Update"
+          id="update_command.update"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
+          id="update_oauth_app.question"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Edit OAuth 2.0 application"
+          id="update_oauth_app.confirm"
+        />
+      }
+    />
+  }
+  serverError=""
+  team={
+    Object {
+      "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+      "name": "test",
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`] = `
+<AbstractOAuthApp
+  action={[Function]}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialApp={
+    Object {
+      "callback_urls": Array [
+        "https://test.com/callback",
+        "https://test.com/callback2",
+      ],
+      "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+      "create_at": 1501365458934,
+      "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+      "description": "testing",
+      "homepage": "https://test.com",
+      "icon_url": "https://test.com/icon",
+      "id": "facxd9wpzpbpfp8pad78xj75pr",
+      "is_trusted": true,
+      "name": "testApp",
+      "update_at": 1501365458934,
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  renderExtra={
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Update"
+          id="update_command.update"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
+          id="update_oauth_app.question"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Edit OAuth 2.0 application"
+          id="update_oauth_app.confirm"
+        />
+      }
+    />
+  }
+  serverError=""
+  team={
+    Object {
+      "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+      "name": "test",
+    }
+  }
+/>
+`;

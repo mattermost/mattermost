@@ -1,0 +1,15 @@
+@charset "utf-8";
+
+// Dependencies
+@import '~bootstrap/dist/css/bootstrap.css';
+@import '~font-awesome/css/font-awesome.css';
+
+// styles.scss
+@import 'utils/module';
+@import 'base/module';
+@import 'routes/module';
+@import 'layout/module';
+@import 'components/module';
+@import 'responsive/module';
+@import 'widgets/module';
+@import 'admin_console_base/module';

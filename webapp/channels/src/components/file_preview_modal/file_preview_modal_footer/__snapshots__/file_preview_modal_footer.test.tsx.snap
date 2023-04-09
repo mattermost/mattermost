@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModalFooter should match snapshot the desktop view 1`] = `
+<div
+  className="file-preview-modal-footer"
+>
+  <Memo(FilePreviewModalInfo)
+    filename="img.png"
+    post={
+      Object {
+        "channel_id": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "edit_at": 0,
+        "hashtags": "",
+        "id": "id",
+        "is_pinned": false,
+        "message": "post message",
+        "metadata": Object {
+          "embeds": Array [],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {},
+          "reactions": Array [],
+        },
+        "original_id": "",
+        "pending_post_id": "",
+        "props": Object {},
+        "reply_count": 0,
+        "root_id": "",
+        "type": "system_add_remove",
+        "update_at": 0,
+        "user_id": "user_id",
+      }
+    }
+    showFileName={false}
+  />
+  <Memo(FilePreviewModalMainActions)
+    canCopyContent={false}
+    canDownloadFiles={true}
+    content=""
+    enablePublicLink={false}
+    fileIndex={1}
+    fileInfo={
+      Object {
+        "archived": false,
+        "clientId": "client_id",
+        "create_at": 1,
+        "delete_at": 1,
+        "extension": "jpg",
+        "has_preview_image": true,
+        "height": 200,
+        "id": "file_info_id",
+        "mime_type": "mime_type",
+        "name": "name",
+        "size": 1,
+        "update_at": 1,
+        "user_id": "user_id",
+        "width": 350,
+      }
+    }
+    fileURL="https://example.com/img.png"
+    filename="img.png"
+    handleModalClose={[MockFunction]}
+    isExternalFile={false}
+    isMobile={false}
+    onGetPublicLink={[MockFunction]}
+    showClose={false}
+    showOnlyClose={false}
+    showPublicLink={false}
+    totalFiles={3}
+    usedInside="Footer"
+  />
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModalFooter should match snapshot the mobile view 1`] = `
+<div
+  className="file-preview-modal-footer"
+>
+  <Memo(FilePreviewModalInfo)
+    filename="img.png"
+    post={
+      Object {
+        "channel_id": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "edit_at": 0,
+        "hashtags": "",
+        "id": "id",
+        "is_pinned": false,
+        "message": "post message",
+        "metadata": Object {
+          "embeds": Array [],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {},
+          "reactions": Array [],
+        },
+        "original_id": "",
+        "pending_post_id": "",
+        "props": Object {},
+        "reply_count": 0,
+        "root_id": "",
+        "type": "system_add_remove",
+        "update_at": 0,
+        "user_id": "user_id",
+      }
+    }
+    showFileName={false}
+  />
+  <Memo(FilePreviewModalMainActions)
+    canCopyContent={false}
+    canDownloadFiles={true}
+    content=""
+    enablePublicLink={false}
+    fileIndex={1}
+    fileInfo={
+      Object {
+        "archived": false,
+        "clientId": "client_id",
+        "create_at": 1,
+        "delete_at": 1,
+        "extension": "jpg",
+        "has_preview_image": true,
+        "height": 200,
+        "id": "file_info_id",
+        "mime_type": "mime_type",
+        "name": "name",
+        "size": 1,
+        "update_at": 1,
+        "user_id": "user_id",
+        "width": 350,
+      }
+    }
+    fileURL="https://example.com/img.png"
+    filename="img.png"
+    handleModalClose={[MockFunction]}
+    isExternalFile={false}
+    isMobile={true}
+    onGetPublicLink={[MockFunction]}
+    showClose={false}
+    showOnlyClose={false}
+    showPublicLink={false}
+    totalFiles={3}
+    usedInside="Footer"
+  />
+</div>
+`;

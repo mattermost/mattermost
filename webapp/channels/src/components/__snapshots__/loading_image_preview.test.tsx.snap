@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/LoadingImagePreview should match snapshot 1`] = `
+<div
+  className="view-image__loading"
+>
+  <LoadingSpinner
+    text={null}
+  />
+  <span
+    className="loader-percent"
+  >
+    Loading 50%
+  </span>
+</div>
+`;
+
+exports[`components/LoadingImagePreview should match snapshot 2`] = `
+<div
+  className="view-image__loading"
+>
+  <LoadingSpinner
+    text={null}
+  />
+  <span
+    className="loader-percent"
+  >
+    Loading 90%
+  </span>
+</div>
+`;

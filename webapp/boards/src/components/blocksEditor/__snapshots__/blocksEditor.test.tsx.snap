@@ -1,0 +1,469 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blocksEditor/blocksEditor should match snapshot on empty 1`] = `
+<div>
+  <div
+    class="BlocksEditor"
+  >
+    <div
+      class="Editor"
+    >
+      <div
+        class="RootInput css-b62m3t-container"
+      >
+        <span
+          class="css-1f43avz-a11yText-A11yText"
+          id="react-select-2-live-region"
+        >
+          <span
+            id="aria-selection"
+          >
+            option , selected.
+          </span>
+          <span
+            id="aria-context"
+          >
+              Select is focused ,type to refine list, press Down to open the menu, 
+          </span>
+        </span>
+        <span
+          aria-atomic="false"
+          aria-live="polite"
+          aria-relevant="additions text"
+          class="css-1f43avz-a11yText-A11yText"
+        />
+        <div
+          class=" css-1x912dq-control"
+        >
+          <div
+            class=" css-30zlo3-ValueContainer"
+          >
+            <div
+              class=" css-14el2xx-placeholder"
+              id="react-select-2-placeholder"
+            >
+              Introduce your text or your slash command
+            </div>
+            <div
+              class=" css-g5309v-Input"
+              data-value=""
+            >
+              <input
+                aria-autocomplete="list"
+                aria-describedby="react-select-2-placeholder"
+                aria-expanded="false"
+                aria-haspopup="true"
+                autocapitalize="none"
+                autocomplete="off"
+                autocorrect="off"
+                class=""
+                id="react-select-2-input"
+                role="combobox"
+                spellcheck="false"
+                style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                tabindex="0"
+                type="text"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class=" css-1hb7zxy-IndicatorsContainer"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 1`] = `
+<div>
+  <div
+    class="BlocksEditor"
+  >
+    <div>
+      <div
+        class="BlockContent   "
+        data-testid="block-content"
+        style="opacity: 1;"
+      >
+        <span
+          class="action"
+          data-testid="add-action"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+        </span>
+        <span
+          class="action"
+          draggable="true"
+        >
+          <svg
+            class="GripIcon Icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h24v24H0V0z"
+              fill="none"
+            />
+            <path
+              d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+            />
+          </svg>
+        </span>
+        <div
+          class="content"
+        >
+          <div>
+            <h1
+              id="title"
+            >
+              Title
+            </h1>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div
+        class="BlockContent   "
+        data-testid="block-content"
+        style="opacity: 1;"
+      >
+        <span
+          class="action"
+          data-testid="add-action"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+        </span>
+        <span
+          class="action"
+          draggable="true"
+        >
+          <svg
+            class="GripIcon Icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h24v24H0V0z"
+              fill="none"
+            />
+            <path
+              d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+            />
+          </svg>
+        </span>
+        <div
+          class="content"
+        >
+          <div>
+            <h2
+              id="sub-title"
+            >
+              Sub title
+            </h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div
+        class="BlockContent   "
+        data-testid="block-content"
+        style="opacity: 1;"
+      >
+        <span
+          class="action"
+          data-testid="add-action"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+        </span>
+        <span
+          class="action"
+          draggable="true"
+        >
+          <svg
+            class="GripIcon Icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h24v24H0V0z"
+              fill="none"
+            />
+            <path
+              d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+            />
+          </svg>
+        </span>
+        <div
+          class="content"
+        >
+          <div>
+            <h3
+              id="sub-sub-title"
+            >
+              Sub sub title
+            </h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div
+        class="BlockContent   "
+        data-testid="block-content"
+        style="opacity: 1;"
+      >
+        <span
+          class="action"
+          data-testid="add-action"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+        </span>
+        <span
+          class="action"
+          draggable="true"
+        >
+          <svg
+            class="GripIcon Icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h24v24H0V0z"
+              fill="none"
+            />
+            <path
+              d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+            />
+          </svg>
+        </span>
+        <div
+          class="content"
+        >
+          <div
+            class="octo-editor-preview"
+          >
+            <p>
+              Some 
+              <strong>
+                markdown
+              </strong>
+               text
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div
+        class="BlockContent   "
+        data-testid="block-content"
+        style="opacity: 1;"
+      >
+        <span
+          class="action"
+          data-testid="add-action"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+        </span>
+        <span
+          class="action"
+          draggable="true"
+        >
+          <svg
+            class="GripIcon Icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h24v24H0V0z"
+              fill="none"
+            />
+            <path
+              d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+            />
+          </svg>
+        </span>
+        <div
+          class="content"
+        >
+          <div
+            class="octo-editor-preview"
+          >
+            <p>
+              Some multiline
+              <br />
+              <strong>
+                markdown
+              </strong>
+               text
+            </p>
+            
+
+            <h3
+              id="with-items"
+            >
+              With Items
+            </h3>
+            
+
+            <ul>
+              
+
+              <li>
+                Item 1
+              </li>
+              
+
+              <li>
+                Item2
+              </li>
+              
+
+              <li>
+                Item3
+              </li>
+              
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div
+        class="BlockContent   "
+        data-testid="block-content"
+        style="opacity: 1;"
+      >
+        <span
+          class="action"
+          data-testid="add-action"
+        >
+          <i
+            class="CompassIcon icon-plus AddIcon"
+          />
+        </span>
+        <span
+          class="action"
+          draggable="true"
+        >
+          <svg
+            class="GripIcon Icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0h24v24H0V0z"
+              fill="none"
+            />
+            <path
+              d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+            />
+          </svg>
+        </span>
+        <div
+          class="content"
+        >
+          <div
+            class="CheckboxView"
+          >
+            <input
+              checked=""
+              data-testid="checkbox-check"
+              type="checkbox"
+            />
+            <div>
+              <p>
+                Checkbox
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Editor"
+    >
+      <div
+        class="RootInput css-b62m3t-container"
+      >
+        <span
+          class="css-1f43avz-a11yText-A11yText"
+          id="react-select-3-live-region"
+        >
+          <span
+            id="aria-selection"
+          >
+            option , selected.
+          </span>
+          <span
+            id="aria-context"
+          >
+              Select is focused ,type to refine list, press Down to open the menu, 
+          </span>
+        </span>
+        <span
+          aria-atomic="false"
+          aria-live="polite"
+          aria-relevant="additions text"
+          class="css-1f43avz-a11yText-A11yText"
+        />
+        <div
+          class=" css-1x912dq-control"
+        >
+          <div
+            class=" css-30zlo3-ValueContainer"
+          >
+            <div
+              class=" css-14el2xx-placeholder"
+              id="react-select-3-placeholder"
+            >
+              Introduce your text or your slash command
+            </div>
+            <div
+              class=" css-g5309v-Input"
+              data-value=""
+            >
+              <input
+                aria-autocomplete="list"
+                aria-describedby="react-select-3-placeholder"
+                aria-expanded="false"
+                aria-haspopup="true"
+                autocapitalize="none"
+                autocomplete="off"
+                autocorrect="off"
+                class=""
+                id="react-select-3-input"
+                role="combobox"
+                spellcheck="false"
+                style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                tabindex="0"
+                type="text"
+                value=""
+              />
+            </div>
+          </div>
+          <div
+            class=" css-1hb7zxy-IndicatorsContainer"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

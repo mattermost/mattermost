@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/workspace-optimization/cta_buttons should match snapshot 1`] = `
+<div
+  className="ctaButtons"
+>
+  <button
+    className="actionButton annnouncementBar__purchaseNow"
+    onClick={[Function]}
+  >
+    Action Text
+  </button>
+  <button
+    className="learnMoreButton light-blue-btn"
+    onClick={[Function]}
+  >
+    Learn More
+  </button>
+</div>
+`;

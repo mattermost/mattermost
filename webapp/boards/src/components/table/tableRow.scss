@@ -1,0 +1,71 @@
+@import 'src/styles/z-index';
+
+.TableRow {
+    .open-button {
+        display: none;
+
+        .Button {
+            padding: 2px 6px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            background-color: rgb(var(--center-channel-bg-rgb));
+            box-shadow: rgba(var(--center-channel-color-rgb), 0.1) 0 0 0 1px,
+                rgba(var(--center-channel-color-rgb), 0.1) 0 2px 4px;
+            height: 24px;
+            width: 100%;
+        }
+    }
+
+    &.selected {
+        background-color: rgba(90, 200, 255, 0.2);
+    }
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.05);
+        overflow: initial;
+
+        .delete-button {
+            display: block;
+        }
+
+        .open-button {
+            display: block;
+        }
+
+        .action-cell {
+            @include z-index(table-row-action-cell);
+            position: relative;
+            align-items: center;
+        }
+
+        .octo-table-cell-btn {
+            visibility: visible;
+        }
+
+        .title-cell {
+            margin-left: 0;
+        }
+    }
+
+    &.readonly:hover {
+        margin-left: unset;
+    }
+
+    .action-cell {
+        display: flex;
+        visibility: hidden;
+        margin-left: 8px;
+        width: 24px;
+    }
+
+    .URLProperty:hover .Button_Copy {
+        display: none;
+    }
+
+    .octo-propertyvalue--readonly {
+        flex-wrap: nowrap;
+        overflow: hidden !important;
+    }
+}

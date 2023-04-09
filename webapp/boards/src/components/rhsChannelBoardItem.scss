@@ -1,0 +1,42 @@
+.RHSChannelBoardItem {
+    padding: 15px;
+    text-align: left;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    box-shadow: var(--elevation-1);
+    border-radius: 5px;
+    cursor: pointer;
+    color: rgb(var(--center-channel-color-rgb));
+
+    .date {
+        font-size: 12px;
+        opacity: 0.64;
+    }
+
+    .board-info {
+        display: flex;
+        font-size: 16px;
+
+        .icon {
+            margin-right: 10px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: 600;
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .description {
+        margin: 4px 0;
+        font-size: 12px;
+        line-height: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}

@@ -1,0 +1,188 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/AddMembersButton should match snapshot, less than limit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(AddMembersButton)
+    channel={
+      Object {
+        "create_at": 1508265709607,
+        "creator_id": "creator_id",
+        "delete_at": 0,
+        "display_name": "test channel",
+        "header": "test",
+        "id": "channel_id",
+        "last_post_at": 1508265709635,
+        "name": "testing",
+        "purpose": "test",
+        "team_id": "team-id",
+        "type": "O",
+        "update_at": 1508265709607,
+      }
+    }
+    totalUsers={10}
+    usersLimit={100}
+  >
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "add_user_to_team",
+          "invite_guest",
+        ]
+      }
+      teamId="team-id"
+    >
+      <TeamPermissionGate
+        dispatch={[Function]}
+        hasPermission={false}
+        invert={false}
+        permissions={
+          Array [
+            "add_user_to_team",
+            "invite_guest",
+          ]
+        }
+        teamId="team-id"
+      />
+    </Connect(TeamPermissionGate)>
+  </Memo(AddMembersButton)>
+</Provider>
+`;
+
+exports[`components/post_view/AddMembersButton should match snapshot, more than limit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(AddMembersButton)
+    channel={
+      Object {
+        "create_at": 1508265709607,
+        "creator_id": "creator_id",
+        "delete_at": 0,
+        "display_name": "test channel",
+        "header": "test",
+        "id": "channel_id",
+        "last_post_at": 1508265709635,
+        "name": "testing",
+        "purpose": "test",
+        "team_id": "team-id",
+        "type": "O",
+        "update_at": 1508265709607,
+      }
+    }
+    totalUsers={100}
+    usersLimit={10}
+  >
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "add_user_to_team",
+          "invite_guest",
+        ]
+      }
+      teamId="team-id"
+    >
+      <TeamPermissionGate
+        dispatch={[Function]}
+        hasPermission={false}
+        invert={false}
+        permissions={
+          Array [
+            "add_user_to_team",
+            "invite_guest",
+          ]
+        }
+        teamId="team-id"
+      />
+    </Connect(TeamPermissionGate)>
+  </Memo(AddMembersButton)>
+</Provider>
+`;
+
+exports[`components/post_view/AddMembersButton should match snapshot, setHeader and pluginButtons 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Memo(AddMembersButton)
+    channel={
+      Object {
+        "create_at": 1508265709607,
+        "creator_id": "creator_id",
+        "delete_at": 0,
+        "display_name": "test channel",
+        "header": "test",
+        "id": "channel_id",
+        "last_post_at": 1508265709635,
+        "name": "testing",
+        "purpose": "test",
+        "team_id": "team-id",
+        "type": "O",
+        "update_at": 1508265709607,
+      }
+    }
+    pluginButtons={
+      <button>
+        Create a board
+      </button>
+    }
+    setHeader={
+      <button>
+        Create a board
+      </button>
+    }
+    totalUsers={100}
+    usersLimit={10}
+  >
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "add_user_to_team",
+          "invite_guest",
+        ]
+      }
+      teamId="team-id"
+    >
+      <TeamPermissionGate
+        dispatch={[Function]}
+        hasPermission={false}
+        invert={false}
+        permissions={
+          Array [
+            "add_user_to_team",
+            "invite_guest",
+          ]
+        }
+        teamId="team-id"
+      />
+    </Connect(TeamPermissionGate)>
+  </Memo(AddMembersButton)>
+</Provider>
+`;
