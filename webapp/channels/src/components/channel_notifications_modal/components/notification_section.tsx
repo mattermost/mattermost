@@ -9,60 +9,16 @@ import CollapseView from './collapse_view';
 import ExpandView from './expand_view';
 
 type Props = {
-
-    /**
-     * Notification section
-     */
     section: string;
-
-    /**
-     * Expand if true, else collapse the section
-     */
     expand: boolean;
-
-    /**
-     * Member's desktop notification level
-     */
     memberNotificationLevel: string;
-
-    /**
-     * Member's desktop_threads notification level
-     */
     memberThreadsNotificationLevel?: string;
-
-    /**
-     * Ignore channel-wide mentions @channel, @here and @all
-     */
     ignoreChannelMentions?: string;
-
-    /**
-     * User's global notification level
-     */
     globalNotificationLevel?: string;
-
-    /**
-     * onChange handles update of desktop notification level
-     */
     onChange: (value: string) => void;
-
-    /**
-     * onChangeThreads handles update of desktop_threads notification level
-     */
     onChangeThreads?: (value: string) => void | any;
-
-    /**
-     * Submit function to save notification level
-     */
     onSubmit: () => void;
-
-    /**
-     * Update function to expand or collapse a section
-     */
     onUpdateSection: (value: string) => void;
-
-    /**
-     * Error string from the server
-     */
     serverError?: string;
 }
 export default class NotificationSection extends React.PureComponent<Props> {
