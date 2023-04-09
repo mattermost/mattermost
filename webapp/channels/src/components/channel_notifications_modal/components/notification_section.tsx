@@ -41,27 +41,27 @@ type Props = {
     globalNotificationLevel?: string;
 
     /**
-     * Ignore channel-wide mentions @channel, @here and @all
+     * onChange handles update of desktop notification level
      */
     onChange: (value: string) => void;
 
     /**
-     * Ignore channel-wide mentions @channel, @here and @all
+     * onChangeThreads handles update of desktop_threads notification level
      */
     onChangeThreads?: (value: string) => void | any;
 
     /**
-     * Ignore channel-wide mentions @channel, @here and @all
+     * Submit function to save notification level
      */
     onSubmit: () => void;
 
     /**
-     * Ignore channel-wide mentions @channel, @here and @all
+     * Update function to expand or collapse a section
      */
     onUpdateSection: (value: string) => void;
 
     /**
-     * Ignore channel-wide mentions @channel, @here and @all
+     * Error string from the server
      */
     serverError?: string;
 }
