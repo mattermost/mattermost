@@ -10,7 +10,7 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import {IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 
-import NotificationSection from 'components/channel_notifications_modal/components/notification_section.jsx';
+import NotificationSection from 'components/channel_notifications_modal/components/notification_section';
 
 import {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
