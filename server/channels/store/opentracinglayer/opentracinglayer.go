@@ -3315,34 +3315,16 @@ func (s *OpenTracingLayerDraftStore) GetDraftsForUser(userID string, teamID stri
 	return result, err
 }
 
-func (s *OpenTracingLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+func (s *OpenTracingLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Save")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Upsert")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.DraftStore.Save(d)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Update")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.DraftStore.Update(d)
+	result, err := s.DraftStore.Upsert(d)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5565,6 +5547,24 @@ func (s *OpenTracingLayerOAuthStore) RemoveAuthDataByClientId(clientId string, u
 
 	defer span.Finish()
 	err := s.OAuthStore.RemoveAuthDataByClientId(clientId, userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.RemoveAuthDataByUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.OAuthStore.RemoveAuthDataByUserId(userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

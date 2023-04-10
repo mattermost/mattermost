@@ -39,7 +39,7 @@ export default class GeneratedSetting extends React.PureComponent<Props> {
         e.preventDefault();
 
         this.props.onChange(this.props.id, crypto.randomBytes(256).toString('base64').substring(0, 32));
-    }
+    };
 
     public render() {
         let disabledText = null;

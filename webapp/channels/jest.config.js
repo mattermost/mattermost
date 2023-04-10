@@ -5,7 +5,7 @@
 
 const config = {
     snapshotSerializers: ['enzyme-to-json/serializer'],
-    testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
+    testPathIgnorePatterns: ['/node_modules/'],
     clearMocks: true,
     collectCoverageFrom: [
         'actions/src/**/*.{js,jsx,ts,tsx}',
@@ -17,7 +17,6 @@ const config = {
         'selectors/src/**/*.{js,jsx,ts,tsx}',
         'stores/src/**/*.{js,jsx,ts,tsx}',
         'utils/src/**/*.{js,jsx,ts,tsx}',
-        '!e2e/**',
     ],
     coverageReporters: ['lcov', 'text-summary'],
     moduleNameMapper: {

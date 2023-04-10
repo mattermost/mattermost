@@ -177,7 +177,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         this.setState({isLoading: false});
-    }
+    };
 
     private handleCardClick = (post: Post) => {
         if (!post) {
@@ -185,7 +185,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.selectPostCard(post);
-    }
+    };
 
     public render(): JSX.Element {
         if (this.props.postIds == null || this.props.selected == null || !this.props.channel) {

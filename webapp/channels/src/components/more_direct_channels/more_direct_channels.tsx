@@ -109,7 +109,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.getUserProfiles();
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
-    }
+    };
 
     updateFromProps(prevProps: Props) {
         if (prevProps.searchTerm !== this.props.searchTerm) {
@@ -156,13 +156,13 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
-    }
+    };
 
     setUsersLoadingState = (loadingState: boolean) => {
         this.setState({
             loadingUsers: loadingState,
         });
-    }
+    };
 
     handleExit = () => {
         if (this.exitToChannel) {
@@ -171,7 +171,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         this.props.onModalDismissed?.();
         this.props.onExited?.();
-    }
+    };
 
     handleSubmit = (values = this.state.values) => {
         const {actions} = this.props;
@@ -241,18 +241,18 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 this.setUsersLoadingState(false);
             });
         }
-    }
+    };
 
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setUsersLoadingState(true);
             this.getUserProfiles(page);
         }
-    }
+    };
 
     resetPaging = () => {
         this.multiselect.current?.resetPaging();
-    }
+    };
 
     search = debounce((term: string) => {
         this.props.actions.setModalSearchTerm(term);
@@ -260,7 +260,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
     handleDelete = (values: OptionValue[]) => {
         this.setState({values});
-    }
+    };
 
     render() {
         const body = (
