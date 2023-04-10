@@ -1891,20 +1891,30 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 
 	opts.Deleted, _ = strconv.ParseBool(queryValues.Get("deleted"))
-	opts.TotalsOnly, _ = strconv.ParseBool(queryValues.Get("totalsOnly"))
-	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get("threadsOnly"))
 	opts.Before = queryValues.Get("before")
 	opts.After = queryValues.Get("after")
 
+	totalsOnlyKey := "totalsOnly"
+	if !queryValues.Has(totalsOnlyKey) {
+		totalsOnlyKey = "totals_only"
+	}
+	opts.TotalsOnly, _ = strconv.ParseBool(queryValues.Get(totalsOnlyKey))
+
+	threadsOnlyKey := "threadsOnly"
+	if !queryValues.Has(threadsOnlyKey) {
+		threadsOnlyKey = "threads_only"
+	}
+	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get(threadsOnlyKey))
+
 	// parameters are mutually exclusive
 	if opts.Before != "" && opts.After != "" {
-		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("api.getThreadsForChannel", "api.getThreadsForChannel.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	// parameters are mutually exclusive
 	if opts.TotalsOnly && opts.ThreadsOnly {
-		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_only_params", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("api.getThreadsForChannel", "api.getThreadsForChannel.bad_only_params", nil, "", http.StatusBadRequest)
 		return
 	}
 
