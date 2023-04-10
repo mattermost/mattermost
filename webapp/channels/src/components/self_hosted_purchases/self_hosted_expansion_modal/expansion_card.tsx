@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {DocLinks, RecurringIntervals} from 'utils/constants';
+import {DocLinks} from 'utils/constants';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import './expansion_card.scss';
@@ -38,48 +38,27 @@ export default function SelfHostedExpansionCard(props: Props) {
     const invalidAdditionalSeats = additionalSeats === 0 || isNaN(additionalSeats);
     const [products] = useGetSelfHostedProducts();
     const currentProduct = findSelfHostedProductBySku(products, license.SkuShortName);
+    const costPerMonth = currentProduct?.price_per_seat || 0;
 
     const getMonthsUntilExpiry = () => {
         const now = new Date();
         return (licenseExpiry.getMonth() - now.getMonth()) + (MONTHS_IN_YEAR * (licenseExpiry.getFullYear() - now.getFullYear()));
     };
 
-    const getMonthlyPrice = () => {
-        if (currentProduct === null) {
-            return 0;
-        }
-
-        if (currentProduct?.recurring_interval === RecurringIntervals.MONTH) {
-            return currentProduct.price_per_seat;
-        }
-
-        const costPerMonth = (currentProduct.price_per_seat / MONTHS_IN_YEAR);
-
-        // Only display 2 decimal places if the cost per month is not evenly divisible over 12 months.
-        if (!Number.isInteger(costPerMonth)) {
-            // Keep the return value as a number.
-            return costPerMonth;
-        }
-
-        return costPerMonth;
-    };
-
     const getCostPerUser = () => {
         if (isNaN(additionalSeats)) {
             return 0;
         }
-        const monthlyPrice = getMonthlyPrice();
         const monthsUntilExpiry = getMonthsUntilExpiry();
-        return monthlyPrice * monthsUntilExpiry;
+        return costPerMonth * monthsUntilExpiry;
     };
 
     const getTotal = () => {
         if (isNaN(additionalSeats)) {
             return 0;
         }
-        const monthlyPrice = getMonthlyPrice();
         const monthsUntilExpiry = getMonthsUntilExpiry();
-        return additionalSeats * monthlyPrice * monthsUntilExpiry;
+        return additionalSeats * costPerMonth * monthsUntilExpiry;
     };
 
     // Finds the maximum number of additional seats that is possible, taking into account
@@ -90,18 +69,9 @@ export default function SelfHostedExpansionCard(props: Props) {
             return 0;
         }
 
-        let recurringCost = 0;
-
-        // if monthly
-        if (currentProduct.recurring_interval === RecurringIntervals.MONTH) {
-            recurringCost = getMonthlyPrice();
-        } else { // if yearly
-            recurringCost = currentProduct.price_per_seat;
-        }
-
-        const currentPaymentPrice = recurringCost * props.licensedSeats;
+        const currentPaymentPrice = costPerMonth * props.licensedSeats;
         const remainingTransactionLimit = MAX_TRANSACTION_VALUE - currentPaymentPrice;
-        const remainingSeats = Math.floor(remainingTransactionLimit / recurringCost);
+        const remainingSeats = Math.floor(remainingTransactionLimit / costPerMonth);
         return Math.max(0, remainingSeats);
     };
 
@@ -211,7 +181,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                             /* eslint-disable no-template-curly-in-string*/
                             defaultMessage='${costPerUser} x {monthsUntilExpiry} months'
                             values={{
-                                costPerUser: getMonthlyPrice().toFixed(2),
+                                costPerUser: costPerMonth.toFixed(2),
                                 monthsUntilExpiry: getMonthsUntilExpiry(),
                             }}
                         />
