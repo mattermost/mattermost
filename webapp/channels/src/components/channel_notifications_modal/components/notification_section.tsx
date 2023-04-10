@@ -66,26 +66,22 @@ type Props = {
     serverError?: string;
 }
 export default class NotificationSection extends React.PureComponent<Props> {
-    constructor(props: Props) {
-        super(props);
-    }
-
     handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
         this.props.onChange(e.target.value);
-    }
+    };
 
     handleOnChangeThreads = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
         this.props.onChangeThreads?.(value);
-    }
+    };
 
     handleExpandSection = () => {
         this.props.onUpdateSection(this.props.section);
-    }
+    };
 
     handleCollapseSection = () => {
         this.props.onUpdateSection(NotificationSections.NONE);
-    }
+    };
 
     render() {
         const {
