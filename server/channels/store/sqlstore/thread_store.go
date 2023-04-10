@@ -581,23 +581,11 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 		pageSize = opts.PageSize
 	}
 
-	unreadRepliesQuery := sq.
-		Select("COUNT(Posts.Id)").
-		From("Posts").
-		Where(sq.Expr("Posts.RootId = ThreadMemberships.PostId")).
-		Where(sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"))
-
-	if !opts.Deleted {
-		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
-	}
-
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
 		Columns(
 			"COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt",
-			"COALESCE(ThreadMemberships.UnreadMentions, 0) as UnreadMentions",
 		).
-		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
 
