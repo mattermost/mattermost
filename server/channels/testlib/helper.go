@@ -213,8 +213,8 @@ func (h *MainHelper) PreloadBoardsMigrationsIfNeeded() {
 	relPath := "channels/testlib/testdata"
 
 	handle := h.SQLStore.GetMasterX()
-	var boardsSchemaMigrationTableCount int
-	gErr := handle.Get(&boardsSchemaMigrationTableCount, `
+	var boardsTableCount int
+	gErr := handle.Get(&boardsTableCount, `
       SELECT COUNT(*)
         FROM INFORMATION_SCHEMA.TABLES
        WHERE TABLE_SCHEMA = `+tableSchemaFn+`
@@ -225,7 +225,7 @@ func (h *MainHelper) PreloadBoardsMigrationsIfNeeded() {
 
 	var buf []byte
 	var err error
-	if boardsSchemaMigrationTableCount != 0 {
+	if boardsTableCount != 0 {
 		switch *h.Settings.DriverName {
 		case model.DatabaseDriverPostgres:
 			boardsFinalPath := filepath.Join(basePath, relPath, "boards_postgres_migration_warmup.sql")

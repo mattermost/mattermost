@@ -209,7 +209,11 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 			    FROM   pg_class
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
-				AND NOT relname = '` + s.tablePrefix + `schema_migrations'
+				AND NOT (
+                  relname = '` + s.tablePrefix + `schema_migrations' OR
+                  relname = '` + s.tablePrefix + `boards' OR
+                  relname = '` + s.tablePrefix + `blocks'
+                )
 			   );
 			END
 			$func$;`)
@@ -229,12 +233,29 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 				return err
 			}
 
-			if table != s.tablePrefix+"schema_migrations" {
+			if table != s.tablePrefix+"schema_migrations" &&
+				table != s.tablePrefix+"boards" &&
+				table != s.tablePrefix+"blocks" {
 				if _, err := db.Exec(`TRUNCATE TABLE ` + table); err != nil {
 					return err
 				}
 			}
 		}
+	}
+
+	_, blErr := db.Exec(`
+      DELETE bl
+        FROM ` + s.tablePrefix + `_blocks bl
+        JOIN ` + s.tablePrefix + `_boards bo
+          ON bl.board_id=bo.id
+   WHERE NOT bo.is_template`)
+	if blErr != nil {
+		return blErr
+	}
+
+	_, boErr := db.Exec(`DELETE FROM ` + s.tablePrefix + `_boards WHERE NOT is_template`)
+	if boErr != nil {
+		return boErr
 	}
 
 	return nil
