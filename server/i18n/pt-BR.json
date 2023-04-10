@@ -8620,18 +8620,6 @@
     "translation": "Administrador já notificado"
   },
   {
-    "id": "Channels",
-    "translation": "Canais"
-  },
-  {
-    "id": "Boards",
-    "translation": "Quadros"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "Campos faltando para envio de email."
   },

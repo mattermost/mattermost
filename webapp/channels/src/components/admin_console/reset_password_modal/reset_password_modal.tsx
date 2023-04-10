@@ -98,7 +98,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
             return;
         }
         this.props.onModalSubmit(this.props.user);
-    }
+    };
 
     private doCancel = (): void => {
         this.setState({
@@ -106,7 +106,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
             serverErrorCurrentPass: null,
         });
         this.props.onModalDismissed();
-    }
+    };
 
     public render(): JSX.Element {
         const user = this.props.user;

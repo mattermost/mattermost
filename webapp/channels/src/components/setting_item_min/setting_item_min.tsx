@@ -47,12 +47,12 @@ export default class SettingItemMin extends React.PureComponent<Props> {
 
     private getEdit = (node: HTMLButtonElement) => {
         this.edit = node;
-    }
+    };
 
     handleUpdateSection = (e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
         this.props.updateSection(this.props.section);
-    }
+    };
 
     render(): JSX.Element {
         let editButton = null;
