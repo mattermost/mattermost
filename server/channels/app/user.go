@@ -933,6 +933,10 @@ func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 		a.disableUserBots(c, userID)
 	}
 
+	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
+		mlog.Warn("unable to remove auth data by user id", mlog.Err(nErr))
+	}
+
 	return nil
 }
 

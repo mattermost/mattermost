@@ -22,7 +22,7 @@ func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		a, err := New()
 		require.NoError(t, err)
-		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 		serverErr := a.StartServer()
 		require.NoError(t, serverErr)
 		a.Srv().Shutdown()

@@ -132,7 +132,7 @@ const AdvanceTextEditor = ({
     canUploadFiles,
     enableEmojiPicker,
     enableGifPicker,
-    handleBlur,
+    handleBlur: onBlur,
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
@@ -172,6 +172,7 @@ const AdvanceTextEditor = ({
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
+    const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
     const input = textboxRef.current?.getInputBox();
 
@@ -188,6 +189,15 @@ const AdvanceTextEditor = ({
     const handleShowFormat = useCallback(() => {
         setShowPreview(!shouldShowPreview);
     }, [shouldShowPreview, setShowPreview]);
+
+    const handleBlur = useCallback(() => {
+        onBlur?.();
+        setKeepEditorInFocus(false);
+    }, [onBlur]);
+
+    const handleFocus = useCallback(() => {
+        setKeepEditorInFocus(true);
+    }, []);
 
     let serverErrorJsx = null;
     if (serverError) {
@@ -424,6 +434,7 @@ const AdvanceTextEditor = ({
                 />
             )}
             slot2={null}
+            shouldScrollIntoView={keepEditorInFocus}
         />
     );
 
@@ -481,6 +492,7 @@ const AdvanceTextEditor = ({
                             handlePostError={handlePostError}
                             value={messageValue}
                             onBlur={handleBlur}
+                            onFocus={handleFocus}
                             emojiEnabled={enableEmojiPicker}
                             createMessage={createMessage}
                             channelId={channelId}

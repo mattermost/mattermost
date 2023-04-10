@@ -21,17 +21,16 @@ describe('Account Settings', () => {
             offTopic = offTopicUrl;
             testUser = user;
             testTeam = team;
+
+            cy.postMessage('hello');
         });
     });
 
     it('MM-T2049 Account Settings link in own popover', () => {
         // # Click avatar to open profile popover
-        cy.get('div.status-wrapper').should('be.visible').click();
+        cy.uiOpenProfileModal('Profile Settings');
 
-        // # Click account settings link
-        cy.get('#accountSettings').should('be.visible').click();
-
-        // # Check if account settings modal is open
+        // # Check if profile settings modal is open
         cy.get('#accountSettingsModal').should('be.visible');
 
         cy.uiClose();
@@ -62,17 +61,7 @@ describe('Account Settings', () => {
 
     it('MM-T2074 New email not visible to other users until it has been confirmed', () => {
         // # Login as admin
-        cy.apiLogout();
         cy.apiAdminLogin();
-
-        // * Set require email verification to true
-        cy.visit('/admin_console/authentication/email');
-        cy.get('[id="EmailSettings.EnableSignInWithEmailtrue"]').should('be.visible').click();
-        cy.get('#saveSetting').invoke('attr', 'disabled').
-            then((disabled) => {
-                disabled ? '' : cy.uiSave();
-            });
-        cy.visit(offTopic);
 
         // # Create user
         cy.apiCreateUser({prefix: 'test'}).then(({user: newUser}) => {
@@ -80,15 +69,14 @@ describe('Account Settings', () => {
             cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                 // # Create DM channel
                 cy.apiCreateDirectChannel([testUser.id, newUser.id]).then(({channel}) => {
-                    // # Login to first user
-                    cy.uiLogout();
-                    cy.uiLogin(testUser);
+                    cy.apiLogin(testUser);
                     cy.visit(offTopic);
+                    cy.postMessage('hello');
 
                     // * Update email
                     const oldEMail = testUser.email;
                     const newEMail = 'test@example.com';
-                    cy.uiOpenProfileModal();
+                    cy.uiOpenProfileModal('Profile Settings');
                     cy.get('#emailEdit').should('be.visible').click();
                     cy.get('#primaryEmail').should('be.visible').type(newEMail);
                     cy.get('#confirmEmail').should('be.visible').type(newEMail);
@@ -99,8 +87,7 @@ describe('Account Settings', () => {
                     cy.postMessageAs({sender: testUser, message: `@${newUser.username}`, channelId: channel.id});
 
                     // # Login to 2nd user
-                    cy.uiLogout();
-                    cy.uiLogin(newUser);
+                    cy.apiLogin(newUser);
 
                     // * Check if email updated
                     cy.visit(`/${testTeam.name}/messages/@${testUser.username}`);
