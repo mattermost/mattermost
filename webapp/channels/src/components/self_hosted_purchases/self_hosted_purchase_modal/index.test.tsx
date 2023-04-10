@@ -50,7 +50,7 @@ jest.mock('components/payment_form/card_input', () => {
     };
 });
 
-jest.mock('components/self_hosted_purchase_modal/stripe_provider', () => {
+jest.mock('components/self_hosted_purchases/stripe_provider', () => {
     return function(props: {children: React.ReactNode | React.ReactNodeArray}) {
         return props.children;
     };
