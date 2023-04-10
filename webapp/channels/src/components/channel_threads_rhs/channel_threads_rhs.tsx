@@ -90,11 +90,14 @@ function ChannelThreads({
         created,
     ]);
 
+    useEffect(() => {
+        actions.getThreadsCountsForChannel(channel.id);
+    }, [channel.id]);
+
     const after = ids.length ? ids[0] : '';
     useEffect(() => {
         setIsLoading(true);
         const fetchThreads = async () => {
-            await actions.getThreadsCountsForChannel(channel.id);
             await actions.getThreadsForChannel(channel.id, selected, {after, perPage: 5});
             setIsLoading(false);
         };
