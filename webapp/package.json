@@ -1,6 +1,10 @@
 {
   "name": "@mattermost/webapp",
   "private": true,
+  "engines": {
+    "node": "16.10.0",
+    "npm": "7.24.0"
+  },
   "scripts": {
     "postinstall": "node scripts/skip_integrity_check.js && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
     "build": "node scripts/build.js",
@@ -13,13 +17,10 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.58.0",
-    "@typescript-eslint/parser": "5.58.0",
     "blessed": "0.1.81",
     "chalk": "4.1.2",
     "concurrently": "7.6.0",
     "eslint": "8.37.0",
-    "eslint-plugin-react": "7.32.2",
     "strip-ansi": "6.0.1"
   },
   "workspaces": [
