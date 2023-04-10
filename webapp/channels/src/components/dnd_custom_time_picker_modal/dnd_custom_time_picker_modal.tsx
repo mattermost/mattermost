@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {DayPickerProps} from 'react-day-picker';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import classNames from 'classnames';
 
