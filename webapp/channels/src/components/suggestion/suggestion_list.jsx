@@ -89,7 +89,7 @@ export default class SuggestionList extends React.PureComponent {
         if (this.contentRef.current) {
             this.contentRef.current.style['max-height'] = this.maxHeight;
         }
-    }
+    };
 
     announceLabel() {
         const suggestionReadOut = this.props.ariaLiveRef.current;
@@ -129,7 +129,7 @@ export default class SuggestionList extends React.PureComponent {
 
     getContent = () => {
         return this.contentRef.current;
-    }
+    };
 
     scrollToItem = (term) => {
         const content = this.getContent();
@@ -162,7 +162,7 @@ export default class SuggestionList extends React.PureComponent {
                 content.scrollTop = (itemBottom - visibleContentHeight) + contentTopPadding + contentBottomPadding;
             }
         }
-    }
+    };
 
     getComputedCssProperty(element, property) {
         return parseInt(getComputedStyle(element)[property], 10);

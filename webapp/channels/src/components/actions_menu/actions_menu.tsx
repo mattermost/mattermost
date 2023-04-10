@@ -92,7 +92,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         appBindings: [],
         location: Locations.CENTER,
         pluginMenuItems: [],
-    }
+    };
     private buttonRef: React.RefObject<HTMLButtonElement>;
 
     constructor(props: Props) {
@@ -115,7 +115,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 defaultMessage='Message actions'
             />
         </Tooltip>
-    )
+    );
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.isMenuOpen && !prevProps.isMenuOpen) {
@@ -137,7 +137,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 this.setState({appBindings: data});
             });
         }
-    }
+    };
 
     handleOpenMarketplace = (): void => {
         const openedFrom: OpenedFromType = 'actions_menu';
@@ -197,7 +197,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             this.props.actions.postEphemeralCallResponseForPost(callResp, errorMessage, post);
         }
         }
-    }
+    };
 
     visitMarketplaceTip(): React.ReactElement {
         return (
@@ -263,7 +263,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         this.setState({
             openUp: (spaceOnTop > spaceOnBottom),
         });
-    }
+    };
 
     render(): React.ReactNode {
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
