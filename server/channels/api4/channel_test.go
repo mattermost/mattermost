@@ -3883,7 +3883,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		rootPost := th.CreatePostWithClient(th.Client, otherChannel)
 		th.CreateThreadPostWithClient(th.Client, otherChannel, rootPost)
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, res.Threads, 0)
 	})
@@ -3894,7 +3894,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		rootPost := th.CreatePost()
 		th.CreateThreadPost(rootPost)
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
 		require.NoError(t, err)
 		require.Len(t, res.Threads, 1)
 		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
@@ -3907,7 +3907,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		rootPost := th.CreatePost()
 		th.CreateThreadPost(rootPost)
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			Deleted: false,
 		})
 		require.NoError(t, err)
@@ -3920,13 +3920,13 @@ func TestGetThreadsForChannel(t *testing.T) {
 		_, err = th.Client.DeletePost(rootPost.Id)
 		require.NoError(t, err)
 
-		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			Deleted: false,
 		})
 		require.NoError(t, err)
 		require.Len(t, res.Threads, 0)
 
-		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			Deleted: true,
 		})
 		require.NoError(t, err)
@@ -3965,7 +3965,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 				CheckCreatedStatus(t, resp)
 				th.CreateThreadPost(rootPost)
 
-				res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
+				res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
 				require.NoError(t, err)
 				require.Len(t, res.Threads, 1)
 				require.Equal(t, tc.expected, res.Threads[0].IsUrgent)
@@ -3983,7 +3983,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 			th.CreateThreadPost(rootPost)
 		}
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			PageSize: 20,
 		})
 		require.NoError(t, err)
@@ -3996,7 +3996,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 	})
 
 	t.Run("should get a bad request when setting both before and after", func(t *testing.T) {
-		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			Before: model.NewId(),
 			After:  model.NewId(),
 		})
@@ -4020,7 +4020,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		rootIdBefore := rootPosts[14].Id
 		rootIdAfter := rootPosts[16].Id
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			PageSize: 10,
 			Before:   rootIdLast,
 		})
@@ -4029,7 +4029,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Len(t, res.Threads, 10)
 		require.Equal(t, rootIdBefore, res.Threads[0].PostId)
 
-		res2, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res2, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			PageSize: 10,
 			After:    rootIdLast,
 		})
@@ -4038,7 +4038,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 
 		require.Equal(t, rootIdAfter, res2.Threads[0].PostId)
 
-		res3, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res3, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			PageSize: 10,
 			After:    rootIdLast + "__bad",
 		})
@@ -4048,7 +4048,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 	})
 
 	t.Run("should get a bad request when setting both threadsOnly and totalsOnly params", func(t *testing.T) {
-		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			ThreadsOnly: true,
 			TotalsOnly:  true,
 		})
@@ -4068,7 +4068,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 			th.CreateThreadPost(rp)
 		}
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			TotalsOnly: true,
 		})
 		require.NoError(t, err)
@@ -4086,7 +4086,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 			th.CreateThreadPost(rp)
 		}
 
-		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			PageSize:    10,
 			ThreadsOnly: true,
 		})
@@ -4100,14 +4100,42 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
 	})
 
-	t.Run("should accept only specific filters", func(t *testing.T) {
-		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+	t.Run("should accept only defined filters", func(t *testing.T) {
+		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			Filter: "bad_filter",
 		})
 
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.channel.get_threads_for_channel.invalid_filter_param.app_error")
+	})
+
+	t.Run("should return only threads followed when following filter is set", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		var rootPosts []*model.Post
+		for i := 0; i < 10; i++ {
+			rp := th.CreatePostWithClient(th.SystemAdminClient, th.BasicChannel)
+			rootPosts = append(rootPosts, rp)
+			th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+		}
+
+		// Reply to latest post, so it's followed
+		th.CreateThreadPost(rootPosts[9])
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
+			Filter: model.GetChannelThreadsFilterFollowing,
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, int64(1), res.Total)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPosts[9].Id, res.Threads[0].PostId)
+		require.Equal(t, int64(2), res.Threads[0].ReplyCount)
+		require.Equal(t, th.SystemAdminUser.Id, res.Threads[0].Participants[0].Id)
+		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[1].Id)
+	})
 	})
 }
 

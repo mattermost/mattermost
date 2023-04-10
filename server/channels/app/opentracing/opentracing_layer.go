@@ -10126,7 +10126,7 @@ func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userID string, teamID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (*model.Threads, *model.AppError) {
+func (a *OpenTracingAppLayer) GetThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (*model.Threads, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadsForChannel")
 
@@ -10138,7 +10138,7 @@ func (a *OpenTracingAppLayer) GetThreadsForChannel(channelID string, opts model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetThreadsForChannel(channelID, opts)
+	resultVar0, resultVar1 := a.app.GetThreadsForChannel(channelID, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -575,7 +575,7 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 	return thread.toThreadResponse(usersMap), nil
 }
 
-func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
@@ -605,6 +605,13 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 
 	if !opts.Deleted {
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
+	}
+
+	if opts.Filter == model.GetChannelThreadsFilterFollowing {
+		query = query.Where(sq.Eq{
+			"ThreadMemberships.UserId":    userID,
+			"ThreadMemberships.Following": true,
+		})
 	}
 
 	order := "DESC"
@@ -661,15 +668,27 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID string, opts model.GetCh
 	return result, nil
 }
 
-func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
+func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(Threads.PostId)").
 		From("Threads").
-		Where(sq.Eq{"Threads.ChannelId": channelID})
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+
+	query = query.Where(sq.Eq{"Threads.ChannelId": channelID})
+
+	if opts.Filter == model.GetChannelThreadsFilterFollowing {
+		query = query.Where(sq.Eq{
+			"ThreadMemberships.UserId":    userID,
+			"ThreadMemberships.Following": true,
+		})
+	}
 
 	if !opts.Deleted {
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
+
+	q, args, _ := query.ToSql()
+	mlog.Debug("logsql", mlog.String("query", q), mlog.Any("args", args))
 
 	var totalThreads int64
 	err := s.GetReplicaX().GetBuilder(&totalThreads, query)

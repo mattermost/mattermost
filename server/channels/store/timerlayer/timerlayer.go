@@ -9240,10 +9240,10 @@ func (s *TimerLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *mode
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetThreadsForChannel(channelID, opts)
+	result, err := s.ThreadStore.GetThreadsForChannel(channelID, userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9320,10 +9320,10 @@ func (s *TimerLayerThreadStore) GetTotalThreads(userId string, teamID string, op
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
+func (s *TimerLayerThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetTotalThreadsForChannel(channelID, opts)
+	result, err := s.ThreadStore.GetTotalThreadsForChannel(channelID, userID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

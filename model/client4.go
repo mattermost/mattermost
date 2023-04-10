@@ -274,8 +274,8 @@ func (c *Client4) channelMemberRoute(channelId, userId string) string {
 	return fmt.Sprintf(c.channelMembersRoute(channelId)+"/%v", userId)
 }
 
-func (c *Client4) channelThreadsRoute(channelID string) string {
-	return c.channelRoute(channelID) + "/threads"
+func (c *Client4) channelThreadsRoute(channelID, userID string) string {
+	return c.userRoute(userID) + c.channelRoute(channelID) + "/threads"
 }
 
 func (c *Client4) postsRoute() string {
@@ -8391,7 +8391,7 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 	return n, BuildResponse(r), nil
 }
 
-func (c *Client4) GetThreadsForChannel(channelID string, opts GetChannelThreadsOpts) (*Threads, *Response, error) {
+func (c *Client4) GetThreadsForChannel(channelID, userID string, opts GetChannelThreadsOpts) (*Threads, *Response, error) {
 	v := url.Values{}
 	if opts.Before != "" {
 		v.Set("before", opts.Before)
@@ -8418,7 +8418,7 @@ func (c *Client4) GetThreadsForChannel(channelID string, opts GetChannelThreadsO
 		v.Set("filter", string(opts.Filter))
 	}
 
-	u := c.channelThreadsRoute(channelID)
+	u := c.channelThreadsRoute(channelID, userID)
 	if len(v) > 0 {
 		u += "?" + v.Encode()
 	}

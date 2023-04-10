@@ -3574,7 +3574,7 @@ func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID s
 	return topChannels, nil
 }
 
-func (a *App) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (*model.Threads, *model.AppError) {
+func (a *App) GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
 
@@ -3585,9 +3585,9 @@ func (a *App) GetThreadsForChannel(channelID string, opts model.GetChannelThread
 
 	if !opts.ThreadsOnly {
 		eg.Go(func() error {
-			totalThreads, err := a.Srv().Store().Thread().GetTotalThreadsForChannel(channelID, opts)
+			totalThreads, err := a.Srv().Store().Thread().GetTotalThreadsForChannel(channelID, userID, opts)
 			if err != nil {
-				return errors.Wrapf(err, "failed to count threads for channel id=%s", channelID)
+				return errors.Wrapf(err, "failed to count threads for channel id=%s and user id=%s", channelID, userID)
 			}
 			result.Total = totalThreads
 
@@ -3597,9 +3597,9 @@ func (a *App) GetThreadsForChannel(channelID string, opts model.GetChannelThread
 
 	if !opts.TotalsOnly {
 		eg.Go(func() error {
-			threadResponses, err := a.Srv().Store().Thread().GetThreadsForChannel(channelID, opts)
+			threadResponses, err := a.Srv().Store().Thread().GetThreadsForChannel(channelID, userID, opts)
 			if err != nil {
-				return errors.Wrapf(err, "failed to get threads for channel id=%s", channelID)
+				return errors.Wrapf(err, "failed to get threads for channel id=%s and user id=%s", channelID, userID)
 			}
 			result.Threads = threadResponses
 

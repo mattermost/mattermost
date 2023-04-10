@@ -10267,7 +10267,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadUnreadReplyCount(threadMembership
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *OpenTracingLayerThreadStore) GetThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadsForChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -10276,7 +10276,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadsForChannel(channelID string, opt
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.GetThreadsForChannel(channelID, opts)
+	result, err := s.ThreadStore.GetThreadsForChannel(channelID, userID, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -10357,7 +10357,7 @@ func (s *OpenTracingLayerThreadStore) GetTotalThreads(userId string, teamID stri
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
+func (s *OpenTracingLayerThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetTotalThreadsForChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -10366,7 +10366,7 @@ func (s *OpenTracingLayerThreadStore) GetTotalThreadsForChannel(channelID string
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.GetTotalThreadsForChannel(channelID, opts)
+	result, err := s.ThreadStore.GetTotalThreadsForChannel(channelID, userID, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

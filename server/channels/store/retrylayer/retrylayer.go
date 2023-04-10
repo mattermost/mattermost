@@ -11731,11 +11731,11 @@ func (s *RetryLayerThreadStore) GetThreadUnreadReplyCount(threadMembership *mode
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForChannel(channelID, opts)
+		result, err := s.ThreadStore.GetThreadsForChannel(channelID, userID, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -11836,11 +11836,11 @@ func (s *RetryLayerThreadStore) GetTotalThreads(userId string, teamID string, op
 
 }
 
-func (s *RetryLayerThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
+func (s *RetryLayerThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetTotalThreadsForChannel(channelID, opts)
+		result, err := s.ThreadStore.GetTotalThreadsForChannel(channelID, userID, opts)
 		if err == nil {
 			return result, nil
 		}

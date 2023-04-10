@@ -233,22 +233,25 @@ func (_m *ThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadM
 	return r0, r1
 }
 
-// GetThreadsForChannel provides a mock function with given fields: channelID, opts
-func (_m *ThreadStore) GetThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
-	ret := _m.Called(channelID, opts)
+// GetThreadsForChannel provides a mock function with given fields: channelID, userID, opts
+func (_m *ThreadStore) GetThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error) {
+	ret := _m.Called(channelID, userID, opts)
 
 	var r0 []*model.ThreadResponse
-	if rf, ok := ret.Get(0).(func(string, model.GetChannelThreadsOpts) []*model.ThreadResponse); ok {
-		r0 = rf(channelID, opts)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, model.GetChannelThreadsOpts) ([]*model.ThreadResponse, error)); ok {
+		return rf(channelID, userID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, model.GetChannelThreadsOpts) []*model.ThreadResponse); ok {
+		r0 = rf(channelID, userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ThreadResponse)
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, model.GetChannelThreadsOpts) error); ok {
-		r1 = rf(channelID, opts)
+	if rf, ok := ret.Get(1).(func(string, string, model.GetChannelThreadsOpts) error); ok {
+		r1 = rf(channelID, userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -358,20 +361,23 @@ func (_m *ThreadStore) GetTotalThreads(userId string, teamID string, opts model.
 	return r0, r1
 }
 
-// GetTotalThreadsForChannel provides a mock function with given fields: channelID, opts
-func (_m *ThreadStore) GetTotalThreadsForChannel(channelID string, opts model.GetChannelThreadsOpts) (int64, error) {
-	ret := _m.Called(channelID, opts)
+// GetTotalThreadsForChannel provides a mock function with given fields: channelID, userID, opts
+func (_m *ThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
+	ret := _m.Called(channelID, userID, opts)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, model.GetChannelThreadsOpts) int64); ok {
-		r0 = rf(channelID, opts)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, model.GetChannelThreadsOpts) (int64, error)); ok {
+		return rf(channelID, userID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, model.GetChannelThreadsOpts) int64); ok {
+		r0 = rf(channelID, userID, opts)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, model.GetChannelThreadsOpts) error); ok {
-		r1 = rf(channelID, opts)
+	if rf, ok := ret.Get(1).(func(string, string, model.GetChannelThreadsOpts) error); ok {
+		r1 = rf(channelID, userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

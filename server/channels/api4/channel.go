@@ -25,7 +25,6 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods("PUT")
-	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/threads", api.APISessionRequired(getThreadsForChannel)).Methods("GET")
 
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods("GET")
@@ -77,6 +76,8 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
+
+	api.BaseRoutes.ChannelThreads.Handle("", api.APISessionRequired(getThreadsForChannel)).Methods("GET")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1877,7 +1878,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireChannelId()
+	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
 		return
 	}
@@ -1918,12 +1919,14 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mlog.Debug("getThreadsForChannel", mlog.Any("queryValues", queryValues))
+
 	filter := queryValues.Get("filter")
 	if filter != "" {
 		switch model.GetChannelThreadsFilter(filter) {
 		case model.GetChannelThreadsFilterAll:
-		case model.GetChannelThreadsFilterFollowing:
-		case model.GetChannelThreadsFilterCurrentUser:
+			break
+		case model.GetChannelThreadsFilterFollowing, model.GetChannelThreadsFilterCurrentUser:
 			opts.Filter = model.GetChannelThreadsFilter(filter)
 		default:
 			c.Err = model.NewAppError("Api4.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_filter_param.app_error", nil, "", http.StatusBadRequest)
@@ -1931,7 +1934,9 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, opts)
+	mlog.Debug("getThreadsForChannel", mlog.Any("opts", opts))
+
+	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, c.Params.UserId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
