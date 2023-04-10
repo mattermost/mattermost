@@ -101,7 +101,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 cy.reload();
 
                 // * Verify the aria-label in more public channels button
-                cy.uiBrowseOrCreateChannel('Browse Channels').click();
+                cy.uiBrowseOrCreateChannel('Browse channels').click();
 
                 // * Verify the accessibility support in More Channels Dialog
                 cy.findByRole('dialog', {name: 'More Channels'}).within(() => {

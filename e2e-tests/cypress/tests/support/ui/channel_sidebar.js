@@ -7,8 +7,8 @@ Cypress.Commands.add('uiCreateSidebarCategory', (categoryName = `category-${getR
     // # Click the New Category/Channel Dropdown button
     cy.uiGetLHSAddChannelButton().click();
 
-    // # Click the Create New Category dropdown item
-    cy.get('.AddChannelDropdown').should('be.visible').contains('.MenuItem', 'Create New Category').click();
+    // # Click the Create new category dropdown item
+    cy.get('.AddChannelDropdown').should('be.visible').contains('.MenuItem', 'Create new category').click();
 
     cy.findByRole('dialog', {name: 'Rename Category'}).should('be.visible').within(() => {
         // # Fill in the category name and click 'Create'

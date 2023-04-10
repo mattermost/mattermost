@@ -29,7 +29,14 @@ jest.mock('react-router-dom', () => {
     return {
         ...originalModule,
         useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
+            return {
+                params: {
+                    teamId: 'team1',
+                    boardId: 'boardId1',
+                    viewId: 'viewId1',
+                    cardId: 'cardId1',
+                },
+            }
         }),
     }
 })

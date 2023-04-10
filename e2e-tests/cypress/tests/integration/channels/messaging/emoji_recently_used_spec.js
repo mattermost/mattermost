@@ -53,7 +53,7 @@ describe('Messaging', () => {
         // # Create a post and hover over post menu and verify One click reactions are not part of the post menu on hover
         cy.visit(offTopicPath);
 
-        // # Toggle One-click reactions option in Account Settings>Display>One-click reactions on messages to ON
+        // # Toggle One-click reactions option in Settings > Display> One-click reactions on messages to ON
         cy.uiOpenSettingsModal('Display').within(() => {
             cy.findByText('Display', {timeout: timeouts.ONE_MIN}).click();
             cy.findByText('Quick reactions on messages').click();
@@ -158,7 +158,7 @@ describe('Messaging', () => {
 
         cy.visit(offTopicPath).wait(timeouts.HALF_SEC);
 
-        // # Open Account Settings > Display
+        // # Open Settings > Display
         // * Verify One-click reactions on messages option is not available
         cy.uiOpenSettingsModal('Display').within(() => {
             cy.findByText('Display', {timeout: timeouts.ONE_MIN}).click();

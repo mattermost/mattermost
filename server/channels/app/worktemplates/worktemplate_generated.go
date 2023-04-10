@@ -143,7 +143,7 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "Product Release",
 				Name:         "Feature release",
 				ID:           "product-release-playbook",
-				Illustration: "/static/worktemplates/product_teams/feature_release/playbook.png",
+				Illustration: "/static/worktemplates/playbooks/product_release.png",
 			},
 		},
 		{
@@ -174,7 +174,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.board",
-			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
@@ -286,7 +286,7 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.board",
-			DefaultMessage: "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments. ",
+			DefaultMessage: "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.",
 			Illustration:   "",
 		},
 
@@ -487,7 +487,7 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.board",
-			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
@@ -601,7 +601,7 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.board",
-			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
