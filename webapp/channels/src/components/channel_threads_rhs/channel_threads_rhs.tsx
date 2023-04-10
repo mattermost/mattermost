@@ -15,7 +15,7 @@ import type {UserThread} from '@mattermost/types/threads';
 import type {UserProfile} from '@mattermost/types/users';
 
 import Header from './header';
-import BugSearchIllustration from './channel_search_illustration';
+import ThreadsIllustration from './threads_illustration';
 
 import type {FetchThreadOptions} from 'mattermost-redux/actions/threads';
 
@@ -215,7 +215,7 @@ function ChannelThreads({
                 ) : (
                     <NoResultsIndicator
                         expanded={true}
-                        iconGraphic={BugSearchIllustration}
+                        iconGraphic={ThreadsIllustration}
                         subtitle={noResultsSubtitle}
                         title={formatMessage({
                             id: 'channel_threads.noResults.title',
