@@ -207,9 +207,7 @@ export function makeGetThreadsInChannelView(filter?: string) {
     let key: ChannelThreadsKey = 'threadsInChannel';
     if (filter === 'following') {
         key = 'followingThreadsInChannel';
-    }
-
-    if (filter === 'created') {
+    } else if (filter === 'created') {
         key = 'userThreadsInChannel';
     }
 
