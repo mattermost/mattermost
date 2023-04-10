@@ -22,7 +22,7 @@ export default class TeamInList extends React.PureComponent<Props> {
             return;
         }
         onRemoveTeam(team.id);
-    }
+    };
 
     render() {
         const {team, isDisabled} = this.props;

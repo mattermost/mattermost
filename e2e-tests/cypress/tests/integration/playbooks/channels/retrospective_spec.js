@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('runs > retrospective', () => {
+describe('runs > retrospective', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybookWithMetrics;

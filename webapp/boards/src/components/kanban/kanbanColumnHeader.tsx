@@ -52,8 +52,12 @@ const defaultProperty: IPropertyTemplate = {
 export default function KanbanColumnHeader(props: Props): JSX.Element {
     const intl = useIntl()
     const {board, activeView, group, groupByProperty} = props
+    let readonly = props.readonly
+    if(!readonly){
+        readonly = !useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
+    }
+
     const [groupTitle, setGroupTitle] = useState(group.option.value)
-    const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     const canEditOption = groupByProperty?.type !== 'person' && group.option.id
 
     const headerRef = useRef<HTMLDivElement>(null)
@@ -79,7 +83,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
         setGroupTitle(group.option.value)
     }, [group.option.value])
 
-    if (canEditBoardProperties) {
+    if (!readonly) {
         drop(drag(headerRef))
     }
 
@@ -97,13 +101,13 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
             ref={headerRef}
             style={{opacity: isDragging ? 0.5 : 1}}
             className={className}
-            draggable={!props.readonly && canEditBoardProperties}
+            draggable={!readonly}
         >
             {!group.option.id &&
                 <Label
                     title={intl.formatMessage({
                         id: 'BoardComponent.no-property-title',
-                        defaultMessage: 'Items with an empty {property} property will go here. This column cannot be removed.',
+                        defaultMessage: "Items with an empty {property} property will go here. This column can't be removed.",
                     }, {property: groupByProperty!.name})}
                 >
                     <FormattedMessage
@@ -133,7 +137,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                         onCancel={() => {
                             setGroupTitle(group.option.value)
                         }}
-                        readonly={props.readonly || !canEditBoardProperties}
+                        readonly={readonly}
                         spellCheck={true}
                     />
                 </Label>}
@@ -145,7 +149,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                 onMenuClose={props.onCalculationMenuClose}
                 onMenuOpen={props.onCalculationMenuOpen}
                 cardProperties={board.cardProperties}
-                readonly={props.readonly || !canEditBoardProperties}
+                readonly={readonly}
                 onChange={(data: {calculation: string, propertyId: string}) => {
                     if (data.calculation === calculationValue && data.propertyId === calculationProperty.id) {
                         return
