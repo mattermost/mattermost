@@ -36,8 +36,10 @@ exports[`components/post_edit_history should display error screen if errors are 
       <div
         className="edit-post-history__error_item"
       >
-        <AlertOutlineIcon
-          size={67}
+        <img
+          alt=""
+          className="edit-post-history__icon"
+          src={null}
         />
         <p
           className="edit-post-history__error_heading"
