@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import Button from 'components/threading/common/button';
 import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
@@ -13,13 +14,18 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {UserProfile} from '@mattermost/types/users';
+import type {FetchChannelThreadOptions} from '@mattermost/types/client4';
 
 import Header from './header';
 import ThreadsIllustration from './threads_illustration';
 
-import type {FetchThreadOptions} from 'mattermost-redux/actions/threads';
-
 import './channel_threads_rhs.scss';
+
+export enum Tabs {
+    ALL,
+    FOLLOWING,
+    CREATED,
+}
 
 export type Props = {
     all: Array<UserThread['id']>;
@@ -37,17 +43,17 @@ export type Props = {
         closeRightHandSide: () => void;
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
-        getThreadsForChannel: (id: Channel['id'], options?: FetchThreadOptions) => any;
+        getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => any;
         getThreadsCountsForChannel: (id: Channel['id']) => any;
         toggleRhsExpanded: () => void;
     };
 }
 
-enum Tabs {
-    ALL,
-    FOLLOWING,
-    CREATED,
-}
+const loadingStyle = {
+    display: 'grid',
+    placeContent: 'center',
+    flex: '1',
+};
 
 function ChannelThreads({
     actions,
@@ -65,23 +71,42 @@ function ChannelThreads({
     const {formatMessage} = useIntl();
     const history = useHistory();
     const [selected, setSelected] = useState(Tabs.ALL);
+    const [isPaging, setIsPaging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        let after = '';
-        if (all.length) {
-            after = all[0];
+    const ids = useMemo(() => {
+        if (selected === Tabs.FOLLOWING) {
+            return following;
         }
-        actions.getThreadsCountsForChannel(channel.id);
-        actions.getThreadsForChannel(channel.id, {after, perPage: 5});
-    }, [channel.id]);
+        if (selected === Tabs.CREATED) {
+            return created;
+        }
+
+        return all;
+    }, [
+        selected,
+        all,
+        following,
+        created,
+    ]);
+
+    const after = ids.length ? ids[0] : '';
+    useEffect(() => {
+        setIsLoading(true);
+        const fetchThreads = async () => {
+            await actions.getThreadsCountsForChannel(channel.id);
+            await actions.getThreadsForChannel(channel.id, selected, {after, perPage: 5});
+            setIsLoading(false);
+        };
+        fetchThreads();
+    }, [channel.id, selected, after]);
 
     const handleLoadMoreItems = useCallback(async (startIndex) => {
-        setIsLoading(true);
-        const before = all[startIndex - 1];
-        await actions.getThreadsForChannel(channel.id, {before, perPage: 5});
-        setIsLoading(false);
-    }, [currentTeamId, all]);
+        setIsPaging(true);
+        const before = ids[startIndex - 1];
+        await actions.getThreadsForChannel(channel.id, selected, {before, perPage: 5});
+        setIsPaging(false);
+    }, [currentTeamId, ids]);
 
     const select = useCallback((threadId?: UserThread['id']) => {
         if (threadId) {
@@ -116,22 +141,6 @@ function ChannelThreads({
             },
         };
     }, [select, goToInChannel, currentTeamId]);
-
-    const ids = useMemo(() => {
-        if (selected === Tabs.FOLLOWING) {
-            return following;
-        }
-        if (selected === Tabs.CREATED) {
-            return created;
-        }
-
-        return all;
-    }, [
-        selected,
-        all,
-        following,
-        created,
-    ]);
 
     const noResultsSubtitle = useMemo(() => {
         if (selected === Tabs.FOLLOWING) {
@@ -204,11 +213,15 @@ function ChannelThreads({
                 </div>
             </div>
             <div className='channel-threads'>
+                {(isLoading && ids.length === 0) && (
+                    <LoadingScreen style={loadingStyle}/>
+                )}
+
                 {ids.length ? (
                     <VirtualizedThreadList
                         ids={ids}
                         total={total}
-                        isLoading={isLoading}
+                        isLoading={isPaging}
                         loadMoreItems={handleLoadMoreItems}
                         routing={routing}
                     />

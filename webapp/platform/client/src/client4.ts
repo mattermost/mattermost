@@ -50,7 +50,7 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 import {Compliance} from '@mattermost/types/compliance';
 import {
     ClientConfig,
@@ -2125,9 +2125,11 @@ export default class Client4 {
             since = 0,
             totalsOnly = false,
             threadsOnly = false,
-        },
+            filter,
+        }: FetchChannelThreadOptions,
     ) => {
         const url = `${this.getChannelRoute(channelId)}/threads`;
+
         const options = {
             before,
             after,
@@ -2137,6 +2139,7 @@ export default class Client4 {
             since,
             totalsOnly,
             threadsOnly,
+            filter,
         };
 
         return this.doFetch<UserThreadList>(

@@ -36,3 +36,25 @@ export type FetchPaginatedThreadOptions = {
     fromCreateAt?: number;
     fromPost?: string;
 }
+
+export type FetchThreadOptions = {
+    after?: string;
+    before?: string;
+    extended?: boolean;
+    perPage?: number;
+    since?: number;
+    threadsOnly?: boolean;
+    totalsOnly?: boolean;
+    unread?: boolean;
+    deleted?: boolean;
+};
+
+export enum FetchChannelThreadFilters {
+    ALL = '',
+    FOLLOWING = 'following',
+    CREATED = 'user',
+}
+
+export type FetchChannelThreadOptions = {
+    filter?: FetchChannelThreadFilters;
+} & FetchThreadOptions;

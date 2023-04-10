@@ -86,6 +86,8 @@ const state: GlobalState = {
             unreadThreadsInTeam: {},
             threads: {},
             threadsInChannel: {},
+            followingThreadsInChannel: {},
+            userThreadsInChannel: {},
             counts: {},
             countsIncludingDirect: {},
             countsInChannel: {},

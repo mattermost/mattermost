@@ -77,6 +77,10 @@ export function handlePostRemoved<S extends State>(state: S, action: GenericActi
 export function handleReceiveThreads<S extends State>(state: S, action: GenericAction, key: string): S {
     const nextSet = new Set(state[key] || []);
 
+    if (action.data.threads.length === 0) {
+        return state;
+    }
+
     action.data.threads.forEach((thread: UserThread) => {
         nextSet.add(thread.id);
     });

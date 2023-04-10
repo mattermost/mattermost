@@ -199,16 +199,27 @@ export const getThreadItemsInChannel: (
     },
 );
 
-export function makeGetThreadsInChannelView(): (state: GlobalState, channelId: Channel['id']) => Array<UserThread['id']> {
+type ChannelThreadsKey = {[K in keyof ThreadsState]: ThreadsState[K] extends RelationOneToMany<Channel, UserThread> ? K : never}[keyof ThreadsState];
+
+export function makeGetThreadsInChannelView(filter?: string) {
     const empty = Object.freeze([]);
+
+    let key: ChannelThreadsKey = 'threadsInChannel';
+    if (filter === 'following') {
+        key = 'followingThreadsInChannel';
+    }
+
+    if (filter === 'created') {
+        key = 'userThreadsInChannel';
+    }
 
     return createSelector(
         'makeGetThreadsInChannelView',
         getThreads,
-        (state: GlobalState) => state.entities.threads.threadsInChannel,
+        (state: GlobalState) => state.entities.threads[key],
         (_state: GlobalState, channelId: Channel['id']) => channelId,
-        (allThreads, threadsInChannel, channelId) => {
-            const ids = threadsInChannel[channelId] || empty;
+        (allThreads, threadIDs, channelId) => {
+            const ids = threadIDs[channelId] || empty;
             return sortByLastReply(ids, allThreads);
         },
     );

@@ -20,22 +20,13 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
+import {FetchThreadOptions, FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
+
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
 import {getPostThread} from './posts';
 
 type ExtendedPost = Post & { system_post_ids?: string[] };
-
-export type FetchThreadOptions = {
-    after?: string;
-    before?: string;
-    extended?: boolean;
-    perPage?: number;
-    since?: number;
-    threadsOnly?: boolean;
-    totalsOnly?: boolean;
-    unread?: boolean;
-};
 
 export function fetchThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, totalsOnly = false, threadsOnly = false, extended = false, since = 0}: FetchThreadOptions = {}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -196,6 +187,7 @@ export function handleThreadArrived(dispatch: DispatchFunc, getState: GetStateFu
         data: {
             thread,
             team_id: teamId,
+            currentUserId,
         },
     });
 
@@ -445,12 +437,12 @@ export function decrementThreadCounts(post: ExtendedPost) {
     };
 }
 
-export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = true, extended = false, since = 0}: FetchThreadOptions = {}) {
+export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = true, extended = false, since = 0, filter}: FetchChannelThreadOptions = {}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data: undefined | UserThreadList;
 
         try {
-            data = await Client4.getThreadsForChannel(channelId, {before, after, perPage, extended, totalsOnly, threadsOnly, since});
+            data = await Client4.getThreadsForChannel(channelId, {before, after, perPage, extended, totalsOnly, threadsOnly, since, filter});
 
             if (!data) {
                 return {error: true};
@@ -467,14 +459,25 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
                 dispatch(getMissingFilesByPosts(uniq(data.threads.map(({post}) => post))));
             }
 
+            let actionType: keyof (typeof ChannelTypes) = ChannelTypes.RECEIVED_CHANNEL_THREADS;
+
+            if (filter === FetchChannelThreadFilters.FOLLOWING) {
+                actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREADS;
+            }
+
+            if (filter === FetchChannelThreadFilters.CREATED) {
+                actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREADS;
+            }
+
             dispatch({
-                type: ChannelTypes.RECEIVED_CHANNEL_THREADS,
+                type: actionType,
                 data: {
                     threads: data?.threads ?? [],
                     channel_id: channelId,
                 },
             });
         } catch (error) {
+            console.log(error);
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};

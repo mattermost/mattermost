@@ -13,13 +13,28 @@ import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mat
 import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId, toggleRhsExpanded} from 'actions/views/rhs';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 
+import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
 
-import ChannelThreads, {Props} from './channel_threads_rhs';
+import ChannelThreads, {Props, Tabs} from './channel_threads_rhs';
+
+function getThreadsForChannelWithFilter(channelId: Channel['id'], tab: Tabs, options?: FetchChannelThreadOptions) {
+    let filter;
+    if (tab === Tabs.FOLLOWING) {
+        filter = FetchChannelThreadFilters.FOLLOWING;
+    }
+    if (tab === Tabs.CREATED) {
+        filter = FetchChannelThreadFilters.CREATED;
+    }
+
+    return getThreadsForChannel(channelId, {...options, filter});
+}
 
 function makeMapStateToProps() {
     const getThreadsInChannelView = makeGetThreadsInChannelView();
+    const getFollowingThreadsInChannelView = makeGetThreadsInChannelView('following');
+    const getCreatedThreadsInChannelView = makeGetThreadsInChannelView('created');
     const getThreadCountInChannelView = makeGetThreadCountsInChannelView();
 
     return (state: GlobalState) => {
@@ -40,8 +55,8 @@ function makeMapStateToProps() {
         const counts = getThreadCountInChannelView(state, channel.id);
 
         const all = getThreadsInChannelView(state, channel.id);
-        const following: string[] = [];
-        const created: string[] = [];
+        const following = getFollowingThreadsInChannelView(state, channel.id);
+        const created = getCreatedThreadsInChannelView(state, channel.id);
 
         return {
             all,
@@ -63,7 +78,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
         actions: bindActionCreators({
             closeRightHandSide,
             getThreadsCountsForChannel,
-            getThreadsForChannel,
+            getThreadsForChannel: getThreadsForChannelWithFilter,
             goBack,
             selectPostFromRightHandSideSearchByPostId,
             toggleRhsExpanded,

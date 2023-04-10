@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import isEqual from 'lodash/isEqual';
+
 import {ChannelTypes, PostTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {Post} from '@mattermost/types/posts';
@@ -9,24 +11,33 @@ import {UserProfile} from '@mattermost/types/users';
 import {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
-import {threadsInChannelReducer} from './threadsInChannel';
+import {followingThreadsInChannelReducer, threadsInChannelReducer, userThreadsInChannelReducer} from './threadsInChannel';
 import {countsReducer, countsIncludingDirectReducer, countsInChannelReducer} from './counts';
 
 import {ExtraData} from './types';
 
 export const threadsReducer = (state: ThreadsState['threads'] = {}, action: GenericAction, extra: ExtraData) => {
     switch (action.type) {
+    case ChannelTypes.RECEIVED_CREATED_CHANNEL_THREADS:
+    case ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREADS:
     case ChannelTypes.RECEIVED_CHANNEL_THREADS:
     case ThreadTypes.RECEIVED_UNREAD_THREADS:
     case ThreadTypes.RECEIVED_THREADS: {
         const {threads} = action.data;
-        return {
+
+        if (!threads || threads.length === 0) {
+            return state;
+        }
+
+        const updatedState = {
             ...state,
             ...threads.reduce((results: IDMappedObjects<UserThread>, thread: UserThread) => {
                 results[thread.id] = thread;
                 return results;
             }, {}),
         };
+
+        return isEqual(updatedState, state) ? state : updatedState;
     }
     case PostTypes.POST_REMOVED: {
         const post = action.data;
@@ -164,6 +175,8 @@ const initialState = {
     countsIncludingDirect: {},
     threadsInChannel: {},
     countsInChannel: {},
+    followingThreadsInChannel: {},
+    userThreadsInChannel: {},
 };
 
 // custom combineReducers function
@@ -200,11 +213,17 @@ function reducer(state: ThreadsState = initialState, action: GenericAction): Thr
         // Object mapping teams ids to unread counts including direct channels
         countsIncludingDirect: countsIncludingDirectReducer(state.countsIncludingDirect, action, extra),
 
-        // Object mapping teams ids to thread ids
-        threadsInChannel: threadsInChannelReducer(state.threadsInChannel, action, extra),
-
         // Object mapping channel ids to total count of threads in channel
         countsInChannel: countsInChannelReducer(state.countsInChannel, action),
+
+        // Object mapping channel ids to thread ids
+        threadsInChannel: threadsInChannelReducer(state.threadsInChannel, action, extra),
+
+        // Object mapping channel ids to following thread ids
+        followingThreadsInChannel: followingThreadsInChannelReducer(state.followingThreadsInChannel, action, extra),
+
+        // Object mapping channel ids to thread ids created by current user
+        userThreadsInChannel: userThreadsInChannelReducer(state.userThreadsInChannel, action, extra),
     };
 
     if (
@@ -212,6 +231,8 @@ function reducer(state: ThreadsState = initialState, action: GenericAction): Thr
         state.threadsInTeam === nextState.threadsInTeam &&
         state.unreadThreadsInTeam === nextState.unreadThreadsInTeam &&
         state.threadsInChannel === nextState.threadsInChannel &&
+        state.followingThreadsInChannel === nextState.followingThreadsInChannel &&
+        state.userThreadsInChannel === nextState.userThreadsInChannel &&
         state.counts === nextState.counts &&
         state.countsIncludingDirect === nextState.countsIncludingDirect &&
         state.countsInChannel === nextState.countsInChannel

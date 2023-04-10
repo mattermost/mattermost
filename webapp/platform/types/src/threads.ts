@@ -58,6 +58,8 @@ export type ThreadsState = {
     unreadThreadsInTeam: RelationOneToMany<Team, UserThread>;
     threads: IDMappedObjects<UserThread>;
     threadsInChannel: RelationOneToMany<Channel, UserThread>;
+    followingThreadsInChannel: RelationOneToMany<Channel, UserThread>;
+    userThreadsInChannel: RelationOneToMany<Channel, UserThread>;
     counts: RelationOneToOne<Team, {
         total: number;
         total_unread_threads: number;
