@@ -13,7 +13,7 @@
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
-describe('channels > rhs > status update', () => {
+describe('channels > rhs > status update', {testIsolation: true}, () => {
     const defaultReminderMessage = '# Default reminder message';
     let testTeam;
     let testChannel;

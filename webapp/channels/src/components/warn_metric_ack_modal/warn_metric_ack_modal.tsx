@@ -88,7 +88,7 @@ export default class WarnMetricAckModal extends React.PureComponent<Props, State
         } else {
             this.onHide();
         }
-    }
+    };
 
     onHide = () => {
         this.setState({serverError: null, saving: false});
@@ -98,7 +98,7 @@ export default class WarnMetricAckModal extends React.PureComponent<Props, State
         if (this.props.closeParentComponent) {
             this.props.closeParentComponent();
         }
-    }
+    };
 
     renderContactUsError = () => {
         const {serverError} = this.state;
@@ -157,7 +157,7 @@ export default class WarnMetricAckModal extends React.PureComponent<Props, State
                 </label>
             </div>
         );
-    }
+    };
 
     render() {
         let headerTitle;

@@ -24,7 +24,7 @@ export default class SearchDateSuggestion extends Suggestion {
     handleDayClick = (day: Date) => {
         const dayString = day.toISOString().split('T')[0];
         this.props.onClick(dayString, this.props.matchedPretext);
-    }
+    };
 
     handleKeyDown = (e: KeyboardEvent) => {
         if (Utils.isKeyPressed(e, Constants.KeyCodes.DOWN) && document.activeElement?.id === 'searchBox') {
@@ -46,13 +46,13 @@ export default class SearchDateSuggestion extends Suggestion {
         return (
             <i className='icon icon-chevron-left'/>
         );
-    }
+    };
 
     iconRight = () => {
         return (
             <i className='icon icon-chevron-right'/>
         );
-    }
+    };
 
     render() {
         const locale: string = this.props.locale;

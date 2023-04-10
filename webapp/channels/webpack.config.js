@@ -80,7 +80,7 @@ var config = {
                 type: 'javascript/auto',
                 test: /\.json$/,
                 include: [
-                    path.resolve(__dirname, 'i18n'),
+                    path.resolve(__dirname, 'src/i18n'),
                 ],
                 exclude: [/en\.json$/],
                 use: [

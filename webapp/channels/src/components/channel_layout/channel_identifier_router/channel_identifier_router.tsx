@@ -62,7 +62,7 @@ export default class ChannelIdentifierRouter extends React.PureComponent<Props> 
                 getHistory().replace(channelUrl);
             }, Constants.PERMALINK_FADEOUT);
         }
-    }
+    };
 
     render() {
         return <ChannelView/>;

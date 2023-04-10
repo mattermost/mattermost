@@ -25,13 +25,13 @@ export default class SidebarBaseChannel extends React.PureComponent<Props> {
         this.props.actions.leaveChannel(this.props.channel.id);
         trackEvent('ui', 'ui_public_channel_x_button_clicked');
         callback();
-    }
+    };
 
     handleLeavePrivateChannel = (callback: () => void) => {
         this.props.actions.openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel: this.props.channel}});
         trackEvent('ui', 'ui_private_channel_x_button_clicked');
         callback();
-    }
+    };
 
     getChannelLeaveHandler = () => {
         const {channel} = this.props;
@@ -43,7 +43,7 @@ export default class SidebarBaseChannel extends React.PureComponent<Props> {
         }
 
         return null;
-    }
+    };
 
     getIcon = () => {
         const {channel} = this.props;
@@ -67,7 +67,7 @@ export default class SidebarBaseChannel extends React.PureComponent<Props> {
         }
 
         return null;
-    }
+    };
 
     render() {
         const {channel, currentTeamName} = this.props;
