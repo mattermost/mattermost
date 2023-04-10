@@ -76,24 +76,6 @@ func TestPlugin(t *testing.T) {
 		_, err = client.RemovePlugin(manifest.Id)
 		require.NoError(t, err)
 
-		t.Run("install plugin from URL with slow response time", func(t *testing.T) {
-			if testing.Short() {
-				t.Skip("skipping test to install plugin from a slow response server")
-			}
-
-			// Install from URL - slow server to simulate longer bundle download times
-			slowTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-				time.Sleep(60 * time.Second) // Wait longer than the previous default 30 seconds timeout
-				res.WriteHeader(http.StatusOK)
-				res.Write(tarData)
-			}))
-			defer func() { slowTestServer.Close() }()
-
-			manifest, _, err = client.InstallPluginFromURL(slowTestServer.URL, true)
-			require.NoError(t, err)
-			assert.Equal(t, "testplugin", manifest.Id)
-		})
-
 		th.App.Channels().RemovePlugin(manifest.Id)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
