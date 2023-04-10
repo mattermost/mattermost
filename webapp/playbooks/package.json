@@ -1,10 +1,6 @@
 {
   "name": "playbooks",
   "private": true,
-  "engines": {
-    "npm": ">=7.0.0",
-    "node": ">=16.4.0"
-  },
   "dependencies": {
     "@apollo/client": "3.7.3",
     "@floating-ui/react-dom-interactions": "0.6.3",
