@@ -347,165 +347,166 @@ export default function SelfHostedExpansionModal() {
                     }}
                 >
                     <div className='SelfHostedExpansionModal'>
-                        {<div className={classNames('form-view', {'form-view--hide': !showForm})}>                            <div className='lhs'>
-                            <h2 className='title'>{title}</h2>
-                            <UpgradeSvg
-                                width={267}
-                                height={227}
-                            />
-                            <div className='footer-text'>{'Questions?'}</div>
-                            <ContactSalesLink/>
-                        </div>
-                        <div className='center'>
+                        <div className={classNames('form-view', {'form-view--hide': !showForm})}>
+                            <div className='lhs'>
+                                <h2 className='title'>{title}</h2>
+                                <UpgradeSvg
+                                    width={267}
+                                    height={227}
+                                />
+                                <div className='footer-text'>{'Questions?'}</div>
+                                <ContactSalesLink/>
+                            </div>
+                            <div className='center'>
                                 <div
-                                className='form'
-                                data-testid='shpm-form'
-                            >
-                                <span className='section-title'>
+                                    className='form'
+                                    data-testid='shpm-form'
+                                >
+                                    <span className='section-title'>
                                         {intl.formatMessage({
-                                        id: 'payment_form.credit_card',
-                                        defaultMessage: 'Credit Card',
-                                    })}
+                                            id: 'payment_form.credit_card',
+                                            defaultMessage: 'Credit Card',
+                                        })}
                                     </span>
-                                <div className='form-row'>
+                                    <div className='form-row'>
                                         <CardInput
-                                        forwardedRef={cardRef}
-                                        required={true}
-                                        onCardInputChange={(event: StripeCardElementChangeEvent) => {
-                                            setFormState({...formState, cardFilled: event.complete});
-                                        }}
-                                        theme={theme}
-                                    />
+                                            forwardedRef={cardRef}
+                                            required={true}
+                                            onCardInputChange={(event: StripeCardElementChangeEvent) => {
+                                                setFormState({...formState, cardFilled: event.complete});
+                                            }}
+                                            theme={theme}
+                                        />
                                     </div>
-                                <div className='form-row'>
+                                    <div className='form-row'>
                                         <Input
-                                        name='organization'
-                                        type='text'
-                                        value={formState.organization}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                            setFormState({...formState, organization: e.target.value});
-                                        }}
-                                        placeholder={intl.formatMessage({
-                                            id: 'self_hosted_signup.organization',
-                                            defaultMessage: 'Organization Name',
-                                        })}
-                                        required={true}
-                                    />
+                                            name='organization'
+                                            type='text'
+                                            value={formState.organization}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                setFormState({...formState, organization: e.target.value});
+                                            }}
+                                            placeholder={intl.formatMessage({
+                                                id: 'self_hosted_signup.organization',
+                                                defaultMessage: 'Organization Name',
+                                            })}
+                                            required={true}
+                                        />
                                     </div>
-                                <div className='form-row'>
+                                    <div className='form-row'>
                                         <Input
-                                        name='name'
-                                        type='text'
-                                        value={formState.cardName}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                            setFormState({...formState, cardName: e.target.value});
-                                        }}
-                                        placeholder={intl.formatMessage({
-                                            id: 'payment_form.name_on_card',
-                                            defaultMessage: 'Name on Card',
-                                        })}
-                                        required={true}
-                                    />
+                                            name='name'
+                                            type='text'
+                                            value={formState.cardName}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                setFormState({...formState, cardName: e.target.value});
+                                            }}
+                                            placeholder={intl.formatMessage({
+                                                id: 'payment_form.name_on_card',
+                                                defaultMessage: 'Name on Card',
+                                            })}
+                                            required={true}
+                                        />
                                     </div>
-                                <span className='section-title'>
+                                    <span className='section-title'>
                                         <FormattedMessage
-                                        id='payment_form.billing_address'
-                                        defaultMessage='Billing address'
-                                    />
+                                            id='payment_form.billing_address'
+                                            defaultMessage='Billing address'
+                                        />
                                     </span>
-                                <Address
+                                    <Address
                                         testPrefix='selfHostedExpansion'
                                         type='billing'
                                         country={formState.country}
                                         changeCountry={(option) => {
-                                        setFormState({...formState, country: option.value});
-                                    }}
+                                            setFormState({...formState, country: option.value});
+                                        }}
                                         address={formState.address}
                                         changeAddress={(e) => {
-                                        setFormState({...formState, address: e.target.value});
-                                    }}
+                                            setFormState({...formState, address: e.target.value});
+                                        }}
                                         address2={formState.address2}
                                         changeAddress2={(e) => {
-                                        setFormState({...formState, address2: e.target.value});
-                                    }}
+                                            setFormState({...formState, address2: e.target.value});
+                                        }}
                                         city={formState.city}
                                         changeCity={(e) => {
-                                        setFormState({...formState, city: e.target.value});
-                                    }}
+                                            setFormState({...formState, city: e.target.value});
+                                        }}
                                         state={formState.state}
                                         changeState={(state: string) => {
-                                        setFormState({...formState, state});
-                                    }}
+                                            setFormState({...formState, state});
+                                        }}
                                         postalCode={formState.postalCode}
                                         changePostalCode={(e) => {
-                                        setFormState({...formState, postalCode: e.target.value});
-                                    }}
+                                            setFormState({...formState, postalCode: e.target.value});
+                                        }}
                                     />
-                                <ChooseDifferentShipping
+                                    <ChooseDifferentShipping
                                         shippingIsSame={formState.shippingSame}
                                         setShippingIsSame={(val: boolean) => {
-                                        setFormState({...formState, shippingSame: val});
-                                    }}
+                                            setFormState({...formState, shippingSame: val});
+                                        }}
                                     />
-                                {!formState.shippingSame && (
-                                    <>
-                                        <div className='section-title'>
-                                            <FormattedMessage
-                                                id='payment_form.shipping_address'
-                                                defaultMessage='Shipping Address'
+                                    {!formState.shippingSame && (
+                                        <>
+                                            <div className='section-title'>
+                                                <FormattedMessage
+                                                    id='payment_form.shipping_address'
+                                                    defaultMessage='Shipping Address'
+                                                />
+                                            </div>
+                                            <Address
+                                                testPrefix='selfHostedExpansion'
+                                                type='shipping'
+                                                country={formState.shippingCountry}
+                                                changeCountry={(option) => {
+                                                    setFormState({...formState, shippingCountry: option.value});
+                                                }}
+                                                address={formState.shippingAddress}
+                                                changeAddress={(e) => {
+                                                    setFormState({...formState, shippingAddress: e.target.value});
+                                                }}
+                                                address2={formState.shippingAddress2}
+                                                changeAddress2={(e) => {
+                                                    setFormState({...formState, shippingAddress2: e.target.value});
+                                                }}
+                                                city={formState.shippingCity}
+                                                changeCity={(e) => {
+                                                    setFormState({...formState, shippingCity: e.target.value});
+                                                }}
+                                                state={formState.shippingState}
+                                                changeState={(state: string) => {
+                                                    setFormState({...formState, shippingState: state});
+                                                }}
+                                                postalCode={formState.shippingPostalCode}
+                                                changePostalCode={(e) => {
+                                                    setFormState({...formState, shippingPostalCode: e.target.value});
+                                                }}
                                             />
-                                        </div>
-                                        <Address
-                                            testPrefix='selfHostedExpansion'
-                                            type='shipping'
-                                            country={formState.shippingCountry}
-                                            changeCountry={(option) => {
-                                                setFormState({...formState, shippingCountry: option.value});
-                                            }}
-                                            address={formState.shippingAddress}
-                                            changeAddress={(e) => {
-                                                setFormState({...formState, shippingAddress: e.target.value});
-                                            }}
-                                            address2={formState.shippingAddress2}
-                                            changeAddress2={(e) => {
-                                                setFormState({...formState, shippingAddress2: e.target.value});
-                                            }}
-                                            city={formState.shippingCity}
-                                            changeCity={(e) => {
-                                                setFormState({...formState, shippingCity: e.target.value});
-                                            }}
-                                            state={formState.shippingState}
-                                            changeState={(state: string) => {
-                                                setFormState({...formState, shippingState: state});
-                                            }}
-                                            postalCode={formState.shippingPostalCode}
-                                            changePostalCode={(e) => {
-                                                setFormState({...formState, shippingPostalCode: e.target.value});
-                                            }}
-                                        />
-                                    </>
-                                )}
-                                <Terms
+                                        </>
+                                    )}
+                                    <Terms
                                         agreed={formState.agreedTerms}
                                         setAgreed={(data: boolean) => {
-                                        setFormState({...formState, agreedTerms: data});
-                                    }}
+                                            setFormState({...formState, agreedTerms: data});
+                                        }}
                                     />
-                            </div>
+                                </div>
                             </div>
                             <div className='rhs'>
-                            <SelfHostedExpansionCard
+                                <SelfHostedExpansionCard
                                     updateSeats={(seats: number) => {
-                                    setFormState({...formState, seats});
-                                    setAdditionalSeats(seats);
-                                }}
+                                        setFormState({...formState, seats});
+                                        setAdditionalSeats(seats);
+                                    }}
                                     canSubmit={canSubmitForm}
                                     submit={submit}
                                     licensedSeats={licensedSeats}
                                     initialSeats={additionalSeats}
                                 />
+                            </div>
                         </div>
-                        </div>}
                         {((formState.succeeded || progress === SelfHostedSignupProgress.CREATED_LICENSE)) && !formState.error && !formState.submitting && (
                             <SuccessPage
                                 onClose={selfHostedExpansionModal.close}
