@@ -43,7 +43,6 @@ const ANIMATE_TIMEOUTS = {
     exit: 200,
 };
 
-
 const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
     const {formatMessage} = useIntl();
 
