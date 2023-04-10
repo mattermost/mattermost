@@ -477,7 +477,6 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
                 },
             });
         } catch (error) {
-            console.log(error);
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};

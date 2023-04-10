@@ -278,7 +278,7 @@ describe('Selectors.Threads.getNewestThreadInTeam', () => {
     });
 });
 
-describe.only('Selectors.Threads.makeGetThreadsInChannelView', () => {
+describe('Selectors.Threads.makeGetThreadsInChannelView', () => {
     const reducer = createReducer(serviceReducers);
     const team1 = TestHelper.fakeTeamWithId();
     const channel1 = TestHelper.fakeChannelWithId(team1.id);
