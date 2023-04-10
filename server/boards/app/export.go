@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
@@ -95,7 +96,7 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 		if err = a.writeArchiveBlockLine(w, block); err != nil {
 			return err
 		}
-		if block.Type == model.TypeImage {
+		if block.Type == model.TypeImage || block.Type == model.TypeAttachment {
 			filename, err2 := extractImageFilename(block)
 			if err2 != nil {
 				return err
@@ -208,19 +209,29 @@ func (a *App) writeArchiveFile(zw *zip.Writer, filename string, boardID string, 
 		return err
 	}
 
-	src, err := a.GetFileReader(opt.TeamID, boardID, filename)
-	if err != nil {
-		// just log this; image file is missing but we'll still export an equivalent board
-		a.logger.Error("image file missing for export",
-			mlog.String("filename", filename),
-			mlog.String("team_id", opt.TeamID),
-			mlog.String("board_id", boardID),
-		)
-		return nil
+	_, fileReader, err := a.GetFile(opt.TeamID, boardID, filename)
+	if err != nil && !model.IsErrNotFound(err) {
+		return err
 	}
-	defer src.Close()
+	if errors.Is(err, ErrFileNotFound) {
+		// prior to moving from workspaces to teams, the filepath was constructed from
+		// workspaceID, which is the channel ID in plugin mode.
+		// If a file is not found from team ID as we tried above, try looking for it via
+		// channel ID.
+		fileReader, err = a.GetFileReader(opt.TeamID, boardID, filename)
+		if err != nil {
+			// just log this; image file is missing but we'll still export an equivalent board
+			a.logger.Error("image file missing for export",
+				mlog.String("filename", filename),
+				mlog.String("team_id", opt.TeamID),
+				mlog.String("board_id", boardID),
+			)
+			return nil
+		}
+	}
+	defer fileReader.Close()
 
-	_, err = io.Copy(dest, src)
+	_, err = io.Copy(dest, fileReader)
 	return err
 }
 
@@ -242,7 +253,10 @@ func (a *App) getBoardsForArchive(boardIDs []string) ([]model.Board, error) {
 func extractImageFilename(imageBlock *model.Block) (string, error) {
 	f, ok := imageBlock.Fields["fileId"]
 	if !ok {
-		return "", model.ErrInvalidImageBlock
+		f, ok = imageBlock.Fields["attachmentId"]
+		if !ok {
+			return "", model.ErrInvalidImageBlock
+		}
 	}
 
 	filename, ok := f.(string)

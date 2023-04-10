@@ -44,14 +44,14 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 		a.logger.Debug("importing legacy archive")
 		_, errImport := a.ImportBoardJSONL(br, opt)
 
-		go func() {
-			if err := a.UpdateCardLimitTimestamp(); err != nil {
-				a.logger.Error(
-					"UpdateCardLimitTimestamp failed after importing a legacy file",
-					mlog.Err(err),
-				)
-			}
-		}()
+		// go func() {
+		// 	if err := a.UpdateCardLimitTimestamp(); err != nil {
+		// 		a.logger.Error(
+		// 			"UpdateCardLimitTimestamp failed after importing a legacy file",
+		// 			mlog.Err(err),
+		// 		)
+		// 	}
+		// }()
 
 		return errImport
 	}
@@ -60,13 +60,15 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 	zr := zipstream.NewReader(br)
 
 	boardMap := make(map[string]string) // maps old board ids to new
+	fileMap := make(map[string]string)  // maps old fileIds to new
 
 	for {
 		hdr, err := zr.Next()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				a.logger.Debug("import archive - done", mlog.Int("boards_imported", len(boardMap)))
-				return nil
+				break
+				// return nil
 			}
 			return err
 		}
@@ -99,28 +101,72 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 				)
 				continue
 			}
-			// save file with original filename so it matches name in image block.
-			filePath := filepath.Join(opt.TeamID, boardID, filename)
-			_, err := a.filesBackend.WriteFile(zr, filePath)
+
+			fullFileName, err := a.SaveFile(zr, opt.TeamID, boardID, filename)
 			if err != nil {
 				return fmt.Errorf("cannot import file %s for board %s: %w", filename, dir, err)
 			}
+			fileMap[filename] = fullFileName
+
+			a.logger.Debug("import archive file",
+				mlog.String("TeamID", opt.TeamID),
+				mlog.String("boardID", boardID),
+				mlog.String("filename", filename),
+				mlog.String("fullFileName", fullFileName),
+			)
 		}
 
-		a.logger.Trace("import archive file",
+		a.logger.Debug("import archive file",
 			mlog.String("dir", dir),
 			mlog.String("filename", filename),
 		)
-
-		go func() {
-			if err := a.UpdateCardLimitTimestamp(); err != nil {
-				a.logger.Error(
-					"UpdateCardLimitTimestamp failed after importing an archive",
-					mlog.Err(err),
-				)
-			}
-		}()
 	}
+
+	a.logger.Debug("update files")
+
+	blockIDs := make([]string, 0)
+	blockPatches := make([]model.BlockPatch, 0)
+	for _, boardID := range boardMap {
+		newBlocks, err := a.GetBlocksForBoard(boardID)
+		if err != nil {
+			return fmt.Errorf("cannot retreive imported blocks for board %s: %w", boardID, err)
+
+		}
+		for _, block := range newBlocks {
+			a.logger.Debug("block type",
+				mlog.String("block", block.Type.String()),
+			)
+
+			if block.Type == "image" || block.Type == "attachment" {
+				fieldName := "fileId"
+				if block.Type == "attachment" {
+					fieldName = "attachmentId"
+				}
+				oldId := block.Fields[fieldName]
+				blockIDs = append(blockIDs, block.ID)
+				a.logger.Debug("make",
+					mlog.String("oldId", oldId.(string)),
+					mlog.String("newID", fileMap[oldId.(string)]),
+				)
+
+				blockPatches = append(blockPatches, model.BlockPatch{
+					UpdatedFields: map[string]interface{}{
+						fieldName: fileMap[oldId.(string)],
+					},
+				})
+			}
+		}
+
+		a.logger.Debug("block pathc",
+			mlog.String("TeamID", opt.TeamID),
+			mlog.Int("blockids", len(blockIDs)),
+			mlog.Int("blockpatch", len(blockPatches)),
+		)
+
+		blockPatchBatch := model.BlockPatchBatch{blockIDs, blockPatches}
+		a.PatchBlocks(opt.TeamID, &blockPatchBatch, "swb")
+	}
+	return nil
 }
 
 // ImportBoardJSONL imports a JSONL file containing blocks for one board. The resulting
