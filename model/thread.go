@@ -53,6 +53,14 @@ type Threads struct {
 	Threads                   []*ThreadResponse `json:"threads"`
 }
 
+type GetChannelThreadsFilter string
+
+const (
+	GetChannelThreadsFilterAll         GetChannelThreadsFilter = "all"
+	GetChannelThreadsFilterFollowing   GetChannelThreadsFilter = "following"
+	GetChannelThreadsFilterCurrentUser GetChannelThreadsFilter = "current_user"
+)
+
 type GetChannelThreadsOpts struct {
 	// PageSize specifies the size of the returned chunk of results. Default = 30
 	PageSize uint64
@@ -62,9 +70,6 @@ type GetChannelThreadsOpts struct {
 
 	// Deleted will specify that even deleted threads should be returned (For mobile sync). Default = false
 	Deleted bool
-
-	// Since filters the threads based on their LastUpdateAt timestamp.
-	Since uint64
 
 	// Before specifies thread id as a cursor for pagination and will return `PageSize` threads before the cursor
 	Before string
@@ -80,6 +85,9 @@ type GetChannelThreadsOpts struct {
 
 	// IncludeIsUrgent will return IsUrgent field as well to assert is the thread is urgent or not
 	IncludeIsUrgent bool
+
+	// Filter specifies the filter to be used for the threads. Default = GetChannelThreadsFilterAll
+	Filter GetChannelThreadsFilter
 }
 
 type GetUserThreadsOpts struct {

@@ -8414,6 +8414,9 @@ func (c *Client4) GetThreadsForChannel(channelID string, opts GetChannelThreadsO
 	if opts.TotalsOnly {
 		v.Set("totalsOnly", "true")
 	}
+	if opts.Filter != "" {
+		v.Set("filter", string(opts.Filter))
+	}
 
 	u := c.channelThreadsRoute(channelID)
 	if len(v) > 0 {

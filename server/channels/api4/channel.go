@@ -1906,16 +1906,29 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get(threadsOnlyKey))
 
-	// parameters are mutually exclusive
+	// Before and After are mutually exclusive
 	if opts.Before != "" && opts.After != "" {
-		c.Err = model.NewAppError("api.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_before_after_params.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_before_after_params.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	// parameters are mutually exclusive
+	// TotalsOnly and ThreadsOnly are mutually exclusive
 	if opts.TotalsOnly && opts.ThreadsOnly {
-		c.Err = model.NewAppError("api.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_totals_threads_params.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_totals_threads_params.app_error", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	filter := queryValues.Get("filter")
+	if filter != "" {
+		switch model.GetChannelThreadsFilter(filter) {
+		case model.GetChannelThreadsFilterAll:
+		case model.GetChannelThreadsFilterFollowing:
+		case model.GetChannelThreadsFilterCurrentUser:
+			opts.Filter = model.GetChannelThreadsFilter(filter)
+		default:
+			c.Err = model.NewAppError("Api4.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_filter_param.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, opts)

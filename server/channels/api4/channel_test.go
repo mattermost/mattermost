@@ -4099,6 +4099,16 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
 		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
 	})
+
+	t.Run("should accept only specific filters", func(t *testing.T) {
+		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{
+			Filter: "bad_filter",
+		})
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.get_threads_for_channel.invalid_filter_param.app_error")
+	})
 }
 
 func TestGetChannelMembersTimezones(t *testing.T) {
