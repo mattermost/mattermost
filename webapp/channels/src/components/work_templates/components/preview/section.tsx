@@ -297,8 +297,8 @@ const StyledPreviewSection = styled(PreviewSection)`
     }
 
     .icon-check-circle::before {
-        margin-top: 8px;
-        margin-right: 8px;
+        margin-top: 2px;
+        margin-right: 2px;
     }
 
     .icon-download-outline::before {
