@@ -296,6 +296,14 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.get_threads_for_channel.invalid_before_after_params.app_error",
+    "translation": "Parameters before and after are mutually exclusive"
+  },
+  {
+    "id": "api.channel.get_threads_for_channel.invalid_totals_threads_params.app_error",
+    "translation": "Parameters onlyTotals and onlyThreads are mutually exclusive"
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
@@ -4766,6 +4774,10 @@
   {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
+  },
+  {
+    "id": "app.channel.get_threads.app_error",
+    "translation": ""
   },
   {
     "id": "app.channel.get_unread.app_error",

@@ -1908,13 +1908,13 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// parameters are mutually exclusive
 	if opts.Before != "" && opts.After != "" {
-		c.Err = model.NewAppError("api.getThreadsForChannel", "api.getThreadsForChannel.bad_params", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("api.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_before_after_params.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	// parameters are mutually exclusive
 	if opts.TotalsOnly && opts.ThreadsOnly {
-		c.Err = model.NewAppError("api.getThreadsForChannel", "api.getThreadsForChannel.bad_only_params", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("api.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_totals_threads_params.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
