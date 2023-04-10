@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {ProductScope} from '@mattermost/types/products';
 
 import {ClientPluginManifest} from '@mattermost/types/plugins';
@@ -185,6 +184,11 @@ export type ProductComponent = {
      * The component to be displayed below the global header when your route is active.
      */
     mainComponent: React.ComponentType;
+
+    /**
+     * The public component to be displayed when a public route is active.
+     */
+    publicComponent: React.ComponentType | null;
 
     /**
      * A component to fill the generic area in the center of

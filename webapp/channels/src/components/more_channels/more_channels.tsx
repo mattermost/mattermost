@@ -86,7 +86,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
 
     handleHide = () => {
         this.setState({show: false});
-    }
+    };
 
     handleNewChannel = () => {
         this.handleExit();
@@ -95,11 +95,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
             modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
             dialogType: NewChannelModal,
         });
-    }
+    };
 
     handleExit = () => {
         this.props.actions.closeModal(ModalIdentifiers.MORE_CHANNELS);
-    }
+    };
 
     closeEditRHS = () => {
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
@@ -116,11 +116,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
             searchedChannels: [],
             serverError: null,
         });
-    }
+    };
 
     nextPage = (page: number) => {
         this.props.actions.getChannels(this.props.teamId, page + 1, CHANNELS_PER_PAGE);
-    }
+    };
 
     handleJoin = async (channel: Channel, done: () => void) => {
         const {actions, currentUserId, teamId, teamName} = this.props;
@@ -137,7 +137,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (done) {
             done();
         }
-    }
+    };
 
     search = (term: string) => {
         clearTimeout(this.searchTimeoutId);
@@ -171,17 +171,17 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         );
 
         this.searchTimeoutId = searchTimeoutId;
-    }
+    };
 
     setSearchResults = (channels: Channel[]) => {
         this.setState({searchedChannels: this.state.shouldShowArchivedChannels ? channels.filter((c) => c.delete_at !== 0) : channels.filter((c) => c.delete_at === 0), searching: false});
-    }
+    };
 
     toggleArchivedChannels = (shouldShowArchivedChannels: boolean) => {
         // search again when switching channels to update search results
         this.search(this.state.searchTerm);
         this.setState({shouldShowArchivedChannels});
-    }
+    };
 
     render() {
         const {

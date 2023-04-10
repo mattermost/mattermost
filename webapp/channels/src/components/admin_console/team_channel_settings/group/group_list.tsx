@@ -69,7 +69,7 @@ export default class GroupList extends React.PureComponent<Props> {
                 isDisabled={this.props.isDisabled}
             />
         );
-    }
+    };
 
     render(): JSX.Element {
         return (

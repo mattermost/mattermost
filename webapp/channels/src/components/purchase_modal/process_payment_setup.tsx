@@ -112,7 +112,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
 
         progress += 1;
         this.setState({progress: progress > MAX_FAKE_PROGRESS ? MAX_FAKE_PROGRESS : progress});
-    }
+    };
 
     private savePaymentMethod = async () => {
         const start = new Date();
@@ -168,7 +168,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
         }
 
         this.completePayment();
-    }
+    };
 
     private completePayment = () => {
         clearInterval(this.intervalId);
@@ -180,7 +180,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
             'pageview_payment_success',
         );
         this.setState({state: ProcessState.SUCCESS, progress: 100});
-    }
+    };
 
     private handleGoBack = () => {
         clearInterval(this.intervalId);
@@ -190,7 +190,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
             state: ProcessState.PROCESSING,
         });
         this.props.onBack();
-    }
+    };
 
     private successPage = () => {
         const {error} = this.state;
@@ -330,7 +330,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
                 }}
             />
         );
-    }
+    };
 
     public render() {
         const {state, progress, error} = this.state;

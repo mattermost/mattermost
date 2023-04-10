@@ -9,7 +9,6 @@ import styled from 'styled-components';
 
 import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import glyphMap, {CheckIcon} from '@mattermost/compass-icons/components';
-
 export interface ProductMenuItemProps {
     destination: string;
     icon: IconGlyphTypes;

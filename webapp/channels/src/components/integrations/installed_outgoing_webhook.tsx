@@ -65,11 +65,11 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
         e.preventDefault();
 
         this.props.onRegenToken(this.props.outgoingWebhook);
-    }
+    };
 
     handleDelete = () => {
         this.props.onDelete(this.props.outgoingWebhook);
-    }
+    };
 
     makeDisplayName(outgoingWebhook: OutgoingWebhook, channel: Channel) {
         if (outgoingWebhook.display_name) {

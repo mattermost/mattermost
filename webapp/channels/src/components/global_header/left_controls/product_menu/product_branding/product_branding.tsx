@@ -4,7 +4,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
-import Heading from '@mattermost/compass-components/components/heading';
+import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
 
 import {useCurrentProduct} from 'utils/products';
 

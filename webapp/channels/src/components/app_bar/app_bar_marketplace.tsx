@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 import {openModal} from 'actions/views/modals';
 
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
