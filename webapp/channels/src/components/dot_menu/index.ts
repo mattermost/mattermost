@@ -12,7 +12,7 @@ import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/select
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserTimezone} from 'selectors/general';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -44,7 +44,6 @@ import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 
 import {Post} from '@mattermost/types/posts';
 import {setGlobalItem} from '../../actions/storage';
-import {getGlobalItem} from '../../selectors/storage';
 
 import DotMenu from './dot_menu';
 
@@ -110,8 +109,6 @@ function makeMapStateToProps() {
             }
         }
 
-        const showForwardPostNewLabel = getGlobalItem(state, Preferences.FORWARD_POST_VIEWED, true);
-
         return {
             channelIsArchived: isArchivedChannel(channel),
             components: state.plugins.components,
@@ -129,8 +126,7 @@ function makeMapStateToProps() {
             isCollapsedThreadsEnabled: collapsedThreads,
             threadReplyCount,
             isMobileView: getIsMobileView(state),
-            showForwardPostNewLabel,
-            timezone: getCurrentUserTimezone(state),
+            timezone: getCurrentTimezone(state),
             isMilitaryTime,
         };
     };

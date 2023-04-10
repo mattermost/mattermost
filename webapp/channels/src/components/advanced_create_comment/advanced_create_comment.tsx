@@ -220,7 +220,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     static defaultProps = {
         focusOnMount: true,
-    }
+    };
 
     static getDerivedStateFromProps(props: Props, state: State) {
         let updatedState: Partial<State> = {
@@ -332,7 +332,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 getChannelMemberCountsByGroup(channelId, isTimezoneEnabled);
             }
         }
-    }
+    };
 
     saveDraftOnUnmount = () => {
         if (!this.isDraftEdited || !this.state.draft) {
@@ -346,7 +346,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         } as PostDraft;
 
         this.props.onUpdateCommentDraft(updatedDraft, true);
-    }
+    };
 
     saveDraftWithShow = () => {
         this.setState((prev) => {
@@ -366,7 +366,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             this.saveDraft(true);
         });
-    }
+    };
 
     saveDraft = (save = false) => {
         if (this.saveDraftFrame) {
@@ -374,11 +374,11 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.props.onUpdateCommentDraft(this.state.draft, save);
             this.saveDraftFrame = null;
         }
-    }
+    };
 
     setShowPreview = (newPreviewValue: boolean) => {
         this.props.setShowPreview(newPreviewValue);
-    }
+    };
 
     focusTextboxIfNecessary = (e: KeyboardEvent) => {
         // Should only focus if RHS is expanded or if thread view
@@ -397,7 +397,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.focusTextbox();
             this.toggleAdvanceTextEditor();
         }
-    }
+    };
 
     setCaretPosition = (newCaretPosition: number) => {
         const textbox = this.textboxRef.current && this.textboxRef.current.getInputBox();
@@ -407,7 +407,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             Utils.setCaretPosition(textbox, newCaretPosition);
         });
-    }
+    };
 
     pasteHandler = (e: ClipboardEvent) => {
         // we need to cast the TextboxElement type onto the EventTarget here since the ClipboardEvent is not generic
@@ -447,11 +447,11 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         this.handleDraftChange(updatedDraft);
         this.setState({draft: updatedDraft});
-    }
+    };
 
     handleNotifyAllConfirmation = () => {
         this.doSubmit();
-    }
+    };
 
     showNotifyAllModal = (mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
         this.props.openModal({
@@ -464,7 +464,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 onConfirm: () => this.handleNotifyAllConfirmation(),
             },
         });
-    }
+    };
 
     toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
@@ -474,7 +474,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     hideEmojiPicker = () => {
         this.setState({showEmojiPicker: false});
-    }
+    };
 
     handleEmojiClick = (emoji: Emoji) => {
         const emojiAlias = ('short_name' in emoji && emoji.short_name) || emoji.name;
@@ -512,7 +512,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             showEmojiPicker: false,
             draft: modifiedDraft,
         });
-    }
+    };
 
     handleGifClick = (gif: string) => {
         const draft = this.state.draft!;
@@ -540,11 +540,11 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
 
         this.focusTextbox();
-    }
+    };
 
     handlePostError = (postError: React.ReactNode) => {
         this.setState({postError});
-    }
+    };
 
     handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
         e.preventDefault();
@@ -642,7 +642,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         await this.doSubmit(e);
-    }
+    };
 
     doSubmit = async (e?: React.FormEvent) => {
         if (e) {
@@ -714,7 +714,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         this.isDraftSubmitting = false;
         this.setState({draft: {...this.props.draft, uploadsInProgress: []}});
         this.draftsForPost[this.props.rootId] = null;
-    }
+    };
 
     commentMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
         const {ctrlSend, codeBlockOnCtrlEnter} = this.props;
@@ -743,7 +743,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         this.emitTypingEvent();
-    }
+    };
 
     reactToLastMessage = (e: React.KeyboardEvent<TextboxElement>) => {
         e.preventDefault();
@@ -753,12 +753,12 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         // Here we are not handling conditions such as check for modals,  popups etc. as shortcut is only trigger on
         // textbox input focus. Since all of them will already be closed as soon as they loose focus.
         emitShortcutReactToLastPostFrom(Locations.RHS_ROOT);
-    }
+    };
 
     emitTypingEvent = () => {
         const {channelId, rootId} = this.props;
         GlobalActions.emitLocalUserTypingEvent(channelId, rootId);
-    }
+    };
 
     handleChange = (e: React.ChangeEvent<TextboxElement>) => {
         const message = e.target.value;
@@ -780,7 +780,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             }
         });
         this.draftsForPost[this.props.rootId] = updatedDraft;
-    }
+    };
 
     handleDraftChange = (draft: PostDraft, rootId?: string, save = false, instant = false) => {
         this.isDraftEdited = true;
@@ -805,17 +805,17 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             }, Constants.SAVE_DRAFT_TIMEOUT);
         }
         this.draftsForPost[this.props.rootId] = draft;
-    }
+    };
 
     handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
         this.setState({
             caretPosition: (e.target as TextboxElement).selectionStart || 0,
         });
-    }
+    };
 
     handleSelect = (e: React.SyntheticEvent<TextboxElement>) => {
         Utils.adjustSelection(this.textboxRef.current?.getInputBox(), e);
-    }
+    };
 
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -976,7 +976,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         if (lastMessageReactionKeyCombo) {
             this.reactToLastMessage(e);
         }
-    }
+    };
 
     applyMarkdown = (options: ApplyMarkdownOptions) => {
         if (this.props.shouldShowPreview) {
@@ -999,12 +999,12 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             const textbox = this.textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
         });
-    }
+    };
 
     handleFileUploadChange = () => {
         this.isDraftEdited = true;
         this.focusTextbox();
-    }
+    };
 
     handleUploadStart = (clientIds: string[]) => {
         const draft = this.state.draft!;
@@ -1021,12 +1021,12 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
         this.focusTextbox();
-    }
+    };
 
     handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
         const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [filePreviewInfo.clientId]: filePreviewInfo};
         this.setState({uploadsProgressPercent});
-    }
+    };
 
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], _: string, rootId?: string) => {
         const draft = this.draftsForPost[rootId!]!;
@@ -1051,7 +1051,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         if (this.props.rootId === rootId) {
             this.setState({draft: modifiedDraft});
         }
-    }
+    };
 
     handleUploadError = (err: string | ServerError | null, clientId: string | number = -1, _?: string, rootId = '') => {
         if (clientId !== -1) {
@@ -1084,7 +1084,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 this.props.scrollToBottom();
             }
         });
-    }
+    };
 
     removePreview = (id: string) => {
         const draft = this.state.draft!;
@@ -1127,11 +1127,11 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         this.saveDraftFrame = window.setTimeout(() => {}, Constants.SAVE_DRAFT_TIMEOUT);
-    }
+    };
 
     getFileUploadTarget = () => {
         return this.textboxRef.current?.getInputBox();
-    }
+    };
 
     toggleAdvanceTextEditor = () => {
         this.setState({
@@ -1144,13 +1144,13 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             name: AdvancedTextEditorConst.COMMENT,
             value: String(!this.state.isFormattingBarHidden),
         }]);
-    }
+    };
 
     focusTextbox = (keepFocus = false) => {
         if (this.textboxRef.current && (keepFocus || !UserAgent.isMobile())) {
             this.textboxRef.current.focus();
         }
-    }
+    };
 
     shouldEnableAddButton = () => {
         const {draft} = this.state;
@@ -1163,21 +1163,21 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         return isErrorInvalidSlashCommand(this.state.serverError);
-    }
+    };
 
     showPostDeletedModal = () => {
         this.props.openModal({
             modalId: ModalIdentifiers.POST_DELETED_MODAL,
             dialogType: PostDeletedModal,
         });
-    }
+    };
 
     handleBlur = () => {
         if (!this.isDraftSubmitting) {
             this.saveDraftWithShow();
         }
         this.lastBlurAt = Date.now();
-    }
+    };
 
     render() {
         const draft = this.state.draft!;

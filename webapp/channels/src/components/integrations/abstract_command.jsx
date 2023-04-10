@@ -61,7 +61,7 @@ export default class AbstractCommand extends React.PureComponent {
         * The async function to run when the action button is pressed
         */
         action: PropTypes.func.isRequired,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -84,7 +84,7 @@ export default class AbstractCommand extends React.PureComponent {
             saving: false,
             clientError: null,
         };
-    }
+    };
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -195,67 +195,67 @@ export default class AbstractCommand extends React.PureComponent {
         }
 
         this.props.action(command).then(() => this.setState({saving: false}));
-    }
+    };
 
     updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value,
         });
-    }
+    };
 
     updateDescription = (e) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateTrigger = (e) => {
         this.setState({
             trigger: e.target.value,
         });
-    }
+    };
 
     updateUrl = (e) => {
         this.setState({
             url: e.target.value,
         });
-    }
+    };
 
     updateMethod = (e) => {
         this.setState({
             method: e.target.value,
         });
-    }
+    };
 
     updateUsername = (e) => {
         this.setState({
             username: e.target.value,
         });
-    }
+    };
 
     updateIconUrl = (e) => {
         this.setState({
             iconUrl: e.target.value,
         });
-    }
+    };
 
     updateAutocomplete = (e) => {
         this.setState({
             autocomplete: e.target.checked,
         });
-    }
+    };
 
     updateAutocompleteHint = (e) => {
         this.setState({
             autocompleteHint: e.target.value,
         });
-    }
+    };
 
     updateAutocompleteDescription = (e) => {
         this.setState({
             autocompleteDescription: e.target.value,
         });
-    }
+    };
 
     render() {
         let autocompleteHint = null;

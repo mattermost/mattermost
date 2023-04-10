@@ -261,6 +261,8 @@ export type DataRetentionPolicy = {
     file_deletion_enabled: boolean;
     message_retention_cutoff: number;
     file_retention_cutoff: number;
+    boards_retention_cutoff: number;
+    boards_deletion_enabled: boolean;
 };
 
 export type ServiceSettings = {

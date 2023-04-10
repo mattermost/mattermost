@@ -80,7 +80,7 @@ export default function SelfHostedCard(props: Props) {
                 topColor='#4A69AC'
                 plan={props.desiredPlanName}
                 price={`${props.desiredProduct?.price_per_seat?.toString()}`}
-                rate={intl.formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                rate={intl.formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                     br: <br/>,
                     b: (chunks: React.ReactNode | React.ReactNodeArray) => (
                         <span style={{fontSize: '14px'}}>
