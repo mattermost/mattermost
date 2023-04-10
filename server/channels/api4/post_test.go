@@ -3193,6 +3193,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	th := Setup(t).InitBasic()
+	defer th.TearDown()
 	rpost := th.CreatePost()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
