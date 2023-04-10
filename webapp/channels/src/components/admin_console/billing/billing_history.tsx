@@ -39,6 +39,7 @@ export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => 
             />
         </div>
         <ExternalLink
+            data-testid='BillingHistory-link'
             location='billing_history'
             href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
             className='BillingHistory__noHistory-link'
@@ -84,7 +85,10 @@ const BillingHistory = () => {
                                         defaultMessage='Transactions'
                                     />
                                 </div>
-                                <div className='BillingHistory__cardHeaderText-bottom'>
+                                <div
+                                    data-testid='no-invoices'
+                                    className='BillingHistory__cardHeaderText-bottom'
+                                >
                                     <FormattedMessage
                                         id='admin.billing.history.allPaymentsShowHere'
                                         defaultMessage='All of your invoices will be shown here'
