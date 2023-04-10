@@ -3872,10 +3872,16 @@ func TestGetThreadsForChannel(t *testing.T) {
 
 	t.Run("empty", func(t *testing.T) {
 		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		otherChannel := th.CreatePublicChannel()
+		defer th.App.Srv().Store().Channel().Delete(otherChannel.Id, model.GetMillis())
 
 		for i := 0; i < 10; i++ {
 			th.CreatePost()
 		}
+
+		// Create a thread in another channel.
+		rootPost := th.CreatePostWithClient(th.Client, otherChannel)
+		th.CreateThreadPostWithClient(th.Client, otherChannel, rootPost)
 
 		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, model.GetChannelThreadsOpts{})
 		require.NoError(t, err)
