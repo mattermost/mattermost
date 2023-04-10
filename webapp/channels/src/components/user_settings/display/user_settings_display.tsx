@@ -330,19 +330,19 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         await this.props.actions.savePreferences(userId, preferences);
 
         this.updateSection('');
-    }
+    };
 
     handleClockRadio = (militaryTime: string) => {
         this.setState({militaryTime});
-    }
+    };
 
     handleTeammateNameDisplayRadio = (teammateNameDisplay: string) => {
         this.setState({teammateNameDisplay});
-    }
+    };
 
     handleAvailabilityStatusRadio = (availabilityStatusOnPosts: string) => {
         this.setState({availabilityStatusOnPosts});
-    }
+    };
 
     handleChannelDisplayModeRadio(channelDisplayMode: string) {
         this.setState({channelDisplayMode});
@@ -370,11 +370,11 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handleOneClickReactionsRadio = (oneClickReactionsOnPosts: string) => {
         this.setState({oneClickReactionsOnPosts});
-    }
+    };
 
     handleClickToReplyRadio = (clickToReply: string) => {
         this.setState({clickToReply});
-    }
+    };
 
     handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
         this.setState({...display});
@@ -384,7 +384,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     updateSection = (section: string) => {
         this.updateState();
         this.props.updateSection(section);
-    }
+    };
 
     updateState = () => {
         const newState = getDisplayStateFromProps(this.props);
@@ -393,7 +393,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
 
         this.setState({isSaving: false});
-    }
+    };
 
     createSection(props: SectionProps) {
         const {

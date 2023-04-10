@@ -117,7 +117,7 @@ export default class SearchableChannelList extends React.PureComponent {
                 </div>
             </div>
         );
-    }
+    };
 
     nextPage = () => {
         if (!this.props.loading) {
@@ -132,13 +132,13 @@ export default class SearchableChannelList extends React.PureComponent {
         if (term === '') {
             this.setState({page: 0});
         }
-    }
+    };
     toggleArchivedChannelsOn = () => {
         this.props.toggleArchivedChannels(true);
-    }
+    };
     toggleArchivedChannelsOff = () => {
         this.props.toggleArchivedChannels(false);
-    }
+    };
 
     hasMore = () => {
         if (this.props.loading) {

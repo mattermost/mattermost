@@ -77,7 +77,7 @@ type Props = {
 export default class InstalledIncomingWebhook extends React.PureComponent<Props> {
     handleDelete = () => {
         this.props.onDelete(this.props.incomingWebhook);
-    }
+    };
 
     render() {
         const incomingWebhook = this.props.incomingWebhook;

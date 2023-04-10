@@ -62,7 +62,7 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
         this.setState({
             error: errorObj,
         });
-    }
+    };
 
     render(): JSX.Element {
         let buttons = null;

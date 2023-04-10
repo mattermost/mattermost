@@ -53,7 +53,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
         this.setState({
             show: false,
         });
-    }
+    };
 
     handleKeyPress = (e: KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
