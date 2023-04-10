@@ -40,7 +40,7 @@ const AddPropertiesTourStep = (): JSX.Element | null => {
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddProperties.Body'
-            defaultMessage='Add various properties to cards to make them more powerful!'
+            defaultMessage='Add various properties to cards to make them more powerful.'
         />
     )
 

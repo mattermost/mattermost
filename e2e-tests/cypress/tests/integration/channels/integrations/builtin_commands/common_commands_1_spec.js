@@ -176,7 +176,7 @@ describe('Integrations', () => {
             // # Post "/marketplace" as SystemAdmin
             cy.postMessage('/marketplace ');
 
-            cy.get('#modal_marketplace').should('be.visible');
+            cy.findByRole('heading', {name: 'App Marketplace'}).should('be.visible');
         });
     });
 });

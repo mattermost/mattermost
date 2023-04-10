@@ -11,7 +11,7 @@
 
 import {onlyOn} from '@cypress/skip-test';
 
-describe('channels > App Bar', () => {
+describe('channels > App Bar', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;
