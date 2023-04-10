@@ -99,7 +99,7 @@ export default class SearchGrid extends PureComponent<Props, State> {
         } else {
             this.numberOfColumns = NUMBER_OF_COLUMNS_LANDSCAPE;
         }
-    }
+    };
 
     itemClickHandler = (gfyItem: GfycatAPIItem) => {
         const {keyword, handleItemClick} = this.props;
@@ -107,19 +107,19 @@ export default class SearchGrid extends PureComponent<Props, State> {
 
         trackEvent('gfycat', 'shares', {gfyid: gfyItem.gfyId, keyword});
         handleItemClick(gfyItem);
-    }
+    };
 
     minHeightColumnIndex = () => {
         return this.columnsHeights.indexOf(Math.min(...this.columnsHeights));
-    }
+    };
 
     maxHeightColumnIndex = () => {
         return this.columnsHeights.indexOf(Math.max(...this.columnsHeights));
-    }
+    };
 
     maxColumnHeight = () => {
         return Math.max(...this.columnsHeights);
-    }
+    };
 
     resizeHandler = () => {
         if (this.container && this.state.containerWidth !== this.container.offsetWidth - WEBKIT_SCROLLBAR_WIDTH) {
@@ -130,11 +130,11 @@ export default class SearchGrid extends PureComponent<Props, State> {
             });
             this.columnsHeights = Array(this.numberOfColumns).fill(0);
         }
-    }
+    };
 
     scrollHandler = () => {
         this.scrollPosition = window.scrollY;
-    }
+    };
 
     render() {
         const {

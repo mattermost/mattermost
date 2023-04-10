@@ -21,7 +21,7 @@ type ResultsCallback = (results: Results) => void;
 
 type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
 
-class ChannelSuggestion extends Suggestion {
+class ChannelSuggestion extends Suggestion<unknown, Channel> {
     render() {
         const isSelection = this.props.isSelection;
         const item = this.props.item;

@@ -3,8 +3,8 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import Icon from '@mattermost/compass-components/foundations/icon';
-import Heading from '@mattermost/compass-components/components/heading';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
 
 import {useCurrentProduct} from 'utils/products';
 

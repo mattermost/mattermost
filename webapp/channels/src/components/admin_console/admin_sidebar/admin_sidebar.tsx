@@ -57,11 +57,11 @@ const renderScrollThumbVertical = (props: Props) => (
 
 class AdminSidebar extends React.PureComponent<Props, State> {
     searchRef: React.RefObject<HTMLInputElement>;
-    idx: Index | null
+    idx: Index | null;
 
     static defaultProps = {
         plugins: {},
-    }
+    };
 
     constructor(props: Props) {
         super(props);
@@ -130,7 +130,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                 }
             }
         }
-    }
+    };
 
     updateTitle = () => {
         let currentSiteName = '';
@@ -139,7 +139,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         }
 
         document.title = localizeMessage('sidebar_right_menu.console', 'System Console') + currentSiteName;
-    }
+    };
 
     visibleSections = () => {
         const {config, license, buildEnterpriseReady, consoleAccess, adminDefinition, cloud} = this.props;
@@ -166,7 +166,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             }
         }
         return result;
-    }
+    };
 
     renderRootMenu = (definition: typeof AdminDefinition) => {
         const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct} = this.props;
@@ -249,11 +249,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             return null;
         });
         return sidebarSections;
-    }
+    };
 
     isPluginPresentInSections = (plugin: PluginRedux) => {
         return this.state.sections && this.state.sections.indexOf(`plugin_${plugin.id}`) >= 0;
-    }
+    };
 
     renderPluginsMenu = () => {
         const {config, plugins} = this.props;
@@ -279,12 +279,12 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         }
 
         return [];
-    }
+    };
 
     handleClearFilter = () => {
         this.setState({sections: null, filter: ''});
         this.props.onFilterChange('');
-    }
+    };
 
     render() {
         const {showTaskList} = this.props;

@@ -4,7 +4,7 @@
 import React from 'react';
 
 import * as Utils from 'utils/utils';
-import AtMentionSuggestion from 'components/suggestion/at_mention_provider/at_mention_suggestion';
+import AtMentionSuggestion, {Group} from 'components/suggestion/at_mention_provider/at_mention_suggestion';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 jest.mock('components/custom_status/custom_status_emoji', () => () => <div/>);
@@ -31,7 +31,7 @@ describe('at mention suggestion', () => {
     it('Should not display nick name of the signed in user', () => {
         const wrapper = mountWithIntl(
             <AtMentionSuggestion
-                item={userid1}
+                item={userid1 as Group}
                 matchedPretext='@'
                 term='@user'
                 onClick={() => jest.fn()}
@@ -49,7 +49,7 @@ describe('at mention suggestion', () => {
     it('Should display nick name of non signed in user', () => {
         const wrapper = mountWithIntl(
             <AtMentionSuggestion
-                item={userid2}
+                item={userid2 as Group}
                 matchedPretext='@'
                 term='@user'
                 onClick={() => jest.fn()}

@@ -14,7 +14,7 @@
 import {HALF_SEC} from '../../fixtures/timeouts';
 import {stubClipboard} from '../../utils';
 
-describe('lhs', () => {
+describe('lhs', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPublicPlaybook;

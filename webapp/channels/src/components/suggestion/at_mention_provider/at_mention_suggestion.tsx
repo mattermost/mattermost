@@ -18,25 +18,21 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import StatusIcon from 'components/status_icon';
 
-import Suggestion, {SuggestionProps} from 'components/suggestion/suggestion';
+import Suggestion, {Item, SuggestionProps} from 'components/suggestion/suggestion';
 
-import {UserProfile} from '@mattermost/types/users';
-
-interface Item extends UserProfile {
+export interface Group extends Item {
+    member_count: number;
     display_name: string;
     name: string;
     isCurrentUser: boolean;
     type: string;
 }
 
-interface Group extends Item {
-    member_count: number;
-}
 type Props = {
     intl: IntlShape;
 }
 
-type AtMentionSuggestionProps<P, T = Item> = P & SuggestionProps<T>
+type AtMentionSuggestionProps<P, T = Group> = P & SuggestionProps<T>
 class AtMentionSuggestion extends Suggestion<Props, Group> {
     render() {
         const {intl} = this.props;

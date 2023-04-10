@@ -65,16 +65,3 @@ func TestDraftPreSave(t *testing.T) {
 
 	assert.LessOrEqual(t, o.CreateAt, past)
 }
-
-func TestDraftPreUpdate(t *testing.T) {
-	o := Draft{Message: "test"}
-	o.PreUpdate()
-
-	assert.NotEqual(t, 0, o.UpdateAt)
-
-	past := GetMillis() - 1
-	o = Draft{Message: "test", UpdateAt: past}
-	o.PreSave()
-
-	assert.GreaterOrEqual(t, o.UpdateAt, past)
-}

@@ -45,11 +45,11 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
         actions.updateChannelPrivacy(channelId, General.PRIVATE_CHANNEL);
         trackEvent('actions', 'convert_to_private_channel', {channel_id: channelId});
         this.onHide();
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     render() {
         const {
