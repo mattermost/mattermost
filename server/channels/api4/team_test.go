@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -1154,6 +1155,12 @@ func TestGetAllTeams(t *testing.T) {
 				return
 			}
 			require.NoError(t, err2)
+
+			sort.Strings(tc.ExpectedTeams)
+			sort.Slice(teams, func(i, j int) bool {
+				return teams[i].Id < teams[j].Id
+			})
+
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
 			for idx, team := range teams {
 				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
