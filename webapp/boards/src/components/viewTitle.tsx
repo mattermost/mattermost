@@ -34,9 +34,11 @@ const ViewTitle = (props: Props) => {
     }, [board.id, board.icon])
     const onShowDescription = useCallback(() => mutator.showBoardDescription(board.id, Boolean(board.showDescription), true), [board.id, board.showDescription])
     const onHideDescription = useCallback(() => mutator.showBoardDescription(board.id, Boolean(board.showDescription), false), [board.id, board.showDescription])
-    const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
 
-    const readonly = props.readonly || !canEditBoardProperties
+    let readonly = props.readonly
+    if(!readonly){
+        readonly = !useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
+    }
 
     const intl = useIntl()
 

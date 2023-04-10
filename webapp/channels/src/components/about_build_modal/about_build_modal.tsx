@@ -49,7 +49,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
 
     doHide = () => {
         this.setState({show: false});
-    }
+    };
 
     render() {
         const config = this.props.config;

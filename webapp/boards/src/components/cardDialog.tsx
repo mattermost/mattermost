@@ -97,7 +97,7 @@ const CardDialog = (props: Props): JSX.Element => {
     }
 
     const confirmDialogProps: ConfirmationDialogBoxProps = {
-        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete'}),
         confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
         onConfirm: handleDeleteCard,
         onClose: () => {
@@ -161,7 +161,7 @@ const CardDialog = (props: Props): JSX.Element => {
                     dispatch(updateAttachments([attachmentBlock]))
                     if (attachment.size > clientConfig.maxFileSize) {
                         removeUploadingAttachment(uploadingBlock)
-                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: 'Unable to upload the file. Attachment size limit reached.'}), severity: 'normal'})
+                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: "This file couldn't be uploaded as the file size limit has been reached."}), severity: 'normal'})
                     } else {
                         sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.upload', defaultMessage: 'Attachment uploading.'}), severity: 'normal'})
                         const xhr = await octoClient.uploadAttachment(boardId, attachment)
@@ -183,11 +183,11 @@ const CardDialog = (props: Props): JSX.Element => {
                                         const block = createAttachmentBlock()
                                         block.fields.attachmentId = attachmentId || ''
                                         block.title = attachment.name
-                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.uploadSuccess', defaultMessage: 'Attachment uploaded successfull.'}), severity: 'normal'})
+                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.uploadSuccess', defaultMessage: 'Attachment uploaded.'}), severity: 'normal'})
                                         resolve(block)
                                     } else {
                                         removeUploadingAttachment(uploadingBlock)
-                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: 'Unable to upload the file. Attachment size limit reached.'}), severity: 'normal'})
+                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: "This file couldn't be uploaded as the file size limit has been reached."}), severity: 'normal'})
                                     }
                                 }
                             }
@@ -217,7 +217,7 @@ const CardDialog = (props: Props): JSX.Element => {
         }
         const description = intl.formatMessage({id: 'AttachmentBlock.DeleteAction', defaultMessage: 'delete'})
         await mutator.deleteBlock(block, description)
-        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.delete', defaultMessage: 'Attachment Deleted Successfully.'}), severity: 'normal'})
+        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.delete', defaultMessage: 'Attachment deleted.'}), severity: 'normal'})
     }, [card?.boardId, card?.id, card?.fields.contentOrder])
 
     const attachBtn = (): React.ReactNode => {

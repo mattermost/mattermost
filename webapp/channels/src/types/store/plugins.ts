@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {TIconGlyph} from '@mattermost/compass-components/foundations/icon';
+import {TIconGlyph} from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {ProductScope} from '@mattermost/types/products';
 
@@ -186,6 +186,11 @@ export type ProductComponent = {
      * The component to be displayed below the global header when your route is active.
      */
     mainComponent: React.ComponentType;
+
+    /**
+     * The public component to be displayed when a public route is active.
+     */
+    publicComponent: React.ComponentType | null;
 
     /**
      * A component to fill the generic area in the center of
