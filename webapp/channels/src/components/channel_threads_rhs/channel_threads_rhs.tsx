@@ -94,20 +94,20 @@ function ChannelThreads({
         actions.getThreadsCountsForChannel(channel.id);
     }, [channel.id]);
 
-    const after = ids.length ? ids[0] : '';
     useEffect(() => {
         setIsLoading(true);
+        const after = ids.length ? ids[0] : '';
         const fetchThreads = async () => {
-            await actions.getThreadsForChannel(channel.id, selected, {after, perPage: 5});
+            await actions.getThreadsForChannel(channel.id, selected, {after});
             setIsLoading(false);
         };
         fetchThreads();
-    }, [channel.id, selected, after]);
+    }, [channel.id, selected]);
 
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setIsPaging(true);
         const before = ids[startIndex - 1];
-        await actions.getThreadsForChannel(channel.id, selected, {before, perPage: 5});
+        await actions.getThreadsForChannel(channel.id, selected, {before});
         setIsPaging(false);
     }, [currentTeamId, ids]);
 
