@@ -8393,32 +8393,26 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 
 func (c *Client4) GetThreadsForChannel(channelID string, opts GetChannelThreadsOpts) (*Threads, *Response, error) {
 	v := url.Values{}
-	//if opts.Since != 0 {
-	//	v.Set("since", fmt.Sprintf("%d", opts.Since))
-	//}
-	//if opts.Before != "" {
-	//	v.Set("before", opts.Before)
-	//}
-	//if opts.After != "" {
-	//	v.Set("after", opts.After)
-	//}
-	//if opts.PageSize != 0 {
-	//	v.Set("per_page", fmt.Sprintf("%d", opts.PageSize))
-	//}
-	//if opts.Extended {
-	//	v.Set("extended", "true")
-	//}
+	if opts.Before != "" {
+		v.Set("before", opts.Before)
+	}
+	if opts.After != "" {
+		v.Set("after", opts.After)
+	}
+	if opts.PageSize != 0 {
+		v.Set("per_page", fmt.Sprintf("%d", opts.PageSize))
+	}
+	if opts.Extended {
+		v.Set("extended", "true")
+	}
 	if opts.Deleted {
 		v.Set("deleted", "true")
 	}
-	//if opts.Unread {
-	//	v.Set("unread", "true")
-	//}
-	//if opts.ThreadsOnly {
-	//	v.Set("threadsOnly", "true")
-	//}
+	if opts.ThreadsOnly {
+		v.Set("threadsOnly", "true")
+	}
 	if opts.TotalsOnly {
-		v.Set("totals_only", "true")
+		v.Set("totalsOnly", "true")
 	}
 
 	u := c.channelThreadsRoute(channelID)
