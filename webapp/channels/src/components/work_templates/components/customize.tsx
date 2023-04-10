@@ -163,9 +163,10 @@ const StyledCustomized = styled(Customize)`
         font-size: 14px;
         width: 100%;
         border-radius: 4px;
-        border: 2px solid rgba(var(--center-channel-text-rgb), 0.16);
+        border: 1px solid rgba(var(--center-channel-text-rgb), 0.16);
         &:focus {
-            border: 2px solid var(--button-bg);
+            border: 1px solid var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
         }
     }
 
