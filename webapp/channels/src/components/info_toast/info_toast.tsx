@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import {CSSTransition} from 'react-transition-group';
 import {useIntl} from 'react-intl';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import './info_toast.scss';
 
 type Props = {
