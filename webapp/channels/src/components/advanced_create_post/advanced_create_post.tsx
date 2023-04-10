@@ -602,7 +602,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 onConfirm: this.handleNotifyAllConfirmation,
             },
         });
-    }
+    };
 
     getStatusFromSlashCommand = () => {
         const {message} = this.state;
@@ -1554,15 +1554,15 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         const mentions = mentionsMinusSpecialMentionsInText(this.state.message);
 
         return mentions.length > 0;
-    }
+    };
 
     getSpecialMentions = (): {[key: string]: boolean} => {
         return specialMentionsInText(this.state.message);
-    }
+    };
 
     hasSpecialMentions = (): boolean => {
         return Object.values(this.getSpecialMentions()).includes(true);
-    }
+    };
 
     render() {
         const {draft, canPost} = this.props;
