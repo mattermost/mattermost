@@ -76,6 +76,8 @@ type FeatureFlags struct {
 	OnboardingTourTips bool
 
 	AppsSidebarCategory bool
+
+	NewUI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -105,6 +107,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 	f.AppsSidebarCategory = false
+	f.NewUI = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

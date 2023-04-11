@@ -1,0 +1,54 @@
+{
+  "name": "@mattermost/compass-ui",
+  "version": "1.0.0",
+  "description": "shared component library for Mattermost",
+  "main": "./src/index.ts",
+  "keywords": [
+    "storybook",
+    "react",
+    "typescript",
+    "mattermost"
+  ],
+  "scripts": {
+    "test": "test",
+    "storybook": "start-storybook -p 6006",
+    "IGNbuild": "node -v && rm -rf ./dist && npm run build:compile && npm run build:copy-files",
+    "build:compile": "tsc -p \"./tsconfig.build.json\"",
+    "build:copy-files": "node ./scripts/copy-files.js",
+    "build-storybook": "build-storybook",
+    "clean": "rm -rf node_modules dist"
+  },
+  "devDependencies": {
+    "@babel/core": "7.20.2",
+    "@mui/system": "5.11.7",
+    "@mui/material": "5.11.7",
+    "@mui/styled-engine-sc": "5.11.0",
+    "@rollup/plugin-commonjs": "18.1.0",
+    "@rollup/plugin-node-resolve": "15.0.1",
+    "@rollup/plugin-typescript": "10.0.1",
+    "@storybook/addon-actions": "6.5.13",
+    "@storybook/addon-docs": "6.5.13",
+    "@storybook/addon-essentials": "6.5.13",
+    "@storybook/addon-interactions": "6.5.13",
+    "@storybook/addon-links": "6.5.13",
+    "@storybook/addon-viewport": "6.5.13",
+    "@storybook/builder-webpack4": "6.5.13",
+    "@storybook/manager-webpack4": "6.5.13",
+    "@storybook/react": "6.5.13",
+    "@storybook/testing-library": "0.0.13",
+    "@types/react": "17.0.52",
+    "babel-loader": "8.3.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "storybook-addon-themes": "6.1.0",
+    "styled-components": "5.3.6",
+    "typescript": "4.9.3"
+  },
+  "peerDependencies": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  },
+  "dependencies": {
+    "color-blend": "4.0.0"
+  }
+}

@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import LegacyIconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {IconButton} from '@mattermost/compass-ui';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -14,6 +15,7 @@ import Menu from 'components/widgets/menu/menu';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import {HelpCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import type {PropsFromRedux} from './index';
 
@@ -129,17 +131,29 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                     placement='bottom'
                     overlay={this.state.buttonActive ? <></> : tooltip}
                 >
-                    <IconButton
-                        size={'sm'}
-                        icon={'help-circle-outline'}
-                        onClick={() => {}} // icon button currently requires onclick ... needs to revisit
-                        active={this.state.buttonActive}
-                        inverted={true}
-                        compact={true}
-                        aria-controls='AddChannelDropdown'
-                        aria-expanded={this.state.buttonActive}
-                        aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
-                    />
+                    {this.props.isNewUI ? (
+                        <IconButton
+                            size={'small'}
+                            IconComponent={HelpCircleOutlineIcon}
+                            toggled={this.state.buttonActive}
+                            compact={true}
+                            aria-controls='AddChannelDropdown'
+                            aria-expanded={this.state.buttonActive}
+                            aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                        />) :
+                        (
+                            <LegacyIconButton
+                                size={'sm'}
+                                icon={'help-circle-outline'}
+                                onClick={() => {}} // icon button currently requires onclick ... needs to revisit
+                                active={this.state.buttonActive}
+                                inverted={true}
+                                compact={true}
+                                aria-controls='AddChannelDropdown'
+                                aria-expanded={this.state.buttonActive}
+                                aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                            />
+                        )}
                 </OverlayTrigger>
                 <Menu
                     openLeft={true}

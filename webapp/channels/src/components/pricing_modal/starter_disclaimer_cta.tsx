@@ -82,7 +82,6 @@ function StarterDisclaimerCTA() {
                         total_storage: fallbackStarterLimits.files.totalStorage,
                     },
                 },
-                needsTheme: true,
             },
         }));
     };

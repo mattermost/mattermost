@@ -9,7 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassThemeProvider from 'components/compass_theme_provider';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import {trackEvent} from 'actions/telemetry_actions';

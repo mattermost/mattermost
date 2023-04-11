@@ -24,6 +24,7 @@ import TeamPermissionGate from 'components/permissions_gates/team_permission_gat
 import {getAnalyticsCategory} from 'components/onboarding_tasks';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {PlusBoxIcon} from '@mattermost/compass-icons/components';
 
 type Props = {
     touchedInviteMembersButton: boolean;
@@ -43,7 +44,7 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
         if (!totalUserCount) {
             dispatch(getTotalUsersStats());
         }
-    }, []);
+    }, [totalUserCount]);
 
     const handleButtonClick = () => {
         trackEvent(getAnalyticsCategory(props.isAdmin), 'click_sidebar_invite_members_button');
@@ -72,17 +73,12 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
                 modalId={ModalIdentifiers.INVITATION}
                 dialogType={InvitationModal}
                 onClick={handleButtonClick}
+                startIcon={<PlusBoxIcon/>}
             >
-                <li
-                    className={buttonClass}
-                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}
-                >
-                    <i className='icon-plus-box'/>
-                    <FormattedMessage
-                        id={'sidebar_left.inviteMembers'}
-                        defaultMessage='Invite Members'
-                    />
-                </li>
+                <FormattedMessage
+                    id={'sidebar_left.inviteMembers'}
+                    defaultMessage='Invite Members'
+                />
             </ToggleModalButton>
         </TeamPermissionGate>
     );

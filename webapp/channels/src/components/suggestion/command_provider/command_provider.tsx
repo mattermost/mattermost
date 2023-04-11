@@ -5,11 +5,10 @@ import React from 'react';
 
 import {Store} from 'redux';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
+import {DockWindowIcon} from '@mattermost/compass-icons/components';
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import globalStore from 'stores/redux_store';
 
@@ -17,10 +16,12 @@ import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import {Constants} from 'utils/constants';
 
+import {GlobalState} from 'types/store';
+
 import Suggestion from '../suggestion';
 import Provider from '../provider';
 
-import {GlobalState} from 'types/store';
+import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import {AppCommandParser} from './app_command_parser/app_command_parser';
 import {intlShim} from './app_command_parser/app_command_parser_dependencies';
@@ -46,10 +47,7 @@ export class CommandSuggestion extends Suggestion {
         case OPEN_COMMAND_IN_MODAL_ITEM_ID:
             symbolSpan = (
                 <span className='block mt-1'>
-                    <Icon
-                        size={28}
-                        glyph={'dock-window'}
-                    />
+                    <DockWindowIcon size={28}/>
                 </span>
             );
             break;

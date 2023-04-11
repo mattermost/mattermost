@@ -1,17 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import React, {memo, useCallback} from 'react';
-
 import ReactSelect, {ValueType} from 'react-select';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
-
 import {trackEvent} from 'actions/telemetry_actions';
+import {localizeMessage} from 'utils/utils';
 
 import {TimeFrames} from '@mattermost/types/insights';
-
-import {localizeMessage} from 'utils/utils';
 
 import './time_frame_dropdown.scss';
 
@@ -57,10 +54,7 @@ const TimeFrameDropdown = (props: Props) => {
     const CustomDropwdown = () => {
         return (
             <span className='icon'>
-                <Icon
-                    size={12}
-                    glyph={'chevron-down'}
-                />
+                <ChevronDownIcon size={12}/>
             </span>
         );
     };

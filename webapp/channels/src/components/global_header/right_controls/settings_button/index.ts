@@ -8,7 +8,14 @@ import {GenericAction} from 'mattermost-redux/types/actions';
 import {openModal} from 'actions/views/modals';
 
 import SettingsButton from './settings_button';
+import {GlobalState} from 'types/store';
+import {getNewUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+function mapStateToProps(state: GlobalState) {
+    return {
+        isNewUI: getNewUIEnabled(state),
+    };
+}
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
@@ -17,4 +24,4 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     };
 }
 
-export default connect(null, mapDispatchToProps)(SettingsButton);
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsButton);

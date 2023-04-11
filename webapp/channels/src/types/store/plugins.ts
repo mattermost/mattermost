@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {TIconGlyph} from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {ProductScope} from '@mattermost/types/products';
 
@@ -165,7 +165,7 @@ export type ProductComponent = {
     /**
      * A compass-icon glyph to display as the icon in the product switcher
      */
-    switcherIcon: TIconGlyph;
+    switcherIcon: IconGlyphTypes;
 
     /**
      * A string or React element to display in the product switcher

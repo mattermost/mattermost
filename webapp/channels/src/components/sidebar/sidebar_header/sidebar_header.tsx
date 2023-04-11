@@ -5,9 +5,6 @@ import React, {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
-import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
-
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
@@ -24,17 +21,20 @@ import {OnboardingTourSteps} from 'components/tours';
 
 import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
 
+import {Grid, Typography} from '@mattermost/compass-ui';
+
 type SidebarHeaderContainerProps = {
     id?: string;
 }
 
 type SidebarHeaderProps = Record<string, unknown>;
 
-const SidebarHeaderContainer = styled(Flex).attrs(() => ({
+const SidebarHeaderContainer = styled(Grid).attrs(() => ({
     element: 'header',
-    row: true,
-    justify: 'space-between',
-    alignment: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    container: true,
 }))<SidebarHeaderContainerProps>`
     height: 52px;
     padding: 0 16px;
@@ -57,10 +57,9 @@ const CHEVRON_WIDTH = 26;
 const ADD_CHANNEL_DROPDOWN_WIDTH = 28;
 const TITLE_WIDTH = (HEADING_WIDTH - CHEVRON_WIDTH - ADD_CHANNEL_DROPDOWN_WIDTH).toString();
 
-const SidebarHeading = styled(Heading).attrs(() => ({
-    element: 'h1',
-    margin: 'none',
-    size: 200,
+const SidebarHeading = styled(Typography).attrs(() => ({
+    variant: 'h200',
+    margin: 0,
 }))<SidebarHeaderProps>`
     color: var(--sidebar-header-text-color);
     cursor: pointer;

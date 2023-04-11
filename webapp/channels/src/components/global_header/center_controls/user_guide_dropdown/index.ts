@@ -8,7 +8,7 @@ import {withRouter} from 'react-router-dom';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
+import {getNewUIEnabled, getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {getUserGuideDropdownPluginMenuItems} from 'selectors/plugins';
@@ -25,6 +25,7 @@ function mapStateToProps(state: GlobalState) {
     const {HelpLink, ReportAProblemLink, EnableAskCommunityLink} = getConfig(state);
 
     return {
+        isNewUI: getNewUIEnabled(state),
         helpLink: HelpLink || '',
         isMobileView: getIsMobileView(state),
         reportAProblemLink: ReportAProblemLink || '',

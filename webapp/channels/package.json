@@ -17,6 +17,8 @@
     "@mattermost/compass-components": "^0.2.12",
     "@mattermost/compass-icons": "0.1.34",
     "@mattermost/types": "*",
+    "@mattermost/compass-ui": "*",
+    "@mattermost/components": "*",
     "@mui/base": "5.0.0-alpha.116",
     "@mui/material": "5.11.7",
     "@mui/styled-engine-sc": "5.11.0",

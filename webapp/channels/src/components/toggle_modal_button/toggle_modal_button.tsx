@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 
 import {ModalData} from 'types/actions';
 
+import {Button, ButtonProps} from '@mattermost/compass-ui';
+
 type Props = {
     ariaLabel?: string;
     children: ReactNode;
@@ -21,15 +23,27 @@ type Props = {
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-};
+} & ButtonProps;
 
-const ToggleModalButton = ({ariaLabel, children, modalId, dialogType, dialogProps = {}, onClick, className = '', showUnread, disabled, id, actions, role}: Props) => {
+const ToggleModalButton = ({
+    id,
+    role,
+    ariaLabel,
+    children,
+    modalId,
+    dialogType,
+    onClick,
+    showUnread,
+    disabled,
+    actions,
+    dialogProps = {},
+    className = '',
+    ...rest
+}: Props) => {
     const intl = useIntl();
 
     const show = (e: MouseEvent<HTMLButtonElement>) => {
-        if (e) {
-            e.preventDefault();
-        }
+        e?.preventDefault();
 
         const modalData = {
             modalId,
@@ -56,17 +70,18 @@ const ToggleModalButton = ({ariaLabel, children, modalId, dialogType, dialogProp
     };
 
     return (
-        <button
-            className={'style--none ' + className}
-            aria-label={ariaLabelElement}
-            onClick={clickHandler}
+        <Button
             id={id}
-            disabled={disabled}
             role={role}
+            className={className}
+            onClick={clickHandler}
+            disabled={disabled}
+            aria-label={ariaLabelElement}
+            {...rest}
         >
             {children}
             {badge}
-        </button>
+        </Button>
     );
 };
 

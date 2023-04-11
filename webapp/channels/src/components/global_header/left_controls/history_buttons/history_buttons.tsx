@@ -5,7 +5,8 @@ import React, {useEffect, useState, useCallback} from 'react';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import LegacyIconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import * as Utils from 'utils/utils';
@@ -16,6 +17,10 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
+import {IconButton} from '@mattermost/compass-ui';
+import {getNewUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {useSelector} from 'react-redux';
 
 const HistoryButtonsContainer = styled.nav`
     display: flex;
@@ -28,6 +33,7 @@ const HistoryButtonsContainer = styled.nav`
 
 const HistoryButtons = (): JSX.Element => {
     const history = useHistory();
+    const isNewUI = useSelector(getNewUIEnabled);
 
     const [canGoBack, setCanGoBack] = useState(true);
     const [canGoForward, setCanGoForward] = useState(true);
@@ -94,15 +100,27 @@ const HistoryButtons = (): JSX.Element => {
                 placement='bottom'
                 overlay={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
             >
-                <IconButton
-                    icon={'arrow-left'}
-                    onClick={goBack}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
-                    disabled={!canGoBack}
-                    aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goBackLabel', 'Back')}
-                />
+                {isNewUI ? (
+                    <IconButton
+                        IconComponent={ArrowLeftIcon}
+                        onClick={goBack}
+                        size={'small'}
+                        compact={true}
+                        inverted={true}
+                        disabled={!canGoBack}
+                        aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goBackLabel', 'Back')}
+                    />
+                ) : (
+                    <LegacyIconButton
+                        icon={'arrow-left'}
+                        onClick={goBack}
+                        size={'sm'}
+                        compact={true}
+                        inverted={true}
+                        disabled={!canGoBack}
+                        aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goBackLabel', 'Back')}
+                    />
+                )}
             </OverlayTrigger>
             <OverlayTrigger
                 trigger={['hover', 'focus']}
@@ -110,15 +128,27 @@ const HistoryButtons = (): JSX.Element => {
                 placement='bottom'
                 overlay={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
             >
-                <IconButton
-                    icon={'arrow-right'}
-                    onClick={goForward}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
-                    disabled={!canGoForward}
-                    aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goForwardLabel', 'Forward')}
-                />
+                {isNewUI ? (
+                    <IconButton
+                        IconComponent={ArrowRightIcon}
+                        onClick={goForward}
+                        size={'small'}
+                        compact={true}
+                        inverted={true}
+                        disabled={!canGoForward}
+                        aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goForwardLabel', 'Forward')}
+                    />
+                ) : (
+                    <LegacyIconButton
+                        icon={'arrow-right'}
+                        onClick={goForward}
+                        size={'sm'}
+                        compact={true}
+                        inverted={true}
+                        disabled={!canGoForward}
+                        aria-label={Utils.localizeMessage('sidebar_left.channel_navigator.goForwardLabel', 'Forward')}
+                    />
+                )}
             </OverlayTrigger>
         </HistoryButtonsContainer>
     );

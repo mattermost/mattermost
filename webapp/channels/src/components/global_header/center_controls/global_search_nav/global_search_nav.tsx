@@ -19,9 +19,13 @@ import {
 } from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import {Grid} from '@mattermost/compass-ui';
+import {getNewUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
+
 const GlobalSearchNav = (): JSX.Element => {
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
+    const isNewUI = useSelector(getNewUIEnabled);
 
     useEffect(() => {
         const handleShortcut = (e: KeyboardEvent) => {
@@ -42,6 +46,18 @@ const GlobalSearchNav = (): JSX.Element => {
             document.removeEventListener('keydown', handleShortcut);
         };
     }, [rhsState, dispatch]);
+
+    if (isNewUI) {
+        return (
+            <Grid
+                width={432}
+                alignItems={'center'}
+                flexDirection={'row'}
+            >
+                <Search enableFindShortcut={true}/>
+            </Grid>
+        );
+    }
 
     return (
         <Flex

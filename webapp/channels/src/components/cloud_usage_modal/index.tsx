@@ -9,7 +9,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Message} from 'utils/i18n';
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassThemeProvider from 'components/compass_theme_provider';
 import GenericModal from 'components/generic_modal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
@@ -33,7 +33,6 @@ export interface Props {
     ownLimits?: Limits;
     backdrop?: boolean;
     backdropClassName?: string;
-    className?: string;
 
     // e.g. in contexts where the CompassThemeProvider isn't already applied, like the system console
     needsTheme?: boolean;

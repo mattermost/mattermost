@@ -3,8 +3,8 @@
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {SettingsOutlineIcon} from '@mattermost/compass-icons/components';
+import LegacyIconButton from '@mattermost/compass-components/components/icon-button';  // eslint-disable-line no-restricted-imports
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -14,7 +14,10 @@ import {ModalData} from 'types/actions';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
+import {IconButton} from '@mattermost/compass-ui';
+
 type Props = {
+    isNewUI: boolean;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -39,17 +42,30 @@ const SettingsButton = (props: Props): JSX.Element | null => {
             placement='bottom'
             overlay={tooltip}
         >
-            <IconButton
-                size={'sm'}
-                icon={'settings-outline'}
-                onClick={(): void => {
-                    props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
-                }}
-                inverted={true}
-                compact={true}
-                aria-haspopup='dialog'
-                aria-label={formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'})}
-            />
+            {props.isNewUI ? (
+                <IconButton
+                    size={'small'}
+                    IconComponent={SettingsOutlineIcon}
+                    onClick={(): void => {
+                        props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
+                    }}
+                    compact={true}
+                    aria-haspopup='dialog'
+                    aria-label={formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'})}
+                />
+            ) : (
+                <LegacyIconButton
+                    size={'sm'}
+                    icon={'settings-outline'}
+                    onClick={(): void => {
+                        props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
+                    }}
+                    inverted={true}
+                    compact={true}
+                    aria-haspopup='dialog'
+                    aria-label={formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'})}
+                />
+            )}
         </OverlayTrigger>
     );
 };

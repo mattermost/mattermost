@@ -3,60 +3,75 @@
 
 import React, {useState, useEffect} from 'react';
 
-import ThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
+import LegacyThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
+import {createPaletteFromLegacyTheme, ThemeProvider} from '@mattermost/compass-ui';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 type Props = {
+    isNewUI: boolean;
     theme: Theme;
     children?: React.ReactNode;
 }
 
-const CompassThemeProvider = ({theme, children}: Props): JSX.Element | null => {
-    const [compassTheme, setCompassTheme] = useState({
+const CompassThemeProvider = ({theme, isNewUI, children}: Props): JSX.Element | null => {
+    const [LegacyCompassTheme, setLegacyCompassTheme] = useState({
         ...lightTheme,
         noStyleReset: true,
         noDefaultStyle: true,
         noFontFaces: true,
     });
+    const [compassTheme, setCompassTheme] = useState(createPaletteFromLegacyTheme(theme));
 
     useEffect(() => {
-        setCompassTheme({
-            ...compassTheme,
-            palette: {
-                ...compassTheme.palette,
-                primary: {
-                    ...compassTheme.palette.primary,
-                    main: theme.sidebarHeaderBg,
-                    contrast: theme.sidebarHeaderTextColor,
+        if (isNewUI) {
+            setCompassTheme(createPaletteFromLegacyTheme(theme));
+        } else {
+            setLegacyCompassTheme({
+                ...LegacyCompassTheme,
+                palette: {
+                    ...LegacyCompassTheme.palette,
+                    primary: {
+                        ...LegacyCompassTheme.palette.primary,
+                        main: theme.sidebarHeaderBg,
+                        contrast: theme.sidebarHeaderTextColor,
+                    },
+                    alert: {
+                        ...LegacyCompassTheme.palette.alert,
+                        main: theme.dndIndicator,
+                    },
                 },
-                alert: {
-                    ...compassTheme.palette.alert,
-                    main: theme.dndIndicator,
+                action: {
+                    ...LegacyCompassTheme.action,
+                    hover: theme.sidebarHeaderTextColor,
+                    disabled: theme.sidebarHeaderTextColor,
                 },
-            },
-            action: {
-                ...compassTheme.action,
-                hover: theme.sidebarHeaderTextColor,
-                disabled: theme.sidebarHeaderTextColor,
-            },
-            badges: {
-                ...compassTheme.badges,
-                online: theme.onlineIndicator,
-                away: theme.awayIndicator,
-                dnd: theme.dndIndicator,
-            },
-            text: {
-                ...compassTheme.text,
-                primary: theme.sidebarHeaderTextColor,
-            },
-        });
+                badges: {
+                    ...LegacyCompassTheme.badges,
+                    online: theme.onlineIndicator,
+                    away: theme.awayIndicator,
+                    dnd: theme.dndIndicator,
+                },
+                text: {
+                    ...LegacyCompassTheme.text,
+                    primary: theme.sidebarHeaderTextColor,
+                },
+            });
+        }
     }, [theme]);
 
+    if (isNewUI) {
+        return (
+            <ThemeProvider theme={compassTheme}>
+                {children}
+            </ThemeProvider>
+        );
+    }
+
     return (
-        <ThemeProvider theme={compassTheme}>
+        <LegacyThemeProvider theme={LegacyCompassTheme}>
             {children}
-        </ThemeProvider>
+        </LegacyThemeProvider>
     );
 };
 

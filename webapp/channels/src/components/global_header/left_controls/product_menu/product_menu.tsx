@@ -6,16 +6,17 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import LegacyIconButton from '@mattermost/compass-components/components/icon-button'; //eslint-disable-line no-restricted-imports
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {getInt, getNewUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {BoardsTourTip, PlaybooksTourTip} from 'components/tours/onboarding_explore_tools_tour';
 import {FINISHED, TutorialTourName} from 'components/tours';
+import {ProductsIcon} from '@mattermost/compass-icons/components';
 
 import {isSwitcherOpen} from 'selectors/views/product_menu';
 
@@ -35,6 +36,8 @@ import {useGetPluginsActivationState} from 'plugins/useGetPluginsActivationState
 
 import {useClickOutsideRef} from '../../hooks';
 
+import {IconButton} from '@mattermost/compass-ui';
+
 import ProductBranding from './product_branding';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
@@ -49,7 +52,7 @@ export const ProductMenuContainer = styled.nav`
     }
 `;
 
-export const ProductMenuButton = styled(IconButton).attrs(() => ({
+export const ProductMenuButton = styled(LegacyIconButton).attrs(() => ({
     id: 'product_switch_menu',
     icon: 'products',
     size: 'sm',
@@ -77,6 +80,7 @@ const ProductMenu = (): JSX.Element => {
 
     const enableTutorial = useSelector(getConfig).EnableTutorial === 'true';
     const currentUserId = useSelector(getCurrentUserId);
+    const isNewUI = useSelector(getNewUIEnabled);
     const tutorialStep = useSelector((state: GlobalState) => getInt(state, TutorialTourName.EXPLORE_OTHER_TOOLS, currentUserId, 0));
     const triggerStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.EXPLORE_OTHER_TOOLS, FINISHED));
     const exploreToolsTourTriggered = triggerStep === GenericTaskSteps.STARTED;
@@ -140,12 +144,25 @@ const ProductMenu = (): JSX.Element => {
                 open={switcherOpen}
             >
                 <ProductMenuContainer onClick={handleClick}>
-                    <ProductMenuButton
-                        active={switcherOpen}
-                        aria-expanded={switcherOpen}
-                        aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
-                        aria-controls='product-switcher-menu'
-                    />
+                    {isNewUI ? (
+                        <IconButton
+                            id={'product_switch_menu'}
+                            IconComponent={ProductsIcon}
+                            size={'small'}
+                            compact={true}
+                            toggled={switcherOpen}
+                            aria-expanded={switcherOpen}
+                            aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
+                            aria-controls='product-switcher-menu'
+                        />
+                    ) : (
+                        <ProductMenuButton
+                            active={switcherOpen}
+                            aria-expanded={switcherOpen}
+                            aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
+                            aria-controls='product-switcher-menu'
+                        />
+                    )}
                     <ProductBranding/>
                 </ProductMenuContainer>
                 <Menu

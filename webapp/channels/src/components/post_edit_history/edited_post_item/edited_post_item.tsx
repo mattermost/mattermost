@@ -9,8 +9,6 @@ import classNames from 'classnames';
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
-import {Post} from '@mattermost/types/posts';
-
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 import {t} from 'utils/i18n';
@@ -23,6 +21,8 @@ import Avatar from 'components/widgets/users/avatar';
 import UserProfileComponent from 'components/user_profile';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import InfoToast from 'components/info_toast/info_toast';
+
+import {Post} from '@mattermost/types/posts';
 
 import RestorePostModal from '../restore_post_modal';
 

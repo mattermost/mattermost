@@ -29,7 +29,7 @@ import AnnouncementBarController from 'components/announcement_bar';
 import SystemNotice from 'components/system_notice';
 
 import {makeAsyncComponent} from 'components/async_load';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassThemeProvider from 'components/compass_theme_provider';
 import GlobalHeader from 'components/global_header/global_header';
 import CloudEffects from 'components/cloud_effects';
 import ModalController from 'components/modal_controller';

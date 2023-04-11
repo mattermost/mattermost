@@ -5,10 +5,7 @@ import React, {ReactNode} from 'react';
 import {IntlShape, injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import classNames from 'classnames';
 
-import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
-import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
-import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
-import {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
+import {CheckIcon, AccountOutlineIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
 
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
@@ -35,6 +32,7 @@ import {t} from 'utils/i18n';
 import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
 
+import {StatusIcon, UserStatus as UserStatusType, Typography} from '@mattermost/compass-ui';
 import {CustomStatusDuration, UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
 import {PulsatingDot} from '@mattermost/components';
 import {PreferenceType} from '@mattermost/types/preferences';
@@ -325,12 +323,12 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             text={customStatusText}
                             className='custom_status__text'
                         />
-                        <Text
+                        <Typography
                             margin='none'
                             color='disabled'
                         >
                             {customStatusHelpText}
-                        </Text>
+                        </Typography>
                         {clearButton}
                         {pulsatingDot}
                     </span>
@@ -353,8 +351,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const setCustomTimedDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setCustomTimedDnd;
 
         const selectedIndicator = (
-            <Icon
-                glyph={'check'}
+            <CheckIcon
                 size={16}
                 color={'success'}
             />
@@ -468,8 +465,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         className='status'
                     >
                         <StatusIcon
-                            size={'sm'}
-                            status={(this.props.status || 'offline') as TUserStatus}
+                            size={'small'}
+                            status={(this.props.status || 'offline') as UserStatusType}
                         />
                     </div>
                 </button>
@@ -482,17 +479,15 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         <Menu.Header onClick={this.openProfileModal}>
                             {this.renderProfilePicture('lg')}
                             <div className={'username-wrapper'}>
-                                <Text
-                                    className={'bold'}
-                                    margin={'none'}
-                                >{`${currentUser.first_name} ${currentUser.last_name}`}</Text>
-                                <Text
-                                    margin={'none'}
+                                <Typography className={'bold'}>
+                                    {`${currentUser.first_name} ${currentUser.last_name}`}
+                                </Typography>
+                                <Typography
                                     className={!currentUser.first_name && !currentUser.last_name ? 'bold' : ''}
                                     color={!currentUser.first_name && !currentUser.last_name ? undefined : 'disabled'}
                                 >
                                     {'@' + currentUser.username}
-                                </Text>
+                                </Typography>
                             </div>
                         </Menu.Header>
                     )}
@@ -571,12 +566,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             dialogType={UserSettingsModal}
                             dialogProps={{isContentProductSettings: false}}
                             text={localizeMessage('navbar_dropdown.profileSettings', 'Profile')}
-                            icon={(
-                                <Icon
-                                    size={16}
-                                    glyph={'account-outline'}
-                                />
-                            )}
+                            icon={<AccountOutlineIcon size={16}/>}
                         >
                             {this.props.showCompleteYourProfileTour && (
                                 <div
@@ -593,12 +583,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             id='logout'
                             onClick={this.handleEmitUserLoggedOutEvent}
                             text={localizeMessage('navbar_dropdown.logout', 'Log Out')}
-                            icon={(
-                                <Icon
-                                    size={16}
-                                    glyph={'exit-to-app'}
-                                />
-                            )}
+                            icon={<ExitToAppIcon size={16}/>}
                         />
                     </Menu.Group>
                 </Menu>
