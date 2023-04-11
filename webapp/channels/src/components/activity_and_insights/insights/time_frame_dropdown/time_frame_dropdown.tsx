@@ -5,7 +5,7 @@ import React, {memo, useCallback} from 'react';
 
 import ReactSelect, {ValueType} from 'react-select';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon';
+import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
 
 import {trackEvent} from 'actions/telemetry_actions';
 

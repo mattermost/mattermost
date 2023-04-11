@@ -56,7 +56,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
         } else {
             onChange(name, option);
         }
-    }
+    };
 
     render() {
         const {

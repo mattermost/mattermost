@@ -132,7 +132,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return hasErrors;
-    }
+    };
 
     handleSubmit = async (e: React.FormEvent, submitName?: string, value?: string) => {
         e.preventDefault();
@@ -286,7 +286,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             return [];
         }
         }
-    }
+    };
 
     onHide = () => {
         this.handleHide(false);

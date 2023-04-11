@@ -42,13 +42,13 @@ export default class Confirm extends React.PureComponent<Props> {
     submit = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
         redirectUserToDefaultTeam();
-    }
+    };
 
     onKeyPress = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
         if (isKeyPressed(e as KeyboardEvent, KeyCodes.ENTER)) {
             this.submit(e);
         }
-    }
+    };
 
     public render(): JSX.Element {
         return (

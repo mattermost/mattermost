@@ -10,7 +10,7 @@ const Number = (props: PropertyProps): JSX.Element => {
     return (
         <BaseTextEditor
             {...props}
-            validator={() => !isNaN(parseInt(props.propertyValue as string, 10))}
+            validator={() => props.propertyValue === '' || !isNaN(parseInt(props.propertyValue as string, 10))}
         />
     )
 }
