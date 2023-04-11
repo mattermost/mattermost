@@ -6,7 +6,7 @@ import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import classNames from 'classnames';
-import Icon from '@mattermost/compass-components/foundations/icon';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';

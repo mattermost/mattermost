@@ -26,7 +26,7 @@ export default class BoolSetting extends React.PureComponent<Props> {
 
     private handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         this.props.onChange(this.props.id, e.target.checked);
-    }
+    };
 
     public render(): JSX.Element {
         return (

@@ -143,7 +143,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         isFlagged: false,
         isReadOnly: false,
         location: Locations.CENTER,
-    }
+    };
     private editDisableAction: DelayedAction;
     private buttonRef: React.RefObject<HTMLButtonElement>;
     private canPostBeForwarded: boolean;
@@ -199,7 +199,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
     handleEditDisable = (): void => {
         this.setState({canEdit: false});
-    }
+    };
 
     handleFlagMenuItemActivated = (e: ChangeEvent): void => {
         if (this.props.isFlagged) {
@@ -209,7 +209,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
             this.props.actions.flagPost(this.props.post.id);
         }
-    }
+    };
 
     // listen to clicks/taps on add reaction menu item and pass to parent handler
     handleAddReactionMenuItemActivated = (e: ChangeEvent): void => {
@@ -219,17 +219,17 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         if (this.props.handleAddReactionClick) {
             this.props.handleAddReactionClick();
         }
-    }
+    };
 
     copyLink = (e: ChangeEvent) => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
         Utils.copyToClipboard(`${this.props.teamUrl}/pl/${this.props.post.id}`);
-    }
+    };
 
     copyText = (e: ChangeEvent) => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
         Utils.copyToClipboard(this.props.post.message);
-    }
+    };
 
     handlePinMenuItemActivated = (e: ChangeEvent): void => {
         if (this.props.post.is_pinned) {
@@ -239,13 +239,13 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
             this.props.actions.pinPost(this.props.post.id);
         }
-    }
+    };
 
     handleMarkPostAsUnread = (e: ChangeEvent): void => {
         e.preventDefault();
         trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
         this.props.actions.markPostAsUnread(this.props.post, this.props.location);
-    }
+    };
 
     handleDeleteMenuItemActivated = (e: ChangeEvent): void => {
         e.preventDefault();
@@ -261,7 +261,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(deletePostModalData);
-    }
+    };
 
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
         if (!this.canPostBeForwarded) {
@@ -282,7 +282,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(forwardPostModalData);
-    }
+    };
 
     handleEditMenuItemActivated = (e: ChangeEvent): void => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
@@ -293,7 +293,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.post.root_id ? Utils.localizeMessage('rhs_comment.comment', 'Comment') : Utils.localizeMessage('create_post.post', 'Post'),
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
-    }
+    };
 
     handleSetThreadFollow = (e: ChangeEvent) => {
         const {actions, teamId, threadId, userId, isFollowingThread, isMentionedInRootPost} = this.props;
@@ -317,16 +317,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             threadId,
             followingThread,
         );
-    }
+    };
 
     handleCommentClick = (e: ChangeEvent) => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.REPLY);
         this.props.handleCommentClick?.(e);
-    }
+    };
 
     isKeyboardEvent = (e: React.KeyboardEvent): any => {
         return (e).getModifierState !== undefined;
-    }
+    };
 
     onShortcutKeyDown = (e: React.KeyboardEvent): void => {
         e.preventDefault();
@@ -396,17 +396,17 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleDropdownOpened(false);
             break;
         }
-    }
+    };
 
     handleDropdownOpened = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
         this.setState({closeMenuManually: true});
-    }
+    };
 
     handleMenuToggle = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
         this.setState({closeMenuManually: false});
-    }
+    };
 
     render(): JSX.Element {
         const {formatMessage} = this.props.intl;

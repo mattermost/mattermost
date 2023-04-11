@@ -211,7 +211,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         if (allUsernames.length > 0) {
             this.props.actions.getMissingProfilesByUsernames(allUsernames);
         }
-    }
+    };
 
     getAllUsernames = (): {[p: string]: string} => {
         const {
@@ -236,7 +236,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         }
 
         return usernames;
-    }
+    };
 
     getUsernamesByIds = (userIds: string | string[] = []): string[] => {
         const userIdsArray = Array.isArray(userIds) ? userIds : [userIds];
@@ -247,15 +247,15 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         const someone = formatMessage({id: t('channel_loader.someone'), defaultMessage: 'Someone'});
 
         const usernames = userIdsArray.
-        filter((userId) => {
-            return userId !== currentUserId && userId !== currentUsername;
-        }).
-        map((userId) => {
-            return allUsernames[userId] ? `@${allUsernames[userId]}` : someone;
-        }).
-        filter((username) => {
-            return username && username !== '';
-        });
+            filter((userId) => {
+                return userId !== currentUserId && userId !== currentUsername;
+            }).
+            map((userId) => {
+                return allUsernames[userId] ? `@${allUsernames[userId]}` : someone;
+            }).
+            filter((username) => {
+                return username && username !== '';
+            });
 
         if (userIdsArray.includes(currentUserId)) {
             usernames.unshift(allUsernames[currentUserId]);
@@ -264,7 +264,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         }
 
         return Array.from(new Set(usernames));
-    }
+    };
 
     renderFormattedMessage(postType: string, userIds: string[], actorId?: string): JSX.Element {
         const {formatMessage} = this.props.intl;

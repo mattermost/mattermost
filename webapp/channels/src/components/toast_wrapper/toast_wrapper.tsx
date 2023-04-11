@@ -91,7 +91,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             newMessages = newMessages.filter((id) => rootPosts[id]);
         }
         return newMessages.length;
-    }
+    };
 
     static getDerivedStateFromProps(props: Props, prevState: State) {
         let {showUnreadToast, showNewMessagesToast, showMessageHistoryToast, showUnreadWithBottomStartToast} = prevState;
@@ -244,7 +244,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 showUnreadToast: false,
             });
         }
-    }
+    };
 
     hideArchiveToast = () => {
         if (this.state.showMessageHistoryToast) {
@@ -252,7 +252,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 showMessageHistoryToast: false,
             });
         }
-    }
+    };
 
     hideNewMessagesToast = (updateLastViewedBottomAt = true) => {
         if (this.state.showNewMessagesToast) {
@@ -263,13 +263,13 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 this.props.updateLastViewedBottomAt();
             }
         }
-    }
+    };
 
     hideSearchHintToast = () => {
         if (this.props.onSearchHintDismiss) {
             this.props.onSearchHintDismiss();
         }
-    }
+    };
 
     hideUnreadWithBottomStartToast = () => {
         if (this.state.showUnreadWithBottomStartToast) {
@@ -277,7 +277,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 showUnreadWithBottomStartToast: false,
             });
         }
-    }
+    };
 
     newMessagesToastText = (count: number | undefined, since: number) => {
         if (this.props.width > TOAST_TEXT_COLLAPSE_WIDTH && typeof since !== 'undefined') {
@@ -306,7 +306,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 values={{count}}
             />
         );
-    }
+    };
 
     archiveToastText = () => {
         return (
@@ -315,7 +315,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 defaultMessage='Viewing message history'
             />
         );
-    }
+    };
 
     getSearchHintToastText = () => {
         return (
@@ -327,7 +327,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 }}
             />
         );
-    }
+    };
 
     changeUrlToRemountChannelView = () => {
         const {match} = this.props;
@@ -335,7 +335,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         // Inorder of mount the channel view we are redirecting to /team url to load the channel again
         // Todo: Can be changed to dispatch if we put focussedPostId in redux state.
         getHistory().replace(`/${match.params.team}`);
-    }
+    };
 
     scrollToNewMessage = () => {
         const {focusedPostId, atLatestPost, scrollToNewMessage, updateLastViewedBottomAt} = this.props;
@@ -351,7 +351,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         scrollToNewMessage();
         updateLastViewedBottomAt();
         this.hideNewMessagesToast();
-    }
+    };
 
     scrollToLatestMessages = () => {
         const {focusedPostId, atLatestPost, scrollToLatestMessages} = this.props;
@@ -366,12 +366,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
 
         scrollToLatestMessages();
         this.hideUnreadToast();
-    }
+    };
 
     scrollToUnreadMessages = () => {
         this.props.scrollToUnreadMessages();
         this.hideUnreadWithBottomStartToast();
-    }
+    };
 
     getToastToRender() {
         const {atLatestPost, atBottom, width, lastViewedAt, showSearchHintToast} = this.props;

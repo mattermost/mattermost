@@ -57,7 +57,7 @@ export default class AbstractOAuthApp extends React.PureComponent {
         * The async function to run when the action button is pressed
         */
         action: PropTypes.func.isRequired,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -80,14 +80,14 @@ export default class AbstractOAuthApp extends React.PureComponent {
             saving: false,
             clientError: null,
         };
-    }
+    };
 
     imageLoaded = () => {
         this.setState({
             has_icon: true,
             icon_url: this.icon_url.current.value,
         });
-    }
+    };
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -176,31 +176,31 @@ export default class AbstractOAuthApp extends React.PureComponent {
         };
 
         this.props.action(app).then(() => this.setState({saving: false}));
-    }
+    };
 
     updateName = (e) => {
         this.setState({
             name: e.target.value,
         });
-    }
+    };
 
     updateTrusted = (e) => {
         this.setState({
             is_trusted: e.target.value === 'true',
         });
-    }
+    };
 
     updateDescription = (e) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateHomepage = (e) => {
         this.setState({
             homepage: e.target.value,
         });
-    }
+    };
 
     updateIconUrl = (e) => {
         this.setState({
@@ -208,13 +208,13 @@ export default class AbstractOAuthApp extends React.PureComponent {
             icon_url: e.target.value,
         });
         this.image.src = e.target.value;
-    }
+    };
 
     updateCallbackUrls = (e) => {
         this.setState({
             callbackUrls: e.target.value,
         });
-    }
+    };
 
     render() {
         const headerToRender = this.props.header;

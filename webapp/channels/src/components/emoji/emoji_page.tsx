@@ -30,7 +30,7 @@ export default class EmojiPage extends React.PureComponent<Props> {
         teamName: '',
         teamDisplayName: '',
         siteName: '',
-    }
+    };
 
     componentDidMount() {
         this.updateTitle();
@@ -44,7 +44,7 @@ export default class EmojiPage extends React.PureComponent<Props> {
 
     updateTitle = () => {
         document.title = Utils.localizeMessage('custom_emoji.header', 'Custom Emoji') + ' - ' + this.props.teamDisplayName + ' ' + this.props.siteName;
-    }
+    };
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.siteName !== prevProps.siteName) {
