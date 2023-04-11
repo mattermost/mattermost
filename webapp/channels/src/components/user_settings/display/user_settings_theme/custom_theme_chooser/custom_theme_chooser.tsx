@@ -182,7 +182,7 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                 copyTheme,
             });
         }
-    }
+    };
 
     setCopyTheme(theme: Theme) {
         const copyTheme = Object.assign({}, theme);
@@ -220,35 +220,35 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
 
         theme.type = 'custom';
         this.props.updateTheme(theme);
-    }
+    };
 
     onChangeHandle = (e: ChangeEvent<HTMLTextAreaElement>) => e.stopPropagation();
 
     selectTheme = () => {
         this.textareaRef.current?.focus();
         this.textareaRef.current?.setSelectionRange(0, this.state.copyTheme.length);
-    }
+    };
 
     toggleSidebarStyles = (e: MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
 
         this.sidebarStylesHeaderRef.current?.classList.toggle('open');
         this.toggleSection(this.sidebarStylesRef.current);
-    }
+    };
 
     toggleCenterChannelStyles = (e: MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
 
         this.centerChannelStylesHeaderRef.current?.classList.toggle('open');
         this.toggleSection(this.centerChannelStylesRef.current);
-    }
+    };
 
     toggleLinkAndButtonStyles = (e: MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
 
         this.linkAndButtonStylesHeaderRef.current?.classList.toggle('open');
         this.toggleSection(this.linkAndButtonStylesRef.current);
-    }
+    };
 
     toggleSection(node: HTMLElement | null) {
         if (!node) {
@@ -274,13 +274,13 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
         };
 
         this.props.updateTheme(theme);
-    }
+    };
 
     copyTheme = () => {
         this.selectTheme();
         document.execCommand('copy');
         this.showCopySuccess();
-    }
+    };
 
     showCopySuccess = () => {
         const copySuccess: HTMLElement | null = document.querySelector('.copy-theme-success');
@@ -290,7 +290,7 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
                 copySuccess.style.display = 'none';
             }, COPY_SUCCESS_INTERVAL);
         }
-    }
+    };
 
     render() {
         const theme = this.props.theme;

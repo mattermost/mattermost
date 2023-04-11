@@ -15,7 +15,7 @@ export default class ClusterTable extends React.PureComponent {
     static propTypes = {
         clusterInfos: PropTypes.array.isRequired,
         reload: PropTypes.func.isRequired,
-    }
+    };
 
     render() {
         var versionMismatch = (

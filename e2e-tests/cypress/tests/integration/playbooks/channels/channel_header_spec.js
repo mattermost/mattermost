@@ -11,7 +11,7 @@
 
 import {onlyOn} from '@cypress/skip-test';
 
-describe('channels > channel header', () => {
+describe('channels > channel header', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

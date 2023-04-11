@@ -1,14 +1,10 @@
 {
   "name": "playbooks",
   "private": true,
-  "engines": {
-    "npm": ">=7.0.0",
-    "node": ">=16.4.0"
-  },
   "dependencies": {
-    "@mattermost/client": "*",
     "@apollo/client": "3.7.3",
     "@floating-ui/react-dom-interactions": "0.6.3",
+    "@mattermost/client": "*",
     "@mattermost/compass-icons": "0.1.32",
     "@mattermost/types": "*",
     "@mdi/js": "^6.5.95",
@@ -55,7 +51,6 @@
     "@graphql-codegen/client-preset": "1.2.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@testing-library/react-hooks": "8.0.0",
-    "@types/classnames": "2.3.1",
     "@types/debounce": "1.2.1",
     "@types/history": "4.7.8",
     "@types/jest": "27.4.0",
@@ -76,8 +71,8 @@
     "@types/redux-mock-store": "1.0.3",
     "@types/shallow-equals": "1.0.0",
     "@types/styled-components": "5.1.19",
-    "@typescript-eslint/eslint-plugin": "5.41.0",
-    "@typescript-eslint/parser": "5.41.0",
+    "@typescript-eslint/eslint-plugin": "5.57.1",
+    "@typescript-eslint/parser": "5.57.1",
     "@webpack-cli/serve": "1.6.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "27.4.6",
@@ -88,7 +83,6 @@
     "babel-plugin-typescript-to-proptypes": "2.0.0",
     "classnames": "2.3.1",
     "css-loader": "6.5.1",
-    "eslint": "8.6.0",
     "eslint-import-resolver-webpack": "0.13.2",
     "eslint-plugin-formatjs": "4.0.2",
     "eslint-plugin-import": "2.25.4",
