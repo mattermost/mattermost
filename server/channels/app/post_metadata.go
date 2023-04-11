@@ -776,11 +776,11 @@ func peekContentType(p *bufio.Reader) string {
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
-	bufRd := bufio.NewReader(body)
-
 	if contentType == "" {
+		bufRd := bufio.NewReader(body)
 		// If the content-type is missing we try to detect it from the actual data.
 		contentType = peekContentType(bufRd)
+		body = bufRd
 	}
 
 	if contentType == "image/svg+xml" {
@@ -790,10 +790,10 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 
 		return nil, image, nil
 	} else if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(io.LimitReader(bufRd, MaxMetadataImageSize))
+		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
-		og := a.parseOpenGraphMetadata(requestURL, bufRd, contentType)
+		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
 
 		// The OpenGraph library and Go HTML library don't error for malformed input, so check that at least
 		// one of these required fields exists before returning the OpenGraph data
