@@ -11,7 +11,7 @@
 
 /* eslint-disable no-only-tests/no-only-tests */
 
-describe('playbooks > edit_metrics', () => {
+describe('playbooks > edit_metrics', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
 

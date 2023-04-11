@@ -18,7 +18,7 @@ export default class InfiniteScroll extends PureComponent {
         isReverse: PropTypes.bool,
         containerHeight: PropTypes.number,
         scrollPosition: PropTypes.number,
-    }
+    };
 
     static defaultProps = {
         element: 'div',
@@ -30,7 +30,7 @@ export default class InfiniteScroll extends PureComponent {
         isReverse: false,
         containerHeight: null,
         scrollPosition: null,
-    }
+    };
 
     componentDidMount() {
         this.pageLoaded = this.props.pageStart;
@@ -108,7 +108,7 @@ export default class InfiniteScroll extends PureComponent {
                 this.props.loadMore(this.pageLoaded += 1);
             }
         }
-    }
+    };
 
     attachScrollListener() {
         if (!this.props.hasMore) {

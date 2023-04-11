@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	unitTestListeningPort = ":0"
+	unitTestListeningPort = "localhost:0"
 )
 
 //nolint:golint,unused

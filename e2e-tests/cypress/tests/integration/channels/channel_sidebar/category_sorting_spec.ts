@@ -26,7 +26,7 @@ describe('Category sorting', () => {
         cy.uiGetLHSAddChannelButton().click();
 
         // # Click on create category link
-        cy.findByText('Create New Category').should('be.visible').click();
+        cy.findByText('Create new category').should('be.visible').click();
 
         // # Add a name 26 characters in length e.g `abcdefghijklmnopqrstuvwxyz`
         cy.get('#editCategoryModal').should('be.visible').wait(TIMEOUTS.HALF_SEC).within(() => {

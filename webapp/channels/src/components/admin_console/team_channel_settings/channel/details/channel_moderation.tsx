@@ -353,7 +353,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
             );
         }
         return errorMessages;
-    }
+    };
 
     render = (): JSX.Element => {
         const {channelPermissions, guestAccountsEnabled, onChannelPermissionsChanged, readOnly} = this.props;
@@ -421,5 +421,5 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 </div>
             </AdminPanel>
         );
-    }
+    };
 }

@@ -52,7 +52,7 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 
 func TestStartServerSuccess(t *testing.T) {
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
 	require.NoError(t, err)
 
@@ -67,7 +67,7 @@ func TestStartServerSuccess(t *testing.T) {
 
 func TestStartServerPortUnavailable(t *testing.T) {
 	// Listen on the next available port
-	listener, err := net.Listen("tcp", ":0")
+	listener, err := net.Listen("tcp", "localhost:0")
 	require.NoError(t, err)
 
 	s, err := newServer(t)
@@ -109,7 +109,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		AmazonS3PathPrefix:      model.NewString(""),
 		AmazonS3SSL:             model.NewBool(false),
 	}
-	*cfg.ServiceSettings.ListenAddress = ":0"
+	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
-		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
@@ -191,7 +191,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	cfg := store.Get()
 	testDir, _ := fileutils.FindDir("tests")
 
-	*cfg.ServiceSettings.ListenAddress = ":0"
+	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 	*cfg.ServiceSettings.TLSMinVer = "1.2"
 	*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
@@ -236,7 +236,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
-		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		cfg.ServiceSettings.TLSOverwriteCiphers = []string{
 			"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
@@ -335,7 +335,7 @@ func TestPanicLog(t *testing.T) {
 
 	testDir, _ := fileutils.FindDir("tests")
 	s.platform.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
@@ -411,7 +411,7 @@ func TestSentry(t *testing.T) {
 		SentryDSN = dsn.String()
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
-			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.ServiceSettings.ListenAddress = "localhost:0"
 			*cfg.LogSettings.EnableSentry = false
 			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
@@ -455,7 +455,7 @@ func TestSentry(t *testing.T) {
 		SentryDSN = dsn.String()
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
-			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.ServiceSettings.ListenAddress = "localhost:0"
 			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
