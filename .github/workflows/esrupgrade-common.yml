@@ -74,8 +74,6 @@ jobs:
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database
         run: |
-          # Ignore tables containing meta-information about the migrations (db_{lock,migrations}),
-          # since those will not be present in the upgrade from the script.
           # Use --skip-opt to have each INSERT into one line.
           # Use --set-gtid-purged=OFF to suppress GTID-related statements.
           docker exec -i ghactions_mysql_1 mysqldump \
