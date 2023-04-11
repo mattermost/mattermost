@@ -46,7 +46,7 @@ require (
 	github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
-	github.com/mgdelacroix/foundation v0.0.0-20220824201953-be3b5e25783c
+	github.com/mgdelacroix/foundation v0.0.0-20220812143423-0bfc18f73538
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/minio/minio-go/v7 v7.0.51

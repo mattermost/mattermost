@@ -1239,8 +1239,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.4 h1:mmDVorXM7PCGKw94cs5zk
 github.com/matttproud/golang_protobuf_extensions v1.0.4/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
 github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2/go.mod h1:eD9eIE7cdwcMi9rYluz88Jz2VyhSmden33/aXg4oVIY=
 github.com/mediocregopher/radix/v3 v3.4.2/go.mod h1:8FL3F6UQRXHXIBSPUs5h0RybMF8i4n7wVopoX3x7Bv8=
-github.com/mgdelacroix/foundation v0.0.0-20220824201953-be3b5e25783c h1:5njyEA0QgMlrgp3xfUNeDekrg6Ciyst/hk5YoFji42w=
-github.com/mgdelacroix/foundation v0.0.0-20220824201953-be3b5e25783c/go.mod h1:ZwobEfNHde7sU2pGybCWEnSlQ2r+MGrHGOKLphHZ42g=
+github.com/mgdelacroix/foundation v0.0.0-20220812143423-0bfc18f73538 h1:6mFhRD89wtsxh7g8V6og9DR4y/UGlzzehc1c3O9tbMQ=
+github.com/mgdelacroix/foundation v0.0.0-20220812143423-0bfc18f73538/go.mod h1:ZwobEfNHde7sU2pGybCWEnSlQ2r+MGrHGOKLphHZ42g=
 github.com/mholt/archiver/v3 v3.5.0/go.mod h1:qqTTPUK/HZPFgFQ/TJ3BzvTpF/dPtFVJXdQbCmeMxwc=
 github.com/mholt/archiver/v3 v3.5.1 h1:rDjOBX9JSF5BvoJGvjqK479aL70qh9DIpZCl+k7Clwo=
 github.com/mholt/archiver/v3 v3.5.1/go.mod h1:e3dqJ7H78uzsRSEACH1joayhuSyhnonssnDhppzS1L4=
