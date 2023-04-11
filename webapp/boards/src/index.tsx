@@ -388,7 +388,7 @@ export default class Plugin {
             }
 
             if (this.registry.registerAppBarComponent) {
-                this.registry.registerAppBarComponent(appBarIcon, () => mmStore.dispatch(toggleRHSPlugin), intl.formatMessage({id: 'AppBar.Tooltip', defaultMessage: 'Toggle Linked Boards'}))
+                this.registry.registerAppBarComponent(appBarIcon, () => mmStore.dispatch(toggleRHSPlugin), intl.formatMessage({id: 'AppBar.Tooltip', defaultMessage: 'Toggle linked boards'}))
             }
 
             if (this.registry.registerActionAfterChannelCreation) {
@@ -442,13 +442,13 @@ export default class Plugin {
                     if(siteStats){
                         return {
                             boards_count: {
-                                name: intl.formatMessage({id: 'SiteStats.total_boards', defaultMessage: 'Total Boards'}),
+                                name: intl.formatMessage({id: 'SiteStats.total_boards', defaultMessage: 'Total boards'}),
                                 id: 'total_boards',
                                 icon: 'icon-product-boards',
                                 value: siteStats.board_count,
                             },
                             cards_count: {
-                                name: intl.formatMessage({id: 'SiteStats.total_cards', defaultMessage: 'Total Cards'}),
+                                name: intl.formatMessage({id: 'SiteStats.total_cards', defaultMessage: 'Total cards'}),
                                 id: 'total_cards',
                                 icon: 'icon-products',
                                 value: siteStats.card_count,
