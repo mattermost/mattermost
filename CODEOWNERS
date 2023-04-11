@@ -1,4 +1,5 @@
 /.github/workflows/channels-ci.yml @mattermost/web-platform
+/plugin/ @mattermost/integrations
 /webapp/package.json @mattermost/web-platform
 /webapp/channels/package.json @mattermost/web-platform
 /webapp/Makefile @mattermost/web-platform
