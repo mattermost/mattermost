@@ -16,6 +16,9 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
+    strategy:
+      matrix:
+        pkg_group: [te, boards, playbooks]
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -53,4 +56,4 @@ jobs:
             -v ~/work/mattermost-server:/mattermost-server \
             -w /mattermost-server/mattermost-server/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
+            make test-server-${{ matrix.pkg_group }}$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
