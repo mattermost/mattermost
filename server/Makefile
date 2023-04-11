@@ -132,9 +132,7 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'v6/server/playbooks|v6/server/boards')
-BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/boards')
-PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/playbooks')
+SUITE_PACKAGES=$(shell $(GO) list ./...)
 
 TEMPLATES_DIR=templates
 
@@ -170,9 +168,9 @@ endif
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES)
+  ALL_PACKAGES=$(SUITE_PACKAGES) $(EE_PACKAGES)
 else
-  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES)
+  ALL_PACKAGES=$(SUITE_PACKAGES)
 endif
 
 all: run ## Alias for 'run'.
@@ -412,7 +410,7 @@ go-junit-report:
 test-compile: ## Compile tests.
 	@echo COMPILE TESTS
 
-	for package in $(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES); do \
+	for package in $(SUITE_PACKAGES) $(EE_PACKAGES); do \
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
@@ -450,9 +448,7 @@ else
 endif
 
 test-server-race: test-server-pre
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -463,9 +459,7 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "count"
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "count"
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "count"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -500,14 +494,10 @@ test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-f
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES) $(EE_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(SUITE_PACKAGES) $(EE_PACKAGES)
 else
 	@echo Running only TE tests
-	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	$(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(SUITE_PACKAGES)
 endif
 
 internal-test-web-client: ## Runs web client tests.
