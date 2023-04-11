@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 import {Constants} from 'utils/constants';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import ThreadsIcon from 'components/threading/global_threads_link/threads_icon';
 
 import {Channel, ChannelStats} from '@mattermost/types/channels';
 
@@ -15,10 +16,17 @@ const MenuItemContainer = styled.div`
     padding: 8px 16px;
     flex: 1;
     display: flex;
+    align-items: center;
 `;
 
 const Icon = styled.div`
     color: rgba(var(--center-channel-color-rgb), 0.56);
+    display: flex;
+    align-items: center;
+
+    > svg {
+        fill: rgba(var(--center-channel-color-rgb), 0.56);
+    }
 `;
 
 const MenuItemText = styled.div`
@@ -150,7 +158,13 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
             <MenuItem
-                icon={<i className='icon icon-pin-outline'/>}
+                icon={(
+                    <ThreadsIcon
+                        width={25}
+                        height={16}
+                        className='icon'
+                    />
+                )}
                 text={formatMessage({id: 'channel_info_rhs.menu.threads', defaultMessage: 'Threads'})}
                 opensSubpanel={true}
                 onClick={() => actions.showThreadsForChannel(channel.id)}
