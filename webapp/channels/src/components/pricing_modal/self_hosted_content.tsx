@@ -211,7 +211,9 @@ function SelfHostedContent(props: ContentProps) {
                         id='professional'
                         topColor='var(--denim-button-bg)'
                         plan='Professional'
-                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions for growing teams'})}
+                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
+                            br: <br/>,
+                        })}
                         price={professionalPrice}
                         rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                             br: <br/>,
