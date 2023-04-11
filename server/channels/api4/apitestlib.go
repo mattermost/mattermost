@@ -1079,12 +1079,6 @@ func CheckErrorMessage(tb testing.TB, err error, message string) {
 	require.Equalf(tb, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
 }
 
-func CheckStartsWith(tb testing.TB, value, prefix, message string) {
-	tb.Helper()
-
-	require.True(tb, strings.HasPrefix(value, prefix), message, value)
-}
-
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
 //
