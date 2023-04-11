@@ -311,7 +311,7 @@ describe('components/signup/Signup', () => {
         const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
         expect(checkInput).toHaveAttribute('type', 'checkbox');
 
-        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security, product, promotions, and company updates. I have read the Privacy Policy and understand that I can unsubscribe at any time');
+        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
     });
 
     it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
