@@ -8,7 +8,9 @@ import {BadUrlReasons, UrlValidationCheck} from 'utils/url';
 import Constants from 'utils/constants';
 import ExternalLink from 'components/external_link';
 
-const OrganizationStatus = (props: {error: UrlValidationCheck['error']}): JSX.Element => {
+export const TeamApiError = 'team_api_error';
+
+const OrganizationStatus = (props: {error: (UrlValidationCheck['error'] | typeof TeamApiError | null)}): JSX.Element => {
     let children = null;
     let className = 'Organization__status';
     if (props.error) {
@@ -19,6 +21,14 @@ const OrganizationStatus = (props: {error: UrlValidationCheck['error']}): JSX.El
                 <FormattedMessage
                     id='onboarding_wizard.organization.empty'
                     defaultMessage='You must enter an organization name'
+                />
+            );
+            break;
+        case TeamApiError:
+            children = (
+                <FormattedMessage
+                    id='onboarding_wizard.organization.team_api_error'
+                    defaultMessage='There was an error, please try again.'
                 />
             );
             break;

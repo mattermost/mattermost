@@ -4338,6 +4338,7 @@
   "onboarding_wizard.organization.other": "Invalid organization name: {reason}",
   "onboarding_wizard.organization.placeholder": "Organization name",
   "onboarding_wizard.organization.reserved": "Organization name may not <a>start with a reserved word</a>.",
+  "onboarding_wizard.organization.team_api_error": "There was an error, please try again.",
   "onboarding_wizard.organization.title": "What’s the name of your organization?",
   "onboarding_wizard.plugins.github": "GitHub",
   "onboarding_wizard.plugins.github.tooltip": "Subscribe to repositories, stay up to date with reviews, assignments",

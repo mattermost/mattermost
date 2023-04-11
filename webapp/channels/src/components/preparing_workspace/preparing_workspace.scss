@@ -67,6 +67,7 @@
 
     .link-style {
         @include link;
+
         background: transparent;
         font-size: 14px;
     }
@@ -79,11 +80,11 @@
 
     &__invite-members-illustration {
         position: absolute;
-        right: -651px;
         top: 25%;
+        right: -651px;
         animation-duration: 0.3s;
-        animation-timing-function: ease-in-out;
         animation-fill-mode: forwards;
+        animation-timing-function: ease-in-out;
     }
 }
 
@@ -99,6 +100,7 @@
     from {
         right: -651px;
     }
+
     to {
         right: 0;
     }
@@ -108,6 +110,7 @@
     from {
         right: 0;
     }
+
     to {
         right: -651px;
     }

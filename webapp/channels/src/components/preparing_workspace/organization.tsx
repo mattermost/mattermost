@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, ChangeEvent} from 'react';
 import {CSSTransition} from 'react-transition-group';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -15,12 +15,12 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {Team} from '@mattermost/types/src/teams';
+import {Team} from '@mattermost/types/teams';
 
 import {teamNameToUrl} from 'utils/url';
 import Constants from 'utils/constants';
 
-import OrganizationStatus from './organization_status';
+import OrganizationStatus, {TeamApiError} from './organization_status';
 import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
 import PageLine from './page_line';
 import Title from './title';
@@ -50,6 +50,7 @@ const Organization = (props: Props) => {
     const [triedNext, setTriedNext] = useState(false);
     const inputRef = useRef<HTMLInputElement>();
     const validation = teamNameToUrl(props.organization || '');
+    const teamApiError = useRef<typeof TeamApiError | null>(null);
 
     useEffect(props.onPageView, []);
 
@@ -60,6 +61,10 @@ const Organization = (props: Props) => {
         }
     }, [teams]);
 
+    const setApiCallError = () => {
+        teamApiError.current = TeamApiError;
+    };
+
     const updateTeamNameFromOrgName = async () => {
         if (!inputRef.current?.value) {
             return;
@@ -69,7 +74,7 @@ const Organization = (props: Props) => {
         if (name) {
             const {error} = await props.updateTeam({...teams[0], display_name: name});
             if (error !== null) {
-                // TODO: do something
+                setApiCallError();
             }
         }
     };
@@ -82,12 +87,18 @@ const Organization = (props: Props) => {
 
         if (name) {
             const {error, newTeam} = await props.createTeam(name);
-            if (error !== null) {
+            if (error !== null || newTeam === null) {
                 props.setInviteId('');
+                setApiCallError();
                 return;
             }
             props.setInviteId(newTeam.invite_id);
         }
+    };
+
+    const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
+        props.setOrganization(e.target.value);
+        teamApiError.current = null;
     };
 
     const onNext = (e?: React.KeyboardEvent | React.MouseEvent) => {
@@ -96,23 +107,21 @@ const Organization = (props: Props) => {
                 return;
             }
         }
-
         if (!triedNext) {
             setTriedNext(true);
         }
 
         // if there is already a team, maybe because a page reload, then just update the teamname
         const thereIsAlreadyATeam = teams.length > 0;
+        teamApiError.current = null;
 
-        if (!triedNext && !thereIsAlreadyATeam && props.isSelfHosted) {
+        if (!validation.error && !thereIsAlreadyATeam && props.isSelfHosted) {
             createTeamFromOrgName();
-        } else if ((triedNext || thereIsAlreadyATeam) && props.isSelfHosted) {
+        } else if (!validation.error && thereIsAlreadyATeam && props.isSelfHosted) {
             updateTeamNameFromOrgName();
         }
 
-        // TODO: verify potential errors and stop the flow and show the error ?
-
-        if (validation.error) {
+        if (validation.error || teamApiError.current) {
             reportValidationError();
             return;
         }
@@ -168,12 +177,12 @@ const Organization = (props: Props) => {
                                     }
                                     className='Organization__input'
                                     value={props.organization || ''}
-                                    onChange={(e) => props.setOrganization(e.target.value)}
+                                    onChange={(e) => handleOnChange(e)}
                                     onKeyUp={onNext}
                                     autoFocus={true}
                                     ref={inputRef as unknown as any}
                                 />
-                                <OrganizationStatus error={triedNext && validation.error}/>
+                                {triedNext ? <OrganizationStatus error={validation.error || teamApiError.current}/> : null}
                             </PageBody>
                             <button
                                 className='primary-button'
