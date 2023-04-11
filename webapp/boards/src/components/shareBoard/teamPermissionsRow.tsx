@@ -102,7 +102,7 @@ const TeamPermissionsRow = (): JSX.Element => {
                     icon='mattermost'
                     className='user-item__img'
                 />
-                <div className='ml-3'><strong>{intl.formatMessage({id: 'ShareBoard.teamPermissionsText', defaultMessage: 'Everyone at {teamName} Team'}, {teamName: team?.title})}</strong></div>
+                <div className='ml-3'><strong>{intl.formatMessage({id: 'ShareBoard.teamPermissionsText', defaultMessage: 'Everyone at {teamName} team'}, {teamName: team?.title})}</strong></div>
             </div>
             <div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardType]}>

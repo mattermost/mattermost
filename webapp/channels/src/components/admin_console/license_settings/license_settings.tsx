@@ -145,14 +145,14 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.interval = setInterval(this.reloadPercentage, 2000);
         }
         this.setState({upgradingPercentage: percentage || 0, upgradeError: error as string});
-    }
+    };
 
     handleChange = () => {
         const element = this.fileInputRef.current;
         if (element?.files?.length) {
             this.setState({fileSelected: true, file: element.files[0]});
         }
-    }
+    };
 
     openEELicenseModal = async () => {
         this.props.actions.openModal({
@@ -183,7 +183,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         this.props.actions.getPrevTrialLicense();
         await this.props.actions.getLicenseConfig();
         this.setState({serverError: null, removing: false});
-    }
+    };
 
     handleUpgrade = async (e?: React.MouseEvent<HTMLButtonElement>) => {
         if (e) {
@@ -200,7 +200,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             trackEvent('api', 'upgrade_to_e0_failed', {error: error.message as string});
             this.setState({upgradeError: error.message, upgradingPercentage: 0});
         }
-    }
+    };
 
     checkRestarted = () => {
         this.props.actions.ping().then(() => {
@@ -208,7 +208,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         }).catch(() => {
             setTimeout(this.checkRestarted, 1000);
         });
-    }
+    };
 
     handleRestart = async (e?: React.MouseEvent<HTMLButtonElement>) => {
         if (e) {
@@ -221,11 +221,11 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.setState({restarting: false, restartError: err as string});
         }
         setTimeout(this.checkRestarted, 1000);
-    }
+    };
 
     setClickNormalUpgradeBtn = () => {
         this.setState({clickNormalUpgradeBtn: true});
-    }
+    };
 
     currentPlan = (
         <div className='current-plan-legend'>
@@ -244,7 +244,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                 {text}
             </ExternalLink>
         );
-    }
+    };
 
     termsAndPolicy = (
         <div className='terms-and-policy'>
@@ -400,5 +400,5 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             );
         }
         return null;
-    }
+    };
 }

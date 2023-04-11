@@ -341,7 +341,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
         } else if (Utils.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             this.returnFocus();
         }
-    }
+    };
     renderCustomStatus() {
         const {
             customStatus,
