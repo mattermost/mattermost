@@ -199,6 +199,10 @@ func (s *SQLStore) DBVersion() string {
 	return version
 }
 
+// dropAllTables deletes the contents of all the database tables
+// except the schema_migrations table with the intention of cleaning
+// the state for the next text to execute without having to run the
+// migrations.
 func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 	if s.DBType() == model.PostgresDBType {
 		_, err := db.Exec(`DO
@@ -209,11 +213,7 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 			    FROM   pg_class
 			    WHERE  relkind = 'r'  -- only tables
 			    AND    relnamespace = 'public'::regnamespace
-				AND NOT (
-                  relname = '` + s.tablePrefix + `schema_migrations' OR
-                  relname = '` + s.tablePrefix + `boards' OR
-                  relname = '` + s.tablePrefix + `blocks'
-                )
+				AND NOT relname = 'schema_migrations'
 			   );
 			END
 			$func$;`)
@@ -233,30 +233,12 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 				return err
 			}
 
-			if table != s.tablePrefix+"schema_migrations" &&
-				table != s.tablePrefix+"boards" &&
-				table != s.tablePrefix+"blocks" {
+			if table != s.tablePrefix+"schema_migrations" {
 				if _, err := db.Exec(`TRUNCATE TABLE ` + table); err != nil {
 					return err
 				}
 			}
 		}
-	}
-
-	_, blErr := db.Exec(`
-      DELETE FROM ` + s.tablePrefix + `blocks
-          WHERE board_id IN (
-            SELECT id
-            FROM ` + s.tablePrefix + `boards
-            WHERE NOT is_template
-          )`)
-	if blErr != nil {
-		return blErr
-	}
-
-	_, boErr := db.Exec(`DELETE FROM ` + s.tablePrefix + `boards WHERE NOT is_template`)
-	if boErr != nil {
-		return boErr
 	}
 
 	return nil
