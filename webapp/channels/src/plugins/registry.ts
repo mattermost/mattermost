@@ -87,7 +87,7 @@ export default class PluginRegistry {
     supports = {
         globalAppBar: true,
         globalRhs: true,
-    }
+    };
 
     // Register a component at the root of the channel view of the app.
     // Accepts a React component. Returns a unique identifier.
@@ -966,7 +966,7 @@ export default class PluginRegistry {
         });
 
         return id;
-    })
+    });
 
     /**
      * INTERNAL: Subject to change without notice.
@@ -986,6 +986,7 @@ export default class PluginRegistry {
         'showTeamSidebar',
         'showAppBar',
         'wrapped',
+        'publicComponent',
     ], ({
         baseURL,
         switcherIcon,
@@ -997,6 +998,7 @@ export default class PluginRegistry {
         showTeamSidebar = false,
         showAppBar = false,
         wrapped = true,
+        publicComponent,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
@@ -1016,6 +1018,7 @@ export default class PluginRegistry {
                 showTeamSidebar,
                 showAppBar,
                 wrapped,
+                publicComponent,
             },
         });
 

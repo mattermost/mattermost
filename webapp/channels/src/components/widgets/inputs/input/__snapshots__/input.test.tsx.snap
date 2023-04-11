@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/inputs/Input should match snapshot 1`] = `
+<div
+  className="Input_container"
+>
+  <fieldset
+    className="Input_fieldset"
+  >
+    <legend
+      className="Input_legend"
+    />
+    <div
+      className="Input_wrapper"
+    >
+      <input
+        className="Input form-control medium"
+        id="input_"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+      />
+    </div>
+  </fieldset>
+</div>
+`;

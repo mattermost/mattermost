@@ -239,10 +239,10 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsURL    = "https://customers.cloud.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
 	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsURLTest = "https://customers.cloud.mattermost.com"
 	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
 	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
 
@@ -314,7 +314,7 @@ type ServiceSettings struct {
 	RestrictLinkPreviews                *string  `access:"site_posts"`
 	EnableTesting                       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	DeveloperFlags                      *string  `access:"environment_developer"`
+	DeveloperFlags                      *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging    *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                   *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert              *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
@@ -1624,7 +1624,6 @@ type EmailSettings struct {
 	LoginButtonColor                  *string `access:"experimental_features"`
 	LoginButtonBorderColor            *string `access:"experimental_features"`
 	LoginButtonTextColor              *string `access:"experimental_features"`
-	EnableInactivityEmail             *bool
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -1766,10 +1765,6 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
-	}
-
-	if s.EnableInactivityEmail == nil {
-		s.EnableInactivityEmail = NewBool(true)
 	}
 }
 
@@ -2872,19 +2867,9 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdPlaybooks] == nil {
-		// Enable the playbooks plugin by default
-		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
 		// Enable the channel export plugin by default
 		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Enable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
 	}
 
 	if s.PluginStates[PluginIdApps] == nil {

@@ -7,7 +7,7 @@ import {Link} from 'react-router-dom';
 
 import styled from 'styled-components';
 
-import Icon, {TIconGlyph} from '@mattermost/compass-components/foundations/icon';
+import Icon, {TIconGlyph} from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 export interface ProductMenuItemProps {
     destination: string;

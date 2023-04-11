@@ -64,7 +64,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
     handleMinUpdateSection = (section: string): void => {
         this.props.updateSection(section);
         this.props.cancel();
-    }
+    };
 
     handleMaxUpdateSection = (section: string): void => this.props.updateSection(section);
 
@@ -75,12 +75,12 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
             this.props.setParentState(key, value);
             Utils.a11yFocus(e.currentTarget);
         }
-    }
+    };
 
     handleThreadsOnChange = (e: ChangeEvent<HTMLInputElement>): void => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
         this.props.setParentState('desktopThreads', value);
-    }
+    };
 
     setDesktopNotificationSound: ReactSelect['onChange'] = (selectedOption: ValueType<SelectedOption>): void => {
         if (selectedOption && 'value' in selectedOption) {
@@ -88,7 +88,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
             this.setState({selectedOption});
             Utils.tryNotificationSound(selectedOption.value);
         }
-    }
+    };
 
     blurDropdown(): void {
         if (!this.state.blurDropdown) {
@@ -340,7 +340,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 updateSection={this.handleMaxUpdateSection}
             />
         );
-    }
+    };
 
     buildMinimizedSetting = () => {
         let formattedMessageProps;
@@ -395,7 +395,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 ref={this.minRef}
             />
         );
-    }
+    };
 
     componentDidUpdate(prevProps: Props) {
         this.blurDropdown();

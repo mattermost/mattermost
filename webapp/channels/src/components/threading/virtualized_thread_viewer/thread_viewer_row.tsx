@@ -27,7 +27,6 @@ type Props = {
     previousPostId: string;
     teamId: string;
     timestampProps?: Partial<TimestampProps>;
-    lastPost: Post;
 };
 
 function noop() {}

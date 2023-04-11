@@ -9,7 +9,7 @@ import {DateTime} from 'luxon';
 
 import moment, {Moment} from 'moment-timezone';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Input from 'components/widgets/inputs/input/input';
