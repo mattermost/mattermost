@@ -162,6 +162,7 @@ describe('threads', () => {
                     total_unread_mentions: 2,
                 },
             },
+            countsInChannel: {},
         });
         const nextState2 = threadsReducer(state, {
             type: ThreadTypes.FOLLOW_CHANGED_THREAD,
