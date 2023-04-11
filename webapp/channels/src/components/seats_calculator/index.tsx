@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {useIntl, FormattedMessage, FormattedNumber} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -68,7 +68,7 @@ function validateSeats(seats: string, annualPricePerSeat: number, minSeats: numb
         return {
             quantity: seats,
             error: errorMinSeats,
-        }
+        };
     }
 
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
@@ -134,7 +134,7 @@ export default function SeatsCalculator(props: Props) {
     const intl = useIntl();
     const annualPricePerSeat = props.price * 12;
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = event.target;
+        const {value} = event.target;
         const numValue = parseInt(value, 10);
         if ((value && !numValue && numValue !== 0) || !reDigits.test(value)) {
             // We force through an onChange becuase the underlying input component
@@ -149,7 +149,7 @@ export default function SeatsCalculator(props: Props) {
 
     useEffect(() => {
         props.onChange(validateSeats(props.seats.quantity, annualPricePerSeat, props.existingUsers, props.isCloud));
-    }, [])
+    }, []);
 
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
     const total = '$' + intl.formatNumber((parseFloat(props.seats.quantity) || 0) * annualPricePerSeat, {maximumFractionDigits: 2});
