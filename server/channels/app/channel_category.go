@@ -25,19 +25,23 @@ func (a *App) createInitialSidebarCategories(userID string, opts *store.SidebarC
 
 func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
-	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
-	if err == nil && len(categories.Categories) == 0 {
-		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(userID, &store.SidebarCategorySearchOpts{
-			TeamID:      teamID,
-			ExcludeTeam: false,
-		})
-		if appErr != nil {
-			return nil, appErr
-		}
+	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
+	options := &store.SidebarCategorySearchOpts{
+		TeamID:              teamID,
+		ExcludeTeam:         false,
+		AppsCategoryEnabled: appsCategoryEnabled,
 	}
+	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, options)
+	if err == nil {
+		if len(categories.Categories) == 0 || (appsCategoryEnabled && checkMissingSystemSidebarCategories(categories)) {
+			// A user must always have system categories, so migration must not have happened yet, and we should run it ourselves
+			categories, appErr = a.createInitialSidebarCategories(userID, options)
 
-	if err != nil {
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+	} else {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -52,16 +56,23 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 
 func (a *App) GetSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
-	categories, err := a.Srv().Store().Channel().GetSidebarCategories(userID, opts)
-	if err == nil && len(categories.Categories) == 0 {
-		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
-		categories, appErr = a.createInitialSidebarCategories(userID, opts)
-		if appErr != nil {
-			return nil, appErr
-		}
+	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
+	options := &store.SidebarCategorySearchOpts{
+		TeamID:              opts.TeamID,
+		ExcludeTeam:         opts.ExcludeTeam,
+		AppsCategoryEnabled: appsCategoryEnabled,
 	}
+	categories, err := a.Srv().Store().Channel().GetSidebarCategories(userID, options)
+	if err == nil {
+		if len(categories.Categories) == 0 || (appsCategoryEnabled && checkMissingSystemSidebarCategories(categories)) {
+			// A user must always have system categories, so migration must not have happened yet, and we should run it ourselves
+			categories, appErr = a.createInitialSidebarCategories(userID, options)
 
-	if err != nil {
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+	} else {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -90,7 +101,8 @@ func (a *App) GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]s
 }
 
 func (a *App) GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
-	category, err := a.Srv().Store().Channel().GetSidebarCategory(categoryId)
+	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
+	category, err := a.Srv().Store().Channel().GetSidebarCategory(categoryId, &store.SidebarCategorySearchOpts{AppsCategoryEnabled: appsCategoryEnabled})
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -142,7 +154,13 @@ func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, c
 }
 
 func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-	updatedCategories, originalCategories, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
+	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
+	updatedCategories, originalCategories, err := a.Srv().Store().Channel().UpdateSidebarCategories(
+		userID,
+		teamID,
+		categories,
+		&store.SidebarCategorySearchOpts{AppsCategoryEnabled: appsCategoryEnabled},
+	)
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -285,4 +303,18 @@ func (a *App) DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId st
 	a.Publish(message)
 
 	return nil
+}
+
+func checkMissingSystemSidebarCategories(categories *model.OrderedSidebarCategories) bool {
+	missingSystemCategories := make(map[model.SidebarCategoryType]struct{})
+
+	for _, systemSidebarCategory := range model.SystemSidebarCategories {
+		missingSystemCategories[systemSidebarCategory] = struct{}{}
+	}
+
+	for _, category := range categories.Categories {
+		delete(missingSystemCategories, category.Type)
+	}
+
+	return len(missingSystemCategories) != 0
 }

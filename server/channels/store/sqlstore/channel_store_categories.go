@@ -58,11 +58,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		From("SidebarCategories").
 		Where(sq.Eq{
 			"UserId": userId,
-			"Type": []model.SidebarCategoryType{
-				model.SidebarCategoryFavorites,
-				model.SidebarCategoryChannels,
-				model.SidebarCategoryDirectMessages,
-			},
+			"Type":   model.SystemSidebarCategories,
 		})
 
 	if !opts.ExcludeTeam {
@@ -155,6 +151,15 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		directMessagesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryDirectMessages, userId, teamID)
 		insertBuilder = insertBuilder.Values(directMessagesCategoryId, userId, teamID, model.DefaultSidebarSortOrderDMs, model.SidebarCategorySortRecent, model.SidebarCategoryDirectMessages, "Direct Messages" /* This will be retranslated by the client into the user's locale */, false, false)
 		hasInsert = true
+	}
+
+	if opts.AppsCategoryEnabled {
+		teamIDs = getRequiredTeamIDs(model.SidebarCategoryApps, opts)
+		for _, teamID := range teamIDs {
+			appsCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryApps, userId, teamID)
+			insertBuilder = insertBuilder.Values(appsCategoryId, userId, teamID, model.DefaultSidebarSortOrderApps, model.SidebarCategorySortDefault, model.SidebarCategoryApps, "Apps" /* This will be retranslated by the client into the user's locale */, false, false)
+			hasInsert = true
+		}
 	}
 
 	if hasInsert {
@@ -418,14 +423,14 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (_ *model.SidebarCategoryWithChannels, err error) {
+func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels, appsCategoryEnabled bool) (_ *model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	result, err := s.completePopulatingCategoryChannelsT(transaction, category)
+	result, err := s.completePopulatingCategoryChannelsT(transaction, category, appsCategoryEnabled)
 	if err != nil {
 		return nil, err
 	}
@@ -437,15 +442,38 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, category *model.SidebarCategoryWithChannels, appsCategoryEnabled bool) (*model.SidebarCategoryWithChannels, error) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
 		return category, nil
 	}
 
 	var channelTypeFilter sq.Sqlizer
-	if category.Type == model.SidebarCategoryDirectMessages {
-		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
-		channelTypeFilter = sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}}
+	if category.Type == model.SidebarCategoryApps || category.Type == model.SidebarCategoryDirectMessages {
+		botChannelsIDs := []string{}
+		if appsCategoryEnabled {
+			botChannels, err := s.SqlStore.stores.channel.GetBotChannelsByUser(category.UserId, store.ChannelSearchOpts{})
+			if err != nil {
+				return nil, err
+			}
+
+			for _, botChannel := range botChannels {
+				botChannelsIDs = append(botChannelsIDs, botChannel.Id)
+			}
+		}
+
+		if category.Type == model.SidebarCategoryApps {
+			// any DM channels with Bots that aren't in any category should be returned as part of the Apps category
+			channelTypeFilter = sq.And{
+				sq.Eq{"Channels.Type": model.ChannelTypeDirect},
+				sq.Eq{"Channels.Id": botChannelsIDs},
+			}
+		} else if category.Type == model.SidebarCategoryDirectMessages {
+			// any DM/GM channels with Users that aren't in any category should be returned as part of the Direct Messages category
+			channelTypeFilter = sq.And{
+				sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+				sq.NotEq{"Channels.Id": botChannelsIDs},
+			}
+		}
 	} else if category.Type == model.SidebarCategoryChannels {
 		// any public/private channels that are on the current team and aren't in any category should be returned as part of the Channels category
 		channelTypeFilter = sq.And{
@@ -467,6 +495,12 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 			sq.Eq{"SidebarCategories.TeamId": category.TeamId},
 		}).
 		Suffix(")")
+
+	if !appsCategoryEnabled {
+		doesNotHaveSidebarChannel = doesNotHaveSidebarChannel.Where(
+			sq.NotEq{"SidebarCategories.Type": model.SidebarCategoryApps},
+		)
+	}
 
 	channels := []string{}
 	sql, args, err := s.getQueryBuilder().
@@ -492,7 +526,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(db dbSelecter, cate
 	return category, nil
 }
 
-func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
+func (s SqlChannelStore) GetSidebarCategory(categoryId string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 	sql, args, err := s.getQueryBuilder().
 		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
 		From("SidebarCategories").
@@ -521,7 +555,13 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 			result.Channels = append(result.Channels, *category.ChannelId)
 		}
 	}
-	return s.completePopulatingCategoryChannels(result)
+
+	appsCategoryEnabled := false
+	if len(options) > 0 {
+		appsCategoryEnabled = options[0].AppsCategoryEnabled
+	}
+
+	return s.completePopulatingCategoryChannels(result, appsCategoryEnabled)
 }
 
 func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
@@ -551,6 +591,10 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
 	} else {
 		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
+	}
+
+	if !opts.AppsCategoryEnabled {
+		query = query.Where(sq.NotEq{"SidebarCategories.Type": model.SidebarCategoryApps})
 	}
 
 	sql, args, err := query.ToSql()
@@ -583,7 +627,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 		}
 	}
 	for _, category := range oc.Categories {
-		if _, err := s.completePopulatingCategoryChannelsT(db, category); err != nil {
+		if _, err := s.completePopulatingCategoryChannelsT(db, category, opts.AppsCategoryEnabled); err != nil {
 			return nil, err
 		}
 	}
@@ -591,10 +635,16 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 	return &oc, nil
 }
 
-func (s SqlChannelStore) GetSidebarCategoriesForTeamForUser(userId, teamId string) (*model.OrderedSidebarCategories, error) {
+func (s SqlChannelStore) GetSidebarCategoriesForTeamForUser(userId, teamId string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	appsCategoryEnabled := false
+	if len(options) > 0 {
+		appsCategoryEnabled = options[0].AppsCategoryEnabled
+	}
+
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      teamId,
-		ExcludeTeam: false,
+		TeamID:              teamId,
+		ExcludeTeam:         false,
+		AppsCategoryEnabled: appsCategoryEnabled,
 	}
 	return s.getSidebarCategoriesT(s.GetReplicaX(), userId, opts)
 }
@@ -688,17 +738,22 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 }
 
 //nolint:unparam
-func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) (updated []*model.SidebarCategoryWithChannels, original []*model.SidebarCategoryWithChannels, err error) {
+func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (updated []*model.SidebarCategoryWithChannels, original []*model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	var opts *store.SidebarCategorySearchOpts
+	if len(options) > 0 {
+		opts = options[0]
+	}
+
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	originalCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		srcCategory, err2 := s.GetSidebarCategory(category.Id)
+		srcCategory, err2 := s.GetSidebarCategory(category.Id, opts)
 		if err2 != nil {
 			return nil, nil, errors.Wrap(err2, "failed to find SidebarCategories")
 		}
@@ -843,7 +898,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 	// Ensure Channels are populated for Channels/Direct Messages category if they change
 	for i, updatedCategory := range updatedCategories {
-		populated, nErr := s.completePopulatingCategoryChannelsT(transaction, updatedCategory)
+		populated, nErr := s.completePopulatingCategoryChannelsT(transaction, updatedCategory, opts.AppsCategoryEnabled)
 		if nErr != nil {
 			return nil, nil, nErr
 		}
