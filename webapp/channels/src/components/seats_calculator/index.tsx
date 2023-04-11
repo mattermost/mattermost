@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {useIntl, FormattedMessage, FormattedNumber} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -134,19 +134,22 @@ export default function SeatsCalculator(props: Props) {
     const intl = useIntl();
     const annualPricePerSeat = props.price * 12;
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const {value} = event.target;
+        const { value } = event.target;
         const numValue = parseInt(value, 10);
-        const minSeats = Math.max(props.existingUsers, Constants.MIN_PURCHASE_SEATS);
         if ((value && !numValue && numValue !== 0) || !reDigits.test(value)) {
             // We force through an onChange becuase the underlying input component
             // nulls out the customMessage. By forcefully creating a new react element error,
             // it will trigger the error still existing, and the error will keep being shown
             // in the input component
-            props.onChange(validateSeats(props.seats.quantity, annualPricePerSeat, minSeats, props.isCloud));
+            props.onChange(validateSeats(props.seats.quantity, annualPricePerSeat, props.existingUsers, props.isCloud));
             return;
         }
-        props.onChange(validateSeats(value, annualPricePerSeat, minSeats, props.isCloud));
+        props.onChange(validateSeats(value, annualPricePerSeat, props.existingUsers, props.isCloud));
     };
+
+    useEffect(() => {
+        props.onChange(validateSeats(props.seats.quantity, annualPricePerSeat, props.existingUsers, props.isCloud));
+    }, [])
 
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
     const total = '$' + intl.formatNumber((parseFloat(props.seats.quantity) || 0) * annualPricePerSeat, {maximumFractionDigits: 2});
