@@ -2128,7 +2128,7 @@ export default class Client4 {
             filter,
         }: FetchChannelThreadOptions,
     ) => {
-        const url = `${this.getChannelRoute(channelId)}/threads`;
+        const url = `${this.getUserRoute('me')}/channels/${channelId}/threads`;
 
         const options = {
             before,
