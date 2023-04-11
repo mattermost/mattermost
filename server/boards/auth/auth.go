@@ -58,6 +58,10 @@ func (a *Auth) IsValidReadToken(boardID string, readToken string) (bool, error) 
 		return false, err
 	}
 
+	if !a.config.EnablePublicSharedBoards {
+		return false, errors.New("public shared boards disabled")
+	}
+
 	if sharing != nil && (sharing.ID == boardID && sharing.Enabled && sharing.Token == readToken) {
 		return true, nil
 	}
