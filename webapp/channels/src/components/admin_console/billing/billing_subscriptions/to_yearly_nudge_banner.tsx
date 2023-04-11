@@ -140,13 +140,16 @@ const ToYearlyNudgeBannerDismissable = () => {
         return null;
     }
 
-    const message = {
-        id: 'cloud_billing.nudge_to_yearly.announcement_bar',
-        defaultMessage: 'Monthly billing will be discontinued in {days} days . Switch to annual billing',
-        values: {
-            days: daysToProMonthlyEnd,
-        },
-    };
+    const message = (
+        <FormattedMessage
+            id='cloud_billing.nudge_to_yearly.announcement_bar'
+            defaultMessage='Monthly billing will be discontinued in {days} days . Switch to annual billing'
+            values={{
+                days: daysToProMonthlyEnd,
+
+            }}
+        />
+    );
 
     const announcementType = (daysToProMonthlyEnd <= 10) ? AnnouncementBarTypes.CRITICAL : AnnouncementBarTypes.ANNOUNCEMENT;
 
@@ -158,7 +161,7 @@ const ToYearlyNudgeBannerDismissable = () => {
             onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
             modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
             modalButtonDefaultText='Learn more'
-            message={<FormattedMessage {...message}/>}
+            message={message}
             showLinkAsButton={true}
             handleClose={showBanner}
         />
