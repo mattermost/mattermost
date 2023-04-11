@@ -359,7 +359,11 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.Srv().GetTelemetryService().SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
 	} else {
 		// Telemetry is disabled, submit true up review profile via CWS.
-		c.App.Cloud().SubmitTrueUpReview(profileMap)
+		err := c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
+		if err != nil {
+			c.SetJSONEncodingError(err)
+			return
+		}
 	}
 
 	// Update the review status to reflect the completion.

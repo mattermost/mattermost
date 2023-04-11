@@ -50,5 +50,5 @@ type CloudInterface interface {
 	SubscribeToNewsletter(userID string, req *model.SubscribeNewsletterRequest) error
 
 	// Used only for when a customer has telemetry disabled. In this scenario, true up review telemetry will be submitted via CWS.
-	SubmitTrueUpReview(trueUpReviewProfile map[string]any) error
+	SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]any) error
 }
