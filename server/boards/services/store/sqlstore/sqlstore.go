@@ -244,16 +244,17 @@ func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 	}
 
 	_, blErr := db.Exec(`
-      DELETE bl
-        FROM ` + s.tablePrefix + `_blocks bl
-        JOIN ` + s.tablePrefix + `_boards bo
-          ON bl.board_id=bo.id
-   WHERE NOT bo.is_template`)
+      DELETE FROM ` + s.tablePrefix + `blocks
+          WHERE board_id IN (
+            SELECT id
+            FROM ` + s.tablePrefix + `boards
+            WHERE NOT is_template
+          )`)
 	if blErr != nil {
 		return blErr
 	}
 
-	_, boErr := db.Exec(`DELETE FROM ` + s.tablePrefix + `_boards WHERE NOT is_template`)
+	_, boErr := db.Exec(`DELETE FROM ` + s.tablePrefix + `boards WHERE NOT is_template`)
 	if boErr != nil {
 		return boErr
 	}

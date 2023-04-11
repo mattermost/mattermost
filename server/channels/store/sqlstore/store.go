@@ -1039,14 +1039,21 @@ func (ss *SqlStore) DropAllTables() {
 	}
 
 	if boardsTableCount != 0 {
-		ss.masterX.Exec(`
-          DELETE bl
-            FROM focalboard_blocks bl
-            JOIN focalboard_boards bo
-              ON bl.board_id=bo.id
-       WHERE NOT bo.is_template`)
+		_, blErr := ss.masterX.Exec(`
+          DELETE FROM focalboard_blocks
+          WHERE board_id IN (
+            SELECT id
+            FROM focalboard_boards
+            WHERE NOT is_template
+          )`)
+		if blErr != nil {
+			panic(errors.Wrap(blErr, "Error deleting all non-template blocks"))
+		}
 
-		ss.masterX.Exec(`DELETE FROM focalboard_boards WHERE NOT is_template`)
+		_, boErr := ss.masterX.Exec(`DELETE FROM focalboard_boards WHERE NOT is_template`)
+		if boErr != nil {
+			panic(errors.Wrap(boErr, "Error delegint all non-template boards"))
+		}
 	}
 }
 
