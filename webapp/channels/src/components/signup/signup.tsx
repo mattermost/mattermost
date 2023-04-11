@@ -151,7 +151,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const subscribeToSecurityNewsletterFunc = () => {
         try {
-            Client4.subscribeToNewsletter({email, subscribed_content: 'all_newsletter'});
+            Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
@@ -603,7 +603,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
                     text={
                         formatMessage(
-                            {id: 'newsletter_optin.checkmark.text', defaultMessage: 'I would like to receive Mattermost security, product, promotions, and company updates. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time'},
+                            {id: 'newsletter_optin.checkmark.text', defaultMessage: '<span>I would like to receive Mattermost security updates via newsletter.</span> By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time'},
                             {
                                 a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                                     <ExternalLink
@@ -620,6 +620,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     >
                                         {chunks}
                                     </ExternalLink>
+                                ),
+                                span: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <span className='header'>{chunks}</span>
                                 ),
                             },
                         )}

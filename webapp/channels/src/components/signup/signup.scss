@@ -169,7 +169,7 @@
                     .newsletter {
                         margin-top: 24px;
                         margin-bottom: 32px;
-                        color: var(--center-channel-color-rgb);
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
                         font-family: 'Open Sans';
                         font-size: 12px;
                         font-style: normal;
@@ -178,6 +178,7 @@
 
                         .interested {
                             display: block;
+                            color: var(--center-channel-color);
                             font-weight: 600;
                         }
                     }

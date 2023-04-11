@@ -4254,7 +4254,7 @@
   "navbar.viewPinnedPosts": "View Pinned Posts",
   "newChannelWithBoard.tutorialTip.description": "The board you just created can be quickly accessed by clicking on the Boards icon in the App bar. You can view the boards that are linked to this channel in the right-hand sidebar and open one in full view.",
   "newChannelWithBoard.tutorialTip.title": "Access linked boards from the App Bar",
-  "newsletter_optin.checkmark.text": "I would like to receive Mattermost security, product, promotions, and company updates. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time",
+  "newsletter_optin.checkmark.text": "<span>I would like to receive Mattermost security updates via newsletter.</span> By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time",
   "newsletter_optin.desc": "Sign up at <a>{link}</a>.",
   "newsletter_optin.title": "Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?",
   "next_steps_view.welcomeToMattermost": "Welcome to Mattermost",
