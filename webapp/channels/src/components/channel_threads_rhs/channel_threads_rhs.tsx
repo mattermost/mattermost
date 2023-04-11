@@ -250,7 +250,7 @@ function ChannelThreads({
 
                 {ids.length ? (
                     <VirtualizedThreadList
-                        key={Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}
+                        key={`${selected}-${Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}`}
                         ids={ids}
                         total={totalThreads}
                         isLoading={isPaging}
