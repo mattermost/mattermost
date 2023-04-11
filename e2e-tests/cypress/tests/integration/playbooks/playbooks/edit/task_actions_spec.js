@@ -11,7 +11,7 @@
 //
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
-describe('playbooks > edit > task actions', () => {
+describe('playbooks > edit > task actions', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testUser2;

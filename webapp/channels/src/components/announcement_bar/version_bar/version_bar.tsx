@@ -38,7 +38,7 @@ export default class VersionBar extends React.PureComponent <Props, State> {
 
     reloadPage = () => {
         window.location.reload();
-    }
+    };
 
     render() {
         const {buildHashOnAppLoad} = this.state;

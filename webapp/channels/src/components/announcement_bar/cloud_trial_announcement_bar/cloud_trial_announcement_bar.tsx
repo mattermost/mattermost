@@ -83,12 +83,12 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             name: CloudBanners.TRIAL,
             value: `${dismissValue}`,
         }]);
-    }
+    };
 
     shouldShowBanner = () => {
         const {isFreeTrial, userIsAdmin, isCloud} = this.props;
         return isFreeTrial && userIsAdmin && isCloud;
-    }
+    };
 
     isDismissable = () => {
         const {daysLeftOnTrial} = this.props;
@@ -98,7 +98,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             dismissable = false;
         }
         return dismissable;
-    }
+    };
 
     showModal = () => {
         const {daysLeftOnTrial} = this.props;
@@ -117,7 +117,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
             modalId: ModalIdentifiers.PRICING_MODAL,
             dialogType: PricingModal,
         });
-    }
+    };
 
     render() {
         const {daysLeftOnTrial, preferences} = this.props;

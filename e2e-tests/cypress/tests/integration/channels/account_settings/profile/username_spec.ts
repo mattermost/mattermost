@@ -41,7 +41,7 @@ describe('Settings > Sidebar > General > Edit', () => {
 
     beforeEach(() => {
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
     });
 
     it('MM-T2050 Username cannot be blank', () => {
@@ -101,7 +101,7 @@ describe('Settings > Sidebar > General > Edit', () => {
             // # Login the temporary user
             cy.apiLogin(tempUser);
             cy.visit(offTopicUrl);
-            cy.uiOpenProfileModal();
+            cy.uiOpenProfileModal('Profile Settings');
 
             // # Step 1
             // # Edit the username field
@@ -214,8 +214,8 @@ describe('Settings > Sidebar > General > Edit', () => {
         cy.apiLogin(testUser);
         cy.visit(offTopicUrl);
 
-        // # Open account settings modal
-        cy.uiOpenProfileModal();
+        // # Open profile settings modal
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Open Full Name section
         cy.get('#usernameDesc').click();

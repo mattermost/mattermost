@@ -4,14 +4,14 @@
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
-import Icon from '@mattermost/compass-components/foundations/icon';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import AboutBuildModal from 'components/about_build_modal';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 import {VisitSystemConsoleTour} from 'components/onboarding_tasks';

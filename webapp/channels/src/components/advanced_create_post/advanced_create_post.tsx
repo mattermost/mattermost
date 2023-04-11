@@ -372,11 +372,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 actions.getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled);
             }
         }
-    }
+    };
 
     unloadHandler = () => {
         this.saveDraftWithShow();
-    }
+    };
 
     saveDraftWithShow = (props = this.props) => {
         if (this.saveDraftFrame && props.currentChannel) {
@@ -393,7 +393,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.saveDraft(props, true);
-    }
+    };
 
     saveDraft = (props = this.props, save = false) => {
         if (this.saveDraftFrame && props.currentChannel) {
@@ -402,11 +402,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             clearTimeout(this.saveDraftFrame);
             this.saveDraftFrame = null;
         }
-    }
+    };
 
     setShowPreview = (newPreviewValue: boolean) => {
         this.props.actions.setShowPreview(newPreviewValue);
-    }
+    };
 
     setOrientationListeners = () => {
         if (window.screen.orientation && 'onchange' in window.screen.orientation) {
@@ -448,22 +448,22 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.lastOrientation = orientation;
-    }
+    };
 
     handlePostError = (postError: React.ReactNode) => {
         if (this.state.postError !== postError) {
             this.setState({postError});
         }
-    }
+    };
 
     toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-    }
+    };
 
     hideEmojiPicker = () => {
         this.handleEmojiClose();
-    }
+    };
 
     doSubmit = async (e?: React.FormEvent) => {
         const channelId = this.props.currentChannel.id;
@@ -576,11 +576,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.isDraftSubmitting = false;
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
         this.draftsForChannel[channelId] = null;
-    }
+    };
 
     handleNotifyAllConfirmation = () => {
         this.doSubmit();
-    }
+    };
 
     showNotifyAllModal = (mentions: string[], channelTimezoneCount: number, memberNotifyCount: number) => {
         this.props.actions.openModal({
@@ -593,7 +593,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 onConfirm: () => this.handleNotifyAllConfirmation(),
             },
         });
-    }
+    };
 
     getStatusFromSlashCommand = () => {
         const {message} = this.state;
@@ -721,7 +721,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         await this.doSubmit(e);
-    }
+    };
 
     sendMessage = async (originalPost: Post) => {
         const {
@@ -780,7 +780,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.isDraftSubmitting = false;
 
         return {data: true};
-    }
+    };
 
     sendReaction(isReaction: RegExpExecArray) {
         const channelId = this.props.currentChannel.id;
@@ -807,7 +807,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         if (this.textboxRef.current && (keepFocus || !UserAgent.isMobile())) {
             this.textboxRef.current.focus();
         }
-    }
+    };
 
     postMsgKeyPress = (e: React.KeyboardEvent<TextboxElement>) => {
         const {ctrlSend, codeBlockOnCtrlEnter} = this.props;
@@ -852,12 +852,12 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.emitTypingEvent();
-    }
+    };
 
     emitTypingEvent = () => {
         const channelId = this.props.currentChannel.id;
         GlobalActions.emitLocalUserTypingEvent(channelId, '');
-    }
+    };
 
     handleChange = (e: React.ChangeEvent<TextboxElement>) => {
         const message = e.target.value;
@@ -878,7 +878,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         };
 
         this.handleDraftChange(draft);
-    }
+    };
 
     handleDraftChange = (draft: PostDraft, instant = false) => {
         const channelId = this.props.currentChannel.id;
@@ -896,7 +896,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.draftsForChannel[channelId] = draft;
-    }
+    };
 
     pasteHandler = (e: ClipboardEvent) => {
         /**
@@ -930,11 +930,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const formattedMessage = formatMarkdownMessage(clipboardData, message.trim(), this.state.caretPosition);
         document.execCommand('insertText', false, formattedMessage);
-    }
+    };
 
     handleFileUploadChange = () => {
         this.focusTextbox();
-    }
+    };
 
     handleUploadStart = (clientIds: string[], channelId: string) => {
         const uploadsInProgress = [...this.props.draft.uploadsInProgress, ...clientIds];
@@ -950,7 +950,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
         this.focusTextbox();
-    }
+    };
 
     handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
         const uploadsProgressPercent = {
@@ -958,7 +958,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             [filePreviewInfo.clientId]: filePreviewInfo,
         };
         this.setState({uploadsProgressPercent});
-    }
+    };
 
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], channelId: string) => {
         const draft = {...this.draftsForChannel[channelId]!};
@@ -979,7 +979,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.handleDraftChange(draft, true);
-    }
+    };
 
     handleUploadError = (err: string | ServerError, clientId?: string, channelId?: string) => {
         let serverError = null;
@@ -1078,7 +1078,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         if (shouldFocusMainTextbox(e, document.activeElement)) {
             this.focusTextbox();
         }
-    }
+    };
 
     documentKeyHandler = (e: KeyboardEvent) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -1089,11 +1089,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.focusTextboxIfNecessary(e);
-    }
+    };
 
     getFileUploadTarget = () => {
         return this.textboxRef.current?.getInputBox();
-    }
+    };
 
     fillMessageFromHistory() {
         const lastMessage = this.props.messageInHistoryItem;
@@ -1108,11 +1108,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.setState({
             caretPosition: (e.target as HTMLInputElement).selectionStart || 0,
         });
-    }
+    };
 
     handleSelect = (e: React.SyntheticEvent<Element, Event>) => {
         Utils.adjustSelection(this.textboxRef.current?.getInputBox(), e as React.KeyboardEvent<HTMLInputElement>);
-    }
+    };
 
     handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const messageIsEmpty = this.state.message.length === 0;
@@ -1280,7 +1280,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         } else if (ctrlAltCombo && Utils.isKeyPressed(e, KeyCodes.T)) {
             this.toggleAdvanceTextEditor();
         }
-    }
+    };
 
     editLastPost = (e: React.KeyboardEvent) => {
         e.preventDefault();
@@ -1300,7 +1300,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             this.textboxRef.current.blur();
         }
         this.props.actions.setEditingPost(lastPost.id, 'post_textbox', type);
-    }
+    };
 
     replyToLastPost = (e: React.KeyboardEvent) => {
         e.preventDefault();
@@ -1312,17 +1312,17 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         if (latestReplyablePostId) {
             this.props.actions.selectPostFromRightHandSideSearchByPostId(latestReplyablePostId);
         }
-    }
+    };
 
     loadPrevMessage = (e: React.KeyboardEvent) => {
         e.preventDefault();
         this.props.actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST).then(() => this.fillMessageFromHistory());
-    }
+    };
 
     loadNextMessage = (e: React.KeyboardEvent) => {
         e.preventDefault();
         this.props.actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST).then(() => this.fillMessageFromHistory());
-    }
+    };
 
     applyMarkdown = (params: ApplyMarkdownOptions) => {
         if (this.props.shouldShowPreview) {
@@ -1344,7 +1344,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             this.handleDraftChange(draft);
         });
-    }
+    };
 
     reactToLastMessage = (e: KeyboardEvent) => {
         e.preventDefault();
@@ -1360,7 +1360,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         if (!rhsExpanded && noModalsAreOpen && noPopupsDropdownsAreOpen) {
             emitShortcutReactToLastPostFrom(Locations.CENTER);
         }
-    }
+    };
 
     handleBlur = () => {
         if (!this.isDraftSubmitting) {
@@ -1368,11 +1368,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.lastBlurAt = Date.now();
-    }
+    };
 
     handleEmojiClose = () => {
         this.setState({showEmojiPicker: false});
-    }
+    };
 
     setMessageAndCaretPostion = (newMessage: string, newCaretPosition: number) => {
         const textbox = this.textboxRef.current?.getInputBox();
@@ -1390,7 +1390,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             this.handleDraftChange(draft);
         });
-    }
+    };
 
     prefillMessage = (message: string, shouldFocus?: boolean) => {
         this.setMessageAndCaretPostion(message, message.length);
@@ -1403,7 +1403,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             }
             this.focusTextbox(true);
         }
-    }
+    };
 
     handleEmojiClick = (emoji: Emoji) => {
         const emojiAlias = ('short_names' in emoji && emoji.short_names && emoji.short_names[0]) || emoji.name;
@@ -1430,7 +1430,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.handleEmojiClose();
-    }
+    };
 
     handleGifClick = (gif: string) => {
         if (this.state.message === '') {
@@ -1447,7 +1447,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             this.handleDraftChange(draft);
         }
         this.handleEmojiClose();
-    }
+    };
 
     toggleAdvanceTextEditor = () => {
         this.setState({
@@ -1460,11 +1460,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             name: AdvancedTextEditorConst.POST,
             value: String(!this.state.isFormattingBarHidden),
         }]);
-    }
+    };
 
     handleRemovePriority = () => {
         this.handlePostPriorityApply();
-    }
+    };
 
     handlePostPriorityApply = (settings?: PostPriorityMetadata) => {
         const updatedDraft = {
@@ -1510,7 +1510,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 this.props.draft.metadata.priority.requested_ack
             )
         );
-    }
+    };
 
     render() {
         let centerClass = '';

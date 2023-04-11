@@ -103,7 +103,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
     handleExit = () => {
         this.updateSection(NotificationSections.NONE);
         this.props.onExited();
-    }
+    };
 
     updateSection = (section = NotificationSections.NONE) => {
         this.setState({activeSection: section});
@@ -112,7 +112,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
             const channelNotifyProps = this.props.channelMember && this.props.channelMember.notify_props;
             this.resetStateFromNotifyProps(this.props.currentUser.notify_props, channelNotifyProps);
         }
-    }
+    };
 
     handleUpdateChannelNotifyProps = async (props: Partial<ChannelNotifyProps>) => {
         const {
@@ -127,7 +127,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         } else {
             this.updateSection(NotificationSections.NONE);
         }
-    }
+    };
 
     handleSubmitDesktopNotifyLevel = () => {
         const channelNotifyProps = this.props.channelMember && this.props.channelMember.notify_props as ChannelMemberNotifyProps;
@@ -144,7 +144,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const props = {desktop: desktopNotifyLevel, desktop_threads: desktopThreadsNotifyLevel};
 
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     handleUpdateDesktopNotifyLevel = (desktopNotifyLevel: ChannelNotifyProps['desktop']) => this.setState({desktopNotifyLevel});
 
@@ -161,7 +161,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         const props = {mark_unread: markUnreadNotifyLevel};
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     handleUpdateMarkUnreadLevel = (markUnreadNotifyLevel: ChannelNotifyProps['mark_unread']) => this.setState({markUnreadNotifyLevel});
 
@@ -179,7 +179,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         const props = {push: pushNotifyLevel, push_threads: pushThreadsNotifyLevel};
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     handleUpdatePushNotificationLevel = (pushNotifyLevel: ChannelNotifyProps['push']) => this.setState({pushNotifyLevel});
     handleUpdatePushThreadsNotificationLevel = (pushThreadsNotifyLevel: UserNotifyProps['push_threads']) => this.setState({pushThreadsNotifyLevel});
@@ -196,7 +196,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         const props = {ignore_channel_mentions: ignoreChannelMentions};
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     render() {
         const {

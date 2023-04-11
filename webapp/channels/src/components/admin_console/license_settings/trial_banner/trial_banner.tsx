@@ -13,6 +13,8 @@ import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import AlertBanner from 'components/alert_banner';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
+import {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 
 import {format} from 'utils/markdown';
 
@@ -26,13 +28,13 @@ interface TrialBannerProps {
     isDisabled: boolean;
     gettingTrialError: string | null;
     gettingTrialResponseCode: number | null;
-    requestLicense: (e?: React.MouseEvent<HTMLButtonElement>, reload?: boolean) => Promise<void>;
     gettingTrial: boolean;
     enterpriseReady: boolean;
     upgradingPercentage: number;
     handleUpgrade: () => Promise<void>;
     upgradeError: string | null;
     restartError: string | null;
+    openTrialForm?: (telemetryProps?: TelemetryProps) => void;
 
     handleRestart: () => Promise<void>;
 
@@ -72,7 +74,6 @@ const TrialBanner = ({
     isDisabled,
     gettingTrialError,
     gettingTrialResponseCode,
-    requestLicense,
     gettingTrial,
     enterpriseReady,
     upgradingPercentage,
@@ -82,6 +83,7 @@ const TrialBanner = ({
     handleRestart,
     restarting,
     openEEModal,
+    openTrialForm,
 }: TrialBannerProps) => {
     let trialButton;
     let upgradeTermsMessage;
@@ -119,6 +121,12 @@ const TrialBanner = ({
         }
     };
 
+    const handleRequestLicense = () => {
+        if (openTrialForm) {
+            openTrialForm({trackingLocation: 'license_settings.trial_banner'});
+        }
+    };
+
     useEffect(() => {
         async function savePrefsAndRequestTrial() {
             await savePrefsRestartedAfterUpgrade();
@@ -150,7 +158,7 @@ const TrialBanner = ({
             const clickedBtn = Unique.CLICKED_UPGRADE_AND_TRIAL_BTN;
             dispatch(savePreferences(userId, [{category, name: reqLicense, user_id: userId, value: ''}, {category, name: clickedBtn, user_id: userId, value: ''}]));
 
-            requestLicense();
+            handleRequestLicense();
         }
     }, [restartedAfterUpgradePrefs, clickedUpgradeAndTrialBtn]);
 
@@ -213,7 +221,7 @@ const TrialBanner = ({
             <button
                 type='button'
                 className='btn btn-primary'
-                onClick={requestLicense}
+                onClick={handleRequestLicense}
                 disabled={isDisabled || gettingTrialError !== null || gettingTrialResponseCode === 451}
             >
                 {btnText(status)}
@@ -372,4 +380,4 @@ const TrialBanner = ({
     );
 };
 
-export default TrialBanner;
+export default withOpenStartTrialFormModal(TrialBanner);

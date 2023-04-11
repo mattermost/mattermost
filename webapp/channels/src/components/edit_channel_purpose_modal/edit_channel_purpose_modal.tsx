@@ -55,11 +55,11 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         if (this.purpose.current) {
             Utils.placeCaretAtEnd(this.purpose.current);
         }
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     handleKeyDown = (e: React.KeyboardEvent) => {
         const {ctrlSend} = this.props;
@@ -75,7 +75,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
             e.preventDefault();
             this.handleSave();
         }
-    }
+    };
 
     handleSave = async () => {
         const {channel, actions: {patchChannel}} = this.props;
@@ -96,12 +96,12 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         if (data) {
             this.onHide();
         }
-    }
+    };
 
     handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         e.preventDefault();
         this.setState({purpose: e.target.value});
-    }
+    };
 
     render() {
         let serverError = null;

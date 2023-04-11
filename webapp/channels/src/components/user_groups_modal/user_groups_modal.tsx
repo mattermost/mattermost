@@ -64,7 +64,7 @@ type State = {
 
 export default class UserGroupsModal extends React.PureComponent<Props, State> {
     divScrollRef: RefObject<HTMLDivElement>;
-    private searchTimeoutId: number
+    private searchTimeoutId: number;
 
     constructor(props: Props) {
         super(props);
@@ -84,7 +84,7 @@ export default class UserGroupsModal extends React.PureComponent<Props, State> {
 
     doHide = () => {
         this.setState({show: false});
-    }
+    };
 
     async componentDidMount() {
         const {
@@ -137,16 +137,16 @@ export default class UserGroupsModal extends React.PureComponent<Props, State> {
 
     startLoad = () => {
         this.setState({loading: true});
-    }
+    };
 
     loadComplete = () => {
         this.setState({loading: false});
-    }
+    };
 
     handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
         this.props.actions.setModalSearchTerm(term);
-    }
+    };
 
     scrollGetGroups = debounce(
         async () => {
@@ -186,7 +186,7 @@ export default class UserGroupsModal extends React.PureComponent<Props, State> {
                 this.scrollGetMyGroups();
             }
         }
-    }
+    };
 
     getMyGroups = async (page: number) => {
         const {actions} = this.props;
@@ -198,7 +198,7 @@ export default class UserGroupsModal extends React.PureComponent<Props, State> {
         }
         this.loadComplete();
         this.setState({selectedFilter: 'my'});
-    }
+    };
 
     getGroups = async (page: number) => {
         const {actions} = this.props;
@@ -210,7 +210,7 @@ export default class UserGroupsModal extends React.PureComponent<Props, State> {
         }
         this.loadComplete();
         this.setState({selectedFilter: 'all'});
-    }
+    };
 
     render() {
         const groups = this.state.selectedFilter === 'all' ? this.props.groups : this.props.myGroups;
