@@ -63,7 +63,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
             return teamAdmin;
         }
         return member;
-    }
+    };
 
     displayRoleToBe = () => {
         const {group, type} = this.props;
@@ -73,7 +73,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
             return localizeMessage('admin.team_channel_settings.group_row.teamAdmin', 'Team Admin');
         }
         return localizeMessage('admin.team_channel_settings.group_row.member', 'Member');
-    }
+    };
 
     render = () => {
         const {group} = this.props;

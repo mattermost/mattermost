@@ -64,7 +64,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                 selectedOption,
             });
         }
-    }
+    };
 
     timezoneNotChanged = () => {
         const {

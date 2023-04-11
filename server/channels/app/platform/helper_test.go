@@ -143,8 +143,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.MetricsSettings.Enable = true
-	*memoryConfig.ServiceSettings.ListenAddress = ":0"
-	*memoryConfig.MetricsSettings.ListenAddress = ":0"
+	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
+	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
 	configStore.Set(memoryConfig)
 
 	ps, err := New(ServiceConfig{

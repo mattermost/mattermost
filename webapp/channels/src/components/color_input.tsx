@@ -96,7 +96,7 @@ export default class ColorInput extends React.PureComponent<Props, State> {
         if (event.target) {
             event.target.setSelectionRange(1, event.target.value.length);
         }
-    }
+    };
 
     private onBlur = () => {
         const value = this.state.value;
