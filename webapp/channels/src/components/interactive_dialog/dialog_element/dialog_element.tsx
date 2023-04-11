@@ -102,7 +102,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             this.props.onChange(name, selected.value);
             this.setState({value: selected.text});
         }
-    }
+    };
 
     public render(): JSX.Element | null {
         const {

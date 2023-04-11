@@ -11,7 +11,7 @@
 
 const RUN_NAME_MAX_LENGTH = 64;
 
-describe('playbooks > start a run', () => {
+describe('playbooks > start a run', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

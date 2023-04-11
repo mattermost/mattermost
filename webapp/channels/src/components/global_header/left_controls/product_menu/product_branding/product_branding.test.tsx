@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
-import Icon from '@mattermost/compass-components/foundations/icon';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {TopLevelProducts} from 'utils/constants';
 

@@ -151,7 +151,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             pretext: suggestions.matchedPretext,
             hasSuggestions: suggestions.items.length > 0,
         });
-    }
+    };
 
     public render = (): JSX.Element => {
         const providers: SwitchChannelProvider[] = this.channelProviders;
@@ -244,5 +244,5 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 </Modal.Body>
             </Modal>
         );
-    }
+    };
 }

@@ -84,7 +84,7 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
         const copiedBindings = JSON.parse(JSON.stringify(binding)) as AppBinding;
         cleanBinding(copiedBindings, AppBindingLocations.IN_POST);
         return copiedBindings.bindings!;
-    }
+    };
 
     renderBindings = () => {
         if (!this.props.embed.app_id) {
@@ -141,7 +141,7 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
         this.setState((prevState) => {
             return {checkOverflow: prevState.checkOverflow + 1};
         });
-    }
+    };
 
     handleHeightReceived = (height: number) => {
         if (height > 0) {

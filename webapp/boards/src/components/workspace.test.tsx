@@ -114,6 +114,7 @@ jest.mock('react-router-dom', () => {
         useRouteMatch: jest.fn(() => {
             return {
                 params: {
+                    teamId: board.teamId,
                     boardId: board.id,
                     viewId: activeView.id,
                 },

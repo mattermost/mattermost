@@ -5746,7 +5746,6 @@ const AdminDefinition = {
         sectionTitle: t('admin.sidebar.products'),
         sectionTitleDefault: 'Products',
         isHidden: it.any(
-            it.configIsFalse('FeatureFlags', 'BoardsProduct'),
             it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
         ),
         boards: {
