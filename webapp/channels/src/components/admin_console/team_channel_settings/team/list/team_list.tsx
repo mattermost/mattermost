@@ -61,7 +61,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
 
     isSearching = (term: string, filters: TeamSearchOpts) => {
         return (term.length + Object.keys(filters).length) > 0;
-    }
+    };
 
     getPaginationProps = () => {
         const {page, term, filters} = this.state;
@@ -70,7 +70,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         let endCount = (page + 1) * PAGE_SIZE;
         endCount = endCount > total ? total : endCount;
         return {startCount, endCount, total};
-    }
+    };
 
     loadPage = async (page = 0, term = '', filters = {}) => {
         this.setState({loading: true, term, filters});
@@ -86,7 +86,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
 
         await this.props.actions.getData(page, PAGE_SIZE);
         this.setState({page, loading: false});
-    }
+    };
 
     searchTeams = async (page = 0, term = '', filters = {}) => {
         let teams: Team[] = [];
@@ -99,17 +99,17 @@ export default class TeamList extends React.PureComponent<Props, State> {
             searchErrored = false;
         }
         this.setState({page, loading: false, teams, total, searchErrored});
-    }
+    };
 
     searchTeamsDebounced = debounce((page, term, filters = {}) => this.searchTeams(page, term, filters), 300, false, () => {});
 
     nextPage = () => {
         this.loadPage(this.state.page + 1, this.state.term, this.state.filters);
-    }
+    };
 
     previousPage = () => {
         this.setState({page: this.state.page - 1});
-    }
+    };
 
     onSearch = (term = '') => {
         this.loadPage(0, term, this.state.filters);
@@ -151,7 +151,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         }
 
         this.loadPage(0, this.state.term, filters);
-    }
+    };
 
     getColumns = (): Column[] => {
         const name = (
@@ -186,7 +186,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                 fixed: true,
             },
         ];
-    }
+    };
 
     renderManagementMethodText = (team: Team) => {
         if (team.group_constrained) {
@@ -210,7 +210,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                 defaultMessage='Invite Only'
             />
         );
-    }
+    };
 
     getRows = () => {
         const {data} = this.props;
@@ -278,7 +278,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                 onClick: () => getHistory().push(`/admin_console/user_management/teams/${team.id}`),
             };
         });
-    }
+    };
 
     render() {
         const {term, searchErrored} = this.state;

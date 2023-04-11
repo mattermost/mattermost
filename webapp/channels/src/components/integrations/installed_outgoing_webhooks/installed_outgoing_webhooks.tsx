@@ -106,11 +106,11 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
 
     regenOutgoingWebhookToken = (outgoingWebhook: OutgoingWebhook) => {
         this.props.actions.regenOutgoingHookToken(outgoingWebhook.id);
-    }
+    };
 
     removeOutgoingHook = (outgoingWebhook: OutgoingWebhook) => {
         this.props.actions.removeOutgoingHook(outgoingWebhook.id);
-    }
+    };
 
     outgoingWebhookCompare = (a: OutgoingWebhook, b: OutgoingWebhook) => {
         let displayNameA = a.display_name;
@@ -133,7 +133,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             }
         }
         return displayNameA.localeCompare(displayNameB);
-    }
+    };
 
     outgoingWebhooks = (filter: string) => this.props.outgoingWebhooks.
         sort(this.outgoingWebhookCompare).

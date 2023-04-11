@@ -35,7 +35,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
         e?.preventDefault();
         e?.stopPropagation();
         this.toggleUnreadFilter();
-    }
+    };
 
     handleUnreadFilterKeyPress = (e: KeyboardEvent) => {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.U)) {
@@ -43,7 +43,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
             e.stopPropagation();
             this.toggleUnreadFilter();
         }
-    }
+    };
 
     toggleUnreadFilter = () => {
         const {unreadFilterEnabled} = this.props;
@@ -55,7 +55,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
         }
 
         this.props.actions.setUnreadFilterEnabled(!unreadFilterEnabled);
-    }
+    };
 
     render() {
         const {intl, unreadFilterEnabled, hasMultipleTeams} = this.props;

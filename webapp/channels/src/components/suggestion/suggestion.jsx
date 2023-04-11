@@ -28,11 +28,11 @@ export default class Suggestion extends React.PureComponent {
         e.preventDefault();
 
         this.props.onClick(this.props.term, this.props.matchedPretext);
-    }
+    };
 
     handleMouseMove = (e) => {
         e.preventDefault();
 
         this.props.onMouseMove(this.props.term);
-    }
+    };
 }

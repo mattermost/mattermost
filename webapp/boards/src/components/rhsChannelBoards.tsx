@@ -92,10 +92,10 @@ const RHSChannelBoards = () => {
 
     if (currentChannel.type === 'D') {
         channelName = intl.formatMessage({id: 'rhs-boards.dm', defaultMessage: 'DM'})
-        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.dm', defaultMessage: 'this Direct Message'})
+        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.dm', defaultMessage: 'this direct message'})
     } else if (currentChannel.type === 'G') {
         channelName = intl.formatMessage({id: 'rhs-boards.gm', defaultMessage: 'GM'})
-        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.gm', defaultMessage: 'this Group Message'})
+        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.gm', defaultMessage: 'this group message'})
     }
 
     if (channelBoards.length === 0) {

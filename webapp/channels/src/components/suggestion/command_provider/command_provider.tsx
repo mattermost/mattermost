@@ -5,7 +5,7 @@ import React from 'react';
 
 import {Store} from 'redux';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon';
+import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
