@@ -10,14 +10,32 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
 
+import {setGlobalItem} from 'actions/storage';
 import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId, toggleRhsExpanded} from 'actions/views/rhs';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
+import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {StoragePrefixes} from 'utils/constants';
 
 import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
 
 import ChannelThreads, {Props, Tabs} from './channel_threads_rhs';
+
+function setChannelThreadsTab(channelId: Channel['id'], tab: Tabs) {
+    const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
+    return setGlobalItem(key, tab);
+}
+
+function makeGetChannelThreadsTab() {
+    const getGlobalItem =  makeGetGlobalItemWithDefault(Tabs.ALL);
+
+    return (state: GlobalState, channelId: Channel['id']) => {
+    const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
+        return getGlobalItem(state, key);
+    };
+}
+
 
 function getThreadsForChannelWithFilter(channelId: Channel['id'], tab: Tabs, options?: FetchChannelThreadOptions) {
     let filter;
@@ -36,6 +54,7 @@ function makeMapStateToProps() {
     const getFollowingThreadsInChannelView = makeGetThreadsInChannelView('following');
     const getCreatedThreadsInChannelView = makeGetThreadsInChannelView('created');
     const getThreadCountInChannelView = makeGetThreadCountsInChannelView();
+    const getChannelThreadsTab = makeGetChannelThreadsTab();
 
     return (state: GlobalState) => {
         const channel = getCurrentChannel(state);
@@ -71,6 +90,7 @@ function makeMapStateToProps() {
             total: counts.total || 0,
             totalFollowing: counts.total_following || 0,
             totalUser: counts.total_user || 0,
+            selected: getChannelThreadsTab(state, channel.id),
         };
     };
 }
@@ -83,6 +103,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             goBack,
             selectPostFromRightHandSideSearchByPostId,
             toggleRhsExpanded,
+            setSelected: setChannelThreadsTab,
         }, dispatch),
     };
 }

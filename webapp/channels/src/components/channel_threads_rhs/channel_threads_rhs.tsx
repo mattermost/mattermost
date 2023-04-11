@@ -37,16 +37,18 @@ export type Props = {
     currentTeamName: Team['name'];
     currentUserId: UserProfile['id'];
     following: Array<UserThread['id']>;
+    isSideBarExpanded: boolean;
+    selected: Tabs;
     total: number;
     totalFollowing: number;
     totalUser: number;
-    isSideBarExpanded: boolean;
 
     actions: {
         closeRightHandSide: () => void;
+        getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => any;
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
-        getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => any;
+        setSelected: (channelId: Channel['id'], tab: Tabs) => void;
         toggleRhsExpanded: () => void;
     };
 }
@@ -71,10 +73,10 @@ function ChannelThreads({
     totalFollowing,
     totalUser,
     isSideBarExpanded,
+    selected,
 }: Props) {
     const {formatMessage} = useIntl();
     const history = useHistory();
-    const [selected, setSelected] = useState(Tabs.ALL);
     const [isPaging, setIsPaging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -146,20 +148,8 @@ function ChannelThreads({
     }, [currentTeamName]);
 
     const makeHandleTab = useCallback((tab: Tabs) => () => {
-        setSelected(tab);
-    }, []);
-
-    const handleAll = useCallback(() => {
-        setSelected(Tabs.ALL);
-    }, []);
-
-    const handleFollowed = useCallback(() => {
-        setSelected(Tabs.FOLLOWING);
-    }, []);
-
-    const handleCreated = useCallback(() => {
-        setSelected(Tabs.USER);
-    }, []);
+        actions.setSelected(channel.id, tab);
+    }, [channel.id]);
 
     const routing = useMemo(() => {
         return {
