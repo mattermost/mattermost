@@ -122,6 +122,10 @@ function Card(props: CardProps) {
         contact_sales_cta__reduced: props.cloudFreeDeprecated && props.isCloud,
     });
 
+    const planBriefingContentClassName = classNames('plan_briefing_content', {
+        plan_briefing_content__reduced: props.cloudFreeDeprecated,
+    });
+
     return (
         <div
             id={props.id}
@@ -172,7 +176,7 @@ function Card(props: CardProps) {
                     <div className='plan_briefing'>
                         {!props.cloudFreeDeprecated && <hr/>}
                         {props.planTrialDisclaimer}
-                        <div className='plan_briefing_content'>
+                        <div className={planBriefingContentClassName}>
                             <span className='title'>{props.briefing.title}</span>
                             {props.briefing.items?.map((i) => {
                                 return (

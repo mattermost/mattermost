@@ -488,7 +488,7 @@ function Content(props: ContentProps) {
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
                         customButtonDetails={enterpriseCustomBtnDetails()}
-                        planTrialDisclaimer={(!isPostTrial && isAdmin) ? <StartTrialCaution/> : undefined}
+                        planTrialDisclaimer={(!isPostTrial && isAdmin && !cloudFreeDeprecated) ? <StartTrialCaution/> : undefined}
                         contactSalesCTA={(isPostTrial || !isAdmin || cloudFreeDeprecated) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: cloudFreeDeprecated ? formatMessage({id: 'pricing_modal.briefing.title_large_scale', defaultMessage: 'Large scale collaboration'}) : formatMessage({id: 'pricing_modal.briefing.title', defaultMessage: 'Top features'}),
