@@ -3980,7 +3980,10 @@ func TestGetThreadsForChannel(t *testing.T) {
 		for i := 0; i < 30; i++ {
 			rootPost := th.CreatePost()
 			rootPosts = append(rootPosts, rootPost)
-			th.CreateThreadPost(rootPost)
+
+			for j := 0; j < 5; j++ {
+				th.CreateThreadPost(rootPost)
+			}
 		}
 
 		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
@@ -3991,7 +3994,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Len(t, res.Threads, 20)
 		require.Equal(t, int64(30), res.Total)
 		require.Equal(t, rootPosts[29].Id, res.Threads[0].PostId)
-		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+		require.Equal(t, int64(5), res.Threads[0].ReplyCount)
 		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
 	})
 
@@ -4013,7 +4016,10 @@ func TestGetThreadsForChannel(t *testing.T) {
 		for i := 0; i < 30; i++ {
 			rp := th.CreatePost()
 			rootPosts = append(rootPosts, rp)
-			th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+
+			for j := 0; j < 5; j++ {
+				th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+			}
 		}
 
 		rootIdLast := rootPosts[15].Id
@@ -4065,7 +4071,10 @@ func TestGetThreadsForChannel(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			rp := th.CreatePost()
 			rootPosts = append(rootPosts, rp)
-			th.CreateThreadPost(rp)
+
+			for j := 0; j < 5; j++ {
+				th.CreateThreadPost(rp)
+			}
 		}
 
 		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
@@ -4083,7 +4092,10 @@ func TestGetThreadsForChannel(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			rp := th.CreatePost()
 			rootPosts = append(rootPosts, rp)
-			th.CreateThreadPost(rp)
+
+			for j := 0; j < 5; j++ {
+				th.CreateThreadPost(rp)
+			}
 		}
 
 		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
@@ -4096,7 +4108,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Len(t, res.Threads, 10)
 		require.Equal(t, int64(0), res.Total)
 		require.Equal(t, rootPosts[9].Id, res.Threads[0].PostId)
-		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+		require.Equal(t, int64(5), res.Threads[0].ReplyCount)
 		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
 	})
 
@@ -4118,7 +4130,10 @@ func TestGetThreadsForChannel(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			rp := th.CreatePostWithClient(th.SystemAdminClient, th.BasicChannel)
 			rootPosts = append(rootPosts, rp)
-			th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+
+			for j := 0; j < 5; j++ {
+				th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+			}
 		}
 
 		// Reply to latest post, so it's followed
@@ -4132,7 +4147,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Equal(t, int64(1), res.Total)
 		require.Len(t, res.Threads, 1)
 		require.Equal(t, rootPosts[9].Id, res.Threads[0].PostId)
-		require.Equal(t, int64(2), res.Threads[0].ReplyCount)
+		require.Equal(t, int64(5+1), res.Threads[0].ReplyCount)
 		require.Equal(t, th.SystemAdminUser.Id, res.Threads[0].Participants[0].Id)
 		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[1].Id)
 	})
