@@ -44,19 +44,9 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 		a.logger.Debug("importing legacy archive")
 		_, errImport := a.ImportBoardJSONL(br, opt)
 
-		// go func() {
-		// 	if err := a.UpdateCardLimitTimestamp(); err != nil {
-		// 		a.logger.Error(
-		// 			"UpdateCardLimitTimestamp failed after importing a legacy file",
-		// 			mlog.Err(err),
-		// 		)
-		// 	}
-		// }()
-
 		return errImport
 	}
 
-	a.logger.Debug("importing archive")
 	zr := zipstream.NewReader(br)
 
 	boardMap := make(map[string]string) // maps old board ids to new
@@ -66,9 +56,9 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 		hdr, err := zr.Next()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
+				a.fixImagesAttachments(boardMap, fileMap, opt.TeamID, opt.ModifiedBy)
 				a.logger.Debug("import archive - done", mlog.Int("boards_imported", len(boardMap)))
-				break
-				// return nil
+				return nil
 			}
 			return err
 		}
@@ -102,17 +92,17 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 				continue
 			}
 
-			fullFileName, err := a.SaveFile(zr, opt.TeamID, boardID, filename)
+			newFileName, err := a.SaveFile(zr, opt.TeamID, boardID, filename)
 			if err != nil {
 				return fmt.Errorf("cannot import file %s for board %s: %w", filename, dir, err)
 			}
-			fileMap[filename] = fullFileName
+			fileMap[filename] = newFileName
 
 			a.logger.Debug("import archive file",
 				mlog.String("TeamID", opt.TeamID),
 				mlog.String("boardID", boardID),
 				mlog.String("filename", filename),
-				mlog.String("fullFileName", fullFileName),
+				mlog.String("newFileName", newFileName),
 			)
 		}
 
@@ -121,6 +111,10 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 			mlog.String("filename", filename),
 		)
 	}
+}
+
+// Update image and attachment blocks
+func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[string]string, teamID string, userId string) {
 
 	a.logger.Debug("update files")
 
@@ -129,8 +123,8 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 	for _, boardID := range boardMap {
 		newBlocks, err := a.GetBlocksForBoard(boardID)
 		if err != nil {
-			return fmt.Errorf("cannot retreive imported blocks for board %s: %w", boardID, err)
-
+			a.logger.Info(fmt.Sprintf("cannot retreive imported blocks for board %s: %w", boardID, err))
+			return
 		}
 		for _, block := range newBlocks {
 			a.logger.Debug("block type",
@@ -144,10 +138,6 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 				}
 				oldId := block.Fields[fieldName]
 				blockIDs = append(blockIDs, block.ID)
-				a.logger.Debug("make",
-					mlog.String("oldId", oldId.(string)),
-					mlog.String("newID", fileMap[oldId.(string)]),
-				)
 
 				blockPatches = append(blockPatches, model.BlockPatch{
 					UpdatedFields: map[string]interface{}{
@@ -157,16 +147,9 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 			}
 		}
 
-		a.logger.Debug("block pathc",
-			mlog.String("TeamID", opt.TeamID),
-			mlog.Int("blockids", len(blockIDs)),
-			mlog.Int("blockpatch", len(blockPatches)),
-		)
-
 		blockPatchBatch := model.BlockPatchBatch{blockIDs, blockPatches}
-		a.PatchBlocks(opt.TeamID, &blockPatchBatch, "swb")
+		a.PatchBlocksAndNotify(teamID, &blockPatchBatch, userId, false)
 	}
-	return nil
 }
 
 // ImportBoardJSONL imports a JSONL file containing blocks for one board. The resulting
