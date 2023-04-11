@@ -859,13 +859,22 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channels, 4, "wrong path")
 
-	for i, c := range channels {
+	var foundPublicChannel1, foundPublicChannel2 bool
+	for _, c := range channels {
 		// check all channels included are open
 		require.Equal(t, model.ChannelTypeOpen, c.Type, "should include open channel only")
 
 		// only check the created 2 public channels
-		require.False(t, i < 2 && !(c.DisplayName == publicChannel1.DisplayName || c.DisplayName == publicChannel2.DisplayName), "should match public channel display name")
+		switch c.DisplayName {
+		case publicChannel1.DisplayName:
+			foundPublicChannel1 = true
+		case publicChannel2.DisplayName:
+			foundPublicChannel2 = true
+		}
 	}
+
+	require.True(t, foundPublicChannel1, "failed to find publicChannel1")
+	require.True(t, foundPublicChannel2, "failed to find publicChannel2")
 
 	privateChannel := th.CreatePrivateChannel()
 	channels, _, err = client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
