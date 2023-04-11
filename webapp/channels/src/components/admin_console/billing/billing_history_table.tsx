@@ -176,7 +176,7 @@ export default function BillingHistoryTable({invoices}: BillingHistoryTableProps
                                     );
                                 }}
                             >
-                                <td data-testid='BillingHistory__table-row'>
+                                <td data-testid='billingHistoryTableRow'>
                                     <FormattedDate
                                         value={new Date(invoice.period_start)}
                                         month='2-digit'
@@ -205,7 +205,7 @@ export default function BillingHistoryTable({invoices}: BillingHistoryTableProps
                                 <td data-testid={invoice.id}>{getPaymentStatus(invoice.status)}</td>
                                 <td className='BillingHistory__table-invoice'>
                                     <a
-                                        data-testid={`BillingHistory-link-${invoice.id}`}
+                                        data-testid={`billingHistoryLink-${invoice.id}`}
                                         target='_self'
                                         rel='noopener noreferrer'
                                         onClick={(e) => e.stopPropagation()}

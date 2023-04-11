@@ -96,7 +96,7 @@ describe('components/admin_console/billing/billing_history', () => {
 
     const store = mockStore(state);
 
-    test('should match snapshot', () => {
+    test('should match the default state of the component with given props', () => {
         renderWithIntl(
             <Provider store={store}>
                 <BillingHistory/>
@@ -153,7 +153,7 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.queryByText('Total')).toBeInTheDocument();
         expect(screen.queryByText('Status')).toBeInTheDocument();
 
-        expect(screen.getAllByTestId('BillingHistory__table-row')).toHaveLength(2);
+        expect(screen.getAllByTestId('billingHistoryTableRow')).toHaveLength(2);
     });
 
     test('Billing history section download button has the target property set as _self so it works well in desktop app', () => {
@@ -163,10 +163,10 @@ describe('components/admin_console/billing/billing_history', () => {
             </Provider>,
         );
 
-        expect(screen.getByTestId(`BillingHistory-link-${invoiceA.id}`)).toHaveAttribute('target', '_self');
-        expect(screen.getByTestId(`BillingHistory-link-${invoiceB.id}`)).toHaveAttribute('target', '_self');
-        expect(screen.getByTestId(`BillingHistory-link-${invoiceA.id}`)).toHaveAttribute('href', '/api/v4/cloud/subscription/invoices/in_1KNb3DI67GP2qpb4ueaJYBt8/pdf');
-        expect(screen.getByTestId(`BillingHistory-link-${invoiceB.id}`)).toHaveAttribute('href', '/api/v4/cloud/subscription/invoices/in_1KIWNTI67GP2qpb4KjGj1KAy/pdf');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceA.id}`)).toHaveAttribute('target', '_self');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceB.id}`)).toHaveAttribute('target', '_self');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceA.id}`)).toHaveAttribute('href', '/api/v4/cloud/subscription/invoices/in_1KNb3DI67GP2qpb4ueaJYBt8/pdf');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceB.id}`)).toHaveAttribute('href', '/api/v4/cloud/subscription/invoices/in_1KIWNTI67GP2qpb4KjGj1KAy/pdf');
     });
 });
 
@@ -229,8 +229,6 @@ describe('BillingHistory -- self-hosted', () => {
         expect(screen.getByRole('link')).toHaveAttribute('href', 'https://docs.mattermost.com/manage/self-hosted-billing.html?utm_source=mattermost&utm_medium=in-product&utm_content=billing_history&uid=current_user_id&sid=');
         expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
-
-        screen.debug(undefined, 300000);
     });
 
     test('Billing history section shows two invoices to download', () => {
@@ -246,7 +244,7 @@ describe('BillingHistory -- self-hosted', () => {
         expect(screen.queryByText('Description')).toBeInTheDocument();
         expect(screen.queryByText('Total')).toBeInTheDocument();
         expect(screen.queryByText('Status')).toBeInTheDocument();
-        expect(screen.getAllByTestId('BillingHistory__table-row')).toHaveLength(2);
+        expect(screen.getAllByTestId('billingHistoryTableRow')).toHaveLength(2);
     });
 });
 
