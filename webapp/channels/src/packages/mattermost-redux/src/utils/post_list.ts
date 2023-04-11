@@ -384,7 +384,7 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
         const isSamePostType = prevPost && prevPost.postType === post.type;
         const isSameActor = prevPost && prevPost.actorId[0] === post.user_id;
 
-        if ((isSamePostType && isSameActor && prevPost) || (isSamePostType && prevPost && isRemovedPost)) {
+        if (prevPost && isSamePostType && (isSameActor || isRemovedPost)) {
             prevPost.userIds.push(userId);
             prevPost.usernames.push(username);
         } else if (isSamePostType && !isSameActor && !isUsersRelatedPost(postType)) {
