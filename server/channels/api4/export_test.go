@@ -29,7 +29,7 @@ func TestListExports(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		exports, _, err := c.ListExports()
+		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, exports)
 	}, "no exports")
@@ -47,7 +47,7 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, _, err := c.ListExports()
+		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], "export.zip")
@@ -63,7 +63,7 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		defer os.RemoveAll(exportDir)
 
-		exports, _, err := c.ListExports()
+		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, exports)
 
@@ -71,7 +71,7 @@ func TestListExports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, _, err = c.ListExports()
+		exports, _, err = c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Len(t, exports, 1)
 		require.Equal(t, "export.zip", exports[0])
@@ -101,20 +101,20 @@ func TestDeleteExport(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		exports, _, err := c.ListExports()
+		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Len(t, exports, 1)
 		require.Equal(t, exports[0], exportName)
 
-		_, err = c.DeleteExport(exportName)
+		_, err = c.DeleteExport(context.Background(), exportName)
 		require.NoError(t, err)
 
-		exports, _, err = c.ListExports()
+		exports, _, err = c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, exports)
 
 		// verify idempotence
-		_, err = c.DeleteExport(exportName)
+		_, err = c.DeleteExport(context.Background(), exportName)
 		require.NoError(t, err)
 	}, "successfully delete export")
 }
@@ -137,7 +137,7 @@ func TestDownloadExport(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		var buf bytes.Buffer
-		n, _, err := c.DownloadExport("export.zip", &buf, 0)
+		n, _, err := c.DownloadExport(context.Background(), "export.zip", &buf, 0)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.export.export_not_found.app_error")
 		require.Zero(t, n)
@@ -154,7 +154,7 @@ func TestDownloadExport(t *testing.T) {
 		err = os.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
 		require.NoError(t, err)
 
-		n, _, err := c.DownloadExport(exportName, &buf, 0)
+		n, _, err := c.DownloadExport(context.Background(), exportName, &buf, 0)
 		require.NoError(t, err)
 		require.Equal(t, len(data), int(n))
 		require.Equal(t, data, buf.Bytes())
@@ -172,7 +172,7 @@ func TestDownloadExport(t *testing.T) {
 		require.NoError(t, err)
 
 		offset := 1024 * 512
-		n, _, err := c.DownloadExport(exportName, &buf, int64(offset))
+		n, _, err := c.DownloadExport(context.Background(), exportName, &buf, int64(offset))
 		require.NoError(t, err)
 		require.Equal(t, len(data)-offset, int(n))
 		require.Equal(t, data[offset:], buf.Bytes())
@@ -203,7 +203,7 @@ func BenchmarkDownloadExport(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		outFilePath := filepath.Join(dataDir, fmt.Sprintf("export%d.zip", i))
 		outFile, _ := os.Create(outFilePath)
-		th.SystemAdminClient.DownloadExport(exportName, outFile, 0)
+		th.SystemAdminClient.DownloadExport(context.Background(), exportName, outFile, 0)
 		outFile.Close()
 		os.Remove(outFilePath)
 	}

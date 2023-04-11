@@ -18,16 +18,16 @@ func TestGetBrandImage(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, err := client.GetBrandImage()
+	_, resp, err := client.GetBrandImage(context.Background())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetBrandImage()
+	client.Logout(context.Background())
+	_, resp, err = client.GetBrandImage(context.Background())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, err = th.SystemAdminClient.GetBrandImage()
+	_, resp, err = th.SystemAdminClient.GetBrandImage(context.Background())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
@@ -40,14 +40,14 @@ func TestUploadBrandImage(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	resp, err := client.UploadBrandImage(data)
+	resp, err := client.UploadBrandImage(context.Background(), data)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// status code returns either forbidden or unauthorized
 	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
-	client.Logout()
-	resp, err = client.UploadBrandImage(data)
+	client.Logout(context.Background())
+	resp, err = client.UploadBrandImage(context.Background(), data)
 	require.Error(t, err)
 	if resp.StatusCode == http.StatusForbidden {
 		CheckForbiddenStatus(t, resp)
@@ -57,7 +57,7 @@ func TestUploadBrandImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	resp, err = th.SystemAdminClient.UploadBrandImage(data)
+	resp, err = th.SystemAdminClient.UploadBrandImage(context.Background(), data)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 }
@@ -69,7 +69,7 @@ func TestDeleteBrandImage(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	resp, err := th.SystemAdminClient.UploadBrandImage(data)
+	resp, err := th.SystemAdminClient.UploadBrandImage(context.Background(), data)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
@@ -83,11 +83,11 @@ func TestDeleteBrandImage(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	resp, err = th.SystemAdminClient.DeleteBrandImage()
+	resp, err = th.SystemAdminClient.DeleteBrandImage(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
-	resp, err = th.SystemAdminClient.DeleteBrandImage()
+	resp, err = th.SystemAdminClient.DeleteBrandImage(context.Background())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }

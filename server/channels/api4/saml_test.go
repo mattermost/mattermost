@@ -19,7 +19,7 @@ func TestGetSamlMetadata(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, err := client.GetSamlMetadata()
+	_, resp, err := client.GetSamlMetadata(context.Background())
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
@@ -70,7 +70,7 @@ func TestSamlResetId(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	numAffected, resp, err := th.SystemAdminClient.ResetSamlAuthDataToEmail(false, false, nil)
+	numAffected, resp, err := th.SystemAdminClient.ResetSamlAuthDataToEmail(context.Background(), false, false, nil)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 	require.Equal(t, int64(1), numAffected)

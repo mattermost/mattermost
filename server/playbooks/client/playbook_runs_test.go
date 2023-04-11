@@ -16,7 +16,7 @@ func ExamplePlaybookRunService_Get() {
 	ctx := context.Background()
 
 	client4 := model.NewAPIv4Client("http://localhost:8065")
-	client4.Login("test@example.com", "testtest")
+	client4.Login(context.Background(), "test@example.com", "testtest")
 
 	c, err := client.New(client4)
 	if err != nil {
@@ -36,12 +36,12 @@ func ExamplePlaybookRunService_List() {
 	ctx := context.Background()
 
 	client4 := model.NewAPIv4Client("http://localhost:8065")
-	_, _, err := client4.Login("test@example.com", "testtest")
+	_, _, err := client4.Login(context.Background(), "test@example.com", "testtest")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	teams, _, err := client4.GetAllTeams("", 0, 1)
+	teams, _, err := client4.GetAllTeams(context.Background(), "", 0, 1)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

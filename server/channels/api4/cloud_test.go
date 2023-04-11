@@ -207,7 +207,7 @@ func Test_GetSubscription(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionReturned, r, err := th.SystemAdminClient.GetSubscription()
+		subscriptionReturned, r, err := th.SystemAdminClient.GetSubscription(context.Background())
 
 		require.NoError(t, err)
 		require.Equal(t, subscriptionReturned, subscription)
@@ -276,7 +276,7 @@ func Test_requestTrial(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
+		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(context.Background(), &newValidBusinessEmail)
 
 		require.NoError(t, err)
 		require.Equal(t, subscriptionChanged, subscription)
@@ -306,7 +306,7 @@ func Test_requestTrial(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(&newValidBusinessEmail)
+		subscriptionChanged, r, err := th.SystemAdminClient.RequestCloudTrial(context.Background(), &newValidBusinessEmail)
 
 		require.NoError(t, err)
 		require.Equal(t, subscriptionChanged, subscription)
@@ -321,7 +321,7 @@ func Test_requestTrial(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		r, err := th.SystemAdminClient.DoAPIPutBytes("/cloud/request-trial", nil)
+		r, err := th.SystemAdminClient.DoAPIPutBytes(context.Background(), "/cloud/request-trial", nil)
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
@@ -350,7 +350,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		res, err := th.SystemAdminClient.ValidateBusinessEmail(&validBusinessEmail)
+		res, err := th.SystemAdminClient.ValidateBusinessEmail(context.Background(), &validBusinessEmail)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, res.StatusCode, "403")
 	})
@@ -375,7 +375,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		res, err := th.SystemAdminClient.ValidateBusinessEmail(&validBusinessEmail)
+		res, err := th.SystemAdminClient.ValidateBusinessEmail(context.Background(), &validBusinessEmail)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, res.StatusCode, "200")
 	})
@@ -388,7 +388,7 @@ func Test_validateBusinessEmail(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-business-email", nil)
+		r, err := th.SystemAdminClient.DoAPIPostBytes(context.Background(), "/cloud/validate-business-email", nil)
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
@@ -423,7 +423,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail()
+		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail(context.Background())
 		require.NoError(t, err)
 	})
 
@@ -459,7 +459,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail()
+		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail(context.Background())
 		require.NoError(t, err)
 	})
 
@@ -490,7 +490,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-workspace-business-email", nil)
+		r, err := th.SystemAdminClient.DoAPIPostBytes(context.Background(), "/cloud/validate-workspace-business-email", nil)
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")

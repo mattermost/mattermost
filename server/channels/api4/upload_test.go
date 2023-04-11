@@ -61,7 +61,7 @@ func TestCreateUpload(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		defer th.App.Srv().RemoveLicense()
 
-		u, resp, err := th.SystemAdminClient.CreateUpload(&model.UploadSession{
+		u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), &model.UploadSession{
 			ChannelId: th.BasicChannel.Id,
 			Filename:  "upload",
 			FileSize:  8 * 1024 * 1024,
@@ -108,7 +108,7 @@ func TestCreateUpload(t *testing.T) {
 				FileSize: info.Size(),
 				Type:     model.UploadTypeImport,
 			}
-			u, _, err := th.SystemAdminClient.CreateUpload(us)
+			u, _, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
 			require.NoError(t, err)
 			require.NotEmpty(t, u)
 		})
@@ -266,7 +266,7 @@ func TestUploadData(t *testing.T) {
 		_, appErr := th.App.CreateUploadSession(th.Context, us2)
 		require.Nil(t, appErr)
 
-		info, resp, err := th.SystemAdminClient.UploadData(us2.Id, bytes.NewReader(data))
+		info, resp, err := th.SystemAdminClient.UploadData(context.Background(), us2.Id, bytes.NewReader(data))
 		require.Nil(t, info)
 		CheckErrorID(t, err, "api.file.cloud_upload.app_error")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -377,7 +377,7 @@ func TestUploadDataMultipart(t *testing.T) {
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
-		res, err := th.Client.HTTPClient.Do(context.Background(), req)
+		res, err := th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
 		var info model.FileInfo
 		err = json.NewDecoder(res.Body).Decode(&info)
@@ -403,7 +403,7 @@ func TestUploadDataMultipart(t *testing.T) {
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
-		res, err := th.Client.HTTPClient.Do(context.Background(), req)
+		res, err := th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusNoContent, res.StatusCode)
 		require.Equal(t, int64(0), res.ContentLength)
@@ -414,7 +414,7 @@ func TestUploadDataMultipart(t *testing.T) {
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
-		res, err = th.Client.HTTPClient.Do(context.Background(), req)
+		res, err = th.Client.HTTPClient.Do(req)
 		require.NoError(t, err)
 		var info model.FileInfo
 		err = json.NewDecoder(res.Body).Decode(&info)

@@ -26,12 +26,12 @@ func TestGetConfig(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	_, resp, err := client.GetConfig()
+	_, resp, err := client.GetConfig(context.Background())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		cfg, _, err := client.GetConfig()
+		cfg, _, err := client.GetConfig(context.Background())
 		require.NoError(t, err)
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
@@ -123,20 +123,20 @@ func TestReloadConfig(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.ReloadConfig()
+		resp, err := client.ReloadConfig(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err := client.ReloadConfig()
+		_, err := client.ReloadConfig(context.Background())
 		require.NoError(t, err)
 	}, "as system admin and local mode")
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := client.ReloadConfig()
+		resp, err := client.ReloadConfig(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -150,7 +150,7 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 	require.NoError(t, err)
 
-	_, resp, err := client.UpdateConfig(cfg)
+	_, resp, err := client.UpdateConfig(context.Background(), cfg)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -158,14 +158,14 @@ func TestUpdateConfig(t *testing.T) {
 		SiteName := th.App.Config().TeamSettings.SiteName
 
 		*cfg.TeamSettings.SiteName = "MyFancyName"
-		cfg, _, err = client.UpdateConfig(cfg)
+		cfg, _, err = client.UpdateConfig(context.Background(), cfg)
 		require.NoError(t, err)
 
 		require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		//Revert the change
 		cfg.TeamSettings.SiteName = SiteName
-		cfg, _, err = client.UpdateConfig(cfg)
+		cfg, _, err = client.UpdateConfig(context.Background(), cfg)
 		require.NoError(t, err)
 
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
@@ -180,7 +180,7 @@ func TestUpdateConfig(t *testing.T) {
 			badcfg := cfg.Clone()
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-			_, resp, err = client.UpdateConfig(badcfg)
+			_, resp, err = client.UpdateConfig(context.Background(), badcfg)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 			CheckErrorID(t, err, "model.config.is_valid.password_length.app_error")
@@ -190,13 +190,13 @@ func TestUpdateConfig(t *testing.T) {
 			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
 
-			cfg, _, err = client.UpdateConfig(cfg)
+			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
 			cfg.PluginSettings.EnableUploads = nil
-			cfg, _, err = client.UpdateConfig(cfg)
+			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
@@ -206,13 +206,13 @@ func TestUpdateConfig(t *testing.T) {
 			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
 
-			cfg, _, err = client.UpdateConfig(cfg)
+			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 
 			cfg.PluginSettings.SignaturePublicKeyFiles = nil
-			cfg, _, err = client.UpdateConfig(cfg)
+			cfg, _, err = client.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
@@ -463,14 +463,14 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	})
 
 	t.Run("Restrict flag should be ignored by local mode", func(t *testing.T) {
-		originalCfg, _, err := th.LocalClient.GetConfig()
+		originalCfg, _, err := th.LocalClient.GetConfig(context.Background())
 		require.NoError(t, err)
 
 		cfg := originalCfg.Clone()
 		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
 		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
 
-		returnedCfg, _, err := th.LocalClient.UpdateConfig(cfg)
+		returnedCfg, _, err := th.LocalClient.UpdateConfig(context.Background(), cfg)
 		require.NoError(t, err)
 
 		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
@@ -531,7 +531,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	t.Run("as system admin", func(t *testing.T) {
 		SystemAdminClient := th.SystemAdminClient
 
-		envConfig, _, err := SystemAdminClient.GetEnvironmentConfig()
+		envConfig, _, err := SystemAdminClient.GetEnvironmentConfig(context.Background())
 		require.NoError(t, err)
 
 		serviceSettings, ok := envConfig["ServiceSettings"]
@@ -562,7 +562,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		TeamAdminClient := th.CreateClient()
 		th.LoginTeamAdminWithClient(TeamAdminClient)
 
-		envConfig, _, err := TeamAdminClient.GetEnvironmentConfig()
+		envConfig, _, err := TeamAdminClient.GetEnvironmentConfig(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, envConfig)
 	})
@@ -570,7 +570,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	t.Run("as regular user", func(t *testing.T) {
 		client := th.Client
 
-		envConfig, _, err := client.GetEnvironmentConfig()
+		envConfig, _, err := client.GetEnvironmentConfig(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, envConfig)
 	})
@@ -578,7 +578,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	t.Run("as not-regular user", func(t *testing.T) {
 		client := th.CreateClient()
 
-		_, resp, err := client.GetEnvironmentConfig()
+		_, resp, err := client.GetEnvironmentConfig(context.Background())
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -598,7 +598,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.Client
 
-		config, _, err := client.GetOldClientConfig("")
+		config, _, err := client.GetOldClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -612,7 +612,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 		client := th.CreateClient()
 
-		config, _, err := client.GetOldClientConfig("")
+		config, _, err := client.GetOldClientConfig(context.Background(), "")
 		require.NoError(t, err)
 
 		require.NotEmpty(t, config["Version"], "config not returned correctly")
@@ -622,7 +622,7 @@ func TestGetOldClientConfig(t *testing.T) {
 	t.Run("missing format", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoAPIGet("/config/client", "")
+		resp, err := client.DoAPIGet(context.Background(), "/config/client", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -630,7 +630,7 @@ func TestGetOldClientConfig(t *testing.T) {
 	t.Run("invalid format", func(t *testing.T) {
 		client := th.Client
 
-		resp, err := client.DoAPIGet("/config/client?format=junk", "")
+		resp, err := client.DoAPIGet(context.Background(), "/config/client?format=junk", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -671,12 +671,12 @@ func TestPatchConfig(t *testing.T) {
 			ConsoleLevel: model.NewString("INFO"),
 		}}
 
-		oldConfig, _, _ := th.LocalClient.GetConfig()
-		updatedConfig, _, _ := th.LocalClient.PatchConfig(&config)
+		oldConfig, _, _ := th.LocalClient.GetConfig(context.Background())
+		updatedConfig, _, _ := th.LocalClient.PatchConfig(context.Background(), &config)
 
 		assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
 		// reset the config
-		_, _, err := th.LocalClient.UpdateConfig(oldConfig)
+		_, _, err := th.LocalClient.UpdateConfig(context.Background(), oldConfig)
 		require.NoError(t, err)
 	})
 
@@ -686,7 +686,7 @@ func TestPatchConfig(t *testing.T) {
 				MinimumLength: model.NewInt(4),
 			}}
 
-			_, response, err := client.PatchConfig(&config)
+			_, response, err := client.PatchConfig(context.Background(), &config)
 
 			assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 			assert.Error(t, err)
@@ -697,7 +697,7 @@ func TestPatchConfig(t *testing.T) {
 			*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
 
-			oldConfig, _, err := client.GetConfig()
+			oldConfig, _, err := client.GetConfig(context.Background())
 			require.NoError(t, err)
 
 			assert.False(t, *oldConfig.PasswordSettings.Lowercase)
@@ -721,10 +721,10 @@ func TestPatchConfig(t *testing.T) {
 				},
 			}
 
-			_, response, err := client.PatchConfig(&config)
+			_, response, err := client.PatchConfig(context.Background(), &config)
 			require.NoError(t, err)
 
-			updatedConfig, _, err := client.GetConfig()
+			updatedConfig, _, err := client.GetConfig(context.Background())
 			require.NoError(t, err)
 			assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
 			assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
@@ -733,7 +733,7 @@ func TestPatchConfig(t *testing.T) {
 			assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
 
 			// reset the config
-			_, _, err = client.UpdateConfig(oldConfig)
+			_, _, err = client.UpdateConfig(context.Background(), oldConfig)
 			require.NoError(t, err)
 		})
 
@@ -742,7 +742,7 @@ func TestPatchConfig(t *testing.T) {
 				Symbol: model.NewBool(true),
 			}}
 
-			updatedConfig, _, err := client.PatchConfig(&config)
+			updatedConfig, _, err := client.PatchConfig(context.Background(), &config)
 			require.NoError(t, err)
 
 			assert.Equal(t, model.FakeSetting, *updatedConfig.SqlSettings.DataSource)
@@ -753,7 +753,7 @@ func TestPatchConfig(t *testing.T) {
 				EnableUploads: model.NewBool(true),
 			}}
 
-			updatedConfig, resp, err := client.PatchConfig(&config)
+			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
 			if client == th.LocalClient {
 				require.NoError(t, err)
 				CheckOKStatus(t, resp)
@@ -856,7 +856,7 @@ func TestMigrateConfig(t *testing.T) {
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 
-		_, err = th.LocalClient.MigrateConfig("from.json", "to.json")
+		_, err = th.LocalClient.MigrateConfig(context.Background(), "from.json", "to.json")
 		require.NoError(t, err)
 	})
 }

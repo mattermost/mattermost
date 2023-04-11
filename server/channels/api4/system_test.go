@@ -33,7 +33,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, _, err := client.GetPing()
+			status, _, err := client.GetPing(context.Background())
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
@@ -45,7 +45,7 @@ func TestGetPing(t *testing.T) {
 			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-			status, resp, err := client.GetPing()
+			status, resp, err := client.GetPing(context.Background())
 			require.Error(t, err)
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.StatusUnhealthy, status)
@@ -54,7 +54,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, _, err := client.GetPingWithServerStatus()
+			status, _, err := client.GetPingWithServerStatus(context.Background())
 			require.NoError(t, err)
 			assert.Equal(t, model.StatusOk, status)
 		})
@@ -62,7 +62,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet("/system/ping", "")
+		resp, err := client.DoAPIGet(context.Background(), "/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := io.ReadAll(resp.Body)
@@ -75,7 +75,7 @@ func TestGetPing(t *testing.T) {
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
 
-		resp, err = client.DoAPIGet("/system/ping", "")
+		resp, err = client.DoAPIGet(context.Background(), "/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = io.ReadAll(resp.Body)
@@ -86,7 +86,7 @@ func TestGetPing(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.App.ReloadConfig()
-		resp, err := client.DoAPIGet("/system/ping?device_id=platform:id", "")
+		resp, err := client.DoAPIGet(context.Background(), "/system/ping?device_id=platform:id", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		var respMap map[string]string
@@ -116,12 +116,12 @@ func TestGetAudits(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetAudits(context.Background(), -1, -1, "")
 	require.NoError(t, err)
 
-	_, resp, err := client.GetAudits(0, 100, "")
+	_, resp, err := client.GetAudits(context.Background(), 0, 100, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout()
-	_, resp, err = client.GetAudits(0, 100, "")
+	client.Logout(context.Background())
+	_, resp, err = client.GetAudits(context.Background(), 0, 100, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -163,7 +163,7 @@ func TestEmailTest(t *testing.T) {
 	}
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestEmail(&config)
+		resp, err := client.TestEmail(context.Background(), &config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -236,7 +236,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 
 	t.Run("As a system role, not system admin", func(t *testing.T) {
-		_, resp, err := th.SystemManagerClient.GenerateSupportPacket()
+		_, resp, err := th.SystemManagerClient.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -289,7 +289,7 @@ func TestSiteURLTest(t *testing.T) {
 	})
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestSiteURL(validSiteURL)
+		resp, err := client.TestSiteURL(context.Background(), validSiteURL)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -297,7 +297,7 @@ func TestSiteURLTest(t *testing.T) {
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		resp, err := client.TestSiteURL(validSiteURL)
+		resp, err := client.TestSiteURL(context.Background(), validSiteURL)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -309,7 +309,7 @@ func TestDatabaseRecycle(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.DatabaseRecycle()
+		resp, err := client.DatabaseRecycle(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -334,7 +334,7 @@ func TestInvalidateCaches(t *testing.T) {
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.InvalidateCaches()
+		resp, err := client.InvalidateCaches(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -365,7 +365,7 @@ func TestGetLogs(t *testing.T) {
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(0, 10)
+		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
 		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
@@ -373,11 +373,11 @@ func TestGetLogs(t *testing.T) {
 			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
 		}
 
-		logs, _, err = c.GetLogs(1, 10)
+		logs, _, err = c.GetLogs(context.Background(), 1, 10)
 		require.NoError(t, err)
 		require.Len(t, logs, 10)
 
-		logs, _, err = c.GetLogs(-1, -1)
+		logs, _, err = c.GetLogs(context.Background(), -1, -1)
 		require.NoError(t, err)
 		require.NotEmpty(t, logs, "should not be empty")
 	})
@@ -414,24 +414,24 @@ func TestPostLog(t *testing.T) {
 	message["level"] = "ERROR"
 	message["message"] = "this is a test"
 
-	_, _, err := client.PostLog(message)
+	_, _, err := client.PostLog(context.Background(), message)
 	require.NoError(t, err)
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = false
 
-	_, _, err = client.PostLog(message)
+	_, _, err = client.PostLog(context.Background(), message)
 	require.NoError(t, err)
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = true
 
-	client.Logout()
+	client.Logout(context.Background())
 
-	_, _, err = client.PostLog(message)
+	_, _, err = client.PostLog(context.Background(), message)
 	require.NoError(t, err)
 
 	*th.App.Config().ServiceSettings.EnableDeveloper = false
 
-	_, resp, err := client.PostLog(message)
+	_, resp, err := client.PostLog(context.Background(), message)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -446,7 +446,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	rows, resp, err := client.GetAnalyticsOld("", "")
+	rows, resp, err := client.GetAnalyticsOld(context.Background(), "", "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, rows, "should be nil")
@@ -505,8 +505,8 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(0), rows2[5].Value)
 
-	client.Logout()
-	_, resp, err = client.GetAnalyticsOld("", th.BasicTeam.Id)
+	client.Logout(context.Background())
+	_, resp, err = client.GetAnalyticsOld(context.Background(), "", th.BasicTeam.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -545,7 +545,7 @@ func TestS3TestConnection(t *testing.T) {
 	}
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.TestS3Connection(&config)
+		resp, err := client.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -611,7 +611,7 @@ func TestSupportedTimezones(t *testing.T) {
 	client := th.Client
 
 	supportedTimezonesFromConfig := th.App.Timezones().GetSupported()
-	supportedTimezones, _, err := client.GetSupportedTimezone()
+	supportedTimezones, _, err := client.GetSupportedTimezone(context.Background())
 
 	require.NoError(t, err)
 	assert.Equal(t, supportedTimezonesFromConfig, supportedTimezones)
@@ -669,8 +669,8 @@ func TestRedirectLocation(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, actual, "")
 
-	client.Logout()
-	_, resp, err = client.GetRedirectLocation("", "")
+	client.Logout(context.Background())
+	_, resp, err = client.GetRedirectLocation(context.Background(), "", "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
@@ -689,7 +689,7 @@ func TestSetServerBusy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, err := c.SetServerBusy(secs)
+		_, err := c.SetServerBusy(context.Background(), secs)
 		require.NoError(t, err)
 		require.True(t, th.App.Srv().Platform().Busy.IsBusy(), "server should be marked busy")
 	}, "as system admin")
@@ -702,7 +702,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
-			resp, err := c.SetServerBusy(p)
+			resp, err := c.SetServerBusy(context.Background(), p)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 			require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
@@ -724,7 +724,7 @@ func TestClearServerBusy(t *testing.T) {
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, err := c.ClearServerBusy()
+		_, err := c.ClearServerBusy(context.Background())
 		require.NoError(t, err)
 		require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy")
 	}, "as system admin")
@@ -743,7 +743,7 @@ func TestGetServerBusy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		sbs, _, err := c.GetServerBusy()
+		sbs, _, err := c.GetServerBusy(context.Background())
 		expires := time.Unix(sbs.Expires, 0)
 		require.NoError(t, err)
 		require.Greater(t, expires.Unix(), time.Now().Unix())
@@ -979,7 +979,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, resp, err := c.GetAppliedSchemaMigrations()
+		_, resp, err := c.GetAppliedSchemaMigrations(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})

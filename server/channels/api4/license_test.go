@@ -26,22 +26,22 @@ func TestGetOldClientLicense(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	license, _, err := client.GetOldClientLicense("")
+	license, _, err := client.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)
 
 	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
 
-	client.Logout()
+	client.Logout(context.Background())
 
-	_, _, err = client.GetOldClientLicense("")
+	_, _, err = client.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)
 
-	resp, err := client.DoAPIGet("/license/client", "")
+	resp, err := client.DoAPIGet(context.Background(), "/license/client", "")
 	require.Error(t, err, "get /license/client did not return an error")
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
 		"expected 400 bad request")
 
-	resp, err = client.DoAPIGet("/license/client?format=junk", "")
+	resp, err = client.DoAPIGet(context.Background(), "/license/client?format=junk", "")
 	require.Error(t, err, "get /license/client?format=junk did not return an error")
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode,
 		"expected 400 Bad Request")
@@ -59,13 +59,13 @@ func TestUploadLicenseFile(t *testing.T) {
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.UploadLicenseFile([]byte{})
+		resp, err := client.UploadLicenseFile(context.Background(), []byte{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		resp, err := c.UploadLicenseFile([]byte{})
+		resp, err := c.UploadLicenseFile(context.Background(), []byte{})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	}, "as system admin user")
@@ -80,7 +80,7 @@ func TestUploadLicenseFile(t *testing.T) {
 
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		resp, err := LocalClient.UploadLicenseFile([]byte{})
+		resp, err := LocalClient.UploadLicenseFile(context.Background(), []byte{})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -198,13 +198,13 @@ func TestRemoveLicenseFile(t *testing.T) {
 	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
-		resp, err := client.RemoveLicenseFile()
+		resp, err := client.RemoveLicenseFile(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, err := c.RemoveLicenseFile()
+		_, err := c.RemoveLicenseFile(context.Background())
 		require.NoError(t, err)
 	}, "as system admin user")
 
@@ -219,7 +219,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-		_, err := LocalClient.RemoveLicenseFile()
+		_, err := LocalClient.RemoveLicenseFile(context.Background())
 		require.NoError(t, err)
 	})
 }

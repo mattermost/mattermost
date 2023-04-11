@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -59,7 +60,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
 	} {
 
-		openGraph, _, err := client.OpenGraph(ts.URL + data["path"].(string))
+		openGraph, _, err := client.OpenGraph(context.Background(), ts.URL+data["path"].(string))
 		require.NoError(t, err)
 
 		require.Equalf(t, openGraph["title"], data["title"].(string),
@@ -70,7 +71,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
-	_, resp, err := client.OpenGraph(ts.URL + "/og-data/")
+	_, resp, err := client.OpenGraph(context.Background(), ts.URL+"/og-data/")
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }

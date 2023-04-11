@@ -141,7 +141,7 @@ func TestPatchBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			_, resp, err := client.PatchBot(model.NewId(), &model.BotPatch{})
+			_, resp, err := client.PatchBot(context.Background(), model.NewId(), &model.BotPatch{})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -173,7 +173,7 @@ func TestPatchBot(t *testing.T) {
 				DisplayName: sToP("an updated bot"),
 				Description: sToP("updated bot"),
 			}
-			patchedBot, patchResp, err2 := client.PatchBot(createdBot.UserId, botPatch)
+			patchedBot, patchResp, err2 := client.PatchBot(context.Background(), createdBot.UserId, botPatch)
 			require.NoError(t, err2)
 			CheckOKStatus(t, patchResp)
 			require.Equal(t, *botPatch.Username, patchedBot.Username)
@@ -182,7 +182,7 @@ func TestPatchBot(t *testing.T) {
 			require.Equal(t, th.BasicUser.Id, patchedBot.OwnerId)
 		}, "bot created by user")
 
-		createdBotSystemAdmin, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+		createdBotSystemAdmin, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "another bot",
 			Description: "bot created by system admin user",
@@ -197,7 +197,7 @@ func TestPatchBot(t *testing.T) {
 				DisplayName: sToP("an updated bot"),
 				Description: sToP("updated bot"),
 			}
-			patchedBot, patchResp, err := client.PatchBot(createdBotSystemAdmin.UserId, botPatch)
+			patchedBot, patchResp, err := client.PatchBot(context.Background(), createdBotSystemAdmin.UserId, botPatch)
 			require.NoError(t, err)
 			CheckOKStatus(t, patchResp)
 			require.Equal(t, *botPatch.Username, patchedBot.Username)
@@ -216,7 +216,7 @@ func TestPatchBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		createdBot, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "a bot",
 			Description: "bot",
@@ -240,7 +240,7 @@ func TestPatchBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		createdBot, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "a bot",
 			Description: "bot",
@@ -264,7 +264,7 @@ func TestPatchBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		createdBot, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "a bot",
 			Description: "bot",
@@ -484,7 +484,7 @@ func TestGetBot(t *testing.T) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
 
-	bot1, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	bot1, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "a bot",
 		Description: "the first bot",
@@ -493,7 +493,7 @@ func TestGetBot(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot1.UserId)
 
-	bot2, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	bot2, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "another bot",
 		Description: "the second bot",
@@ -502,14 +502,14 @@ func TestGetBot(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot2.UserId)
 
-	deletedBot, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	deletedBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		Description: "a deleted bot",
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(deletedBot.UserId)
-	deletedBot, resp, err = th.SystemAdminClient.DisableBot(deletedBot.UserId)
+	deletedBot, resp, err = th.SystemAdminClient.DisableBot(context.Background(), deletedBot.UserId)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -638,7 +638,7 @@ func TestGetBots(t *testing.T) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
 
-	bot1, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	bot1, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "a bot",
 		Description: "the first bot",
@@ -647,18 +647,18 @@ func TestGetBots(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot1.UserId)
 
-	deletedBot1, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	deletedBot1, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		Description: "a deleted bot",
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(deletedBot1.UserId)
-	deletedBot1, resp, err = th.SystemAdminClient.DisableBot(deletedBot1.UserId)
+	deletedBot1, resp, err = th.SystemAdminClient.DisableBot(context.Background(), deletedBot1.UserId)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
-	bot2, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	bot2, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "another bot",
 		Description: "the second bot",
@@ -667,7 +667,7 @@ func TestGetBots(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot2.UserId)
 
-	bot3, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	bot3, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "another bot",
 		Description: "the third bot",
@@ -676,14 +676,14 @@ func TestGetBots(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot3.UserId)
 
-	deletedBot2, resp, err := th.SystemAdminClient.CreateBot(&model.Bot{
+	deletedBot2, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
 		Description: "a deleted bot",
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(deletedBot2.UserId)
-	deletedBot2, resp, err = th.SystemAdminClient.DisableBot(deletedBot2.UserId)
+	deletedBot2, resp, err = th.SystemAdminClient.DisableBot(context.Background(), deletedBot2.UserId)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -702,7 +702,7 @@ func TestGetBots(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
 	})
-	resp, err = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
+	resp, err = th.SystemAdminClient.DeleteUser(context.Background(), th.BasicUser2.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -715,7 +715,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{bot1, bot2, bot3, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBots(0, 10, "")
+			bots, resp, err := client.GetBots(context.Background(), 0, 10, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -735,7 +735,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{bot1}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBots(0, 1, "")
+			bots, resp, err := client.GetBots(context.Background(), 0, 1, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -755,7 +755,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{bot3, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBots(1, 2, "")
+			bots, resp, err := client.GetBots(context.Background(), 1, 2, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -775,7 +775,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBots(2, 2, "")
+			bots, resp, err := client.GetBots(context.Background(), 2, 2, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -795,7 +795,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBotsIncludeDeleted(0, 10, "")
+			bots, resp, err := client.GetBotsIncludeDeleted(context.Background(), 0, 10, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -815,7 +815,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{bot1}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBotsIncludeDeleted(0, 1, "")
+			bots, resp, err := client.GetBotsIncludeDeleted(context.Background(), 0, 1, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -835,7 +835,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{bot2, bot3}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBotsIncludeDeleted(1, 2, "")
+			bots, resp, err := client.GetBotsIncludeDeleted(context.Background(), 1, 2, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -855,7 +855,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{deletedBot2, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBotsIncludeDeleted(2, 2, "")
+			bots, resp, err := client.GetBotsIncludeDeleted(context.Background(), 2, 2, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -875,7 +875,7 @@ func TestGetBots(t *testing.T) {
 
 		expectedBotList := []*model.Bot{orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			bots, resp, err := client.GetBotsOrphaned(0, 10, "")
+			bots, resp, err := client.GetBotsOrphaned(context.Background(), 0, 10, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, expectedBotList, bots)
@@ -905,7 +905,7 @@ func TestDisableBot(t *testing.T) {
 		defer th.TearDown()
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, err := client.DisableBot(model.NewId())
+			_, resp, err := client.DisableBot(context.Background(), model.NewId())
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -983,7 +983,7 @@ func TestDisableBot(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 			defer th.App.PermanentDeleteBot(bot.UserId)
 
-			disabledBot, resp, err := client.DisableBot(bot.UserId)
+			disabledBot, resp, err := client.DisableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			bot.UpdateAt = disabledBot.UpdateAt
@@ -991,13 +991,13 @@ func TestDisableBot(t *testing.T) {
 			require.Equal(t, bot, disabledBot)
 
 			// Check bot disabled
-			disab, resp, err := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
+			disab, resp, err := th.SystemAdminClient.GetBotIncludeDeleted(context.Background(), bot.UserId, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.NotZero(t, disab.DeleteAt)
 
 			// Disabling should be idempotent.
-			disabledBot2, resp, err := client.DisableBot(bot.UserId)
+			disabledBot2, resp, err := client.DisableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, bot, disabledBot2)
@@ -1037,7 +1037,7 @@ func TestEnableBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		_, resp, err = th.SystemAdminClient.DisableBot(createdBot.UserId)
+		_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), createdBot.UserId)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1067,7 +1067,7 @@ func TestEnableBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(createdBot.UserId)
 
-		_, resp, err = th.SystemAdminClient.DisableBot(createdBot.UserId)
+		_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), createdBot.UserId)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1096,11 +1096,11 @@ func TestEnableBot(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 			defer th.App.PermanentDeleteBot(bot.UserId)
 
-			_, resp, err = th.SystemAdminClient.DisableBot(bot.UserId)
+			_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 
-			enabledBot1, resp, err := client.EnableBot(bot.UserId)
+			enabledBot1, resp, err := client.EnableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			bot.UpdateAt = enabledBot1.UpdateAt
@@ -1108,13 +1108,13 @@ func TestEnableBot(t *testing.T) {
 			require.Equal(t, bot, enabledBot1)
 
 			// Check bot enabled
-			enab, resp, err := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
+			enab, resp, err := th.SystemAdminClient.GetBotIncludeDeleted(context.Background(), bot.UserId, "")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Zero(t, enab.DeleteAt)
 
 			// Disabling should be idempotent.
-			enabledBot2, resp, err := client.EnableBot(bot.UserId)
+			enabledBot2, resp, err := client.EnableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			require.Equal(t, bot, enabledBot2)
@@ -1128,7 +1128,7 @@ func TestAssignBot(t *testing.T) {
 
 	t.Run("claim non-existent bot", func(t *testing.T) {
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp, err := client.AssignBot(model.NewId(), model.NewId())
+			_, resp, err := client.AssignBot(context.Background(), model.NewId(), model.NewId())
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -1157,7 +1157,7 @@ func TestAssignBot(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.BasicUser.Id, before.OwnerId)
 
-		_, resp, err = th.SystemAdminClient.AssignBot(bot.UserId, th.SystemAdminUser.Id)
+		_, resp, err = th.SystemAdminClient.AssignBot(context.Background(), bot.UserId, th.SystemAdminUser.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1167,17 +1167,17 @@ func TestAssignBot(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 
 		// System admin can see creator ID has changed
-		after, resp, err := th.SystemAdminClient.GetBot(bot.UserId, "")
+		after, resp, err := th.SystemAdminClient.GetBot(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.SystemAdminUser.Id, after.OwnerId)
 
 		// Assign back to user without permissions to manage, using local mode
-		_, resp, err = th.LocalClient.AssignBot(bot.UserId, th.BasicUser.Id)
+		_, resp, err = th.LocalClient.AssignBot(context.Background(), bot.UserId, th.BasicUser.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		after, resp, err = th.SystemAdminClient.GetBot(bot.UserId, "")
+		after, resp, err = th.SystemAdminClient.GetBot(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.BasicUser.Id, after.OwnerId)
@@ -1245,7 +1245,7 @@ func TestAssignBot(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		after, resp, err := th.SystemAdminClient.GetBot(bot.UserId, "")
+		after, resp, err := th.SystemAdminClient.GetBot(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.BasicUser2.Id, after.OwnerId)
@@ -1317,21 +1317,21 @@ func TestConvertBotToUser(t *testing.T) {
 			Username:    GenerateTestUsername(),
 			Description: "bot",
 		}
-		bot, resp, err := th.SystemAdminClient.CreateBot(bot)
+		bot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		user, resp, err := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+		user, resp, err := client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{}, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, user)
 
-		user, _, err = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
 
-		_, resp, err = client.GetBot(bot.UserId, "")
+		_, resp, err = client.GetBot(context.Background(), bot.UserId, "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
@@ -1339,17 +1339,17 @@ func TestConvertBotToUser(t *testing.T) {
 			Username:    GenerateTestUsername(),
 			Description: "systemAdminBot",
 		}
-		bot, resp, err = th.SystemAdminClient.CreateBot(bot)
+		bot, resp, err = th.SystemAdminClient.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		user, _, err = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
+		user, _, err = client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.Equal(t, bot.UserId, user.Id)
 		require.Contains(t, user.GetRoles(), model.SystemAdminRoleId)
 
-		_, resp, err = client.GetBot(bot.UserId, "")
+		_, resp, err = client.GetBot(context.Background(), bot.UserId, "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})

@@ -4,6 +4,7 @@
 package manualtesting
 
 import (
+	"context"
 	"errors"
 	"hash/fnv"
 	"math/rand"
@@ -107,7 +108,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Nickname: username[0],
 			Password: slashcommands.UserPassword}
 
-		user, _, err = client.CreateUser(user)
+		user, _, err = client.CreateUser(context.Background(), user)
 		if err != nil {
 			var appErr *model.AppError
 			ok = errors.As(err, &appErr)
@@ -126,7 +127,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, _, err = client.LoginById(user.Id, slashcommands.UserPassword)
+		_, _, err = client.LoginById(context.Background(), user.Id, slashcommands.UserPassword)
 		if err != nil {
 			var appErr *model.AppError
 			ok = errors.As(err, &appErr)

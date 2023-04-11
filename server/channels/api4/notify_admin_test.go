@@ -116,7 +116,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = false })
 
-		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
 		require.Equal(t, err.Error(), ": Internal error during cloud api request.")
@@ -150,7 +150,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, statusCode)
 
-		statusCode, err = th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+		statusCode, err = th.SystemAdminClient.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, statusCode)
 	})

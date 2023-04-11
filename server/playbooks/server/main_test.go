@@ -222,7 +222,7 @@ func (e *TestEnvironment) CreateClients() {
 	siteURL := fmt.Sprintf("http://localhost:%v", e.A.Srv().ListenAddr.Port)
 
 	serverAdminClient := model.NewAPIv4Client(siteURL)
-	_, _, err := serverAdminClient.Login(admin.Email, userPassword)
+	_, _, err := serverAdminClient.Login(context.Background(), admin.Email, userPassword)
 	require.NoError(e.T, err)
 
 	playbooksAdminClient, err := client.New(serverAdminClient)
@@ -232,7 +232,7 @@ func (e *TestEnvironment) CreateClients() {
 	e.PlaybooksAdminClient = playbooksAdminClient
 
 	serverClient := model.NewAPIv4Client(siteURL)
-	_, _, err = serverClient.Login(user.Email, userPassword)
+	_, _, err = serverClient.Login(context.Background(), user.Email, userPassword)
 	require.NoError(e.T, err)
 
 	playbooksClient, err := client.New(serverClient)
@@ -243,14 +243,14 @@ func (e *TestEnvironment) CreateClients() {
 	require.NoError(e.T, err)
 
 	serverClient2 := model.NewAPIv4Client(siteURL)
-	_, _, err = serverClient2.Login(user2.Email, userPassword)
+	_, _, err = serverClient2.Login(context.Background(), user2.Email, userPassword)
 	require.NoError(e.T, err)
 
 	playbooksClient2, err := client.New(serverClient2)
 	require.NoError(e.T, err)
 
 	serverClientNotInTeam := model.NewAPIv4Client(siteURL)
-	_, _, err = serverClientNotInTeam.Login(notInTeam.Email, userPassword)
+	_, _, err = serverClientNotInTeam.Login(context.Background(), notInTeam.Email, userPassword)
 	require.NoError(e.T, err)
 
 	playbooksClientNotInTeam, err := client.New(serverClientNotInTeam)
@@ -266,7 +266,7 @@ func (e *TestEnvironment) CreateClients() {
 func (e *TestEnvironment) CreateBasicServer() {
 	e.T.Helper()
 
-	team, _, err := e.ServerAdminClient.CreateTeam(&model.Team{
+	team, _, err := e.ServerAdminClient.CreateTeam(context.Background(), &model.Team{
 		DisplayName: "basic",
 		Name:        "basic",
 		Email:       "success+playbooks@simulator.amazonses.com",
@@ -274,12 +274,12 @@ func (e *TestEnvironment) CreateBasicServer() {
 	})
 	require.NoError(e.T, err)
 
-	_, _, err = e.ServerAdminClient.AddTeamMember(team.Id, e.RegularUser.Id)
+	_, _, err = e.ServerAdminClient.AddTeamMember(context.Background(), team.Id, e.RegularUser.Id)
 	require.NoError(e.T, err)
-	_, _, err = e.ServerAdminClient.AddTeamMember(team.Id, e.RegularUser2.Id)
+	_, _, err = e.ServerAdminClient.AddTeamMember(context.Background(), team.Id, e.RegularUser2.Id)
 	require.NoError(e.T, err)
 
-	pubChannel, _, err := e.ServerAdminClient.CreateChannel(&model.Channel{
+	pubChannel, _, err := e.ServerAdminClient.CreateChannel(context.Background(), &model.Channel{
 		DisplayName: "testpublic1",
 		Name:        "testpublic1",
 		Type:        model.ChannelTypeOpen,
@@ -287,17 +287,17 @@ func (e *TestEnvironment) CreateBasicServer() {
 	})
 	require.NoError(e.T, err)
 
-	pubPost, _, err := e.ServerAdminClient.CreatePost(&model.Post{
+	pubPost, _, err := e.ServerAdminClient.CreatePost(context.Background(), &model.Post{
 		UserId:    e.AdminUser.Id,
 		ChannelId: pubChannel.Id,
 		Message:   "this is a public channel post by a system admin",
 	})
 	require.NoError(e.T, err)
 
-	_, _, err = e.ServerAdminClient.AddChannelMember(pubChannel.Id, e.RegularUser.Id)
+	_, _, err = e.ServerAdminClient.AddChannelMember(context.Background(), pubChannel.Id, e.RegularUser.Id)
 	require.NoError(e.T, err)
 
-	privateChannel, _, err := e.ServerAdminClient.CreateChannel(&model.Channel{
+	privateChannel, _, err := e.ServerAdminClient.CreateChannel(context.Background(), &model.Channel{
 		DisplayName: "testprivate1",
 		Name:        "testprivate1",
 		Type:        model.ChannelTypePrivate,
@@ -305,7 +305,7 @@ func (e *TestEnvironment) CreateBasicServer() {
 	})
 	require.NoError(e.T, err)
 
-	privatePost, _, err := e.ServerAdminClient.CreatePost(&model.Post{
+	privatePost, _, err := e.ServerAdminClient.CreatePost(context.Background(), &model.Post{
 		UserId:    e.AdminUser.Id,
 		ChannelId: privateChannel.Id,
 		Message:   "this is a private channel post by a system admin",
@@ -319,7 +319,7 @@ func (e *TestEnvironment) CreateBasicServer() {
 	e.BasicPrivateChannelPost = privatePost
 
 	// Add a second team to test cross-team features
-	team2, _, err := e.ServerAdminClient.CreateTeam(&model.Team{
+	team2, _, err := e.ServerAdminClient.CreateTeam(context.Background(), &model.Team{
 		DisplayName: "second team",
 		Name:        "second-team",
 		Email:       "success+playbooks@simulator.amazonses.com",
@@ -327,7 +327,7 @@ func (e *TestEnvironment) CreateBasicServer() {
 	})
 	require.NoError(e.T, err)
 
-	_, _, err = e.ServerAdminClient.AddTeamMember(team2.Id, e.RegularUser.Id)
+	_, _, err = e.ServerAdminClient.AddTeamMember(context.Background(), team2.Id, e.RegularUser.Id)
 	require.NoError(e.T, err)
 
 	e.BasicTeam2 = team2

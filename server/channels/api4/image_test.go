@@ -22,7 +22,7 @@ func TestGetImage(t *testing.T) {
 	defer th.TearDown()
 
 	// Prevent the test client from following a redirect
-	th.Client.HTTPClient.CheckRedirect = func(context.Background(), *http.Request, []*http.Request) error {
+	th.Client.HTTPClient.CheckRedirect = func(*http.Request, []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
 
@@ -33,11 +33,11 @@ func TestGetImage(t *testing.T) {
 			cfg.ImageProxySettings.Enable = model.NewBool(false)
 		})
 
-		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(context.Background(), imageURL), nil)
+		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageURL), nil)
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
-		resp, err := th.Client.HTTPClient.Do(context.Background(), r)
+		resp, err := th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusFound, resp.StatusCode)
 		assert.Equal(t, imageURL, resp.Header.Get("Location"))
@@ -54,11 +54,11 @@ func TestGetImage(t *testing.T) {
 			cfg.ImageProxySettings.RemoteImageProxyURL = model.NewString("https://proxy.foo.bar")
 		})
 
-		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(context.Background(), imageURL), nil)
+		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageURL), nil)
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
-		resp, err := th.Client.HTTPClient.Do(context.Background(), r)
+		resp, err := th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusFound, resp.StatusCode)
 		assert.Equal(t, proxiedURL, resp.Header.Get("Location"))
@@ -81,11 +81,11 @@ func TestGetImage(t *testing.T) {
 		imageServer := httptest.NewServer(handler)
 		defer imageServer.Close()
 
-		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(context.Background(), imageServer.URL+"/image.png"), nil)
+		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageServer.URL+"/image.png"), nil)
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
-		resp, err := th.Client.HTTPClient.Do(context.Background(), r)
+		resp, err := th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -98,7 +98,7 @@ func TestGetImage(t *testing.T) {
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
-		resp, err = th.Client.HTTPClient.Do(context.Background(), r)
+		resp, err = th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusFound, resp.StatusCode)
 
@@ -106,11 +106,11 @@ func TestGetImage(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.SiteURL = model.NewString("http://foo.com")
 		})
-		r, err = http.NewRequest("GET", th.Client.APIURL+"/image?url="+strings.TrimPrefix(context.Background(), imageServer.URL, "http:")+"/image.png", nil)
+		r, err = http.NewRequest("GET", th.Client.APIURL+"/image?url="+strings.TrimPrefix(imageServer.URL, "http:")+"/image.png", nil)
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
-		resp, err = th.Client.HTTPClient.Do(context.Background(), r)
+		resp, err = th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -119,7 +119,7 @@ func TestGetImage(t *testing.T) {
 		require.NoError(t, err)
 		r.Header.Set(model.HeaderAuth, th.Client.AuthType+" "+th.Client.AuthToken)
 
-		resp, err = th.Client.HTTPClient.Do(context.Background(), r)
+		resp, err = th.Client.HTTPClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
