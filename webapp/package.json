@@ -16,6 +16,9 @@
     "check-types": "npm run check-types --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present"
   },
+  "dependencies": {
+    "react-intl": "6.3.2"
+  },
   "devDependencies": {
     "blessed": "0.1.81",
     "chalk": "4.1.2",
