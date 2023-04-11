@@ -95,7 +95,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.clearChannelSelection();
-    }
+    };
 
     handleKeyDownEvent = (event: KeyboardEvent) => {
         if (Utils.isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
@@ -128,16 +128,16 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 });
             }
         }
-    }
+    };
 
     showMoreDirectChannelsModal = () => {
         this.setState({showDirectChannelsModal: true});
         trackEvent('ui', 'ui_channels_more_direct_v2');
-    }
+    };
 
     hideMoreDirectChannelsModal = () => {
         this.setState({showDirectChannelsModal: false});
-    }
+    };
 
     showCreateCategoryModal = () => {
         this.props.actions.openModal({
@@ -145,11 +145,11 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: EditCategoryModal,
         });
         trackEvent('ui', 'ui_sidebar_menu_createCategory');
-    }
+    };
 
     handleCreateCategory = (categoryName: string) => {
         this.props.actions.createCategory(this.props.teamId, categoryName);
-    }
+    };
 
     showMoreChannelsModal = () => {
         this.props.actions.openModal({
@@ -158,7 +158,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogProps: {morePublicChannelsModalType: 'public'},
         });
         trackEvent('ui', 'ui_channels_more_public_v2');
-    }
+    };
 
     invitePeopleModal = () => {
         this.props.actions.openModal({
@@ -166,7 +166,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: InvitationModal,
         });
         trackEvent('ui', 'ui_channels_dropdown_invite_people');
-    }
+    };
 
     showNewChannelModal = () => {
         this.props.actions.openModal({
@@ -175,7 +175,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         });
         this.closeEditRHS();
         trackEvent('ui', 'ui_channels_create_channel_v2');
-    }
+    };
 
     showCreateUserGroupModal = () => {
         this.props.actions.openModal({
@@ -183,7 +183,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: CreateUserGroupsModal,
         });
         trackEvent('ui', 'ui_channels_create_user_group');
-    }
+    };
 
     handleOpenMoreDirectChannelsModal = (e: Event) => {
         e.preventDefault();
@@ -193,15 +193,15 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             this.showMoreDirectChannelsModal();
             this.closeEditRHS();
         }
-    }
+    };
 
     onDragStart = () => {
         this.setState({isDragging: true});
-    }
+    };
 
     onDragEnd = () => {
         this.setState({isDragging: false});
-    }
+    };
 
     renderModals = () => {
         let moreDirectChannelsModal;
@@ -219,7 +219,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 {moreDirectChannelsModal}
             </React.Fragment>
         );
-    }
+    };
 
     closeEditRHS = () => {
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {

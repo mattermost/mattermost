@@ -114,8 +114,6 @@ export type Props = {
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
-    shouldShowDotMenu: boolean;
-    tourTipsEnabled: boolean;
 };
 
 const PostComponent = (props: Props): JSX.Element => {
@@ -148,6 +146,7 @@ const PostComponent = (props: Props): JSX.Element => {
 
     const handleA11yActivateEvent = () => setA11y(true);
     const handleA11yDeactivateEvent = () => setA11y(false);
+    const handleAlt = (e: KeyboardEvent) => setAlt(e.altKey);
 
     useEffect(() => {
         if (a11yActive) {
@@ -156,13 +155,8 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [a11yActive]);
 
     useEffect(() => {
-        const handleAlt = (e: KeyboardEvent) => {
-            setAlt(e.altKey);
-        };
         let removeEventListener: (type: string, listener: EventListener) => void;
 
-        document.addEventListener('keydown', handleAlt);
-        document.addEventListener('keyup', handleAlt);
         if (postRef.current) {
             postRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
             postRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
@@ -170,14 +164,24 @@ const PostComponent = (props: Props): JSX.Element => {
         }
 
         return () => {
-            document.removeEventListener('keydown', handleAlt);
-            document.removeEventListener('keyup', handleAlt);
             if (removeEventListener) {
                 removeEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
                 removeEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (hover) {
+            document.addEventListener('keydown', handleAlt);
+            document.addEventListener('keyup', handleAlt);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleAlt);
+            document.removeEventListener('keyup', handleAlt);
+        };
+    }, [hover]);
 
     const hasSameRoot = (props: Props) => {
         if (props.isFirstReply) {
@@ -256,16 +260,16 @@ const PostComponent = (props: Props): JSX.Element => {
             'current--user': props.currentUserId === post.user_id && !isSystemMessage,
             'post--system': isSystemMessage || isMeMessage,
             'post--root': props.hasReplies && !(post.root_id && post.root_id.length > 0),
-            'post--comment': post.root_id && post.root_id.length > 0 && !props.isCollapsedThreadsEnabled,
+            'post--comment': (post.root_id && post.root_id.length > 0 && !props.isCollapsedThreadsEnabled) || (props.location === Locations.RHS_COMMENT),
             'post--compact': props.compactDisplay,
             'post--hovered': hovered,
-            'same--user': props.isConsecutivePost && !props.compactDisplay,
+            'same--user': props.isConsecutivePost && (!props.compactDisplay || props.location === Locations.RHS_COMMENT),
             'cursor--pointer': alt && !props.channelIsArchived,
             'post--hide-controls': post.failed || post.state === Posts.POST_DELETED,
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
-            'post--thread': props.location === Locations.RHS_COMMENT || Locations.RHS_ROOT,
+            'post--thread': props.location === Locations.RHS_COMMENT || props.location === Locations.RHS_ROOT,
         });
     };
 
@@ -380,7 +384,8 @@ const PostComponent = (props: Props): JSX.Element => {
 
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
-    if (!hideProfilePicture) {
+    const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
                 compactDisplay={props.compactDisplay}
@@ -530,7 +535,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='col d-flex align-items-center'>
-                                {
+                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         eventTime={post.create_at}

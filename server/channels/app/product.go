@@ -72,18 +72,16 @@ func (s *Server) initializeProducts(
 
 func (s *Server) shouldStart(product string) bool {
 	if product == "boards" {
-		if !s.Config().FeatureFlags.BoardsProduct {
-			s.Log().Info("Skipping Boards init; disabled via feature flag")
+		if os.Getenv("MM_DISABLE_BOARDS") == "true" {
+			s.Log().Warn("Skipping Boards start: disabled via env var")
 			return false
 		}
-		s.Log().Info("Allowing Boards init; enabled via feature flag")
 	}
 	if product == "playbooks" {
 		if os.Getenv("MM_DISABLE_PLAYBOOKS") == "true" {
-			s.Log().Info("Skipping Playbooks init; disabled via env var")
+			s.Log().Warn("Skipping Playbooks start: disabled via env var")
 			return false
 		}
-		s.Log().Info("Allowing Playbooks init; enabled via env var")
 	}
 
 	return true

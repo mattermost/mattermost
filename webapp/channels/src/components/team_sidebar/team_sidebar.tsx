@@ -90,7 +90,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             return true;
         }
         return false;
-    }
+    };
 
     switchToTeamByNumber = (e: KeyboardEvent, currentTeamId: string, teams: Team[]) => {
         const digits = [
@@ -120,7 +120,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             }
         }
         return false;
-    }
+    };
 
     handleKeyDown = (e: KeyboardEvent) => {
         if ((e.ctrlKey || e.metaKey) && e.altKey) {
@@ -137,13 +137,13 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
 
             this.setState({showOrder: true});
         }
-    }
+    };
 
     handleKeyUp = (e: KeyboardEvent) => {
         if (!((e.ctrlKey || e.metaKey) && e.altKey)) {
             this.setState({showOrder: false});
         }
-    }
+    };
 
     componentDidMount() {
         this.props.actions.getTeams(0, 200);
@@ -190,7 +190,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         );
         updateTeamsOrderForUser(newTeamsOrder.map((o: Team) => o.id));
         this.setState({teamsOrder: newTeamsOrder});
-    }
+    };
 
     render() {
         const root: Element | null = document.querySelector('#root');

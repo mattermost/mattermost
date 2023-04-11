@@ -30,6 +30,7 @@ const ServerKey product.ServiceKey = "server"
 type licenseSvc interface {
 	GetLicense() *model.License
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+	RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError
 }
 
 // Channels contains all channels related state.
@@ -321,6 +322,10 @@ func (ch *Channels) RemoveConfigListener(id string) {
 
 func (ch *Channels) License() *model.License {
 	return ch.licenseSvc.GetLicense()
+}
+
+func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
+	return ch.licenseSvc.RequestTrialLicenseWithExtraFields(requesterID, trialRequest)
 }
 
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {

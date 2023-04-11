@@ -134,6 +134,15 @@ func checkChannelsPostsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	})
 }
 
+func checkChannelsFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
+	return checkParentChildIntegrity(ss, relationalCheckConfig{
+		parentName:   "Channels",
+		parentIdAttr: "ChannelId",
+		childName:    "FileInfo",
+		childIdAttr:  "Id",
+	})
+}
+
 func checkCommandsCommandWebhooksIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:   "Commands",
@@ -458,6 +467,7 @@ func checkChannelsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckRes
 	results <- checkChannelsIncomingWebhooksIntegrity(ss)
 	results <- checkChannelsOutgoingWebhooksIntegrity(ss)
 	results <- checkChannelsPostsIntegrity(ss)
+	results <- checkChannelsFileInfoIntegrity(ss)
 }
 
 func checkCommandsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {

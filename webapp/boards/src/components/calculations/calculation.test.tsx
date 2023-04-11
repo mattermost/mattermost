@@ -143,7 +143,7 @@ describe('components/calculations/Calculation', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('should match snapshot - option change', () => {
+    test('should match snapshot - option change', async () => {
         const onMenuOpen = jest.fn()
         const onMenuClose = jest.fn()
         const onChange = jest.fn()
@@ -171,7 +171,7 @@ describe('components/calculations/Calculation', () => {
         )
 
         const countMenuOption = container.querySelector('#react-select-2-option-1')
-        userEvent.click(countMenuOption as Element)
+        await userEvent.click(countMenuOption as Element)
         expect(container).toMatchSnapshot()
         expect(onMenuOpen).not.toBeCalled()
         expect(onMenuClose).toBeCalled()

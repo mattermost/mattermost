@@ -86,15 +86,6 @@ else
     BUILD_CLIENT = false
 endif
 
-# Boards
-BUILD_BOARDS = true
-BUILD_HASH_BOARDS = $(BUILD_HASH)
-export MM_FEATUREFLAGS_BoardsProduct=true
-
-# Playbooks
-BUILD_PLAYBOOKS ?= true
-BUILD_HASH_PLAYBOOKS = $(BUILD_HASH)
-
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
 # and docker will add '/', so we need to set the go-build cache location or we'll get
@@ -116,9 +107,6 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashPlaybooks=$(BUILD_HASH_PLAYBOOKS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -330,11 +318,11 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir channels/store --name ".*Store" --output channels/store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
 
 telemetry-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir platform/services/telemetry --all --output platform/services/telemetry/mocks --note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
@@ -352,39 +340,39 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GOBIN)/morph generate $(name) --driver postgres --dir channels/db/migrations --sequence
 
 filestore-mocks: ## Creates mock files.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir platform/shared/filestore --all --output platform/shared/filestore/mocks --note 'Regenerate this file using `make filestore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir $(BUILD_ENTERPRISE_DIR)/ldap --all --output $(BUILD_ENTERPRISE_DIR)/ldap/mocks --note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir ../plugin --name API --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery --dir ../plugin --name Hooks --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery --dir ../plugin --name Driver --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir channels/einterfaces --all --output channels/einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir platform/services/searchengine --all --output platform/services/searchengine/mocks --note 'Regenerate this file using `make searchengine-mocks`.'
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir=./platform/services/sharedchannel --name=ServerIface --output=./platform/services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
 	$(GOBIN)/mockery --dir=./platform/services/sharedchannel --name=AppIface --output=./platform/services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
 
 misc-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir channels/utils --name LicenseValidatorIface --output channels/utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
 	$(GOBIN)/mockery --dir channels/app --name WorkTemplateExecutor --output channels/app/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
-	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir channels/app/email --name ServiceInterface --output channels/app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
 platform-mocks: ## Creates mocks for platform interfaces.
@@ -462,9 +450,9 @@ else
 endif
 
 test-server-race: test-server-pre
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -475,9 +463,9 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -489,19 +477,19 @@ endif
 
 test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
 
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(TE_PACKAGES) $(EE_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(TE_PACKAGES) $(EE_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
 else
 	@echo Running only TE tests
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=true MM_FEATUREFLAGS_BoardsProduct=true $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
-	MM_DISABLE_PLAYBOOKS=false MM_FEATUREFLAGS_BoardsProduct=false $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false $(GO) test $(GOFLAGS) -short $(BOARDS_PACKAGES)
+	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true $(GO) test $(GOFLAGS) -short $(PLAYBOOKS_PACKAGES)
 endif
 
 internal-test-web-client: ## Runs web client tests.

@@ -106,14 +106,14 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
 
     setStateLoading = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
 
     getVisibleTotalCount = (): number => {
         const {usersToRemove, usersToAdd, totalCount} = this.props;
         const usersToAddCount = Object.keys(usersToAdd).length;
         const usersToRemoveCount = Object.keys(usersToRemove).length;
         return totalCount + (usersToAddCount - usersToRemoveCount);
-    }
+    };
 
     getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
         const {term, usersToRemove, usersToAdd} = this.props;
@@ -138,11 +138,11 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
         endCount = endCount > total ? total : endCount;
 
         return {startCount, endCount, total};
-    }
+    };
 
     onSearch = async (term: string) => {
         this.props.actions.setUserGridSearch(term);
-    }
+    };
 
     nextPage = async () => {
         if (this.state.loading) {
@@ -152,14 +152,14 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
         this.setState({loading: true});
         await this.props.actions.getProfiles(page, USERS_PER_PAGE, {role: this.props.role.name});
         this.setState({loading: false, page});
-    }
+    };
 
     previousPage = async () => {
         if (this.state.loading || this.state.page === 0) {
             return;
         }
         this.setState({page: this.state.page - 1});
-    }
+    };
 
     getRows = () => {
         const {users, readOnly, usersToAdd, usersToRemove} = this.props;
@@ -198,7 +198,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                 },
             };
         });
-    }
+    };
 
     getColumns = () => {
         const name: JSX.Element = (
@@ -228,15 +228,15 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                 fixed: true,
             },
         ];
-    }
+    };
 
     onAddCallback = (users: UserProfile[]) => {
         this.props.onAddCallback(users);
-    }
+    };
 
     onRemoveCallback = (user: UserProfile) => {
         this.props.onRemoveCallback(user);
-    }
+    };
 
     render() {
         const {page, loading} = this.state;

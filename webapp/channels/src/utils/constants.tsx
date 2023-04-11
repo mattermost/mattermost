@@ -163,6 +163,7 @@ export const Preferences = {
 // For one off things that have a special, attention-grabbing UI until you interact with them
 export const Touched = {
     INVITE_MEMBERS: 'invite_members',
+    ADD_CHANNELS_CTA: 'add_channels_cta',
 };
 
 // Category for actions/interactions that will happen just once
@@ -264,6 +265,7 @@ export const ActionTypes = keyMirror({
 
     STATUS_DROPDOWN_TOGGLE: null,
     ADD_CHANNEL_DROPDOWN_TOGGLE: null,
+    ADD_CHANNEL_CTA_DROPDOWN_TOGGLE: null,
 
     SHOW_ONBOARDING_TASK_COMPLETION: null,
     SHOW_ONBOARDING_COMPLETE_PROFILE_TOUR: null,
@@ -459,6 +461,8 @@ export const ModalIdentifiers = {
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',
     SCREENING_IN_PROGRESS: 'screening_in_progress',
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
+    START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
+    START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
 };
 
 export const UserStatuses = {
@@ -896,7 +900,6 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
-    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
@@ -1072,7 +1075,9 @@ export const CloudLinks = {
 
 export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
+    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
+    SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
 };
 
 export const DocLinks = {
