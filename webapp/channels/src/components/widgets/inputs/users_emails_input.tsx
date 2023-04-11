@@ -103,7 +103,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 {nickname}
             </>
         );
-    }
+    };
 
     loadingMessage = (): string => {
         const text = (
@@ -115,14 +115,14 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
 
         // faking types to satisfy the interface for the version of react-select we are on.
         return (<LoadingSpinner text={text}/>) as unknown as string;
-    }
+    };
 
     getOptionValue = (obj: UserProfile | EmailInvite): string => {
         if (this.isUserProfile(obj)) {
             return obj.id;
         }
         return obj.value;
-    }
+    };
 
     formatOptionLabel = (user: UserProfile | EmailInvite, options: FormatOptionLabelMeta<UserProfile | EmailInvite>) => {
         const profileImg = imageURLForUser((user as UserProfile).id, (user as UserProfile).last_picture_update);
@@ -176,7 +176,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 {guestBadge}
             </React.Fragment>
         );
-    }
+    };
 
     onChange = (value: ValueType<UserProfile | EmailInvite>) => {
         if (this.props.onChange) {
@@ -191,7 +191,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 this.props.onChange([]);
             }
         }
-    }
+    };
 
     getCreateLabel = (value: string) => (
         <React.Fragment>
@@ -294,7 +294,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         if (action.action !== 'input-blur' && action.action !== 'menu-close') {
             this.props.onInputChange(inputValue);
         }
-    }
+    };
 
     formatValuesForCreatable = () => {
         return this.props.value.map((v) => {
@@ -303,7 +303,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
             }
             return {label: v, value: v} as EmailInvite;
         });
-    }
+    };
 
     optionsLoader = (_input: string, callback: (options: UserProfile[]) => void) => {
         const customCallback = (options: UserProfile[]) => {
@@ -318,22 +318,22 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         if (result && result.then) {
             result.then(customCallback);
         }
-    }
+    };
 
     showAddEmail = (inputValue: string, value: ValueType<UserProfile | EmailInvite>, options: OptionsType<UserProfile | EmailInvite>): boolean => {
         return this.props.emailInvitationsEnabled && options.length === 0 && isEmail(inputValue);
-    }
+    };
 
     onFocus = () => {
         this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'custom'});
-    }
+    };
 
     onBlur = () => {
         this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'input-blur'});
         if (this.props.onBlur) {
             this.props.onBlur();
         }
-    }
+    };
 
     appendDelimitedValues = async (values: string): Promise<number> => {
         const existingValues = this.formatValuesForCreatable();
@@ -418,15 +418,15 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         this.props.onInputChange('');
 
         return newValues.length;
-    }
+    };
 
     isUserProfile = (obj: UserProfile | EmailInvite): obj is UserProfile => {
         return (obj as UserProfile).id !== undefined;
-    }
+    };
 
     isEmailInvite = (obj: UserProfile | EmailInvite): obj is EmailInvite => {
         return (obj as EmailInvite).value !== undefined;
-    }
+    };
 
     searchByEmail = async (value: string): Promise<UserProfile | null> => {
         let data;
@@ -436,7 +436,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
             return null;
         }
         return data?.delete_at === 0 ? data : null;
-    }
+    };
 
     searchByUsername = async (value: string): Promise<UserProfile | null> => {
         let data;
@@ -446,7 +446,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
             return null;
         }
         return data?.delete_at === 0 ? data : null;
-    }
+    };
 
     render() {
         const values = this.formatValuesForCreatable();

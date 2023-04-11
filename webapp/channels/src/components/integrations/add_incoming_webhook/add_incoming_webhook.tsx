@@ -64,7 +64,7 @@ export default class AddIncomingWebhook extends React.PureComponent<Props, State
         if (error) {
             this.setState({serverError: error.message});
         }
-    }
+    };
 
     render() {
         return (
