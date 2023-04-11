@@ -5,7 +5,7 @@ import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'matter
 import type {GenericAction} from 'mattermost-redux/types/actions';
 import type {Channel} from '@mattermost/types/channels';
 import type {ThreadsState} from '@mattermost/types/threads';
-import {handlePostRemoved, handleReceivedThread, handleReceiveThreads} from './utils';
+import {handleFollowChanged, handlePostRemoved, handleReceivedThread, handleReceiveThreads} from './utils';
 
 import type {ExtraData} from './types';
 
@@ -64,6 +64,8 @@ export function followingThreadsInChannelReducer(state: ThreadsState['followingT
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.LEAVE_CHANNEL:
         return handleLeaveChannel(state, action);
+    case ThreadTypes.FOLLOW_CHANGED_THREAD:
+        return handleFollowChanged<ThreadsState['followingThreadsInChannel']>(state, action, action.data.channel_id, extra);
     }
 
     return state;

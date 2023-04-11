@@ -136,7 +136,7 @@ import {
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
 import {CompleteOnboardingRequest} from '@mattermost/types/setup';
-import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
+import {UserThreadList, UserThread, UserThreadWithPost, ChannelThreadList} from '@mattermost/types/threads';
 import {LeastActiveChannelsResponse, TopChannelResponse, TopReactionResponse, TopThreadResponse, TopDMsResponse} from '@mattermost/types/insights';
 
 import {Category, ExecuteWorkTemplateRequest, ExecuteWorkTemplateResponse, WorkTemplate} from '@mattermost/types/work_templates';
@@ -2142,7 +2142,7 @@ export default class Client4 {
             filter,
         };
 
-        return this.doFetch<UserThreadList>(
+        return this.doFetch<ChannelThreadList>(
             `${url}${buildQueryString(options)}`,
             {method: 'get'},
         );

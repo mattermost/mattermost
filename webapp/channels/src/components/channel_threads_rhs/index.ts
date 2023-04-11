@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {getThreadsCountsForChannel, getThreadsForChannel} from 'mattermost-redux/actions/threads';
+import {getThreadsForChannel} from 'mattermost-redux/actions/threads';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -24,8 +24,8 @@ function getThreadsForChannelWithFilter(channelId: Channel['id'], tab: Tabs, opt
     if (tab === Tabs.FOLLOWING) {
         filter = FetchChannelThreadFilters.FOLLOWING;
     }
-    if (tab === Tabs.CREATED) {
-        filter = FetchChannelThreadFilters.CREATED;
+    if (tab === Tabs.USER) {
+        filter = FetchChannelThreadFilters.USER;
     }
 
     return getThreadsForChannel(channelId, {...options, filter});
@@ -69,6 +69,8 @@ function makeMapStateToProps() {
             following,
             isSideBarExpanded: getIsRhsExpanded(state),
             total: counts.total || 0,
+            totalFollowing: counts.total_following || 0,
+            totalUser: counts.total_user || 0,
         };
     };
 }
@@ -77,7 +79,6 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
     return {
         actions: bindActionCreators({
             closeRightHandSide,
-            getThreadsCountsForChannel,
             getThreadsForChannel: getThreadsForChannelWithFilter,
             goBack,
             selectPostFromRightHandSideSearchByPostId,

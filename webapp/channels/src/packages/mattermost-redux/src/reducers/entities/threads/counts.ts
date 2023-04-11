@@ -15,6 +15,31 @@ function isDmGmChannel(channelType: Channel['type']) {
     return channelType === General.DM_CHANNEL || channelType === General.GM_CHANNEL;
 }
 
+function handleChannelThreadCounts(state: ThreadsState['countsInChannel'], action: GenericAction, key: keyof ThreadsState['countsInChannel'][keyof ThreadsState['countsInChannel']]) {
+    const {total, channel_id: channelId} = action.data;
+
+    if (state?.[channelId]?.[key] === total) {
+        return state;
+    }
+
+    if (!state[channelId]) {
+        return {
+            ...state,
+            [channelId]: {
+                [key]: total,
+            },
+        };
+    }
+
+    return {
+        ...state,
+        [channelId]: {
+            ...state[channelId],
+            [key]: total,
+        },
+    };
+}
+
 function handleAllTeamThreadsRead(state: ThreadsState['counts'], action: GenericAction): ThreadsState['counts'] {
     const counts = state[action.data.team_id] ?? {};
     return {
@@ -276,21 +301,30 @@ export function countsInChannelReducer(state: ThreadsState['countsInChannel'], a
 
         return nextState;
     }
-    case ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS: {
-        const {total, channel_id: channelId} = action.data;
-        if (state[channelId]?.total === total) {
+    case ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS:
+        return handleChannelThreadCounts(state, action, 'total');
+    case ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREAD_COUNTS:
+        return handleChannelThreadCounts(state, action, 'total_following');
+    case ChannelTypes.RECEIVED_CREATED_CHANNEL_THREAD_COUNTS:
+        return handleChannelThreadCounts(state, action, 'total_user');
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    case ThreadTypes.FOLLOW_CHANGED_THREAD: {
+        const {channel_id: channelId, following} = action.data;
+        const counts = state[channelId];
+
+        if (counts?.total_following == null) {
             return state;
         }
 
         return {
             ...state,
             [channelId]: {
-                total,
+                ...counts,
+                total_following: following ? counts.total_following + 1 : counts.total_following - 1,
             },
         };
     }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
     }
     return state;
 }

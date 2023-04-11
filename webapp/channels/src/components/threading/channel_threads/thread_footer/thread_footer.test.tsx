@@ -242,6 +242,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
                     following: true,
                     id: 'postthreadid',
                     team_id: 'tid',
+                    channel_id: 'cid',
                 },
             },
         ]);
@@ -268,6 +269,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
                     following: false,
                     id: 'postthreadid',
                     team_id: 'tid',
+                    channel_id: 'cid',
                 },
             },
         ]);

@@ -5,7 +5,7 @@ import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'matter
 import type {GenericAction} from 'mattermost-redux/types/actions';
 import type {Team} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread} from '@mattermost/types/threads';
-import {shouldAddThreadId, handlePostRemoved, handleReceivedThread as handleSingleTeamReceivedThread, handleReceiveThreads} from './utils';
+import {shouldAddThreadId, handlePostRemoved, handleReceivedThread as handleSingleTeamReceivedThread, handleReceiveThreads, handleFollowChanged} from './utils';
 
 import type {ExtraData} from './types';
 
@@ -31,47 +31,6 @@ export function handleReceivedThread(state: State, action: GenericAction, extra:
     }
 
     return handleSingleTeamReceivedThread<State>(state, thread, teamId, extra);
-}
-
-// add the thread only if it's 'newer' than other threads
-// older threads will be added by scrolling so no need to manually add.
-// furthermore manually adding older thread will BREAK pagination
-export function handleFollowChanged(state: State, action: GenericAction, extra: ExtraData) {
-    const {id, team_id: teamId, following} = action.data;
-    const nextSet = new Set(state[teamId] || []);
-
-    const thread = extra.threads[id];
-
-    if (!thread) {
-        return state;
-    }
-
-    // thread exists in state
-    if (nextSet.has(id)) {
-        // remove it if we unfollowed
-        if (!following) {
-            nextSet.delete(id);
-            return {
-                ...state,
-                [teamId]: [...nextSet],
-            };
-        }
-        return state;
-    }
-
-    // check if thread is newer than any of the existing threads
-    const shouldAdd = shouldAddThreadId([...nextSet], thread, extra.threads);
-
-    if (shouldAdd && following) {
-        nextSet.add(thread.id);
-
-        return {
-            ...state,
-            [teamId]: [...nextSet],
-        };
-    }
-
-    return state;
 }
 
 function handleLeaveChannel(state: State, action: GenericAction, extra: ExtraData) {
@@ -215,7 +174,7 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
     case ChannelTypes.LEAVE_CHANNEL:
         return handleLeaveChannel(state, action, extra);
     case ThreadTypes.FOLLOW_CHANGED_THREAD:
-        return handleFollowChanged(state, action, extra);
+        return handleFollowChanged<ThreadsState['unreadThreadsInTeam']>(state, action, action.data.team_id, extra);
     }
     return state;
 };

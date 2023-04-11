@@ -5,7 +5,7 @@ import {ThreadTypes} from 'mattermost-redux/action_types';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {ExtraData} from './types';
-import {handleFollowChanged} from './threadsInTeam';
+import {handleFollowChanged} from './utils';
 
 describe('handleFollowChanged', () => {
     const state = deepFreeze({
@@ -54,7 +54,7 @@ describe('handleFollowChanged', () => {
     test('follow existing thread', () => {
         const action = makeAction('id1_1', true);
 
-        expect(handleFollowChanged(state, action, extra)).toEqual({
+        expect(handleFollowChanged(state, action, 'team_id1', extra)).toEqual({
             team_id1: ['id1_1', 'id1_2'],
             team_id2: ['id2_1', 'id2_2'],
         });
@@ -68,7 +68,7 @@ describe('handleFollowChanged', () => {
         ['id1_0', true, ['id1_1', 'id1_2']],
     ])('should return correct state for thread id %s and following state of %s', (id, following, expected) => {
         const action = makeAction(id, following);
-        expect(handleFollowChanged(state, action, extra)).toEqual({
+        expect(handleFollowChanged(state, action, 'team_id1', extra)).toEqual({
             team_id1: expected,
             team_id2: ['id2_1', 'id2_2'],
         });

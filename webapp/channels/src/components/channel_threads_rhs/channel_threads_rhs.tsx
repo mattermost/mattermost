@@ -9,6 +9,7 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import Button from 'components/threading/common/button';
 import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
+import Constants from 'utils/constants';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -24,7 +25,7 @@ import './channel_threads_rhs.scss';
 export enum Tabs {
     ALL,
     FOLLOWING,
-    CREATED,
+    USER,
 }
 
 export type Props = {
@@ -37,6 +38,8 @@ export type Props = {
     currentUserId: UserProfile['id'];
     following: Array<UserThread['id']>;
     total: number;
+    totalFollowing: number;
+    totalUser: number;
     isSideBarExpanded: boolean;
 
     actions: {
@@ -44,7 +47,6 @@ export type Props = {
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
         getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => any;
-        getThreadsCountsForChannel: (id: Channel['id']) => any;
         toggleRhsExpanded: () => void;
     };
 }
@@ -66,6 +68,8 @@ function ChannelThreads({
     currentUserId,
     following,
     total,
+    totalFollowing,
+    totalUser,
     isSideBarExpanded,
 }: Props) {
     const {formatMessage} = useIntl();
@@ -74,11 +78,27 @@ function ChannelThreads({
     const [isPaging, setIsPaging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const totalThreads = useMemo(() => {
+        if (selected === Tabs.FOLLOWING) {
+            return totalFollowing;
+        }
+        if (selected === Tabs.USER) {
+            return totalUser;
+        }
+
+        return total;
+    }, [
+        selected,
+        total,
+        totalFollowing,
+        totalUser,
+    ]);
+
     const ids = useMemo(() => {
         if (selected === Tabs.FOLLOWING) {
             return following;
         }
-        if (selected === Tabs.CREATED) {
+        if (selected === Tabs.USER) {
             return created;
         }
 
@@ -91,14 +111,14 @@ function ChannelThreads({
     ]);
 
     useEffect(() => {
-        actions.getThreadsCountsForChannel(channel.id);
-    }, [channel.id]);
-
-    useEffect(() => {
         setIsLoading(true);
         const after = ids.length ? ids[0] : '';
         const fetchThreads = async () => {
-            await actions.getThreadsForChannel(channel.id, selected, {after});
+            const options = {
+                after,
+                perPage: Constants.THREADS_PAGE_SIZE,
+            };
+            await actions.getThreadsForChannel(channel.id, selected, options);
             setIsLoading(false);
         };
         fetchThreads();
@@ -106,8 +126,12 @@ function ChannelThreads({
 
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setIsPaging(true);
-        const before = ids[startIndex - 1];
-        await actions.getThreadsForChannel(channel.id, selected, {before});
+        const options = {
+            before: ids[startIndex - 1],
+            threadsOnly: true,
+            perPage: Constants.THREADS_PAGE_SIZE,
+        };
+        await actions.getThreadsForChannel(channel.id, selected, options);
         setIsPaging(false);
     }, [currentTeamId, ids]);
 
@@ -121,6 +145,10 @@ function ChannelThreads({
         return history.push(`/${currentTeamName}/pl/${threadId}`);
     }, [currentTeamName]);
 
+    const makeHandleTab = useCallback((tab: Tabs) => () => {
+        setSelected(tab);
+    }, []);
+
     const handleAll = useCallback(() => {
         setSelected(Tabs.ALL);
     }, []);
@@ -130,7 +158,7 @@ function ChannelThreads({
     }, []);
 
     const handleCreated = useCallback(() => {
-        setSelected(Tabs.CREATED);
+        setSelected(Tabs.USER);
     }, []);
 
     const routing = useMemo(() => {
@@ -152,7 +180,7 @@ function ChannelThreads({
                 defaultMessage: 'You don’t follow any threads in this channel.',
             });
         }
-        if (selected === Tabs.CREATED) {
+        if (selected === Tabs.USER) {
             return formatMessage({
                 id: 'channel_threads.noResults.created',
                 defaultMessage: 'You don’t have any threads that you created in this channel.',
@@ -182,7 +210,7 @@ function ChannelThreads({
                     <Button
                         className='Button___large Margined'
                         isActive={selected === Tabs.ALL}
-                        onClick={handleAll}
+                        onClick={makeHandleTab(Tabs.ALL)}
                     >
                         <FormattedMessage
                             id='channel_threads.filters.all'
@@ -194,7 +222,7 @@ function ChannelThreads({
                     <Button
                         className='Button___large Margined'
                         isActive={selected === Tabs.FOLLOWING}
-                        onClick={handleFollowed}
+                        onClick={makeHandleTab(Tabs.FOLLOWING)}
                     >
                         <FormattedMessage
                             id='channel_threads.filters.following'
@@ -205,8 +233,8 @@ function ChannelThreads({
                 <div className='tab-button-wrapper'>
                     <Button
                         className='Button___large Margined'
-                        isActive={selected === Tabs.CREATED}
-                        onClick={handleCreated}
+                        isActive={selected === Tabs.USER}
+                        onClick={makeHandleTab(Tabs.USER)}
                     >
                         <FormattedMessage
                             id='channel_threads.filters.createdByMe'
@@ -222,8 +250,9 @@ function ChannelThreads({
 
                 {ids.length ? (
                     <VirtualizedThreadList
+                        key={Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}
                         ids={ids}
-                        total={total}
+                        total={totalThreads}
                         isLoading={isPaging}
                         loadMoreItems={handleLoadMoreItems}
                         routing={routing}

@@ -52,7 +52,7 @@ export type FetchThreadOptions = {
 export enum FetchChannelThreadFilters {
     ALL = '',
     FOLLOWING = 'following',
-    CREATED = 'user',
+    USER = 'user',
 }
 
 export type FetchChannelThreadOptions = {

@@ -53,6 +53,11 @@ export type UserThreadList = {
     threads: UserThreadWithPost[];
 }
 
+export type ChannelThreadList = {
+    total: number;
+    threads: UserThreadWithPost[];
+}
+
 export type ThreadsState = {
     threadsInTeam: RelationOneToMany<Team, UserThread>;
     unreadThreadsInTeam: RelationOneToMany<Team, UserThread>;
@@ -74,5 +79,7 @@ export type ThreadsState = {
     }>;
     countsInChannel: RelationOneToOne<Channel, {
         total: number;
+        total_following: number;
+        total_user: number;
     }>;
 };

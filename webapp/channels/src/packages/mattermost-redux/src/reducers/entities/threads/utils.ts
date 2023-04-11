@@ -90,3 +90,44 @@ export function handleReceiveThreads<S extends State>(state: S, action: GenericA
         [key]: [...nextSet],
     };
 }
+
+// add the thread only if it's 'newer' than other threads
+// older threads will be added by scrolling so no need to manually add.
+// furthermore manually adding older thread will BREAK pagination
+export function handleFollowChanged<S extends State>(state: S, action: GenericAction, key: string, extra: ExtraData): S {
+    const {id, following} = action.data;
+    const nextSet = new Set(state[key] || []);
+
+    const thread = extra.threads[id];
+
+    if (!thread) {
+        return state;
+    }
+
+    // thread exists in state
+    if (nextSet.has(id)) {
+        // remove it if we unfollowed
+        if (!following) {
+            nextSet.delete(id);
+            return {
+                ...state,
+                [key]: [...nextSet],
+            };
+        }
+        return state;
+    }
+
+    // check if thread is newer than any of the existing threads
+    const shouldAdd = shouldAddThreadId([...nextSet], thread, extra.threads);
+
+    if (shouldAdd && following) {
+        nextSet.add(thread.id);
+
+        return {
+            ...state,
+            [key]: [...nextSet],
+        };
+    }
+
+    return state;
+}

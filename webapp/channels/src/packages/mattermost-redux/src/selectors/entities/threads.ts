@@ -223,7 +223,7 @@ export function makeGetThreadsInChannelView(filter?: string) {
     );
 }
 
-export function makeGetThreadCountsInChannelView(): (state: GlobalState, channelId: Channel['id']) => {total: number} {
+export function makeGetThreadCountsInChannelView(): (state: GlobalState, channelId: Channel['id']) => {total: number; total_following: number; total_user: number} {
     const empty = Object.freeze({});
 
     return createSelector(

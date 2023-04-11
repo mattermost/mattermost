@@ -1676,8 +1676,11 @@ function handleThreadFollowChanged(msg) {
         const thread = getThread(state, msg.data.thread_id);
         if (!thread && msg.data.state && msg.data.reply_count) {
             await doDispatch(fetchThread(getCurrentUserId(state), getCurrentTeamId(state), msg.data.thread_id, true));
+            thread = getThread(state, msg.data.thread_id);
         }
-        handleFollowChanged(doDispatch, msg.data.thread_id, msg.broadcast.team_id, msg.data.state);
+        if (thread.is_following !== msg.data.state) {
+            doDispatch(handleFollowChanged(msg.data.thread_id, msg.broadcast.team_id, msg.data.state));
+        }
     };
 }
 

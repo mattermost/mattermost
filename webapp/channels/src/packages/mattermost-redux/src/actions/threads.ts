@@ -4,7 +4,7 @@
 import {uniq} from 'lodash';
 import {batchActions} from 'redux-batched-actions';
 
-import type {UserThread, UserThreadList} from '@mattermost/types/threads';
+import type {ChannelThreadList, UserThread, UserThreadList} from '@mattermost/types/threads';
 import {Post} from '@mattermost/types/posts';
 
 import {ThreadTypes, PostTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -17,6 +17,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelIdFromPostId} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
@@ -361,20 +362,24 @@ export function handleReadChanged(
     };
 }
 
-export function handleFollowChanged(dispatch: DispatchFunc, threadId: string, teamId: string, following: boolean) {
-    dispatch({
-        type: ThreadTypes.FOLLOW_CHANGED_THREAD,
-        data: {
-            id: threadId,
-            team_id: teamId,
-            following,
-        },
-    });
+export function handleFollowChanged(threadId: string, teamId: string, following: boolean) {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const channelId = getChannelIdFromPostId(getState(), threadId);
+        return dispatch({
+            type: ThreadTypes.FOLLOW_CHANGED_THREAD,
+            data: {
+                id: threadId,
+                team_id: teamId,
+                following,
+                channel_id: channelId
+            },
+        });
+    }
 }
 
 export function setThreadFollow(userId: string, teamId: string, threadId: string, newState: boolean) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        handleFollowChanged(dispatch, threadId, teamId, newState);
+        dispatch(handleFollowChanged(threadId, teamId, newState));
 
         try {
             await Client4.updateThreadFollowForUser(userId, teamId, threadId, newState);
@@ -437,9 +442,9 @@ export function decrementThreadCounts(post: ExtendedPost) {
     };
 }
 
-export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = true, extended = false, since = 0, filter}: FetchChannelThreadOptions = {}) {
+export function getThreadsForChannel(channelId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, totalsOnly = false, threadsOnly = false, extended = false, since = 0, filter}: FetchChannelThreadOptions = {}) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data: undefined | UserThreadList;
+        let data: undefined | ChannelThreadList;
 
         try {
             data = await Client4.getThreadsForChannel(channelId, {before, after, perPage, extended, totalsOnly, threadsOnly, since, filter});
@@ -465,7 +470,7 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
                 actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREADS;
             }
 
-            if (filter === FetchChannelThreadFilters.CREATED) {
+            if (filter === FetchChannelThreadFilters.USER) {
                 actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREADS;
             }
 
@@ -476,34 +481,26 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
                     channel_id: channelId,
                 },
             });
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
 
-        return {data};
-    };
-}
+            if (!threadsOnly && !totalsOnly) {
+                let actionType: keyof (typeof ChannelTypes) = ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS;
 
-export function getThreadsCountsForChannel(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data: undefined | UserThreadList;
+                if (filter === FetchChannelThreadFilters.FOLLOWING) {
+                    actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREAD_COUNTS;
+                }
 
-        try {
-            data = await Client4.getThreadsForChannel(channelId, {totalsOnly: true, perPage: 1});
+                if (filter === FetchChannelThreadFilters.USER) {
+                    actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREAD_COUNTS;
+                }
 
-            if (!data) {
-                return {error: true};
+                dispatch({
+                    type: actionType,
+                    data: {
+                        channel_id: channelId,
+                        total: data.total,
+                    },
+                });
             }
-
-            dispatch({
-                type: ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS,
-                data: {
-                    total: data.total,
-                    channel_id: channelId,
-                },
-            });
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -513,4 +510,3 @@ export function getThreadsCountsForChannel(channelId: string) {
         return {data};
     };
 }
-
