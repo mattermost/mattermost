@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,9 +29,11 @@ func TestSqlX(t *testing.T) {
 			}
 			*settings.QueryTimeout = 1
 			store := &SqlStore{
-				rrCounter: 0,
-				srCounter: 0,
-				settings:  settings,
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
 			}
 
 			require.NoError(t, store.initConnection())
