@@ -223,10 +223,6 @@ const TrueUpReview: React.FC = () => {
         return null;
     }
 
-    if (telemetryEnabled) {
-        return null;
-    }
-
     pageVisited(TELEMETRY_CATEGORIES.TRUE_UP_REVIEW, 'pageview_true_up_review');
 
     return (
