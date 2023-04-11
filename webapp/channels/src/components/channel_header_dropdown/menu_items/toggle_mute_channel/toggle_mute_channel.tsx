@@ -58,7 +58,7 @@ export default class MenuItemToggleMuteChannel extends React.PureComponent<Props
         updateChannelNotifyProps(user.id, channel.id, {
             mark_unread: (isMuted ? NotificationLevels.ALL : NotificationLevels.MENTION) as 'all' | 'mention',
         });
-    }
+    };
 
     render() {
         const {

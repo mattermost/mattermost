@@ -5,7 +5,7 @@ import React, {useRef, useCallback, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon';
+import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
 
 import {FormattedMessage} from 'react-intl';
 

@@ -42,12 +42,12 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                 </pre>
             </div>
         );
-    }
+    };
 
     copyLog = () => {
         navigator.clipboard.writeText(JSON.stringify(this.props.log, undefined, 2));
         this.showCopySuccess();
-    }
+    };
 
     exportToCsv = () => {
         const file = navigator.clipboard.writeText(JSON.stringify(this.props.log, undefined, 2));
@@ -55,7 +55,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
         const encodedUri = encodeURI(csvContent);
         window.open(encodedUri);
         this.showExportSuccess();
-    }
+    };
 
     showCopySuccess = () => {
         this.setState({
@@ -67,7 +67,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                 copySuccess: false,
             });
         }, 3000);
-    }
+    };
 
     showExportSuccess = () => {
         this.setState({
@@ -79,7 +79,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                 exportSuccess: false,
             });
         }, 3000);
-    }
+    };
 
     render() {
         return (
