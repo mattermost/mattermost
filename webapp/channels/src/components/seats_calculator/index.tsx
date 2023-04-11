@@ -41,6 +41,12 @@ export const errorInvalidNumber = (
         defaultMessage='Enter a valid number of seats'
     />
 );
+export const errorMinSeats = (
+    <FormattedMessage
+        id='cloud_upgrade.error_min_seats'
+        defaultMessage='Minimum of 10 seats required'
+    />
+);
 
 function validateSeats(seats: string, annualPricePerSeat: number, minSeats: number, cloud: boolean): Seats {
     if (seats === '') {
@@ -56,6 +62,13 @@ function validateSeats(seats: string, annualPricePerSeat: number, minSeats: numb
             quantity: seats,
             error: errorInvalidNumber,
         };
+    }
+
+    if (seatsNumber < 10) {
+        return {
+            quantity: seats,
+            error: errorMinSeats,
+        }
     }
 
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
@@ -123,15 +136,16 @@ export default function SeatsCalculator(props: Props) {
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const {value} = event.target;
         const numValue = parseInt(value, 10);
+        const minSeats = Math.max(props.existingUsers, Constants.MIN_PURCHASE_SEATS);
         if ((value && !numValue && numValue !== 0) || !reDigits.test(value)) {
             // We force through an onChange becuase the underlying input component
             // nulls out the customMessage. By forcefully creating a new react element error,
             // it will trigger the error still existing, and the error will keep being shown
             // in the input component
-            props.onChange(validateSeats(props.seats.quantity, annualPricePerSeat, props.existingUsers, props.isCloud));
+            props.onChange(validateSeats(props.seats.quantity, annualPricePerSeat, minSeats, props.isCloud));
             return;
         }
-        props.onChange(validateSeats(value, annualPricePerSeat, props.existingUsers, props.isCloud));
+        props.onChange(validateSeats(value, annualPricePerSeat, minSeats, props.isCloud));
     };
 
     const maxSeats = calculateMaxUsers(annualPricePerSeat);
