@@ -583,14 +583,9 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
-		Columns(
-			"COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt",
-		).
-		Join("Posts ON Posts.Id = Threads.PostId").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+		Join("Posts ON Posts.Id = Threads.PostId")
 
-	query = query.
-		Where(sq.Eq{"Threads.ChannelId": channelID})
+	query = query.Where(sq.Eq{"Threads.ChannelId": channelID})
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -608,10 +603,14 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 	}
 
 	if opts.Filter == model.GetChannelThreadsFilterFollowing {
-		query = query.Where(sq.Eq{
-			"ThreadMemberships.UserId":    userID,
-			"ThreadMemberships.Following": true,
-		})
+
+		query = query.
+			Columns("COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt").
+			Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+			Where(sq.Eq{
+				"ThreadMemberships.UserId":    userID,
+				"ThreadMemberships.Following": true,
+			})
 	} else if opts.Filter == model.GetChannelThreadsFilterCurrentUser {
 		query = query.Where(sq.Eq{"Posts.UserId": userID})
 	}
@@ -673,16 +672,17 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(Threads.PostId)").
-		From("Threads").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+		From("Threads")
 
 	query = query.Where(sq.Eq{"Threads.ChannelId": channelID})
 
 	if opts.Filter == model.GetChannelThreadsFilterFollowing {
-		query = query.Where(sq.Eq{
-			"ThreadMemberships.UserId":    userID,
-			"ThreadMemberships.Following": true,
-		})
+		query = query.
+			Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+			Where(sq.Eq{
+				"ThreadMemberships.UserId":    userID,
+				"ThreadMemberships.Following": true,
+			})
 	} else if opts.Filter == model.GetChannelThreadsFilterCurrentUser {
 		query = query.
 			Join("Posts ON Posts.Id = Threads.PostId").

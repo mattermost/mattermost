@@ -4151,6 +4151,40 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Equal(t, th.SystemAdminUser.Id, res.Threads[0].Participants[0].Id)
 		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[1].Id)
 	})
+
+	t.Run("should return only threads created by user when currentUser filter is set", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		var rootPosts []*model.Post
+		for i := 0; i < 10; i++ {
+			rp := th.CreatePostWithClient(th.SystemAdminClient, th.BasicChannel)
+			rootPosts = append(rootPosts, rp)
+
+			for j := 0; j < 5; j++ {
+				th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+			}
+		}
+
+		// Create a post as the basic user
+		rp := th.CreatePost()
+		rootPosts = append(rootPosts, rp)
+
+		// But reply to it as the system admin
+		for j := 0; j < 5; j++ {
+			th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rp)
+		}
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
+			Filter: model.GetChannelThreadsFilterCurrentUser,
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, int64(1), res.Total)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPosts[10].Id, res.Threads[0].PostId)
+		require.Equal(t, int64(5), res.Threads[0].ReplyCount)
+		require.Equal(t, th.SystemAdminUser.Id, res.Threads[0].Participants[0].Id)
 	})
 }
 
