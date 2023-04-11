@@ -1135,9 +1135,14 @@ func TestGetAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		beforeCount := len(channels)
 
-		firstChannel := channels[0].Channel
+		deletedChannel := channels[0].Channel
 
-		_, err = client.DeleteChannel(firstChannel.Id)
+		// Never try to delete the default channel
+		if deletedChannel.Name == "town-square" {
+			deletedChannel = channels[1].Channel
+		}
+
+		_, err = client.DeleteChannel(deletedChannel.Id)
 		require.NoError(t, err)
 
 		channels, _, err = client.GetAllChannels(0, 10000, "")
@@ -1147,7 +1152,7 @@ func TestGetAllChannels(t *testing.T) {
 		}
 		require.NoError(t, err)
 		require.Len(t, channels, beforeCount-1)
-		require.NotContains(t, ids, firstChannel.Id)
+		require.NotContains(t, ids, deletedChannel.Id)
 
 		channels, _, err = client.GetAllChannelsIncludeDeleted(0, 10000, "")
 		ids = []string{}
@@ -1156,7 +1161,7 @@ func TestGetAllChannels(t *testing.T) {
 		}
 		require.NoError(t, err)
 		require.True(t, len(channels) > beforeCount)
-		require.Contains(t, ids, firstChannel.Id)
+		require.Contains(t, ids, deletedChannel.Id)
 	})
 
 	_, resp, err := client.GetAllChannels(0, 20, "")
