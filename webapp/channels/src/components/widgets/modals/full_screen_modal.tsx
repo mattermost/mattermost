@@ -46,7 +46,7 @@ class FullScreenModal extends React.PureComponent<Props> {
                 this.modal.current.focus();
             }
         });
-    }
+    };
 
     private handleKeypress = (e: KeyboardEvent) => {
         if (this.props.ignoreExit !== undefined && this.props.ignoreExit && e.key === 'Escape') {
@@ -60,11 +60,11 @@ class FullScreenModal extends React.PureComponent<Props> {
         if (this.props.overrideTargetEvent && e.key === 'Escape' && this.props.show) {
             this.close();
         }
-    }
+    };
 
     private close = () => {
         this.props.onClose();
-    }
+    };
 
     public render() {
         return (

@@ -34,7 +34,7 @@ export default class Toast extends React.PureComponent<Props> {
     static defaultProps = {
         overlayPlacement: 'bottom',
         jumpDirection: 'down',
-    }
+    };
 
     componentDidMount() {
         this.mounted = true;
@@ -48,7 +48,7 @@ export default class Toast extends React.PureComponent<Props> {
         if (typeof this.props.onDismiss == 'function') {
             this.props.onDismiss();
         }
-    }
+    };
 
     render() {
         let toastClass = 'toast';

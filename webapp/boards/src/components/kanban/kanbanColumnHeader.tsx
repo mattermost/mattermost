@@ -107,7 +107,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                 <Label
                     title={intl.formatMessage({
                         id: 'BoardComponent.no-property-title',
-                        defaultMessage: 'Items with an empty {property} property will go here. This column cannot be removed.',
+                        defaultMessage: "Items with an empty {property} property will go here. This column can't be removed.",
                     }, {property: groupByProperty!.name})}
                 >
                     <FormattedMessage

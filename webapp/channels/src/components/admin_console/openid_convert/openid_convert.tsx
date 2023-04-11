@@ -73,7 +73,7 @@ export default class OpenIdConvert extends React.PureComponent<Props, State> {
         } else {
             getHistory().push('/admin_console/authentication/openid');
         }
-    }
+    };
 
     render() {
         return (

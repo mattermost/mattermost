@@ -23,7 +23,7 @@ class FilterList extends React.PureComponent<Props> {
             },
         };
         await this.props.updateValues(values, this.props.optionKey);
-    }
+    };
 
     render() {
         const {option} = this.props;

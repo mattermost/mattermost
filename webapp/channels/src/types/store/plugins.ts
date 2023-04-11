@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {TIconGlyph} from '@mattermost/compass-components/foundations/icon';
+import {TIconGlyph} from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {ProductScope} from '@mattermost/types/products';
 

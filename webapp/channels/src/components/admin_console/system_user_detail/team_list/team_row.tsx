@@ -46,7 +46,7 @@ export default class TeamRow extends React.PureComponent<Props> {
                 defaultMessage={'Invite only'}
             />
         );
-    }
+    };
     private renderTeamRole = (team: TeamWithMembership) => {
         if (team.scheme_guest) {
             return (
@@ -73,7 +73,7 @@ export default class TeamRow extends React.PureComponent<Props> {
             );
         }
         return null;
-    }
+    };
     public render = (): JSX.Element => {
         const {team} = this.props;
         const teamIconUrl = Utils.imageURLForTeam(team);
