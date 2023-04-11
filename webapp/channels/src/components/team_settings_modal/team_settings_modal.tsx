@@ -42,11 +42,11 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
             activeTab: tab,
             activeSection: '',
         });
-    }
+    };
 
     updateSection = (section: string) => {
         this.setState({activeSection: section});
-    }
+    };
 
     collapseModal = () => {
         const el = ReactDOM.findDOMNode(this.modalBodyRef.current) as HTMLDivElement;
@@ -57,11 +57,11 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
             activeTab: '',
             activeSection: '',
         });
-    }
+    };
 
     handleHide = () => {
         this.setState({show: false});
-    }
+    };
 
     // called after the dialog is fully hidden and faded out
     handleHidden = () => {
@@ -70,7 +70,7 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
             activeSection: '',
         });
         this.props.onExited();
-    }
+    };
 
     render() {
         const tabs = [];

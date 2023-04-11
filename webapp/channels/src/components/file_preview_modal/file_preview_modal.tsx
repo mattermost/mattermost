@@ -104,7 +104,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             id = 0;
         }
         this.showImage(id);
-    }
+    };
 
     handlePrev = () => {
         let id = this.state.imageIndex - 1;
@@ -112,7 +112,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             id = this.props.fileInfos.length - 1;
         }
         this.showImage(id);
-    }
+    };
 
     handleKeyPress = (e: KeyboardEvent) => {
         if (Utils.isKeyPressed(e, KeyCodes.RIGHT)) {
@@ -120,7 +120,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         } else if (Utils.isKeyPressed(e, KeyCodes.LEFT)) {
             this.handlePrev();
         }
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keyup', this.handleKeyPress);
@@ -156,7 +156,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (!this.state.loaded[id]) {
             this.loadImage(id);
         }
-    }
+    };
 
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
@@ -184,7 +184,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             // there's nothing to load for non-image files
             this.handleImageLoaded(index);
         }
-    }
+    };
 
     handleImageLoaded = (index: number) => {
         this.setState((prevState) => {
@@ -195,7 +195,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 },
             };
         });
-    }
+    };
 
     handleImageProgress = (index: number, completedPercentage: number) => {
         this.setState((prevState) => {
@@ -206,15 +206,15 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 },
             };
         });
-    }
+    };
 
     onMouseEnterImage = () => {
         this.setState({showCloseBtn: true});
-    }
+    };
 
     onMouseLeaveImage = () => {
         this.setState({showCloseBtn: false});
-    }
+    };
 
     setScale = (index: number, scale: number) => {
         this.setState((prevState) => {
@@ -225,7 +225,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 },
             };
         });
-    }
+    };
 
     handleZoomIn = () => {
         let newScale = this.state.scale[this.state.imageIndex];
@@ -241,21 +241,21 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     handleZoomReset = () => {
         this.setScale(this.state.imageIndex, ZoomSettings.DEFAULT_SCALE);
-    }
+    };
 
     handleModalClose = () => {
         this.setState({show: false});
-    }
+    };
 
     getContent = (content: string) => {
         this.setState({content});
-    }
+    };
 
     handleBgClose = (e: React.MouseEvent) => {
         if (e.currentTarget === e.target) {
             this.handleModalClose();
         }
-    }
+    };
 
     render() {
         if (this.props.fileInfos.length < 1 || this.props.fileInfos.length - 1 < this.state.imageIndex) {

@@ -107,7 +107,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 
 	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)

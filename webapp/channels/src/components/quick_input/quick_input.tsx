@@ -120,7 +120,7 @@ export class QuickInput extends React.PureComponent<Props> {
         }
 
         this.input.value = this.props.value;
-    }
+    };
 
     private setInputRef = (input: HTMLInputElement) => {
         if (this.props.forwardedRef) {
@@ -132,7 +132,7 @@ export class QuickInput extends React.PureComponent<Props> {
         }
 
         this.input = input;
-    }
+    };
 
     private onClear = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent) => {
         e.preventDefault();
@@ -143,7 +143,7 @@ export class QuickInput extends React.PureComponent<Props> {
         }
 
         this.input?.focus();
-    }
+    };
 
     render() {
         let clearableTooltipText = this.props.clearableTooltipText;

@@ -51,7 +51,7 @@ const GalleryCard = (props: Props) => {
 
     const confirmDialogProps: ConfirmationDialogBoxProps = useMemo(() => {
         return {
-            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete'}),
             confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
             onConfirm: handleDeleteCard,
             onClose: () => {

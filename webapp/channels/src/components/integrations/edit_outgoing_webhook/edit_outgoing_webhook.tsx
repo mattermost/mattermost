@@ -107,15 +107,15 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
         } else {
             await this.submitHook();
         }
-    }
+    };
 
     handleConfirmModal = (): void => {
         this.setState({showConfirmModal: true});
-    }
+    };
 
     confirmModalDismissed = (): void => {
         this.setState({showConfirmModal: false});
-    }
+    };
 
     submitHook = async (): Promise<void> => {
         this.setState({serverError: ''});
@@ -132,7 +132,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
         if (error) {
             this.setState({serverError: error.message});
         }
-    }
+    };
 
     renderExtra = (): JSX.Element => {
         const confirmButton = (
@@ -166,7 +166,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
                 onCancel={this.confirmModalDismissed}
             />
         );
-    }
+    };
 
     render(): JSX.Element {
         if (!this.props.hook) {
