@@ -35,7 +35,7 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 import {GlobalState} from 'types/store';
 
 import {t} from 'utils/i18n';
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import WorkTemplateModal from 'components/work_templates';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';

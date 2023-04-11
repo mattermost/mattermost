@@ -167,34 +167,6 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot after starting trial and removing license', async () => {
-        const actions = {
-            ...defaultProps.actions,
-            getLicenseConfig: jest.fn(),
-            upgradeToE0: jest.fn(),
-            upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
-        };
-        const props = {...defaultProps, license: {IsLicensed: 'false'}, prevTrialLicense: {IsLicensed: 'false'}, actions};
-
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-
-        const instance = wrapper.instance();
-
-        // First start trial
-        actions.requestTrialLicense = jest.fn().mockImplementation(() => Promise.resolve({percentage: 1, error: null}));
-        actions.getLicenseConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
-        await instance.requestLicense({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>);
-        expect(wrapper.state('gettingTrial')).toBe(false);
-
-        // Then remove license
-        actions.removeLicense = jest.fn().mockImplementation(() => Promise.resolve({percentage: 1, error: null}));
-        actions.getPrevTrialLicense = jest.fn().mockImplementation(() => Promise.resolve({}));
-        await instance.handleRemove({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>);
-        expect(wrapper.state('removing')).toBe(false);
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should match snapshot enterprise build with E20 license', () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E20}};
         const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);

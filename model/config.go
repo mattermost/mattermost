@@ -239,10 +239,10 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsURL    = "https://customers.cloud.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
 	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsURLTest = "https://customers.cloud.mattermost.com"
 	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
 	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
 
@@ -314,7 +314,7 @@ type ServiceSettings struct {
 	RestrictLinkPreviews                *string  `access:"site_posts"`
 	EnableTesting                       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	DeveloperFlags                      *string  `access:"environment_developer"`
+	DeveloperFlags                      *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging    *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                   *bool    `access:"write_restrictable,cloud_restrictable"`
 	EnableSecurityFixAlert              *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`

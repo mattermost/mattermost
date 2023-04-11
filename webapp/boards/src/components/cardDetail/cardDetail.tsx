@@ -255,7 +255,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                     <p className='CardDetail__limited-body'>
                         <FormattedMessage
                             id='CardDetail.limited-body'
-                            defaultMessage='Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.'
+                            defaultMessage='Upgrade to our Professional or Enterprise plan.'
                         />
                         <br/>
                         <a
@@ -362,7 +362,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                                 newBlock.title = block.value.value
                                 newBlock.fields = {...newBlock.fields, value: block.value.checked}
                             }
-                            mutator.updateBlock(card.boardId, newBlock, originalContentBlock, intl.formatMessage({id: 'ContentBlock.editCardText', defaultMessage: 'edit card content'}))
+                            mutator.updateBlock(card.boardId, newBlock, originalContentBlock, intl.formatMessage({id: 'ContentBlock.editCardText', defaultMessage: 'edit card text'}))
                             return block
                         }}
                         onBlockMoved={async (block: BlockData, beforeBlock: BlockData|null, afterBlock: BlockData|null): Promise<void> => {

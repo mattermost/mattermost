@@ -6,11 +6,14 @@ import React from 'react';
 import {Provider} from 'react-redux';
 
 import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 
-import BillingHistory from './billing_history';
+import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
+import BillingHistory, {NoBillingHistorySection} from './billing_history';
 
 const NO_INVOICES_LEGEND = 'All of your invoices will be shown here';
 
@@ -214,3 +217,17 @@ describe('BillingHistory -- self-hosted', () => {
         expect(invoiceTableRows.length).toBe(2);
     });
 });
+
+describe('NoBillingHistorySection', () => {
+    const state = {entities: {users: {}, general: {config: {}, license: {}}}} as any;
+    test('goes to cloud docs on cloud', () => {
+        renderWithIntlAndStore(<NoBillingHistorySection selfHosted={false}/>, state);
+        expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain(CloudLinks.BILLING_DOCS);
+    });
+
+    test('goes to self-hosted docs on self-hosted', () => {
+        renderWithIntlAndStore(<NoBillingHistorySection selfHosted={true}/>, state);
+        expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain(HostedCustomerLinks.SELF_HOSTED_BILLING);
+    });
+});
+
