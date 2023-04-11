@@ -58,7 +58,7 @@ type GetChannelThreadsFilter string
 const (
 	GetChannelThreadsFilterAll         GetChannelThreadsFilter = "all"
 	GetChannelThreadsFilterFollowing   GetChannelThreadsFilter = "following"
-	GetChannelThreadsFilterCurrentUser GetChannelThreadsFilter = "current_user"
+	GetChannelThreadsFilterCurrentUser GetChannelThreadsFilter = "user"
 )
 
 type GetChannelThreadsOpts struct {

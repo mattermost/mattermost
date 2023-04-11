@@ -612,6 +612,8 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 			"ThreadMemberships.UserId":    userID,
 			"ThreadMemberships.Following": true,
 		})
+	} else if opts.Filter == model.GetChannelThreadsFilterCurrentUser {
+		query = query.Where(sq.Eq{"Posts.UserId": userID})
 	}
 
 	order := "DESC"
@@ -681,6 +683,10 @@ func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, userID stri
 			"ThreadMemberships.UserId":    userID,
 			"ThreadMemberships.Following": true,
 		})
+	} else if opts.Filter == model.GetChannelThreadsFilterCurrentUser {
+		query = query.
+			Join("Posts ON Posts.Id = Threads.PostId").
+			Where(sq.Eq{"Posts.UserId": userID})
 	}
 
 	if !opts.Deleted {
