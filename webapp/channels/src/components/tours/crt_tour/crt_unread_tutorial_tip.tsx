@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {useMeasurePunchouts} from '@mattermost/components';
@@ -25,7 +25,7 @@ const CRTUnreadTutorialTip = () => {
                     defaultMessage: 'You can switch to <b>Unreads</b> to show only threads that are unread.',
                 },
                 {
-                    b: (value: string) => <b>{value}</b>,
+                    b: (value: string) => <b>{value}</b> as ReactNode,
                 })
             }
         </p>

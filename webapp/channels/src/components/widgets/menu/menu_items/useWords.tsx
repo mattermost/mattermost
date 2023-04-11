@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
@@ -123,7 +123,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                     id,
                     defaultMessage,
                 },
-                values,
+                values as Record<string, ReactNode>,
             ),
             status: inK(highestLimit.usage),
         };
@@ -155,7 +155,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                     id,
                     defaultMessage,
                 },
-                values,
+                values as Record<string, ReactNode>,
             ),
             status: asGBString(highestLimit.usage, intl.formatNumber),
         };

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -35,7 +35,7 @@ const CRTThreadsPaneTutorialTip = () => {
                     defaultMessage: 'Click the <b>Follow</b> button to be notified about replies and see it in your <b>Threads</b> view. Within a thread, the <b>New Messages</b> line shows you where you left off.',
                 },
                 {
-                    b: (value: string) => <b>{value}</b>,
+                    b: (value: string) => <b>{value}</b> as ReactNode,
                 },
             )}
         </p>
