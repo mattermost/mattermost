@@ -15,9 +15,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
@@ -483,28 +481,6 @@ func (w *sqlxDBWrapper) checkErr(err error) error {
 	var netError *net.OpError
 	if errors.As(err, &netError) && (!netError.Temporary() && !netError.Timeout()) {
 		w.isOnline.Store(false)
-	}
-	var pqError *pq.Error
-	if errors.As(err, &pqError) && pqError.Fatal() {
-		w.isOnline.Store(false)
-	}
-	var mySQLError *mysql.MySQLError
-	if errors.As(err, &mySQLError) {
-		class := string(mySQLError.SQLState[:2])
-		if class == "HY" { // General error
-			w.isOnline.Store(false)
-		} else {
-			intClass, convErr := strconv.Atoi(class)
-			if convErr != nil {
-				mlog.Warn("Error converting MYSQL error class", mlog.Err(convErr))
-				// Don't do anything, just return original error
-				return err
-			}
-			// https://dev.mysql.com/doc/refman/5.7/en/error-message-elements.html#error-elements
-			if intClass > 2 {
-				w.isOnline.Store(false)
-			}
-		}
 	}
 	return err
 }
