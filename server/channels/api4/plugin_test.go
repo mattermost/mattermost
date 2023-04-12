@@ -103,6 +103,7 @@ func TestPlugin(t *testing.T) {
 		// Successful upload
 		manifest, _, err = client.UploadPlugin(bytes.NewReader(tarData))
 		require.NoError(t, err)
+		assert.Equal(t, "testplugin", manifest.Id)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
 
