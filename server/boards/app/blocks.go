@@ -424,9 +424,9 @@ func (a *App) DeleteBlockAndNotify(blockID string, modifiedBy string, disableNot
 		if attachmentIDWithExtention, attachmentIDIsString := attachmentIDWithExtention.(string); attachmentIDExists && attachmentIDIsString {
 			parts := strings.Split(attachmentIDWithExtention, ".")
 			attachmentID := parts[0][1:]
-			fileInfo, err := a.store.GetFileInfo(attachmentID)
-			if err != nil {
-				return err
+			fileInfo, fiErr := a.store.GetFileInfo(attachmentID)
+			if fiErr != nil {
+				return fiErr
 			}
 
 			err = a.filesBackend.RemoveFile(fileInfo.Path)
