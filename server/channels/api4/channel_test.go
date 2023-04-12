@@ -4213,7 +4213,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Len(t, res.Threads, 0)
-		require.Equal(t, int64(10), res.Total)
+		require.Equal(t, len(rootPosts), res.Total)
 	})
 
 	t.Run("should return only threads using threadsOnly param", func(t *testing.T) {
