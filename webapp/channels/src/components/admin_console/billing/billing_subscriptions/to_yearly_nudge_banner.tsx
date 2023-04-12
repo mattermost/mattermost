@@ -32,8 +32,7 @@ enum DismissShowRange {
     Zero = '0'
 }
 
-// eslint-disable-next-line no-process-env
-const cloudProMonthlyCloseMoment = process.env.CLOUD_PRO_MONTHLY_DEPRECATION_DATE || '20230416';
+const cloudProMonthlyCloseMoment = '20230727';
 
 interface ToYearlyPlanDismissPreference {
 

@@ -443,7 +443,6 @@ if (DEV) {
 
 const env = {
     STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY || ''),
-    CLOUD_PRO_MONTHLY_DEPRECATION_DATE: JSON.stringify(process.env.CLOUD_PRO_MONTHLY_DEPRECATION_DATE || ''), // set with format YYYYMMDD
 };
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
