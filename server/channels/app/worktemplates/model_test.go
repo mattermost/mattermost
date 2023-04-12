@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
+	pbclient "github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 )
 
 func TestCanBeExecuted(t *testing.T) {
