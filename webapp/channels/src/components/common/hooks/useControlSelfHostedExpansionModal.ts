@@ -61,10 +61,6 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
                     callerInfo: options.trackingLocation,
                 });
 
-                if (options.onClick) {
-                    options.onClick();
-                }
-
                 try {
                     const result = await Client4.bootstrapSelfHostedSignup();
 
