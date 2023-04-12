@@ -8393,6 +8393,9 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 
 func (c *Client4) GetThreadsForChannel(channelID, userID string, opts GetChannelThreadsOpts) (*ChannelThreads, *Response, error) {
 	v := url.Values{}
+	if opts.Since != 0 {
+		v.Set("since", fmt.Sprintf("%d", opts.Since))
+	}
 	if opts.Before != "" {
 		v.Set("before", opts.Before)
 	}

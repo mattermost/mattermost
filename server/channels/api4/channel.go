@@ -1892,6 +1892,7 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	queryValues := r.URL.Query()
 
 	opts.Deleted, _ = strconv.ParseBool(queryValues.Get("deleted"))
+	opts.Since, _ = strconv.ParseUint(queryValues.Get("since"), 10, 64)
 	opts.Before = queryValues.Get("before")
 	opts.After = queryValues.Get("after")
 	opts.Extended, _ = strconv.ParseBool(queryValues.Get("extended"))

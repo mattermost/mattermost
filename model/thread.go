@@ -76,6 +76,9 @@ type GetChannelThreadsOpts struct {
 	// Deleted will specify that even deleted threads should be returned (For mobile sync). Default = false
 	Deleted bool
 
+	// Since filters the threads based on their LastUpdateAt timestamp.
+	Since uint64
+
 	// Before specifies thread id as a cursor for pagination and will return `PageSize` threads before the cursor
 	Before string
 

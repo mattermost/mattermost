@@ -619,6 +619,13 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
 
+	if opts.Since > 0 {
+		query = query.Where(sq.Or{
+			sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since},
+			sq.GtOrEq{"Threads.LastReplyAt": opts.Since},
+		})
+	}
+
 	if opts.Filter == model.GetChannelThreadsFilterFollowing {
 		query = query.Where(sq.Eq{"ThreadMemberships.Following": true})
 	} else if opts.Filter == model.GetChannelThreadsFilterCurrentUser {

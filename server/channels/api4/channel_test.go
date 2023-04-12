@@ -4136,6 +4136,42 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Len(t, res3.Threads, 0)
 	})
 
+	t.Run("should return threads with new replies and updated memberships when since param is set", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		// Create first thread
+		rootPost1 := th.CreatePost()
+		th.CreateThreadPost(rootPost1)
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
+			Since: uint64(rootPost1.CreateAt),
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+
+		// Should not fetch any threads since there are no new replies/new threads since the membership is updated
+		threadMembership, _ := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 0)
+
+		// Create second thread
+		rootPost2 := th.CreatePost()
+		th.CreateThreadPost(rootPost2)
+
+		// Add a reply with other user
+		th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rootPost2)
+
+		// Should fetch "thread 1" & "thread 2"
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
+			Since: uint64(threadMembership.LastUpdated) + 1,
+		})
+		require.NoError(t, err)
+		require.Equal(t, int64(1), res.Threads[0].UnreadReplies)
+	})
+
 	t.Run("should get a bad request when setting both threadsOnly and totalsOnly params", func(t *testing.T) {
 		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			ThreadsOnly: true,
