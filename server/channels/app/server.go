@@ -281,7 +281,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	app.ch = channelsWrapper.app.ch
 
-
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
 	// If you are adding a new field that is non-channels specific, please add
