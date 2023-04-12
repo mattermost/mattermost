@@ -355,7 +355,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	// for true-up reviews to be completed.
 	err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
 	if err != nil {
-		c.SetJSONEncodingError(err)
+		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
