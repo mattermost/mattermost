@@ -20,7 +20,7 @@ describe('Account Settings', () => {
 
     it('MM-T2045 Full Name - Link in help text', () => {
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // * Ensure that the Profile tab is loaded
         cy.get('#generalSettingsTitle').should('be.visible').should('contain', 'Profile');

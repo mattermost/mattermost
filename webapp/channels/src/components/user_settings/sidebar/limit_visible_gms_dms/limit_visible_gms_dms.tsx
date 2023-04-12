@@ -91,7 +91,7 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
         if (selected && 'value' in selected) {
             this.setState({limit: selected});
         }
-    }
+    };
 
     handleSubmit = async () => {
         this.setState({isSaving: true});
@@ -106,13 +106,13 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
         this.setState({isSaving: false});
 
         this.props.updateSection('');
-    }
+    };
 
     renderDescription = () => {
         return (
             <span>{this.state.limit.label}</span>
         );
-    }
+    };
 
     render() {
         const title = (

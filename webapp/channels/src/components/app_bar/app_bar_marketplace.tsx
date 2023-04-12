@@ -5,15 +5,13 @@ import React, {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
-
-import Icon from '@mattermost/compass-components/foundations/icon';
-
 import {openModal} from 'actions/views/modals';
 
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
 const AppBarMarketplace = () => {
     const {formatMessage} = useIntl();
@@ -48,10 +46,7 @@ const AppBarMarketplace = () => {
                 aria-label={label}
                 onClick={handleOpenMarketplace}
             >
-                <Icon
-                    size={16}
-                    glyph={'view-grid-plus-outline'}
-                />
+                <ViewGridPlusOutlineIcon size={18}/>
             </button>
         </OverlayTrigger>
     );

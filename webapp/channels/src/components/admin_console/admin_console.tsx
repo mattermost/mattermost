@@ -93,7 +93,7 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
 
     private onFilterChange = (filter: string) => {
         this.setState({filter});
-    }
+    };
 
     private mainRolesLoaded(roles: Record<string, Role>) {
         return (
@@ -186,7 +186,7 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
                 {<Redirect to={`${this.props.match.url}/${defaultUrl}`}/>}
             </Switch>
         );
-    }
+    };
 
     public render(): JSX.Element | null {
         const {

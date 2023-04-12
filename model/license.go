@@ -84,6 +84,48 @@ type TrialLicenseRequest struct {
 	Users                 int    `json:"users"`
 	TermsAccepted         bool   `json:"terms_accepted"`
 	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
+	ContactName           string `json:"contact_name"`
+	ContactEmail          string `json:"contact_email"`
+	CompanyName           string `json:"company_name"`
+	CompanyCountry        string `json:"company_country"`
+	CompanySize           string `json:"company_size"`
+}
+
+// If any of the below fields are set, this is not a legacy request, and all fields should be validated
+func (tlr *TrialLicenseRequest) IsLegacy() bool {
+	return tlr.CompanyCountry == "" && tlr.CompanyName == "" && tlr.CompanySize == "" && tlr.ContactName == ""
+}
+
+func (tlr *TrialLicenseRequest) IsValid() bool {
+	if !tlr.TermsAccepted {
+		return false
+	}
+
+	if tlr.Email == "" {
+		return false
+	}
+
+	if tlr.Users <= 0 {
+		return false
+	}
+
+	if tlr.CompanyCountry == "" {
+		return false
+	}
+
+	if tlr.CompanyName == "" {
+		return false
+	}
+
+	if tlr.CompanySize == "" {
+		return false
+	}
+
+	if tlr.ContactName == "" {
+		return false
+	}
+
+	return true
 }
 
 type Features struct {
@@ -400,7 +442,7 @@ func (lr *LicenseRecord) IsValid() *AppError {
 	}
 
 	if lr.Bytes == "" || len(lr.Bytes) > 10000 {
-		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.bytes.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
