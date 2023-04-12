@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('playbooks > list', () => {
+describe('playbooks > list', {testIsolation: true}, () => {
     const playbookTitle = 'The Playbook Name';
     let testTeam;
     let testUser;

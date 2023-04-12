@@ -119,7 +119,7 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -224,11 +224,11 @@ exports[`src/components/shareBoard/shareBoard confirm unlinking linked channel 1
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -369,7 +369,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -474,11 +474,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -619,7 +619,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -724,11 +724,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -869,7 +869,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -983,11 +983,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
             >
               <a
                 class="shareUrl"
-                href="http://localhost/team/team-id/shared/1/1?r=anotherToken"
+                href="http://localhost:8065/boards/public/team/team-id/shared/1/1?r=anotherToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/team/team-id/shared/1/1?r=anotherToken
+                http://localhost:8065/boards/public/team/team-id/shared/1/1?r=anotherToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -1142,7 +1142,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -1233,11 +1233,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -1326,7 +1326,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <span
                   id="aria-context"
                 >
-                  option username_1 focused, 0 of 2. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+                  option username_1 focused, 1 of 8. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
                 </span>
               </span>
               <div
@@ -1610,7 +1610,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -1701,11 +1701,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -1846,7 +1846,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -1937,11 +1937,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -2030,7 +2030,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <span
                   id="aria-context"
                 >
-                  option username_1 focused, 0 of 2. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+                  option username_1 focused, 1 of 8. 8 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
                 </span>
               </span>
               <div
@@ -2332,7 +2332,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -2423,11 +2423,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -2471,7 +2471,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share template
             </h1>
           </div>
           <div
@@ -2568,7 +2568,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -2656,7 +2656,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share template
             </h1>
           </div>
           <div
@@ -2701,7 +2701,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 <span
                   id="aria-context"
                 >
-                  option username_1 focused, 0 of 1. 4 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+                  option username_1 focused, 1 of 4. 4 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
                 </span>
               </span>
               <div
@@ -2889,7 +2889,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3074,7 +3074,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard, and click switc
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3188,11 +3188,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard, and click switc
             >
               <a
                 class="shareUrl"
-                href="http://localhost/team/team-id/shared/1/1?r=oneToken"
+                href="http://localhost:8065/boards/public/team/team-id/shared/1/1?r=oneToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/team/team-id/shared/1/1?r=oneToken
+                http://localhost:8065/boards/public/team/team-id/shared/1/1?r=oneToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -3347,7 +3347,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoardComponent and cli
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3461,11 +3461,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoardComponent and cli
             >
               <a
                 class="shareUrl"
-                href="http://localhost/team/team-id/shared/1/1?r=aToken"
+                href="http://localhost:8065/boards/public/team/team-id/shared/1/1?r=aToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/team/team-id/shared/1/1?r=aToken
+                http://localhost:8065/boards/public/team/team-id/shared/1/1?r=aToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -3620,7 +3620,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3725,11 +3725,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -3870,7 +3870,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -3975,11 +3975,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -4120,7 +4120,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>
@@ -4225,11 +4225,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/undefined/team/team-id/1/1"
+                href="http://localhost:8065/undefined/team/team-id/1/1"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/undefined/team/team-id/1/1
+                http://localhost:8065/undefined/team/team-id/1/1
               </a>
             </div>
             <button
@@ -4273,7 +4273,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share template
             </h1>
           </div>
           <div
@@ -4370,7 +4370,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
                 class="ml-3"
               >
                 <strong>
-                  Everyone at Test Team Team
+                  Everyone at Test Team team
                 </strong>
               </div>
             </div>

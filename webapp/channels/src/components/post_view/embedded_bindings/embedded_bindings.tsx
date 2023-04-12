@@ -33,7 +33,7 @@ type Props = {
 export default class EmbeddedBindings extends React.PureComponent<Props> {
     static defaultProps = {
         imagesMetadata: {},
-    }
+    };
 
     render() {
         const content = [] as JSX.Element[];
