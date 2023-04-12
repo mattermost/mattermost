@@ -239,10 +239,10 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsURL    = "https://customers.cloud.mattermost.com"
 	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
 	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsURLTest = "https://customers.cloud.mattermost.com"
 	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
 	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
 

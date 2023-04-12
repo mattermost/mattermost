@@ -176,7 +176,7 @@ Cypress.Commands.add('updateStatus', (message, reminderQuery) => {
 
         if (reminderQuery) {
             cy.get('#reminder_timer_datetime').within(() => {
-                cy.get('input').type(reminderQuery, {delay: TIMEOUTS.TWO_HUNDRED_MILLIS, force: true}).type('{enter}', {force: true});
+                cy.get('input').type(reminderQuery, {delay: TIMEOUTS.TWO_HUNDRED_MILLIS, force: true}).wait(TIMEOUTS.ONE_SEC).type('{enter}');
             });
         }
 
