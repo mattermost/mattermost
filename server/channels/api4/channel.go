@@ -1894,6 +1894,7 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts.Deleted, _ = strconv.ParseBool(queryValues.Get("deleted"))
 	opts.Before = queryValues.Get("before")
 	opts.After = queryValues.Get("after")
+	opts.Extended, _ = strconv.ParseBool(queryValues.Get("extended"))
 
 	totalsOnlyKey := "totalsOnly"
 	if !queryValues.Has(totalsOnlyKey) {

@@ -3967,6 +3967,23 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Equal(t, int64(1), res.Threads[0].UnreadMentions)
 	})
 
+	t.Run("extended, 1 thread", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rootPost := th.CreatePost()
+		th.CreateThreadPost(rootPost)
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
+			Extended: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
+		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+		require.Equal(t, th.BasicUser.Id, res.Threads[0].Participants[0].Id)
+		require.Equal(t, th.BasicUser.Username, res.Threads[0].Participants[0].Username)
+	})
+
 	t.Run("deleted, 1 thread", func(t *testing.T) {
 		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
