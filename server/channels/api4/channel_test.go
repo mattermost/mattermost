@@ -3923,6 +3923,32 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Equal(t, int64(0), res.Threads[0].LastViewedAt)
 	})
 
+	t.Run("no params, 1 thread, reply/mention from other user", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rootPost := th.CreatePost()
+		th.CreateThreadPost(rootPost)
+		th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rootPost)
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
+		require.Equal(t, int64(2), res.Threads[0].ReplyCount)
+		require.Equal(t, int64(1), res.Threads[0].UnreadReplies)
+		require.Equal(t, int64(0), res.Threads[0].UnreadMentions)
+
+		th.CreateThreadMessagePostWithClient(th.SystemAdminClient, th.BasicChannel, rootPost, "hey @"+th.BasicUser.Username)
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
+		require.Equal(t, int64(3), res.Threads[0].ReplyCount)
+		require.Equal(t, int64(2), res.Threads[0].UnreadReplies)
+		require.Equal(t, int64(1), res.Threads[0].UnreadMentions)
+	})
+
 	t.Run("deleted, 1 thread", func(t *testing.T) {
 		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 

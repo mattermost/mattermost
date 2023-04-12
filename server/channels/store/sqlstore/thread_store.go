@@ -581,10 +581,24 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 		pageSize = opts.PageSize
 	}
 
+	unreadRepliesQuery := sq.
+		Select("COUNT(Posts.Id)").
+		From("Posts").
+		Where(sq.Expr("Posts.RootId = ThreadMemberships.PostId")).
+		Where(sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"))
+
+	if !opts.Deleted {
+		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
+	}
+
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
-		Column("ThreadMemberships.UserId IS NOT NULL AS IsFollowing").
-		Columns("COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt").
+		Columns(
+			"COALESCE(ThreadMemberships.LastViewed, 0) AS LastViewedAt",
+			"COALESCE(ThreadMemberships.UnreadMentions, 0) AS UnreadMentions",
+			"ThreadMemberships.UserId IS NOT NULL AS IsFollowing",
+		).
+		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId AND ThreadMemberships.UserId = ?", userID)
 
