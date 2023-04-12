@@ -29,13 +29,9 @@ type SelfHostedCustomerForm struct {
 }
 
 type SelfHostedConfirmPaymentMethodRequest struct {
-	StripeSetupIntentID string                    `json:"stripe_setup_intent_id"`
-	Subscription        CreateSubscriptionRequest `json:"subscription"`
-}
-
-type SelfHostedExpansionConfirmPaymentMethodRequest struct {
-	StripeSetupIntentID string                     `json:"stripe_setup_intent_id"`
-	ExpandRequest       SelfHostedExpansionRequest `json:"expand_request"`
+	StripeSetupIntentID string                      `json:"stripe_setup_intent_id"`
+	Subscription        *CreateSubscriptionRequest  `json:"subscription"`
+	ExpandRequest       *SelfHostedExpansionRequest `json:"expand_request"`
 }
 
 // SelfHostedSignupPaymentResponse contains feels needed for self hosted signup to confirm payment and receive license.
