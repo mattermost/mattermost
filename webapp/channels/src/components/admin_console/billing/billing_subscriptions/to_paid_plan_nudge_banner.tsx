@@ -207,7 +207,7 @@ export const ToPaidNudgeBanner = () => {
     const description = (
         <FormattedMessage
             id='cloud_billing.nudge_to_paid.description'
-            defaultMessage='Cloud Starter will be deprecated in {days} days. Upgrade to a paid plan or contact sales.'
+            defaultMessage='Cloud Free will be deprecated in {days} days. Upgrade to a paid plan or contact sales.'
             values={{days: daysToCloudFreeEnd < 0 ? 0 : daysToCloudFreeEnd}}
         />
     );

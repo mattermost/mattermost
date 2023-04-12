@@ -3032,7 +3032,7 @@
   "cloud_archived.error.title": "Message Archived",
   "cloud_billing_history_modal.title": "Invoice(s)",
   "cloud_billing.nudge_to_paid.contact_sales": "Contact sales",
-  "cloud_billing.nudge_to_paid.description": "Cloud Starter will be deprecated in {days} days. Upgrade to a paid plan or contact sales.",
+  "cloud_billing.nudge_to_paid.description": "Cloud Free will be deprecated in {days} days. Upgrade to a paid plan or contact sales.",
   "cloud_billing.nudge_to_paid.learn_more": "Upgrade",
   "cloud_billing.nudge_to_paid.title": "Upgrade to paid plan to keep your workspace",
   "cloud_billing.nudge_to_paid.view_plans": "View plans",
