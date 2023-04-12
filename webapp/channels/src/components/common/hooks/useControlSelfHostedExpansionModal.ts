@@ -19,7 +19,6 @@ import {useControlModal, ControlModal} from './useControlModal';
 import useCanSelfHostedExpand from './useCanSelfHostedExpand';
 
 interface HookOptions{
-    onClick?: () => void;
     trackingLocation?: string;
 }
 
