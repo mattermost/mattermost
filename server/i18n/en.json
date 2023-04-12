@@ -300,6 +300,10 @@
     "translation": "Parameters before and after are mutually exclusive"
   },
   {
+    "id": "api.channel.get_threads_for_channel.invalid_filter_param.app_error",
+    "translation": "Parameter filter does not support value: {{.Filter}}"
+  },
+  {
     "id": "api.channel.get_threads_for_channel.invalid_totals_threads_params.app_error",
     "translation": "Parameters onlyTotals and onlyThreads are mutually exclusive"
   },

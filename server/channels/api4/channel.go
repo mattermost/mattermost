@@ -1932,7 +1932,7 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.GetChannelThreadsFilterFollowing, model.GetChannelThreadsFilterCurrentUser:
 			opts.Filter = model.GetChannelThreadsFilter(filter)
 		default:
-			c.Err = model.NewAppError("Api4.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_filter_param.app_error", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("Api4.getThreadsForChannel", "api.channel.get_threads_for_channel.invalid_filter_param.app_error", map[string]interface{}{"Filter": filter}, "", http.StatusBadRequest)
 			return
 		}
 	}
