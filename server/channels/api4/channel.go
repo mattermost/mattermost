@@ -1919,8 +1919,6 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mlog.Debug("getThreadsForChannel", mlog.Any("queryValues", queryValues))
-
 	filter := queryValues.Get("filter")
 	if filter != "" {
 		switch model.GetChannelThreadsFilter(filter) {
@@ -1933,8 +1931,6 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	mlog.Debug("getThreadsForChannel", mlog.Any("opts", opts))
 
 	threads, appErr := c.App.GetThreadsForChannel(c.Params.ChannelId, c.Params.UserId, opts)
 	if appErr != nil {
