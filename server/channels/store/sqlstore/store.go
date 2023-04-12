@@ -50,7 +50,7 @@ const (
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
 	DBPingAttempts                    = 5
-	DBPingTimeoutSecs                 = 1
+	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
