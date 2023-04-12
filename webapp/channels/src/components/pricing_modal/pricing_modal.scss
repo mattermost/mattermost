@@ -136,6 +136,10 @@
                 margin-top: 8px;
             }
 
+            hr {
+                border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            }
+
             .description {
                 border-bottom: 1px solid rgba(var(--center-channel-color-rgb) 0.16);
                 text-align: left;
@@ -151,7 +155,7 @@
 
                     .questions {
                         margin-right: 2px;
-                        color: var(--center-channel-color-rgb);
+                        color: var(--center-channel-color);
                     }
 
                     .contact {
@@ -183,7 +187,7 @@
 
                 .interested {
                     margin-right: 2px;
-                    color: var(--center-channel-color-rgb);
+                    color: var(--center-channel-color);
                 }
 
                 .learn {
@@ -242,6 +246,7 @@
                         width: 100%;
                         height: 221px;
                         text-align: center;
+                        margin-bottom: 44px;
 
                         h3 {
                             margin-top: 32px;
@@ -267,13 +272,18 @@
 
                         span,
                         p {
-                            margin-bottom: 32px;
+                            margin-bottom: 45px;
                             color: rgba(var(--center-channel-color-rgb), 0.72);
                             font-family: 'Metropolis';
                             font-size: 16px;
                             font-style: normal;
                             font-weight: 400;
                             line-height: 24px;
+                        }
+
+                        .billed_annually {
+                            font-family: 'Open sans', sans-serif;
+                            font-size: 16px;
                         }
                     }
 

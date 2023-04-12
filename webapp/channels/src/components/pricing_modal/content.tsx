@@ -428,7 +428,7 @@ function Content(props: ContentProps) {
                         rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                             br: <br/>,
                             b: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                <span style={{fontSize: '14px'}}>
+                                <span className='billed_annually'>
                                     {
                                         cloudFreeDeprecated ? chunks : (<b>{chunks}</b>)
                                     }

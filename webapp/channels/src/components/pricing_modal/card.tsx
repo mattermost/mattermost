@@ -95,6 +95,7 @@ export function BlankCard() {
                     {formatMessage({id: 'pricing_modal.reach_out', defaultMessage: 'Reach out to us and we’ll help you decide which plan is right for you and your organization.'})}
                 </div>
             </div>
+            <hr/>
             <div className='self-hosted-interest'>
                 <span className='interested'>
                     {formatMessage({id: 'pricing_modal.interested_self_hosting', defaultMessage: 'Interested in self-hosting?'})}
