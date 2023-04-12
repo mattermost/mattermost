@@ -92,7 +92,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             selectedPostCardId: this.props.selectedPostCardId,
             previousRhsState: this.props.previousRhsState,
         };
-    }
+    };
 
     handleShortcut = (e: KeyboardEvent) => {
         const channelInfoShortcutMac = isMac() && e.shiftKey;
@@ -126,7 +126,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 }
             }
         }
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
@@ -187,16 +187,16 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         ) {
             this.props.actions.setRhsExpanded(false);
         }
-    }
+    };
 
     handleUpdateSearchTerms = (term: string) => {
         this.props.actions.updateSearchTerms(term);
         this.focusSearchBar?.();
-    }
+    };
 
     getSearchBarFocus = (focusSearchBar: () => void) => {
         this.focusSearchBar = focusSearchBar;
-    }
+    };
 
     render() {
         const {

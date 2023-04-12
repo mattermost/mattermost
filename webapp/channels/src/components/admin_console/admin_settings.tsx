@@ -69,7 +69,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
 
     private closeTooltip = () => {
         this.setState({errorTooltip: false});
-    }
+    };
 
     private openTooltip = (e: React.MouseEvent) => {
         const elm: HTMLElement|null = e.currentTarget.querySelector('.control-label');
@@ -77,7 +77,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
             const isElipsis = elm.offsetWidth < elm.scrollWidth;
             this.setState({errorTooltip: isElipsis});
         }
-    }
+    };
 
     protected handleChange = (id: string, value: boolean) => {
         this.setState((prevState) => ({
@@ -95,7 +95,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         e.preventDefault();
 
         this.doSubmit();
-    }
+    };
 
     protected doSubmit = async (callback?: () => void) => {
         this.setState({

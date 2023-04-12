@@ -6,11 +6,11 @@ import {useDispatch} from 'react-redux';
 import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 
-import Icon from '@mattermost/compass-components/foundations/icon';
+import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
 
 import {openModal} from 'actions/views/modals';
 
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';

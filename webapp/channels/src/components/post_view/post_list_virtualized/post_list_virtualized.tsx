@@ -315,12 +315,12 @@ export default class PostList extends React.PureComponent<Props, State> {
         return postListIds.findIndex(
             (item) => item.indexOf(PostListRowListIds.START_OF_NEW_MESSAGES) === 0,
         );
-    }
+    };
 
     handleWindowResize = () => {
         this.props.actions.checkAndSetMobileView();
         this.showSearchHintThreshold = this.getShowSearchHintThreshold();
-    }
+    };
 
     togglePostMenu = (opened: boolean) => {
         let dynamicListStyle = this.state.dynamicListStyle;
@@ -341,7 +341,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.setState({
             isNewMessageLineReached: true,
         });
-    }
+    };
 
     renderRow = ({data, itemId, style}: {data: string[]; itemId: string; style: Record<string, string>}) => {
         const index = data.indexOf(itemId);
@@ -391,7 +391,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         } else {
             this.props.actions.changeUnreadChunkTimeStamp(this.props.lastViewedAt);
         }
-    }
+    };
 
     onScroll = ({
         scrollDirection,
@@ -463,22 +463,22 @@ export default class PostList extends React.PureComponent<Props, State> {
                 showSearchHint: offsetFromBottom > this.showSearchHintThreshold,
             });
         }
-    }
+    };
 
     getShowSearchHintThreshold = () => {
         return window.screen.height * 3;
-    }
+    };
 
     checkBottom = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
         this.updateAtBottom(this.isAtBottom(scrollOffset, scrollHeight, clientHeight));
-    }
+    };
 
     isAtBottom = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
         // Calculate how far the post list is from being scrolled to the bottom
         const offsetFromBottom = scrollHeight - clientHeight - scrollOffset;
 
         return offsetFromBottom <= BUFFER_TO_BE_CONSIDERED_BOTTOM && scrollHeight > 0;
-    }
+    };
 
     updateAtBottom = (atBottom: boolean) => {
         if (atBottom !== this.state.atBottom) {
@@ -494,13 +494,13 @@ export default class PostList extends React.PureComponent<Props, State> {
                 lastViewedBottom,
             });
         }
-    }
+    };
 
     updateLastViewedBottomAt = (lastViewedBottom = Date.now()) => {
         this.setState({
             lastViewedBottom,
         });
-    }
+    };
 
     handleScrollStop = () => {
         if (this.mounted) {
@@ -508,14 +508,14 @@ export default class PostList extends React.PureComponent<Props, State> {
                 isScrolling: false,
             });
         }
-    }
+    };
 
     handleSearchHintDismiss = () => {
         this.setState({
             showSearchHint: false,
             isSearchHintDismissed: true,
         });
-    }
+    };
 
     updateFloatingTimestamp = (visibleTopItem: number) => {
         if (!this.props.isMobileView) {
@@ -529,7 +529,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.setState({
             topPostId: getLatestPostId(this.props.postListIds.slice(visibleTopItem)),
         });
-    }
+    };
 
     onItemsRendered = ({visibleStartIndex, visibleStopIndex}: Pick<OnItemsRenderedArgs, 'visibleStartIndex' | 'visibleStopIndex'>) => {
         this.updateFloatingTimestamp(visibleStartIndex);
@@ -542,7 +542,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         ) {
             this.onNewMessageLineReached();
         }
-    }
+    };
 
     initScrollToIndex = () => {
         if (this.props.focusedPostId) {
@@ -584,7 +584,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             index: 0,
             position: 'end',
         };
-    }
+    };
 
     scrollToLatestMessages = () => {
         if (this.props.atLatestPost) {
@@ -593,23 +593,23 @@ export default class PostList extends React.PureComponent<Props, State> {
             this.updateNewMessagesAtInChannel();
             this.props.actions.changeUnreadChunkTimeStamp(0);
         }
-    }
+    };
 
     scrollToUnreadMessages = () => {
         this.props.actions.toggleShouldStartFromBottomWhenUnread();
-    }
+    };
 
     scrollToBottom = () => {
         this.listRef.current?.scrollToItem(0, 'end');
-    }
+    };
 
     scrollToNewMessage = () => {
         this.listRef.current?.scrollToItem(getNewMessageIndex(this.state.postListIds), 'start', OFFSET_TO_SHOW_TOAST);
-    }
+    };
 
     updateNewMessagesAtInChannel = (lastViewedAt = Date.now()) => {
         this.props.actions.updateNewMessagesAtInChannel(this.props.channelId, lastViewedAt);
-    }
+    };
 
     renderToasts = (width: number) => {
         return (
@@ -634,7 +634,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                 showSearchHintToast={this.state.showSearchHint}
             />
         );
-    }
+    };
 
     render() {
         const {channelId} = this.props;

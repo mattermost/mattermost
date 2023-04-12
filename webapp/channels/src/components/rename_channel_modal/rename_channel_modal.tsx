@@ -105,17 +105,17 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
     setError = (err: ServerError) => {
         this.setState({serverError: err.message});
-    }
+    };
 
     unsetError = () => {
         this.setState({serverError: ''});
-    }
+    };
 
     handleEntering = () => {
         if (this.textbox) {
             Utils.placeCaretAtEnd(this.textbox);
         }
-    }
+    };
 
     handleHide = (e?: MouseEvent) => {
         if (e) {
@@ -129,7 +129,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
             invalid: false,
             show: false,
         });
-    }
+    };
 
     handleSubmit = async (e?: MouseEvent<HTMLButtonElement>): Promise<void> => {
         if (e) {
@@ -186,13 +186,13 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
         } else if (error) {
             this.setError(error);
         }
-    }
+    };
 
     onSaveSuccess = () => {
         this.handleHide();
         this.unsetError();
         getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
-    }
+    };
 
     handleCancel = (e?: MouseEvent) => {
         this.setState({
@@ -201,20 +201,20 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
         });
 
         this.handleHide(e);
-    }
+    };
 
     onNameChange = (e: ChangeEvent<HTMLInputElement> | {target: {value: string}}) => {
         const name = e.target.value.trim().replace(/[^A-Za-z0-9-_]/g, '').toLowerCase();
         this.setState({channelName: name});
-    }
+    };
 
     onDisplayNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({displayName: e.target.value});
-    }
+    };
 
     getTextbox = (node: HTMLInputElement) => {
         this.textbox = node;
-    }
+    };
 
     render(): JSX.Element {
         let displayNameError = null;
