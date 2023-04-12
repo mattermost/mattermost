@@ -119,7 +119,7 @@ exports[`properties/person select user - cancel 2`] = `
       <span
         id="aria-context"
       >
-        option username-4 focused, 0 of 2. 2 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+        option username-4 focused, 1 of 2. 2 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
       </span>
     </span>
     <div
@@ -371,7 +371,7 @@ exports[`properties/person select user - confirm 2`] = `
       <span
         id="aria-context"
       >
-        option username-4 focused, 0 of 2. 2 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+        option username-4 focused, 1 of 2. 2 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
       </span>
     </span>
     <div

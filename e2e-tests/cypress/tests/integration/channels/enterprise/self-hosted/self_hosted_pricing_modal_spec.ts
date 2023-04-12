@@ -102,7 +102,7 @@ describe('Self hosted Pricing modal', () => {
         // * Check that enteprise trial button is available
         cy.get('#pricingModal').should('be.visible');
         cy.get('#enterprise').should('be.visible');
-        cy.get('#start_trial_btn').should('not.be.disabled').contains('Try free for 30 days');
+        cy.get('#start_trial_btn').should('not.be.disabled').contains('Start trial');
     });
 
     it('Upgrade button should open pricing modal admin users when the server has requested a trial before on free plan', () => {

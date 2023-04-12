@@ -11,7 +11,7 @@
 
 /* eslint-disable no-only-tests/no-only-tests */
 
-describe('runs > run details page > status update', () => {
+describe('runs > run details page > status update', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testViewerUser;

@@ -11,7 +11,7 @@
 
 import {HALF_SEC, ONE_SEC} from '../../../../fixtures/timeouts';
 
-describe('channels > rhs > checklist', () => {
+describe('channels > rhs > checklist', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;
@@ -164,7 +164,7 @@ describe('channels > rhs > checklist', () => {
             });
 
             // * Verify the expected error message.
-            cy.verifyEphemeralMessage('Failed to execute slash command /invalid');
+            cy.verifyEphemeralMessage('Failed to find slash command /invalid');
         });
 
         it('successfully runs a valid slash command', () => {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"image"
@@ -363,6 +364,12 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 	}
 
 	for _, imageURL := range imageURLs {
+		// prevent infinite loop if a OG image URL is the same post's permalink
+		resolvedURL := resolveMetadataURL(imageURL, a.GetSiteURL())
+		if looksLikeAPermalink(resolvedURL, a.GetSiteURL()) {
+			continue
+		}
+
 		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
 			appErr, ok := err.(*model.AppError)
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
@@ -651,6 +658,9 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 			var res *http.Response
 			res, err = client.Do(request)
+			if err != nil {
+				mlog.Warn("error fetching OG image data", mlog.Err(err))
+			}
 
 			if res != nil {
 				body = res.Body
@@ -755,7 +765,24 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
 }
 
+// peekContentType peeks at the first 512 bytes of p, and attempts to detect
+// the content type.  Returns empty string if error occurs.
+func peekContentType(p *bufio.Reader) string {
+	byt, err := p.Peek(512)
+	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+		return ""
+	}
+	return http.DetectContentType(byt)
+}
+
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
+	if contentType == "" {
+		bufRd := bufio.NewReader(body)
+		// If the content-type is missing we try to detect it from the actual data.
+		contentType = peekContentType(bufRd)
+		body = bufRd
+	}
+
 	if contentType == "image/svg+xml" {
 		image := &model.PostImage{
 			Format: "svg",

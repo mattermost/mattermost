@@ -206,7 +206,7 @@ const BoardTemplateSelector = (props: Props) => {
                             >
                                 <FormattedMessage
                                     id='BoardTemplateSelector.create-empty-board'
-                                    defaultMessage='Create empty board'
+                                    defaultMessage='Create an empty board'
                                 />
                             </Button>
                         </div>
