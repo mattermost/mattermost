@@ -8391,7 +8391,7 @@ func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64
 	return n, BuildResponse(r), nil
 }
 
-func (c *Client4) GetThreadsForChannel(channelID, userID string, opts GetChannelThreadsOpts) (*Threads, *Response, error) {
+func (c *Client4) GetThreadsForChannel(channelID, userID string, opts GetChannelThreadsOpts) (*ChannelThreads, *Response, error) {
 	v := url.Values{}
 	if opts.Before != "" {
 		v.Set("before", opts.Before)
@@ -8429,7 +8429,7 @@ func (c *Client4) GetThreadsForChannel(channelID, userID string, opts GetChannel
 	}
 	defer closeBody(r)
 
-	var res Threads
+	var res ChannelThreads
 	if err = json.NewDecoder(r.Body).Decode(&res); err != nil {
 		return nil, nil, NewAppError("GetThreadsForChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

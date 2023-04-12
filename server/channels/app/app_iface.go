@@ -807,7 +807,7 @@ type AppIface interface {
 	GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError)
 	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)
 	GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
-	GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) (*model.Threads, *model.AppError)
+	GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) (*model.ChannelThreads, *model.AppError)
 	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetTokenById(token string) (*model.Token, *model.AppError)
 	GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)

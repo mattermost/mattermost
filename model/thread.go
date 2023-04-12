@@ -53,6 +53,11 @@ type Threads struct {
 	Threads                   []*ThreadResponse `json:"threads"`
 }
 
+type ChannelThreads struct {
+	Total   int64             `json:"total"`
+	Threads []*ThreadResponse `json:"threads"`
+}
+
 type GetChannelThreadsFilter string
 
 const (

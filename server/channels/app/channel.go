@@ -3574,8 +3574,8 @@ func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID s
 	return topChannels, nil
 }
 
-func (a *App) GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) (*model.Threads, *model.AppError) {
-	var result model.Threads
+func (a *App) GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) (*model.ChannelThreads, *model.AppError) {
+	var result model.ChannelThreads
 	var eg errgroup.Group
 
 	postPriorityIsEnabled := a.isPostPriorityEnabled()
