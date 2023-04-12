@@ -2,9 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import {TIconGlyph} from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
-
 import {ProductScope} from '@mattermost/types/products';
 
 import {ClientPluginManifest} from '@mattermost/types/plugins';
@@ -13,6 +10,7 @@ import {FileInfo} from '@mattermost/types/files';
 import {Post, PostEmbed} from '@mattermost/types/posts';
 import {IDMappedObjects} from '@mattermost/types/utilities';
 import {TopBoardResponse} from '@mattermost/types/insights';
+import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {WebSocketClient} from '@mattermost/client';
 
@@ -165,7 +163,7 @@ export type ProductComponent = {
     /**
      * A compass-icon glyph to display as the icon in the product switcher
      */
-    switcherIcon: TIconGlyph;
+    switcherIcon: IconGlyphTypes;
 
     /**
      * A string or React element to display in the product switcher
