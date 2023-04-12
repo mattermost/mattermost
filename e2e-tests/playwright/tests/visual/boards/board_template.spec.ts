@@ -7,8 +7,6 @@ import {shouldSkipInSmallScreen} from '@e2e-support/flag';
 shouldSkipInSmallScreen();
 
 test('Board template', async ({pw, pages, browserName, viewport}, testInfo) => {
-    await pw.shouldHaveBoardsEnabled();
-
     // Create and sign in a new user
     const {user} = await pw.initSetup();
 

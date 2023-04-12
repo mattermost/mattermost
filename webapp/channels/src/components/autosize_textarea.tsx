@@ -61,7 +61,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
             this.props.onHeightChange?.(height, parseInt(style.maxHeight || '0', 10));
         }
-    }
+    };
 
     private recalculatePadding = () => {
         if (!this.referenceRef.current || !this.textarea) {
@@ -74,7 +74,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         if (paddingRight && paddingRight !== this.referenceRef.current.style.paddingRight) {
             this.referenceRef.current.style.paddingRight = paddingRight;
         }
-    }
+    };
 
     private recalculateWidth = () => {
         if (!this.measuringRef) {
@@ -87,7 +87,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                 this.props.onWidthChange?.(width);
             });
         }
-    }
+    };
 
     private setTextareaRef = (textarea: HTMLTextAreaElement) => {
         if (this.props.forwardedRef) {
@@ -99,7 +99,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         }
 
         this.textarea = textarea;
-    }
+    };
 
     render() {
         const props = {...this.props};

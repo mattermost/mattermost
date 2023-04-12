@@ -60,7 +60,7 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
     public handleOnClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         emitUserLoggedOutEvent('/login');
-    }
+    };
 
     public updateParent = (state: State): void => {
         this.setState(state);

@@ -16,15 +16,15 @@ export default class DropdownSetting extends React.PureComponent {
         disabled: PropTypes.bool,
         setByEnv: PropTypes.bool.isRequired,
         helpText: PropTypes.node,
-    }
+    };
 
     static defaultProps = {
         isDisabled: false,
-    }
+    };
 
     handleChange = (e) => {
         this.props.onChange(this.props.id, e.target.value);
-    }
+    };
 
     render() {
         const options = [];
