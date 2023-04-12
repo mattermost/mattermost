@@ -13,7 +13,7 @@ import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mat
 import {setGlobalItem} from 'actions/storage';
 import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId, toggleRhsExpanded} from 'actions/views/rhs';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
-import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {makeGetGlobalItemWithDefault} from 'selectors/storage';
 import {StoragePrefixes} from 'utils/constants';
 
 import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
@@ -28,14 +28,13 @@ function setChannelThreadsTab(channelId: Channel['id'], tab: Tabs) {
 }
 
 function makeGetChannelThreadsTab() {
-    const getGlobalItem =  makeGetGlobalItemWithDefault(Tabs.ALL);
+    const getGlobalItem = makeGetGlobalItemWithDefault(Tabs.ALL);
 
     return (state: GlobalState, channelId: Channel['id']) => {
-    const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
+        const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
         return getGlobalItem(state, key);
     };
 }
-
 
 function getThreadsForChannelWithFilter(channelId: Channel['id'], tab: Tabs, options?: FetchChannelThreadOptions) {
     let filter;

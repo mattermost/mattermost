@@ -17,9 +17,8 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getChannelIdFromPostId} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import {makeGetPostsForThread, getChannelIdFromPostId} from 'mattermost-redux/selectors/entities/posts';
 
 import {FetchThreadOptions, FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 
@@ -371,10 +370,10 @@ export function handleFollowChanged(threadId: string, teamId: string, following:
                 id: threadId,
                 team_id: teamId,
                 following,
-                channel_id: channelId
+                channel_id: channelId,
             },
         });
-    }
+    };
 }
 
 export function setThreadFollow(userId: string, teamId: string, threadId: string, newState: boolean) {
