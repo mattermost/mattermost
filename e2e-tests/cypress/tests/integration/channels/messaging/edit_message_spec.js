@@ -146,7 +146,7 @@ describe('Edit Message', () => {
         });
     });
 
-    it('should discard any changes made after cancelling the edit and opening the edit textbox again should display the original message', () => {
+    it('MM-T5416 should discard any changes made after cancelling the edit and opening the edit textbox again should display the original message', () => {
         const message = 'World!';
         cy.postMessage(message);
 
