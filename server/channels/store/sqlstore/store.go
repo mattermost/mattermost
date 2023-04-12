@@ -254,15 +254,15 @@ func SetupConnection(connType string, dataSource string, settings *model.SqlSett
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
-		if err == nil {
-			break
-		} else {
+		if err != nil {
 			if i == attempts-1 {
 				return nil, err
 			}
 			mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
 			time.Sleep(DBPingTimeoutSecs * time.Second)
+			continue
 		}
+		break
 	}
 
 	if strings.HasPrefix(connType, replicaLagPrefix) {
@@ -471,21 +471,14 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 		return ss.GetReplicaX()
 	}
 
-	cnt := 0
-	for {
+	for i := 0; i < len(ss.searchReplicaXs); i++ {
 		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
 		if ss.searchReplicaXs[rrNum].Load().Online() {
 			return ss.searchReplicaXs[rrNum].Load()
 		}
-		cnt++
-		// If all replicas are down, then go with replica.
-		if cnt == len(ss.searchReplicaXs) {
-			break
-		}
-		// Check next
-		continue
 	}
 
+	// If all search replicas are down, then go with replica.
 	return ss.GetReplicaX()
 }
 
@@ -494,20 +487,14 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 		return ss.GetMasterX()
 	}
 
-	cnt := 0
-	for {
+	for i := 0; i < len(ss.ReplicaXs); i++ {
 		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 		if ss.ReplicaXs[rrNum].Load().Online() {
 			return ss.ReplicaXs[rrNum].Load()
 		}
-		cnt++
-		// If all replicas are down, then go with master.
-		if cnt == len(ss.ReplicaXs) {
-			break
-		}
-		// Check next
-		continue
 	}
+
+	// If all replicas are down, then go with master.
 	return ss.GetMasterX()
 }
 
@@ -895,6 +882,11 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 
 func (ss *SqlStore) Close() {
 	ss.masterX.Close()
+	// Closing monitor and waiting for it to be done.
+	// This needs to be done before closing the replica handles.
+	close(ss.quitMonitor)
+	ss.wgMonitor.Wait()
+
 	for _, replica := range ss.ReplicaXs {
 		if replica.Load().Online() {
 			replica.Load().Close()
@@ -910,10 +902,6 @@ func (ss *SqlStore) Close() {
 	for _, replica := range ss.replicaLagHandles {
 		replica.Close()
 	}
-
-	// Closing monitor and waiting for it to be done.
-	close(ss.quitMonitor)
-	ss.wgMonitor.Wait()
 }
 
 func (ss *SqlStore) LockToMaster() {
