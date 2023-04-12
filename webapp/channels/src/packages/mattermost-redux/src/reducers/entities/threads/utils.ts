@@ -91,9 +91,6 @@ export function handleReceiveThreads<S extends State>(state: S, action: GenericA
     };
 }
 
-// add the thread only if it's 'newer' than other threads
-// older threads will be added by scrolling so no need to manually add.
-// furthermore manually adding older thread will BREAK pagination
 export function handleFollowChanged<S extends State>(state: S, action: GenericAction, key: string, extra: ExtraData): S {
     const {id, following} = action.data;
     const nextSet = new Set(state[key] || []);

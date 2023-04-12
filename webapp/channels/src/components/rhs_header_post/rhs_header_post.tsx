@@ -126,8 +126,8 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
             backToResultsTooltip = (
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
-                        id='rhs_header.backToAllThreads'
-                        defaultMessage='Back to all threads'
+                        id='rhs_header.backToChannelThreads'
+                        defaultMessage='Back to channel threads'
                     />
                 </Tooltip>
             );

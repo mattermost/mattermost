@@ -4661,7 +4661,7 @@
   "rhs_card.message_by": "Message by {avatar} {user}",
   "rhs_comment.comment": "Comment",
   "rhs_header.back.icon": "Back Icon",
-  "rhs_header.backToAllThreads": "Back to all threads",
+  "rhs_header.backToChannelThreads": "Back to channel threads",
   "rhs_header.backToFlaggedTooltip": "Back to saved posts",
   "rhs_header.backToPinnedTooltip": "Back to pinned posts",
   "rhs_header.backToResultsTooltip": "Back to search results",
