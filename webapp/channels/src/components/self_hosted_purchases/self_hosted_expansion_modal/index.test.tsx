@@ -162,7 +162,6 @@ const initialState: DeepPartial<GlobalState> = {
             license: {
                 SkuName: productName,
                 Sku: productName,
-                SkuName: productName,
                 Users: '50',
                 ExpiresAt: licenseExpiry.valueOf().toString(),
             },

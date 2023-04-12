@@ -22,6 +22,15 @@ import * as useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHoste
 
 import EnterpriseEditionLeftPanel, {EnterpriseEditionProps} from './enterprise_edition_left_panel';
 
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom') as typeof import('react-router-dom'),
+    useLocation: () => {
+        return {
+            pathname: '',
+        };
+    },
+}));
+
 describe('components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel', () => {
     const license = {
         IsLicensed: 'true',
@@ -113,7 +122,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             return n.children().length === 2 &&
                 n.childAt(0).type() === 'span' &&
                 !n.childAt(0).text().includes('ACTIVE') &&
-                n.childAt(0).text().includes('USERS');
+                n.childAt(0).text().includes('LICENSED SEATS');
         });
 
         expect(item.text()).toContain('1,000');

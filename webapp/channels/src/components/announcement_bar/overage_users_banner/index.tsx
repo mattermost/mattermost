@@ -4,7 +4,6 @@
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
 
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {GlobalState} from 'types/store';
@@ -17,10 +16,9 @@ import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/constants';
+import {StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
 
 import './overage_users_banner.scss';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 
 type AdminHasDismissedItArgs = {
     preferenceName: string;
@@ -58,8 +56,6 @@ const OverageUsersBanner = () => {
     const prefixPreferences = isOver10PercerntPurchasedSeats ? 'error' : 'warn';
     const prefixLicenseId = (license.Id || '').substring(0, 8);
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
-    const history = useHistory();
-    const isAirGapped = !useCWSAvailabilityCheck();
 
     const overageByUsers = activeUsers - seatsPurchased;
 
@@ -90,14 +86,7 @@ const OverageUsersBanner = () => {
     const handleUpdateSeatsSelfServeClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         trackEventFn('Self Serve');
-
-        if (isAirGapped) {
-            window.open(expandableLink(license.Id), '_blank');
-        }
-
-        if (isExpandable) {
-            history.push(`${ConsolePages.LICENSE}?action=show_expansion_modal`);
-        }
+        window.open(expandableLink(license.Id), '_blank');
     };
 
     const handleContactSalesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
