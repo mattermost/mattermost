@@ -177,8 +177,8 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var confirmResponse *model.SelfHostedSignupConfirmResponse
+	var confirm model.SelfHostedConfirmPaymentMethodRequest
 	if expand {
-		var confirm model.SelfHostedExpansionConfirmPaymentMethodRequest
 		err = json.Unmarshal(bodyBytes, &confirm)
 		if err != nil {
 			c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -187,7 +187,6 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		confirmResponse, err = c.App.Cloud().ConfirmSelfHostedExpansion(confirm, user.Email)
 	} else {
-		var confirm model.SelfHostedConfirmPaymentMethodRequest
 		err = json.Unmarshal(bodyBytes, &confirm)
 		if err != nil {
 			c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
