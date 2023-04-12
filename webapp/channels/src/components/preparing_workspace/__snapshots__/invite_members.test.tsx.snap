@@ -1,78 +1,80 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`InviteMembers component should match snapshot 1`] = `
-<CSSTransition
-  classNames="InviteMembers--enter-from-before"
-  in={true}
-  mountOnEnter={true}
-  timeout={300}
-  unmountOnExit={true}
->
+<div>
   <div
-    className="InviteMembers-body test-class"
+    class="InviteMembers-body test-class"
   >
-    <SingleColumnLayout
-      style={
-        Object {
-          "width": 547,
-        }
-      }
+    <div
+      class="SingleColumnLayout"
+      style="width: 547px;"
     >
-      <PageLine
-        noLeft={true}
-        style={
-          Object {
-            "height": "calc(25vh)",
-            "marginBottom": "50px",
-            "marginLeft": "50px",
-          }
-        }
-      />
       <div>
-        Previous step
-      </div>
-      <Title>
-        <MemoizedFormattedMessage
-          defaultMessage="Invite your team members"
-          id="onboarding_wizard.invite_members.title"
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-bottom: 50px; margin-left: 50px; height: calc(25vh);"
         />
-      </Title>
-      <Description>
-        <MemoizedFormattedMessage
-          defaultMessage="Collaboration is tough by yourself. Invite a few team members using the invitation link below."
-          id="onboarding_wizard.invite_members.description_link"
-        />
-      </Description>
-      <PageBody>
-        <InviteMembersLink
-          inviteURL="https://my-org.mattermost.com/config/signup_user_complete/?id=1234"
-        />
-      </PageBody>
-      <div
-        className="InviteMembers__submit"
-      >
-        <button
-          className="primary-button"
-          disabled={false}
-          onClick={[MockFunction]}
+        <div>
+          Previous step
+        </div>
+        <h1
+          class="PreparingWorkspaceTitle"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Finish setup"
-            id="onboarding_wizard.invite_members.next_link"
-          />
-        </button>
+          <span>
+            Invite your team members
+          </span>
+        </h1>
+        <p
+          class="PreparingWorkspaceDescription"
+        >
+          <span>
+            Collaboration is tough by yourself. Invite a few team members using the invitation link below.
+          </span>
+        </p>
+        <div
+          class="PreparingWorkspacePageBody"
+        >
+          <div
+            class="InviteMembersLink"
+          >
+            <input
+              aria-label="team invite link"
+              class="InviteMembersLink__input"
+              data-testid="shareLinkInput"
+              readonly=""
+              type="text"
+              value="https://my-org.mattermost.com/config/signup_user_complete/?id=1234"
+            />
+            <button
+              class="InviteMembersLink__button"
+              data-testid="shareLinkInputButton"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              <span>
+                Copy Link
+              </span>
+            </button>
+          </div>
+        </div>
+        <div
+          class="InviteMembers__submit"
+        >
+          <button
+            class="primary-button"
+          >
+            <span>
+              Finish setup
+            </span>
+          </button>
+        </div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-top: 50px; margin-left: 50px; height: calc(30vh);"
+        />
       </div>
-      <PageLine
-        noLeft={true}
-        style={
-          Object {
-            "height": "calc(30vh)",
-            "marginLeft": "50px",
-            "marginTop": "50px",
-          }
-        }
-      />
-    </SingleColumnLayout>
+    </div>
   </div>
-</CSSTransition>
+</div>
 `;

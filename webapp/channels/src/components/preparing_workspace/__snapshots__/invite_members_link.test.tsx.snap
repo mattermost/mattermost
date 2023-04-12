@@ -1,29 +1,29 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/preparing-workspace/invite_members_link should match snapshot 1`] = `
-<div
-  className="InviteMembersLink"
->
-  <input
-    aria-label="team invite link"
-    className="InviteMembersLink__input"
-    data-testid="shareLinkInput"
-    readOnly={true}
-    type="text"
-    value="https://invite-url.mattermost.com"
-  />
-  <button
-    className="InviteMembersLink__button"
-    data-testid="shareLinkInputButton"
-    onClick={[Function]}
+<div>
+  <div
+    class="InviteMembersLink"
   >
-    <i
-      className="icon icon-link-variant"
+    <input
+      aria-label="team invite link"
+      class="InviteMembersLink__input"
+      data-testid="shareLinkInput"
+      readonly=""
+      type="text"
+      value="https://invite-url.mattermost.com"
     />
-    <MemoizedFormattedMessage
-      defaultMessage="Copy Link"
-      id="onboarding_wizard.invite_members.copy_link"
-    />
-  </button>
+    <button
+      class="InviteMembersLink__button"
+      data-testid="shareLinkInputButton"
+    >
+      <i
+        class="icon icon-link-variant"
+      />
+      <span>
+        Copy Link
+      </span>
+    </button>
+  </div>
 </div>
 `;
