@@ -57,7 +57,7 @@ const Organization = (props: Props) => {
     const teams = useSelector(getActiveTeamsList);
     useEffect(() => {
         if (!teams) {
-            dispatch(getTeams(0, 10000));
+            dispatch(getTeams(0, 60));
         }
     }, [teams]);
 
@@ -71,8 +71,10 @@ const Organization = (props: Props) => {
         }
         const name = inputRef.current?.value.trim();
 
-        if (name) {
-            const {error} = await props.updateTeam({...teams[0], display_name: name});
+        const currentTeam = teams[0];
+
+        if (currentTeam && name && name !== currentTeam.display_name) {
+            const {error} = await props.updateTeam({...currentTeam, display_name: name});
             if (error !== null) {
                 setApiCallError();
             }
