@@ -12,13 +12,12 @@ export const useHasPermissions = (teamId: string, boardId: string, permissions: 
         return false
     }
 
-    const member = useAppSelector(getMyBoardMembership(boardId))
     const board = useAppSelector(getBoard(boardId))
-
     if (!board) {
         return false
     }
 
+    const member = useAppSelector(getMyBoardMembership(boardId))
     if (!member) {
         return false
     }

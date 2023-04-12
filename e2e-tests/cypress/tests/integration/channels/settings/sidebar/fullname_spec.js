@@ -33,7 +33,7 @@ describe('Settings > Sidebar > General', () => {
             // # Login as test user, visit off-topic and go to the Profile
             cy.apiLogin(testUser);
             cy.visit(offTopicUrl);
-            cy.uiOpenProfileModal();
+            cy.uiOpenProfileModal('Profile Settings');
 
             // # Open Full Name section
             cy.get('#nameDesc').click();
