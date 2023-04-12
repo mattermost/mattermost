@@ -78,6 +78,8 @@ type FeatureFlags struct {
 	DeprecateCloudFree bool
 
 	AppsSidebarCategory bool
+
+	CloudReverseTrial bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -108,6 +110,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
 	f.AppsSidebarCategory = false
+	f.CloudReverseTrial = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
