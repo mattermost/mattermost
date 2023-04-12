@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('api > runs', () => {
+describe('api > runs', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

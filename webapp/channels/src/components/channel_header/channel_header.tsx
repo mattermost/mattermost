@@ -201,7 +201,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
     removeTooltipLink = () => {
         // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
         this.toggleFavoriteRef.current?.removeAttribute('aria-describedby');
-    }
+    };
 
     setTitleMenuOpen = (open: boolean) => this.setState({titleMenuOpen: open});
 
@@ -218,7 +218,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         };
 
         actions.openModal(modalData);
-    }
+    };
 
     showChannelHeaderPopover = (headerText: string) => {
         const headerDescriptionRect = this.headerDescriptionRef.current?.getBoundingClientRect();
@@ -235,7 +235,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         const topOffset = (announcementBarSize * this.props.announcementBarCount) + 40;
 
         this.setState({topOffset});
-    }
+    };
 
     toggleChannelMembersRHS = () => {
         if (this.props.rhsState === RHSStates.CHANNEL_MEMBERS) {
@@ -249,7 +249,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         const headerDescriptionRect = this.headerDescriptionRef.current?.getBoundingClientRect();
         const ellipsisWidthAdjustment = 10;
         this.setState({popoverOverlayWidth: (headerDescriptionRect?.width ?? 0) + ellipsisWidthAdjustment});
-    }
+    };
 
     handleFormattedTextClick = (e: MouseEvent<HTMLSpanElement>) => handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
@@ -276,7 +276,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 />
             </div>
         );
-    }
+    };
 
     render() {
         const {

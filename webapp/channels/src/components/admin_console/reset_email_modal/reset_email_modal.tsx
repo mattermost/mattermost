@@ -59,7 +59,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
             isEmailError: false,
             isCurrentPasswordError: false,
         });
-    }
+    };
 
     private isEmailValid = (): boolean => {
         if (!this.emailRef.current || !this.emailRef.current.value || !isEmail(this.emailRef.current.value)) {
@@ -75,7 +75,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
 
         this.setState({error: null, isEmailError: false});
         return true;
-    }
+    };
 
     private isCurrentPasswordValid = (): boolean => {
         if (!this.currentPasswordRef.current || !this.currentPasswordRef.current.value) {
@@ -91,7 +91,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
         }
         this.setState({error: null, isCurrentPasswordError: false});
         return true;
-    }
+    };
 
     private doSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -126,14 +126,14 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
         }
 
         this.props.onModalSubmit(this.props.user);
-    }
+    };
 
     private doCancel = (): void => {
         this.setState({
             error: null,
         });
         this.props.onModalDismissed();
-    }
+    };
 
     public render(): JSX.Element {
         const user = this.props.user;

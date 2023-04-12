@@ -98,7 +98,7 @@ const RHSChannelBoardItem = (props: Props) => {
                                 onClick={() => {
                                     onUnlinkBoard(props.board)
                                 }}
-                                subText={intl.formatMessage({id: 'rhs-board-non-admin-msg', defaultMessage:'You are not an admin of the board'})}
+                                subText={intl.formatMessage({id: 'rhs-board-non-admin-msg', defaultMessage: "You're not an admin of the board"})}
                             />
                         </BoardPermissionGate>
                     </Menu>
