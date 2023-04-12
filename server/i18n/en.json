@@ -5933,7 +5933,7 @@
   },
   {
     "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} cannot be installed since it's already packaged with Mattermost."
+    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",

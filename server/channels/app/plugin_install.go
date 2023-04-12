@@ -333,7 +333,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 	// Check plugin id is not blocked
 	if plugin.PluginIDIsBlocked(manifest.Id) {
-		mlog.Debug("Skipping installation of plugin since plugin is on blocklist", mlog.String("plugin_id", manifest.Id))
+		mlog.Debug("Skipping installation of plugin since plugin is on blocklist. Some plugins are blocked because they are built into this version of Mattermost.", mlog.String("plugin_id", manifest.Id))
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.blocked.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 	}
 
