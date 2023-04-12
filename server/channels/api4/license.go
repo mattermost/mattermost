@@ -370,6 +370,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}{Content: encodedData}
 	response, _ := json.Marshal(responseContent)
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(response)
 }
 
