@@ -246,7 +246,6 @@
                         width: 100%;
                         height: 221px;
                         text-align: center;
-                        margin-bottom: 44px;
 
                         h3 {
                             margin-top: 32px;
@@ -272,7 +271,7 @@
 
                         span,
                         p {
-                            margin-bottom: 45px;
+                            margin-bottom: 32px;
                             color: rgba(var(--center-channel-color-rgb), 0.72);
                             font-family: 'Metropolis';
                             font-size: 16px;
@@ -284,6 +283,15 @@
                         .billed_annually {
                             font-family: 'Open sans', sans-serif;
                             font-size: 16px;
+                        }
+                    }
+
+                    .plan_price_rate_section__expanded {
+                        margin-bottom: 45px;
+
+                        span,
+                        p {
+                            margin-bottom: 44px;
                         }
                     }
 

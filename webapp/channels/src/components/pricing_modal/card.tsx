@@ -127,6 +127,10 @@ function Card(props: CardProps) {
         plan_briefing_content__reduced: props.cloudFreeDeprecated,
     });
 
+    const planPriceRateSectionClassName = classNames('plan_price_rate_section', {
+        plan_price_rate_section__expanded: props.cloudFreeDeprecated,
+    });
+
     return (
         <div
             id={props.id}
@@ -142,7 +146,7 @@ function Card(props: CardProps) {
 
             <div className={bottomClassName}>
                 <div className='bottom_container'>
-                    <div className='plan_price_rate_section'>
+                    <div className={planPriceRateSectionClassName}>
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
                         {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>}
