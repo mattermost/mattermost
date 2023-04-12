@@ -1471,7 +1471,6 @@ func (s *Server) initJobs() {
 	}
 
 	if jobsElasticsearchFixChannelIndexInterface != nil {
-		// LOL
 		builder := jobsElasticsearchFixChannelIndexInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
 	}

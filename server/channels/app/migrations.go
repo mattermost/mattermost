@@ -21,7 +21,6 @@ const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplet
 const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
 const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
 const postPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
-const ElasticsearchFixChannelIndexMigrationKey = "ElasticsearchFixChannelIndexMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -562,7 +561,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 
 func (s *Server) doElasticsearchFixChannelIndex() {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store().System().GetByName(ElasticsearchFixChannelIndexMigrationKey); err == nil {
+	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
 		return
 	}
 
