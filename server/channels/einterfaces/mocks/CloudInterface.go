@@ -99,6 +99,10 @@ func (_m *CloudInterface) ConfirmSelfHostedExpansion(req model.SelfHostedConfirm
 	ret := _m.Called(req, requesterEmail)
 
 	var r0 *model.SelfHostedSignupConfirmResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.SelfHostedConfirmPaymentMethodRequest, string) (*model.SelfHostedSignupConfirmResponse, error)); ok {
+		return rf(req, requesterEmail)
+	}
 	if rf, ok := ret.Get(0).(func(model.SelfHostedConfirmPaymentMethodRequest, string) *model.SelfHostedSignupConfirmResponse); ok {
 		r0 = rf(req, requesterEmail)
 	} else {
@@ -107,7 +111,6 @@ func (_m *CloudInterface) ConfirmSelfHostedExpansion(req model.SelfHostedConfirm
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(model.SelfHostedConfirmPaymentMethodRequest, string) error); ok {
 		r1 = rf(req, requesterEmail)
 	} else {
