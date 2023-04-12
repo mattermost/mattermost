@@ -124,7 +124,12 @@ function ChannelThreads({
             setIsLoading(false);
         };
         fetchThreads();
-    }, [channel.id, selected]);
+
+        // fetch threads when either
+        //  - current channel changed,
+        //  - selected tab changed,
+        //  - total threads just went from 0 to a number
+    }, [channel.id, selected, totalThreads > 0]);
 
     const handleLoadMoreItems = useCallback(async (startIndex) => {
         setIsPaging(true);
@@ -238,7 +243,7 @@ function ChannelThreads({
                     <LoadingScreen style={loadingStyle}/>
                 )}
 
-                {ids.length ? (
+                {totalThreads > 0 ? (
                     <VirtualizedThreadList
                         key={`${selected}-${Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}`}
                         ids={ids}
