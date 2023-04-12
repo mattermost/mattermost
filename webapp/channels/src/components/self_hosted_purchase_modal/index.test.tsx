@@ -279,15 +279,14 @@ describe('SelfHostedPurchaseModal', () => {
     });
 
     it('Minimum of 10 seats is required for sign up', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'} /></div>, initialState);
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
         fillForm(defaultSuccessForm);
 
         const tooFewSeats = 9;
         fireEvent.change(screen.getByTestId('selfHostedPurchaseSeatsInput'), valueEvent(tooFewSeats.toString()));
         expect(screen.getByText('Upgrade')).toBeDisabled();
-        screen.getByText('Minimum of 10 seats required', { exact: false });
+        screen.getByText('Minimum of 10 seats required', {exact: false});
     });
-
 
     it('happy path submit shows success screen', async () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
