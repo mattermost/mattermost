@@ -1579,7 +1579,7 @@ export interface ErrorsReducer {
     postEditHistory?: true;
 }
 const emptyErrors = {};
-export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction) {
+export function fetchErrors(state: ErrorsReducer = emptyErrors, action: GenericAction) {
     switch (action.type) {
     case PostTypes.RECEIVE_POST_HISTORY_FAILURE: {
         return {...state, postEditHistory: true};
@@ -1639,7 +1639,7 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
         limitedViews: limitedViews(state.limitedViews, action),
 
         // Object mapping state keys to booleans indicating errors are present
-        errors: errors(state.errors, action),
+        errors: fetchErrors(state.errors, action),
     };
 
     if (state.posts === nextState.posts && state.postsInChannel === nextState.postsInChannel &&

@@ -43,6 +43,14 @@ const PostEditHistory = ({
 }: PropsFromRedux) => {
     const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
+    const retrieveErrorHeading = formatMessage({
+        id: 'post_info.edit.history.retrieveError', 
+        defaultMessage: 'Unable to load edit history'
+    });
+    const retrieveErrorSubheading = formatMessage({
+        id: 'post_info.edit.history.retrieveErrorVerbose', 
+        defaultMessage: 'There was an error loading the history for this message. Check your network connection or try again later.'
+    });
 
     useEffect(() => {
         scrollbars.current?.scrollToTop();
@@ -62,10 +70,10 @@ const PostEditHistory = ({
                     src={alertIcon}
                 />
                 <p className='edit-post-history__error_heading'>
-                    {formatMessage({id: 'post_info.edit.history.retrieveError', defaultMessage: 'Unable to load edit history'})}
+                    {retrieveErrorHeading}
                 </p>
                 <p className='edit-post-history__error_subheading'>
-                    {formatMessage({id: 'post_info.edit.history.retrieveErrorVerbose', defaultMessage: 'There was an error loading the history for this message. Check your network connection or try again later.'})}
+                    {retrieveErrorSubheading}
                 </p>
             </div>
         </div>
