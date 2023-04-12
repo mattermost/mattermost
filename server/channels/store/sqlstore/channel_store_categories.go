@@ -745,7 +745,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	var opts *store.SidebarCategorySearchOpts
+	opts := &store.SidebarCategorySearchOpts{}
 	if len(options) > 0 {
 		opts = options[0]
 	}
