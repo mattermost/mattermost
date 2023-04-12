@@ -1,5 +1,3 @@
-/plugin/ @mattermost/toolkit
-
 /.github/workflows/channels-ci.yml @mattermost/web-platform
 /webapp/package.json @mattermost/web-platform
 /webapp/channels/package.json @mattermost/web-platform
