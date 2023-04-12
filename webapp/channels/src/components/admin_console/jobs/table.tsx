@@ -60,7 +60,7 @@ class JobTable extends React.PureComponent<Props> {
         }
 
         return <span/>;
-    }
+    };
 
     reload = () => {
         this.props.actions.getJobsByType(this.props.jobType);

@@ -24,7 +24,7 @@ type Props = {
 export default class ToggleFavoriteChannel extends React.PureComponent<Props> {
     static defaultProps = {
         show: true,
-    }
+    };
 
     toggleFavoriteChannel = (channelId: string) => {
         const {
@@ -41,7 +41,7 @@ export default class ToggleFavoriteChannel extends React.PureComponent<Props> {
     handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
         e.preventDefault();
         this.toggleFavoriteChannel(this.props.channel.id);
-    }
+    };
 
     render() {
         let text;

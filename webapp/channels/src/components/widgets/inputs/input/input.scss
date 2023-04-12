@@ -49,11 +49,16 @@
     .Input_wrapper {
         display: flex;
         flex: 1;
+        align-items: center;
         padding: 0 16px;
         margin: 2px 0;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 14px;
         line-height: 20px;
+
+        > :not(:first-child) {
+            margin-left: 8px;
+        }
     }
 
     .Input_limit-exceeded {
@@ -195,5 +200,11 @@
             border-color: rgba(var(--center-channel-color-rgb), 0.16);
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
         }
+    }
+
+    .Input__clear {
+        display: flex;
+        color: rgba(var(--center-channel-color), 0.68);
+        cursor: pointer;
     }
 }

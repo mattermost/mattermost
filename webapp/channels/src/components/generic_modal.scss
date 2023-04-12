@@ -104,6 +104,10 @@
         padding: 12px 24px 24px 24px;
         border: none;
         border-radius: 4px;
+
+        &.divider {
+            border-top: 1px solid rgba(63, 67, 80, 0.08);
+        }
     }
 
     &.GenericModal__compassDesign {
@@ -112,10 +116,11 @@
             border-radius: 12px;
 
             .modal-header {
+                flex-direction: column;
                 padding: 26px 32px 7px;
 
                 .close {
-                    top: 20px;
+                    top: 22px;
                     right: 18px;
                     width: 40px;
                     height: 40px;
@@ -133,7 +138,13 @@
                 }
 
                 .GenericModal__header {
+                    display: flex;
+                    flex: 1;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
                     padding: 0;
+                    margin-right: 32px;
                     border-top-left-radius: 12px;
                     border-top-right-radius: 12px;
 
@@ -145,10 +156,12 @@
             }
 
             .modal-body {
-                padding: 15px 32px 0;
-
                 .GenericModal__body {
                     padding: 0;
+
+                    &.padding {
+                        padding: 15px 32px 0;
+                    }
                 }
             }
 

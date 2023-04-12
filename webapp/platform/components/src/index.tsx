@@ -7,6 +7,7 @@ export type {CircleSkeletonLoaderProps, RectangleSkeletonLoaderProps} from './sk
 export type {Props as FocusTrapProps} from './focus_trap';
 
 // components
+export * from './generic_modal/footer_content';
 export {GenericModal} from './generic_modal/generic_modal';
 export {CircleSkeletonLoader, RectangleSkeletonLoader} from './skeleton_loader';
 export * from './tour_tip';
@@ -16,3 +17,4 @@ export {FocusTrap} from './focus_trap';
 // hooks
 export * from './common/hooks/useMeasurePunchouts';
 export {useElementAvailable} from './common/hooks/useElementAvailable';
+export {useFollowElementDimensions} from './common/hooks/useFollowElementDimensions';
