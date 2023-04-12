@@ -3879,7 +3879,7 @@ func TestGetThreadsForChannel(t *testing.T) {
 			th.CreatePost()
 		}
 
-		// Create a thread in another channel.
+		// Create a thread in another channel to check that we're filtering correctly by channel ID.
 		rootPost := th.CreatePostWithClient(th.Client, otherChannel)
 		th.CreateThreadPostWithClient(th.Client, otherChannel, rootPost)
 
@@ -3899,6 +3899,28 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Len(t, res.Threads, 1)
 		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
 		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+
+		// Because the thread is created by the user, it should be followed and viewed.
+		require.True(t, *res.Threads[0].Post.IsFollowing)
+		require.Greater(t, res.Threads[0].LastViewedAt, int64(0))
+	})
+
+	t.Run("no params, 1 thread from other user", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rootPost := th.CreatePostWithClient(th.SystemAdminClient, th.BasicChannel)
+		th.CreateThreadPostWithClient(th.SystemAdminClient, th.BasicChannel, rootPost)
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, res.Threads, 1)
+		require.Equal(t, rootPost.Id, res.Threads[0].PostId)
+		require.Equal(t, int64(1), res.Threads[0].ReplyCount)
+
+		// Because the thread is created by the other user, it should _not_ be followed and viewed.
+		require.False(t, *res.Threads[0].Post.IsFollowing)
+		require.Equal(t, int64(0), res.Threads[0].LastViewedAt)
 	})
 
 	t.Run("deleted, 1 thread", func(t *testing.T) {

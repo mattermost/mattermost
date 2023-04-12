@@ -583,6 +583,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
+		Column("ThreadMemberships.UserId IS NOT NULL AS IsFollowing").
 		Columns("COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt").
 		Join("Posts ON Posts.Id = Threads.PostId").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId AND ThreadMemberships.UserId = ?", userID)
