@@ -23,16 +23,26 @@ const emptyString = "empty"
 var errEmptyFilename = errors.New("IsFileArchived: empty filename not allowed")
 var ErrFileNotFound = errors.New("file not found")
 
-func (a *App) SaveFile(reader io.Reader, teamID, rootID, filename string) (string, error) {
+func (a *App) SaveFile(reader io.Reader, teamID, boardID, filename string) (string, error) {
 	// NOTE: File extension includes the dot
 	fileExtension := strings.ToLower(filepath.Ext(filename))
 	if fileExtension == ".jpeg" {
 		fileExtension = ".jpg"
 	}
 
+	board, err := a.GetBoard(boardID)
+	if err != nil {
+		return "", err
+	}
+
 	createdFilename := utils.NewID(utils.IDTypeNone)
-	fullFilename := fmt.Sprintf(`%s%s`, createdFilename, fileExtension)
-	filePath := filepath.Join(utils.GetBaseFilePath(), fullFilename)
+	newFileName := fmt.Sprintf(`%s%s`, createdFilename, fileExtension)
+	filePath := filepath.Join(utils.GetBaseFilePath(), newFileName)
+
+	if board.IsTemplate {
+		filePath = filepath.Join(teamID, boardID, filename)
+		newFileName = filename
+	}
 
 	fileSize, appErr := a.filesBackend.WriteFile(reader, filePath)
 	if appErr != nil {
@@ -63,12 +73,11 @@ func (a *App) SaveFile(reader io.Reader, teamID, rootID, filename string) (strin
 		Content:         "",
 		RemoteId:        nil,
 	}
-	err := a.store.SaveFileInfo(fileInfo)
+	err = a.store.SaveFileInfo(fileInfo)
 	if err != nil {
 		return "", err
 	}
-
-	return fullFilename, nil
+	return newFileName, nil
 }
 
 func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
@@ -81,6 +90,7 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 	// will be the fileinfo id.
 	parts := strings.Split(filename, ".")
 	fileInfoID := parts[0][1:]
+	a.logger.Debug(fileInfoID)
 	fileInfo, err := a.store.GetFileInfo(fileInfoID)
 	if err != nil {
 		return nil, err
@@ -90,26 +100,16 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 }
 
 func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, filestore.ReadCloseSeeker, error) {
-	fileInfo, err := a.GetFileInfo(fileName)
-	if err != nil && !model.IsErrNotFound(err) {
-		a.logger.Error("111")
-		return nil, nil, err
-	}
+	a.logger.Debug("GetFile" + fileName)
 
-	var filePath string
-
-	if fileInfo != nil && fileInfo.Path != "" {
-		filePath = fileInfo.Path
-	} else {
-		filePath = filepath.Join(teamID, rootID, fileName)
-	}
+	fileInfo, filePath, err := a.GetFilePath(teamID, rootID, fileName)
+	a.logger.Debug("GetFile" + filePath)
 
 	exists, err := a.filesBackend.FileExists(filePath)
 	if err != nil {
 		a.logger.Error(fmt.Sprintf("GetFile: Failed to check if file exists as path. Path: %s, error: %e", filePath, err))
 		return nil, nil, err
 	}
-
 	if !exists {
 		return nil, nil, ErrFileNotFound
 	}
@@ -120,6 +120,24 @@ func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, file
 		return nil, nil, err
 	}
 	return fileInfo, reader, nil
+}
+
+func (a *App) GetFilePath(teamID, rootID, fileName string) (*mm_model.FileInfo, string, error) {
+	a.logger.Debug("GetFileInfo" + fileName)
+	fileInfo, err := a.GetFileInfo(fileName)
+	if err != nil && !model.IsErrNotFound(err) {
+		return nil, "", err
+	}
+
+	var filePath string
+
+	if fileInfo != nil && fileInfo.Path != "" {
+		filePath = fileInfo.Path
+	} else {
+		filePath = filepath.Join(teamID, rootID, fileName)
+	}
+
+	return fileInfo, filePath, nil
 }
 
 func (a *App) GetFileReader(teamID, rootID, filename string) (filestore.ReadCloseSeeker, error) {

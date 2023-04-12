@@ -184,7 +184,8 @@ func (a *App) DuplicateBoard(boardID, userID, toTeam string, asTemplate bool) (*
 	}
 
 	// copy any file attachments from the duplicated blocks.
-	if err = a.CopyCardFiles(boardID, bab.Blocks); err != nil {
+	a.logger.Debug("DuplicateBoard - call copy cardfiles")
+	if err = a.CopyCardFiles(boardID, bab.Blocks, asTemplate); err != nil {
 		a.logger.Error("Could not copy files while duplicating board", mlog.String("BoardID", boardID), mlog.Err(err))
 	}
 
@@ -209,6 +210,7 @@ func (a *App) DuplicateBoard(boardID, userID, toTeam string, asTemplate bool) (*
 		}
 		if fieldName != "" {
 			if fieldID, ok := block.Fields[fieldName]; ok {
+				a.logger.Debug("Appending" + block.ID + " " + fieldID.(string))
 				blockIDs = append(blockIDs, block.ID)
 				blockPatches = append(blockPatches, model.BlockPatch{
 					UpdatedFields: map[string]interface{}{

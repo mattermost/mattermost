@@ -121,6 +121,15 @@ func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[strin
 	blockIDs := make([]string, 0)
 	blockPatches := make([]model.BlockPatch, 0)
 	for _, boardID := range boardMap {
+		board, err := a.GetBoard(boardID)
+		if err != nil {
+			a.logger.Info(fmt.Sprintf("cannot retreive imported board %s: %w", boardID, err))
+			return
+		}
+		if board.IsTemplate {
+			continue
+		}
+
 		newBlocks, err := a.GetBlocksForBoard(boardID)
 		if err != nil {
 			a.logger.Info(fmt.Sprintf("cannot retreive imported blocks for board %s: %w", boardID, err))

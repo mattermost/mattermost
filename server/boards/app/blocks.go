@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strings"
 
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify"
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
@@ -43,9 +43,47 @@ func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTe
 		return nil, fmt.Errorf("cannot fetch board %s for DuplicateBlock: %w", boardID, err)
 	}
 
-	blocks, err := a.store.DuplicateBlock(boardID, blockID, userID, asTemplate)
+	blocks, err := a.store.DuplicateBlock(boardID, blockID, userID, false)
 	if err != nil {
 		return nil, err
+	}
+
+	if err = a.CopyCardFiles(boardID, blocks, asTemplate); err != nil {
+		a.logger.Error("Could not copy files while duplicating board", mlog.String("BoardID", boardID), mlog.Err(err))
+	}
+
+	// bab.Blocks now has updated file ids for any blocks containing files.  We need to store them.
+	blockIDs := make([]string, 0)
+	blockPatches := make([]model.BlockPatch, 0)
+	for _, block := range blocks {
+		fieldName := ""
+		if block.Type == model.TypeImage {
+			fieldName = "fileId"
+		} else if block.Type == model.TypeAttachment {
+			fieldName = "attachmentId"
+		}
+		if fieldName != "" {
+			if fieldID, ok := block.Fields[fieldName]; ok {
+				a.logger.Debug("Appending" + block.ID + " " + fieldID.(string))
+				blockIDs = append(blockIDs, block.ID)
+				blockPatches = append(blockPatches, model.BlockPatch{
+					UpdatedFields: map[string]interface{}{
+						fieldName: fieldID,
+					},
+				})
+			}
+		}
+	}
+	a.logger.Debug("Duplicate boards patching file IDs", mlog.Int("count", len(blockIDs)))
+
+	if len(blockIDs) != 0 {
+		patches := &model.BlockPatchBatch{
+			BlockIDs:     blockIDs,
+			BlockPatches: blockPatches,
+		}
+		if err = a.store.PatchBlocks(patches, userID); err != nil {
+			return nil, fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
+		}
 	}
 
 	a.blockChangeNotifier.Enqueue(func() error {
@@ -295,7 +333,7 @@ func (a *App) InsertBlocksAndNotify(blocks []*model.Block, modifiedByID string, 
 	return blocks, nil
 }
 
-func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block) error {
+func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, asTemplate bool) error {
 	// Images attached in cards have a path comprising the card's board ID.
 	// When we create a template from this board, we need to copy the files
 	// with the new board ID in path.
@@ -308,8 +346,8 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block) e
 		return fmt.Errorf("cannot fetch source board %s for CopyCardFiles: %w", sourceBoardID, err)
 	}
 
-	var destTeamID string
-	var destBoardID string
+	// var destTeamID string
+	var destBoard *model.Board
 
 	for i := range copiedBlocks {
 		block := copiedBlocks[i]
@@ -333,19 +371,63 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block) e
 
 		// create unique filename in case we are copying cards within the same board.
 		ext := filepath.Ext(fileName)
-		destFilename := utils.NewID(utils.IDTypeNone) + ext
+		fileInfoID := utils.NewID(utils.IDTypeNone)
+		destFilename := fileInfoID + ext
 
-		if destBoardID == "" || block.BoardID != destBoardID {
-			destBoardID = block.BoardID
-			destBoard, err := a.GetBoard(destBoardID)
+		if destBoard == nil || block.BoardID != destBoard.ID {
+			// destBoardID = block.BoardID
+			destBoard, err = a.GetBoard(block.BoardID)
 			if err != nil {
 				return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
 			}
-			destTeamID = destBoard.TeamID
+			// destTeamID = destBoard.TeamID
 		}
 
-		sourceFilePath := filepath.Join(sourceBoard.TeamID, sourceBoard.ID, fileName)
-		destinationFilePath := filepath.Join(destTeamID, block.BoardID, destFilename)
+		fileInfo, sourceFilePath, err := a.GetFilePath(sourceBoard.TeamID, sourceBoard.ID, fileName)
+		if err != nil {
+			return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
+		}
+
+		destinationFilePath := filepath.Join(utils.GetBaseFilePath(), destFilename)
+		if asTemplate {
+			destinationFilePath = filepath.Join(destBoard.TeamID, destBoard.ID, destFilename)
+		}
+		if fileInfo == nil {
+			a.logger.Debug("Source file Path " + sourceFilePath)
+			ext = filepath.Ext(sourceFilePath)
+			a.logger.Debug("ext" + ext)
+
+			now := utils.GetMillis()
+
+			fileInfo = &mm_model.FileInfo{
+				Id:              fileInfoID[1:],
+				CreatorId:       "boards",
+				PostId:          emptyString,
+				ChannelId:       emptyString,
+				CreateAt:        now,
+				UpdateAt:        now,
+				DeleteAt:        0,
+				Path:            destinationFilePath,
+				ThumbnailPath:   emptyString,
+				PreviewPath:     emptyString,
+				Name:            destFilename,
+				Extension:       ext,
+				Size:            0,
+				MimeType:        emptyString,
+				Width:           0,
+				Height:          0,
+				HasPreviewImage: false,
+				MiniPreview:     nil,
+				Content:         "",
+				RemoteId:        nil,
+			}
+		}
+		fileInfo.Id = fileInfoID[1:]
+		fileInfo.Path = destinationFilePath
+		err = a.store.SaveFileInfo(fileInfo)
+		if err != nil {
+			return fmt.Errorf("CopyCardFiles: cannot create fileinfo: %w", err)
+		}
 
 		a.logger.Debug(
 			"Copying card file",
@@ -363,19 +445,6 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block) e
 		}
 		if block.Type == model.TypeAttachment {
 			block.Fields["attachmentId"] = destFilename
-			parts := strings.Split(fileName, ".")
-			fileInfoID := parts[0][1:]
-			fileInfo, err := a.store.GetFileInfo(fileInfoID)
-			if err != nil {
-				return fmt.Errorf("CopyCardFiles: cannot retrieve original fileinfo: %w", err)
-			}
-			newParts := strings.Split(destFilename, ".")
-			newFileID := newParts[0][1:]
-			fileInfo.Id = newFileID
-			err = a.store.SaveFileInfo(fileInfo)
-			if err != nil {
-				return fmt.Errorf("CopyCardFiles: cannot create fileinfo: %w", err)
-			}
 		} else {
 			block.Fields["fileId"] = destFilename
 		}
