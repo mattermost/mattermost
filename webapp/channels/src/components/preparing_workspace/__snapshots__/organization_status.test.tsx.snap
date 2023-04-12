@@ -2,6 +2,6 @@
 
 exports[`components/preparing-workspace/organization_status should match snapshot 1`] = `
 <div
-  className="Organization__status"
+  class="Organization__status"
 />
 `;
