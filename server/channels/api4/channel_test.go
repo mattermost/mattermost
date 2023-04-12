@@ -3905,6 +3905,24 @@ func TestGetThreadsForChannel(t *testing.T) {
 		require.Greater(t, res.Threads[0].LastViewedAt, int64(0))
 	})
 
+	t.Run("no params, 1 thread follow/unfollow", func(t *testing.T) {
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rootPost := th.CreatePost()
+		th.CreateThreadPost(rootPost)
+
+		res, _, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.True(t, *res.Threads[0].Post.IsFollowing)
+
+		appErr := th.App.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rootPost.Id, false)
+		require.Nil(t, appErr)
+
+		res, _, err = th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
+		require.NoError(t, err)
+		require.False(t, *res.Threads[0].Post.IsFollowing)
+	})
+
 	t.Run("no params, 1 thread from other user", func(t *testing.T) {
 		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)

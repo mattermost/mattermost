@@ -596,7 +596,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 		Columns(
 			"COALESCE(ThreadMemberships.LastViewed, 0) AS LastViewedAt",
 			"COALESCE(ThreadMemberships.UnreadMentions, 0) AS UnreadMentions",
-			"ThreadMemberships.UserId IS NOT NULL AS IsFollowing",
+			"COALESCE(ThreadMemberships.Following, false) AS IsFollowing",
 		).
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
