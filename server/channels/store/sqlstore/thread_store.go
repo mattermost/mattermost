@@ -629,7 +629,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 
 	var threads []*JoinedThread
 	if err := s.GetReplicaX().SelectBuilder(&threads, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get threads for channel id=%s", channelID)
+		return nil, errors.Wrapf(err, "failed to get threads for channel id=%s and user id=%s", channelID, userID)
 	}
 
 	// Build the de-duplicated set of user ids representing participants across all threads.
@@ -646,7 +646,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 	if opts.Extended {
 		users, err := s.User().GetProfileByIds(context.Background(), participantUserIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get %d thread profiles for channel id=%s", len(participantUserIds), channelID)
+			return nil, errors.Wrapf(err, "failed to get %d thread profiles for channel id=%s and user id=%s", len(participantUserIds), channelID, userID)
 		}
 		for _, user := range users {
 			allParticipants[user.Id] = user
