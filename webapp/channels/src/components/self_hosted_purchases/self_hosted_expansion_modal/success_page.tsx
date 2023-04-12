@@ -4,15 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {NavLink} from 'react-router-dom';
-
-import {useDispatch} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 
 import IconMessage from 'components/purchase_modal/icon_message';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-import {ConsolePages, ModalIdentifiers} from 'utils/constants';
+import {ConsolePages} from 'utils/constants';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
-import {closeModal} from 'actions/views/modals';
 
 import './success_page.scss';
 
@@ -21,7 +18,7 @@ interface Props {
 }
 
 export default function SelfHostedExpansionSuccessPage(props: Props) {
-    const dispatch = useDispatch();
+    const history = useHistory();
     const titleText = (
         <FormattedMessage
             id={'self_hosted_expansion.expand_success'}
@@ -35,13 +32,15 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
             defaultMessage={'The license has been automatically applied to your Mattermost instance. Your updated invoice will be visible in the <billing>Billing section</billing> of the system console.'}
             values={{
                 billing: (billingText: React.ReactNode) => (
-                    <NavLink
-                        to={ConsolePages.BILLING_HISTORY}
-                        target='_blank'
-                        rel='noreferrer'
+                    <a
+                        href='#'
+                        onClick={() => {
+                            history.push(ConsolePages.BILLING_HISTORY);
+                            props.onClose();
+                        }}
                     >
                         {billingText}
-                    </NavLink>
+                    </a>
                 ),
             }}
         />
@@ -72,7 +71,6 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
                 formattedButtonText={formattedButtonText}
                 buttonHandler={() => {
                     props.onClose();
-                    dispatch(closeModal(ModalIdentifiers.SUCCESS_MODAL));
                 }}
             />
             <div className='background-svg'>

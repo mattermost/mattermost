@@ -98,12 +98,9 @@ jest.mock('mattermost-redux/client', () => {
                     progress: mockCreatedIntent,
                 });
             },
-            confirmSelfHostedSignup: () => Promise.resolve({
+            confirmSelfHostedExpansion: () => Promise.resolve({
                 progress: mockCreatedLicense,
                 license: {Users: existingUsers * 2},
-            }),
-            getClientLicenseOld: () => Promise.resolve({
-                data: {Sku: 'Enterprise'},
             }),
         },
     };
@@ -163,6 +160,7 @@ const initialState: DeepPartial<GlobalState> = {
                 EnableDeveloper: 'false',
             },
             license: {
+                SkuName: productName,
                 Sku: productName,
                 SkuName: productName,
                 Users: '50',
@@ -240,7 +238,7 @@ const defaultSuccessForm: PurchaseForm = {
     city: 'Minneapolis',
     state: 'MN',
     zip: '55423',
-    seats: '10',
+    seats: '50',
     agree: true,
 };
 
@@ -256,11 +254,6 @@ function fillForm(form: PurchaseForm) {
     if (form.agree) {
         fireEvent.click(screen.getByText('I have read and agree', {exact: false}));
     }
-
-    // not changing the license seats number, because it is expected to be pre-filled,
-    // with the correct number of seats (current active users - current licensed seats, or 1 if the difference is 0).
-
-    expect(document.getElementsByClassName('SelfHostedExpansionRHSCard__AddSeatsWarning')[0] as HTMLElement).toBeEnabled();
 
     const completeButton = screen.getByText('Complete purchase');
 
@@ -307,14 +300,24 @@ describe('SelfHostedExpansionModal Open', () => {
         expect(screen.getByText('You must add a seat to continue')).toBeVisible();
     });
 
-    it('happy path submit shows success screen', async () => {
+    it('happy path submit shows success screen when confirmation succeeds', async () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         expect(screen.getByText('Complete purchase')).toBeDisabled();
-        const upgradeButton = fillForm(defaultSuccessForm);
 
-        expect(upgradeButton).toBeEnabled();
+        const upgradeButton = fillForm(defaultSuccessForm);
         upgradeButton.click();
-        await waitFor(() => expect(screen.getByText('You\'ve successfully updated your license seat count')).toBeTruthy(), {timeout: 1234});
+
+        expect(screen.findByText('The license has been automatically applied')).toBeTruthy();
+    });
+
+    it('happy path submit shows submitting screen while requesting confirmation', async () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
+
+        const upgradeButton = fillForm(defaultSuccessForm);
+        upgradeButton.click();
+
+        await waitFor(() => expect(document.getElementsByClassName('submitting')[0]).toBeTruthy(), {timeout: 1234});
     });
 
     it('sad path submit shows error screen', async () => {
