@@ -408,23 +408,37 @@ func (a *App) DeleteBlockAndNotify(blockID string, modifiedBy string, disableNot
 		return nil
 	}
 
-	err = a.store.DeleteBlock(blockID, modifiedBy)
-	if err != nil {
-		return err
-	}
-
 	if block.Type == model.TypeImage {
 		fileName, fileIDExists := block.Fields["fileId"]
 		if fileName, fileIDIsString := fileName.(string); fileIDExists && fileIDIsString {
 			filePath := filepath.Join(block.BoardID, fileName)
 			err = a.filesBackend.RemoveFile(filePath)
-
 			if err != nil {
-				a.logger.Error("Error deleting image file",
-					mlog.String("FilePath", filePath),
-					mlog.Err(err))
+				return err
 			}
 		}
+	}
+
+	if block.Type == model.TypeAttachment {
+		attachmentIDWithExtention, attachmentIDExists := block.Fields["attachmentId"]
+		if attachmentIDWithExtention, attachmentIDIsString := attachmentIDWithExtention.(string); attachmentIDExists && attachmentIDIsString {
+			parts := strings.Split(attachmentIDWithExtention, ".")
+			attachmentID := parts[0][1:]
+			fileInfo, err := a.store.GetFileInfo(attachmentID)
+			if err != nil {
+				return err
+			}
+
+			err = a.filesBackend.RemoveFile(fileInfo.Path)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	err = a.store.DeleteBlock(blockID, modifiedBy)
+	if err != nil {
+		return err
 	}
 
 	a.blockChangeNotifier.Enqueue(func() error {
