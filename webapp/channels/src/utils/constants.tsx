@@ -157,8 +157,7 @@ export const Preferences = {
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
     OVERAGE_USERS_BANNER: 'overage_users_banner',
-    CLOUD_YEARLY_NUDGE_BANNER: 'cloud_yearly_nudge_banner',
-    TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_yearly_plan_nudge',
+    TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
 
 };
 
@@ -727,8 +726,7 @@ export const CloudBanners = {
     TRIAL: 'trial',
     UPGRADE_FROM_TRIAL: 'upgrade_from_trial',
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
-    NUDGE_TO_YEARLY_BANNER_DISMISSED: 'nudge_to_yearly_banner_dismissed',
-    NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_yearly_plan_snoozed',
+    NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
 };
 
 export const ConfigurationBanners = {
