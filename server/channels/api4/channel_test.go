@@ -3870,6 +3870,20 @@ func TestGetThreadsForChannel(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
+	t.Run("should have access to channel", func(t *testing.T) {
+		privateChannel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.GetThreadsForChannel(privateChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("empty", func(t *testing.T) {
 		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 		otherChannel := th.CreatePublicChannel()
@@ -4086,7 +4100,6 @@ func TestGetThreadsForChannel(t *testing.T) {
 			Before: model.NewId(),
 			After:  model.NewId(),
 		})
-
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.channel.get_threads_for_channel.invalid_before_after_params.app_error")
@@ -4177,7 +4190,6 @@ func TestGetThreadsForChannel(t *testing.T) {
 			ThreadsOnly: true,
 			TotalsOnly:  true,
 		})
-
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.channel.get_threads_for_channel.invalid_totals_threads_params.app_error")
@@ -4235,7 +4247,6 @@ func TestGetThreadsForChannel(t *testing.T) {
 		_, resp, err := th.Client.GetThreadsForChannel(th.BasicChannel.Id, th.BasicUser.Id, model.GetChannelThreadsOpts{
 			Filter: "bad_filter",
 		})
-
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.channel.get_threads_for_channel.invalid_filter_param.app_error")

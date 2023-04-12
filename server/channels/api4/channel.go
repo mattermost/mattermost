@@ -1883,7 +1883,10 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: check if the user has permissions to view the channel
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
 
 	opts := model.GetChannelThreadsOpts{
 		PageSize: uint64(c.Params.PerPage),
