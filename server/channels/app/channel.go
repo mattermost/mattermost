@@ -3613,7 +3613,7 @@ func (a *App) GetThreadsForChannel(channelID, userID string, opts model.GetChann
 	}
 
 	if err := eg.Wait(); err != nil {
-		return nil, model.NewAppError("GetThreadsForChannel", "app.channel.get_threads.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetThreadsForChannel", "app.channel.get_threads_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &result, nil
