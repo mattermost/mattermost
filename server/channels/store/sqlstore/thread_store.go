@@ -583,7 +583,9 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 
 	query := s.threadsAndPostsSelectQuery.
 		Column(postSliceCoalesceQuery()).
-		Join("Posts ON Posts.Id = Threads.PostId")
+		Columns("COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt").
+		Join("Posts ON Posts.Id = Threads.PostId").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId AND ThreadMemberships.UserId = ?", userID)
 
 	query = query.Where(sq.Eq{"Threads.ChannelId": channelID})
 
@@ -603,14 +605,7 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 	}
 
 	if opts.Filter == model.GetChannelThreadsFilterFollowing {
-
-		query = query.
-			Columns("COALESCE(ThreadMemberships.LastViewed, 0) as LastViewedAt").
-			Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
-			Where(sq.Eq{
-				"ThreadMemberships.UserId":    userID,
-				"ThreadMemberships.Following": true,
-			})
+		query = query.Where(sq.Eq{"ThreadMemberships.Following": true})
 	} else if opts.Filter == model.GetChannelThreadsFilterCurrentUser {
 		query = query.Where(sq.Eq{"Posts.UserId": userID})
 	}
