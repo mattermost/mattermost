@@ -355,7 +355,7 @@ func (s *Server) Shutdown() error {
 
 	defer s.logger.Info("Server.Shutdown")
 
-	return s.store.Shutdown()
+	return nil
 }
 
 func (s *Server) Config() *config.Configuration {
