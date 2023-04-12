@@ -42,7 +42,7 @@ content:
       template: "Product Release"
       name: "Feature release"
       id: product-release-playbook
-      illustration: "/static/worktemplates/product_teams/feature_release/playbook.png"
+      illustration: "/static/worktemplates/playbooks/product_release.png"
   - integration:
       id: jira
   - integration:
@@ -61,7 +61,7 @@ description:
   board:
     id: worktemplate.product_teams.goals_and_okrs.board
     defaultMessage: >-
-      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. 
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.product_teams.goals_and_okrs.integration
     defaultMessage: >-
@@ -134,7 +134,7 @@ description:
   board:
     id: worktemplate.product_teams.sprint_planning.board
     defaultMessage: >-
-      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments. 
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
   integration:
     id: worktemplate.product_teams.sprint_planning.integration
     defaultMessage: >-
@@ -263,7 +263,7 @@ description:
   board:
     id: worktemplate.companywide.goals_and_okrs.board
     defaultMessage: >-
-      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. 
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.companywide.goals_and_okrs.integration
     defaultMessage: >-
@@ -337,7 +337,7 @@ description:
   board:
     id: worktemplate.leadership.goals_and_okrs.board
     defaultMessage: >-
-      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. 
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.leadership.goals_and_okrs.integration
     defaultMessage: >-

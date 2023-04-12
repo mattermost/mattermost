@@ -41,7 +41,7 @@ type Props = {
      *
      * Only supported when pluggableName is "Product".
      */
-    subComponentName?: 'mainComponent' | 'headerCentreComponent' | 'headerRightComponent';
+    subComponentName?: 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
 
     /*
      * Accept any other prop to pass onto the plugin component

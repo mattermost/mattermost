@@ -126,7 +126,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
             recentlyActiveUsers,
             newUsers,
         });
-    }
+    };
 
     private handleTeamChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         const teamId = e.target.value;
@@ -143,7 +143,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.setGlobalItem(LAST_ANALYTICS_TEAM, teamId);
-    }
+    };
 
     public render(): JSX.Element {
         if (this.props.teams.length === 0 || !this.state.team || !this.props.stats[this.state.team.id]) {

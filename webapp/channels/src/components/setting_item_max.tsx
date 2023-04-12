@@ -93,7 +93,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             this.settingList.current.contains(target)) {
             this.handleSubmit(e);
         }
-    }
+    };
 
     handleSubmit = (e: React.MouseEvent | KeyboardEvent) => {
         e.preventDefault();
@@ -103,14 +103,14 @@ export default class SettingItemMax extends React.PureComponent<Props> {
         } else if (this.props.submit) {
             this.props.submit();
         }
-    }
+    };
 
     handleUpdateSection = (e: React.MouseEvent) => {
         if (this.props.updateSection) {
             this.props.updateSection(this.props.section);
         }
         e.preventDefault();
-    }
+    };
 
     render() {
         let clientError = null;

@@ -259,7 +259,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         viewId: match.params.viewId,
         teamId: match.params.teamId,
     })
-    shareUrl.pathname = newPath
+    shareUrl.pathname = `/boards/public${newPath}`
 
     const boardPath = generatePath('/team/:teamId/:boardId/:viewId', {
         boardId: match.params.boardId,
@@ -278,7 +278,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
     const shareTemplateTitle = (
         <FormattedMessage
             id={'ShareTemplate.Title'}
-            defaultMessage={'Share Template'}
+            defaultMessage={'Share template'}
         />
     )
 
