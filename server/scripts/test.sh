@@ -12,6 +12,22 @@ GOBIN=$6
 TIMEOUT=$7
 COVERMODE=$8
 
+# if TEST_PKG_GROUP_COUNT is provided then create a subset of all packages by 
+# creating TEST_PKG_GROUP_COUNT groups and selecting the group number via TEST_PKG_GROUP.
+if [ $TEST_PKG_GROUP_COUNT -gt 0 ]
+then 
+	TESTPKGS=""
+	for p in $PACKAGES $EE_PACKAGES 
+	do 
+		if [ $((IDX % TEST_PKG_GROUP_COUNT)) -eq $TEST_PKG_GROUP ]
+		then 
+			TESTPKGS+="${p} " 
+		fi 
+		((IDX=IDX+1))
+	done 
+	PACKAGES=$TESTPKGS
+fi
+
 PACKAGES_COMMA=$(echo $PACKAGES | tr ' ' ',')
 export MM_SERVER_PATH=$PWD
 
