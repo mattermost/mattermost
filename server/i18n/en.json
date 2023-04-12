@@ -1774,6 +1774,10 @@
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
   {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error no organization name provided for self hosted onboarding."
+  },
+  {
     "id": "api.error_get_first_admin_visit_marketplace_status",
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
   },

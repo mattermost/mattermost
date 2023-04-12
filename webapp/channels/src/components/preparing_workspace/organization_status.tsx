@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {BadUrlReasons, UrlValidationCheck} from 'utils/url';
-import Constants from 'utils/constants';
+import Constants, {DocLinks} from 'utils/constants';
 import ExternalLink from 'components/external_link';
 
 export const TeamApiError = 'team_api_error';
@@ -53,7 +53,7 @@ const OrganizationStatus = (props: {error: (UrlValidationCheck['error'] | typeof
                     values={{
                         a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/welcome/about-teams.html#team-url'
+                                href={DocLinks.ABOUT_TEAMS}
                                 target='_blank'
                                 rel='noreferrer'
                             >

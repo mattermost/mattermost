@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InviteMembers component should match snapshot 1`] = `
+<CSSTransition
+  classNames="InviteMembers--enter-from-before"
+  in={true}
+  mountOnEnter={true}
+  timeout={300}
+  unmountOnExit={true}
+>
+  <div
+    className="InviteMembers-body test-class"
+  >
+    <SingleColumnLayout
+      style={
+        Object {
+          "width": 547,
+        }
+      }
+    >
+      <PageLine
+        noLeft={true}
+        style={
+          Object {
+            "height": "calc(25vh)",
+            "marginBottom": "50px",
+            "marginLeft": "50px",
+          }
+        }
+      />
+      <div>
+        Previous step
+      </div>
+      <Title>
+        <MemoizedFormattedMessage
+          defaultMessage="Invite your team members"
+          id="onboarding_wizard.invite_members.title"
+        />
+      </Title>
+      <Description>
+        <MemoizedFormattedMessage
+          defaultMessage="Collaboration is tough by yourself. Invite a few team members using the invitation link below."
+          id="onboarding_wizard.invite_members.description_link"
+        />
+      </Description>
+      <PageBody>
+        <InviteMembersLink
+          inviteURL="https://my-org.mattermost.com/config/signup_user_complete/?id=1234"
+        />
+      </PageBody>
+      <div
+        className="InviteMembers__submit"
+      >
+        <button
+          className="primary-button"
+          disabled={false}
+          onClick={[MockFunction]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Finish setup"
+            id="onboarding_wizard.invite_members.next_link"
+          />
+        </button>
+      </div>
+      <PageLine
+        noLeft={true}
+        style={
+          Object {
+            "height": "calc(30vh)",
+            "marginLeft": "50px",
+            "marginTop": "50px",
+          }
+        }
+      />
+    </SingleColumnLayout>
+  </div>
+</CSSTransition>
+`;

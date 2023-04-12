@@ -28,6 +28,13 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 }
 
 func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
+	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
+
+	if !isCloud && request.Organization == "" {
+		mlog.Error("No organization name provided for self hosted onboarding")
+		return model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
+	}
+
 	if request.Organization != "" {
 		err := a.Srv().Store().System().SaveOrUpdate(&model.System{
 			Name:  model.SystemOrganizationName,

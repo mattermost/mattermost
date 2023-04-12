@@ -63,6 +63,14 @@
     .primary-button {
         @include primary-button;
         @include button-medium;
+
+        box-sizing: border-box;
+        border: 2px solid var(--button-bg);
+    }
+
+    .primary-button[disabled] {
+        box-sizing: border-box;
+        border: 2px solid rgba(var(--center-channel-color-rgb), 0.01);
     }
 
     .link-style {

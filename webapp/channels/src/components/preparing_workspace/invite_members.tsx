@@ -101,7 +101,7 @@ const InviteMembers = (props: Props) => {
                         style={{
                             marginTop: '50px',
                             marginLeft: '50px',
-                            height: 'calc(25vh)',
+                            height: 'calc(30vh)',
                         }}
                         noLeft={true}
                     />

@@ -130,7 +130,7 @@ const PreparingWorkspace = (props: Props) => {
     ].filter((x) => Boolean(x)) as WizardStep[];
 
     // first steporder that is not false
-    const firstShowablePage = stepOrder.filter((x) => Boolean(x))[0];
+    const firstShowablePage = stepOrder[0];
 
     const firstAdminSetupComplete = useSelector(getFirstAdminSetupComplete);
 

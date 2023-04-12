@@ -15,7 +15,7 @@ type Props = {
 
 const InviteMembersLink = (props: Props) => {
     const copyText = useCopyText({
-        trackCallback: () => trackEvent('FIXME', 'admin_setup_click_copy_invite_link'),
+        trackCallback: () => trackEvent('first_admin_setup', 'admin_setup_click_copy_invite_link'),
         text: props.inviteURL,
     });
     const intl = useIntl();
