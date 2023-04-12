@@ -90,5 +90,5 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
                 }
             },
         };
-    }, [controlModal, options.onClick, options.trackingLocation]);
+    }, [controlModal, options.trackingLocation]);
 }
