@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
+	pbclient "github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )

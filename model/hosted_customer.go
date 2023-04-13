@@ -8,6 +8,12 @@ type BootstrapSelfHostedSignupRequest struct {
 	Reset bool   `json:"reset"`
 }
 
+type SubscribeNewsletterRequest struct {
+	Email             string `json:"email"`
+	ServerID          string `json:"server_id"`
+	SubscribedContent string `json:"subscribed_content"`
+}
+
 type BootstrapSelfHostedSignupResponse struct {
 	Progress string `json:"progress"`
 	// email listed on the JWT claim
@@ -21,10 +27,11 @@ type BootstrapSelfHostedSignupResponseInternal struct {
 
 // email contained in token, so not in the request body.
 type SelfHostedCustomerForm struct {
-	FirstName      string   `json:"first_name"`
-	LastName       string   `json:"last_name"`
-	BillingAddress *Address `json:"billing_address"`
-	Organization   string   `json:"organization"`
+	FirstName       string   `json:"first_name"`
+	LastName        string   `json:"last_name"`
+	BillingAddress  *Address `json:"billing_address"`
+	ShippingAddress *Address `json:"shipping_address"`
+	Organization    string   `json:"organization"`
 }
 
 type SelfHostedConfirmPaymentMethodRequest struct {

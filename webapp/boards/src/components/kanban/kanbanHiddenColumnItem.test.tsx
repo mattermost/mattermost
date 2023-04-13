@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 import React from 'react'
 import {render, screen, within} from '@testing-library/react'
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
-import {createIntl} from 'react-intl'
 import {mocked} from 'jest-mock'
 
 import {wrapDNDIntl} from 'src/testUtils'
@@ -15,10 +13,9 @@ import {IPropertyOption} from 'src/blocks/board'
 import KanbanHiddenColumnItem from './kanbanHiddenColumnItem'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(Mutator, true)
+const mockedMutator = mocked(Mutator)
 
 describe('src/components/kanban/kanbanHiddenColumnItem', () => {
-    const intl = createIntl({locale: 'en-us'})
     const board = TestBlockFactory.createBoard()
     const activeView = TestBlockFactory.createBoardView(board)
     const card = TestBlockFactory.createCard(board)
@@ -41,7 +38,6 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                 }}
                 readonly={false}
                 onDrop={jest.fn()}
-                intl={intl}
             />,
         ))
         expect(container).toMatchSnapshot()
@@ -56,12 +52,11 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                 }}
                 readonly={true}
                 onDrop={jest.fn()}
-                intl={intl}
             />,
         ))
         expect(container).toMatchSnapshot()
     })
-    test('return kanbanHiddenColumnItem and click menuwrapper', () => {
+    test('return kanbanHiddenColumnItem and click menuwrapper', async () => {
         const {container} = render(wrapDNDIntl(
             <KanbanHiddenColumnItem
                 activeView={activeView}
@@ -71,15 +66,14 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                 }}
                 readonly={false}
                 onDrop={jest.fn()}
-                intl={intl}
             />,
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).not.toBeNull()
-        userEvent.click(buttonMenuWrapper)
+        await userEvent.click(buttonMenuWrapper)
         expect(container).toMatchSnapshot()
     })
-    test('return kanbanHiddenColumnItem, click menuwrapper and click show', () => {
+    test('return kanbanHiddenColumnItem, click menuwrapper and click show', async () => {
         const {container} = render(wrapDNDIntl(
             <KanbanHiddenColumnItem
                 activeView={activeView}
@@ -89,15 +83,14 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                 }}
                 readonly={false}
                 onDrop={jest.fn()}
-                intl={intl}
             />,
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).not.toBeNull()
-        userEvent.click(buttonMenuWrapper)
+        await userEvent.click(buttonMenuWrapper)
         expect(container).toMatchSnapshot()
         const buttonShow = within(buttonMenuWrapper).getByRole('button', {name: 'Show'})
-        userEvent.click(buttonShow)
+        await userEvent.click(buttonShow)
         expect(mockedMutator.unhideViewColumn).toBeCalledWith(activeView.boardId, activeView, option.id)
     })
 
@@ -114,7 +107,6 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                 }}
                 readonly={false}
                 onDrop={jest.fn()}
-                intl={intl}
             />,
         ))
         expect(getByTitle('hidden-card-count')).toHaveTextContent('2')

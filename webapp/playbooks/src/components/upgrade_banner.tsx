@@ -14,10 +14,10 @@ import LoadingSpinner from 'src/components/assets/loading_spinner';
 import {getAdminAnalytics, isTeamEdition} from 'src/selectors';
 import StartTrialNotice from 'src/components/backstage/start_trial_notice';
 import ConvertEnterpriseNotice from 'src/components/backstage/convert_enterprise_notice';
-import {postMessageToAdmins, requestTrialLicense} from 'src/client';
+import {postMessageToAdmins} from 'src/client';
 import {AdminNotificationType} from 'src/constants';
 import {isCloud} from 'src/license';
-import {useOpenCloudModal} from 'src/hooks';
+import {useOpenCloudModal, useOpenStartTrialFormModal} from 'src/hooks';
 
 import SuccessSvg from './assets/success_svg';
 import ErrorSvg from './assets/error_svg';
@@ -125,6 +125,7 @@ const UpgradeBanner = (props: Props) => {
     const isCurrentUserAdmin = isSystemAdmin(currentUser.roles);
     const [actionState, setActionState] = useState(ActionState.Uninitialized);
     const isServerTeamEdition = useSelector(isTeamEdition);
+    const openTrialFormModal = useOpenStartTrialFormModal();
 
     const analytics = useSelector(getAdminAnalytics);
     const serverTotalUsers = analytics?.TOTAL_USERS || 0;
@@ -149,15 +150,7 @@ const UpgradeBanner = (props: Props) => {
             return;
         }
 
-        setActionState(ActionState.Loading);
-
-        const requestedUsers = Math.max(serverTotalUsers, 30);
-        const response = await requestTrialLicense(requestedUsers, props.notificationType);
-        if (response.error) {
-            setActionState(ActionState.Error);
-        } else {
-            setActionState(ActionState.Success);
-        }
+        openTrialFormModal('playbooks_upgrade_banner');
     };
 
     const openUpgradeModal = async () => {

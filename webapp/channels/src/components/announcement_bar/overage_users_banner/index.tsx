@@ -15,7 +15,8 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
-import {LicenseLinks, StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import {StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
 
 import './overage_users_banner.scss';
 
@@ -34,6 +35,7 @@ const adminHasDismissed = ({preferenceName, overagePreferences, isWarningBanner}
 };
 
 const OverageUsersBanner = () => {
+    const [openContactSales] = useOpenSalesLink();
     const dispatch = useDispatch();
     const stats = useSelector((state: GlobalState) => state.entities.admin.analytics) || {};
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -90,7 +92,7 @@ const OverageUsersBanner = () => {
     const handleContactSalesClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         trackEventFn('Contact Sales');
-        window.open(LicenseLinks.CONTACT_SALES, '_blank');
+        openContactSales();
     };
 
     const handleClick = isExpandable ? handleUpdateSeatsSelfServeClick : handleContactSalesClick;

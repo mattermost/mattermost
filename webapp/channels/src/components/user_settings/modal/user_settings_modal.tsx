@@ -128,7 +128,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 this.setState({resendStatus: 'failure'});
             }
         });
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeyDown);
@@ -150,7 +150,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             e.preventDefault();
             this.handleHide();
         }
-    }
+    };
 
     // Called when the close button is pressed on the main modal
     handleHide = () => {
@@ -162,7 +162,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         this.setState({
             show: false,
         });
-    }
+    };
 
     // called after the dialog is fully hidden and faded out
     handleHidden = () => {
@@ -171,7 +171,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             active_section: '',
         });
         this.props.onExited();
-    }
+    };
 
     // Called to hide the settings pane when on mobile
     handleCollapse = () => {
@@ -182,7 +182,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             active_tab: '',
             active_section: '',
         });
-    }
+    };
 
     handleConfirm = () => {
         this.setState({
@@ -197,7 +197,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             this.afterConfirm();
             this.afterConfirm = null;
         }
-    }
+    };
 
     handleCancelConfirmation = () => {
         this.setState({
@@ -206,7 +206,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         });
 
         this.afterConfirm = null;
-    }
+    };
 
     showConfirmModal = (afterConfirm: () => void) => {
         if (afterConfirm) {
@@ -222,7 +222,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             showConfirmModal: true,
             enforceFocus: false,
         });
-    }
+    };
 
     // Called by settings tabs when their close button is pressed
     closeModal = () => {
@@ -231,7 +231,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else {
             this.handleHide();
         }
-    }
+    };
 
     // Called by settings tabs when their back button is pressed
     collapseModal = () => {
@@ -240,7 +240,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else {
             this.handleCollapse();
         }
-    }
+    };
 
     updateTab = (tab?: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
@@ -251,7 +251,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 active_section: '',
             });
         }
-    }
+    };
 
     updateSection = (section?: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
@@ -261,7 +261,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 active_section: section ?? '',
             });
         }
-    }
+    };
 
     render() {
         const {formatMessage} = this.props.intl;

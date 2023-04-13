@@ -295,7 +295,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.RecycleDatabaseConnection()
+	c.App.RecycleDatabaseConnection(c.AppContext)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -348,7 +348,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
+	logs, logerr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
 	if logerr != nil {
 		c.Err = logerr
 		return
@@ -387,7 +387,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	lines, appErr := c.App.GetLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

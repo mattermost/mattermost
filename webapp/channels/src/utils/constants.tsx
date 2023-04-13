@@ -157,12 +157,14 @@ export const Preferences = {
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
     OVERAGE_USERS_BANNER: 'overage_users_banner',
-    CLOUD_YEARLY_NUDGE_BANNER: 'cloud_yearly_nudge_banner',
+    TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
+    TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
 export const Touched = {
     INVITE_MEMBERS: 'invite_members',
+    ADD_CHANNELS_CTA: 'add_channels_cta',
 };
 
 // Category for actions/interactions that will happen just once
@@ -175,7 +177,7 @@ export const Unique = {
 export const TrialPeriodDays = {
     TRIAL_30_DAYS: 30,
     TRIAL_14_DAYS: 14,
-    TRIAL_WARNING_THRESHOLD: 3,
+    TRIAL_WARNING_THRESHOLD: 7,
     TRIAL_2_DAYS: 2,
     TRIAL_1_DAY: 1,
     TRIAL_0_DAYS: 0,
@@ -264,6 +266,7 @@ export const ActionTypes = keyMirror({
 
     STATUS_DROPDOWN_TOGGLE: null,
     ADD_CHANNEL_DROPDOWN_TOGGLE: null,
+    ADD_CHANNEL_CTA_DROPDOWN_TOGGLE: null,
 
     SHOW_ONBOARDING_TASK_COMPLETION: null,
     SHOW_ONBOARDING_COMPLETE_PROFILE_TOUR: null,
@@ -459,6 +462,8 @@ export const ModalIdentifiers = {
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',
     SCREENING_IN_PROGRESS: 'screening_in_progress',
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
+    START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
+    START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
 };
 
 export const UserStatuses = {
@@ -721,7 +726,8 @@ export const CloudBanners = {
     TRIAL: 'trial',
     UPGRADE_FROM_TRIAL: 'upgrade_from_trial',
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
-    NUDGE_TO_YEARLY_BANNER_DISMISSED: 'nudge_to_yearly_banner_dismissed',
+    NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
+    NUDGE_TO_PAID_PLAN_SNOOZED: 'nudge_to_paid_plan_snoozed',
 };
 
 export const ConfigurationBanners = {
@@ -896,7 +902,6 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
-    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
@@ -1072,7 +1077,9 @@ export const CloudLinks = {
 
 export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
+    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
+    SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
 };
 
 export const DocLinks = {

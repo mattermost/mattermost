@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent, ReactNode} from 'react';
+import React, {ButtonHTMLAttributes, PureComponent, ReactNode} from 'react';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -9,13 +9,12 @@ type Props = {
     children?: ReactNode;
     spinning: boolean;
     spinningText: ReactNode;
-    onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }
 
-export default class SpinnerButton extends PureComponent<Props & React.ButtonHTMLAttributes<HTMLButtonElement>> {
+export default class SpinnerButton extends PureComponent<Props & ButtonHTMLAttributes<HTMLButtonElement>> {
     public static defaultProps: Partial<Props> = {
         spinning: false,
-    }
+    };
 
     public render(): JSX.Element {
         const {spinning, spinningText, children, ...props} = this.props;

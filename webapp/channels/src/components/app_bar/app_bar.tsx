@@ -12,8 +12,15 @@ import {getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
 import {getAppBarPluginComponents, getChannelHeaderPluginComponents, shouldShowAppBar} from 'selectors/plugins';
 import {suitePluginIds} from 'utils/constants';
 
+import {Permissions} from 'mattermost-redux/constants';
+import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import {GlobalState} from '@mattermost/types/store';
+
 import AppBarPluginComponent, {isAppBarPluginComponent} from './app_bar_plugin_component';
 import AppBarBinding, {isAppBinding} from './app_bar_binding';
+import AppBarMarketplace from './app_bar_marketplace';
 
 import './app_bar.scss';
 
@@ -24,6 +31,10 @@ export default function AppBar() {
     const currentProduct = useCurrentProduct();
     const currentProductId = useCurrentProductId();
     const enabled = useSelector(shouldShowAppBar);
+    const canOpenMarketplace = useSelector((state: GlobalState) => (
+        isMarketplaceEnabled(state) &&
+        haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
+    ));
 
     if (
         !enabled ||
@@ -40,11 +51,15 @@ export default function AppBar() {
 
     const items: ReactNode[] = [
         ...coreProductComponents,
-        divider,
+        getDivider(coreProductComponents.length, (pluginComponents.length + channelHeaderComponents.length + appBarBindings.length)),
         ...pluginComponents,
         ...channelHeaderComponents,
         ...appBarBindings,
     ].map((x) => {
+        if (!x) {
+            return x;
+        }
+
         if (isAppBarPluginComponent(x)) {
             if (!inScope(x.supportedProductIds ?? null, currentProductId, currentProduct?.pluginId)) {
                 return null;
@@ -69,26 +84,23 @@ export default function AppBar() {
         return x;
     });
 
-    if (!items.some((x) => Boolean(x) && x !== divider)) {
-        return null;
-    }
-
     return (
         <div className={'app-bar'}>
-            {items}
+            <div className={'app-bar__top'}>
+                {items}
+            </div>
+            {canOpenMarketplace && (
+                <div className='app-bar__bottom'>
+                    <AppBarMarketplace/>
+                </div>
+            )}
         </div>
     );
 }
 
-const divider = (
+const getDivider = (beforeCount: number, afterCount: number) => (beforeCount && afterCount ? (
     <hr
         key='divider'
-        className={'app-bar__divider'}
-        // eslint-disable-next-line react/no-unknown-property
-        css={`
-            :last-child, :first-child {
-                display: none;
-            }
-        `}
+        className='app-bar__divider'
     />
-);
+) : null);

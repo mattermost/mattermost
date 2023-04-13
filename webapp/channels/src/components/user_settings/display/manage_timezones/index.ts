@@ -10,9 +10,7 @@ import {updateMe} from 'mattermost-redux/actions/users';
 import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {UserProfile} from '@mattermost/types/users';
 import {GlobalState} from '@mattermost/types/store';
-import {getTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
-
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 
 import ManageTimezones from './manage_timezones';
 
@@ -27,8 +25,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         }, dispatch)};
 }
 function mapStateToProps(state: GlobalState) {
-    const currentUserId = getCurrentUserId(state);
-    const timezoneLabel = getTimezoneLabel(state, currentUserId);
+    const timezoneLabel = getCurrentTimezoneLabel(state);
     return {
         timezones,
         timezoneLabel,
