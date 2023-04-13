@@ -95,6 +95,39 @@ func TestCreateTeam(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("should verify user permissions during team creation", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		th.App.SetPhase2PermissionsMigrationStatus(true)
+
+		sc := th.SystemAdminClient
+		scheme, _, err := sc.CreateScheme(&model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		team, _, err := sc.CreateTeam(&model.Team{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		require.Equal(t, scheme.Id, *team.SchemeId)
+
+		_, r, err := th.Client.CreateTeam(&model.Team{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, r)
+	})
+
 	t.Run("should take under consideration the server language when creating a new team", func(t *testing.T) {
 		c := th.SystemAdminClient
 		cfg, _, err := c.GetConfig()
