@@ -290,7 +290,7 @@ describe('checkUserInCall', () => {
     test('missing state', () => {
         expect(checkUserInCall({
             'plugins-com.mattermost.calls': {},
-        }, 'userA')).toBe(false);
+        } as any, 'userA')).toBe(false);
     });
 
     test('call state missing', () => {
@@ -300,7 +300,7 @@ describe('checkUserInCall', () => {
                     channelID: null,
                 },
             },
-        }, 'userA')).toBe(false);
+        } as any, 'userA')).toBe(false);
     });
 
     test('user not in call', () => {
@@ -314,7 +314,7 @@ describe('checkUserInCall', () => {
                     ],
                 },
             },
-        }, 'userA')).toBe(false);
+        } as any, 'userA')).toBe(false);
     });
 
     test('user in call', () => {
@@ -331,6 +331,6 @@ describe('checkUserInCall', () => {
                     ],
                 },
             },
-        }, 'userA')).toBe(true);
+        } as any, 'userA')).toBe(true);
     });
 });
