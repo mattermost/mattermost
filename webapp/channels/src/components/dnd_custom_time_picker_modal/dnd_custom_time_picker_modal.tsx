@@ -29,7 +29,6 @@ import Input from 'components/widgets/inputs/input/input';
 import DatePicker from 'components/date_picker';
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
-
 type Props = {
     onExited: () => void;
     userId: string;
