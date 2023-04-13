@@ -18,5 +18,8 @@ function remotes(state: Record<string, boolean> = {}, action: GenericAction) {
 }
 
 export default combineReducers({
+
+    // object that stores global draft keys indicating whether the draft came from a WebSocket event.
     remotes,
+
 });
