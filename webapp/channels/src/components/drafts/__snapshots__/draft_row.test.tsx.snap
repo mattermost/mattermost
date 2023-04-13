@@ -39,7 +39,7 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
         "type": "channel",
       }
     }
-    draftRemotes={Object {}}
+    isRemote={false}
     status={Object {}}
     user={Object {}}
   />
@@ -85,7 +85,7 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
         "type": "thread",
       }
     }
-    draftRemotes={Object {}}
+    isRemote={false}
     status={Object {}}
     user={Object {}}
   />
