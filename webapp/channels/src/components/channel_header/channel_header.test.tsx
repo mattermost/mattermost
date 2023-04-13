@@ -42,6 +42,7 @@ describe('components/ChannelHeader', () => {
         isFileAttachmentsEnabled: true,
         lastActivityTimestamp: 1632146562846,
         isLastActiveEnabled: true,
+        isRecentChannelThreadsEnabled: true,
         timestampUnits: [
             'now',
             'minute',

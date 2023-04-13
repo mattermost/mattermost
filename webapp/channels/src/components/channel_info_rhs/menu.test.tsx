@@ -16,6 +16,7 @@ describe('channel_info_rhs/menu', () => {
         channel: {type: Constants.OPEN_CHANNEL} as Channel,
         channelStats: {files_count: 3, pinnedpost_count: 12, member_count: 32} as ChannelStats,
         isArchived: false,
+        isRecentChannelThreadsEnabled: true,
         actions: {
             openNotificationSettings: jest.fn(),
             showChannelFiles: jest.fn(),

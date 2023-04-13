@@ -30,6 +30,7 @@ describe('channel_info_rhs', () => {
         isMuted: false,
         isInvitingPeople: false,
         isMobile: false,
+        isRecentChannelThreadsEnabled: true,
         canManageMembers: true,
         canManageProperties: true,
         channelMembers: [],
