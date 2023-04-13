@@ -24,7 +24,6 @@ import {GlobalState} from 'types/store';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
-import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
 import GenericModal from 'components/generic_modal';
 
 import MemberList from '../channel_members_rhs/member_list';
@@ -43,6 +42,12 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
+}
+
+enum ListItemType {
+    Member = 'member',
+    FirstSeparator = 'first-separator',
+    Separator = 'separator',
 }
 
 export interface ListItem {

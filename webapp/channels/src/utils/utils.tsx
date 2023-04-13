@@ -81,6 +81,7 @@ import {TextboxElement} from '../components/textbox';
 import {Address} from '@mattermost/types/cloud';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
+import {Group} from '@mattermost/types/groups';
 
 const CLICKABLE_ELEMENTS = [
     'a',
@@ -1911,4 +1912,21 @@ export function getBlankAddressWithCountry(country?: string): Address {
         postal_code: '',
         state: '',
     };
+}
+
+export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Group) {
+    let aSortString = '';
+    let bSortString = '';
+    if ('username' in a) {
+        aSortString = a.username;
+    } else {
+        aSortString = a.name;
+    }
+    if ('username' in b) {
+        bSortString = b.username;
+    } else {
+        bSortString = b.name;
+    }
+
+    return aSortString.localeCompare(bSortString);
 }

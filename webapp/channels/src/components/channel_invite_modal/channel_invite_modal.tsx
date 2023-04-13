@@ -18,7 +18,7 @@ import {TeamMembership} from '@mattermost/types/teams';
 
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
 import {filterGroupsMatchingTerm} from 'mattermost-redux/utils/group_utils';
-import {localizeMessage} from 'utils/utils';
+import {localizeMessage, sortUsersAndGroups} from 'utils/utils';
 import ProfilePicture from 'components/profile_picture';
 import MultiSelect, {Value} from 'components/multiselect/multiselect';
 import AddIcon from 'components/widgets/icons/fa_add_icon';
@@ -383,23 +383,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         );
     };
 
-    sortUsersAndGroups = (a: UserProfileValue | GroupValue, b: UserProfileValue | GroupValue) => {
-        let aSortString = '';
-        let bSortString = '';
-        if ('username' in a) {
-            aSortString = a.username;
-        } else {
-            aSortString = a.name;
-        }
-        if ('username' in b) {
-            bSortString = b.username;
-        } else {
-            bSortString = b.name;
-        }
-
-        return aSortString.localeCompare(bSortString);
-    }
-
     public render = (): JSX.Element => {
         let inviteError = null;
         if (this.state.inviteError) {
@@ -444,7 +427,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         const groupsAndUsers = [
             ...filterGroupsMatchingTerm(this.props.groups, this.state.term) as GroupValue[],
             ...users,
-        ].sort(this.sortUsersAndGroups);
+        ].sort(sortUsersAndGroups);
         let optionValues = [
             ...dmUsers,
             ...groupsAndUsers,

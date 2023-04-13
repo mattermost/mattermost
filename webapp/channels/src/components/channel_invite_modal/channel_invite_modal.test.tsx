@@ -16,6 +16,15 @@ import {RelationOneToOne} from '@mattermost/types/utilities';
 
 type UserProfileValue = Value & UserProfile;
 
+jest.mock('utils/utils', () => {
+    const original = jest.requireActual('utils/utils');
+    return {
+        ...original,
+        localizeMessage: jest.fn(),
+        sortUsersAndGroups: jest.fn(),
+    };
+});
+
 describe('components/channel_invite_modal', () => {
     const users = [{
         id: 'user-1',
