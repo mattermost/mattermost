@@ -137,6 +137,30 @@ func TestDeleteBlock(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("success scenario attachment", func(t *testing.T) {
+		attachmentIdWithExtention := "xsomeid.png"
+		attachmentIdWithout := "someid"
+		filepath := "somepath/path"
+		boardID := testBoardID
+		board := &model.Board{ID: boardID}
+		block := &model.Block{
+			ID:      "block-id",
+			BoardID: board.ID,
+			Type:    model.TypeAttachment,
+			Fields: map[string]interface{}{
+				"attachmentId": attachmentIdWithExtention,
+			},
+		}
+		th.Store.EXPECT().GetBlock(gomock.Eq("block-id")).Return(block, nil)
+		th.Store.EXPECT().DeleteBlock(gomock.Eq("block-id"), gomock.Eq("user-id-1")).Return(nil)
+		th.Store.EXPECT().GetBoard(gomock.Eq(testBoardID)).Return(board, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetFileInfo(attachmentIdWithout).Return(&mm_model.FileInfo{Path: filepath}, nil)
+		th.FilesBackend.On("RemoveFile", filepath).Return(nil)
+		err := th.App.DeleteBlock("block-id", "user-id-1")
+		require.NoError(t, err)
+	})
+
 	t.Run("error scenario", func(t *testing.T) {
 		boardID := testBoardID
 		board := &model.Board{ID: boardID}
