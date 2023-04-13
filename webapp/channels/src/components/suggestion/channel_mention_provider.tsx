@@ -17,6 +17,8 @@ import {Constants} from 'utils/constants';
 import Provider from './provider';
 import Suggestion from './suggestion.jsx';
 
+export const MIN_CHANNEL_LINK_LENGTH = 2;
+
 export type Results = {
     matchedPretext: string;
     terms: string[];
@@ -113,6 +115,10 @@ export default class ChannelMentionProvider extends Provider {
         }
 
         const prefix = captured[2];
+
+        if (prefix.length < MIN_CHANNEL_LINK_LENGTH) {
+            return false;
+        }
 
         if (this.lastPrefixTrimmed && prefix.trim() === this.lastPrefixTrimmed) {
             // Don't keep searching if the user keeps typing spaces

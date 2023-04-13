@@ -84,6 +84,26 @@ describe('ChannelMentionProvider.handlePretextChanged', () => {
             expect(resultsCallback).toHaveBeenCalled();
         });
 
+        test('should not match a link shorter than the minimum length', () => {
+            let matched = provider.handlePretextChanged('~', resultsCallback);
+
+            expect(matched).toBe(false);
+            expect(autocompleteChannels).not.toHaveBeenCalled();
+            expect(resultsCallback).not.toHaveBeenCalled();
+
+            matched = provider.handlePretextChanged('~t', resultsCallback);
+
+            expect(matched).toBe(false);
+            expect(autocompleteChannels).not.toHaveBeenCalled();
+            expect(resultsCallback).not.toHaveBeenCalled();
+
+            matched = provider.handlePretextChanged('~to', resultsCallback);
+
+            expect(matched).toBe(true);
+            expect(autocompleteChannels).toHaveBeenCalledWith('to', expect.anything(), expect.anything());
+            expect(resultsCallback).toHaveBeenCalled();
+        });
+
         test('should lower case search term', () => {
             const matched = provider.handlePretextChanged('this is ~town    SQUARE  ', resultsCallback);
 
