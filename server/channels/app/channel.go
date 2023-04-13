@@ -3575,6 +3575,10 @@ func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID s
 }
 
 func (a *App) GetThreadsForChannel(channelID, userID string, opts model.GetChannelThreadsOpts) (*model.ChannelThreads, *model.AppError) {
+	if !a.Config().FeatureFlags.RecentChannelThreads {
+		return nil, model.NewAppError("GetThreadsForChannel", "app.channel.get_threads_for_channel.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	var result model.ChannelThreads
 	var eg errgroup.Group
 

@@ -47,6 +47,7 @@ export interface Props {
     isMuted: boolean;
     isInvitingPeople: boolean;
     isMobile: boolean;
+    isRecentChannelThreadsEnabled: boolean;
 
     canManageMembers: boolean;
     canManageProperties: boolean;
@@ -77,6 +78,7 @@ const ChannelInfoRhs = ({
     isMuted,
     isInvitingPeople,
     isMobile,
+    isRecentChannelThreadsEnabled,
     currentTeam,
     currentUser,
     dmUser,
@@ -189,6 +191,7 @@ const ChannelInfoRhs = ({
                 channel={channel}
                 channelStats={channelStats}
                 isArchived={isArchived}
+                isRecentChannelThreadsEnabled={isRecentChannelThreadsEnabled}
                 actions={{
                     openNotificationSettings,
                     showChannelFiles: actions.showChannelFiles,

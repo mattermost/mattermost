@@ -22,6 +22,7 @@ import {openModal} from 'actions/views/modals';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
 import {getProfilesInCurrentChannel, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
+import {isRecentChannelThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
@@ -65,6 +66,7 @@ function mapStateToProps(state: GlobalState) {
         canManageProperties,
         channelStats,
         channelMembers,
+        isRecentChannelThreadsEnabled: isRecentChannelThreadsEnabled(state),
     } as Props;
 
     if (channel.type === Constants.DM_CHANNEL) {

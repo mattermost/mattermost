@@ -97,6 +97,7 @@ export type Props = {
     isLastActiveEnabled: boolean;
     timestampUnits?: string[];
     lastActivityTimestamp?: number;
+    isRecentChannelThreadsEnabled: boolean;
 };
 
 type State = {
@@ -303,7 +304,9 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             rhsState,
             hasGuests,
             teammateNameDisplaySetting,
+            isRecentChannelThreadsEnabled,
         } = this.props;
+
         const {formatMessage} = this.props.intl;
         const ariaLabelChannelHeader = localizeMessage('accessibility.sections.channelHeader', 'channel header region');
 
@@ -582,14 +585,16 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     {dmHeaderTextStatus}
                     {memberListButton}
 
-                    <HeaderIconWrapper
-                        iconComponent={threadsIcon}
-                        ariaLabel={true}
-                        buttonClass={threadsIconClass}
-                        buttonId={'channelThreads'}
-                        onClick={this.showThreadsForChannel}
-                        tooltipKey={'channelThreads'}
-                    />
+                    {isRecentChannelThreadsEnabled &&
+                        <HeaderIconWrapper
+                            iconComponent={threadsIcon}
+                            ariaLabel={true}
+                            buttonClass={threadsIconClass}
+                            buttonId={'channelThreads'}
+                            onClick={this.showThreadsForChannel}
+                            tooltipKey={'channelThreads'}
+                        />
+                    }
                     <HeaderIconWrapper
                         iconComponent={pinnedIcon}
                         ariaLabel={true}
@@ -700,14 +705,16 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     {dmHeaderTextStatus}
                     {memberListButton}
 
-                    <HeaderIconWrapper
-                        iconComponent={threadsIcon}
-                        ariaLabel={true}
-                        buttonClass={threadsIconClass}
-                        buttonId={'channelThreads'}
-                        onClick={this.showThreadsForChannel}
-                        tooltipKey={'channelThreads'}
-                    />
+                    {isRecentChannelThreadsEnabled &&
+                        <HeaderIconWrapper
+                            iconComponent={threadsIcon}
+                            ariaLabel={true}
+                            buttonClass={threadsIconClass}
+                            buttonId={'channelThreads'}
+                            onClick={this.showThreadsForChannel}
+                            tooltipKey={'channelThreads'}
+                        />
+                    }
                     <HeaderIconWrapper
                         iconComponent={pinnedIcon}
                         ariaLabel={true}

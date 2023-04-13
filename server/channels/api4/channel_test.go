@@ -3865,9 +3865,12 @@ func TestGetThreadsForChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.Server.Platform().SetConfigReadOnlyFF(false)
+	defer th.Server.Platform().SetConfigReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		cfg.FeatureFlags.RecentChannelThreads = true
 	})
 
 	t.Run("should have access to channel", func(t *testing.T) {

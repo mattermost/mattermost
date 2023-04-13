@@ -99,6 +99,7 @@ interface MenuProps {
     channel: Channel;
     channelStats: ChannelStats;
     isArchived: boolean;
+    isRecentChannelThreadsEnabled: boolean;
 
     className?: string;
 
@@ -112,7 +113,7 @@ interface MenuProps {
     };
 }
 
-const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps) => {
+const Menu = ({channel, channelStats, isArchived, isRecentChannelThreadsEnabled, className, actions}: MenuProps) => {
     const {formatMessage} = useIntl();
     const [loadingStats, setLoadingStats] = useState(true);
 
@@ -157,18 +158,20 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
-            <MenuItem
-                icon={(
-                    <ThreadsIcon
-                        width={25}
-                        height={16}
-                        className='icon'
-                    />
-                )}
-                text={formatMessage({id: 'channel_info_rhs.menu.threads', defaultMessage: 'Threads'})}
-                opensSubpanel={true}
-                onClick={() => actions.showThreadsForChannel(channel.id)}
-            />
+            {isRecentChannelThreadsEnabled &&
+                <MenuItem
+                    icon={(
+                        <ThreadsIcon
+                            width={25}
+                            height={16}
+                            className='icon'
+                        />
+                    )}
+                    text={formatMessage({id: 'channel_info_rhs.menu.threads', defaultMessage: 'Threads'})}
+                    opensSubpanel={true}
+                    onClick={() => actions.showThreadsForChannel(channel.id)}
+                />
+            }
             <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
                 text={formatMessage({id: 'channel_info_rhs.menu.files', defaultMessage: 'Files'})}

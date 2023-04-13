@@ -20,7 +20,10 @@ import {
     getCurrentChannelStats,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getTeammateNameDisplaySetting,
+    isRecentChannelThreadsEnabled,
+} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
@@ -117,6 +120,7 @@ function makeMapStateToProps() {
             isFileAttachmentsEnabled: isFileAttachmentsEnabled(config),
             isLastActiveEnabled,
             timestampUnits,
+            isRecentChannelThreadsEnabled: isRecentChannelThreadsEnabled(state),
         };
     };
 }
