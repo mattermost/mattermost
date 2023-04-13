@@ -3,12 +3,8 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "7.9.0",
+  "version": "7.9.1",
   "private": true,
-  "engines": {
-    "npm": ">=7.0.0",
-    "node": ">=16.10.0"
-  },
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
     "@floating-ui/react-dom-interactions": "0.10.3",
@@ -55,7 +51,7 @@
     "localforage": "1.10.0",
     "localforage-observable": "2.1.1",
     "lodash": "4.17.21",
-    "luxon": "3.0.4",
+    "luxon": "3.3.0",
     "mark.js": "8.11.1",
     "marked": "github:mattermost/marked#2ef7f28cc7718e3f551c4ce9ea75fdd7580c2008",
     "memoize-one": "6.0.0",
@@ -120,6 +116,7 @@
     "@redux-devtools/extension": "3.2.3",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "12.1.4",
+    "@testing-library/user-event": "12.1.4",
     "@types/bootstrap": "4.5.0",
     "@types/country-list": "2.1.0",
     "@types/enzyme": "3.10.11",

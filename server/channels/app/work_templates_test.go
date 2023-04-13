@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
 	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
 
-	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
+	pbclient "github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 )
 
 func TestGetWorkTemplateCategories(t *testing.T) {
