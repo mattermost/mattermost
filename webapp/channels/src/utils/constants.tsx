@@ -1081,6 +1081,8 @@ export const HostedCustomerLinks = {
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
     SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
     DOWNLOAD: 'https://mattermost.com/download',
+    NEWSLETTER_UNSUBSCRIBE_LINK: 'https://forms.mattermost.com/UnsubscribePage.html',
+    PRIVACY: 'https://mattermost.com/privacy-policy/',
 };
 
 export const DocLinks = {
