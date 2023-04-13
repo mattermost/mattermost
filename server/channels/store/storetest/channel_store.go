@@ -21,7 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/timezones"
 )
 
 type SqlStore interface {
