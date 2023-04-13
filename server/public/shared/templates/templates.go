@@ -7,13 +7,10 @@ import (
 	"bytes"
 	"html/template"
 	"io"
-	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
-
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 )
 
 // Container represents a set of templates that can be render
@@ -30,15 +27,6 @@ type Container struct {
 type Data struct {
 	Props map[string]any
 	HTML  map[string]template.HTML
-}
-
-func GetTemplateDirectory() (string, bool) {
-	templatesDir := "templates"
-	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
-		templatesDir = filepath.Join(mattermostPath, templatesDir)
-	}
-
-	return fileutils.FindDir(templatesDir)
 }
 
 // NewFromTemplates creates a new templates container using a

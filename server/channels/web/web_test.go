@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/config"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
@@ -215,7 +214,7 @@ func TestStaticFilesRequest(t *testing.T) {
 		plugin.ClientMain(&MyPlugin{})
 	}
 `
-	utils.CompileGo(t, pluginCode, backend)
+	plugin.CompileGo(t, pluginCode, backend)
 
 	// Write out the frontend
 	mainJS := `var x = alert();`
@@ -305,7 +304,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	`
 	// Compile and write the plugin
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-	utils.CompileGo(t, pluginCode, backend)
+	plugin.CompileGo(t, pluginCode, backend)
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`

@@ -52,6 +52,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/config"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
@@ -346,7 +347,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
-	templatesDir, ok := templates.GetTemplateDirectory()
+	templatesDir, ok := fileutils.GetTemplateDirectory()
 	if !ok {
 		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
 	}

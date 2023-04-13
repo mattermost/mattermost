@@ -27,7 +27,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
@@ -101,9 +100,9 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 	for i, pluginID := range pluginIDs {
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		if asMain {
-			utils.CompileGo(t, pluginCodes[i], backend)
+			plugin.CompileGo(t, pluginCodes[i], backend)
 		} else {
-			utils.CompileGoTest(t, pluginCodes[i], backend)
+			plugin.CompileGoTest(t, pluginCodes[i], backend)
 		}
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifests[i]), 0600)
@@ -856,7 +855,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	var pluginManifests []*model.Manifest
 	for _, pluginID := range pluginIDs {
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		utils.CompileGo(t, pluginCode, backend)
+		plugin.CompileGo(t, pluginCode, backend)
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
 		manifest, activated, reterr := env.Activate(pluginID)
@@ -943,7 +942,7 @@ func TestInstallPlugin(t *testing.T) {
 		app.ch.SetPluginsEnvironment(env)
 
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		utils.CompileGo(t, pluginCode, backend)
+		plugin.CompileGo(t, pluginCode, backend)
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 		manifest, activated, reterr := env.Activate(pluginID)
@@ -1661,7 +1660,7 @@ func TestAPIMetrics(t *testing.T) {
 		plugin.ClientMain(&MyPlugin{})
 	}
 `
-		utils.CompileGo(t, code, backend)
+		plugin.CompileGo(t, code, backend)
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 
 		// Don't care about these mocks
@@ -2087,7 +2086,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 	pluginID := "testplugin"
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-	utils.CompileGo(t, pluginCode, backend)
+	plugin.CompileGo(t, pluginCode, backend)
 
 	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 	manifest, activated, reterr := env.Activate(pluginID)
@@ -2187,7 +2186,7 @@ func TestPluginUploadsAPI(t *testing.T) {
 	pluginID := "testplugin"
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-	utils.CompileGo(t, pluginCode, backend)
+	plugin.CompileGo(t, pluginCode, backend)
 
 	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 	manifest, activated, reterr := env.Activate(pluginID)

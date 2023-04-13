@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
@@ -1974,7 +1975,7 @@ func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun b
 	}
 	defer file.Close()
 
-	reader := utils.NewLimitedReaderWithError(file, MaxEmojiFileSize)
+	reader := fileutils.NewLimitedReaderWithError(file, MaxEmojiFileSize)
 	if _, err := a.WriteFile(reader, getEmojiImagePath(emoji.Id)); err != nil {
 		return err
 	}

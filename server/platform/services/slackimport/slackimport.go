@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
@@ -140,38 +141,38 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 			log.WriteString(i18n.T("api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}))
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, "", http.StatusInternalServerError).Wrap(err), log
 		}
-		reader := utils.NewLimitedReaderWithError(fileReader, slackImportMaxFileSize)
+		reader := fileutils.NewLimitedReaderWithError(fileReader, slackImportMaxFileSize)
 		if file.Name == "channels.json" {
 			publicChannels, err = slackParseChannels(reader, model.ChannelTypeOpen)
-			if errors.Is(err, utils.SizeLimitExceeded) {
+			if errors.Is(err, fileutils.SizeLimitExceeded) {
 				log.WriteString(i18n.T("api.slackimport.slack_import.zip.file_too_large", map[string]any{"Filename": file.Name}))
 				continue
 			}
 			channels = append(channels, publicChannels...)
 		} else if file.Name == "dms.json" {
 			directChannels, err = slackParseChannels(reader, model.ChannelTypeDirect)
-			if errors.Is(err, utils.SizeLimitExceeded) {
+			if errors.Is(err, fileutils.SizeLimitExceeded) {
 				log.WriteString(i18n.T("api.slackimport.slack_import.zip.file_too_large", map[string]any{"Filename": file.Name}))
 				continue
 			}
 			channels = append(channels, directChannels...)
 		} else if file.Name == "groups.json" {
 			privateChannels, err = slackParseChannels(reader, model.ChannelTypePrivate)
-			if errors.Is(err, utils.SizeLimitExceeded) {
+			if errors.Is(err, fileutils.SizeLimitExceeded) {
 				log.WriteString(i18n.T("api.slackimport.slack_import.zip.file_too_large", map[string]any{"Filename": file.Name}))
 				continue
 			}
 			channels = append(channels, privateChannels...)
 		} else if file.Name == "mpims.json" {
 			groupChannels, err = slackParseChannels(reader, model.ChannelTypeGroup)
-			if errors.Is(err, utils.SizeLimitExceeded) {
+			if errors.Is(err, fileutils.SizeLimitExceeded) {
 				log.WriteString(i18n.T("api.slackimport.slack_import.zip.file_too_large", map[string]any{"Filename": file.Name}))
 				continue
 			}
 			channels = append(channels, groupChannels...)
 		} else if file.Name == "users.json" {
 			users, err = slackParseUsers(reader)
-			if errors.Is(err, utils.SizeLimitExceeded) {
+			if errors.Is(err, fileutils.SizeLimitExceeded) {
 				log.WriteString(i18n.T("api.slackimport.slack_import.zip.file_too_large", map[string]any{"Filename": file.Name}))
 				continue
 			}
@@ -179,7 +180,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 			spl := strings.Split(file.Name, "/")
 			if len(spl) == 2 && strings.HasSuffix(spl[1], ".json") {
 				newposts, err := slackParsePosts(reader)
-				if errors.Is(err, utils.SizeLimitExceeded) {
+				if errors.Is(err, fileutils.SizeLimitExceeded) {
 					log.WriteString(i18n.T("api.slackimport.slack_import.zip.file_too_large", map[string]any{"Filename": file.Name}))
 					continue
 				}

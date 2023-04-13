@@ -13,6 +13,7 @@ import (
 	"image"
 	"io"
 	"math"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -29,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/imgutils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/docextractor"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
@@ -260,7 +262,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 		return nil
 	}
 
-	info, err := model.GetInfoForBytes(name, bytes.NewReader(data), len(data))
+	info, err := GetInfoForBytes(name, bytes.NewReader(data), len(data))
 	if err != nil {
 		mlog.Warn(
 			"Unable to fully decode file info when migrating post to use FileInfos",
@@ -879,7 +881,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	channelID := filepath.Base(rawChannelId)
 	userID := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
+	info, err := GetInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, data, err
@@ -1463,4 +1465,46 @@ func getFileExtFromMimeType(mimeType string) string {
 		return "png"
 	}
 	return "jpg"
+}
+
+func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*model.FileInfo, *model.AppError) {
+	info := &model.FileInfo{
+		Name: name,
+		Size: int64(size),
+	}
+	var err *model.AppError
+
+	extension := strings.ToLower(filepath.Ext(name))
+	info.MimeType = mime.TypeByExtension(extension)
+
+	if extension != "" {
+		// The client expects a file extension without the leading period
+		info.Extension = extension[1:]
+	} else {
+		info.Extension = extension
+	}
+
+	if info.IsImage() {
+		// Only set the width and height if it's actually an image that we can understand
+		if config, _, err := image.DecodeConfig(data); err == nil {
+			info.Width = config.Width
+			info.Height = config.Height
+
+			if info.MimeType == "image/gif" {
+				// Just show the gif itself instead of a preview image for animated gifs
+				data.Seek(0, io.SeekStart)
+				frameCount, err := imgutils.CountGIFFrames(data)
+				if err != nil {
+					// Still return the rest of the info even though it doesn't appear to be an actual gif
+					info.HasPreviewImage = true
+					return info, model.NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
+				info.HasPreviewImage = frameCount == 1
+			} else {
+				info.HasPreviewImage = true
+			}
+		}
+	}
+
+	return info, err
 }

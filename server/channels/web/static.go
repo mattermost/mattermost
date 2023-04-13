@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/templates"
 )
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
@@ -145,7 +144,7 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templatesDir, _ := templates.GetTemplateDirectory()
+	templatesDir, _ := fileutils.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }
 

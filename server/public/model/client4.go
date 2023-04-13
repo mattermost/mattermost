@@ -6477,7 +6477,7 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 
 	response, err := CommandResponseFromJSON(r.Body)
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("ExecuteCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, BuildResponse(r), NewAppError("ExecuteCommand", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return response, BuildResponse(r), nil
 }

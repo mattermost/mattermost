@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
-
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/jsonutils"
 )
 
 const (
@@ -56,7 +54,7 @@ func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
 	var o CommandResponse
 	err = json.Unmarshal(b, &o)
 	if err != nil {
-		return nil, jsonutils.HumanizeJSONError(err, b)
+		return nil, err
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)

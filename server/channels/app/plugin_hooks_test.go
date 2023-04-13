@@ -21,7 +21,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest"
@@ -42,7 +41,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	for _, code := range pluginCode {
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		utils.CompileGo(t, code, backend)
+		plugin.CompileGo(t, code, backend)
 
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 		_, _, activationErr := env.Activate(pluginID)
@@ -1067,7 +1066,7 @@ func TestHookMetrics(t *testing.T) {
 		plugin.ClientMain(&MyPlugin{})
 	}
 `
-		utils.CompileGo(t, code, backend)
+		plugin.CompileGo(t, code, backend)
 		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 
 		// Setup mocks before activating

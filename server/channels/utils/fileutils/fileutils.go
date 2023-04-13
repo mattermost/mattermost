@@ -4,6 +4,8 @@
 package fileutils
 
 import (
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -115,4 +117,33 @@ func FindDirRelBinary(dir string) (string, bool) {
 		return "./", false
 	}
 	return found, true
+}
+
+func GetTemplateDirectory() (string, bool) {
+	templatesDir := "templates"
+	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
+		templatesDir = filepath.Join(mattermostPath, templatesDir)
+	}
+
+	return FindDir(templatesDir)
+}
+
+var SizeLimitExceeded = errors.New("Size limit exceeded")
+
+type LimitedReaderWithError struct {
+	limitedReader *io.LimitedReader
+}
+
+func NewLimitedReaderWithError(reader io.Reader, maxBytes int64) *LimitedReaderWithError {
+	return &LimitedReaderWithError{
+		limitedReader: &io.LimitedReader{R: reader, N: maxBytes + 1},
+	}
+}
+
+func (l *LimitedReaderWithError) Read(p []byte) (int, error) {
+	n, err := l.limitedReader.Read(p)
+	if l.limitedReader.N <= 0 && err == io.EOF {
+		return n, SizeLimitExceeded
+	}
+	return n, err
 }
