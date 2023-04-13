@@ -7,7 +7,7 @@ import (
 	"archive/zip"
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // Import Data Models

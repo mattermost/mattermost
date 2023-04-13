@@ -13,7 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {

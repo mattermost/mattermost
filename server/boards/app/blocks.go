@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 var ErrBlocksFromMultipleBoards = errors.New("the block set contain blocks from multiple boards")

@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
 
 	"github.com/stretchr/testify/require"
 )

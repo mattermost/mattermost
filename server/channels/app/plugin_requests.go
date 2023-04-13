@@ -14,9 +14,9 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {

@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 // Default polling interval for jobs termination.

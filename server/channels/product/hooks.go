@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 )
 
 type HooksManager struct {

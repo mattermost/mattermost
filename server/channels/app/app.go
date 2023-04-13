@@ -15,10 +15,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/timezones"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/templates"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/timezones"
 )
 
 // App is a pure functional component that does not have any fields, except Server.

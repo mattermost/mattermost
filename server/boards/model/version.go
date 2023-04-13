@@ -4,7 +4,7 @@
 package model
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 // This is a list of all the current versions including any patches.

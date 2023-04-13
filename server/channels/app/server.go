@@ -64,14 +64,14 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin/scheduler"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/timezones"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin/scheduler"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mail"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/templates"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/timezones"
 )
 
 // declaring this as var to allow overriding in tests

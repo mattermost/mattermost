@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 	"gopkg.in/guregu/null.v4"
 
 	"github.com/pkg/errors"

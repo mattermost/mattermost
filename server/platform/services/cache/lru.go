@@ -11,7 +11,7 @@ import (
 	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // LRU is a thread-safe fixed size LRU cache.

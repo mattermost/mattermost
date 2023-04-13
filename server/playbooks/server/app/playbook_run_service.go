@@ -22,8 +22,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/metrics"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/timeutils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/i18n"
 )
 
 const checklistItemDescriptionCharLimit = 4000

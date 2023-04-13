@@ -13,7 +13,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	model0 "github.com/mattermost/mattermost-server/server/v8/boards/model"
-	model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	model "github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // MockStore is a mock of Store interface.

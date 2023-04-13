@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // MockOptionRemoteClusterService a mock of the remote cluster service

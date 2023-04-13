@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin/plugintest"
 )
 
 type HelloUserPlugin struct {

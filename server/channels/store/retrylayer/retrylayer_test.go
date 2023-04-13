@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func genStore() *mocks.Store {

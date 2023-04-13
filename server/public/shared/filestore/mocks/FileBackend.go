@@ -7,7 +7,7 @@ package mocks
 import (
 	io "io"
 
-	filestore "github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	filestore "github.com/mattermost/mattermost-server/server/public/v8/shared/filestore"
 
 	mock "github.com/stretchr/testify/mock"
 

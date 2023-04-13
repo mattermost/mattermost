@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	cachemocks "github.com/mattermost/mattermost-server/server/v8/platform/services/cache/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 var mainHelper *testlib.MainHelper

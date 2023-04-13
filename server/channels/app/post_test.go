@@ -24,9 +24,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -60,8 +60,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -109,8 +109,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 				"time"
 			)
 

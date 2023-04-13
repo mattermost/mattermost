@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 type PeriodicScheduler struct {

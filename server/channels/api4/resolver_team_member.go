@@ -9,7 +9,7 @@ import (
 
 	"github.com/graph-gophers/dataloader/v6"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // teamMember is an internal graphQL wrapper struct to add resolver methods.

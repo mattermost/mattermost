@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/auth"
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"

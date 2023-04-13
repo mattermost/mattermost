@@ -5,10 +5,10 @@
 package sharedchannel
 
 import (
-	filestore "github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	filestore "github.com/mattermost/mattermost-server/server/public/v8/shared/filestore"
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	model "github.com/mattermost/mattermost-server/server/public/v8/model"
 
 	request "github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 )

@@ -9,7 +9,7 @@ import (
 	"github.com/avct/uasurfer"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/templates"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/templates"
 )
 
 // MattermostApp describes downloads for the Mattermost App

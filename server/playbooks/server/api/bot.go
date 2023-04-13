@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 type BotHandler struct {

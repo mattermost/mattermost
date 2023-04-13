@@ -22,9 +22,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 var apiClient *model.Client4
@@ -203,7 +203,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+		"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 	)
 
 	type MyPlugin struct {
@@ -290,7 +290,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+		"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 	)
 
 	type MyPlugin struct {

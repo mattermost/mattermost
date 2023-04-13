@@ -12,9 +12,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/i18n"
 )
 
 func TestPluginCommand(t *testing.T) {
@@ -43,8 +43,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type configuration struct {
@@ -124,8 +124,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type configuration struct {
@@ -231,8 +231,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type configuration struct {
@@ -296,8 +296,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -341,8 +341,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -392,8 +392,8 @@ func TestPluginCommand(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type configuration struct {
@@ -549,8 +549,8 @@ func TestProductCommands(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type configuration struct {

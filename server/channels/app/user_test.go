@@ -25,8 +25,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/public/model/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/server/public/v8/model/oauthproviders/gitlab"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -255,8 +255,8 @@ func TestCreateUser(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/public/model"
+				"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/public/v8/model"
 			)
 
 			type MyPlugin struct {

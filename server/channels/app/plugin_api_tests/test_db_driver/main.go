@@ -10,9 +10,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/driver"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/driver"
 )
 
 type MyPlugin struct {

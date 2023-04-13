@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"time"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 type IDType byte

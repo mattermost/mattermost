@@ -20,7 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 var coverprofileCounters map[string]int = make(map[string]int)

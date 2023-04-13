@@ -7,13 +7,13 @@ package mocks
 import (
 	io "io"
 
-	i18n "github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	i18n "github.com/mattermost/mattermost-server/server/public/v8/shared/i18n"
 
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	model "github.com/mattermost/mattermost-server/server/public/v8/model"
 
-	templates "github.com/mattermost/mattermost-server/server/v8/public/shared/templates"
+	templates "github.com/mattermost/mattermost-server/server/public/v8/shared/templates"
 
 	throttled "github.com/throttled/throttled"
 )

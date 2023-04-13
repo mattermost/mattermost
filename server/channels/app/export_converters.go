@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func ImportLineFromTeam(team *model.TeamForExport) *imports.LineImportData {

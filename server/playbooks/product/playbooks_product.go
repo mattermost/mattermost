@@ -24,9 +24,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/scheduler"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/telemetry"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

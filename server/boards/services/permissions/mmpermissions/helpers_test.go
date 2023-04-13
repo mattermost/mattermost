@@ -10,8 +10,8 @@ import (
 	mmpermissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mmpermissions/mocks"
 	permissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mocks"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

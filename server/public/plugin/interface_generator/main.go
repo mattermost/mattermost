@@ -454,7 +454,7 @@ import (
 	timePkg "time"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 type apiTimerLayer struct {
@@ -496,7 +496,7 @@ import (
 	timePkg "time"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 type hooksTimerLayer struct {
@@ -676,7 +676,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 }
 
 func getPluginPackageDir() string {
-	dirs, err := goList("github.com/mattermost/mattermost-server/server/v8/public/plugin")
+	dirs, err := goList("github.com/mattermost/mattermost-server/server/public/v8/plugin")
 	if err != nil {
 		panic(err)
 	} else if len(dirs) != 1 {

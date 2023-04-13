@@ -19,7 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {

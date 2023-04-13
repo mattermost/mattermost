@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // Client is the programmatic interface to the marketplace server API.

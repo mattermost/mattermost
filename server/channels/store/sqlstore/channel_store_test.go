@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchtest"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func TestChannelStore(t *testing.T) {

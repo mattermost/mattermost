@@ -13,8 +13,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/configservice"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 var ErrNotEnabled = Error{errors.New("imageproxy.ImageProxy: image proxy not enabled")}

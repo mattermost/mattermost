@@ -10,7 +10,7 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // LRUStriped keeps LRU caches in buckets in order to lower mutex contention.

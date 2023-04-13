@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // BoardInsightsList is a response type with pagination support.

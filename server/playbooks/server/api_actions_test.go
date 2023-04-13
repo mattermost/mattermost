@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 )

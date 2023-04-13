@@ -9,7 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func Test_extractMentions(t *testing.T) {

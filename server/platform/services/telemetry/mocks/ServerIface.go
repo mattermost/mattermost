@@ -10,9 +10,9 @@ import (
 	httpservice "github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	model "github.com/mattermost/mattermost-server/server/public/v8/model"
 
-	plugin "github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	plugin "github.com/mattermost/mattermost-server/server/public/v8/plugin"
 
 	product "github.com/mattermost/mattermost-server/server/v8/channels/product"
 )

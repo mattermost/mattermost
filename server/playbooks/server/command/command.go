@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/timeutils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

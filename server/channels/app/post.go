@@ -20,10 +20,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 const (

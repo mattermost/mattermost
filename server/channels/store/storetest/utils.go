@@ -4,7 +4,7 @@
 package storetest
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 // This function has a copy of it in app/helper_test

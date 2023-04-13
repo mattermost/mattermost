@@ -12,7 +12,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/boards/model/mocks"

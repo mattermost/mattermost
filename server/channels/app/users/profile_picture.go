@@ -20,8 +20,8 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/filestore"
 )
 
 const (

@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 const emptyString = "empty"

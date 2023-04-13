@@ -14,8 +14,8 @@ import (
 
 	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/boards/model/mocks"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 
 	"github.com/stretchr/testify/assert"
 )

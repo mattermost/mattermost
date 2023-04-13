@@ -15,10 +15,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/templates"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/templates"
 )
 
 type TestHelper struct {

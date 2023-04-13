@@ -10,7 +10,7 @@ import (
 	// Import and register app layer slash commands
 	_ "github.com/mattermost/mattermost-server/server/v8/channels/app/slashcommands"
 	// Plugins
-	_ "github.com/mattermost/mattermost-server/server/v8/public/model/oauthproviders/gitlab"
+	_ "github.com/mattermost/mattermost-server/server/public/v8/model/oauthproviders/gitlab"
 
 	// Enterprise Imports
 	_ "github.com/mattermost/mattermost-server/server/v8/channels/imports"

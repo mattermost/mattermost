@@ -6,8 +6,8 @@ package slashcommands
 import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/i18n"
 )
 
 type PurposeProvider struct {

@@ -18,7 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 func boardFields(tableAlias string) []string {

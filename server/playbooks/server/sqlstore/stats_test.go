@@ -15,7 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	mock_sqlstore "github.com/mattermost/mattermost-server/server/v8/playbooks/server/sqlstore/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 )
 
 func setupStatsStore(t *testing.T, db *sqlx.DB) *StatsStore {

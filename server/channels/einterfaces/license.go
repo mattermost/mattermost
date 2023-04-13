@@ -3,7 +3,7 @@
 
 package einterfaces
 
-import "github.com/mattermost/mattermost-server/server/v8/public/model"
+import "github.com/mattermost/mattermost-server/server/public/v8/model"
 
 type LicenseInterface interface {
 	CanStartTrial() (bool, error)

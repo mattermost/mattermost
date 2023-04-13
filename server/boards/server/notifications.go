@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 type notifyBackendParams struct {

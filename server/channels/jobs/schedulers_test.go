@@ -12,8 +12,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin/plugintest/mock"
 )
 
 type MockScheduler struct {

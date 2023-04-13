@@ -23,9 +23,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/shared/mlog"
 )
 
 func getHashedKey(key string) string {
@@ -729,8 +729,8 @@ func TestPluginPanicLogs(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-			"github.com/mattermost/mattermost-server/server/v8/public/model"
+			"github.com/mattermost/mattermost-server/server/public/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/public/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -778,7 +778,7 @@ func TestPluginStatusActivateError(t *testing.T) {
 		import (
 			"errors"
 
-			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+			"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 		)
 
 		type MyPlugin struct {

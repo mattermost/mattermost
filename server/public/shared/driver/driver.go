@@ -12,7 +12,7 @@ import (
 	"context"
 	"database/sql/driver"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 )
 
 var (

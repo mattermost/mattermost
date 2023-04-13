@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/v8/plugin"
 )
 
 // HelloWorldPlugin implements the interface expected by the Mattermost server to communicate

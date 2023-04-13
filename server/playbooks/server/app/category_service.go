@@ -7,7 +7,7 @@ import (
 	"database/sql"
 
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/v8/model"
 	"github.com/pkg/errors"
 )
 
