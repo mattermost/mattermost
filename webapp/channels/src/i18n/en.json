@@ -3068,6 +3068,7 @@
   "cloud_delinquency.post_downgrade_banner.title": "Update your billing information now to re-activate paid features.",
   "cloud_signup.signup_consequences": "Your credit card will be charged today. <a>See how billing works.</a>",
   "cloud_subscribe.contact_support": "Compare plans",
+  "cloud_upgrade.error_min_seats": "Minimum of 10 seats required",
   "cloud.fetch_error": "Error fetching billing data. Please try again later.",
   "cloud.fetch_error.retry": "Retry",
   "cloud.invoice_pdf_preview.download": "<downloadLink>Download</downloadLink> this page for your records",

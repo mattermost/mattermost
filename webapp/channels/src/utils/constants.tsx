@@ -1984,6 +1984,7 @@ export const Constants = {
     CHANNEL_HEADER_BUTTON_DISABLE_TIMEOUT: 1000,
     FIRST_ADMIN_ROLE: 'first_admin',
     MAX_PURCHASE_SEATS: 1000000,
+    MIN_PURCHASE_SEATS: 10,
 };
 
 export const ValidationErrors = {
