@@ -131,6 +131,14 @@ function Card(props: CardProps) {
         plan_price_rate_section__expanded: props.cloudFreeDeprecated,
     });
 
+    const planLimitsCtaClassName = classNames('plan_limits_cta', {
+        plan_limits_cta__expanded: props.cloudFreeDeprecated,
+    });
+
+    const buildingImgClassName = classNames('building_img', {
+        building_img__expanded: props.cloudFreeDeprecated,
+    });
+
     return (
         <div
             id={props.id}
@@ -149,11 +157,11 @@ function Card(props: CardProps) {
                     <div className={planPriceRateSectionClassName}>
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
-                        {props.price ? <h1>{props.price}</h1> : <BuildingSvg/>}
-                        <span>{props.rate}</span>
+                        {props.price ? <h1>{props.price}</h1> : <div className={buildingImgClassName}><BuildingSvg/></div>}
+                        {props.cloudFreeDeprecated ? (<span className='plan_rate'>{props.rate}</span>) : (<span>{props.rate}</span>)}
                     </div>
 
-                    <div className='plan_limits_cta'>
+                    <div className={planLimitsCtaClassName}>
                         {props.planExtraInformation}
                     </div>
 

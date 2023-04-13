@@ -280,6 +280,18 @@
                             line-height: 24px;
                         }
 
+                        .plan_rate {
+                            margin-bottom: 0;
+                        }
+
+                        .building_img {
+                            padding-top: 0;
+                        }
+
+                        .building_img__expanded {
+                            padding-top: 14px;
+                        }
+
                         .billed_annually {
                             font-family: 'Open sans', sans-serif;
                             font-size: 16px;
@@ -288,6 +300,11 @@
 
                     .plan_price_rate_section__expanded {
                         height: 244px;
+
+                        span,
+                        p {
+                            margin-bottom: 45px;
+                        }
                     }
 
                     .contact_sales_cta {
@@ -303,6 +320,10 @@
 
                     .plan_limits_cta {
                         height: 21px;
+                    }
+
+                    .plan_limits_cta__expanded {
+                        height: 32px;
                     }
 
                     .plan_buttons {
