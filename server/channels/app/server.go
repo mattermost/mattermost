@@ -265,6 +265,9 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 4: Start platform
 	s.platform.Start()
 
+	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
+	// otherwise it will throw a panic.
+
 	// Step 5: Initialize products.
 	// Depends on s.httpService, and depends on the hub to be initialized.
 	// Otherwise we run into race conditions.
