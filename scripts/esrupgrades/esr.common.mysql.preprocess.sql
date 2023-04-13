@@ -8,7 +8,7 @@ UPDATE Sessions SET ExpiresAt = 0;
    tests in which, in rare ocassions, the system-bot is indeed created, generating a
    spurious diff. We avoid this by making sure that there is a system-bot user and
    corresponding bot */
-DELIMTER //
+DELIMITER //
 CREATE PROCEDURE AddSystemBotIfNeeded ()
 BEGIN
 	DECLARE CreateSystemBot BOOLEAN;
