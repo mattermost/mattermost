@@ -12,7 +12,7 @@ import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/select
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserTimezone} from 'selectors/general';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -126,7 +126,7 @@ function makeMapStateToProps() {
             isCollapsedThreadsEnabled: collapsedThreads,
             threadReplyCount,
             isMobileView: getIsMobileView(state),
-            timezone: getCurrentUserTimezone(state),
+            timezone: getCurrentTimezone(state),
             isMilitaryTime,
         };
     };
