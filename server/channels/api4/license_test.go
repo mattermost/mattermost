@@ -478,12 +478,11 @@ func TestRequestRenewalLink(t *testing.T) {
 }
 
 func TestRequestTrueUpReview(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.Srv().SetLicense(model.NewTestLicense())
-
 	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
 		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		cloud := mocks.CloudInterface{}
@@ -502,6 +501,10 @@ func TestRequestTrueUpReview(t *testing.T) {
 	})
 
 	t.Run("returns 501 when ran by cloud user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
@@ -512,12 +515,19 @@ func TestRequestTrueUpReview(t *testing.T) {
 	})
 
 	t.Run("returns 403 when user does not have permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
 		resp, err := th.Client.DoAPIPost("/license/review", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	t.Run("returns 400 when license is nil", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		th.App.Srv().SetLicense(nil)
 
 		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
