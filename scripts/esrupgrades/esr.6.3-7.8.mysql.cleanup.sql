@@ -1,3 +1,13 @@
+/* Product notices are controlled externally, via the mattermost/notices repository.
+   When there is a new notice specified there, the server may have time, right after
+   the migration and before it is shut down, to download it and modify the
+   ProductNoticeViewState table, adding a row for all users that have not seen it or
+   removing old notices that no longer need to be shown. This can happen in the
+   UpdateProductNotices function that is executed periodically to update the notices
+   cache. The script will never do this, so we need to remove all rows in that table
+   to avoid any unwanted diff. */
+DELETE FROM ProductNoticeViewState;
+
 /* Remove migration-related tables that are only updated through the server to track which
    migrations have been applied */
 DROP TABLE IF EXISTS db_lock;
