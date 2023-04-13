@@ -123,7 +123,7 @@
     "test:watch": "jest --watch",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
     "check-types": "tsc -b",
-    "extract": "formatjs extract 'src/**/*.{ts,tsx}' --out-file i18n/temp.json --id-interpolation-pattern '[sha512:contenthash:base64:6]' && formatjs compile 'i18n/temp.json' --out-file i18n/en.json && rm i18n/temp.json",
+    "extract": "formatjs extract 'src/**/*.{ts,tsx}' --ignore \"**/*.d.ts\" --out-file i18n/temp.json --id-interpolation-pattern '[sha512:contenthash:base64:6]' --format simple --out-file i18n/en.json",
     "graphql": "graphql-codegen --config graphql_gen.ts",
     "report-unused-exports": "ts-prune",
     "build:product": "webpack --mode=production",
