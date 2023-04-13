@@ -3739,8 +3739,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
-		remoteId := "remote-id"
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: &remoteId}
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
 		ruser, _, _ := th.Client.CreateUser(&user)
 
 		_, err := th.SystemAdminClient.UpdateUserPassword(ruser.Id, "", "password")
