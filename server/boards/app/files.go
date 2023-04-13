@@ -68,7 +68,7 @@ func (a *App) SaveFile(reader io.Reader, teamID, boardID, filename string, asTem
 		Content:         "",
 		RemoteId:        nil,
 	}
-	err = a.store.SaveFileInfo(fileInfo)
+	err := a.store.SaveFileInfo(fileInfo)
 	if err != nil {
 		return "", err
 	}

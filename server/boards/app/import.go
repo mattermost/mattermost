@@ -100,7 +100,7 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 
 			a.logger.Debug("import archive file",
 				mlog.String("TeamID", opt.TeamID),
-				mlog.String("boardID", boardID),
+				mlog.String("boardID", board.ID),
 				mlog.String("filename", filename),
 				mlog.String("newFileName", newFileName),
 			)

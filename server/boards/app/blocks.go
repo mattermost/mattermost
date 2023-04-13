@@ -48,7 +48,7 @@ func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTe
 		return nil, err
 	}
 
-	err = a.CopyAndUpdateCardFiles(boardID, blocks, asTemplate, userID)
+	err = a.CopyAndUpdateCardFiles(boardID, userID, blocks, asTemplate)
 	if err != nil {
 		return nil, err
 	}
