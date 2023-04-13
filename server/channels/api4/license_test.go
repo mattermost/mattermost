@@ -484,7 +484,19 @@ func TestRequestTrueUpReview(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("returns status 200 when telemetry data sent", func(t *testing.T) {
-		resp, err := th.SystemAdminClient.DoAPIPost("/license/review", "")
+		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		cloud := mocks.CloudInterface{}
+		cloud.Mock.On("SubmitTrueUpReview", mock.Anything, mock.Anything).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		var reviewProfile map[string]any
+		resp, err := th.Client.SubmitTrueUpReview(reviewProfile)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -521,14 +533,6 @@ func TestTrueUpReviewStatus(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("returns 200 when status retrieved", func(t *testing.T) {
-		cloud := mocks.CloudInterface{}
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
 		resp, err := th.SystemAdminClient.DoAPIGet("/license/review/status", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
