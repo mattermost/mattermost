@@ -79,8 +79,7 @@ const Command = (props: CommandProps) => {
                 }
             }}
         >
-            {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
-            {props.command_last_run ? 'Rerun' : 'Run'}
+            {props.command_last_run ? formatMessage({defaultMessage: 'Rerun'}) : formatMessage({defaultMessage: 'Run'})}
         </Run>
     );
 
