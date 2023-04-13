@@ -16,12 +16,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	eMocks "github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	filesStoreMocks "github.com/mattermost/mattermost-server/server/v8/public/shared/filestore/mocks"
 )
 

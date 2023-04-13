@@ -6,8 +6,8 @@ package scheduler
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 const schedFreq = 24 * time.Hour

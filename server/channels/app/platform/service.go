@@ -11,8 +11,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/featureflag"
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
@@ -26,6 +24,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )

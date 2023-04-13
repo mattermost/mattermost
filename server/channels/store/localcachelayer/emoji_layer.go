@@ -8,9 +8,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 type LocalCacheEmojiStore struct {

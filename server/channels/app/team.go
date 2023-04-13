@@ -20,8 +20,6 @@ import (
 
 	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
@@ -30,6 +28,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )

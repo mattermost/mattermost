@@ -10,10 +10,10 @@ import (
 
 	"github.com/graph-gophers/dataloader/v6"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/web"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 // cursorPrefix is used to categorize objects

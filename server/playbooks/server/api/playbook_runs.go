@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"

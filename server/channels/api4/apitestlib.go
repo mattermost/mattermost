@@ -26,8 +26,6 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
@@ -37,6 +35,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/wsapi"
 	"github.com/mattermost/mattermost-server/server/v8/config"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 

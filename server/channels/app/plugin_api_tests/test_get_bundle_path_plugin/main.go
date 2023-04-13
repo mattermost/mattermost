@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
 )
 
 type MyPlugin struct {

@@ -6,8 +6,8 @@ package product_notices
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 type Scheduler struct {

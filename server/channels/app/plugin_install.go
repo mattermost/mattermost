@@ -45,9 +45,9 @@ import (
 
 	"github.com/blang/semver"
 
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )

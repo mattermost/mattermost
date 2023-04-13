@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/public/model/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
@@ -27,6 +25,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/public/model/oauthproviders/gitlab"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
