@@ -239,11 +239,25 @@ function ChannelThreads({
                 </div>
             </div>
             <div className='channel-threads'>
-                {(isLoading && ids.length === 0) && (
-                    <LoadingScreen style={loadingStyle}/>
+                {ids.length === 0 && (
+                    <>
+                        {isLoading ? (
+                            <LoadingScreen style={loadingStyle}/>
+                        ) : (
+                            <NoResultsIndicator
+                                expanded={true}
+                                iconGraphic={ThreadsIllustration}
+                                subtitle={noResultsSubtitle}
+                                title={formatMessage({
+                                    id: 'channel_threads.noResults.title',
+                                    defaultMessage: 'No threads here',
+                                })}
+                            />
+                        )}
+                    </>
                 )}
 
-                {totalThreads > 0 ? (
+                {ids.length > 0 && (
                     <VirtualizedThreadList
                         key={`${selected}-${Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}`}
                         ids={ids}
@@ -251,16 +265,6 @@ function ChannelThreads({
                         isLoading={isPaging}
                         loadMoreItems={handleLoadMoreItems}
                         routing={routing}
-                    />
-                ) : (
-                    <NoResultsIndicator
-                        expanded={true}
-                        iconGraphic={ThreadsIllustration}
-                        subtitle={noResultsSubtitle}
-                        title={formatMessage({
-                            id: 'channel_threads.noResults.title',
-                            defaultMessage: 'No threads here',
-                        })}
                     />
                 )}
             </div>
