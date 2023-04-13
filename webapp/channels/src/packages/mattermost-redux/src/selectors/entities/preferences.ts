@@ -300,6 +300,10 @@ export function onboardingTourTipsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'OnboardingTourTips') === 'true';
 }
 
+export function deprecateCloudFree(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'DeprecateCloudFree') === 'true';
+}
+
 export function appsSidebarCategoryEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'AppsSidebarCategory') === 'true';
 }
