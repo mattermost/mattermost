@@ -104,8 +104,7 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
             };
         }
 
-        dispatch(setGlobalItem(key, updatedValue));
-        dispatch(setGlobalDraftSource(key, false));
+        dispatch(setGlobalDraft(key, updatedValue, false));
 
         if (syncedDraftsAreAllowedAndEnabled(state) && save && updatedValue) {
             const connectionId = getConnectionId(state);
@@ -149,6 +148,14 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
             value: JSON.stringify(initializationState),
         };
         await dispatch(savePreferences(currentUserId, [preference]));
+        return {data: true};
+    };
+}
+
+export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
+    return (dispatch: DispatchFunc) => {
+        dispatch(setGlobalItem(key, value));
+        dispatch(setGlobalDraftSource(key, isRemote));
         return {data: true};
     };
 }

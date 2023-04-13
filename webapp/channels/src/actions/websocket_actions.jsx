@@ -68,7 +68,7 @@ import {
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {setGlobalItem} from 'actions/storage';
-import {setGlobalDraftSource, transformServerDraft} from 'actions/views/drafts';
+import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -1704,8 +1704,7 @@ function handleUpsertDraftEvent(msg) {
         const {key, value} = transformServerDraft(draft);
         value.show = true;
 
-        doDispatch(setGlobalItem(key, value));
-        doDispatch(setGlobalDraftSource(key, true));
+        doDispatch(setGlobalDraft(key, value, true));
     };
 }
 
