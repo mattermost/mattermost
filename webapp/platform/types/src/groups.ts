@@ -160,6 +160,7 @@ export type GroupSearachParams = {
     user_id?: string;
     include_timezones?: string;
     include_channel_member_count?: string;
+    include_member_ids?: boolean;
 }
 
 export type GroupMembership = {

@@ -55,6 +55,8 @@ describe('components/channel_invite_modal', () => {
         profilesInCurrentChannel: [],
         profilesNotInCurrentTeam: [],
         profilesFromRecentDMs: [],
+        membersInTeam: {},
+        groups: [],
         userStatuses: {},
         teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
         actions: {
@@ -67,6 +69,7 @@ describe('components/channel_invite_modal', () => {
             }),
             getProfilesNotInChannel: jest.fn().mockImplementation(() => Promise.resolve()),
             getProfilesInChannel: jest.fn().mockImplementation(() => Promise.resolve()),
+            searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => Promise.resolve()),
             getTeamStats: jest.fn(),
             getUserStatuses: jest.fn().mockImplementation(() => Promise.resolve()),
             loadStatusesForProfilesList: jest.fn(),

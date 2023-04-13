@@ -3660,7 +3660,6 @@ export default class Client4 {
     searchGroups = (params: GroupSearachParams) => {
         const p = {
             ...params,
-            include_member_ids: true,
         };
         return this.doFetch<Group[]>(
             `${this.getGroupsRoute()}${buildQueryString(p)}`,

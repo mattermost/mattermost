@@ -191,6 +191,15 @@ export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<U
     },
 );
 
+export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+    'getMembersInTeam',
+    (state: GlobalState, teamId: string) => teamId,
+    getMembersInTeams,
+    (teamId, teamMembers) => {
+        return teamMembers[teamId];
+    },
+);
+
 export function getTeamMember(state: GlobalState, teamId: string, userId: string) {
     const members = getMembersInTeams(state)[teamId];
     if (members) {

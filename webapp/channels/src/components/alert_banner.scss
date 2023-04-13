@@ -68,9 +68,17 @@
     }
 }
 
-.AlertBanner__message {
-    margin-top: 8px;
-    line-height: 20px;
+.AlertBanner {
+    &__message {
+        margin-top: 8px;
+    }
+    &__footerMessage {
+        margin-top: 16px;
+    }
+    &__message,
+    &__footerMessage {
+        line-height: 20px;
+    }
 }
 
 .AlertBanner__closeButton {

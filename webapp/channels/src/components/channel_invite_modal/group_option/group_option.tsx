@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
 
 import {Group} from '@mattermost/types/groups';
-import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
-import {getProfileSetNotInCurrentTeam, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
+import {AccountMultipleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 import {GlobalState} from '@mattermost/types/store';
-import { UserProfile } from '@mattermost/types/users';
-import { Value } from 'components/multiselect/multiselect';
-import Avatars from 'components/widgets/users/avatars';
+import {UserProfile} from '@mattermost/types/users';
+import {Value} from 'components/multiselect/multiselect';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
+
+import {getTeamMembersByIds} from 'mattermost-redux/actions/teams';
+import Constants from 'utils/constants';
 
 type UserProfileValue = Value & UserProfile;
 type GroupValue = Value & Group;
@@ -20,28 +24,65 @@ export type Props = {
     group: GroupValue;
     isSelected: boolean;
     rowSelected: string;
+    teamId: string;
     selectedItemRef: React.RefObject<HTMLDivElement>;
     onMouseMove: (group: GroupValue) => void;
-    addUserProfile: (profile: UserProfileValue[]) => void;
+    addUserProfile: (profile: UserProfileValue) => void;
 }
+
+const displayNameGetter = makeDisplayNameGetter();
 
 const GroupOption = (props: Props) => {
     const {
         group,
         isSelected,
         rowSelected,
+        teamId,
         selectedItemRef,
         onMouseMove,
         addUserProfile,
     } = props;
 
+    const dispatch = useDispatch();
+
     const getProfilesByIdsAndUsernames = makeGetProfilesByIdsAndUsernames();
+
     const profiles = useSelector((state: GlobalState) => getProfilesByIdsAndUsernames(state, {allUserIds: group.member_ids || [], allUsernames: []}) as UserProfileValue[]);
-    const profilesNotInCurrentTeam = useSelector(getProfileSetNotInCurrentTeam)
+    const overflowNames = useSelector((state: GlobalState) => {
+        if (group?.member_ids) {
+            return group?.member_ids.map((userId) => displayNameGetter(state, true)(getUser(state, userId))).join(', ');
+        }
+        return '';
+    });
 
     const onAdd = useCallback(() => {
-        addUserProfile(profiles);
+        for (const profile of profiles) {
+            addUserProfile(profile);
+        }
     }, [addUserProfile, profiles]);
+
+    const onKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === Constants.KeyCodes.ENTER[0] && isSelected) {
+            e.stopPropagation();
+            onAdd();
+        }
+    }, [isSelected, onAdd]);
+
+    useEffect(() => {
+        if (group.member_ids && group.member_ids.length > 0) {
+            dispatch(getMissingProfilesByIds(group.member_ids));
+            dispatch(getTeamMembersByIds(teamId, group.member_ids));
+        }
+    }, [group.member_ids]);
+
+    useEffect(() => {
+        // Bind the event listener
+        document.addEventListener('keydown', onKeyDown, true);
+        return () => {
+            // Unbind the event listener on clean up
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    }, [isSelected, onAdd, onKeyDown]);
 
     return (
         <div
@@ -51,28 +92,13 @@ const GroupOption = (props: Props) => {
             onClick={onAdd}
             onMouseMove={() => onMouseMove(group)}
         >
-            <span 
-                style={{
-                    width: '32px',
-                    minWidth: '32px',
-                    height: '32px',
-                    background: 'rgba(var(--center-channel-color-rgb), 0.08)',
-                    display: 'flex',
-                    borderRadius: '30px',
-                }}
+            <span
+                className='more-modal__group-image'
             >
-                <span
-                    style={{
-                        margin: '8px auto',
-                        display: 'block',
-                        alignSelf: 'center',
-                    }}
-                >
-                    <AccountMultipleOutlineIcon
-                        size={16}
-                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
-                    />
-                </span>
+                <AccountMultipleOutlineIcon
+                    size={16}
+                    color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                />
             </span>
             <div className='more-modal__details'>
                 <div className='more-modal__name'>
@@ -80,39 +106,30 @@ const GroupOption = (props: Props) => {
                         {group.display_name}
                     </span>
                     <span
-                        className='ml-2 light'
-                        style={{
-                            fontSize: '12px',
-                            lineHeight: '20px',
-                        }}
+                        className='ml-2 light group-name'
                     >
                         {'@'}{group.name}
                     </span>
-                    <span
-                        style={{
-                            minWidth: '110px',
-                            color: 'var(--link-color)',
-                            display: 'flex',
-                            marginLeft: 'auto',
-                            lineHeight: '20px',
-                        }}
-                        className='add-group-members'
+                    <SimpleTooltip
+                        id={'usernames-overflow'}
+                        content={overflowNames}
                     >
-                        {/* <FormattedMessage
-                            id='multiselect.addGroupMembers'
-                            defaultMessage='Add {number} people'
-                            values={{
-                                number: group.member_count,
-                            }}
-                        /> */}
-                        {group.member_ids && 
-                            <Avatars
-                                userIds={group.member_ids}
-                                size='xs'
-                                disableProfileOverlay={true}
+                        <span
+                            className='add-group-members'
+                        >
+                            <FormattedMessage
+                                id='multiselect.addGroupMembers'
+                                defaultMessage='Add {number} people'
+                                values={{
+                                    number: group.member_count,
+                                }}
                             />
-                        }
-                    </span>
+                            <ChevronRightIcon
+                                size={20}
+                                color={'var(--link-color)'}
+                            />
+                        </span>
+                    </SimpleTooltip>
                 </div>
             </div>
         </div>

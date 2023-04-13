@@ -879,6 +879,7 @@
             display: flex;
             overflow: hidden;
             min-width: 0;
+            align-items: center;
             margin: 5px 0;
             gap: 4px;
             text-overflow: ellipsis;
@@ -965,6 +966,12 @@
 
             .more-modal__lastPostAt {
                 display: none;
+            }
+
+            .more-modal__details {
+                .add-group-members {
+                    display: flex;
+                }
             }
         }
 

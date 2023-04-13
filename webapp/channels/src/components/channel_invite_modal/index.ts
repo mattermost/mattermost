@@ -6,15 +6,18 @@ import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
-import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel, getProfileSetNotInTeam, getProfileSetNotInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
+import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {UserProfile} from '@mattermost/types/users';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getMembersInCurrentTeam, getMembersInTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {Permissions} from 'mattermost-redux/constants';
+import {RelationOneToOne} from '@mattermost/types/utilities';
+import {TeamMembership} from '@mattermost/types/teams';
+import {GroupSearachParams} from '@mattermost/types/groups';
 
 import {addUsersToChannel} from 'actions/channel_actions';
 import {loadStatusesForProfilesList} from 'actions/status_actions';
@@ -49,18 +52,18 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         let profilesNotInCurrentChannel: UserProfile[];
         let profilesInCurrentChannel: UserProfile[];
         let profilesNotInCurrentTeam: UserProfile[];
-        let profileSetNotInCurrentTeam: string[];
+        let membersInTeam: RelationOneToOne<UserProfile, TeamMembership>;
 
         if (props.channelId && props.teamId) {
             profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId);
             profilesInCurrentChannel = doGetProfilesInChannel(state, props.channelId);
             profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId);
-            profileSetNotInCurrentTeam = getProfileSetNotInTeam(state, props.teamId);
+            membersInTeam = getMembersInTeam(state, props.teamId);
         } else {
             profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state);
             profilesInCurrentChannel = getProfilesInCurrentChannel(state);
             profilesNotInCurrentTeam = getProfilesNotInCurrentTeam(state);
-            profileSetNotInCurrentTeam = getProfileSetNotInCurrentTeam(state);
+            membersInTeam = getMembersInCurrentTeam(state);
         }
         const profilesFromRecentDMs = getRecentProfilesFromDMs(state);
         const config = getConfig(state);
@@ -83,7 +86,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesNotInCurrentChannel,
             profilesInCurrentChannel,
             profilesNotInCurrentTeam,
-            profileSetNotInCurrentTeam,
+            membersInTeam,
             teammateNameDisplaySetting,
             profilesFromRecentDMs,
             userStatuses,
@@ -102,7 +105,7 @@ type Actions = {
     searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     closeModal: (modalId: string) => void;
     getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<ActionResult>;
+    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearachParams) => Promise<ActionResult>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
