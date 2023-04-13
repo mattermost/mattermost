@@ -435,10 +435,16 @@ const PreparingWorkspace = (props: Props) => {
                     next={() => {
                         const pluginChoices = {...form.plugins};
                         delete pluginChoices.skipped;
+                        if (!isSelfHosted) {
+                            setSubmissionState(SubmissionStates.UserRequested);
+                        }
                         makeNext(WizardSteps.Plugins)(pluginChoices);
                         skipPlugins(false);
                     }}
                     skip={() => {
+                        if (!isSelfHosted) {
+                            setSubmissionState(SubmissionStates.UserRequested);
+                        }
                         makeNext(WizardSteps.Plugins, true)();
                         skipPlugins(true);
                     }}
