@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {

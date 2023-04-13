@@ -20,8 +20,8 @@ import (
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/audit"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/web"
 )
 
 // FileUploadResponse is the response to a file upload

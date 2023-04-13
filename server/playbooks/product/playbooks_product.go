@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	mmapp "github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/product/pluginapi/cluster"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/api"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"

@@ -21,7 +21,7 @@ import (
 	platform_mocks "github.com/mattermost/mattermost-server/server/v8/channels/app/platform/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {

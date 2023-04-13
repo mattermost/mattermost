@@ -27,9 +27,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mfa"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mfa"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 const (

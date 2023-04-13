@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 type SendFileResultFunc func(us *model.UploadSession, rc *model.RemoteCluster, resp *Response, err error)

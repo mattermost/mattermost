@@ -5,7 +5,7 @@
 package sharedchannel
 
 import (
-	filestore "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	filestore "github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost-server/server/v8/public/model"

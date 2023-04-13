@@ -17,7 +17,7 @@ import (
 	stripmd "github.com/writeas/go-strip-markdown"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/httptools"

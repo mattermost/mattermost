@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mail"
 )
 
 func TestCondenseSiteURL(t *testing.T) {

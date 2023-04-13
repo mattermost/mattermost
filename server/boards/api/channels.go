@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/audit"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 func (a *API) registerChannelsRoutes(r *mux.Router) {

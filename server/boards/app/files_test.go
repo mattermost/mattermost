@@ -17,8 +17,8 @@ import (
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore/mocks"
 )
 
 const (

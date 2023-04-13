@@ -26,8 +26,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 // PlatformService is the service for the platform related tasks. It is

@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/mockstore"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 type TestHelperMockStore struct {

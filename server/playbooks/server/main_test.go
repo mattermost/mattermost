@@ -20,7 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"

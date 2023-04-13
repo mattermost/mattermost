@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/driver"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/driver"
 )
 
 type MyPlugin struct {

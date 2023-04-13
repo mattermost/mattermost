@@ -22,7 +22,7 @@ import (
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
+	filesStoreMocks "github.com/mattermost/mattermost-server/server/v8/public/shared/filestore/mocks"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {

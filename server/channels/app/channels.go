@@ -19,8 +19,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/config"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 const ServerKey product.ServiceKey = "server"
