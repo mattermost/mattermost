@@ -8,12 +8,7 @@ then
     
     if [ "$BUILD_ENTERPRISE_READY" == "true" ] 
     then
-        txt="${txt}use ../enterprise\n"
-    fi
-    
-    if [ "$BUILD_PLAYBOOKS" == "true" ]
-    then
-        txt="${txt}use ../mattermost-plugin-playbooks\n"
+        txt="${txt}use ../../enterprise\n"
     fi
 
     printf "$txt" > "../go.work"
