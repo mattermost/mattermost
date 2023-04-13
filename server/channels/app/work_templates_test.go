@@ -12,12 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
 
-	pbclient "github.com/mattermost/mattermost-server/v6/server/playbooks/client"
+	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 )
 
 func TestGetWorkTemplateCategories(t *testing.T) {

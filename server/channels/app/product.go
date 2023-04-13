@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 )
 
 func (s *Server) initializeProducts(
