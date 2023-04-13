@@ -44,12 +44,12 @@ const PostEditHistory = ({
     const scrollbars = useRef<Scrollbars | null>(null);
     const {formatMessage} = useIntl();
     const retrieveErrorHeading = formatMessage({
-        id: 'post_info.edit.history.retrieveError', 
-        defaultMessage: 'Unable to load edit history'
+        id: 'post_info.edit.history.retrieveError',
+        defaultMessage: 'Unable to load edit history',
     });
     const retrieveErrorSubheading = formatMessage({
-        id: 'post_info.edit.history.retrieveErrorVerbose', 
-        defaultMessage: 'There was an error loading the history for this message. Check your network connection or try again later.'
+        id: 'post_info.edit.history.retrieveErrorVerbose',
+        defaultMessage: 'There was an error loading the history for this message. Check your network connection or try again later.',
     });
 
     useEffect(() => {
