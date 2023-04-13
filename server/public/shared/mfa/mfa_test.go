@@ -14,10 +14,29 @@ import (
 	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/public/v8/plugin/plugintest/mock"
 )
+
+type mockUserStoreSecretFailure struct {
+}
+
+func (m *mockUserStoreSecretFailure) UpdateMfaActive(userId string, active bool) error { return nil }
+func (m *mockUserStoreSecretFailure) UpdateMfaSecret(userId, secret string) error {
+	return errors.New("failed to update mfa secret")
+}
+
+type mockUserStoreBothFailure struct {
+}
+
+func (m *mockUserStoreBothFailure) UpdateMfaActive(userId string, active bool) error { return errors.New("failed to update mfa active") }
+func (m *mockUserStoreBothFailure) UpdateMfaSecret(userId, secret string) error {
+	return errors.New("failed to update mfa secret")
+}
+
+type mockUserStoreSuccess struct {
+}
+
+func (m *mockUserStoreSuccess) UpdateMfaActive(userId string, active bool) error { return nil }
+func (m *mockUserStoreSuccess) UpdateMfaSecret(userId, secret string) error      { return nil }
 
 func TestGenerateSecret(t *testing.T) {
 	userID := "user-id"
@@ -25,23 +44,13 @@ func TestGenerateSecret(t *testing.T) {
 	siteURL := "http://localhost:8065"
 
 	t.Run("fail on store action fail", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaSecret", userID, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
-			return errors.New("failed to update mfa secret")
-		})
-
-		_, _, err := New(&storeMock).GenerateSecret(siteURL, userEmail, userID)
+		_, _, err := New(&mockUserStoreSecretFailure{}).GenerateSecret(siteURL, userEmail, userID)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unable to store mfa secret")
 	})
 
 	t.Run("Successful generate secret", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaSecret", userID, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
-			return nil
-		})
-
-		secret, img, err := New(&storeMock).GenerateSecret(siteURL, userEmail, userID)
+		secret, img, err := New(&mockUserStoreSuccess{}).GenerateSecret(siteURL, userEmail, userID)
 		require.NoError(t, err)
 		assert.Len(t, secret, 32)
 		require.NotEmpty(t, img, "no image set")
@@ -88,23 +97,13 @@ func TestActivate(t *testing.T) {
 	})
 
 	t.Run("fail on store action fail", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaActive", userID, true).Return(func(userId string, active bool) error {
-			return errors.New("failed to update mfa active")
-		})
-
-		err := New(&storeMock).Activate(userMfaSecret, userID, fmt.Sprintf("%06d", token))
+		err := New(&mockUserStoreBothFailure{}).Activate(userMfaSecret, userID, fmt.Sprintf("%06d", token))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unable to store mfa active")
 	})
 
 	t.Run("Successful activate", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaActive", userID, true).Return(func(userId string, active bool) error {
-			return nil
-		})
-
-		err := New(&storeMock).Activate(userMfaSecret, userID, fmt.Sprintf("%06d", token))
+		err := New(&mockUserStoreSuccess{}).Activate(userMfaSecret, userID, fmt.Sprintf("%06d", token))
 		require.NoError(t, err)
 	})
 }
@@ -113,43 +112,19 @@ func TestDeactivate(t *testing.T) {
 	userID := "user-id"
 
 	t.Run("fail on store UpdateMfaActive action fail", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaActive", userID, false).Return(func(userId string, active bool) error {
-			return errors.New("failed to update mfa active")
-		})
-		storeMock.On("UpdateMfaSecret", userID, "").Return(func(userId string, secret string) error {
-			return errors.New("failed to update mfa secret")
-		})
-
-		err := New(&storeMock).Deactivate(userID)
+		err := New(&mockUserStoreBothFailure{}).Deactivate(userID)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unable to store mfa active")
 	})
 
 	t.Run("fail on store UpdateMfaSecret action fail", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaActive", userID, false).Return(func(userId string, active bool) error {
-			return nil
-		})
-		storeMock.On("UpdateMfaSecret", userID, "").Return(func(userId string, secret string) error {
-			return errors.New("failed to update mfa secret")
-		})
-
-		err := New(&storeMock).Deactivate(userID)
+		err := New(&mockUserStoreSecretFailure{}).Deactivate(userID)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unable to store mfa secret")
 	})
 
 	t.Run("Successful deactivate", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaActive", userID, false).Return(func(userId string, active bool) error {
-			return nil
-		})
-		storeMock.On("UpdateMfaSecret", userID, "").Return(func(userId string, secret string) error {
-			return nil
-		})
-
-		err := New(&storeMock).Deactivate(userID)
+		err := New(&mockUserStoreSuccess{}).Deactivate(userID)
 		require.NoError(t, err)
 	})
 }
