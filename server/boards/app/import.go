@@ -123,7 +123,7 @@ func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[strin
 	for _, boardID := range boardMap {
 		board, err := a.GetBoard(boardID)
 		if err != nil {
-			a.logger.Info(fmt.Sprintf("cannot retreive imported board %s: %w", boardID, err))
+			a.logger.Info(fmt.Sprintf("cannot retrieve imported board %s: %w", boardID, err))
 			return
 		}
 		if board.IsTemplate {
@@ -132,7 +132,7 @@ func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[strin
 
 		newBlocks, err := a.GetBlocksForBoard(boardID)
 		if err != nil {
-			a.logger.Info(fmt.Sprintf("cannot retreive imported blocks for board %s: %w", boardID, err))
+			a.logger.Info(fmt.Sprintf("cannot retrieve imported blocks for board %s: %w", boardID, err))
 			return
 		}
 
@@ -157,7 +157,7 @@ func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[strin
 			}
 		}
 
-		blockPatchBatch := model.BlockPatchBatch{blockIDs, blockPatches}
+		blockPatchBatch := model.BlockPatchBatch{BlockIDs: blockIDs, BlockPatches: blockPatches}
 		a.PatchBlocks(teamID, &blockPatchBatch, userId)
 	}
 }

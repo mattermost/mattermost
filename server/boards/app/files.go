@@ -101,6 +101,10 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 
 func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, filestore.ReadCloseSeeker, error) {
 	fileInfo, filePath, err := a.GetFilePath(teamID, rootID, fileName)
+	if err != nil {
+		a.logger.Error(fmt.Sprintf("GetFile: Failed to GetFilePath. Team: %s, board: %s, filename: %s, error: %e", teamID, rootID, fileName, err))
+		return nil, nil, err
+	}
 
 	exists, err := a.filesBackend.FileExists(filePath)
 	if err != nil {

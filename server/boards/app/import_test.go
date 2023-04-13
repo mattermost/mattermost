@@ -195,7 +195,7 @@ func TestApp_ImportArchive(t *testing.T) {
 
 		blockPatches := []model.BlockPatch{blockPatch, blockPatch2}
 
-		blockPatchesBatch := model.BlockPatchBatch{blockIDs, blockPatches}
+		blockPatchesBatch := model.BlockPatchBatch{BlockIDs: blockIDs, BlockPatches: blockPatches}
 
 		th.Store.EXPECT().GetBlocksForBoard("boardID").Return([]*model.Block{imageBlock, attachmentBlock}, nil)
 		th.Store.EXPECT().GetBlocksByIDs(blockIDs).Return([]*model.Block{imageBlock, attachmentBlock}, nil)
