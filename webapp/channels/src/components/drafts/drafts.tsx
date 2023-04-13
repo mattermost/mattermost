@@ -77,7 +77,7 @@ function Drafts({
                         key={d.key}
                         displayName={displayName}
                         draft={d}
-                        draftRemotes={draftRemotes}
+                        isRemote={draftRemotes[d.key]}
                         user={user}
                         status={status}
                     />
