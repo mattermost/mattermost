@@ -23,23 +23,18 @@ const emptyString = "empty"
 var errEmptyFilename = errors.New("IsFileArchived: empty filename not allowed")
 var ErrFileNotFound = errors.New("file not found")
 
-func (a *App) SaveFile(reader io.Reader, teamID, boardID, filename string) (string, error) {
+func (a *App) SaveFile(reader io.Reader, teamID, boardID, filename string, asTemplate bool) (string, error) {
 	// NOTE: File extension includes the dot
 	fileExtension := strings.ToLower(filepath.Ext(filename))
 	if fileExtension == ".jpeg" {
 		fileExtension = ".jpg"
 	}
 
-	board, err := a.GetBoard(boardID)
-	if err != nil {
-		return "", err
-	}
-
 	createdFilename := utils.NewID(utils.IDTypeNone)
 	newFileName := fmt.Sprintf(`%s%s`, createdFilename, fileExtension)
 	filePath := filepath.Join(utils.GetBaseFilePath(), newFileName)
 
-	if board.IsTemplate {
+	if asTemplate {
 		filePath = filepath.Join(teamID, boardID, filename)
 		newFileName = filename
 	}
