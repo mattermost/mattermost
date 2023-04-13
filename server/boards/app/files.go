@@ -100,10 +100,7 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 }
 
 func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, filestore.ReadCloseSeeker, error) {
-	a.logger.Debug("GetFile" + fileName)
-
 	fileInfo, filePath, err := a.GetFilePath(teamID, rootID, fileName)
-	a.logger.Debug("GetFile" + filePath)
 
 	exists, err := a.filesBackend.FileExists(filePath)
 	if err != nil {
@@ -123,7 +120,6 @@ func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, file
 }
 
 func (a *App) GetFilePath(teamID, rootID, fileName string) (*mm_model.FileInfo, string, error) {
-	a.logger.Debug("GetFileInfo" + fileName)
 	fileInfo, err := a.GetFileInfo(fileName)
 	if err != nil && !model.IsErrNotFound(err) {
 		return nil, "", err

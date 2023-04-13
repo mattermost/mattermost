@@ -317,7 +317,6 @@ func (a *App) CopyAndUpdateCardFiles(boardID string, blocks []*model.Block, asTe
 		}
 		if fieldName != "" {
 			if fieldID, ok := block.Fields[fieldName]; ok {
-				a.logger.Debug("Appending" + block.ID + " " + fieldID.(string))
 				blockIDs = append(blockIDs, block.ID)
 				blockPatches = append(blockPatches, model.BlockPatch{
 					UpdatedFields: map[string]interface{}{
@@ -355,7 +354,6 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 		return fmt.Errorf("cannot fetch source board %s for CopyCardFiles: %w", sourceBoardID, err)
 	}
 
-	// var destTeamID string
 	var destBoard *model.Board
 
 	for i := range copiedBlocks {
@@ -378,36 +376,34 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 			continue
 		}
 
-		// create unique filename in case we are copying cards within the same board.
+		// create unique filename
 		ext := filepath.Ext(fileName)
 		fileInfoID := utils.NewID(utils.IDTypeNone)
 		destFilename := fileInfoID + ext
 
 		if destBoard == nil || block.BoardID != destBoard.ID {
-			// destBoardID = block.BoardID
 			destBoard, err = a.GetBoard(block.BoardID)
 			if err != nil {
 				return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
 			}
-			// destTeamID = destBoard.TeamID
 		}
 
+		// GetFilePath will retrieve the correct path
+		// depending on whether FileInfo table is used for the file.
 		fileInfo, sourceFilePath, err := a.GetFilePath(sourceBoard.TeamID, sourceBoard.ID, fileName)
 		if err != nil {
 			return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
 		}
 
 		destinationFilePath := filepath.Join(utils.GetBaseFilePath(), destFilename)
-		if asTemplate {
-			destinationFilePath = filepath.Join(destBoard.TeamID, destBoard.ID, destFilename)
-		}
+		// Global Templates are handled via Import, if user-defined templates
+		// are to be stored by team. Won't be deleted by Data Retention
+		// if asTemplate {
+		// 	destinationFilePath = filepath.Join(destBoard.TeamID, destBoard.ID, destFilename)
+		// }
 		if fileInfo == nil {
-			a.logger.Debug("Source file Path " + sourceFilePath)
 			ext = filepath.Ext(sourceFilePath)
-			a.logger.Debug("ext" + ext)
-
 			now := utils.GetMillis()
-
 			fileInfo = &mm_model.FileInfo{
 				Id:              fileInfoID[1:],
 				CreatorId:       "boards",
