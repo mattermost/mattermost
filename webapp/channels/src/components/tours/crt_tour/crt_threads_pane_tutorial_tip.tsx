@@ -29,13 +29,13 @@ const CRTThreadsPaneTutorialTip = () => {
 
     const screen = (
         <p>
-            {formatMessage(
+            {formatMessage<ReactNode>(
                 {
                     id: 'tutorial_threads.threads_pane.description',
                     defaultMessage: 'Click the <b>Follow</b> button to be notified about replies and see it in your <b>Threads</b> view. Within a thread, the <b>New Messages</b> line shows you where you left off.',
                 },
                 {
-                    b: (value: string) => <b>{value}</b> as ReactNode,
+                    b: (value: string) => <b>{value}</b>,
                 },
             )}
         </p>

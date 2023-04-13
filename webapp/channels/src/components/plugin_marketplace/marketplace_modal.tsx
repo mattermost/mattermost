@@ -40,7 +40,7 @@ const MarketplaceTabs = {
 
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
-const linkConsole: ReactNode = (msg: string) => (
+const linkConsole = (msg: string): ReactNode => (
     <Link to='/admin_console/plugins/plugin_management'>
         {msg}
     </Link>

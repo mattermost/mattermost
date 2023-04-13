@@ -118,12 +118,12 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.messages',
                 defaultMessage: 'Total messages',
             }),
-            description: intl.formatMessage(
+            description: intl.formatMessage<ReactNode>(
                 {
                     id,
                     defaultMessage,
                 },
-                values as Record<string, ReactNode>,
+                values,
             ),
             status: inK(highestLimit.usage),
         };
@@ -150,12 +150,12 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.file_storage',
                 defaultMessage: 'File storage limit',
             }),
-            description: intl.formatMessage(
+            description: intl.formatMessage<ReactNode>(
                 {
                     id,
                     defaultMessage,
                 },
-                values as Record<string, ReactNode>,
+                values,
             ),
             status: asGBString(highestLimit.usage, intl.formatNumber),
         };
