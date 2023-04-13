@@ -184,7 +184,7 @@ func (a *App) DuplicateBoard(boardID, userID, toTeam string, asTemplate bool) (*
 	}
 
 	// copy any file attachments from the duplicated blocks.
-	err = a.CopyAndUpdateCardFiles(boardID, bab.Blocks, asTemplate, userID)
+	err = a.CopyAndUpdateCardFiles(boardID, userID, bab.Blocks, asTemplate)
 	if err != nil {
 		dbab := model.NewDeleteBoardsAndBlocksFromBabs(bab)
 		if err = a.store.DeleteBoardsAndBlocks(dbab, userID); err != nil {

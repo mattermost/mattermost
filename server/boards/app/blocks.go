@@ -43,7 +43,7 @@ func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTe
 		return nil, fmt.Errorf("cannot fetch board %s for DuplicateBlock: %w", boardID, err)
 	}
 
-	blocks, err := a.store.DuplicateBlock(boardID, blockID, userID, false)
+	blocks, err := a.store.DuplicateBlock(boardID, blockID, userID, asTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -300,12 +300,12 @@ func (a *App) InsertBlocksAndNotify(blocks []*model.Block, modifiedByID string, 
 	return blocks, nil
 }
 
-func (a *App) CopyAndUpdateCardFiles(boardID string, blocks []*model.Block, asTemplate bool, userID string) error {
+func (a *App) CopyAndUpdateCardFiles(boardID, userID string, blocks []*model.Block, asTemplate bool) error {
 	if err := a.CopyCardFiles(boardID, blocks, asTemplate); err != nil {
 		a.logger.Error("Could not copy files while duplicating board", mlog.String("BoardID", boardID), mlog.Err(err))
 	}
 
-	// bab.Blocks now has updated file ids for any blocks containing files.  We need to store them.
+	// blocks now has updated file ids for any blocks containing files.  We need to update the database for them.
 	blockIDs := make([]string, 0)
 	blockPatches := make([]model.BlockPatch, 0)
 	for _, block := range blocks {
@@ -398,9 +398,9 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 		destinationFilePath := filepath.Join(utils.GetBaseFilePath(), destFilename)
 		// Global Templates are handled via Import, if user-defined templates
 		// are to be stored by team. Won't be deleted by Data Retention
-		// if asTemplate {
-		// 	destinationFilePath = filepath.Join(destBoard.TeamID, destBoard.ID, destFilename)
-		// }
+		if asTemplate {
+			destinationFilePath = filepath.Join(destBoard.TeamID, destBoard.ID, destFilename)
+		}
 		if fileInfo == nil {
 			ext = filepath.Ext(sourceFilePath)
 			now := utils.GetMillis()
