@@ -334,7 +334,7 @@ func (a *App) CopyAndUpdateCardFiles(boardID string, blocks []*model.Block, asTe
 			BlockPatches: blockPatches,
 		}
 		if err := a.store.PatchBlocks(patches, userID); err != nil {
-			return nil, fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
+			return fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
 		}
 	}
 

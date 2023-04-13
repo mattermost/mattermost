@@ -221,22 +221,6 @@ func (a *App) writeArchiveFile(zw *zip.Writer, filename string, boardID string, 
 		)
 		return nil
 	}
-	// if errors.Is(err, ErrFileNotFound) {
-	// 	// prior to moving from workspaces to teams, the filepath was constructed from
-	// 	// workspaceID, which is the channel ID in plugin mode.
-	// 	// If a file is not found from team ID as we tried above, try looking for it via
-	// 	// channel ID.
-	// 	fileReader, err = a.GetFileReader(opt.TeamID, boardID, filename)
-	// 	if err != nil {
-	// 		// just log this; image file is missing but we'll still export an equivalent board
-	// 		a.logger.Error("image file missing for export",
-	// 			mlog.String("filename", filename),
-	// 			mlog.String("team_id", opt.TeamID),
-	// 			mlog.String("board_id", boardID),
-	// 		)
-	// 		return nil
-	// 	}
-	// }
 	defer fileReader.Close()
 
 	_, err = io.Copy(dest, fileReader)
