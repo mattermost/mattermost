@@ -1,0 +1,184 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/audit_table/audit_row/AuditRow should match snapshot with desc 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <table>
+    <tbody>
+      <AuditRow
+        actionURL="/dummy/url"
+        audit={
+          Object {
+            "action": "/api/v4/channels",
+            "create_at": 50778112674,
+            "extra_info": "name=yeye",
+            "id": "id_2",
+            "ip_address": "::1",
+            "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+            "user_id": "user_id_1",
+          }
+        }
+        desc="Successfully authenticated"
+        showIp={true}
+        showSession={true}
+        showUserId={true}
+      >
+        <tr
+          key="id_2"
+        >
+          <td
+            className="whitespace--nowrap word-break--all"
+          >
+            <div>
+              <div>
+                <FormattedDate
+                  day="2-digit"
+                  month="short"
+                  value={1971-08-11T17:01:52.674Z}
+                  year="numeric"
+                >
+                  <span>
+                    Aug 11, 1971
+                  </span>
+                </FormattedDate>
+              </div>
+              <div>
+                <FormattedTime
+                  hour="2-digit"
+                  minute="2-digit"
+                  value={1971-08-11T17:01:52.674Z}
+                >
+                  <span>
+                    05:01 PM
+                  </span>
+                </FormattedTime>
+              </div>
+            </div>
+          </td>
+          <td
+            className="word-break--all"
+          >
+            test@example.com
+          </td>
+          <td
+            className="word-break--all"
+          >
+            Successfully authenticated
+          </td>
+          <td
+            className="whitespace--nowrap word-break--all"
+          >
+            ::1
+          </td>
+          <td
+            className="whitespace--nowrap word-break--all"
+          >
+            hb8febm9ytdiz8zqaxj18efqhy
+          </td>
+        </tr>
+      </AuditRow>
+    </tbody>
+  </table>
+</Provider>
+`;
+
+exports[`components/audit_table/audit_row/AuditRow should match snapshot with no desc 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <table>
+    <tbody>
+      <AuditRow
+        actionURL="/dummy/url"
+        audit={
+          Object {
+            "action": "/api/v4/channels",
+            "create_at": 50778112674,
+            "extra_info": "name=yeye",
+            "id": "id_2",
+            "ip_address": "::1",
+            "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+            "user_id": "user_id_1",
+          }
+        }
+        showIp={true}
+        showSession={true}
+        showUserId={true}
+      >
+        <tr
+          key="id_2"
+        >
+          <td
+            className="whitespace--nowrap word-break--all"
+          >
+            <div>
+              <div>
+                <FormattedDate
+                  day="2-digit"
+                  month="short"
+                  value={1971-08-11T17:01:52.674Z}
+                  year="numeric"
+                >
+                  <span>
+                    Aug 11, 1971
+                  </span>
+                </FormattedDate>
+              </div>
+              <div>
+                <FormattedTime
+                  hour="2-digit"
+                  minute="2-digit"
+                  value={1971-08-11T17:01:52.674Z}
+                >
+                  <span>
+                    05:01 PM
+                  </span>
+                </FormattedTime>
+              </div>
+            </div>
+          </td>
+          <td
+            className="word-break--all"
+          >
+            test@example.com
+          </td>
+          <td
+            className="word-break--all"
+          >
+            Url yeye
+          </td>
+          <td
+            className="whitespace--nowrap word-break--all"
+          >
+            ::1
+          </td>
+          <td
+            className="whitespace--nowrap word-break--all"
+          >
+            hb8febm9ytdiz8zqaxj18efqhy
+          </td>
+        </tr>
+      </AuditRow>
+    </tbody>
+  </table>
+</Provider>
+`;

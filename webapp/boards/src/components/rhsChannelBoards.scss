@@ -1,0 +1,67 @@
+.RHSChannelBoards {
+    padding: 16px 24px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &.empty {
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        padding: 60px;
+
+        @media screen and (min-height: 800px) {
+            justify-content: center;
+        }
+    }
+
+    .rhs-boards-header {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    >h2 {
+        text-align: center;
+        word-wrap: anywhere;
+    }
+
+    .empty-paragraph {
+        text-align: center;
+    }
+
+    .boards-screenshots {
+        margin: 24px 0;
+    }
+
+    .linked-boards {
+        flex-grow: 1;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .rhs-boards-list {
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        flex: 1;
+    }
+
+    .Button {
+        width: auto;
+        align-self: center;
+        max-width: 100%;
+
+        span {
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}

@@ -1,0 +1,713 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
+<div>
+  <div
+    className="modal-header"
+  >
+    <button
+      aria-label="Close"
+      className="close"
+      data-dismiss="modal"
+      onClick={[MockFunction]}
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+    </button>
+    <h4
+      className="modal-title"
+    >
+      <div
+        className="modal-back"
+      >
+        <LocalizedIcon
+          className="fa fa-angle-left"
+          onClick={[MockFunction]}
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h4>
+  </div>
+  <div
+    className="user-settings"
+  >
+    <h3
+      className="tab-header"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h3>
+    <div
+      className="divider-dark first"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="password"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Password"
+          id="user.settings.security.password"
+        />
+      }
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(MfaSection)
+      active={false}
+      areAllSectionsInactive={false}
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(UserAccessTokenSection)
+      active={false}
+      areAllSectionsInactive={false}
+      setRequireConfirm={[MockFunction]}
+      updateSection={[Function]}
+      user={
+        Object {
+          "id": "user_id",
+        }
+      }
+    />
+    <div
+      className="divider-light"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      describe={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Email and Password"
+          id="user.settings.security.emailPwd"
+        />
+      }
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="signin"
+      title="Sign-in Method"
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-dark"
+    />
+    <br />
+    <Connect(ToggleModalButton)
+      className="security-links color--link"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAccessHistory"
+      modalId="access_history"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Access History Icon",
+            "id": "user.settings.security.viewHistory.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View Access History"
+        id="user.settings.security.viewHistory"
+      />
+    </Connect(ToggleModalButton)>
+    <Connect(ToggleModalButton)
+      className="security-links color--link mt-2"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAndLogOutOfActiveSessions"
+      modalId="activity_log"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Active Sessions Icon",
+            "id": "user.settings.security.logoutActiveSessions.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View and Log Out of Active Sessions"
+        id="user.settings.security.logoutActiveSessions"
+      />
+    </Connect(ToggleModalButton)>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
+<div>
+  <div
+    className="modal-header"
+  >
+    <button
+      aria-label="Close"
+      className="close"
+      data-dismiss="modal"
+      onClick={[MockFunction]}
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+    </button>
+    <h4
+      className="modal-title"
+    >
+      <div
+        className="modal-back"
+      >
+        <LocalizedIcon
+          className="fa fa-angle-left"
+          onClick={[MockFunction]}
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h4>
+  </div>
+  <div
+    className="user-settings"
+  >
+    <h3
+      className="tab-header"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h3>
+    <div
+      className="divider-dark first"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="password"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Password"
+          id="user.settings.security.password"
+        />
+      }
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(MfaSection)
+      active={false}
+      areAllSectionsInactive={false}
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(UserAccessTokenSection)
+      active={false}
+      areAllSectionsInactive={false}
+      setRequireConfirm={[MockFunction]}
+      updateSection={[Function]}
+      user={
+        Object {
+          "id": "user_id",
+        }
+      }
+    />
+    <div
+      className="divider-light"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      describe={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Email and Password"
+          id="user.settings.security.emailPwd"
+        />
+      }
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="signin"
+      title="Sign-in Method"
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-dark"
+    />
+    <br />
+    <Connect(ToggleModalButton)
+      className="security-links color--link"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAccessHistory"
+      modalId="access_history"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Access History Icon",
+            "id": "user.settings.security.viewHistory.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View Access History"
+        id="user.settings.security.viewHistory"
+      />
+    </Connect(ToggleModalButton)>
+    <Connect(ToggleModalButton)
+      className="security-links color--link mt-2"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAndLogOutOfActiveSessions"
+      modalId="activity_log"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Active Sessions Icon",
+            "id": "user.settings.security.logoutActiveSessions.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View and Log Out of Active Sessions"
+        id="user.settings.security.logoutActiveSessions"
+      />
+    </Connect(ToggleModalButton)>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
+<div>
+  <div
+    className="modal-header"
+  >
+    <button
+      aria-label="Close"
+      className="close"
+      data-dismiss="modal"
+      onClick={[MockFunction]}
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+    </button>
+    <h4
+      className="modal-title"
+    >
+      <div
+        className="modal-back"
+      >
+        <LocalizedIcon
+          className="fa fa-angle-left"
+          onClick={[MockFunction]}
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h4>
+  </div>
+  <div
+    className="user-settings"
+  >
+    <h3
+      className="tab-header"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h3>
+    <div
+      className="divider-dark first"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="password"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Password"
+          id="user.settings.security.password"
+        />
+      }
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(MfaSection)
+      active={false}
+      areAllSectionsInactive={false}
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(UserAccessTokenSection)
+      active={false}
+      areAllSectionsInactive={false}
+      setRequireConfirm={[MockFunction]}
+      updateSection={[Function]}
+      user={
+        Object {
+          "id": "user_id",
+        }
+      }
+    />
+    <div
+      className="divider-light"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      describe={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Email and Password"
+          id="user.settings.security.emailPwd"
+        />
+      }
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="signin"
+      title="Sign-in Method"
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-dark"
+    />
+    <br />
+    <Connect(ToggleModalButton)
+      className="security-links color--link"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAccessHistory"
+      modalId="access_history"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Access History Icon",
+            "id": "user.settings.security.viewHistory.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View Access History"
+        id="user.settings.security.viewHistory"
+      />
+    </Connect(ToggleModalButton)>
+    <Connect(ToggleModalButton)
+      className="security-links color--link mt-2"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAndLogOutOfActiveSessions"
+      modalId="activity_log"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Active Sessions Icon",
+            "id": "user.settings.security.logoutActiveSessions.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View and Log Out of Active Sessions"
+        id="user.settings.security.logoutActiveSessions"
+      />
+    </Connect(ToggleModalButton)>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
+<div>
+  <div
+    className="modal-header"
+  >
+    <button
+      aria-label="Close"
+      className="close"
+      data-dismiss="modal"
+      onClick={[MockFunction]}
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+    </button>
+    <h4
+      className="modal-title"
+    >
+      <div
+        className="modal-back"
+      >
+        <LocalizedIcon
+          className="fa fa-angle-left"
+          onClick={[MockFunction]}
+          title={
+            Object {
+              "defaultMessage": "Collapse Icon",
+              "id": "generic_icons.collapse",
+            }
+          }
+        />
+      </div>
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h4>
+  </div>
+  <div
+    className="user-settings"
+  >
+    <h3
+      className="tab-header"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Security Settings"
+        id="user.settings.security.title"
+      />
+    </h3>
+    <div
+      className="divider-dark first"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="password"
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Password"
+          id="user.settings.security.password"
+        />
+      }
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(MfaSection)
+      active={false}
+      areAllSectionsInactive={false}
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-light"
+    />
+    <div
+      className="divider-light"
+    />
+    <Connect(UserAccessTokenSection)
+      active={false}
+      areAllSectionsInactive={false}
+      setRequireConfirm={[MockFunction]}
+      updateSection={[Function]}
+      user={
+        Object {
+          "id": "user_id",
+        }
+      }
+    />
+    <div
+      className="divider-light"
+    />
+    <SettingItem
+      active={false}
+      areAllSectionsInactive={false}
+      containerStyle=""
+      describe={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Email and Password"
+          id="user.settings.security.emailPwd"
+        />
+      }
+      infoPosition="bottom"
+      max={null}
+      saving={false}
+      section="signin"
+      title="Sign-in Method"
+      updateSection={[Function]}
+    />
+    <div
+      className="divider-dark"
+    />
+    <br />
+    <Connect(ToggleModalButton)
+      className="security-links color--link"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAccessHistory"
+      modalId="access_history"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Access History Icon",
+            "id": "user.settings.security.viewHistory.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View Access History"
+        id="user.settings.security.viewHistory"
+      />
+    </Connect(ToggleModalButton)>
+    <Connect(ToggleModalButton)
+      className="security-links color--link mt-2"
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="viewAndLogOutOfActiveSessions"
+      modalId="activity_log"
+    >
+      <LocalizedIcon
+        className="fa fa-clock-o"
+        title={
+          Object {
+            "defaultMessage": "Active Sessions Icon",
+            "id": "user.settings.security.logoutActiveSessions.icon",
+          }
+        }
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="View and Log Out of Active Sessions"
+        id="user.settings.security.logoutActiveSessions"
+      />
+    </Connect(ToggleModalButton)>
+  </div>
+</div>
+`;

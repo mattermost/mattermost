@@ -1,0 +1,703 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/global/product_switcher_menu should match snapshot with id 1`] = `
+<MenuGroup>
+  <div
+    onClick={[Function]}
+  >
+    <MenuCloudTrial
+      id="menuCloudTrial"
+    />
+    <MenuItemCloudLimit
+      id="menuItemCloudLimit"
+    />
+    <Connect(SystemPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_write_about_edition_and_license",
+        ]
+      }
+    >
+      <MenuStartTrial
+        id="startTrial"
+      />
+    </Connect(SystemPermissionGate)>
+    <Connect(SystemPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_read_about_edition_and_license",
+          "sysconsole_read_billing",
+          "sysconsole_read_reporting_site_statistics",
+          "sysconsole_read_reporting_team_statistics",
+          "sysconsole_read_reporting_server_logs",
+          "sysconsole_read_user_management_users",
+          "sysconsole_read_user_management_groups",
+          "sysconsole_read_user_management_teams",
+          "sysconsole_read_user_management_channels",
+          "sysconsole_read_user_management_permissions",
+          "sysconsole_read_site_customization",
+          "sysconsole_read_site_localization",
+          "sysconsole_read_site_users_and_teams",
+          "sysconsole_read_site_notifications",
+          "sysconsole_read_site_announcement_banner",
+          "sysconsole_read_site_emoji",
+          "sysconsole_read_site_posts",
+          "sysconsole_read_site_file_sharing_and_downloads",
+          "sysconsole_read_site_public_links",
+          "sysconsole_read_site_notices",
+          "sysconsole_read_environment_web_server",
+          "sysconsole_read_environment_database",
+          "sysconsole_read_environment_elasticsearch",
+          "sysconsole_read_environment_file_storage",
+          "sysconsole_read_environment_image_proxy",
+          "sysconsole_read_environment_smtp",
+          "sysconsole_read_environment_push_notification_server",
+          "sysconsole_read_environment_high_availability",
+          "sysconsole_read_environment_rate_limiting",
+          "sysconsole_read_environment_logging",
+          "sysconsole_read_environment_session_lengths",
+          "sysconsole_read_environment_performance_monitoring",
+          "sysconsole_read_environment_developer",
+          "sysconsole_read_authentication_signup",
+          "sysconsole_read_authentication_email",
+          "sysconsole_read_authentication_password",
+          "sysconsole_read_authentication_mfa",
+          "sysconsole_read_authentication_ldap",
+          "sysconsole_read_authentication_saml",
+          "sysconsole_read_authentication_openid",
+          "sysconsole_read_authentication_guest_access",
+          "sysconsole_read_plugins",
+          "sysconsole_read_integrations_integration_management",
+          "sysconsole_read_integrations_bot_accounts",
+          "sysconsole_read_integrations_gif",
+          "sysconsole_read_integrations_cors",
+          "sysconsole_read_compliance_data_retention_policy",
+          "sysconsole_read_compliance_compliance_export",
+          "sysconsole_read_compliance_compliance_monitoring",
+          "sysconsole_read_compliance_custom_terms_of_service",
+          "sysconsole_read_experimental_features",
+          "sysconsole_read_experimental_feature_flags",
+          "sysconsole_read_experimental_bleve",
+          "sysconsole_read_products_boards",
+        ]
+      }
+    >
+      <MenuItemLink
+        icon={
+          <ApplicationCogIcon
+            size={18}
+          />
+        }
+        id="systemConsole"
+        show={true}
+        text={
+          <React.Fragment>
+            System Console
+          </React.Fragment>
+        }
+        to="/admin_console"
+      />
+    </Connect(SystemPermissionGate)>
+    <MenuItemLink
+      icon={
+        <WebhookIncomingIcon
+          size={18}
+        />
+      }
+      id="integrations"
+      show={false}
+      text="Integrations"
+      to="//integrations"
+    />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "backButtonAction": [Function],
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      disabled={false}
+      icon={
+        <AccountMultipleOutlineIcon
+          size={18}
+        />
+      }
+      id="userGroups"
+      modalId="user_groups"
+      show={false}
+      sibling={false}
+      text="User Groups"
+    />
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_write_plugins",
+        ]
+      }
+      teamId=""
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
+        dialogType={[Function]}
+        icon={
+          <ViewGridPlusOutlineIcon
+            size={18}
+          />
+        }
+        id="marketplaceModal"
+        modalId="plugin_marketplace"
+        show={false}
+        text="App Marketplace"
+      />
+    </Connect(TeamPermissionGate)>
+    <MenuItemExternalLink
+      icon={
+        <DownloadOutlineIcon
+          size={18}
+        />
+      }
+      id="nativeAppLink"
+      show={true}
+      text="Download Apps"
+      url="test–link"
+    />
+    <MenuItemToggleModalRedux
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      icon={
+        <InformationOutlineIcon
+          size={18}
+        />
+      }
+      id="about"
+      modalId="about"
+      show={true}
+      text="About "
+    />
+  </div>
+</MenuGroup>
+`;
+
+exports[`components/global/product_switcher_menu should match snapshot with most of the thing enabled 1`] = `
+<MenuGroup>
+  <div
+    onClick={[Function]}
+  >
+    <MenuCloudTrial
+      id="menuCloudTrial"
+    />
+    <MenuItemCloudLimit
+      id="menuItemCloudLimit"
+    />
+    <Connect(SystemPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_write_about_edition_and_license",
+        ]
+      }
+    >
+      <MenuStartTrial
+        id="startTrial"
+      />
+    </Connect(SystemPermissionGate)>
+    <Connect(SystemPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_read_about_edition_and_license",
+          "sysconsole_read_billing",
+          "sysconsole_read_reporting_site_statistics",
+          "sysconsole_read_reporting_team_statistics",
+          "sysconsole_read_reporting_server_logs",
+          "sysconsole_read_user_management_users",
+          "sysconsole_read_user_management_groups",
+          "sysconsole_read_user_management_teams",
+          "sysconsole_read_user_management_channels",
+          "sysconsole_read_user_management_permissions",
+          "sysconsole_read_site_customization",
+          "sysconsole_read_site_localization",
+          "sysconsole_read_site_users_and_teams",
+          "sysconsole_read_site_notifications",
+          "sysconsole_read_site_announcement_banner",
+          "sysconsole_read_site_emoji",
+          "sysconsole_read_site_posts",
+          "sysconsole_read_site_file_sharing_and_downloads",
+          "sysconsole_read_site_public_links",
+          "sysconsole_read_site_notices",
+          "sysconsole_read_environment_web_server",
+          "sysconsole_read_environment_database",
+          "sysconsole_read_environment_elasticsearch",
+          "sysconsole_read_environment_file_storage",
+          "sysconsole_read_environment_image_proxy",
+          "sysconsole_read_environment_smtp",
+          "sysconsole_read_environment_push_notification_server",
+          "sysconsole_read_environment_high_availability",
+          "sysconsole_read_environment_rate_limiting",
+          "sysconsole_read_environment_logging",
+          "sysconsole_read_environment_session_lengths",
+          "sysconsole_read_environment_performance_monitoring",
+          "sysconsole_read_environment_developer",
+          "sysconsole_read_authentication_signup",
+          "sysconsole_read_authentication_email",
+          "sysconsole_read_authentication_password",
+          "sysconsole_read_authentication_mfa",
+          "sysconsole_read_authentication_ldap",
+          "sysconsole_read_authentication_saml",
+          "sysconsole_read_authentication_openid",
+          "sysconsole_read_authentication_guest_access",
+          "sysconsole_read_plugins",
+          "sysconsole_read_integrations_integration_management",
+          "sysconsole_read_integrations_bot_accounts",
+          "sysconsole_read_integrations_gif",
+          "sysconsole_read_integrations_cors",
+          "sysconsole_read_compliance_data_retention_policy",
+          "sysconsole_read_compliance_compliance_export",
+          "sysconsole_read_compliance_compliance_monitoring",
+          "sysconsole_read_compliance_custom_terms_of_service",
+          "sysconsole_read_experimental_features",
+          "sysconsole_read_experimental_feature_flags",
+          "sysconsole_read_experimental_bleve",
+          "sysconsole_read_products_boards",
+        ]
+      }
+    >
+      <MenuItemLink
+        icon={
+          <ApplicationCogIcon
+            size={18}
+          />
+        }
+        id="systemConsole"
+        show={true}
+        text={
+          <React.Fragment>
+            System Console
+          </React.Fragment>
+        }
+        to="/admin_console"
+      />
+    </Connect(SystemPermissionGate)>
+    <MenuItemLink
+      icon={
+        <WebhookIncomingIcon
+          size={18}
+        />
+      }
+      id="integrations"
+      show={true}
+      text="Integrations"
+      to="//integrations"
+    />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "backButtonAction": [Function],
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      disabled={false}
+      icon={
+        <AccountMultipleOutlineIcon
+          size={18}
+        />
+      }
+      id="userGroups"
+      modalId="user_groups"
+      show={false}
+      sibling={false}
+      text="User Groups"
+    />
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_write_plugins",
+        ]
+      }
+      teamId=""
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
+        dialogType={[Function]}
+        icon={
+          <ViewGridPlusOutlineIcon
+            size={18}
+          />
+        }
+        id="marketplaceModal"
+        modalId="plugin_marketplace"
+        show={true}
+        text="App Marketplace"
+      />
+    </Connect(TeamPermissionGate)>
+    <MenuItemExternalLink
+      icon={
+        <DownloadOutlineIcon
+          size={18}
+        />
+      }
+      id="nativeAppLink"
+      show={true}
+      text="Download Apps"
+      url="test–link"
+    />
+    <MenuItemToggleModalRedux
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      icon={
+        <InformationOutlineIcon
+          size={18}
+        />
+      }
+      id="about"
+      modalId="about"
+      show={true}
+      text="About "
+    />
+  </div>
+</MenuGroup>
+`;
+
+exports[`components/global/product_switcher_menu should match userGroups snapshot with EnableCustomGroups config 1`] = `
+<MenuItemToggleModalRedux
+  dialogProps={
+    Object {
+      "backButtonAction": [Function],
+    }
+  }
+  dialogType={
+    Object {
+      "$$typeof": Symbol(react.memo),
+      "WrappedComponent": [Function],
+      "compare": null,
+      "type": [Function],
+    }
+  }
+  disabled={false}
+  icon={
+    <AccountMultipleOutlineIcon
+      size={18}
+    />
+  }
+  id="userGroups"
+  modalId="user_groups"
+  show={true}
+  sibling={false}
+  text="User Groups"
+/>
+`;
+
+exports[`components/global/product_switcher_menu should match userGroups snapshot with cloud free 1`] = `
+<MenuItemToggleModalRedux
+  dialogProps={
+    Object {
+      "backButtonAction": [Function],
+    }
+  }
+  dialogType={
+    Object {
+      "$$typeof": Symbol(react.memo),
+      "WrappedComponent": [Function],
+      "compare": null,
+      "type": [Function],
+    }
+  }
+  disabled={true}
+  icon={
+    <AccountMultipleOutlineIcon
+      size={18}
+    />
+  }
+  id="userGroups"
+  modalId="user_groups"
+  show={true}
+  sibling={
+    <RestrictedIndicator
+      blocked={true}
+      feature="mattermost.feature.custom_user_groups"
+      messageAdminPostTrial="User groups are a way to organize users and apply actions to all users within that group. Upgrade to the Professional plan to create unlimited user groups."
+      messageAdminPreTrial="Create unlimited user groups with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
+      messageEndUser="User groups are a way to organize users and apply actions to all users within that group."
+      minimumPlanRequiredForFeature="professional"
+      titleAdminPostTrial="Upgrade to create unlimited user groups"
+      titleAdminPreTrial="Try unlimited user groups with a free trial"
+      titleEndUser="User groups available in paid plans"
+      tooltipMessage="During your trial you are able to create user groups. These user groups will be archived after your trial."
+    />
+  }
+  text="User Groups"
+/>
+`;
+
+exports[`components/global/product_switcher_menu should match userGroups snapshot with cloud free trial 1`] = `
+<MenuItemToggleModalRedux
+  dialogProps={
+    Object {
+      "backButtonAction": [Function],
+    }
+  }
+  dialogType={
+    Object {
+      "$$typeof": Symbol(react.memo),
+      "WrappedComponent": [Function],
+      "compare": null,
+      "type": [Function],
+    }
+  }
+  disabled={false}
+  icon={
+    <AccountMultipleOutlineIcon
+      size={18}
+    />
+  }
+  id="userGroups"
+  modalId="user_groups"
+  show={true}
+  sibling={
+    <RestrictedIndicator
+      blocked={false}
+      feature="mattermost.feature.custom_user_groups"
+      messageAdminPostTrial="User groups are a way to organize users and apply actions to all users within that group. Upgrade to the Professional plan to create unlimited user groups."
+      messageAdminPreTrial="Create unlimited user groups with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
+      messageEndUser="User groups are a way to organize users and apply actions to all users within that group."
+      minimumPlanRequiredForFeature="professional"
+      titleAdminPostTrial="Upgrade to create unlimited user groups"
+      titleAdminPreTrial="Try unlimited user groups with a free trial"
+      titleEndUser="User groups available in paid plans"
+      tooltipMessage="During your trial you are able to create user groups. These user groups will be archived after your trial."
+    />
+  }
+  text="User Groups"
+/>
+`;
+
+exports[`components/global/product_switcher_menu should show integrations should show integrations modal 1`] = `
+<Fragment>
+  <li
+    className="MenuGroup menu-divider"
+    onClick={[Function]}
+  />
+  <div
+    onClick={[Function]}
+  >
+    <MenuCloudTrial
+      id="menuCloudTrial"
+    />
+    <MenuItemCloudLimit
+      id="menuItemCloudLimit"
+    />
+    <Connect(SystemPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_write_about_edition_and_license",
+        ]
+      }
+    >
+      <MenuStartTrial
+        id="startTrial"
+      />
+    </Connect(SystemPermissionGate)>
+    <Connect(SystemPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_read_about_edition_and_license",
+          "sysconsole_read_billing",
+          "sysconsole_read_reporting_site_statistics",
+          "sysconsole_read_reporting_team_statistics",
+          "sysconsole_read_reporting_server_logs",
+          "sysconsole_read_user_management_users",
+          "sysconsole_read_user_management_groups",
+          "sysconsole_read_user_management_teams",
+          "sysconsole_read_user_management_channels",
+          "sysconsole_read_user_management_permissions",
+          "sysconsole_read_site_customization",
+          "sysconsole_read_site_localization",
+          "sysconsole_read_site_users_and_teams",
+          "sysconsole_read_site_notifications",
+          "sysconsole_read_site_announcement_banner",
+          "sysconsole_read_site_emoji",
+          "sysconsole_read_site_posts",
+          "sysconsole_read_site_file_sharing_and_downloads",
+          "sysconsole_read_site_public_links",
+          "sysconsole_read_site_notices",
+          "sysconsole_read_environment_web_server",
+          "sysconsole_read_environment_database",
+          "sysconsole_read_environment_elasticsearch",
+          "sysconsole_read_environment_file_storage",
+          "sysconsole_read_environment_image_proxy",
+          "sysconsole_read_environment_smtp",
+          "sysconsole_read_environment_push_notification_server",
+          "sysconsole_read_environment_high_availability",
+          "sysconsole_read_environment_rate_limiting",
+          "sysconsole_read_environment_logging",
+          "sysconsole_read_environment_session_lengths",
+          "sysconsole_read_environment_performance_monitoring",
+          "sysconsole_read_environment_developer",
+          "sysconsole_read_authentication_signup",
+          "sysconsole_read_authentication_email",
+          "sysconsole_read_authentication_password",
+          "sysconsole_read_authentication_mfa",
+          "sysconsole_read_authentication_ldap",
+          "sysconsole_read_authentication_saml",
+          "sysconsole_read_authentication_openid",
+          "sysconsole_read_authentication_guest_access",
+          "sysconsole_read_plugins",
+          "sysconsole_read_integrations_integration_management",
+          "sysconsole_read_integrations_bot_accounts",
+          "sysconsole_read_integrations_gif",
+          "sysconsole_read_integrations_cors",
+          "sysconsole_read_compliance_data_retention_policy",
+          "sysconsole_read_compliance_compliance_export",
+          "sysconsole_read_compliance_compliance_monitoring",
+          "sysconsole_read_compliance_custom_terms_of_service",
+          "sysconsole_read_experimental_features",
+          "sysconsole_read_experimental_feature_flags",
+          "sysconsole_read_experimental_bleve",
+          "sysconsole_read_products_boards",
+        ]
+      }
+    >
+      <MenuItemLink
+        icon={
+          <ApplicationCogIcon
+            size={18}
+          />
+        }
+        id="systemConsole"
+        show={true}
+        text={
+          <React.Fragment>
+            System Console
+          </React.Fragment>
+        }
+        to="/admin_console"
+      />
+    </Connect(SystemPermissionGate)>
+    <MenuItemLink
+      icon={
+        <WebhookIncomingIcon
+          size={18}
+        />
+      }
+      id="integrations"
+      show={true}
+      text="Integrations"
+      to="//integrations"
+    />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "backButtonAction": [Function],
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      disabled={false}
+      icon={
+        <AccountMultipleOutlineIcon
+          size={18}
+        />
+      }
+      id="userGroups"
+      modalId="user_groups"
+      show={false}
+      sibling={false}
+      text="User Groups"
+    />
+    <Connect(TeamPermissionGate)
+      permissions={
+        Array [
+          "sysconsole_write_plugins",
+        ]
+      }
+      teamId=""
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "openedFrom": "product_menu",
+          }
+        }
+        dialogType={[Function]}
+        icon={
+          <ViewGridPlusOutlineIcon
+            size={18}
+          />
+        }
+        id="marketplaceModal"
+        modalId="plugin_marketplace"
+        show={false}
+        text="App Marketplace"
+      />
+    </Connect(TeamPermissionGate)>
+    <MenuItemExternalLink
+      icon={
+        <DownloadOutlineIcon
+          size={18}
+        />
+      }
+      id="nativeAppLink"
+      show={true}
+      text="Download Apps"
+      url="test–link"
+    />
+    <MenuItemToggleModalRedux
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      icon={
+        <InformationOutlineIcon
+          size={18}
+        />
+      }
+      id="about"
+      modalId="about"
+      show={true}
+      text="About "
+    />
+  </div>
+</Fragment>
+`;

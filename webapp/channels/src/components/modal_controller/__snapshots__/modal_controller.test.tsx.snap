@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ModalController component should match snapshot without any modals 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <Connect(ModalController)>
+    <ModalController
+      actions={
+        Object {
+          "closeModal": [Function],
+        }
+      }
+      modals={
+        Object {
+          "modalState": Object {},
+        }
+      }
+    />
+  </Connect(ModalController)>
+</Provider>
+`;

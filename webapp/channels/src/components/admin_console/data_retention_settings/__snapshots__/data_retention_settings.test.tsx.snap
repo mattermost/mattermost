@@ -1,0 +1,1501 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with Global Policies disabled 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Data Retention Policies"
+      id="admin.data_retention.settings.title"
+    />
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Keep messages and files for a set amount of time."
+                id="admin.data_retention.globalPolicy.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Global retention policy"
+                id="admin.data_retention.globalPolicy.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="global_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.globalPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.globalPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "files",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Files"
+                      id="admin.data_retention.globalPoliciesTable.files"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={4}
+              loading={false}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            buttonClass="edit_global_policy"
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "boards": <div
+                        data-testid="global_boards_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
+                      </div>,
+                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
+                      "files": <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={0}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add policy"
+                id="admin.data_retention.customPolicies.addPolicy"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Customize how long specific teams and channels will keep messages."
+                id="admin.data_retention.customPolicies.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Custom retention policies"
+                id="admin.data_retention.customPolicies.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="custom_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.customPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.customPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "applied_to",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Applied to"
+                      id="admin.data_retention.customPoliciesTable.appliedTo"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={1}
+              loading={true}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        id="customWrapper-1234567"
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                          <MenuItemAction
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Delete"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "applied_to": <div
+                        id="customAppliedTo-1234567"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
+                          id="admin.data_retention.channel_team_counts"
+                          values={
+                            Object {
+                              "channel_count": 2,
+                              "team_count": 1,
+                            }
+                          }
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        id="customDuration-1234567"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
+                      </div>,
+                      "description": <div
+                        id="customDescription-1234567"
+                      >
+                        Custom policy 1
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={1}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Daily log of messages and files removed based on the policies defined above."
+                id="admin.data_retention.jobCreation.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Policy log"
+                id="admin.data_retention.jobCreation.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(JobTable)
+            className="job-table__data-retention"
+            createJobButtonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            createJobHelpText={
+              <div>
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Daily time to check policies and run delete job:"
+                  id="admin.data_retention.createJob.instructions"
+                />
+                <span
+                  className="JobSelectedtime"
+                >
+                  <b>
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="{time} AM (UTC)"
+                      id="admin.data_retention.jobTimeAM"
+                      values={
+                        Object {
+                          "time": "12:15",
+                        }
+                      }
+                    />
+                  </b>
+                </span>
+                <a
+                  className="EditJobTime"
+                  onClick={[Function]}
+                >
+                  Edit
+                </a>
+              </div>
+            }
+            disabled={true}
+            hideJobCreateButton={true}
+            jobType="data_retention"
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with custom policy 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Data Retention Policies"
+      id="admin.data_retention.settings.title"
+    />
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Keep messages and files for a set amount of time."
+                id="admin.data_retention.globalPolicy.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Global retention policy"
+                id="admin.data_retention.globalPolicy.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="global_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.globalPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.globalPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "files",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Files"
+                      id="admin.data_retention.globalPoliciesTable.files"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={4}
+              loading={false}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            buttonClass="edit_global_policy"
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "boards": <div
+                        data-testid="global_boards_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
+                      "files": <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={0}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add policy"
+                id="admin.data_retention.customPolicies.addPolicy"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Customize how long specific teams and channels will keep messages."
+                id="admin.data_retention.customPolicies.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Custom retention policies"
+                id="admin.data_retention.customPolicies.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="custom_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.customPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.customPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "applied_to",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Applied to"
+                      id="admin.data_retention.customPoliciesTable.appliedTo"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={1}
+              loading={true}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        id="customWrapper-1234567"
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                          <MenuItemAction
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Delete"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "applied_to": <div
+                        id="customAppliedTo-1234567"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
+                          id="admin.data_retention.channel_team_counts"
+                          values={
+                            Object {
+                              "channel_count": 2,
+                              "team_count": 1,
+                            }
+                          }
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        id="customDuration-1234567"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "60",
+                            }
+                          }
+                        />
+                      </div>,
+                      "description": <div
+                        id="customDescription-1234567"
+                      >
+                        Custom policy 1
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={1}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Daily log of messages and files removed based on the policies defined above."
+                id="admin.data_retention.jobCreation.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Policy log"
+                id="admin.data_retention.jobCreation.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(JobTable)
+            className="job-table__data-retention"
+            createJobButtonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            createJobHelpText={
+              <div>
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Daily time to check policies and run delete job:"
+                  id="admin.data_retention.createJob.instructions"
+                />
+                <span
+                  className="JobSelectedtime"
+                >
+                  <b>
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="{time} AM (UTC)"
+                      id="admin.data_retention.jobTimeAM"
+                      values={
+                        Object {
+                          "time": "12:15",
+                        }
+                      }
+                    />
+                  </b>
+                </span>
+                <a
+                  className="EditJobTime"
+                  onClick={[Function]}
+                >
+                  Edit
+                </a>
+              </div>
+            }
+            disabled={false}
+            hideJobCreateButton={true}
+            jobType="data_retention"
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with custom policy keep forever 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Data Retention Policies"
+      id="admin.data_retention.settings.title"
+    />
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Keep messages and files for a set amount of time."
+                id="admin.data_retention.globalPolicy.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Global retention policy"
+                id="admin.data_retention.globalPolicy.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="global_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.globalPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.globalPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "files",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Files"
+                      id="admin.data_retention.globalPoliciesTable.files"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={4}
+              loading={false}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            buttonClass="edit_global_policy"
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "boards": <div
+                        data-testid="global_boards_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
+                      "files": <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={0}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add policy"
+                id="admin.data_retention.customPolicies.addPolicy"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Customize how long specific teams and channels will keep messages."
+                id="admin.data_retention.customPolicies.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Custom retention policies"
+                id="admin.data_retention.customPolicies.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="custom_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.customPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.customPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "applied_to",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Applied to"
+                      id="admin.data_retention.customPoliciesTable.appliedTo"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={1}
+              loading={true}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        id="customWrapper-1234567"
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                          <MenuItemAction
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Delete"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "applied_to": <div
+                        id="customAppliedTo-1234567"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
+                          id="admin.data_retention.channel_team_counts"
+                          values={
+                            Object {
+                              "channel_count": 2,
+                              "team_count": 1,
+                            }
+                          }
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        id="customDuration-1234567"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Keep forever"
+                          id="admin.data_retention.form.keepForever"
+                        />
+                      </div>,
+                      "description": <div
+                        id="customDescription-1234567"
+                      >
+                        Custom policy 1
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={1}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Daily log of messages and files removed based on the policies defined above."
+                id="admin.data_retention.jobCreation.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Policy log"
+                id="admin.data_retention.jobCreation.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(JobTable)
+            className="job-table__data-retention"
+            createJobButtonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            createJobHelpText={
+              <div>
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Daily time to check policies and run delete job:"
+                  id="admin.data_retention.createJob.instructions"
+                />
+                <span
+                  className="JobSelectedtime"
+                >
+                  <b>
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="{time} AM (UTC)"
+                      id="admin.data_retention.jobTimeAM"
+                      values={
+                        Object {
+                          "time": "12:15",
+                        }
+                      }
+                    />
+                  </b>
+                </span>
+                <a
+                  className="EditJobTime"
+                  onClick={[Function]}
+                >
+                  Edit
+                </a>
+              </div>
+            }
+            disabled={false}
+            hideJobCreateButton={true}
+            jobType="data_retention"
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with no custom policies 1`] = `
+<div
+  className="wrapper--fixed DataRetentionSettings"
+>
+  <div
+    className="admin-console__header"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Data Retention Policies"
+      id="admin.data_retention.settings.title"
+    />
+  </div>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Keep messages and files for a set amount of time."
+                id="admin.data_retention.globalPolicy.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Global retention policy"
+                id="admin.data_retention.globalPolicy.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="global_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.globalPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.globalPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "files",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Files"
+                      id="admin.data_retention.globalPoliciesTable.files"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={4}
+              loading={false}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={
+                Array [
+                  Object {
+                    "cells": Object {
+                      "actions": <MenuWrapper
+                        animationComponent={[Function]}
+                        className=""
+                        isDisabled={false}
+                        stopPropagationOnToggle={true}
+                      >
+                        <div
+                          className="text-right"
+                        >
+                          <a>
+                            <i
+                              className="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                        <Menu
+                          ariaLabel="User Actions Menu"
+                          openLeft={false}
+                          openUp={false}
+                        >
+                          <MenuItemAction
+                            buttonClass="edit_global_policy"
+                            disabled={false}
+                            onClick={[Function]}
+                            show={true}
+                            text="Edit"
+                          />
+                        </Menu>
+                      </MenuWrapper>,
+                      "boards": <div
+                        data-testid="global_boards_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                      "channel_messages": <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
+                      "files": <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="{count} {count, plural, one {day} other {days}}"
+                          id="admin.data_retention.retention_days"
+                          values={
+                            Object {
+                              "count": "100",
+                            }
+                          }
+                        />
+                      </div>,
+                    },
+                    "onClick": [Function],
+                  },
+                ]
+              }
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={0}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add policy"
+                id="admin.data_retention.customPolicies.addPolicy"
+              />
+            }
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Customize how long specific teams and channels will keep messages."
+                id="admin.data_retention.customPolicies.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Custom retention policies"
+                id="admin.data_retention.customPolicies.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <div
+            id="custom_policy_table"
+          >
+            <DataGrid
+              className="customTable"
+              columns={
+                Array [
+                  Object {
+                    "field": "description",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Description"
+                      id="admin.data_retention.customPoliciesTable.description"
+                    />,
+                  },
+                  Object {
+                    "field": "channel_messages",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Channel messages"
+                      id="admin.data_retention.customPoliciesTable.channelMessages"
+                    />,
+                  },
+                  Object {
+                    "field": "applied_to",
+                    "name": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Applied to"
+                      id="admin.data_retention.customPoliciesTable.appliedTo"
+                    />,
+                  },
+                  Object {
+                    "className": "actionIcon",
+                    "field": "actions",
+                    "name": "",
+                  },
+                ]
+              }
+              endCount={0}
+              loading={true}
+              nextPage={[Function]}
+              page={0}
+              previousPage={[Function]}
+              rows={Array []}
+              searchPlaceholder=""
+              startCount={1}
+              term=""
+              total={0}
+            />
+          </div>
+        </CardBody>
+      </Card>
+      <Card
+        className="console"
+        expanded={true}
+      >
+        <CardHeader>
+          <TitleAndButtonCardHeader
+            buttonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            isDisabled={false}
+            onClick={[Function]}
+            subtitle={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Daily log of messages and files removed based on the policies defined above."
+                id="admin.data_retention.jobCreation.subTitle"
+              />
+            }
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Policy log"
+                id="admin.data_retention.jobCreation.title"
+              />
+            }
+          />
+        </CardHeader>
+        <CardBody
+          expanded={true}
+        >
+          <Connect(JobTable)
+            className="job-table__data-retention"
+            createJobButtonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Run Deletion Job Now"
+                id="admin.data_retention.createJob.title"
+              />
+            }
+            createJobHelpText={
+              <div>
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Daily time to check policies and run delete job:"
+                  id="admin.data_retention.createJob.instructions"
+                />
+                <span
+                  className="JobSelectedtime"
+                >
+                  <b>
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="{time} AM (UTC)"
+                      id="admin.data_retention.jobTimeAM"
+                      values={
+                        Object {
+                          "time": "12:15",
+                        }
+                      }
+                    />
+                  </b>
+                </span>
+                <a
+                  className="EditJobTime"
+                  onClick={[Function]}
+                >
+                  Edit
+                </a>
+              </div>
+            }
+            disabled={false}
+            hideJobCreateButton={true}
+            jobType="data_retention"
+          />
+        </CardBody>
+      </Card>
+    </div>
+  </div>
+</div>
+`;

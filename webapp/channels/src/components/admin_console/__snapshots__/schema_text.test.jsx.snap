@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaText should render markdown text correctly 1`] = `
+<span
+  dangerouslySetInnerHTML={
+    Object {
+      "__html": "This is <strong>HELP TEXT</strong>",
+    }
+  }
+/>
+`;
+
+exports[`SchemaText should render plain text correctly 1`] = `
+<span>
+  This is help text
+</span>
+`;
+
+exports[`SchemaText should render translated markdown text correctly 1`] = `
+<FormattedMarkdownMessage
+  defaultMessage="This is [{object}](https://example.com)"
+  id="help.text.markdown"
+  values={
+    Object {
+      "object": "a help link",
+    }
+  }
+/>
+`;
+
+exports[`SchemaText should render translated text correctly 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="This is {object}"
+  id="help.text"
+  values={
+    Object {
+      "object": "help text",
+    }
+  }
+/>
+`;

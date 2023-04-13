@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/PostProfilePicture should match snapshot, no status and post icon override specified, default props 1`] = `
+<ProfilePicture
+  channelId=""
+  fromAutoResponder={false}
+  fromWebhook={false}
+  hasMention={true}
+  isBot={false}
+  isBusy={true}
+  isEmoji={false}
+  isRHS={false}
+  popoverPlacement="right"
+  profileSrc="/api/v4/users/defaultuser/image?_=0"
+  size="md"
+  src=""
+  status="offline"
+  userId="defaultuser"
+  username="some-user"
+  wrapperClass=""
+/>
+`;
+
+exports[`components/PostProfilePicture should match snapshot, status and post icon override specified, default props 1`] = `
+<ProfilePicture
+  channelId=""
+  fromAutoResponder={false}
+  fromWebhook={false}
+  hasMention={true}
+  isBot={false}
+  isBusy={true}
+  isEmoji={false}
+  isRHS={false}
+  popoverPlacement="right"
+  profileSrc="/api/v4/users/defaultuser/image?_=0"
+  size="md"
+  src=""
+  status="away"
+  userId="defaultuser"
+  username="some-user"
+  wrapperClass=""
+/>
+`;

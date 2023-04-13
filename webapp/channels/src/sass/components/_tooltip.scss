@@ -1,0 +1,63 @@
+@charset 'UTF-8';
+
+.tooltip {
+    max-width: 220px;
+    font-family: inherit;
+    pointer-events: none;
+    word-wrap: break-word;
+
+    &#announcement-bar__tooltip {
+        pointer-events: auto;
+    }
+
+    .tooltip-inner {
+        max-width: 100%;
+        padding: 4px 8px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 18px;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    &.text-nowrap {
+        .tooltip-inner {
+            white-space: nowrap;
+        }
+    }
+
+    .tooltip-help {
+        color: rgba(255, 255, 255, 0.64);
+    }
+}
+
+.floating-ui-tooltip {
+    max-width: 220px;
+    padding: 4px 8px;
+    background: #000;
+    border-radius: 4px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    opacity: 0;
+    pointer-events: none;
+    text-align: center;
+    transition: opacity 0.15s linear;
+    word-break: break-word;
+
+    &.floating-ui-tooltip--visible {
+        opacity: 0.9;
+        transition: opacity 0.15s linear;
+    }
+}
+
+.floating-ui-tooltip-arrow {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #000;
+    transform: rotate(45deg);
+}

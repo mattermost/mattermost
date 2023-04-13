@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/combined_system_message/LastUsers should match snapshot 1`] = `
+<span>
+  <Connect(Markdown)
+    message="@username2 and "
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@username2",
+          },
+          Object {
+            "key": "@username3",
+          },
+          Object {
+            "key": "@username4",
+          },
+        ],
+      }
+    }
+  />
+  <a
+    onClick={[Function]}
+  >
+    2 others 
+  </a>
+  <Connect(Markdown)
+    message="were **added to the channel** by user_1."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@username2",
+          },
+          Object {
+            "key": "@username3",
+          },
+          Object {
+            "key": "@username4",
+          },
+        ],
+      }
+    }
+  />
+</span>
+`;
+
+exports[`components/post_view/combined_system_message/LastUsers should match snapshot, expanded 1`] = `
+<Connect(Markdown)
+  message="@username2, @username3 and @username4  **added to the channel** by user_1."
+  options={
+    Object {
+      "atMentions": true,
+      "mentionHighlight": false,
+      "mentionKeys": Array [
+        Object {
+          "key": "@username2",
+        },
+        Object {
+          "key": "@username3",
+        },
+        Object {
+          "key": "@username4",
+        },
+      ],
+    }
+  }
+/>
+`;

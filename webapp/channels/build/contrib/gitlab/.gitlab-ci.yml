@@ -1,0 +1,16 @@
+lint:
+  allow_failure: true
+  image: node:buster
+  before_script:
+    - npm ci --ignore-scripts
+    - (cd e2e/playwright && npm ci --ignore-scripts)
+  script:
+    - npm run check-types
+    - npm run check
+
+test:
+  image: node:buster
+  before_script:
+    - npm ci --ignore-scripts
+  script:
+    - npm run test:speed

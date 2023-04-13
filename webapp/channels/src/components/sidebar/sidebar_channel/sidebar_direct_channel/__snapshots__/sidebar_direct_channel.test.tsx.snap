@@ -1,0 +1,158 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot 1`] = `
+<Connect(SidebarChannelLink)
+  channel={
+    Object {
+      "create_at": 0,
+      "creator_id": "",
+      "delete_at": 0,
+      "display_name": "channel_display_name",
+      "group_constrained": false,
+      "header": "",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "",
+      "purpose": "",
+      "scheme_id": "",
+      "team_id": "",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  channelLeaveHandler={[Function]}
+  icon={
+    <ProfilePicture
+      hasMention={false}
+      isEmoji={false}
+      isRHS={false}
+      newStatusIcon={true}
+      popoverPlacement="right"
+      size="xs"
+      src="/api/v4/users/user_id/image"
+      statusClass="DirectChannel__status-icon "
+      wrapperClass="DirectChannel__profile-picture"
+    />
+  }
+  label="channel_display_name"
+  link="/team_name/messages/@some-user"
+  teammateId="user_id"
+/>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with bot with custom icon 1`] = `
+<Connect(SidebarChannelLink)
+  channel={
+    Object {
+      "create_at": 0,
+      "creator_id": "",
+      "delete_at": 0,
+      "display_name": "channel_display_name",
+      "group_constrained": false,
+      "header": "",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "",
+      "purpose": "",
+      "scheme_id": "",
+      "team_id": "",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  channelLeaveHandler={[Function]}
+  icon={
+    <ProfilePicture
+      hasMention={false}
+      isEmoji={false}
+      isRHS={false}
+      newStatusIcon={true}
+      popoverPlacement="right"
+      size="xs"
+      src="/api/v4/users/user_id/image"
+      status=""
+      statusClass="DirectChannel__status-icon "
+      wrapperClass="DirectChannel__profile-picture"
+    />
+  }
+  label="channel_display_name"
+  link="/team_name/messages/@some-user"
+  teammateId="user_id"
+/>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with current user 1`] = `
+<Connect(SidebarChannelLink)
+  channel={
+    Object {
+      "create_at": 0,
+      "creator_id": "",
+      "delete_at": 0,
+      "display_name": "channel_display_name",
+      "group_constrained": false,
+      "header": "",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "",
+      "purpose": "",
+      "scheme_id": "",
+      "team_id": "",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  channelLeaveHandler={[Function]}
+  icon={
+    <ProfilePicture
+      hasMention={false}
+      isEmoji={false}
+      isRHS={false}
+      newStatusIcon={true}
+      popoverPlacement="right"
+      size="xs"
+      src="/api/v4/users/user_id/image"
+      statusClass="DirectChannel__status-icon "
+      wrapperClass="DirectChannel__profile-picture"
+    />
+  }
+  label="channel_display_name (you)"
+  link="/team_name/messages/@some-user"
+  teammateId="user_id"
+/>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with deleted user 1`] = `
+<Connect(SidebarChannelLink)
+  channel={
+    Object {
+      "create_at": 0,
+      "creator_id": "",
+      "delete_at": 0,
+      "display_name": "channel_display_name",
+      "group_constrained": false,
+      "header": "",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "",
+      "purpose": "",
+      "scheme_id": "",
+      "team_id": "",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  channelLeaveHandler={[Function]}
+  icon={
+    <i
+      className="icon icon-archive-outline"
+    />
+  }
+  label="channel_display_name"
+  link="/team_name/messages/@some-user"
+  teammateId="user_id"
+/>
+`;
