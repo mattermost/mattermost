@@ -48,42 +48,9 @@ func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTe
 		return nil, err
 	}
 
-	if err = a.CopyCardFiles(boardID, blocks, asTemplate); err != nil {
-		a.logger.Error("Could not copy files while duplicating board", mlog.String("BoardID", boardID), mlog.Err(err))
-	}
-
-	// bab.Blocks now has updated file ids for any blocks containing files.  We need to store them.
-	blockIDs := make([]string, 0)
-	blockPatches := make([]model.BlockPatch, 0)
-	for _, block := range blocks {
-		fieldName := ""
-		if block.Type == model.TypeImage {
-			fieldName = "fileId"
-		} else if block.Type == model.TypeAttachment {
-			fieldName = "attachmentId"
-		}
-		if fieldName != "" {
-			if fieldID, ok := block.Fields[fieldName]; ok {
-				a.logger.Debug("Appending" + block.ID + " " + fieldID.(string))
-				blockIDs = append(blockIDs, block.ID)
-				blockPatches = append(blockPatches, model.BlockPatch{
-					UpdatedFields: map[string]interface{}{
-						fieldName: fieldID,
-					},
-				})
-			}
-		}
-	}
-	a.logger.Debug("Duplicate boards patching file IDs", mlog.Int("count", len(blockIDs)))
-
-	if len(blockIDs) != 0 {
-		patches := &model.BlockPatchBatch{
-			BlockIDs:     blockIDs,
-			BlockPatches: blockPatches,
-		}
-		if err = a.store.PatchBlocks(patches, userID); err != nil {
-			return nil, fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
-		}
+	err = a.CopyAndUpdateCardFiles(boardID, blocks, asTemplate, userID)
+	if err != nil {
+		return nil, err
 	}
 
 	a.blockChangeNotifier.Enqueue(func() error {
@@ -331,6 +298,48 @@ func (a *App) InsertBlocksAndNotify(blocks []*model.Block, modifiedByID string, 
 	}()
 
 	return blocks, nil
+}
+
+func (a *App) CopyAndUpdateCardFiles(boardID string, blocks []*model.Block, asTemplate bool, userID string) error {
+	if err := a.CopyCardFiles(boardID, blocks, asTemplate); err != nil {
+		a.logger.Error("Could not copy files while duplicating board", mlog.String("BoardID", boardID), mlog.Err(err))
+	}
+
+	// bab.Blocks now has updated file ids for any blocks containing files.  We need to store them.
+	blockIDs := make([]string, 0)
+	blockPatches := make([]model.BlockPatch, 0)
+	for _, block := range blocks {
+		fieldName := ""
+		if block.Type == model.TypeImage {
+			fieldName = "fileId"
+		} else if block.Type == model.TypeAttachment {
+			fieldName = "attachmentId"
+		}
+		if fieldName != "" {
+			if fieldID, ok := block.Fields[fieldName]; ok {
+				a.logger.Debug("Appending" + block.ID + " " + fieldID.(string))
+				blockIDs = append(blockIDs, block.ID)
+				blockPatches = append(blockPatches, model.BlockPatch{
+					UpdatedFields: map[string]interface{}{
+						fieldName: fieldID,
+					},
+				})
+			}
+		}
+	}
+	a.logger.Debug("Duplicate boards patching file IDs", mlog.Int("count", len(blockIDs)))
+
+	if len(blockIDs) != 0 {
+		patches := &model.BlockPatchBatch{
+			BlockIDs:     blockIDs,
+			BlockPatches: blockPatches,
+		}
+		if err := a.store.PatchBlocks(patches, userID); err != nil {
+			return nil, fmt.Errorf("could not patch file IDs while duplicating board %s: %w", boardID, err)
+		}
+	}
+
+	return nil
 }
 
 func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, asTemplate bool) error {

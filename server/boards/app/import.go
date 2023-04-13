@@ -135,6 +135,7 @@ func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[strin
 			a.logger.Info(fmt.Sprintf("cannot retreive imported blocks for board %s: %w", boardID, err))
 			return
 		}
+
 		for _, block := range newBlocks {
 			a.logger.Debug("block type",
 				mlog.String("block", block.Type.String()),
@@ -157,7 +158,7 @@ func (a *App) fixImagesAttachments(boardMap map[string]string, fileMap map[strin
 		}
 
 		blockPatchBatch := model.BlockPatchBatch{blockIDs, blockPatches}
-		a.PatchBlocksAndNotify(teamID, &blockPatchBatch, userId, false)
+		a.PatchBlocks(teamID, &blockPatchBatch, userId)
 	}
 }
 
