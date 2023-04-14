@@ -34,6 +34,9 @@ func (a *App) SaveFile(reader io.Reader, teamID, boardID, filename string, asTem
 	newFileName := fmt.Sprintf(`%s%s`, createdFilename, fileExtension)
 	filePath := filepath.Join(utils.GetBaseFilePath(), newFileName)
 
+	// if saving a file for a template, save using the "old method" that is /teamID/boardID/fileName
+	// this will prevent template files from being deleted by DataRetention,
+	// which deletes all files inside the "date" subdirectory
 	if asTemplate {
 		filePath = filepath.Join(teamID, boardID, filename)
 		newFileName = filename
@@ -85,7 +88,6 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 	// will be the fileinfo id.
 	parts := strings.Split(filename, ".")
 	fileInfoID := parts[0][1:]
-	a.logger.Debug(fileInfoID)
 	fileInfo, err := a.store.GetFileInfo(fileInfoID)
 	if err != nil {
 		return nil, err

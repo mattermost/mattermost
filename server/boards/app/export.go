@@ -117,7 +117,11 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 
 	// write the files
 	for _, filename := range files {
-		if err := a.writeArchiveFile(zw, filename, board.ID, opt); err != nil {
+		_, filePath, err := a.GetFilePath(board.TeamID, board.ID, filename)
+		if err != nil {
+			return fmt.Errorf("error retreiving filePath, cannot write file %s to archive: %w", filename, err)
+		}
+		if err := a.writeArchiveFile(zw, filePath, board.ID, opt); err != nil {
 			return fmt.Errorf("cannot write file %s to archive: %w", filename, err)
 		}
 	}

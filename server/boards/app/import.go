@@ -106,7 +106,7 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 			)
 		}
 
-		a.logger.Debug("import archive file",
+		a.logger.Trace("import archive file",
 			mlog.String("dir", dir),
 			mlog.String("filename", filename),
 		)
@@ -115,9 +115,6 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 
 // Update image and attachment blocks
 func (a *App) fixImagesAttachments(boardMap map[string]*model.Board, fileMap map[string]string, teamID string, userId string) {
-
-	a.logger.Debug("update files")
-
 	blockIDs := make([]string, 0)
 	blockPatches := make([]model.BlockPatch, 0)
 	for _, board := range boardMap {
