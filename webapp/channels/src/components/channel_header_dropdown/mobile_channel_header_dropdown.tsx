@@ -45,7 +45,7 @@ class MobileChannelHeaderDropdown extends React.PureComponent<Props> {
             return displayName;
         }
         return channel.display_name;
-    }
+    };
 
     render() {
         const {teammateIsBot, teammateStatus} = this.props;

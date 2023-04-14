@@ -84,7 +84,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 mentionHighlight,
                 editedAt,
             };
-        })
+        });
 
     render() {
         let {message} = this.props;

@@ -77,7 +77,7 @@ export default class DataPrefetch extends React.PureComponent<Props> {
             }
         }
         return this.props.actions.prefetchChannelPosts(channelId, delay);
-    }
+    };
 
     private prefetchData = () => {
         const {prefetchRequestStatus, prefetchQueueObj} = this.props;
@@ -93,7 +93,7 @@ export default class DataPrefetch extends React.PureComponent<Props> {
                 }
             }
         }
-    }
+    };
 
     render() {
         return null;
