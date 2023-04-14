@@ -51,9 +51,6 @@ type FeatureFlags struct {
 
 	CommandPalette bool
 
-	// Enable Boards as a product (multi-product architecture)
-	BoardsProduct bool
-
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
 
@@ -77,6 +74,12 @@ type FeatureFlags struct {
 	GlobalDrafts bool
 
 	OnboardingTourTips bool
+
+	DeprecateCloudFree bool
+
+	AppsSidebarCategory bool
+
+	CloudReverseTrial bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -95,17 +98,19 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.BoardsProduct = false
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = false
+	f.WorkTemplate = true
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
+	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
-	f.OnboardingAutoShowLinkedBoard = true
+	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
+	f.AppsSidebarCategory = false
+	f.CloudReverseTrial = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

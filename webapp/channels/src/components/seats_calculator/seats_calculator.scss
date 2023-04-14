@@ -2,6 +2,10 @@
     padding: 14px 0;
     font-size: 14px;
 
+    .Input___customMessage.Input___error {
+        line-height: 14px;
+    }
+
     &__seats-item {
         position: relative;
         display: flex;

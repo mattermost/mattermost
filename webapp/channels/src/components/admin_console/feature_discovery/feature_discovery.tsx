@@ -97,7 +97,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 callerCTA: 'feature_discovery_subscribe_button',
             },
         });
-    }
+    };
 
     contactSalesFunc = () => {
         const {customer, isCloud} = this.props;
@@ -107,7 +107,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         const companyName = customer?.name || '';
         const utmMedium = isCloud ? 'in-product-cloud' : 'in-product';
         goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, 'mattermost', utmMedium);
-    }
+    };
 
     renderPostTrialCta = () => {
         const {
@@ -164,7 +164,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
             </div>
         );
-    }
+    };
 
     renderStartTrial = (learnMoreURL: string, gettingTrialError: React.ReactNode) => {
         const {
@@ -317,7 +317,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 </p>}
             </>
         );
-    }
+    };
 
     render() {
         const {

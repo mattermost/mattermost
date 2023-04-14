@@ -17,7 +17,7 @@ stop: ## Stops webpack
 ifeq ($(OS),Windows_NT)
 	wmic process where "Caption='node.exe' and CommandLine like '%webpack%'" call terminate
 else
-	@pkill -f webpack || true
+	-@pkill -f webpack || true
 endif
 
 .PHONY: restart

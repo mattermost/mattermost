@@ -21,6 +21,7 @@ import './alert_banner.scss';
 export type ModeType = 'danger' | 'warning' | 'info' | 'success';
 
 export type AlertBannerProps = {
+    id?: string;
     mode: ModeType;
     title?: React.ReactNode;
     message?: React.ReactNode;
@@ -36,6 +37,7 @@ export type AlertBannerProps = {
 }
 
 const AlertBanner = ({
+    id,
     mode,
     title,
     message,
@@ -72,6 +74,7 @@ const AlertBanner = ({
 
     return (
         <div
+            data-testid={id}
             className={classNames(
                 'AlertBanner',
                 mode,

@@ -62,10 +62,10 @@ describe('Channel sidebar', () => {
         cy.url().should('include', `/${teamName}/channels/town-square`);
 
         // # Click the New Channel Dropdown button
-        cy.get('.AddChannelDropdown_dropdownButton').should('be.visible').click();
+        cy.uiGetLHSAddChannelButton().should('be.visible').click();
 
-        // # Click the Browse Channels dropdown item
-        cy.get('.AddChannelDropdown .MenuItem:contains(Browse Channels) button').should('be.visible').click();
+        // # Click the Browse channels dropdown item
+        cy.get('.AddChannelDropdown .MenuItem:contains(Browse channels) button').should('be.visible').click();
 
         // * Verify that the more channels modal is visible
         cy.get('.more-modal').should('be.visible');

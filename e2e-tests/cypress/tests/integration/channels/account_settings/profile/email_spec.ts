@@ -53,7 +53,7 @@ describe('Profile > Profile Settings > Email', () => {
 
     beforeEach(() => {
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
     });
 
     afterEach(() => {
@@ -174,7 +174,7 @@ describe('Profile > Profile Settings > Email', () => {
                 expect(subject).to.equal(`[${siteName}] Your email address has changed`);
             });
 
-            cy.uiOpenProfileModal();
+            cy.uiOpenProfileModal('Profile Settings');
 
             // * Verify new email address
             cy.get('#emailDesc').should('be.visible').should('have.text', email);

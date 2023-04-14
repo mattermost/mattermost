@@ -26,6 +26,7 @@ import {
     CreateSubscriptionRequest,
     Feedback,
     WorkspaceDeletionRequest,
+    NewsletterRequestBody,
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
@@ -2438,6 +2439,7 @@ export default class Client4 {
     ping = () => {
         return this.doFetch<{
             status: string;
+            ActiveSearchBackend: string;
         }>(
             `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
             {method: 'get'},
@@ -3897,6 +3899,13 @@ export default class Client4 {
         );
     };
 
+    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
+            {method: 'post', body: JSON.stringify(newletterRequestBody)},
+        );
+    };
+
     createPaymentMethod = async () => {
         return this.doFetch(
             `${this.getCloudRoute()}/payment`,
@@ -4259,7 +4268,7 @@ export default class Client4 {
     }
 
     cwsAvailabilityCheck = () => {
-        return this.doFetch<StatusOK>(
+        return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,
             {method: 'get'},
         );
