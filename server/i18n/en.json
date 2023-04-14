@@ -5932,6 +5932,10 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -6062,6 +6066,10 @@
   {
     "id": "app.plugin.signature_decode.app_error",
     "translation": "Unable to decode base64 signature."
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
