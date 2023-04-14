@@ -44,7 +44,6 @@ export async function loginByAPI(loginId: string, password: string, token = '', 
     if (ldapOnly) {
         data.ldap_only = 'true';
     }
-
     // Log in via API
     await requestContext.post(`${testConfig.baseURL}/api/v4/users/login`, {
         data,
