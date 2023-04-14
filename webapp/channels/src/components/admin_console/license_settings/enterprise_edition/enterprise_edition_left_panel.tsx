@@ -100,7 +100,7 @@ const EnterpriseEditionLeftPanel = ({
     );
 
     const handleClickAddSeats = () => {
-        if (!isSelfHostedExpansionEnabled && !canExpand) {
+        if (!isSelfHostedExpansionEnabled || !canExpand) {
             window.open(expandableLink(unsanitizedLicense.Id), '_blank');
         } else {
             selfHostedExpansionModal.open();
