@@ -138,9 +138,9 @@ func TestApp_ImportArchive(t *testing.T) {
 		th.Store.EXPECT().GetUserByID("hxxzooc3ff8cubsgtcmpn8733e").AnyTimes().Return(user2, nil)
 		th.Store.EXPECT().GetUserByID("nto73edn5ir6ifimo5a53y1dwa").AnyTimes().Return(user3, nil)
 
-		board, err := th.App.ImportBoardJSONL(r, opts)
-		require.Equal(t, board.ID, board.ID, "Board ID should be same")
+		newBoard, err := th.App.ImportBoardJSONL(r, opts)
 		require.NoError(t, err, "import archive should not fail")
+		require.Equal(t, board.ID, newBoard.ID, "Board ID should be same")
 	})
 
 	t.Run("fix image and attachment", func(t *testing.T) {
