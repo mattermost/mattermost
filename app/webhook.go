@@ -96,10 +96,26 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 
 func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
 
+	var jsonBytes []byte
+	var err error
+
+	contentType := "application/x-www-form-urlencoded"
+	if hook.ContentType == "application/json" {
+		contentType = "application/json"
+		jsonBytes, err = json.Marshal(payload)
+		if err != nil {
+			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			return
+		}
+	}
+
 	for i := range hook.CallbackURLs {
 		var body io.Reader
-		var contentType string
 		if hook.ContentType == "application/json" {
+			body = bytes.NewReader(jsonBytes)
+		} else {
+			body = strings.NewReader(payload.ToFormValues())
+		}
 			js, err := json.Marshal(payload)
 			if err != nil {
 				c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
