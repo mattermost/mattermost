@@ -65,9 +65,8 @@ const EnterpriseEditionLeftPanel = ({
     const actionQueryParam = query.get('action');
 
     useEffect(() => {
-        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedExpansionEnabled) {
+        if (actionQueryParam === 'show_expansion_modal') {
             selfHostedExpansionModal.open();
-            query.set('action', '');
         }
     }, []);
 
@@ -100,7 +99,7 @@ const EnterpriseEditionLeftPanel = ({
     );
 
     const handleClickAddSeats = () => {
-        if (!isSelfHostedExpansionEnabled && !canExpand) {
+        if (!isSelfHostedExpansionEnabled || !canExpand) {
             window.open(expandableLink(unsanitizedLicense.Id), '_blank');
         } else {
             selfHostedExpansionModal.open();
