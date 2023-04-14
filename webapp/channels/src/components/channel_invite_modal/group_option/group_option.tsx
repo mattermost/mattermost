@@ -2,19 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
 
 import {Group} from '@mattermost/types/groups';
 import {AccountMultipleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 import {GlobalState} from '@mattermost/types/store';
 import {UserProfile} from '@mattermost/types/users';
 import {Value} from 'components/multiselect/multiselect';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 
-import {getTeamMembersByIds} from 'mattermost-redux/actions/teams';
 import Constants from 'utils/constants';
 
 type UserProfileValue = Value & UserProfile;
@@ -24,7 +22,6 @@ export type Props = {
     group: GroupValue;
     isSelected: boolean;
     rowSelected: string;
-    teamId: string;
     selectedItemRef: React.RefObject<HTMLDivElement>;
     onMouseMove: (group: GroupValue) => void;
     addUserProfile: (profile: UserProfileValue) => void;
@@ -37,13 +34,10 @@ const GroupOption = (props: Props) => {
         group,
         isSelected,
         rowSelected,
-        teamId,
         selectedItemRef,
         onMouseMove,
         addUserProfile,
     } = props;
-
-    const dispatch = useDispatch();
 
     const getProfilesByIdsAndUsernames = makeGetProfilesByIdsAndUsernames();
 
@@ -55,11 +49,11 @@ const GroupOption = (props: Props) => {
         return '';
     });
 
-    const onAdd = useCallback(() => {
+    const onAdd = () => {
         for (const profile of profiles) {
             addUserProfile(profile);
         }
-    }, [addUserProfile, profiles]);
+    };
 
     const onKeyDown = useCallback((e: KeyboardEvent) => {
         if (e.key === Constants.KeyCodes.ENTER[0] && isSelected) {
@@ -69,18 +63,11 @@ const GroupOption = (props: Props) => {
     }, [isSelected, onAdd]);
 
     useEffect(() => {
-        if (group.member_ids && group.member_ids.length > 0) {
-            dispatch(getMissingProfilesByIds(group.member_ids));
-            dispatch(getTeamMembersByIds(teamId, group.member_ids));
-        }
-    }, [group.member_ids]);
-
-    useEffect(() => {
         // Bind the event listener
         document.addEventListener('keydown', onKeyDown, true);
         return () => {
             // Unbind the event listener on clean up
-            document.removeEventListener('keydown', onKeyDown);
+            document.removeEventListener('keydown', onKeyDown, true);
         };
     }, [isSelected, onAdd, onKeyDown]);
 

@@ -4,6 +4,7 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import {isEqual} from 'lodash';
 
 import GuestTag from 'components/widgets/tag/guest_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -71,11 +72,13 @@ export type Props = {
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         closeModal: (modalId: string) => void;
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearachParams) => Promise<ActionResult>;
+        getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
 }
 
 type State = {
     values: UserProfileValue[];
+    optionValues: Array<UserProfileValue | GroupValue>;
     usersNotInTeam: UserProfileValue[];
     guestsNotInTeam: UserProfileValue[];
     term: string;
@@ -105,6 +108,8 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             show: true,
             saving: false,
             loadingUsers: true,
+            selectedValue: null,
+            optionValues: [],
         } as State;
     }
 
@@ -154,7 +159,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         }
 
         this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
-    }
+    };
 
     private removeUsersFromValuesNotInTeam = (profiles: UserProfile[]): void => {
         const usersNotInTeam: UserProfileValue[] = Object.assign([], this.state.usersNotInTeam);
@@ -166,11 +171,11 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             }
         }
         this.setState({usersNotInTeam: [...usersNotInTeam], guestsNotInTeam: []});
-    }
+    };
 
     clearValuesNotInTeam = (): void => {
         this.setState({usersNotInTeam: [], guestsNotInTeam: []});
-    }
+    };
 
     public componentDidMount(): void {
         this.props.actions.getProfilesNotInChannel(this.props.channel.team_id, this.props.channel.id, this.props.channel.group_constrained, 0).then(() => {
@@ -181,6 +186,64 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         this.props.actions.loadStatusesForProfilesList(this.props.profilesNotInCurrentChannel);
         this.props.actions.loadStatusesForProfilesList(this.props.profilesInCurrentChannel);
     }
+
+    public async componentDidUpdate() {
+        const values = this.getOptions();
+
+        const userIds: string[] = [];
+
+        for (let index = 0; index < values.length; index++) {
+            const newValue = values[index];
+            if ('username' in newValue) {
+                userIds.push(newValue.id);
+            } else if (newValue.member_ids) {
+                userIds.push(...newValue.member_ids);
+            }
+        }
+
+        if (!isEqual(values, this.state.optionValues)) {
+            if (userIds.length > 0) {
+                this.props.actions.getTeamMembersByIds(this.props.channel.team_id, userIds);
+            }
+            this.setState({optionValues: values});
+        }
+    }
+
+    public getOptions = () => {
+        let excludedAndNotInTeamUserIds: Set<string>;
+        if (this.props.excludeUsers) {
+            excludedAndNotInTeamUserIds = new Set(...this.props.profilesNotInCurrentTeam.map((user) => user.id), Object.values(this.props.excludeUsers).map((user) => user.id));
+        } else {
+            excludedAndNotInTeamUserIds = new Set(this.props.profilesNotInCurrentTeam.map((user) => user.id));
+        }
+        let users: Array<UserProfileValue | GroupValue> = this.filterOutDeletedAndExcludedAndNotInTeamUsers(
+            filterProfilesStartingWithTerm(
+                this.props.profilesNotInCurrentChannel.concat(this.props.profilesInCurrentChannel),
+                this.state.term),
+            excludedAndNotInTeamUserIds);
+
+        if (this.props.includeUsers) {
+            const includeUsers = Object.values(this.props.includeUsers);
+            users = [...users, ...includeUsers];
+        }
+        const dmUsers = this.filterOutDeletedAndExcludedAndNotInTeamUsers(
+            filterProfilesStartingWithTerm(this.props.profilesFromRecentDMs, this.state.term),
+            excludedAndNotInTeamUserIds).
+            slice(0, USERS_FROM_DMS) as UserProfileValue[];
+
+        const groupsAndUsers = [
+            ...filterGroupsMatchingTerm(this.props.groups, this.state.term) as GroupValue[],
+            ...users,
+        ].sort(sortUsersAndGroups);
+        let optionValues = [
+            ...dmUsers,
+            ...groupsAndUsers,
+        ].slice(0, MAX_USERS);
+
+        optionValues = Array.from(new Set(optionValues));
+
+        return optionValues;
+    };
 
     public onHide = (): void => {
         this.setState({show: false});
@@ -300,7 +363,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             return option.username;
         }
         return option.name;
-    }
+    };
 
     private filterOutDeletedAndExcludedAndNotInTeamUsers = (users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
         return users.filter((user) => {
@@ -373,7 +436,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             <GroupOption
                 group={option}
                 key={option.id}
-                teamId={this.props.channel.team_id}
                 addUserProfile={onAdd}
                 isSelected={isSelected}
                 rowSelected={rowSelected}
@@ -403,37 +465,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
 
         const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
         const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
-        let excludedAndNotInTeamUserIds: Set<string>;
-        if (this.props.excludeUsers) {
-            excludedAndNotInTeamUserIds = new Set(...this.props.profilesNotInCurrentTeam.map((user) => user.id), Object.values(this.props.excludeUsers).map((user) => user.id));
-        } else {
-            excludedAndNotInTeamUserIds = new Set(this.props.profilesNotInCurrentTeam.map((user) => user.id));
-        }
-        let users: Array<UserProfileValue | GroupValue> = this.filterOutDeletedAndExcludedAndNotInTeamUsers(
-            filterProfilesStartingWithTerm(
-                this.props.profilesNotInCurrentChannel.concat(this.props.profilesInCurrentChannel),
-                this.state.term),
-            excludedAndNotInTeamUserIds);
-
-        if (this.props.includeUsers) {
-            const includeUsers = Object.values(this.props.includeUsers);
-            users = [...users, ...includeUsers];
-        }
-        const dmUsers = this.filterOutDeletedAndExcludedAndNotInTeamUsers(
-            filterProfilesStartingWithTerm(this.props.profilesFromRecentDMs, this.state.term),
-            excludedAndNotInTeamUserIds).
-            slice(0, USERS_FROM_DMS) as UserProfileValue[];
-
-        const groupsAndUsers = [
-            ...filterGroupsMatchingTerm(this.props.groups, this.state.term) as GroupValue[],
-            ...users,
-        ].sort(sortUsersAndGroups);
-        let optionValues = [
-            ...dmUsers,
-            ...groupsAndUsers,
-        ].slice(0, MAX_USERS);
-
-        optionValues = Array.from(new Set(optionValues));
 
         const closeMembersInviteModal = () => {
             this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
@@ -477,7 +508,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         const content = (
             <MultiSelect
                 key='addUsersToChannelKey'
-                options={optionValues}
+                options={this.state.optionValues}
                 optionRenderer={this.renderOption}
                 selectedItemRef={this.selectedItemRef}
                 values={this.state.values}

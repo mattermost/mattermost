@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {getTeamStats} from 'mattermost-redux/actions/teams';
+import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -106,6 +106,7 @@ type Actions = {
     closeModal: (modalId: string) => void;
     getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearachParams) => Promise<ActionResult>;
+    getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -119,6 +120,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             searchProfiles,
             closeModal,
             searchAssociatedGroupsForReference,
+            getTeamMembersByIds,
         }, dispatch),
     };
 }
