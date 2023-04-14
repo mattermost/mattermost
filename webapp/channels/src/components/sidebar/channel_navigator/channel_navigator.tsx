@@ -11,6 +11,7 @@ import QuickSwitchModal from 'components/quick_switch_modal';
 import {ModalData} from 'types/actions';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import ChannelFilter from '../channel_filter';
@@ -123,7 +124,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                         defaultMessage='Find channel'
                     />
                     <div className={'SidebarChannelNavigator_shortcutText'}>
-                        {`${Utils.isMac() ? '⌘' : 'Ctrl+'}K`}
+                        {`${UserAgent.isMac() ? '⌘' : 'Ctrl+'}K`}
                     </div>
                 </button>
             </div>

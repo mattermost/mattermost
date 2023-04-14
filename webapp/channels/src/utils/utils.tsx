@@ -97,10 +97,6 @@ export enum TimeInformation {
 export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
 export type TimeDirection = TimeInformation.FUTURE | TimeInformation.PAST;
 
-export function isMac() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-
 export function createSafeId(prop: {props: {defaultMessage: string}} | string): string | undefined {
     let str = '';
 
@@ -114,10 +110,12 @@ export function createSafeId(prop: {props: {defaultMessage: string}} | string): 
 }
 
 export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAlt = false) {
+    const isMac = UserAgent.isMac();
+
     if (allowAlt) {
-        return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
+        return (isMac && e.metaKey) || (!isMac && e.ctrlKey);
     }
-    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
+    return (isMac && e.metaKey) || (!isMac && e.ctrlKey && !e.altKey);
 }
 
 export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [string, number]) {
