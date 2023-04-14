@@ -6069,7 +6069,7 @@
   },
   {
     "id": "app.plugin.skip_installation.app_error",
-    "translation": "Skipping installation of plugin {{.Id}} since existing version is newer."
+    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
