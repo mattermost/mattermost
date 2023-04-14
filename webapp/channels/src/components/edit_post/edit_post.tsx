@@ -220,7 +220,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         actions.unsetEditingPost();
     };
 
-    const handleAutomatedRefocusAndExit = () => handleRefocusAndExit(editingPost.refocusId || null);
+    const handleAutomatedRefocusAndExit = () => {
+        draftRef.current = {
+            ...draftRef.current,
+            message: '',
+        };
+        handleRefocusAndExit(editingPost.refocusId || null);
+    };
 
     const handleEdit = async () => {
         if (!editingPost.post || isSaveDisabled()) {
