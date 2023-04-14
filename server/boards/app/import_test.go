@@ -138,8 +138,8 @@ func TestApp_ImportArchive(t *testing.T) {
 		th.Store.EXPECT().GetUserByID("hxxzooc3ff8cubsgtcmpn8733e").AnyTimes().Return(user2, nil)
 		th.Store.EXPECT().GetUserByID("nto73edn5ir6ifimo5a53y1dwa").AnyTimes().Return(user3, nil)
 
-		boardID, err := th.App.ImportBoardJSONL(r, opts)
-		require.Equal(t, board.ID, boardID, "Board ID should be same")
+		board, err := th.App.ImportBoardJSONL(r, opts)
+		require.Equal(t, board.ID, board.ID, "Board ID should be same")
 		require.NoError(t, err, "import archive should not fail")
 	})
 
@@ -197,7 +197,7 @@ func TestApp_ImportArchive(t *testing.T) {
 
 		blockPatchesBatch := model.BlockPatchBatch{BlockIDs: blockIDs, BlockPatches: blockPatches}
 
-		th.Store.EXPECT().GetBlocksForBoard("boardID").Return([]*model.Block{imageBlock, attachmentBlock}, nil)
+		th.Store.EXPECT().GetBlocksForBoard(imageBlock.BoardID).Return([]*model.Block{imageBlock, attachmentBlock}, nil)
 		th.Store.EXPECT().GetBlocksByIDs(blockIDs).Return([]*model.Block{imageBlock, attachmentBlock}, nil)
 		th.Store.EXPECT().GetBlock(blockIDs[0]).Return(imageBlock, nil)
 		th.Store.EXPECT().GetBlock(blockIDs[1]).Return(attachmentBlock, nil)
