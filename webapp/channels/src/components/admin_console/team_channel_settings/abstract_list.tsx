@@ -62,21 +62,21 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         const page = this.state.page < 1 ? 0 : this.state.page - 1;
         this.setState({page, loading: true});
         this.performSearch(page);
-    }
+    };
 
     nextPage = async (e: MouseEvent<HTMLButtonElement>): Promise<void> => {
         e.preventDefault();
         const page = this.state.page + 1;
         this.setState({page, loading: true});
         this.performSearch(page);
-    }
+    };
 
     renderHeader = (): JSX.Element | null => {
         if (this.props.data.length > 0) {
             return this.props.header;
         }
         return null;
-    }
+    };
 
     renderRows = (): JSX.Element | JSX.Element[] => {
         if (this.state.loading) {
@@ -98,7 +98,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
         }
         const offset = this.state.page * PAGE_SIZE;
         return this.props.data.slice(offset, offset + PAGE_SIZE).map(this.props.renderRow);
-    }
+    };
 
     performSearch = (page: number): void => {
         this.setState({loading: true});
@@ -109,7 +109,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
             }
             this.setState({loading: false});
         });
-    }
+    };
 
     getPaging(): Paging {
         const startCount = (this.state.page * PAGE_SIZE) + 1;
@@ -175,5 +175,5 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                 </div>}
             </div>
         );
-    }
+    };
 }

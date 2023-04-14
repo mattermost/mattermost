@@ -84,11 +84,11 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
 
     show = () => {
         this.setState({show: true});
-    }
+    };
 
     hide = () => {
         this.setState({show: false});
-    }
+    };
 
     private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
         event.preventDefault();
@@ -110,7 +110,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         } else if (event.currentTarget.id === id && action) {
             action(postId);
         }
-    }
+    };
 
     handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (Utils.isKeyPressed(event, Constants.KeyCodes.ENTER)) {
@@ -136,7 +136,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                 this.hide();
             }
         }
-    }
+    };
 
     public render() {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex} = this.props;

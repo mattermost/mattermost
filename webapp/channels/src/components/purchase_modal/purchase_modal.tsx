@@ -424,11 +424,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             totalOwed += invoice.total;
         });
         return `$${totalOwed / 100}`;
-    }
+    };
 
     onPaymentInput = (billing: BillingDetails) => {
         this.setState({billingDetails: billing}, this.isFormComplete);
-    }
+    };
 
     isFormComplete = () => {
         let paymentInfoIsValid = areBillingDetailsValid(this.state.billingDetails) && this.state.cardInputComplete;
@@ -436,7 +436,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             paymentInfoIsValid = paymentInfoIsValid && areShippingDetailsValid(this.state.shippingAddress);
         }
         this.setState({paymentInfoIsValid});
-    }
+    };
 
     handleShippingSameAsBillingChange(value: boolean) {
         this.setState({billingSameAsShipping: value}, this.isFormComplete);
@@ -444,7 +444,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
 
     onShippingInput = (address: Address) => {
         this.setState({shippingAddress: {...this.state.shippingAddress, ...address}}, this.isFormComplete);
-    }
+    };
 
     handleCardInputChange = (event: StripeCardElementChangeEvent) => {
         this.setState({
@@ -452,7 +452,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 areBillingDetailsValid(this.state.billingDetails) && event.complete,
         });
         this.setState({cardInputComplete: event.complete});
-    }
+    };
 
     handleSubmitClick = async (callerInfo: string) => {
         const update = {
@@ -462,7 +462,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             processing: true,
         } as unknown as Pick<State, keyof State>;
         this.setState(update);
-    }
+    };
 
     confirmSwitchToAnnual = () => {
         const {customer} = this.props;
@@ -487,11 +487,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 },
             },
         });
-    }
+    };
 
     setIsUpgradeFromTrialToFalse = () => {
         this.setState({isUpgradeFromTrial: false});
-    }
+    };
 
     openPricingModal = (callerInfo: string) => {
         this.props.actions.openModal({
@@ -534,7 +534,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 {text}
             </ExternalLink>
         );
-    }
+    };
 
     learnMoreLink = () => {
         return (
@@ -555,7 +555,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </ExternalLink>
         );
-    }
+    };
 
     editPaymentInfoHandler = () => {
         this.setState((prevState: State) => {
@@ -564,7 +564,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 editPaymentInfo: !prevState.editPaymentInfo,
             };
         });
-    }
+    };
 
     paymentFooterText = () => {
         const normalPaymentText = (
@@ -633,7 +633,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             payment = prorratedPaymentText;
         }
         return payment;
-    }
+    };
 
     getPlanNameFromProductName = (productName: string): string => {
         if (productName.length > 0) {
@@ -642,7 +642,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return productName;
-    }
+    };
 
     getShippingAddressForProcessing = (): Address => {
         if (this.state.billingSameAsShipping) {
@@ -657,7 +657,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return this.state.shippingAddress as Address;
-    }
+    };
 
     handleViewBreakdownClick = () => {
         this.props.actions.openModal({
@@ -667,7 +667,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 invoices: this.props.invoices,
             },
         });
-    }
+    };
 
     purchaseScreenCard = () => {
         if (this.props.isDelinquencyModal) {
@@ -792,7 +792,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </>
         );
-    }
+    };
 
     purchaseScreen = () => {
         const title = (
@@ -916,7 +916,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 <div className='RHS'>{this.purchaseScreenCard()}</div>
             </div>
         );
-    }
+    };
 
     render() {
         if (this.props.isComplianceBlocked) {
