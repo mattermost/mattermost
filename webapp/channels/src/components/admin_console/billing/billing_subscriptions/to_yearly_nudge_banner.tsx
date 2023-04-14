@@ -16,7 +16,7 @@ import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selecto
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
-import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals} from 'utils/constants';
+import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals, CloudBillingTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import {GlobalState} from '@mattermost/types/store';
@@ -140,7 +140,7 @@ const ToYearlyNudgeBannerDismissable = () => {
         return null;
     }
 
-    if (subscription?.has_payment_method && (subscription.billing_type === 'internal' || subscription.billing_type === 'licensed')) {
+    if (subscription?.has_payment_method && (subscription.billing_type === CloudBillingTypes.INTERNAL || subscription.billing_type === CloudBillingTypes.LICENSED)) {
         return null;
     }
 
@@ -188,7 +188,7 @@ const ToYearlyNudgeBanner = () => {
         return null;
     }
 
-    if (subscription?.has_payment_method && (subscription.billing_type === 'internal' || subscription.billing_type === 'licensed')) {
+    if (subscription?.has_payment_method && (subscription.billing_type === CloudBillingTypes.INTERNAL || subscription.billing_type === CloudBillingTypes.LICENSED)) {
         return null;
     }
 
