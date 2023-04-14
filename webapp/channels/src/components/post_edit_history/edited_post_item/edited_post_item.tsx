@@ -29,7 +29,7 @@ import RestorePostModal from '../restore_post_modal';
 import {PropsFromRedux} from '.';
 import CompassThemeProvider from '../../compass_theme_provider/compass_theme_provider';
 import {useSelector} from 'react-redux';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getTheme, Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -54,12 +54,12 @@ const itemMessages = defineMessages({
 export type Props = PropsFromRedux & {
     post: Post;
     isCurrent?: boolean;
+    theme: Theme;
 }
 
-const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions}: Props) => {
+const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, actions}: Props) => {
     const {formatMessage} = useIntl();
     const [open, setOpen] = useState(isCurrent);
-    const theme = useSelector(getTheme);
 
     const openRestorePostModal = useCallback(() => {
         const restorePostModalData = {
