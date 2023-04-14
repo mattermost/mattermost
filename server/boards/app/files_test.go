@@ -210,7 +210,7 @@ func TestSaveFile(t *testing.T) {
 		}
 
 		mockedFileBackend.On("WriteFile", mockedReadCloseSeek, mock.Anything).Return(writeFileFunc, writeFileErrorFunc)
-		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", testBoardID, fileName)
+		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", testBoardID, fileName, false)
 		assert.Equal(t, fileName, actual)
 		assert.NoError(t, err)
 	})
@@ -234,7 +234,7 @@ func TestSaveFile(t *testing.T) {
 		}
 
 		mockedFileBackend.On("WriteFile", mockedReadCloseSeek, mock.Anything).Return(writeFileFunc, writeFileErrorFunc)
-		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", "test-board-id", fileName)
+		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", "test-board-id", fileName, false)
 		assert.NoError(t, err)
 		assert.NotNil(t, actual)
 	})
@@ -258,7 +258,7 @@ func TestSaveFile(t *testing.T) {
 		}
 
 		mockedFileBackend.On("WriteFile", mockedReadCloseSeek, mock.Anything).Return(writeFileFunc, writeFileErrorFunc)
-		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", "test-board-id", fileName)
+		actual, err := th.App.SaveFile(mockedReadCloseSeek, "1", "test-board-id", fileName, false)
 		assert.Equal(t, "", actual)
 		assert.Equal(t, "unable to store the file in the files storage: Mocked File backend error", err.Error())
 	})

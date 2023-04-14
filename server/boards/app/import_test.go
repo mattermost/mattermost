@@ -144,8 +144,8 @@ func TestApp_ImportArchive(t *testing.T) {
 	})
 
 	t.Run("fix image and attachment", func(t *testing.T) {
-		boardMap := map[string]string{
-			"test": "boardID",
+		boardMap := map[string]*model.Board{
+			"test": board,
 		}
 
 		fileMap := map[string]string{
