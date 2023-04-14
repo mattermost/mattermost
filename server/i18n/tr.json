@@ -3136,10 +3136,6 @@
     "translation": "Arama sonuçlarının kodu çözülemedi"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch zaten başlatılmış."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Elasticsearch toplu işlemi oluşturulamadı."
   },
