@@ -6,6 +6,8 @@ import React, {memo, useCallback, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import classNames from 'classnames';
 
+import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
@@ -15,6 +17,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 import {t} from 'utils/i18n';
 
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import OverlayTrigger from 'components/overlay_trigger';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -27,9 +30,6 @@ import InfoToast from 'components/info_toast/info_toast';
 import RestorePostModal from '../restore_post_modal';
 
 import {PropsFromRedux} from '.';
-import CompassThemeProvider from '../../compass_theme_provider/compass_theme_provider';
-import {useSelector} from 'react-redux';
-import {getTheme, Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
