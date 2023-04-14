@@ -7784,6 +7784,10 @@
     "translation": "Trying to index a new batch when all the entities are completed"
   },
   {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
