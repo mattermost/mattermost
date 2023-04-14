@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {useMeasurePunchouts} from '@mattermost/components';
+import {useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
 
 import {useShowTourTip} from './useShowTourTip';
 import OnboardingWorkTemplateTourTip from './worktemplate_explore_tour_tip';
@@ -12,7 +12,8 @@ import OnboardingWorkTemplateTourTip from './worktemplate_explore_tour_tip';
 export const PlaybooksTourTip = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const {playbooksCount, boardsCount, showPlaybooksTour} = useShowTourTip();
-    const overlayPunchOut = useMeasurePunchouts(['sidebar-right'], []);
+    const dimensions = useFollowElementDimensions('sidebar-right');
+    const overlayPunchOut = useMeasurePunchouts(['sidebar-right'], [dimensions?.width]);
 
     if (!showPlaybooksTour) {
         return null;
@@ -59,6 +60,7 @@ export const PlaybooksTourTip = (): JSX.Element | null => {
             overlayPunchOut={overlayPunchOut}
             placement='left-start'
             showOptOut={false}
+            interactivePunchOut={true}
         />
     );
 };

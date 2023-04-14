@@ -167,8 +167,9 @@ async function makeClient(userRequest?: UserRequest, useCache = true): Promise<C
 
         const userProfile = await client.login(userRequest.username, userRequest.password);
         const user = {...userProfile, password: userRequest.password};
-        const config = await client.getClientConfigOld();
-        client.setUseBoardsProduct(config.FeatureFlagBoardsProduct === 'true');
+
+        // Manually do until boards as product is consistent in all the codebase.
+        client.setUseBoardsProduct(true);
 
         if (useCache) {
             clients[cacheKey] = {client, user};

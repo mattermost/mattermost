@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {recycleDatabaseConnection} from 'actions/admin_actions.jsx';
+import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -19,6 +19,15 @@ import TextSetting from './text_setting';
 import MigrationsTable from './database';
 
 export default class DatabaseSettings extends AdminSettings {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            ...this.state,
+            searchBackend: '',
+        };
+    }
+
     getConfigFromState = (config) => {
         // driverName and dataSource are read-only from the UI
 
@@ -32,6 +41,17 @@ export default class DatabaseSettings extends AdminSettings {
         config.ServiceSettings.MinimumHashtagLength = this.parseIntNonZero(this.state.minimumHashtagLength, 3, 2);
 
         return config;
+    };
+
+    componentDidMount() {
+        this.getSearchBackend().then((searchBackend) => {
+            this.setState({searchBackend});
+        });
+    }
+
+    async getSearchBackend() {
+        const res = await ping()();
+        return res.ActiveSearchBackend;
     }
 
     getStateFromConfig(config) {
@@ -368,7 +388,31 @@ export default class DatabaseSettings extends AdminSettings {
                         </div>
                     </div>
                 </div>
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                    >
+                        <FormattedMessage
+                            id='admin.database.search_backend.title'
+                            defaultMessage='Active Search Backend:'
+                        />
+                    </label>
+                    <div className='col-sm-8'>
+                        <input
+                            type='text'
+                            className='form-control'
+                            value={this.state.searchBackend}
+                            disabled={true}
+                        />
+                        <div className='help-text'>
+                            <FormattedMessage
+                                id='admin.database.search_backend.help_text'
+                                defaultMessage='Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc.'
+                            />
+                        </div>
+                    </div>
+                </div>
             </SettingsGroup>
         );
-    }
+    };
 }

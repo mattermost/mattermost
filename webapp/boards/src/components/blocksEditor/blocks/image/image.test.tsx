@@ -13,7 +13,7 @@ jest.mock('src/octoClient')
 
 describe('components/blocksEditor/blocks/image', () => {
     test('should match Display snapshot', async () => {
-        const mockedOcto = mocked(octoClient, true)
+        const mockedOcto = mocked(octoClient)
         mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
         const Component = ImageBlock.Display
         const {container} = render(

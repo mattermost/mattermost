@@ -69,7 +69,7 @@ const mockCreatedIntent = SelfHostedSignupProgress.CREATED_INTENT;
 const mockCreatedLicense = SelfHostedSignupProgress.CREATED_LICENSE;
 const failOrg = 'failorg';
 
-const existingUsers = 10;
+const existingUsers = 11;
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');
@@ -255,7 +255,7 @@ describe('SelfHostedPurchaseModal', () => {
         // check title, and some of the most prominent details and secondary actions
         screen.getByText('Provide your payment details');
         screen.getByText('Contact Sales');
-        screen.getByText('USD per user/month', {exact: false});
+        screen.getByText('USD per seat/month', {exact: false});
         screen.getByText('billed annually', {exact: false});
         screen.getByText(productName);
         screen.getByText('You will be billed today. Your license will be applied automatically', {exact: false});
@@ -275,7 +275,17 @@ describe('SelfHostedPurchaseModal', () => {
         const tooFewSeats = existingUsers - 1;
         fireEvent.change(screen.getByTestId('selfHostedPurchaseSeatsInput'), valueEvent(tooFewSeats.toString()));
         expect(screen.getByText('Upgrade')).toBeDisabled();
-        screen.getByText('Your workspace currently has 10 users', {exact: false});
+        screen.getByText('Your workspace currently has 11 users', {exact: false});
+    });
+
+    it('Minimum of 10 seats is required for sign up', () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        fillForm(defaultSuccessForm);
+
+        const tooFewSeats = 9;
+        fireEvent.change(screen.getByTestId('selfHostedPurchaseSeatsInput'), valueEvent(tooFewSeats.toString()));
+        expect(screen.getByText('Upgrade')).toBeDisabled();
+        screen.getByText('Minimum of 10 seats required', {exact: false});
     });
 
     it('happy path submit shows success screen', async () => {

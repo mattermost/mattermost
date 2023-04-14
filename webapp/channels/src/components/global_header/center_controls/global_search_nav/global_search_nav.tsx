@@ -4,7 +4,7 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import Flex from '@mattermost/compass-components/utilities/layout/Flex';
+import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
 
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 import Search from 'components/search';

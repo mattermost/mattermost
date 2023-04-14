@@ -7248,10 +7248,6 @@
     "translation": "返回至 {{.SiteName}}"
   },
   {
-    "id": "Channels",
-    "translation": "頻道"
-  },
-  {
     "id": "api.cloud.app_error",
     "translation": "雲端 API 請求時發生內部錯誤。"
   },
