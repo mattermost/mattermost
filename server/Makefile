@@ -129,7 +129,7 @@ DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Tests
-TESTS=^TestElasticsearchFixChannelIndexer$$
+TESTS=.
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'v6/server/playbooks|v6/server/boards')
@@ -167,7 +167,7 @@ else
 	IGNORE:=$(shell rm -f channels/imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/elasticsearch/...)
+EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES)
@@ -463,7 +463,9 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=true MM_DISABLE_BOARDS=false ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
+	MM_DISABLE_PLAYBOOKS=false MM_DISABLE_BOARDS=true ./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
