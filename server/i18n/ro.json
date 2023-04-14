@@ -3140,10 +3140,6 @@
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch este deja pornit."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nu s-a putut crea procesorul în bloc Elasticsearch."
   },

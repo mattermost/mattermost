@@ -3292,10 +3292,6 @@
     "translation": "Failed to create Elasticsearch bulk processor."
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Failed to decode search results"
   },
