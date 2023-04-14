@@ -247,7 +247,6 @@
   "admin.billing.history.date": "Data",
   "admin.billing.history.description": "Descrição",
   "admin.billing.history.noBillingHistory": "No futuro, é aqui que seu histórico de faturamento será exibido.",
-  "admin.billing.history.onPremUsers": "{num} usuários",
   "admin.billing.history.pageInfo": "{startRecord} - {endRecord} de {totalRecords}",
   "admin.billing.history.paid": "Pago",
   "admin.billing.history.paymentFailed": "Pagamento falhou",
