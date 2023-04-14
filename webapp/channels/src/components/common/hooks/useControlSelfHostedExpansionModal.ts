@@ -25,7 +25,6 @@ interface HookOptions{
 export default function useControlSelfHostedExpansionModal(options: HookOptions): ControlModal {
     const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
-    const canExpand = useCanSelfHostedExpand();
     const controlModal = useControlModal({
         modalId: ModalIdentifiers.SELF_HOSTED_EXPANSION,
         dialogType: SelfHostedExpansionModal,
@@ -35,9 +34,6 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
         return {
             ...controlModal,
             open: async () => {
-                if (!canExpand) {
-                    return;
-                }
 
                 const purchaseInProgress = localStorage.getItem(STORAGE_KEY_EXPANSION_IN_PROGRESS) === 'true';
 
