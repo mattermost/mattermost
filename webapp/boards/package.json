@@ -95,7 +95,6 @@
 		"@types/node": "16.11.7",
 		"@types/react": "17.0.53",
 		"@types/react-beautiful-dnd": "^13.1.2",
-		"@types/react-day-picker": "5.3.0",
 		"@types/react-dom": "17.0.19",
 		"@types/react-redux": "^7.1.23",
 		"@types/react-router-dom": "^5.3.3",
