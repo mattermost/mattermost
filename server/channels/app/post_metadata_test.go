@@ -2595,6 +2595,18 @@ func TestParseLinkMetadata(t *testing.T) {
 		}, dimensions)
 	})
 
+	t.Run("image with no content-type given", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "")
+		assert.NoError(t, err)
+
+		assert.Nil(t, og)
+		assert.Equal(t, &model.PostImage{
+			Format: "png",
+			Width:  408,
+			Height: 336,
+		}, dimensions)
+	})
+
 	t.Run("malformed image", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
 		assert.Error(t, err)
