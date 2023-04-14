@@ -30,7 +30,6 @@ import {
     getChannel,
     getChannelsNameMapInTeam,
     getMyChannelMemberships,
-    getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, getTeammateNameDisplaySetting, Theme, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -38,10 +37,6 @@ import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/s
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {
-    getCurrentRelativeTeamUrl,
-    getCurrentTeam,
-    getCurrentTeamId,
-    getTeam,
     getTeamByName,
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
@@ -197,41 +192,6 @@ export function isInRole(roles: string, inRole: string): boolean {
     }
 
     return false;
-}
-
-export function getTeamRelativeUrl(team: Team) {
-    if (!team) {
-        return '';
-    }
-
-    return '/' + team.name;
-}
-
-export function getPermalinkURL(state: GlobalState, teamId: Team['id'], postId: Post['id']): string {
-    let team = getTeam(state, teamId);
-    if (!team) {
-        team = getCurrentTeam(state);
-    }
-    return `${getTeamRelativeUrl(team)}/pl/${postId}`;
-}
-
-export function getChannelURL(state: GlobalState, channel: Channel, teamId: string): string {
-    let notificationURL;
-    if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
-        notificationURL = getCurrentRelativeTeamUrl(state) + '/channels/' + channel.name;
-    } else if (channel) {
-        const team = getTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + '/channels/' + channel.name;
-    } else if (teamId) {
-        const team = getTeam(state, teamId);
-        const redirectChannel = getRedirectChannelNameForTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + `/channels/${redirectChannel}`;
-    } else {
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        notificationURL = getCurrentRelativeTeamUrl(state) + `/channels/${redirectChannel}`;
-    }
-    return notificationURL;
 }
 
 export const notificationSounds = new Map([

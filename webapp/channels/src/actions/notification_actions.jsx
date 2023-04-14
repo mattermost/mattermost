@@ -14,6 +14,7 @@ import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {isThreadOpen} from 'selectors/views/threads';
+import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
@@ -178,10 +179,10 @@ export function sendDesktopNotification(post, msgProps) {
 
         if (notify) {
             const updatedState = getState();
-            let url = Utils.getChannelURL(updatedState, channel, teamId);
+            let url = getChannelURL(updatedState, channel, teamId);
 
             if (isCrtReply) {
-                url = Utils.getPermalinkURL(updatedState, teamId, post.id);
+                url = getPermalinkURL(updatedState, teamId, post.id);
             }
 
             dispatch(notifyMe(title, body, channel, teamId, !sound, soundName, url));
