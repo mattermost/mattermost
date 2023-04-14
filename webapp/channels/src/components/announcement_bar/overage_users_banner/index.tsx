@@ -21,6 +21,7 @@ import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/
 import './overage_users_banner.scss';
 import {getSiteURL} from 'utils/url';
 import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 type AdminHasDismissedItArgs = {
     preferenceName: string;
@@ -55,7 +56,8 @@ const OverageUsersBanner = () => {
         activeUsers,
         seatsPurchased,
     });
-    const canSelfHostedExpand = useCanSelfHostedExpand();
+    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
+    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedExpansionEnabled;
     const siteURL = getSiteURL();
     const prefixPreferences = isOver10PercerntPurchasedSeats ? 'error' : 'warn';
     const prefixLicenseId = (license.Id || '').substring(0, 8);
