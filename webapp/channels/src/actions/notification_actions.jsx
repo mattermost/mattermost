@@ -18,6 +18,7 @@ import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
+import * as NotificationSounds from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -189,7 +190,7 @@ export function sendDesktopNotification(post, msgProps) {
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {
-                Utils.ding(soundName);
+                NotificationSounds.ding(soundName);
             }
         }
     };

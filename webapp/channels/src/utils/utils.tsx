@@ -47,12 +47,6 @@ import {searchForTerm} from 'actions/post_actions';
 import {getHistory} from 'utils/browser_history';
 import * as UserAgent from 'utils/user_agent';
 import {isDesktopApp} from 'utils/user_agent';
-import bing from 'sounds/bing.mp3';
-import crackle from 'sounds/crackle.mp3';
-import down from 'sounds/down.mp3';
-import hello from 'sounds/hello.mp3';
-import ripple from 'sounds/ripple.mp3';
-import upstairs from 'sounds/upstairs.mp3';
 import {t} from 'utils/i18n';
 import store from 'stores/redux_store.jsx';
 
@@ -179,48 +173,6 @@ export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElemen
 
     // return the updated string so that component state can be updated
     return newValue;
-}
-
-export function isInRole(roles: string, inRole: string): boolean {
-    if (roles) {
-        const parts = roles.split(' ');
-        for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === inRole) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
-]);
-
-let canDing = true;
-export function ding(name: string) {
-    if (hasSoundOptions() && canDing) {
-        tryNotificationSound(name);
-        canDing = false;
-        setTimeout(() => {
-            canDing = true;
-        }, 3000);
-    }
-}
-
-export function tryNotificationSound(name: string) {
-    const audio = new Audio(notificationSounds.get(name) ?? notificationSounds.get('Bing'));
-    audio.play();
-}
-
-export function hasSoundOptions() {
-    return (!UserAgent.isEdge());
 }
 
 export function getDateForUnixTicks(ticks: number): Date {
