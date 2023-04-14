@@ -36,7 +36,6 @@ type Props = PreparingWorkspacePageProps & {
     createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null}>;
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
-    isSelfHosted: boolean;
 }
 
 const reportValidationError = debounce(() => {
@@ -117,9 +116,9 @@ const Organization = (props: Props) => {
         const thereIsAlreadyATeam = teams.length > 0;
         teamApiError.current = null;
 
-        if (!validation.error && !thereIsAlreadyATeam && props.isSelfHosted) {
+        if (!validation.error && !thereIsAlreadyATeam) {
             createTeamFromOrgName();
-        } else if (!validation.error && thereIsAlreadyATeam && props.isSelfHosted) {
+        } else if (!validation.error && thereIsAlreadyATeam) {
             updateTeamNameFromOrgName();
         }
 

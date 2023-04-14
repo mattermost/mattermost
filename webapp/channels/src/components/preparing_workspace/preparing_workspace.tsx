@@ -425,7 +425,6 @@ const PreparingWorkspace = (props: Props) => {
                     className='child-page'
                     createTeam={createTeam}
                     updateTeam={updateTeam}
-                    isSelfHosted={isSelfHosted}
                 />
 
                 <Plugins
