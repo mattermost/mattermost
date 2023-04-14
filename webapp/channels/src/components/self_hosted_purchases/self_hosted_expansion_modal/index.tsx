@@ -509,7 +509,7 @@ export default function SelfHostedExpansionModal() {
                             <SuccessPage
                                 onClose={() => {
                                     setFormState({...formState, submitting: false, error: '', succeeded: false});
-                                    closeModal(ModalIdentifiers.SELF_HOSTED_EXPANSION);
+                                    dispatch(closeModal(ModalIdentifiers.SELF_HOSTED_EXPANSION));
                                 }}
                             />
                         )}
