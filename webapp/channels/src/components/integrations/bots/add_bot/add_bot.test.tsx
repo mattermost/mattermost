@@ -3,11 +3,8 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
-import {FormattedMessage} from 'react-intl';
 
-// import TestHelper from 'mattermost-redux/test/test_helper';
 import {TestHelper} from 'utils/test_helper';
-import ExternalLink from 'components/external_link';
 
 import AddBot from './add_bot';
 
@@ -50,22 +47,7 @@ describe('components/integrations/bots/AddBot', () => {
                 value={''}
             />,
         )).toEqual(true);
-        expect(wrapper.containsMatchingElement(
-            <FormattedMessage
-                id='admin.manage_roles.additionalRoles'
-                defaultMessage='Select additional permissions for the account. <link>Read more about roles and permissions</link>.'
-                values={{
-                    link: (msg: React.ReactNode) => (
-                        <ExternalLink
-                            href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
-                            location='manage_roles_modal'
-                        >
-                            {msg}
-                        </ExternalLink>
-                    ),
-                }}
-            />,
-        )).toEqual(true);
+        expect(wrapper).toMatchSnapshot();
     });
 
     it('edit bot', () => {
