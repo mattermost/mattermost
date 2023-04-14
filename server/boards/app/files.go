@@ -273,9 +273,12 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 		destFilename := fileInfoID + ext
 
 		if destBoard == nil || block.BoardID != destBoard.ID {
-			destBoard, err = a.GetBoard(block.BoardID)
-			if err != nil {
-				return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
+			destBoard = sourceBoard
+			if block.BoardID != destBoard.ID {
+				destBoard, err = a.GetBoard(block.BoardID)
+				if err != nil {
+					return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
+				}
 			}
 		}
 
@@ -317,9 +320,10 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 				Content:         "",
 				RemoteId:        nil,
 			}
+		} else {
+			fileInfo.Id = fileInfoID[1:]
+			fileInfo.Path = destinationFilePath
 		}
-		fileInfo.Id = fileInfoID[1:]
-		fileInfo.Path = destinationFilePath
 		err = a.store.SaveFileInfo(fileInfo)
 		if err != nil {
 			return fmt.Errorf("CopyCardFiles: cannot create fileinfo: %w", err)
