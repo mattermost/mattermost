@@ -23,6 +23,7 @@ import './overage_users_banner_notice.scss';
 import ExternalLink from 'components/external_link';
 import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
 import {getSiteURL} from 'utils/url';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 type AdminHasDismissedArgs = {
     preferenceName: string;
@@ -45,7 +46,8 @@ const OverageUsersBannerNotice = () => {
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const overagePreferences = useSelector((state: GlobalState) => getPreferencesCategory(state, Preferences.OVERAGE_USERS_BANNER));
     const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
-    const canSelfHostedExpand = useCanSelfHostedExpand();
+    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
+    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedExpansionEnabled;
     const siteURL = getSiteURL();
 
     const {
