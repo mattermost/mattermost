@@ -89,20 +89,22 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// if it is an end user, return basic subscription data without sensitive information
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		subscription = &model.Subscription{
-			ID:              subscription.ID,
-			ProductID:       subscription.ProductID,
-			IsFreeTrial:     subscription.IsFreeTrial,
-			TrialEndAt:      subscription.TrialEndAt,
-			CustomerID:      "",
-			AddOns:          []string{},
-			StartAt:         0,
-			EndAt:           0,
-			CreateAt:        0,
-			Seats:           0,
-			Status:          "",
-			DNS:             "",
-			LastInvoice:     &model.Invoice{},
-			DelinquentSince: subscription.DelinquentSince,
+			ID:               subscription.ID,
+			ProductID:        subscription.ProductID,
+			IsFreeTrial:      subscription.IsFreeTrial,
+			TrialEndAt:       subscription.TrialEndAt,
+			CustomerID:       "",
+			AddOns:           []string{},
+			StartAt:          0,
+			EndAt:            0,
+			CreateAt:         0,
+			Seats:            0,
+			Status:           "",
+			DNS:              "",
+			LastInvoice:      &model.Invoice{},
+			DelinquentSince:  subscription.DelinquentSince,
+			HasPaymentMethod: false,
+			BillingType:      "",
 		}
 	}
 

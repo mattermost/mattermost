@@ -11,7 +11,7 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
-import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getSubscriptionProduct as selectSubscriptionProduct, getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
@@ -53,6 +53,7 @@ const ToYearlyNudgeBannerDismissable = () => {
     const show = snoozeInfo.show;
 
     const currentUser = useSelector(getCurrentUser);
+    const subscription = useSelector(selectCloudSubscription);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
@@ -139,6 +140,10 @@ const ToYearlyNudgeBannerDismissable = () => {
         return null;
     }
 
+    if (subscription?.has_payment_method && (subscription.billing_type === 'internal' || subscription.billing_type === 'licensed')) {
+        return null;
+    }
+
     const message = (
         <FormattedMessage
             id='cloud_billing.nudge_to_yearly.announcement_bar'
@@ -173,12 +178,17 @@ const ToYearlyNudgeBanner = () => {
     const [openSalesLink] = useOpenSalesLink();
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
+    const subscription = useSelector(selectCloudSubscription);
     const product = useSelector(selectSubscriptionProduct);
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
     const currentProductIsMonthly = product?.recurring_interval === RecurringIntervals.MONTH;
     const currentProductProMonthly = currentProductProfessional && currentProductIsMonthly;
 
     if (!currentProductProMonthly) {
+        return null;
+    }
+
+    if (subscription?.has_payment_method && (subscription.billing_type === 'internal' || subscription.billing_type === 'licensed')) {
         return null;
     }
 

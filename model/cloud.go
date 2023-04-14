@@ -179,6 +179,8 @@ type Subscription struct {
 	DelinquentSince         *int64   `json:"delinquent_since"`
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
 	ComplianceBlocked       string   `json:"compliance_blocked"`
+	HasPaymentMethod        bool     `json:"has_payment_method"`
+	BillingType             string   `json:"billing_type"`
 }
 
 // Subscription History model represents true up event in a yearly subscription
