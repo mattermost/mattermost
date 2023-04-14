@@ -137,7 +137,7 @@ class CloudTrialAnnouncementBar extends React.PureComponent<Props> {
 
         let trialMoreThan7DaysMsg = (
             <FormattedMessage
-                id='admin.billing.subscription.cloudTrial.moreThan3Days'
+                id='admin.billing.subscription.cloudTrial.daysLeft'
                 defaultMessage='Your trial has started! There are {daysLeftOnTrial} days left'
                 values={{daysLeftOnTrial}}
             />

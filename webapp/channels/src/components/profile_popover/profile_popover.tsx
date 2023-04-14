@@ -462,7 +462,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                     key='user-popover-last-active'
                 >
                     <FormattedMessage
-                        id='channel_header.lastActive'
+                        id='channel_header.lastOnline'
                         defaultMessage='Last online {timestamp}'
                         values={{
                             timestamp: (
