@@ -750,21 +750,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 		}
 	}
 
-	waitUntilWebhookResponseIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
-		go func() {
-			for i := 0; i < 5; i++ {
-				time.Sleep(time.Second)
-				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
-				if len(posts.Posts) > 0 {
-					for _, post := range posts.Posts {
-						createdPost <- post
-						return
-					}
-				}
-			}
-		}()
-	}
-
 	createOutgoingWebhook := func(channel *model.Channel, testCallBackURLs []string, th *TestHelper) (*model.OutgoingWebhook, *model.AppError) {
 		outgoingWebhook := model.OutgoingWebhook{
 			ChannelId:    channel.Id,
@@ -786,15 +771,15 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 		CallBackURLs []string
 	}
 
+	chanTs1 := make(chan string, 1)
 	ts1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"text": "sample response text from test server"}`))
-
+		chanTs1 <- "webhook received!"
 	}))
 	defer ts1.Close()
 
+	chanTs2 := make(chan string, 1)
 	ts2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"text": "sample response text from test server"}`))
-
+		chanTs2 <- "webhook received!"
 	}))
 	defer ts2.Close()
 
@@ -818,7 +803,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
-	createdPost := make(chan *model.Post)
 
 	for name, testCase := range getTestCases() {
 		t.Run(name, func(t *testing.T) {
@@ -833,15 +817,20 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 
 			th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
 
-			waitUntilWebhookResponseIsCreatedAsPost(channel, th, createdPost)
-
 			select {
-			case webhookPost := <-createdPost:
-				assert.Equal(t, webhookPost.Message, "sample response text from test server")
-				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
+			case webhookResponse := <-chanTs1:
+				assert.Equal(t, webhookResponse, "webhook received!")
 
 			case <-time.After(5 * time.Second):
-				require.Fail(t, "Timeout, webhook response not created as post")
+				require.Fail(t, "Timeout, webhook response not received")
+			}
+
+			select {
+			case webhookResponse := <-chanTs2:
+				assert.Equal(t, webhookResponse, "webhook received!")
+
+			case <-time.After(5 * time.Second):
+				require.Fail(t, "Timeout, webhook response not received")
 			}
 		})
 	}
