@@ -135,7 +135,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return g;
         });
         this.processGroupsChange(groups);
-    }
+    };
 
     handleSubmit = async () => {
         this.setState({showRemoveConfirmation: false, saving: true});
@@ -290,7 +290,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 getHistory().push('/admin_console/user_management/teams');
             }
         });
-    }
+    };
 
     setToggles = (syncChecked: boolean, allAllowedChecked: boolean, allowedDomainsChecked: boolean, allowedDomains: string) => {
         this.setState({
@@ -301,7 +301,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             allowedDomains,
         }, () => this.processGroupsChange(this.state.groups));
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     async processGroupsChange(groups: Group[]) {
         const {teamID, actions} = this.props;
@@ -348,7 +348,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         });
         this.setState({usersToAdd: {...usersToAddCopy}, usersToRemove: {...usersToRemove}, usersToRemoveCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     addUserToRemove = (user: UserProfile) => {
         let {usersToRemoveCount} = this.state;
@@ -362,26 +362,26 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         delete rolesToUpdate[user.id];
         this.setState({usersToRemove: {...usersToRemove}, usersToAdd: {...usersToAdd}, rolesToUpdate: {...rolesToUpdate}, usersToRemoveCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     addRolesToUpdate = (userId: string, schemeUser: boolean, schemeAdmin: boolean) => {
         const {rolesToUpdate} = this.state;
         rolesToUpdate[userId] = {schemeUser, schemeAdmin};
         this.setState({rolesToUpdate: {...rolesToUpdate}, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     handleGroupRemoved = (gid: string) => {
         const groups = this.state.groups.filter((g) => g.id !== gid);
         this.setState({totalGroups: this.state.totalGroups - 1});
         this.processGroupsChange(groups);
-    }
+    };
 
     handleGroupChange = (groupIDs: string[]) => {
         const groups = [...this.state.groups, ...groupIDs.map((gid) => this.props.allGroups[gid])];
         this.setState({totalGroups: this.state.totalGroups + groupIDs.length});
         this.processGroupsChange(groups);
-    }
+    };
 
     hideRemoveUsersModal = () => this.setState({showRemoveConfirmation: false});
 
@@ -395,19 +395,19 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         } else {
             this.handleSubmit();
         }
-    }
+    };
 
     teamToBeArchived = () => {
         const {isLocalArchived} = this.state;
         const isServerArchived = this.props.team.delete_at !== 0;
         return isLocalArchived && !isServerArchived;
-    }
+    };
 
     teamToBeRestored = () => {
         const {isLocalArchived} = this.state;
         const isServerArchived = this.props.team.delete_at !== 0;
         return !isLocalArchived && isServerArchived;
-    }
+    };
 
     onToggleArchive = () => {
         const {isLocalArchived, serverError, previousServerError} = this.state;

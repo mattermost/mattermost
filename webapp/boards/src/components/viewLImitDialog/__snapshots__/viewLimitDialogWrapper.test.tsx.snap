@@ -53,7 +53,7 @@ exports[`components/viewLimitDialog/ViewL]imitDialog show notify admin confirmat
           <p
             class="text-heading1"
           >
-            Notify your Admin to upgrade to our Professional or Enterprise plan to have unlimited views per boards, unlimited cards, and more.
+            Notify your Admin to upgrade to our Professional or Enterprise plan.
           </p>
         </div>
         <div
@@ -169,7 +169,7 @@ exports[`components/viewLimitDialog/ViewL]imitDialog show view limit dialog 1`] 
           <p
             class="text-heading1"
           >
-            Notify your Admin to upgrade to our Professional or Enterprise plan to have unlimited views per boards, unlimited cards, and more.
+            Notify your Admin to upgrade to our Professional or Enterprise plan.
           </p>
         </div>
         <div

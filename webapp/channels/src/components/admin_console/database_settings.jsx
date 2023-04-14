@@ -41,7 +41,7 @@ export default class DatabaseSettings extends AdminSettings {
         config.ServiceSettings.MinimumHashtagLength = this.parseIntNonZero(this.state.minimumHashtagLength, 3, 2);
 
         return config;
-    }
+    };
 
     componentDidMount() {
         this.getSearchBackend().then((searchBackend) => {
@@ -414,5 +414,5 @@ export default class DatabaseSettings extends AdminSettings {
                 </div>
             </SettingsGroup>
         );
-    }
+    };
 }

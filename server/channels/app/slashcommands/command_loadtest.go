@@ -629,7 +629,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c request.CTX, args *model.Comma
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/server/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".md"
@@ -683,7 +683,7 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c request.CTX, args *model.Comm
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/server/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".json"
