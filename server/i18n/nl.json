@@ -9829,5 +9829,45 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Contacteer de verkoopsafdeling"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Vandaag te voldoen"
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Gebruik `/playbook todo` om al je taken te zien."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Je hebt momenteel 0 runs lopen."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Runs in uitvoering"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Je hebt 0 runs achterstand."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Achterstallige statusupdates"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Kan commando niet uitvoeren."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS-server kan zich niet abonneren op nieuwsbrief."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Dienst alleen beschikbaar in Mattermost Enterprise editie"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   }
 ]
