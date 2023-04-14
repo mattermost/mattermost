@@ -90,6 +90,23 @@ const CLICKABLE_ELEMENTS = [
     'audio',
     'video',
 ];
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
+
+export enum TimeInformation {
+    MILLISECONDS = 'm',
+    SECONDS = 's',
+    MINUTES = 'x',
+    HOURS = 'h',
+    DAYS = 'd',
+    FUTURE = 'f',
+    PAST = 'p'
+}
+
+export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
+export type TimeDirection = TimeInformation.FUTURE | TimeInformation.PAST;
 
 export function isMac() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -256,13 +273,45 @@ export function getTimestamp(): number {
 }
 
 export function getRemainingDaysFromFutureTimestamp(timestamp?: number): number {
-    const MS_PER_DAY = 24 * 60 * 60 * 1000;
     const futureDate = new Date(timestamp as number);
     const utcFuture = Date.UTC(futureDate.getFullYear(), futureDate.getMonth(), futureDate.getDate());
     const today = new Date();
     const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
     return Math.floor((utcFuture - utcToday) / MS_PER_DAY);
+}
+
+export function addTimeToTimestamp(timestamp: number, type: TimeUnit, diff: number, timeline: TimeDirection) {
+    let modifier = 1;
+    switch (type) {
+    case TimeInformation.SECONDS:
+        modifier = MS_PER_SECOND;
+        break;
+    case TimeInformation.MINUTES:
+        modifier = MS_PER_MINUTE;
+        break;
+    case TimeInformation.HOURS:
+        modifier = MS_PER_HOUR;
+        break;
+    case TimeInformation.DAYS:
+        modifier = MS_PER_DAY;
+        break;
+    }
+
+    return timeline === TimeInformation.FUTURE ? timestamp + (diff * modifier) : timestamp - (diff * modifier);
+}
+
+/**
+ * Verifies if a date is in a particular given range of days from today
+ * @param timestamp date you want to check is in the range of the provided number of days from today
+ * @param days number of days you want to check your date against to
+ * @param timeline 'f' represents future, 'p' represents past
+ * @returns boolean, true if your date is in the range of the provided number of days
+ */
+export function isDateWithinDaysRange(timestamp: number, days: number, timeline: TimeDirection): boolean {
+    const today = new Date().getTime();
+    const daysSince = Math.round((today - timestamp) / MS_PER_DAY);
+    return timeline === TimeInformation.PAST ? daysSince <= days : daysSince >= days;
 }
 
 export function getLocaleDateFromUTC(timestamp: number, format = 'YYYY/MM/DD HH:mm:ss', userTimezone = '') {
@@ -1366,11 +1415,13 @@ export function getPasswordConfig(config: Partial<ClientConfig>) {
 
 export function isValidPassword(password: string, passwordConfig: ReturnType<typeof getPasswordConfig>, intl?: IntlShape) {
     let errorId = t('user.settings.security.passwordError');
+    const telemetryErrorIds = [];
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
 
     if (password.length < minimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
         valid = false;
+        telemetryErrorIds.push({field: 'password', rule: 'error_length'});
     }
 
     if (passwordConfig.requireLowercase) {
@@ -1379,6 +1430,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Lowercase';
+        telemetryErrorIds.push({field: 'password', rule: 'lowercase'});
     }
 
     if (passwordConfig.requireUppercase) {
@@ -1387,6 +1439,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Uppercase';
+        telemetryErrorIds.push({field: 'password', rule: 'uppercase'});
     }
 
     if (passwordConfig.requireNumber) {
@@ -1395,6 +1448,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Number';
+        telemetryErrorIds.push({field: 'password', rule: 'number'});
     }
 
     if (passwordConfig.requireSymbol) {
@@ -1403,6 +1457,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Symbol';
+        telemetryErrorIds.push({field: 'password', rule: 'symbol'});
     }
 
     let error;
@@ -1430,7 +1485,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         );
     }
 
-    return {valid, error};
+    return {valid, error, telemetryErrorIds};
 }
 
 function isChannelOrPermalink(link: string) {
@@ -1828,9 +1883,14 @@ export function getRoleForTrackFlow() {
     return {started_by_role: startedByRole};
 }
 
-export function getRoleFromTrackFlow() {
+export function getSbr() {
     const params = new URLSearchParams(window.location.search);
     const sbr = params.get('sbr') ?? '';
+    return sbr;
+}
+
+export function getRoleFromTrackFlow() {
+    const sbr = getSbr();
     const startedByRole = TrackFlowRoles[sbr] ?? '';
 
     return {started_by_role: startedByRole};

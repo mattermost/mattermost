@@ -25,7 +25,7 @@ import {
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS, Preferences} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DeletePostModal from 'components/delete_post_modal';
 import DelayedAction from 'utils/delayed_action';
 import * as PostUtils from 'utils/post_utils';
@@ -33,12 +33,10 @@ import * as Menu from 'components/menu';
 import * as Utils from 'utils/utils';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import {ModalData} from 'types/actions';
-import {PluginComponent} from 'types/store/plugins';
 
 import {UserThread} from '@mattermost/types/threads';
 import {Post} from '@mattermost/types/posts';
 import ForwardPostModal from '../forward_post_modal';
-import Tag from '../widgets/tag/tag';
 
 import {ChangeEvent, trackDotMenuEvent} from './utils';
 
@@ -70,19 +68,10 @@ type Props = {
     postEditTimeLimit?: string; // TechDebt: Made non-mandatory while converting to typescript
     enableEmojiPicker?: boolean; // TechDebt: Made non-mandatory while converting to typescript
     channelIsArchived?: boolean; // TechDebt: Made non-mandatory while converting to typescript
-    currentTeamUrl?: string; // TechDebt: Made non-mandatory while converting to typescript
     teamUrl?: string; // TechDebt: Made non-mandatory while converting to typescript
     isMobileView: boolean;
-    showForwardPostNewLabel: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
-
-    /**
-     * Components for overriding provided by plugins
-     */
-    components: {
-        [componentName: string]: PluginComponent[];
-    };
 
     actions: {
 
@@ -154,7 +143,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         isFlagged: false,
         isReadOnly: false,
         location: Locations.CENTER,
-    }
+    };
     private editDisableAction: DelayedAction;
     private buttonRef: React.RefObject<HTMLButtonElement>;
     private canPostBeForwarded: boolean;
@@ -210,7 +199,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
     handleEditDisable = (): void => {
         this.setState({canEdit: false});
-    }
+    };
 
     handleFlagMenuItemActivated = (e: ChangeEvent): void => {
         if (this.props.isFlagged) {
@@ -220,7 +209,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
             this.props.actions.flagPost(this.props.post.id);
         }
-    }
+    };
 
     // listen to clicks/taps on add reaction menu item and pass to parent handler
     handleAddReactionMenuItemActivated = (e: ChangeEvent): void => {
@@ -230,17 +219,17 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         if (this.props.handleAddReactionClick) {
             this.props.handleAddReactionClick();
         }
-    }
+    };
 
     copyLink = (e: ChangeEvent) => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
         Utils.copyToClipboard(`${this.props.teamUrl}/pl/${this.props.post.id}`);
-    }
+    };
 
     copyText = (e: ChangeEvent) => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
         Utils.copyToClipboard(this.props.post.message);
-    }
+    };
 
     handlePinMenuItemActivated = (e: ChangeEvent): void => {
         if (this.props.post.is_pinned) {
@@ -250,13 +239,13 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
             this.props.actions.pinPost(this.props.post.id);
         }
-    }
+    };
 
     handleMarkPostAsUnread = (e: ChangeEvent): void => {
         e.preventDefault();
         trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
         this.props.actions.markPostAsUnread(this.props.post, this.props.location);
-    }
+    };
 
     handleDeleteMenuItemActivated = (e: ChangeEvent): void => {
         e.preventDefault();
@@ -272,7 +261,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(deletePostModalData);
-    }
+    };
 
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
         if (!this.canPostBeForwarded) {
@@ -292,11 +281,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             },
         };
 
-        if (this.props.showForwardPostNewLabel) {
-            this.props.actions.setGlobalItem(Preferences.FORWARD_POST_VIEWED, false);
-        }
         this.props.actions.openModal(forwardPostModalData);
-    }
+    };
 
     handleEditMenuItemActivated = (e: ChangeEvent): void => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
@@ -307,7 +293,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.post.root_id ? Utils.localizeMessage('rhs_comment.comment', 'Comment') : Utils.localizeMessage('create_post.post', 'Post'),
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
-    }
+    };
 
     handleSetThreadFollow = (e: ChangeEvent) => {
         const {actions, teamId, threadId, userId, isFollowingThread, isMentionedInRootPost} = this.props;
@@ -331,16 +317,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             threadId,
             followingThread,
         );
-    }
+    };
 
     handleCommentClick = (e: ChangeEvent) => {
         trackDotMenuEvent(e, TELEMETRY_LABELS.REPLY);
         this.props.handleCommentClick?.(e);
-    }
+    };
 
     isKeyboardEvent = (e: React.KeyboardEvent): any => {
         return (e).getModifierState !== undefined;
-    }
+    };
 
     onShortcutKeyDown = (e: React.KeyboardEvent): void => {
         e.preventDefault();
@@ -410,17 +396,17 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleDropdownOpened(false);
             break;
         }
-    }
+    };
 
     handleDropdownOpened = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
         this.setState({closeMenuManually: true});
-    }
+    };
 
     handleMenuToggle = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
         this.setState({closeMenuManually: false});
-    }
+    };
 
     render(): JSX.Element {
         const {formatMessage} = this.props.intl;
@@ -441,15 +427,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     id='forward_post_button.label'
                     defaultMessage='Forward'
                 />
-                {this.props.showForwardPostNewLabel && (
-                    <Tag
-                        variant='success'
-                        text={formatMessage({
-                            id: 'tag.default.new',
-                            defaultMessage: 'NEW',
-                        })}
-                    />
-                )}
             </span>
         );
 
@@ -519,12 +496,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
-                    'aria-label': this.props.intl.formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'Actions'}),
+                    'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'Actions'}),
                     children: <DotsHorizontalIcon size={16}/>,
                 }}
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,
-                    'aria-label': this.props.intl.formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
+                    'aria-label': formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
                     onKeyDown: this.onShortcutKeyDown,
                     width: '264px',
                     onToggle: this.handleMenuToggle,
@@ -532,7 +509,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }}
                 menuButtonTooltip={{
                     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
-                    text: this.props.intl.formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'More'}),
+                    text: formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'More'}),
                     class: 'hidden-xs',
                 }}
             >

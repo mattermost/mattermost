@@ -14,7 +14,7 @@ import {mockStateStore, wrapIntl} from 'src/testUtils'
 import RHSChannelBoards from './rhsChannelBoards'
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(octoClient, true)
+const mockedOctoClient = mocked(octoClient)
 
 describe('components/rhsChannelBoards', () => {
     const board1 = createBoard()
