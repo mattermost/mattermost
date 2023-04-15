@@ -804,7 +804,16 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	for name, testCase := range getTestCases() {
+	for name, testCase := range map[string]struct{
+		CallBackURLs []string
+	} {
+		"One WebhookURL": {
+			CallBackURLs: []string{ts1.URL},
+		},
+		"Two WebhookURLs": {
+			CallBackURLs: []string{ts1.URL, ts2.URL},
+		},
+	} {
 		t.Run(name, func(t *testing.T) {
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
