@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {useDispatch, useSelector} from 'react-redux';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
-import {UserProfile} from 'mattermost-webapp/packages/types/src/users';
+import {UserProfile} from '@mattermost/types/users';
 import {sortByUsername} from 'mattermost-redux/utils/user_utils';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 

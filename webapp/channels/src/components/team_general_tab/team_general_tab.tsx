@@ -47,7 +47,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
     updateSection = (section: string) => {
         this.setState(this.setupInitialState(this.props));
         this.props.updateSection(section);
-    }
+    };
 
     setupInitialState(props: Props) {
         const team = props.team;
@@ -118,7 +118,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
         } else {
             this.updateSection('');
         }
-    }
+    };
 
     handleNameSubmit = async () => {
         const state: Pick<State, 'serverError' | 'clientError'> = {serverError: '', clientError: ''};
@@ -163,7 +163,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
         } else {
             this.updateSection('');
         }
-    }
+    };
 
     handleInviteIdSubmit = async () => {
         const state = {serverError: '', clientError: ''};
@@ -177,7 +177,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
         } else {
             this.updateSection('');
         }
-    }
+    };
 
     handleClose = () => this.updateSection('');
 
@@ -210,7 +210,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
         } else {
             this.updateSection('');
         }
-    }
+    };
 
     handleTeamIconSubmit = async () => {
         if (!this.state.teamIconFile || !this.state.submitActive) {
@@ -237,7 +237,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
             });
             this.updateSection('');
         }
-    }
+    };
 
     handleTeamIconRemove = async () => {
         this.setState({
@@ -260,7 +260,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
             });
             this.updateSection('');
         }
-    }
+    };
 
     componentDidMount() {
         document.getElementById('team_settings')?.addEventListener('hidden.bs.modal', this.handleClose);
@@ -281,7 +281,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
         }
 
         this.updateSection(section);
-    }
+    };
 
     updateName = (e: ChangeEvent<HTMLInputElement>) => this.setState({name: e.target.value});
 
@@ -312,7 +312,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
                 clientError: localizeMessage('general_tab.teamIconError', 'An error occurred while selecting the image.'),
             });
         }
-    }
+    };
 
     updateAllowedDomains = (e: ChangeEvent<HTMLInputElement>) => this.setState({allowed_domains: e.target.value});
 

@@ -46,7 +46,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
           />
           <div>
             <span>
-              Find Boards
+              Find boards
             </span>
           </div>
         </div>
@@ -73,6 +73,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
       >
         <div
           data-rbd-draggable-context-id="1"
+          data-rbd-draggable-id="categoryAttributeId1"
         >
           <div
             class="SidebarCategory"
@@ -80,14 +81,16 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
             <div
               class="categoryBoardsDroppableArea"
               data-rbd-droppable-context-id="1"
+              data-rbd-droppable-id="categoryAttributeId1"
             >
               <div
-                class="octo-sidebar-item category expanded active"
+                class="octo-sidebar-item category expanded "
               >
                 <div
                   aria-describedby="rbd-hidden-text-1-hidden-text-5"
                   class="octo-sidebar-title category-title"
                   data-rbd-drag-handle-context-id="1"
+                  data-rbd-drag-handle-draggable-id="categoryAttributeId1"
                   draggable="false"
                   role="button"
                   tabindex="0"
@@ -463,7 +466,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
             >
               <span
                 class="Label empty "
-                title="Items with an empty Property 2 property will go here. This column cannot be removed."
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
               >
                 No Property 2
               </span>
@@ -870,12 +873,12 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
           >
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
                 class="Label empty "
-                title="Items with an empty Property 2 property will go here. This column cannot be removed."
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
               >
                 No Property 2
               </span>
@@ -898,7 +901,7 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
@@ -1097,7 +1100,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
           />
           <div>
             <span>
-              Find Boards
+              Find boards
             </span>
           </div>
         </div>
@@ -1124,6 +1127,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
       >
         <div
           data-rbd-draggable-context-id="0"
+          data-rbd-draggable-id="categoryAttributeId1"
         >
           <div
             class="SidebarCategory"
@@ -1131,14 +1135,16 @@ exports[`src/components/workspace should match snapshot 1`] = `
             <div
               class="categoryBoardsDroppableArea"
               data-rbd-droppable-context-id="0"
+              data-rbd-droppable-id="categoryAttributeId1"
             >
               <div
-                class="octo-sidebar-item category expanded active"
+                class="octo-sidebar-item category expanded "
               >
                 <div
                   aria-describedby="rbd-hidden-text-0-hidden-text-0"
                   class="octo-sidebar-title category-title"
                   data-rbd-drag-handle-context-id="0"
+                  data-rbd-drag-handle-draggable-id="categoryAttributeId1"
                   draggable="false"
                   role="button"
                   tabindex="0"
@@ -1514,7 +1520,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
             >
               <span
                 class="Label empty "
-                title="Items with an empty Property 2 property will go here. This column cannot be removed."
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
               >
                 No Property 2
               </span>
@@ -1921,12 +1927,12 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
           >
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span
                 class="Label empty "
-                title="Items with an empty Property 2 property will go here. This column cannot be removed."
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
               >
                 No Property 2
               </span>
@@ -1949,7 +1955,7 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
-              draggable="true"
+              draggable="false"
               style="opacity: 1;"
             >
               <span

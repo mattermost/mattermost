@@ -28,7 +28,7 @@ export default class ClusterTableContainer extends React.PureComponent {
             },
             null,
         );
-    }
+    };
 
     componentDidMount() {
         this.load();
@@ -53,7 +53,7 @@ export default class ClusterTableContainer extends React.PureComponent {
         });
 
         this.load();
-    }
+    };
 
     render() {
         if (this.state.clusterInfos == null) {

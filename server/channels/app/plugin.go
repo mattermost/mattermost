@@ -352,7 +352,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			}
 
 			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil && err.Id != "app.plugin.blocked.app_error" && err.Id != "app.plugin.skip_installation.app_error" {
 				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 			}
 		}(plugin)
@@ -952,6 +952,11 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 			defer wg.Done()
 			p, err := ch.processPrepackagedPlugin(psPath)
 			if err != nil {
+				var appErr *model.AppError
+				// A log line already appears if the plugin is on the blocklist
+				if errors.As(err, &appErr) && (appErr.Id == "app.plugin.blocked.app_error" || appErr.Id == "app.plugin.skip_installation.app_error") {
+					return
+				}
 				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", psPath.path), mlog.Err(err))
 				return
 			}

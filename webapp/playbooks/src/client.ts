@@ -569,24 +569,6 @@ export function exportChannelUrl(channelId: string) {
     return `${exportPluginUrl}/export${queryParams}`;
 }
 
-export async function trackRequestTrialLicense(action: string) {
-    await doFetchWithoutResponse(`${apiUrl}/telemetry/start-trial`, {
-        method: 'POST',
-        body: JSON.stringify({action}),
-    });
-}
-
-export const requestTrialLicense = async (users: number, action: string) => {
-    trackRequestTrialLicense(action);
-
-    try {
-        const response = await Client4.requestTrialLicense({users, terms_accepted: true, receive_emails_accepted: true});
-        return {data: response};
-    } catch (e) {
-        return {error: e.message};
-    }
-};
-
 export const postMessageToAdmins = async (messageType: AdminNotificationType) => {
     const body = `{"message_type": "${messageType}"}`;
     try {

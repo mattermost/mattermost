@@ -17,7 +17,7 @@ export default class FormError extends React.PureComponent<Props> {
     public static defaultProps = {
         error: null,
         errors: [],
-    }
+    };
     public render() {
         const {error = null, errors = [], iconClassName, margin, textClassName, type} = this.props;
 

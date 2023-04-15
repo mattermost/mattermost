@@ -4,8 +4,8 @@
 import React, {useState} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {OAuthApp} from '@mattermost/types/integrations.js';
-import {Team} from '@mattermost/types/teams.js';
+import {OAuthApp} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
 
 import {ActionResult} from 'mattermost-redux/types/actions.js';
 
