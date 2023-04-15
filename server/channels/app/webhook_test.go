@@ -828,7 +828,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 
 			select {
 			case webhookResponse := <-chanTs1:
-				assert.Equal(t, webhookResponse, "webhook received!")
+				require.Equal(t, "webhook received!", webhookResponse)
 
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not received")
