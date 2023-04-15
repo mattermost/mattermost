@@ -40,17 +40,17 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
             modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
             dialogType: KeyboardShortcutsModal,
         });
-    }
+    };
 
     buttonToggleState = (menuActive: boolean) => {
         this.setState({
             buttonActive: menuActive,
         });
-    }
+    };
 
     askTheCommunityClick = () => {
         trackEvent('ui', 'help_ask_the_community');
-    }
+    };
 
     renderDropdownItems = (): React.ReactNode => {
         const {intl} = this.props;
@@ -82,7 +82,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 />
             </Menu.Group>
         );
-    }
+    };
 
     render() {
         const {intl} = this.props;

@@ -112,6 +112,7 @@ func TestMetrics(t *testing.T) {
 
 		require.NotNil(t, th.Service.metrics)
 		metricsAddr := strings.Replace(th.Service.metrics.listenAddr, "[::]", "http://localhost", 1)
+		metricsAddr = strings.Replace(metricsAddr, "127.0.0.1", "http://localhost", 1)
 
 		resp, err := http.Get(metricsAddr)
 		require.NoError(t, err)

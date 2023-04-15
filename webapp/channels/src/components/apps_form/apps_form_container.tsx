@@ -185,7 +185,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         creq.query = userInput;
 
         return this.props.actions.doAppLookup(creq, intl);
-    }
+    };
 
     render() {
         const {form} = this.state;

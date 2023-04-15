@@ -13,8 +13,3 @@ import (
 func (a *App) PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfig, seqVal string) (*platform.WebConnConfig, error) {
 	return a.Srv().Platform().PopulateWebConnConfig(s, cfg, seqVal)
 }
-
-// NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(cfg *platform.WebConnConfig) *platform.WebConn {
-	return a.Srv().Platform().NewWebConn(cfg, a, a.ch)
-}

@@ -260,8 +260,17 @@ func NewServer(options ...Option) (*Server, error) {
 		product.CommandKey:       app,
 	}
 
-	// Step 4: Initialize products.
-	// Depends on s.httpService.
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	// Step 4: Start platform
+	s.platform.Start()
+
+	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
+	// otherwise it will throw a panic.
+
+	// Step 5: Initialize products.
+	// Depends on s.httpService, and depends on the hub to be initialized.
+	// Otherwise we run into race conditions.
 	err = s.initializeProducts(product.GetProducts(), serviceMap)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
@@ -274,11 +283,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "channels product is not initialized")
 	}
 	app.ch = channelsWrapper.app.ch
-
-	// It is important to initialize the hub only after the global logger is set
-	// to avoid race conditions while logging from inside the hub.
-	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
-	s.platform.Start()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -484,7 +488,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
 			runPostReminderJob(appInstance)
 		})
@@ -538,7 +541,7 @@ func (s *Server) runJobs() {
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
-		complianceI.StartComplianceDailyJob()
+		go complianceI.StartComplianceDailyJob()
 	}
 
 	if *s.platform.Config().JobSettings.RunJobs && s.Jobs != nil {
@@ -1195,12 +1198,6 @@ func runConfigCleanupJob(s *Server) {
 	doConfigCleanup(s)
 	model.CreateRecurringTask("Configuration Cleanup", func() {
 		doConfigCleanup(s)
-	}, time.Hour*24)
-}
-
-func (s *Server) runInactivityCheckJob() {
-	model.CreateRecurringTask("Server inactivity Check", func() {
-		s.doInactivityCheck()
 	}, time.Hour*24)
 }
 

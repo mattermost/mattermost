@@ -79,16 +79,16 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
         newState.team!.display_name = displayName;
         newState.team!.name = cleanUpUrlable(displayName);
         this.props.updateParent(newState);
-    }
+    };
 
     handleFocus = (e: React.FocusEvent<HTMLInputElement>): void => {
         e.preventDefault();
         e.currentTarget.select();
-    }
+    };
 
     handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({teamDisplayName: e.target.value});
-    }
+    };
 
     render(): React.ReactNode {
         let nameError = null;
