@@ -3491,9 +3491,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
       hide={[MockFunction]}
       intl={
         Object {
+          "$t": [Function],
           "defaultFormats": Object {},
           "defaultLocale": "en",
           "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
           "formatDate": [Function],
           "formatDateTimeRange": [Function],
           "formatDateToParts": [Function],
@@ -3520,6 +3522,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
           "locale": "en",
           "messages": Object {},
           "onError": [Function],
+          "onWarn": [Function],
           "textComponent": "span",
           "timeZone": "Etc/UTC",
           "wrapRichTextChunksInFragment": undefined,
@@ -3804,9 +3807,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
                               hourCycle="h12"
                               intl={
                                 Object {
+                                  "$t": [Function],
                                   "defaultFormats": Object {},
                                   "defaultLocale": "en",
                                   "defaultRichTextElements": undefined,
+                                  "fallbackOnEmptyString": true,
                                   "formatDate": [Function],
                                   "formatDateTimeRange": [Function],
                                   "formatDateToParts": [Function],
@@ -3833,6 +3838,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                   "locale": "en",
                                   "messages": Object {},
                                   "onError": [Function],
+                                  "onWarn": [Function],
                                   "textComponent": "span",
                                   "timeZone": "Etc/UTC",
                                   "wrapRichTextChunksInFragment": undefined,
@@ -4076,9 +4082,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
                               id="addToChannelTooltip"
                               intl={
                                 Object {
+                                  "$t": [Function],
                                   "defaultFormats": Object {},
                                   "defaultLocale": "en",
                                   "defaultRichTextElements": undefined,
+                                  "fallbackOnEmptyString": true,
                                   "formatDate": [Function],
                                   "formatDateTimeRange": [Function],
                                   "formatDateToParts": [Function],
@@ -4105,6 +4113,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                   "locale": "en",
                                   "messages": Object {},
                                   "onError": [Function],
+                                  "onWarn": [Function],
                                   "textComponent": "span",
                                   "timeZone": "Etc/UTC",
                                   "wrapRichTextChunksInFragment": undefined,
