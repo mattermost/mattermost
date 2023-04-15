@@ -87,12 +87,11 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     ]));
 
                     onSuccess(response, channelId, rootId);
-                }
-                else if (xhr.readyState === 4 && xhr.status === 400) {
+                } else if (xhr.readyState === 4 && xhr.status === 400) {
                     const errorResponse = JSON.parse(xhr.response);
                     const errorMessage =
-                        (errorResponse?.id && errorResponse?.message) ? localizeMessage( errorResponse.id, errorResponse.message)
-                            : localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.')
+                        (errorResponse?.id && errorResponse?.message) ? localizeMessage(errorResponse.id, errorResponse.message) :
+                            localizeMessage('file_upload.generic_error', 'There was a problem uploading your files.');
 
                     dispatch({
                         type: FileTypes.UPLOAD_FILES_FAILURE,
