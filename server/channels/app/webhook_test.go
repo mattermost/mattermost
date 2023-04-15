@@ -783,20 +783,6 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	}))
 	defer ts2.Close()
 
-	getTestCases := func() map[string]TestCaseOutgoing {
-
-		testCasesOutgoing := map[string]TestCaseOutgoing{
-
-			"One WebhookURL": {
-				CallBackURLs: []string{ts1.URL},
-			},
-			"Two WebhookURLs": {
-				CallBackURLs: []string{ts1.URL, ts2.URL},
-			},
-		}
-		return testCasesOutgoing
-	}
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -804,9 +790,9 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
-	for name, testCase := range map[string]struct{
+	for name, testCase := range map[string]struct {
 		CallBackURLs []string
-	} {
+	}{
 		"One WebhookURL": {
 			CallBackURLs: []string{ts1.URL},
 		},
@@ -836,7 +822,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 
 			select {
 			case webhookResponse := <-chanTs2:
-				assert.Equal(t, webhookResponse, "webhook received!")
+				require.Equal(t, "webhook received!", webhookResponse)
 
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not received")
