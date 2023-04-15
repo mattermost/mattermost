@@ -5,20 +5,12 @@ exports[`components/preparing-workspace/invite_members_link should match snapsho
   <div
     class="InviteMembersLink"
   >
-    <input
-      aria-label="team invite link"
-      class="InviteMembersLink__input"
-      data-testid="shareLinkInput"
-      readonly=""
-      type="text"
-      value="https://invite-url.mattermost.com"
-    />
     <button
-      class="InviteMembersLink__button"
+      class="InviteMembersLink__button--single"
       data-testid="shareLinkInputButton"
     >
       <i
-        class="icon icon-link-variant"
+        class="icon icon-content-copy"
       />
       <span>
         Copy Link

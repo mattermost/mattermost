@@ -38,12 +38,12 @@
     }
 
     &__button {
+        width: 180px;
+        height: 48px;
         border: 1px solid var(--button-bg);
         background: var(--center-channel-bg);
         border-radius: 0 4px 4px 0;
         color: var(--button-bg);
-        height: 48px;
-        width: 180px;
 
         &:hover {
             background: rgba(var(--button-bg-rgb), 0.08);
@@ -56,6 +56,7 @@
 
     &__button--single {
         @include tertiary-button;
+
         height: 40px;
         border-radius: 4px;
     }

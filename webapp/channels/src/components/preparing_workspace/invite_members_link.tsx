@@ -7,8 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import useCopyText from 'components/common/hooks/useCopyText';
 import {trackEvent} from 'actions/telemetry_actions';
 
-import classNames from 'classnames';
-
 import './invite_members_link.scss';
 
 type Props = {

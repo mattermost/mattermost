@@ -9,12 +9,13 @@ $less-than-6-user-lines-height: 227px;
     max-width: calc(100vw - 600px - 120px - 30px);
 
     .PreparingWorkspaceDescription span {
-        max-width: 530px;
         display: inline-block;
+        max-width: 530px;
     }
 
     .UsersEmailsInput {
         max-width: 540px;
+
         &.no-selections {
             // placeholder and input position is difficult to change.
             // This overrides the default positioning of the input & placeholders
@@ -36,30 +37,31 @@ $less-than-6-user-lines-height: 227px;
 .InviteMembers {
     &__submit {
         display: flex;
+        width: 400px;
         align-items: center;
         justify-content: flex-start;
-        width: 400px;
     }
 }
 
 .InviteMembersLink__button--single {
-    margin-left: 12px;
-    margin-right: 8px;
-    min-width: 148px;
     width: fit-content;
+    min-width: 148px;
+    margin-right: 8px;
+    margin-left: 12px;
 }
 
 .fade-in-skip-button {
-    opacity: 0;
     animation: fade-in 2s forwards;
+    opacity: 0;
 }
-  
+
 @keyframes fade-in {
     from {
-      opacity: 0;
+        opacity: 0;
     }
+
     to {
-      opacity: 1;
+        opacity: 1;
     }
 }
 

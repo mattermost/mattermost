@@ -115,7 +115,7 @@ const PreparingWorkspace = (props: Props) => {
 
     // In cloud instances created from portal,
     // new admin user has a team in myTeams but not in currentTeam.
-    let team = currentTeam || myTeams?.[0];
+    const team = currentTeam || myTeams?.[0];
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
