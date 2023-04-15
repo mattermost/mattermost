@@ -411,8 +411,6 @@
   "admin.billing.subscriptions.billing_summary.lastInvoice.taxes": "税",
   "admin.billing.subscriptions.billing_summary.lastInvoice.title": "最后发票",
   "admin.billing.subscriptions.billing_summary.lastInvoice.total": "总计",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.userCount": " x {users} 用户",
-  "admin.billing.subscriptions.billing_summary.lastInvoice.userCountPartial": "{users} 用户",
   "admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice": "查看发票",
   "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges": "什么是部分费用？",
   "admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message": "在一个月的整个时间内未启用的用户将按比例按月计费。",
