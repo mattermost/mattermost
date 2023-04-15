@@ -60,3 +60,7 @@ func (a *App) PurgeBleveIndexes() *model.AppError {
 	}
 	return nil
 }
+
+func (a *App) ActiveSearchBackend() string {
+	return a.ch.srv.platform.SearchEngine.ActiveEngine()
+}
