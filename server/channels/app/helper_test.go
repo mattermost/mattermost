@@ -249,6 +249,12 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	return th
 }
 
+func (th *TestHelper) InitBasicWithAppsSidebarEnabled() *TestHelper {
+	th.App.Config().FeatureFlags.AppsSidebarCategory = true
+
+	return th.InitBasic()
+}
+
 func (*TestHelper) MakeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazonses.com"
 }

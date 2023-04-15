@@ -809,7 +809,7 @@ func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(userID str
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CreateSidebarCategory")
 	s.Root.Store.SetContext(newCtx)
@@ -818,7 +818,7 @@ func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userID string, team
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
+	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

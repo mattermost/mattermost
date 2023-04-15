@@ -301,7 +301,7 @@ type sidebarCategoryForJoin struct {
 	ChannelId *string
 }
 
-func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (_ *model.SidebarCategoryWithChannels, err error) {
+func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (_ *model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -309,9 +309,15 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 
 	defer finalizeTransactionX(transaction, &err)
 
+	appsCategoryEnabled := false
+	if len(options) > 0 {
+		appsCategoryEnabled = options[0].AppsCategoryEnabled
+	}
+
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      teamId,
-		ExcludeTeam: false,
+		TeamID:              teamId,
+		ExcludeTeam:         false,
+		AppsCategoryEnabled: appsCategoryEnabled,
 	}
 	categoriesWithOrder, err := s.getSidebarCategoriesT(transaction, userId, opts)
 	if err != nil {
@@ -774,7 +780,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			destCategory.DisplayName = srcCategory.DisplayName
 		}
 
-		if destCategory.Type != model.SidebarCategoryDirectMessages {
+		if destCategory.Type != model.SidebarCategoryDirectMessages && destCategory.Type != model.SidebarCategoryApps {
 			destCategory.Channels = make([]string, len(category.Channels))
 			copy(destCategory.Channels, category.Channels)
 
@@ -801,7 +807,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		}
 
 		// if we are updating DM category, it's order can't channel order cannot be changed.
-		if category.Type != model.SidebarCategoryDirectMessages {
+		if category.Type != model.SidebarCategoryDirectMessages && destCategory.Type != model.SidebarCategoryApps {
 			// Remove any SidebarChannels entries that were either:
 			// - previously in this category (and any ones that are still in the category will be recreated below)
 			// - in another category and are being added to this category

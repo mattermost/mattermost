@@ -871,11 +871,11 @@ func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userID string, o
 
 }
 
-func (s *RetryLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s *RetryLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
+		result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
 		if err == nil {
 			return result, nil
 		}

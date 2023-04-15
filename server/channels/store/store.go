@@ -279,7 +279,7 @@ type ChannelStore interface {
 	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string, options ...*SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, error)
-	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
+	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) error
 	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error

@@ -117,7 +117,8 @@ func (a *App) GetSidebarCategory(c request.CTX, categoryId string) (*model.Sideb
 }
 
 func (a *App) CreateSidebarCategory(c request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
-	category, err := a.Srv().Store().Channel().CreateSidebarCategory(userID, teamID, newCategory)
+	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
+	category, err := a.Srv().Store().Channel().CreateSidebarCategory(userID, teamID, newCategory, &store.SidebarCategorySearchOpts{AppsCategoryEnabled: appsCategoryEnabled})
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

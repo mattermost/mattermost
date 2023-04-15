@@ -298,25 +298,32 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, opts *stor
 	return r0, r1
 }
 
-// CreateSidebarCategory provides a mock function with given fields: userID, teamID, newCategory
-func (_m *ChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
-	ret := _m.Called(userID, teamID, newCategory)
+// CreateSidebarCategory provides a mock function with given fields: userID, teamID, newCategory, options
+func (_m *ChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userID, teamID, newCategory)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.SidebarCategoryWithChannels
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)); ok {
-		return rf(userID, teamID, newCategory)
+	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)); ok {
+		return rf(userID, teamID, newCategory, options...)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
-		r0 = rf(userID, teamID, newCategory)
+	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userID, teamID, newCategory, options...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, *model.SidebarCategoryWithChannels) error); ok {
-		r1 = rf(userID, teamID, newCategory)
+	if rf, ok := ret.Get(1).(func(string, string, *model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(userID, teamID, newCategory, options...)
 	} else {
 		r1 = ret.Error(1)
 	}
