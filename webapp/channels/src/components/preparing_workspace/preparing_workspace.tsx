@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
+import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Team} from '@mattermost/types/teams';
@@ -42,7 +43,7 @@ import {
 import Organization from './organization';
 import Plugins from './plugins';
 import Progress from './progress';
-import InviteMembers from './invite_members_cloud';
+import InviteMembers from './invite_members';
 import InviteMembersIllustration from './invite_members_illustration';
 import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
 
@@ -126,7 +127,7 @@ const PreparingWorkspace = (props: Props) => {
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
         pluginsEnabled && WizardSteps.Plugins,
-        isSelfHosted && WizardSteps.InviteMembers,
+        WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,
     ].filter((x) => Boolean(x)) as WizardStep[];
 
@@ -226,16 +227,15 @@ const PreparingWorkspace = (props: Props) => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
 
-        if (form.organization && !isSelfHosted) {
+        if (!form.teamMembers.skipped && !isConfigSiteUrlDefault && !isSelfHosted) {
             try {
-                const {error, newTeam} = await createTeam(form.organization);
-                if (error !== null) {
-                    redirectWithError(WizardSteps.Organization, genericSubmitError);
+                const inviteResult = await dispatch(sendEmailInvitesToTeamGracefully(team.id, form.teamMembers.invites));
+                if ((inviteResult as ActionResult).error) {
+                    redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-                team = newTeam as Team;
             } catch (e) {
-                redirectWithError(WizardSteps.Organization, genericSubmitError);
+                redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
         }
@@ -435,16 +435,10 @@ const PreparingWorkspace = (props: Props) => {
                     next={() => {
                         const pluginChoices = {...form.plugins};
                         delete pluginChoices.skipped;
-                        if (!isSelfHosted) {
-                            setSubmissionState(SubmissionStates.UserRequested);
-                        }
                         makeNext(WizardSteps.Plugins)(pluginChoices);
                         skipPlugins(false);
                     }}
                     skip={() => {
-                        if (!isSelfHosted) {
-                            setSubmissionState(SubmissionStates.UserRequested);
-                        }
                         makeNext(WizardSteps.Plugins, true)();
                         skipPlugins(true);
                     }}

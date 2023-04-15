@@ -1,17 +1,35 @@
 @import 'utils/mixins';
 
+// UX decision to show no more than about 5 1/4 lines of users/emails at a time.
+$less-than-6-user-lines-height: 227px;
+
 .InviteMembers-body {
     display: flex;
     // page width - channels preview width - progress dots width - people overlap width
     max-width: calc(100vw - 600px - 120px - 30px);
 
-    .UsersEmailsInput {
-        max-width: 420px;
+    .PreparingWorkspaceDescription span {
+        max-width: 530px;
+        display: inline-block;
     }
 
-    .PreparingWorkspaceDescription span {
-        max-width: 500px;
-        display: inline-block;
+    .UsersEmailsInput {
+        max-width: 540px;
+        &.no-selections {
+            // placeholder and input position is difficult to change.
+            // This overrides the default positioning of the input & placeholders
+            // to make the taller than normal input look ok when nothing has yet been selected
+            .users-emails-input__value-container {
+                margin-top: 6px;
+            }
+        }
+
+        .users-emails-input__control {
+            overflow: auto;
+            min-height: 108px;
+            max-height: $less-than-6-user-lines-height;
+            align-items: flex-start;
+        }
     }
 }
 
