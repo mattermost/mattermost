@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -16,11 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
 
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-)
-
-const (
-	defaultPage    = "0"
-	defaultPerPage = "100"
 )
 
 func (a *API) registerCardsRoutes(r *mux.Router) {
@@ -171,32 +165,15 @@ func (a *API) handleGetCards(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 	boardID := mux.Vars(r)["boardID"]
 
-	query := r.URL.Query()
-	strPage := query.Get("page")
-	strPerPage := query.Get("per_page")
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
 
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionViewBoard) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to fetch cards"))
 		return
-	}
-
-	if strPage == "" {
-		strPage = defaultPage
-	}
-	if strPerPage == "" {
-		strPerPage = defaultPerPage
-	}
-
-	page, err := strconv.Atoi(strPage)
-	if err != nil {
-		message := fmt.Sprintf("invalid `page` parameter: %s", err)
-		a.errorResponse(w, r, model.NewErrBadRequest(message))
-	}
-
-	perPage, err := strconv.Atoi(strPerPage)
-	if err != nil {
-		message := fmt.Sprintf("invalid `per_page` parameter: %s", err)
-		a.errorResponse(w, r, model.NewErrBadRequest(message))
 	}
 
 	auditRec := a.makeAuditRecord(r, "getCards", audit.Fail)

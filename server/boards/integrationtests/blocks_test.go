@@ -43,7 +43,7 @@ func TestGetBlocks(t *testing.T) {
 	blockID1 := newBlocks[0].ID
 	blockID2 := newBlocks[1].ID
 
-	blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+	blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 	require.NoError(t, resp.Error)
 	require.Len(t, blocks, 2)
 
@@ -81,7 +81,7 @@ func TestPostBlock(t *testing.T) {
 		require.Len(t, newBlocks, 1)
 		blockID1 = newBlocks[0].ID
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 1)
 
@@ -120,7 +120,7 @@ func TestPostBlock(t *testing.T) {
 		require.NotEqual(t, initialID2, blockID2)
 		require.NotEqual(t, initialID3, blockID3)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 3)
 
@@ -149,7 +149,7 @@ func TestPostBlock(t *testing.T) {
 		blockID4 := newBlocks[0].ID
 		require.NotEqual(t, blockID1, blockID4)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 4)
 
@@ -197,7 +197,7 @@ func TestPatchBlock(t *testing.T) {
 		_, resp := th.Client.PatchBlock(board.ID, blockID, blockPatch, false)
 		require.NoError(t, resp.Error)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 1)
 
@@ -222,7 +222,7 @@ func TestPatchBlock(t *testing.T) {
 		_, resp := th.Client.PatchBlock(board.ID, blockID, blockPatch, false)
 		require.NoError(t, resp.Error)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 1)
 
@@ -245,7 +245,7 @@ func TestPatchBlock(t *testing.T) {
 		_, resp := th.Client.PatchBlock(board.ID, blockID, blockPatch, false)
 		require.NoError(t, resp.Error)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 1)
 
@@ -288,7 +288,7 @@ func TestDeleteBlock(t *testing.T) {
 		require.NotEqual(t, initialID, newBlocks[0].ID)
 		blockID = newBlocks[0].ID
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, 1)
 
@@ -307,7 +307,7 @@ func TestDeleteBlock(t *testing.T) {
 		_, resp := th.Client.DeleteBlock(board.ID, blockID, false)
 		require.NoError(t, resp.Error)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Empty(t, blocks)
 	})
@@ -319,7 +319,7 @@ func TestUndeleteBlock(t *testing.T) {
 
 	board := th.CreateBoard("team-id", model.BoardTypeOpen)
 
-	blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+	blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 	require.NoError(t, resp.Error)
 	initialCount := len(blocks)
 
@@ -342,7 +342,7 @@ func TestUndeleteBlock(t *testing.T) {
 		require.NotEqual(t, initialID, newBlocks[0].ID)
 		blockID = newBlocks[0].ID
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, initialCount+1)
 
@@ -361,7 +361,7 @@ func TestUndeleteBlock(t *testing.T) {
 		_, resp := th.Client.DeleteBlock(board.ID, blockID, false)
 		require.NoError(t, resp.Error)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, initialCount)
 	})
@@ -374,7 +374,7 @@ func TestUndeleteBlock(t *testing.T) {
 		_, resp := th.Client.UndeleteBlock(board.ID, blockID)
 		require.NoError(t, resp.Error)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, initialCount+1)
 	})
@@ -390,7 +390,7 @@ func TestUndeleteBlock(t *testing.T) {
 		_, resp = th.Client2.UndeleteBlock(board.ID, blockID)
 		th.CheckForbidden(resp)
 
-		blocks, resp := th.Client.GetBlocksForBoard(board.ID)
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, blocks, initialCount)
 	})

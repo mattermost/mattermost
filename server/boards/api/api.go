@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -28,6 +29,8 @@ const (
 
 	ErrorNoTeamCode    = 1000
 	ErrorNoTeamMessage = "No team"
+
+	defaultMaxPerPage = 100
 )
 
 var (
@@ -121,6 +124,42 @@ func getUserID(r *http.Request) string {
 		return ""
 	}
 	return session.UserID
+}
+
+// getPagination returns the page and per_page parameters for the request or
+// an error if they are missing or invalid.
+func getPagination(r *http.Request, maxPerPage int) (int, int, error) {
+	query := r.URL.Query()
+	strPerPage := query.Get("per_page")
+	strPage := query.Get("page")
+
+	// `page` is optional, per_page is required.
+	if strPage == "" {
+		strPage = "0"
+	}
+
+	page, err := strconv.Atoi(strPage)
+	if err != nil {
+		message := fmt.Sprintf("invalid `page` parameter: %s", err)
+		return 0, 0, model.NewErrBadRequest(message)
+	}
+
+	if page < 0 {
+		return 0, 0, model.NewErrBadRequest("invalid `page` parameter: must be positive integer")
+	}
+
+	perPage, err := strconv.Atoi(strPerPage)
+	if err != nil {
+		message := fmt.Sprintf("invalid `per_page` parameter: %s", err)
+		return 0, 0, model.NewErrBadRequest(message)
+	}
+
+	if perPage < 0 || perPage > maxPerPage {
+		message := fmt.Sprintf("invalid `per_page` parameter: must be >= %d and <= %d", 0, maxPerPage)
+		return 0, 0, model.NewErrBadRequest(message)
+	}
+
+	return page, perPage, nil
 }
 
 func (a *API) panicHandler(next http.Handler) http.Handler {

@@ -171,7 +171,7 @@ func TestCreateBoard(t *testing.T) {
 			require.NotNil(t, rbBoard)
 			require.Equal(t, board, rbBoard)
 
-			rBlocks, resp := th.Client.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks)
 		})
@@ -182,7 +182,7 @@ func TestCreateBoard(t *testing.T) {
 			require.NotNil(t, rbBoard)
 			require.Equal(t, board, rbBoard)
 
-			rBlocks, resp := th.Client2.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client2.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckForbidden(resp)
 			require.Nil(t, rBlocks)
 		})
@@ -226,7 +226,7 @@ func TestCreateBoard(t *testing.T) {
 			require.NotNil(t, rbBoard)
 			require.Equal(t, board, rbBoard)
 
-			rBlocks, resp := th.Client.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks)
 		})
@@ -236,7 +236,7 @@ func TestCreateBoard(t *testing.T) {
 			th.CheckForbidden(resp)
 			require.Nil(t, rbBoard)
 
-			rBlocks, resp := th.Client2.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client2.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckForbidden(resp)
 			require.Nil(t, rBlocks)
 		})
@@ -339,7 +339,7 @@ func TestCreateBoardTemplate(t *testing.T) {
 			require.NotNil(t, rbBoard)
 			require.Equal(t, board, rbBoard)
 
-			rBlocks, resp := th.Client.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks)
 		})
@@ -350,7 +350,7 @@ func TestCreateBoardTemplate(t *testing.T) {
 			require.NotNil(t, rbBoard)
 			require.Equal(t, board, rbBoard)
 
-			rBlocks, resp := th.Client2.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client2.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks)
 		})
@@ -395,7 +395,7 @@ func TestCreateBoardTemplate(t *testing.T) {
 			require.NotNil(t, rbBoard)
 			require.Equal(t, board, rbBoard)
 
-			rBlocks, resp := th.Client.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks)
 		})
@@ -405,7 +405,7 @@ func TestCreateBoardTemplate(t *testing.T) {
 			th.CheckForbidden(resp)
 			require.Nil(t, rbBoard)
 
-			rBlocks, resp := th.Client2.GetBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client2.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckForbidden(resp)
 			require.Nil(t, rBlocks)
 		})
@@ -458,7 +458,7 @@ func TestGetAllBlocksForBoard(t *testing.T) {
 			insertedBlockIDs[i] = b.ID
 		}
 
-		fetchedBlocks, resp := th.Client.GetAllBlocksForBoard(board.ID)
+		fetchedBlocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 		require.NoError(t, resp.Error)
 		require.Len(t, fetchedBlocks, len(newBlocks))
 
@@ -1889,7 +1889,7 @@ func TestGetTemplates(t *testing.T) {
 			require.NotNil(t, rBoard)
 			require.Equal(t, board, rBoard)
 
-			rBlocks, resp := th.Client.GetAllBlocksForBoard(board.ID)
+			rBlocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks)
 			require.Greater(t, len(rBlocks), 0)
@@ -1911,7 +1911,7 @@ func TestGetTemplates(t *testing.T) {
 			require.NotNil(t, rBoard3)
 			require.Equal(t, rBoard2, rBoard3)
 
-			rBlocks2, resp := th.Client.GetAllBlocksForBoard(rBoard2.ID)
+			rBlocks2, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: rBoard2.ID})
 			th.CheckOK(resp)
 			require.NotNil(t, rBlocks2)
 			require.Equal(t, len(rBoardsAndBlock.Blocks), len(rBlocks2))

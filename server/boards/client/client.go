@@ -192,10 +192,6 @@ func (c *Client) GetBlocksRoute(boardID string) string {
 	return fmt.Sprintf("%s/blocks", c.GetBoardRoute(boardID))
 }
 
-func (c *Client) GetAllBlocksRoute(boardID string) string {
-	return fmt.Sprintf("%s/blocks?all=true", c.GetBoardRoute(boardID))
-}
-
 func (c *Client) GetBoardsAndBlocksRoute() string {
 	return "/boards-and-blocks"
 }
@@ -248,8 +244,9 @@ func (c *Client) GetUserBoardsInsights(teamID string, userID string, timeRange s
 	return boardInsightsList, BuildResponse(r)
 }
 
-func (c *Client) GetBlocksForBoard(boardID string) ([]*model.Block, *Response) {
-	r, err := c.DoAPIGet(c.GetBlocksRoute(boardID), "")
+func (c *Client) GetBlocks(opts model.QueryBlocksOptions) ([]*model.Block, *Response) {
+	query := fmt.Sprintf("?parent_id=%s&type=%s&page=%d&per_page=%d", opts.ParentID, opts.BlockType, opts.Page, opts.PerPage)
+	r, err := c.DoAPIGet(c.GetBlocksRoute(opts.BoardID)+query, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -258,8 +255,9 @@ func (c *Client) GetBlocksForBoard(boardID string) ([]*model.Block, *Response) {
 	return model.BlocksFromJSON(r.Body), BuildResponse(r)
 }
 
-func (c *Client) GetAllBlocksForBoard(boardID string) ([]*model.Block, *Response) {
-	r, err := c.DoAPIGet(c.GetAllBlocksRoute(boardID), "")
+func (c *Client) GetBlock(boardID string, blockID string) ([]*model.Block, *Response) {
+	query := fmt.Sprintf("?&block_id=%s", blockID)
+	r, err := c.DoAPIGet(c.GetBlocksRoute(boardID)+query, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

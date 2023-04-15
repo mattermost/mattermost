@@ -53,6 +53,16 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 	//   description: Type of blocks to return, omit to specify all types
 	//   required: false
 	//   type: string
+	// - name: page
+	//   in: query
+	//   description: The page to select (default=0)
+	//   required: false
+	//   type: integer
+	// - name: per_page
+	//   in: query
+	//   description: Number of cards to return per page(default=100)
+	//   required: false
+	//   type: integer
 	// security:
 	// - BearerAuth: []
 	// responses:
@@ -76,6 +86,12 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 	boardID := mux.Vars(r)["boardID"]
 
 	userID := getUserID(r)
+
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil && blockID == "" {
+		a.errorResponse(w, r, err)
+		return
+	}
 
 	hasValidReadToken := a.hasValidReadTokenForBoard(r, boardID)
 	if userID == "" && !hasValidReadToken {
@@ -144,6 +160,8 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 			BoardID:   boardID,
 			ParentID:  parentID,
 			BlockType: model.BlockType(blockType),
+			Page:      page,
+			PerPage:   perPage,
 		}
 		blocks, err = a.app.GetBlocks(opts)
 		if err != nil {
