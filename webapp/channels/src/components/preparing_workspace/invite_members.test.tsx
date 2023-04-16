@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react';
-import {render, screen, fireEvent, act} from '@testing-library/react';
+import {render, screen, fireEvent} from '@testing-library/react';
 import {withIntl} from 'tests/helpers/intl-test-helper';
 
 import InviteMembers from './invite_members';
@@ -38,10 +38,12 @@ describe('InviteMembers component', () => {
     });
 
     it('should match snapshot when it is cloud', () => {
-        const component = withIntl(<InviteMembers
-            {...defaultProps}
-            isSelfHosted={false}
-                                   />);
+        const component = withIntl(
+            <InviteMembers
+                {...defaultProps}
+                isSelfHosted={false}
+            />
+        );
         const {container} = render(component);
         expect(container).toMatchSnapshot();
     });
@@ -84,10 +86,12 @@ describe('InviteMembers component', () => {
     });
 
     it('shows send invites button when in cloud', () => {
-        const component = withIntl(<InviteMembers
-            {...defaultProps}
-            isSelfHosted={false}
-                                   />);
+        const component = withIntl(
+            <InviteMembers
+                {...defaultProps}
+                isSelfHosted={false}
+            />
+        );
         render(component);
         const button = screen.getByRole('button', {name: 'Send invites'});
         expect(button).toBeInTheDocument();
