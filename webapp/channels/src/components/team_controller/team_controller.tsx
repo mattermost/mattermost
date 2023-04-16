@@ -70,7 +70,7 @@ function TeamController(props: Props) {
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
-                console.log('computer woke up - fetching latest'); //eslint-disable-line no-console
+                // If the user has been inactive for more than WAKEUP_THRESHOLD, try to reconnect the websocket
                 reconnect();
             }
             lastTime.current = currentTime;
@@ -92,12 +92,15 @@ function TeamController(props: Props) {
                 props.markChannelAsReadOnFocus(props.currentChannelId);
             }
 
-            const currentTime = Date.now();
-            if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                if (props.graphQLEnabled) {
-                    props.fetchChannelsAndMembers(props.currentTeamId);
-                } else {
-                    props.fetchMyChannelsAndMembersREST(props.currentTeamId);
+            // Temporary flag to disable refetching of channel members on browser focus
+            if (props.disableRefetchingOnBrowserFocus === false) {
+                const currentTime = Date.now();
+                if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
+                    if (props.graphQLEnabled) {
+                        props.fetchChannelsAndMembers(props.currentTeamId);
+                    } else {
+                        props.fetchMyChannelsAndMembersREST(props.currentTeamId);
+                    }
                 }
             }
         }
