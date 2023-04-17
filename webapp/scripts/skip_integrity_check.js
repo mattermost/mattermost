@@ -4,10 +4,8 @@
 const fs = require('fs');
 const content = JSON.parse(fs.readFileSync('package-lock.json', 'utf-8'));
 
-// Skip integrity check for mmjstool, which differs on Apple Silicon M1.
+// Skip integrity check for below, which differs on Apple Silicon M1.
 // @see https://github.com/npm/cli/issues/2846
-delete content.dependencies.mmjstool.integrity;
-delete content.packages['node_modules/mmjstool'].integrity;
 delete content.dependencies.marked.integrity;
 delete content.packages['node_modules/marked'].integrity;
 

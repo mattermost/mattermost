@@ -182,7 +182,6 @@
     "jest-styled-components": "7.1.1",
     "jest-watch-typeahead": "0.6.4",
     "mini-css-extract-plugin": "2.0.0",
-    "mmjstool": "github:mattermost/mattermost-utilities#237c2194aa646021535c54e4aafed084807b93a6",
     "nock": "13.2.8",
     "prettier": "2.3.2",
     "react-router-enzyme-context": "1.2.0",
@@ -221,10 +220,6 @@
     "test-ci": "cross-env TZ=Etc/UTC jest --ci --maxWorkers=100%",
     "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
-    "mmjstool": "mmjstool",
-    "i18n-extract": "npm run mmjstool -- i18n extract-webapp --webapp-dir ./src",
-    "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
-    "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
   }
