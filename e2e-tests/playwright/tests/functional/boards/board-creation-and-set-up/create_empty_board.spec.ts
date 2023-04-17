@@ -7,8 +7,6 @@ import {shouldSkipInSmallScreen} from '@e2e-support/flag';
 shouldSkipInSmallScreen();
 
 test('MM-T4274 Create an Empty Board', async ({pw, pages}) => {
-    await pw.shouldHaveBoardsEnabled();
-
     // Create and sign in a new user
     const {user} = await pw.initSetup();
 

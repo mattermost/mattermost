@@ -157,7 +157,8 @@ export const Preferences = {
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
     OVERAGE_USERS_BANNER: 'overage_users_banner',
-    CLOUD_YEARLY_NUDGE_BANNER: 'cloud_yearly_nudge_banner',
+    TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
+    TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -176,7 +177,7 @@ export const Unique = {
 export const TrialPeriodDays = {
     TRIAL_30_DAYS: 30,
     TRIAL_14_DAYS: 14,
-    TRIAL_WARNING_THRESHOLD: 3,
+    TRIAL_WARNING_THRESHOLD: 7,
     TRIAL_2_DAYS: 2,
     TRIAL_1_DAY: 1,
     TRIAL_0_DAYS: 0,
@@ -727,7 +728,8 @@ export const CloudBanners = {
     TRIAL: 'trial',
     UPGRADE_FROM_TRIAL: 'upgrade_from_trial',
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
-    NUDGE_TO_YEARLY_BANNER_DISMISSED: 'nudge_to_yearly_banner_dismissed',
+    NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
+    NUDGE_TO_PAID_PLAN_SNOOZED: 'nudge_to_paid_plan_snoozed',
 };
 
 export const ConfigurationBanners = {
@@ -1081,6 +1083,9 @@ export const HostedCustomerLinks = {
     SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
     SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
+    DOWNLOAD: 'https://mattermost.com/download',
+    NEWSLETTER_UNSUBSCRIBE_LINK: 'https://forms.mattermost.com/UnsubscribePage.html',
+    PRIVACY: 'https://mattermost.com/privacy-policy/',
 };
 
 export const DocLinks = {
@@ -1983,6 +1988,7 @@ export const Constants = {
     CHANNEL_HEADER_BUTTON_DISABLE_TIMEOUT: 1000,
     FIRST_ADMIN_ROLE: 'first_admin',
     MAX_PURCHASE_SEATS: 1000000,
+    MIN_PURCHASE_SEATS: 10,
 };
 
 export const ValidationErrors = {
