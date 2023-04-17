@@ -351,12 +351,15 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// True-up is only enabled when telemetry is disabled. When telemetry is enabled, we already have all the data necessary
-	// for true-up reviews to be completed.
-	err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
-	if err != nil {
-		c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, err.Error(), http.StatusInternalServerError)
-		return
+	// True-up is only enabled when telemetry is disabled.
+	// When telemetry is enabled, we already have all the data necessary for true-up reviews to be completed.
+	telemetryEnabled := c.App.Config().LogSettings.EnableDiagnostics
+	if telemetryEnabled != nil && !*telemetryEnabled {
+		err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
+		if err != nil {
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Update the review status to reflect the completion.
