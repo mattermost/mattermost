@@ -353,7 +353,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.UserId = c.AppContext.Session().UserId
 	commandArgs.T = c.AppContext.T
 	commandArgs.SiteURL = c.GetSiteURLHeader()
-	commandArgs.Session = *c.AppContext.Session()
 
 	response, err := c.App.ExecuteCommand(c.AppContext, &commandArgs)
 	if err != nil {
@@ -424,7 +423,6 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		RootId:    query.Get("root_id"),
 		UserId:    c.AppContext.Session().UserId,
 		T:         c.AppContext.T,
-		Session:   *c.AppContext.Session(),
 		SiteURL:   c.GetSiteURLHeader(),
 		Command:   userInput,
 	}

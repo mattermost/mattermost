@@ -5,7 +5,7 @@
   "BoardComponent.hidden-columns": "დამალული სვეტები",
   "BoardComponent.hide": "დამალვა",
   "BoardComponent.new": "+ ახალი",
-  "BoardComponent.no-property": "არ არის {Property}",
+  "BoardComponent.no-property": "არ არის {property}",
   "BoardComponent.no-property-title": "ცარიელი {property} საკუთრების მქონე ელემენტები აქ წავა. ამ სვეტის წაშლა შეუძლებელია.",
   "BoardComponent.show": "ჩვენება",
   "BoardMember.schemeAdmin": "ადმინისტრატორი",

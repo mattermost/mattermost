@@ -388,6 +388,11 @@ func (th *TestHelper) TearDown() {
 		panic(err)
 	}
 
+	err = th.Server.Store().Shutdown()
+	if err != nil {
+		panic(err)
+	}
+
 	os.RemoveAll(th.Server.Config().FilesPath)
 
 	if err := os.Remove(th.Server.Config().DBConfigString); err == nil {

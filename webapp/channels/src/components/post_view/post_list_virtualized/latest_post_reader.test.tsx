@@ -77,4 +77,18 @@ describe('LatestPostReader', () => {
         expect(span.prop('children')).toContain(author.username);
         expect(span.prop('children')).toContain('enero');
     });
+
+    test('should be able to handle an empty post array', () => {
+        const {mountOptions} = mockStore(baseState);
+
+        const props = {
+            ...baseProps,
+            postIds: [],
+        };
+
+        const wrapper = mount(<LatestPostReader {...props}/>, mountOptions);
+        const span = wrapper.childAt(0);
+
+        expect(span.prop('children')).toEqual('');
+    });
 });
