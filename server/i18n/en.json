@@ -2086,6 +2086,10 @@
     "translation": "Could not create true up status record"
   },
   {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Failed to submit true up review profile to CWS."
+  },
+  {
     "id": "api.license.true_up_review.get_status_error",
     "translation": "Could not get true up status records"
   },
