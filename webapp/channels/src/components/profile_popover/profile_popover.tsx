@@ -20,6 +20,7 @@ import {ModalData} from 'types/actions';
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 
@@ -338,7 +339,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
     handleKeyDown = (e: React.KeyboardEvent) => {
         if (shouldFocusMainTextbox(e, document.activeElement)) {
             this.props.hide?.();
-        } else if (Utils.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             this.returnFocus();
         }
     };
