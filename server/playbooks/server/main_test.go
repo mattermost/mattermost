@@ -31,7 +31,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	serverpathBytes, err := exec.Command("go", "list", "-f", "'{{.Dir}}'", "-m", "github.com/mattermost/mattermost-server/v6").Output()
+	serverpathBytes, err := exec.Command("go", "list", "-f", "'{{.Dir}}'", "-m", "github.com/mattermost/mattermost-server/server/v8").Output()
 	if err != nil {
 		panic(err)
 	}
