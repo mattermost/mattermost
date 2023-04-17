@@ -343,14 +343,23 @@ func (s *MattermostAuthLayer) GetUsersByTeam(teamID string, asGuestID string, sh
 			Join("TeamMembers as tm ON tm.UserID = u.id").
 			Where(sq.Eq{"tm.TeamId": teamID})
 	} else {
-		boards, err := s.GetBoardsForUserAndTeam(asGuestID, teamID, false)
-		if err != nil {
-			return nil, err
-		}
-
 		boardsIDs := []string{}
-		for _, board := range boards {
-			boardsIDs = append(boardsIDs, board.ID)
+		page := 0
+		for ; true; page++ {
+			boards, err := s.GetBoardsForUserAndTeam(asGuestID, teamID, model.QueryBoardOptions{
+				IncludePublicBoards: false,
+				Page:                page,
+				PerPage:             100,
+			})
+			if err != nil {
+				return nil, err
+			}
+			for _, board := range boards {
+				boardsIDs = append(boardsIDs, board.ID)
+			}
+			if len(boards) == 0 || len(boards) < 100 {
+				break
+			}
 		}
 		query = query.
 			Join(s.tablePrefix + "board_members as bm ON bm.UserID = u.ID").
@@ -415,13 +424,23 @@ func (s *MattermostAuthLayer) SearchUsersByTeam(teamID string, searchQuery strin
 			Join("TeamMembers as tm ON tm.UserID = u.id").
 			Where(sq.Eq{"tm.TeamId": teamID})
 	} else {
-		boards, err := s.GetBoardsForUserAndTeam(asGuestID, teamID, false)
-		if err != nil {
-			return nil, err
-		}
 		boardsIDs := []string{}
-		for _, board := range boards {
-			boardsIDs = append(boardsIDs, board.ID)
+		page := 0
+		for ; true; page++ {
+			boards, err := s.GetBoardsForUserAndTeam(asGuestID, teamID, model.QueryBoardOptions{
+				IncludePublicBoards: false,
+				Page:                page,
+				PerPage:             100,
+			})
+			if err != nil {
+				return nil, err
+			}
+			for _, board := range boards {
+				boardsIDs = append(boardsIDs, board.ID)
+			}
+			if len(boards) == 0 || len(boards) < 100 {
+				break
+			}
 		}
 		query = query.
 			Join(s.tablePrefix + "board_members as bm ON bm.user_id = u.ID").
@@ -1150,8 +1169,8 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string) ([]*model.Board
 	return members, nil
 }
 
-func (s *MattermostAuthLayer) GetBoardsForUserAndTeam(userID, teamID string, includePublicBoards bool) ([]*model.Board, error) {
-	if includePublicBoards {
+func (s *MattermostAuthLayer) GetBoardsForUserAndTeam(userID, teamID string, opts model.QueryBoardOptions) ([]*model.Board, error) {
+	if opts.IncludePublicBoards {
 		boards, err := s.SearchBoardsForUserInTeam(teamID, "", userID)
 		if err != nil {
 			return nil, err

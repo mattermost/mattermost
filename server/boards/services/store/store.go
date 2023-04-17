@@ -92,7 +92,7 @@ type Store interface {
 	// @withTransaction
 	PatchBoard(boardID string, boardPatch *model.BoardPatch, userID string) (*model.Board, error)
 	GetBoard(id string) (*model.Board, error)
-	GetBoardsForUserAndTeam(userID, teamID string, includePublicBoards bool) ([]*model.Board, error)
+	GetBoardsForUserAndTeam(userID, teamID string, opts model.QueryBoardOptions) ([]*model.Board, error)
 	GetBoardsInTeamByIds(boardIDs []string, teamID string) ([]*model.Board, error)
 	// @withTransaction
 	DeleteBoard(boardID, userID string) error

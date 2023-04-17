@@ -74,6 +74,15 @@ func TestGetBlocks(t *testing.T) {
 
 		_, resp = th.Client.GetBlocks(opts)
 		require.Error(t, resp.Error)
+
+		opts = model.QueryBlocksOptions{
+			BoardID: board.ID,
+			Page:    0,
+			PerPage: 100000,
+		}
+
+		_, resp = th.Client.GetBlocks(opts)
+		require.Error(t, resp.Error)
 	})
 }
 

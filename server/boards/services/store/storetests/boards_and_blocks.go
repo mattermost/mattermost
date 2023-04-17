@@ -34,7 +34,7 @@ func testCreateBoardsAndBlocks(t *testing.T, store store.Store) {
 	teamID := testTeamID
 	userID := testUserID
 
-	boards, err := store.GetBoardsForUserAndTeam(userID, teamID, true)
+	boards, err := store.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{IncludePublicBoards: true})
 	require.NoError(t, err)
 	require.Empty(t, boards)
 

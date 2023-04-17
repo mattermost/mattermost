@@ -265,8 +265,8 @@ func (a *App) DuplicateBoard(boardID, userID, toTeam string, asTemplate bool) (*
 	return bab, members, err
 }
 
-func (a *App) GetBoardsForUserAndTeam(userID, teamID string, includePublicBoards bool) ([]*model.Board, error) {
-	return a.store.GetBoardsForUserAndTeam(userID, teamID, includePublicBoards)
+func (a *App) GetBoardsForUserAndTeam(userID, teamID string, opts model.QueryBoardOptions) ([]*model.Board, error) {
+	return a.store.GetBoardsForUserAndTeam(userID, teamID, opts)
 }
 
 func (a *App) GetTemplateBoards(teamID, userID string) ([]*model.Board, error) {

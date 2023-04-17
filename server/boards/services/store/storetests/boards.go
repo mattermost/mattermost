@@ -105,7 +105,7 @@ func testGetBoardsForUserAndTeam(t *testing.T, store store.Store) {
 	userID := "user-id-1"
 
 	t.Run("should return empty list if no results are found", func(t *testing.T) {
-		boards, err := store.GetBoardsForUserAndTeam(testUserID, testTeamID, true)
+		boards, err := store.GetBoardsForUserAndTeam(testUserID, testTeamID, model.QueryBoardOptions{IncludePublicBoards: true})
 		require.NoError(t, err)
 		require.Empty(t, boards)
 	})
@@ -165,7 +165,7 @@ func testGetBoardsForUserAndTeam(t *testing.T, store store.Store) {
 		require.NoError(t, err)
 
 		t.Run("should only find the two boards that the user is a member of for team 1 plus the one open board", func(t *testing.T) {
-			boards, err := store.GetBoardsForUserAndTeam(userID, teamID1, true)
+			boards, err := store.GetBoardsForUserAndTeam(userID, teamID1, model.QueryBoardOptions{IncludePublicBoards: true})
 			require.NoError(t, err)
 			require.ElementsMatch(t, []*model.Board{
 				rBoard1,
@@ -175,7 +175,7 @@ func testGetBoardsForUserAndTeam(t *testing.T, store store.Store) {
 		})
 
 		t.Run("should only find the two boards that the user is a member of for team 1", func(t *testing.T) {
-			boards, err := store.GetBoardsForUserAndTeam(userID, teamID1, false)
+			boards, err := store.GetBoardsForUserAndTeam(userID, teamID1, model.QueryBoardOptions{IncludePublicBoards: false})
 			require.NoError(t, err)
 			require.ElementsMatch(t, []*model.Board{
 				rBoard1,
@@ -184,10 +184,32 @@ func testGetBoardsForUserAndTeam(t *testing.T, store store.Store) {
 		})
 
 		t.Run("should only find the board that the user is a member of for team 2", func(t *testing.T) {
-			boards, err := store.GetBoardsForUserAndTeam(userID, teamID2, true)
+			boards, err := store.GetBoardsForUserAndTeam(userID, teamID2, model.QueryBoardOptions{IncludePublicBoards: true})
 			require.NoError(t, err)
 			require.Len(t, boards, 1)
 			require.Equal(t, board5.ID, boards[0].ID)
+		})
+
+		t.Run("pagination", func(t *testing.T) {
+			boardsFound := []*model.Board{}
+			page := 0
+			for ; true; page++ {
+				boards, err := store.GetBoardsForUserAndTeam(userID, teamID1, model.QueryBoardOptions{
+					IncludePublicBoards: true,
+					Page:                page,
+					PerPage:             2,
+				})
+				require.NoError(t, err)
+				boardsFound = append(boardsFound, boards...)
+				if len(boards) == 0 || len(boards) < 2 {
+					break
+				}
+			}
+			require.ElementsMatch(t, []*model.Board{
+				rBoard1,
+				rBoard2,
+				rBoard3,
+			}, boardsFound)
 		})
 	})
 }

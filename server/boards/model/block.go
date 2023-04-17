@@ -194,6 +194,13 @@ type QueryBlockHistoryOptions struct {
 	Descending     bool   // if true then the records are sorted by insert_at in descending order
 }
 
+// QueryBoardOptions are query options that can be passed to GetBoards.
+type QueryBoardOptions struct {
+	IncludePublicBoards bool // true to include public boards
+	Page                int  // page number to select when paginating
+	PerPage             int  // number of blocks per page (default=0, meaning unlimited)
+}
+
 // QueryBoardHistoryOptions are query options that can be passed to GetBoardHistory.
 type QueryBoardHistoryOptions struct {
 	BeforeUpdateAt int64  // if non-zero then filter for records with update_at less than BeforeUpdateAt

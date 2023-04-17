@@ -230,14 +230,24 @@ func (a *API) handleArchiveExportTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	boards, err := a.app.GetBoardsForUserAndTeam(userID, teamID, !isGuest)
-	if err != nil {
-		a.errorResponse(w, r, err)
-		return
-	}
 	ids := []string{}
-	for _, board := range boards {
-		ids = append(ids, board.ID)
+	page := 0
+	for ; true; page++ {
+		boards, err := a.app.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
+			IncludePublicBoards: !isGuest,
+			Page:                page,
+			PerPage:             defaultMaxPerPage,
+		})
+		if err != nil {
+			a.errorResponse(w, r, err)
+			return
+		}
+		for _, board := range boards {
+			ids = append(ids, board.ID)
+		}
+		if len(boards) == 0 || len(boards) < defaultMaxPerPage {
+			break
+		}
 	}
 
 	opts := model.ExportArchiveOptions{

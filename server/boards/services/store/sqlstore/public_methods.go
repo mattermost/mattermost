@@ -366,8 +366,8 @@ func (s *SQLStore) GetBoardsForCompliance(opts model.QueryBoardsForComplianceOpt
 
 }
 
-func (s *SQLStore) GetBoardsForUserAndTeam(userID string, teamID string, includePublicBoards bool) ([]*model.Board, error) {
-	return s.getBoardsForUserAndTeam(s.db, userID, teamID, includePublicBoards)
+func (s *SQLStore) GetBoardsForUserAndTeam(userID string, teamID string, opts model.QueryBoardOptions) ([]*model.Board, error) {
+	return s.getBoardsForUserAndTeam(s.db, userID, teamID, opts)
 
 }
 

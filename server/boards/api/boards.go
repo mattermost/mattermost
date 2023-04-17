@@ -41,6 +41,16 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 	//   description: Team ID
 	//   required: true
 	//   type: string
+	// - name: page
+	//   in: query
+	//   description: The page to select (default=0)
+	//   required: false
+	//   type: integer
+	// - name: per_page
+	//   in: query
+	//   description: Number of cards to return per page(default=100)
+	//   required: false
+	//   type: integer
 	// security:
 	// - BearerAuth: []
 	// responses:
@@ -58,6 +68,12 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 	teamID := mux.Vars(r)["teamID"]
 	userID := getUserID(r)
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
@@ -74,7 +90,11 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// retrieve boards list
-	boards, err := a.app.GetBoardsForUserAndTeam(userID, teamID, !isGuest)
+	boards, err := a.app.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
+		IncludePublicBoards: !isGuest,
+		Page:                page,
+		PerPage:             perPage,
+	})
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

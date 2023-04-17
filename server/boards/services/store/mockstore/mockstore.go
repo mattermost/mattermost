@@ -661,7 +661,7 @@ func (mr *MockStoreMockRecorder) GetBoardsForCompliance(arg0 interface{}) *gomoc
 }
 
 // GetBoardsForUserAndTeam mocks base method.
-func (m *MockStore) GetBoardsForUserAndTeam(arg0, arg1 string, arg2 bool) ([]*model0.Board, error) {
+func (m *MockStore) GetBoardsForUserAndTeam(arg0, arg1 string, arg2 model0.QueryBoardOptions) ([]*model0.Board, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardsForUserAndTeam", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model0.Board)

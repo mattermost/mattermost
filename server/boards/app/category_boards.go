@@ -87,15 +87,29 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 	}
 
 	// get user's current team's baords
-	userTeamBoards, err := a.GetBoardsForUserAndTeam(userID, teamID, false)
-	if err != nil {
-		return nil, fmt.Errorf("createBoardsCategory error fetching user's team's boards: %w", err)
+	userTeamBoardIDs := []string{}
+	page := 0
+	for ; true; page++ {
+		userTeamBoards, err := a.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
+			IncludePublicBoards: false,
+			Page:                page,
+			PerPage:             100,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("createBoardsCategory error fetching user's team's boards: %w", err)
+		}
+		for _, board := range userTeamBoards {
+			userTeamBoardIDs = append(userTeamBoardIDs, board.ID)
+		}
+		if len(userTeamBoards) == 0 || len(userTeamBoards) < 100 {
+			break
+		}
 	}
 
 	boardIDsToAdd := []string{}
 
-	for _, board := range userTeamBoards {
-		boardMembership, ok := boardMemberByBoardID[board.ID]
+	for _, boardID := range userTeamBoardIDs {
+		boardMembership, ok := boardMemberByBoardID[boardID]
 		if !ok {
 			return nil, fmt.Errorf("createBoardsCategory: %w", errBoardMembershipNotFound)
 		}
@@ -113,7 +127,7 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 
 		for _, categoryBoard := range existingCategoryBoards {
 			for _, metadata := range categoryBoard.BoardMetadata {
-				if metadata.BoardID == board.ID {
+				if metadata.BoardID == boardID {
 					belongsToCategory = true
 					break
 				}
@@ -127,9 +141,9 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 		}
 
 		if !belongsToCategory {
-			boardIDsToAdd = append(boardIDsToAdd, board.ID)
+			boardIDsToAdd = append(boardIDsToAdd, boardID)
 			newBoardMetadata := model.CategoryBoardMetadata{
-				BoardID: board.ID,
+				BoardID: boardID,
 				Hidden:  false,
 			}
 			createdCategoryBoards.BoardMetadata = append(createdCategoryBoards.BoardMetadata, newBoardMetadata)

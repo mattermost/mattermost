@@ -70,8 +70,8 @@ func getBoardsInsightsTest(t *testing.T, store store.Store) {
 
 	_, _ = store.SaveMember(bm)
 
-	boardsUser1, _ := store.GetBoardsForUserAndTeam(testUserID, testTeamID, true)
-	boardsUser2, _ := store.GetBoardsForUserAndTeam(testInsightsUserID1, testTeamID, true)
+	boardsUser1, _ := store.GetBoardsForUserAndTeam(testUserID, testTeamID, model.QueryBoardOptions{IncludePublicBoards: true})
+	boardsUser2, _ := store.GetBoardsForUserAndTeam(testInsightsUserID1, testTeamID, model.QueryBoardOptions{IncludePublicBoards: true})
 	t.Run("team insights", func(t *testing.T) {
 		boardIDs := []string{boardsUser1[0].ID, boardsUser1[1].ID, boardsUser1[2].ID}
 		topTeamBoards, err := store.GetTeamBoardsInsights(testTeamID,

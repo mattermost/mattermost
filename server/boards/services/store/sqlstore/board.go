@@ -238,7 +238,7 @@ func (s *SQLStore) getBoard(db sq.BaseRunner, boardID string) (*model.Board, err
 	return s.getBoardByCondition(db, sq.Eq{"id": boardID})
 }
 
-func (s *SQLStore) getBoardsForUserAndTeam(db sq.BaseRunner, userID, teamID string, includePublicBoards bool) ([]*model.Board, error) {
+func (s *SQLStore) getBoardsForUserAndTeam(db sq.BaseRunner, userID, teamID string, opts model.QueryBoardOptions) ([]*model.Board, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardFields("b.")...).
 		Distinct().
@@ -247,7 +247,7 @@ func (s *SQLStore) getBoardsForUserAndTeam(db sq.BaseRunner, userID, teamID stri
 		Where(sq.Eq{"b.team_id": teamID}).
 		Where(sq.Eq{"b.is_template": false})
 
-	if includePublicBoards {
+	if opts.IncludePublicBoards {
 		query = query.Where(sq.Or{
 			sq.Eq{"b.type": model.BoardTypeOpen},
 			sq.Eq{"bm.user_id": userID},
@@ -256,6 +256,14 @@ func (s *SQLStore) getBoardsForUserAndTeam(db sq.BaseRunner, userID, teamID stri
 		query = query.Where(sq.Or{
 			sq.Eq{"bm.user_id": userID},
 		})
+	}
+
+	if opts.Page != 0 {
+		query = query.Offset(uint64(opts.Page * opts.PerPage))
+	}
+
+	if opts.PerPage > 0 {
+		query = query.Limit(uint64(opts.PerPage))
 	}
 
 	rows, err := query.Query()
