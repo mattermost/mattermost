@@ -208,7 +208,6 @@ describe('ToYearlyNudgeBannerDismissable', () => {
                 product_id: 'prod_professional',
                 is_free_trial: 'false',
                 trial_end_at: 1,
-                has_payment_method: true,
                 billing_type: 'internal',
             },
             products: {
@@ -235,7 +234,6 @@ describe('ToYearlyNudgeBannerDismissable', () => {
                 product_id: 'prod_professional',
                 is_free_trial: 'false',
                 trial_end_at: 1,
-                has_payment_method: true,
                 billing_type: 'licensed',
             },
             products: {
@@ -304,7 +302,6 @@ describe('ToYearlyNudgeBanner', () => {
                 product_id: 'prod_professional',
                 is_free_trial: 'false',
                 trial_end_at: 1,
-                has_payment_method: true,
                 billing_type: 'internal',
             },
             products: {
@@ -328,7 +325,6 @@ describe('ToYearlyNudgeBanner', () => {
                 product_id: 'prod_professional',
                 is_free_trial: 'false',
                 trial_end_at: 1,
-                has_payment_method: true,
                 billing_type: 'licensed',
             },
             products: {

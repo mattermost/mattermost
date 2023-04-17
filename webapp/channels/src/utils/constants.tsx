@@ -505,7 +505,7 @@ export const CloudProducts = {
 export const CloudBillingTypes = {
     INTERNAL: 'internal',
     LICENSED: 'licensed',
-}
+};
 
 export const SelfHostedProducts = {
     STARTER: 'starter',

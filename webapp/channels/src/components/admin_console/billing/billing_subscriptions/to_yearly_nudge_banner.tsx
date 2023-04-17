@@ -140,7 +140,7 @@ const ToYearlyNudgeBannerDismissable = () => {
         return null;
     }
 
-    if (subscription?.has_payment_method && (subscription.billing_type === CloudBillingTypes.INTERNAL || subscription.billing_type === CloudBillingTypes.LICENSED)) {
+    if (subscription?.billing_type === CloudBillingTypes.INTERNAL || subscription?.billing_type === CloudBillingTypes.LICENSED) {
         return null;
     }
 
@@ -188,7 +188,7 @@ const ToYearlyNudgeBanner = () => {
         return null;
     }
 
-    if (subscription?.has_payment_method && (subscription.billing_type === CloudBillingTypes.INTERNAL || subscription.billing_type === CloudBillingTypes.LICENSED)) {
+    if (subscription?.billing_type === CloudBillingTypes.INTERNAL || subscription?.billing_type === CloudBillingTypes.LICENSED) {
         return null;
     }
 

@@ -41,7 +41,6 @@ export type Subscription = {
     is_free_trial: string;
     delinquent_since?: number;
     compliance_blocked?: string;
-    has_payment_method?: boolean;
     billing_type?: string;
 }
 
