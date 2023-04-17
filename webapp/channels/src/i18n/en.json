@@ -4758,6 +4758,7 @@
   "self_hosted_expansion_rhs_card_licensed_seats": "{licensedSeats} LICENSES SEATS",
   "self_hosted_expansion_rhs_card_maximum_seats_warning": "{warningIcon} You may only expand by an additional {maxAdditionalSeats} seats",
   "self_hosted_expansion_rhs_card_must_add_seats_warning": "{warningIcon} You must add a seat to continue",
+  "self_hosted_expansion_rhs_card_must_purchase_enough_seats": "{warningIcon} You must purchase at least {minimumSeats} seats to be compliant with your license",
   "self_hosted_expansion_rhs_card_total_prorated_warning": "The total will be prorated",
   "self_hosted_expansion_rhs_card_total_title": "Total",
   "self_hosted_expansion_rhs_complete_button": "Complete purchase",
