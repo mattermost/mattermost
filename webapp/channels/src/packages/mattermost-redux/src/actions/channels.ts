@@ -479,7 +479,6 @@ export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc<{chann
             ]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: ChannelTypes.CHANNELS_FAILURE, error});
             dispatch(logError(error));
             return {error: error as ServerError};
         }
@@ -495,6 +494,7 @@ export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc<{chann
                 data: channelMembers,
             },
         ]));
+
         const roles = new Set<string>();
         for (const member of channelMembers) {
             for (const role of member.roles.split(' ')) {
