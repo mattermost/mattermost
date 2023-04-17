@@ -14,7 +14,6 @@
         display: block;
         margin-bottom: 12px;
         color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
-        font-family: 'Open Sans';
         font-size: 14px;
         font-weight: 600;
         text-align: center;
@@ -24,7 +23,6 @@
     .seatsInput {
         width: 73px;
         margin-left: auto;
-        font-family: 'Open Sans';
         font-size: 14px;
         font-weight: 400;
 
@@ -46,7 +44,6 @@
 
         .planName {
             color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
-            font-family: 'Metropolis';
             font-size: 20px;
             font-weight: 400;
             text-transform: capitalize;
@@ -54,7 +51,6 @@
 
         .usage {
             color: rgba(var(--sys-denim-center-channel-text-rgb), 0.56);
-            font-family: 'Open Sans';
             font-size: 12px;
             font-weight: 600;
 
@@ -78,13 +74,11 @@
         grid-template-columns: repeat(2, 1fr);
 
         .costPerUser > span:first-child {
-            font-family: 'Open Sans';
             font-size: 14px;
         }
 
         .costPerUser > span:last-child {
             color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
-            font-family: 'Open Sans';
             font-size: 12px;
         }
 
@@ -94,14 +88,12 @@
 
         .totalCostWarning > span:first-child {
             color: var(--sys-denim-center-channel-text);
-            font-family: 'Open Sans';
             font-size: 14px;
             font-weight: 700;
         }
 
         .totalCostWarning > span:last-child {
             color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
-            font-family: 'Open Sans';
             font-size: 12px;
         }
 
@@ -119,7 +111,6 @@
         height: 35px;
         margin-bottom: 15px;
         color: var(--dnd-indicator);
-        font-family: 'Open Sans';
         font-size: 12px;
         font-weight: 600;
         text-align: right;
@@ -134,7 +125,6 @@
 
     &__ChargedTodayDisclaimer {
         color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
-        font-family: 'Open Sans';
         font-size: 12px;
         font-weight: 400;
     }
