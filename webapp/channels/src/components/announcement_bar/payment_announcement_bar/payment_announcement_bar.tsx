@@ -12,6 +12,8 @@ import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {AnnouncementBarTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import AnnouncementBar from '../default_announcement_bar';
 
 type Props = {
@@ -66,6 +68,7 @@ class PaymentAnnouncementBar extends React.PureComponent<Props> {
 
     updatePaymentInfo = () => {
         getHistory().push('/admin_console/billing/payment_info');
+        trackEvent('system_admin', 'system_console_visit', {location: 'payment_announcement_bar'});
     };
 
     render() {

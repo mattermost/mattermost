@@ -405,7 +405,10 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                 </ExternalLink>
             ),
             linkConsole: (msg: string) => (
-                <Link to='/admin_console/environment/web_server'>
+                <Link
+                    to='/admin_console/environment/web_server'
+                    onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'configuration_bar'})}
+                >
                     {msg}
                 </Link>
             ),

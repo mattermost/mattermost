@@ -330,7 +330,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         <Link
                             to='/admin_console'
                             className='signup-team-login'
-                            onClick={() => trackEvent('select_team', 'click_system_console')}
+                            onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'select_team'})}
                         >
                             <FormattedMessage
                                 id='signup_team_system_console'

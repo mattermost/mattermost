@@ -41,7 +41,10 @@ const MarketplaceTabs = {
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
 const linkConsole = (msg: string) => (
-    <Link to='/admin_console/plugins/plugin_management'>
+    <Link
+        to='/admin_console/plugins/plugin_management'
+        onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'marketplace_modal'})}
+    >
         {msg}
     </Link>
 );

@@ -13,14 +13,16 @@ type Props = {
     className?: string;
     disabled?: boolean;
     sibling?: React.ReactNode;
+    onLinkClick?: () => void;
 }
 
-export const MenuItemLinkImpl = ({to, text, className, disabled, sibling}: Props) => (
+export const MenuItemLinkImpl = ({to, text, className, disabled, sibling, onLinkClick}: Props) => (
     <>
         <Link
             to={to}
             className={classNames(className, {'MenuItem__with-sibling': sibling, disabled})}
             disabled={disabled}
+            onClick={onLinkClick}
         >
             <span className='MenuItem__primary-text'>{text}</span>
         </Link>

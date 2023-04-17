@@ -264,6 +264,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
                         tertiaryButtonHandler={() => {
                             this.props.onClose();
                             this.props.history.push('/admin_console/billing/subscription');
+                            trackEvent('system_admin', 'system_console_visit', {location: 'switch_to_annual > purchase_modal > success'});
                         }}
                         className={'success'}
                     />
@@ -327,6 +328,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
                 tertiaryButtonHandler={() => {
                     this.props.onClose();
                     this.props.history.push('/admin_console/billing/subscription');
+                    trackEvent('system_admin', 'system_console_visit', {location: 'purchase_modal > success'});
                 }}
             />
         );

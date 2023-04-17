@@ -255,7 +255,7 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 
 	if isYearly {
 		data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_yearly.subtitle", map[string]any{"WorkspaceName": workspaceName})
-		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history"
+		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history?trackLocation=CloudUpgradeConfirmationEmail"
 		data.Props["Button"] = T("api.templates.cloud_welcome_email.yearly_plan_button")
 	}
 
@@ -988,6 +988,7 @@ func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPay
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_45.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_delinquency_modal&trackLocation=PaymentFailedEmail"
 	data.Props["IncludeSecondaryActionButton"] = false
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
@@ -1016,6 +1017,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 	data.Props["Info1"] = T("api.templates.payment_failed_no_card.info1")
 	data.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
 	data.Props["Button"] = T("api.templates.payment_failed_no_card.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?trackLocation=NoCardPaymentFailedEmail"
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	data.Props["Footer"] = T("api.templates.copyright")
@@ -1046,6 +1048,7 @@ func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_7.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_delinquency_modal&trackLocation=CloudDelinquencyEmail7"
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	data.Props["Footer"] = T("api.templates.copyright")
@@ -1075,6 +1078,7 @@ func (es *Service) SendDelinquencyEmail14(email, locale, siteURL, planName strin
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_14.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_delinquency_modal&trackLocation=CloudDelinquencyEmail14"
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	data.Props["Footer"] = T("api.templates.copyright")
@@ -1104,6 +1108,7 @@ func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName strin
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_30.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?trackLocation=CloudDelinquencyEmail30"
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["BulletListItems"] = []string{T("api.templates.delinquency_30.bullet.message_history"), T("api.templates.delinquency_30.bullet.files")}
 	data.Props["LimitsDocs"] = T("api.templates.delinquency_30.limits_documentation")
@@ -1136,6 +1141,7 @@ func (es *Service) SendDelinquencyEmail45(email, locale, siteURL, planName, deli
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_45.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_delinquency_modal&trackLocation=CloudDelinquencyEmail45"
 	data.Props["IncludeSecondaryActionButton"] = false
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
@@ -1171,6 +1177,7 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
 	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_free")
+	data.Props["SecondaryActionButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_pricing_modal&trackingLocation=CloudDelinquencyEmail60"
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 60 day one so its reused
@@ -1204,6 +1211,7 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, deli
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
 	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_free")
+	data.Props["SecondaryActionButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_pricing_modal&trackingLocation=CloudDelinquencyEmail75"
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 75 day one so its reused
@@ -1234,9 +1242,11 @@ func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_90.button")
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_delinquency_modal&trackLocation=CloudDelinquencyEmail90"
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
 	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_90.secondary_action_button")
+	data.Props["SecondaryActionButtonURL"] = siteURL + "/admin_console/billing/subscription?action=show_pricing_modal&trackingLocation=CloudDelinquencyEmail90"
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	body, err := es.templatesContainer.RenderToString("cloud_90_day_arrears", data)

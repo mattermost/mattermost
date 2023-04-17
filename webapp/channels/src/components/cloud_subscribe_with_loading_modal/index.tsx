@@ -25,6 +25,8 @@ import {
 } from 'mattermost-redux/actions/teams';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 type Props = RouteComponentProps & {
     onBack: () => void;
     onClose?: () => void;
@@ -159,6 +161,7 @@ function CloudSubscribeWithLoad(props: Props) {
                 tertiaryButtonHandler={() => {
                     handleClose();
                     props.history.push('/admin_console/billing/subscription');
+                    trackEvent('system_admin', 'system_console_visit', {location: 'cloud_subscribe_with_loading_modal'});
                 }}
             />
         );

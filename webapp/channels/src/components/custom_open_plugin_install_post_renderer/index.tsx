@@ -18,6 +18,8 @@ import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import {GlobalState} from 'types/store';
 import {fetchListing, installPlugin} from 'actions/marketplace';
 import ToggleModalButton from 'components/toggle_modal_button';
@@ -78,6 +80,7 @@ const ConfigureLink = (props: {pluginId: string; pluginName: string}) => {
             <Link
                 to={'/admin_console/plugins/plugin_' + props.pluginId}
                 style={{color: 'var(--denim-button-bg)', fontWeight: '600'}}
+                onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'custom_open_plugin_intall_post_renderer'})}
             >
                 <FormattedMessage
                     id='marketplace_modal.list.configure.plugin'

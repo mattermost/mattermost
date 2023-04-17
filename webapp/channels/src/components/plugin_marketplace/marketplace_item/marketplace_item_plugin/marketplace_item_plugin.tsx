@@ -12,6 +12,8 @@ import {Link} from 'react-router-dom';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 import {PluginStatusRedux} from '@mattermost/types/plugins';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import MarketplaceItem from '../marketplace_item';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -291,6 +293,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
             return (
                 <Link
                     to={'/admin_console/plugins/plugin_' + this.props.id}
+                    onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'plugin_market_place'})}
                 >
                     <button
                         onClick={this.onConfigure}
