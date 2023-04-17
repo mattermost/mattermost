@@ -8763,3 +8763,17 @@ func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, 
 	err = json.NewDecoder(r.Body).Decode(&templates)
 	return templates, BuildResponse(r), err
 }
+
+func (c *Client4) SubmitTrueUpReview(req map[string]any) (*Response, error) {
+	reqBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, NewAppError("SubmitTrueUpReview", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(c.licenseRoute()+"/review", reqBytes)
+	if err != nil {
+		return BuildResponse(r), nil
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}

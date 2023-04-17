@@ -47,4 +47,7 @@ type CloudInterface interface {
 	CheckCWSConnection(userId string) error
 
 	SelfServeDeleteWorkspace(userID string, deletionRequest *model.WorkspaceDeletionRequest) error
+
+	// Used only for when a customer has telemetry disabled. In this scenario, true up review telemetry will be submitted via CWS.
+	SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]any) error
 }
