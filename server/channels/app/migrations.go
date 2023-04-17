@@ -565,6 +565,11 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 		return
 	}
 
+	license := s.License()
+	if model.BuildEnterpriseReady == "false" || license == nil || !*license.Features.Elasticsearch {
+		return
+	}
+
 	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
 		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
 		return
