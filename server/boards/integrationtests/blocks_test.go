@@ -43,16 +43,38 @@ func TestGetBlocks(t *testing.T) {
 	blockID1 := newBlocks[0].ID
 	blockID2 := newBlocks[1].ID
 
-	blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
-	require.NoError(t, resp.Error)
-	require.Len(t, blocks, 2)
+	t.Run("get blocks", func(t *testing.T) {
+		blocks, resp := th.Client.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
+		require.NoError(t, resp.Error)
+		require.Len(t, blocks, 2)
 
-	blockIDs := make([]string, len(blocks))
-	for i, b := range blocks {
-		blockIDs[i] = b.ID
-	}
-	require.Contains(t, blockIDs, blockID1)
-	require.Contains(t, blockIDs, blockID2)
+		blockIDs := make([]string, len(blocks))
+		for i, b := range blocks {
+			blockIDs[i] = b.ID
+		}
+		require.Contains(t, blockIDs, blockID1)
+		require.Contains(t, blockIDs, blockID2)
+	})
+
+	t.Run("invalid pagination", func(t *testing.T) {
+		opts := model.QueryBlocksOptions{
+			BoardID: board.ID,
+			Page:    -1,
+			PerPage: 10,
+		}
+
+		_, resp := th.Client.GetBlocks(opts)
+		require.Error(t, resp.Error)
+
+		opts = model.QueryBlocksOptions{
+			BoardID: board.ID,
+			Page:    0,
+			PerPage: -1,
+		}
+
+		_, resp = th.Client.GetBlocks(opts)
+		require.Error(t, resp.Error)
+	})
 }
 
 func TestPostBlock(t *testing.T) {
