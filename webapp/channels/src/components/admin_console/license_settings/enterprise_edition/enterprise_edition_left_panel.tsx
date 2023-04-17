@@ -59,13 +59,13 @@ const EnterpriseEditionLeftPanel = ({
     const canExpand = useCanSelfHostedExpand();
     const selfHostedExpansionModal = useControlSelfHostedExpansionModal({trackingLocation: 'license_settings_add_seats'});
     const expandableLink = useSelector(getExpandSeatsLink);
-    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
+    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
 
     const query = useQuery();
     const actionQueryParam = query.get('action');
 
     useEffect(() => {
-        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedExpansionEnabled) {
+        if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedPurchaseEnabled) {
             selfHostedExpansionModal.open();
             query.set('action', '');
         }
@@ -100,7 +100,7 @@ const EnterpriseEditionLeftPanel = ({
     );
 
     const handleClickAddSeats = () => {
-        if (!isSelfHostedExpansionEnabled || !canExpand) {
+        if (!isSelfHostedPurchaseEnabled || !canExpand) {
             window.open(expandableLink(unsanitizedLicense.Id), '_blank');
         } else {
             selfHostedExpansionModal.open();
