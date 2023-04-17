@@ -42,7 +42,7 @@ const AddContentMenuItem = (props: Props): JSX.Element => {
                 newBlock.boardId = card.boardId
 
                 const typeName = handler.getDisplayText(intl)
-                const description = intl.formatMessage({id: 'ContentBlock.addElement', defaultMessage: 'add {type} __ci-test__'}, {type: typeName})
+                const description = intl.formatMessage({id: 'ContentBlock.addElement', defaultMessage: 'add {type}'}, {type: typeName})
 
                 const afterRedo = async (nb: Block) => {
                     const contentOrder = card.fields.contentOrder.slice()
