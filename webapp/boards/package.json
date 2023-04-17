@@ -4,7 +4,6 @@
 	"private": true,
 	"description": "",
 	"scripts": {
-		"i18n-extract": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" --out-file i18n/tmp.json && formatjs compile i18n/tmp.json --out-file i18n/en.json && npx rimraf i18n/tmp.json",
 		"build": "webpack --mode=production",
 		"build:watch": "webpack --mode=production --watch",
 		"start:product": "webpack serve --mode=development",
@@ -18,6 +17,7 @@
 		"check-types": "tsc -b",
 		"check-types:fix": "npm run check-types -- --noEmit --fix",
 		"check": "npm run check-lint && npm run check-style",
+		"i18n-extract": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" --id-interpolation-pattern '[sha512:contenthash:base64:6]' --format simple --out-file i18n/en.json",
 		"fix": "npm run check-lint:fix && npm run check-style:fix",
 		"test": "cross-env TZ=Etc/UTC jest",
 		"test:watch": "cross-env TZ=Etc/UTC jest --watch",
