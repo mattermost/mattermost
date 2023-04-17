@@ -89,6 +89,23 @@ func (a *OpenTracingAppLayer) ActivateMfa(userID string, token string) *model.Ap
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) ActiveSearchBackend() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ActiveSearchBackend")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ActiveSearchBackend()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddChannelMember(c request.CTX, userID string, channel *model.Channel, opts app.ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddChannelMember")
@@ -12757,23 +12774,6 @@ func (a *OpenTracingAppLayer) NewPluginAPI(c *request.Context, manifest *model.M
 
 	defer span.Finish()
 	resultVar0 := a.app.NewPluginAPI(c, manifest)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) NewWebConn(cfg *platform.WebConnConfig) *platform.WebConn {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.NewWebConn(cfg)
 
 	return resultVar0
 }
