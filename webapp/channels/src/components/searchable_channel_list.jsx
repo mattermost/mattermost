@@ -124,7 +124,7 @@ export default class SearchableChannelList extends React.PureComponent {
             this.props.nextPage(this.state.page + 1);
             this.setState({page: this.state.page + 1});
         }
-    }
+    };
 
     doSearch = () => {
         const term = this.filter.current.value;
@@ -148,7 +148,7 @@ export default class SearchableChannelList extends React.PureComponent {
         const pageEnd = pageStart + this.props.channelsPerPage;
         const channelsToDisplay = this.props.channels.slice(0, pageEnd);
         return channelsToDisplay.length < this.props.channels.length;
-    }
+    };
 
     render() {
         const channels = this.props.channels;
