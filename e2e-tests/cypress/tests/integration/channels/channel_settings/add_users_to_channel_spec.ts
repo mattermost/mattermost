@@ -16,26 +16,25 @@ describe('Channel Settings', () => {
     let testTeam: Cypress.Team;
     let firstUser: Cypress.UserProfile;
     let addedUsersChannel: Cypress.Channel;
-    let newGroup: Cypress.Group;
     let username: string;
     const usernames: string[] = [];
 
-    let users: Cypress.UserProfile[] = [];
+    const users: Cypress.UserProfile[] = [];
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             firstUser = user;
-            console.log(user.roles);
+            const teamId = testTeam.id;
 
             // # Add 10 users
             for (let i = 0; i < 10; i++) {
                 cy.apiCreateUser().then(({user: newUser}) => {
                     users.push(newUser);
-                    cy.apiAddUserToTeam(testTeam.id, newUser.id);
+                    cy.apiAddUserToTeam(teamId, newUser.id);
                 });
             }
-            cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
+            cy.apiCreateChannel(teamId, 'channel-test', 'Channel').then(({channel}) => {
                 addedUsersChannel = channel;
             });
 
@@ -56,12 +55,8 @@ describe('Channel Settings', () => {
             cy.apiLogin(firstUser);
         }).then(() => {
             const id = getRandomId();
-            cy.apiCreateCustomUserGroup(`group${id}`, `group${id}`, [users[0].id, users[1].id]).then(({group}) => {
-                newGroup = group;
-            });
+            cy.apiCreateCustomUserGroup(`group${id}`, `group${id}`, [users[0].id, users[1].id]);
         });
-
-        
     });
 
     it('MM-T859_1 Single User: Usernames are links, open profile popovers', () => {
@@ -179,12 +174,13 @@ describe('Channel Settings', () => {
 
     it('Add group members to channel', () => {
         cy.apiLogin(firstUser);
+
         // # Create a new channel
         cy.apiCreateChannel(testTeam.id, 'new-channel', 'New Channel').then(({channel}) => {
             // # Visit the channel
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-             // # Open channel menu and click 'Add Members'
+            // # Open channel menu and click 'Add Members'
             cy.uiOpenChannelMenu('Add Members');
 
             // * Assert that modal appears
@@ -192,10 +188,10 @@ describe('Channel Settings', () => {
 
             // # Type 'group' into the input box
             cy.get('#selectItems input').typeWithForce('group');
-                
+
             // # Click the first row for a number of times
             cy.get('#multiSelectList').should('be.visible').first().click();
-         
+
             // # Click the button "Add" to add user to a channel
             cy.uiGetButton('Add').click();
 
@@ -212,16 +208,18 @@ describe('Channel Settings', () => {
 
             // * Check that the number of channel members is 3
             cy.get('#channelMemberCountText').
-            should('be.visible').
-            and('have.text', '3');
+                should('be.visible').
+                and('have.text', '3');
         });
     });
 
     it('Add group members to team and then to channel', () => {
         cy.apiAdminLogin();
+
         // # Create a new user
         cy.apiCreateUser().then(({user: newUser}) => {
             const id = getRandomId();
+
             // # Create a custom user group
             cy.apiCreateCustomUserGroup(`newgroup${id}`, `newgroup${id}`, [newUser.id]).then(() => {
                 // # Create a new channel
@@ -237,7 +235,7 @@ describe('Channel Settings', () => {
 
                     // # Type 'group' into the input box
                     cy.get('#selectItems input').typeWithForce(`newgroup${id}`);
-                    
+
                     // # Click the first row for a number of times
                     cy.get('#multiSelectList').should('be.visible').first().click();
 
@@ -249,7 +247,7 @@ describe('Channel Settings', () => {
 
                     // # Click the button "Add users to team" to add user to the team
                     cy.uiGetButton('Add users to team').click();
-                    
+
                     // # Wait for the banner to disappear
                     cy.findByTestId('inviteMembersToTeamBanner').should('not.exist');
 
@@ -275,8 +273,8 @@ describe('Channel Settings', () => {
 
                     // * Check that the number of channel members is 3
                     cy.get('#channelMemberCountText').
-                    should('be.visible').
-                    and('have.text', '2');
+                        should('be.visible').
+                        and('have.text', '2');
                 });
             });
         });
@@ -284,11 +282,13 @@ describe('Channel Settings', () => {
 
     it('Add group members to team but give a warning about guests, and then add system users to channel', () => {
         cy.apiAdminLogin();
+
         // # Create a new user
         cy.apiCreateUser().then(({user: newUser}) => {
             // # Create a guest user
             cy.apiCreateGuestUser({}).then(({guest}) => {
                 const id = getRandomId();
+
                 // # Create a custom user group
                 cy.apiCreateCustomUserGroup(`guestgroup${id}`, `guestgroup${id}`, [guest.id, newUser.id]).then(() => {
                     // # Create a new channel
@@ -304,7 +304,7 @@ describe('Channel Settings', () => {
 
                         // # Type 'group' into the input box
                         cy.get('#selectItems input').typeWithForce(`guestgroup${id}`);
-                        
+
                         // # Click the first row for a number of times
                         cy.get('#multiSelectList').should('be.visible').first().click();
 
@@ -319,7 +319,7 @@ describe('Channel Settings', () => {
 
                         // # Click the button "Add users to team" to add user to the team
                         cy.uiGetButton('Add users to team').click();
-                        
+
                         // # Wait for the banner to disappear
                         cy.findByTestId('inviteMembersToTeamBanner').should('not.exist');
 
@@ -345,19 +345,21 @@ describe('Channel Settings', () => {
 
                         // * Check that the number of channel members is 2
                         cy.get('#channelMemberCountText').
-                        should('be.visible').
-                        and('have.text', '2');
+                            should('be.visible').
+                            and('have.text', '2');
                     });
                 });
             });
         });
     });
-    
+
     it('User doesn\'t have permission to add user to team', () => {
         cy.apiAdminLogin();
+
         // # Create a new user
         cy.apiCreateUser().then(({user: newUser}) => {
             const id = getRandomId();
+
             // # Create a custom user group
             cy.apiCreateCustomUserGroup(`newgroup${id}`, `newgroup${id}`, [newUser.id]).then(() => {
                 // # Create a new channel
@@ -375,7 +377,7 @@ describe('Channel Settings', () => {
 
                     // # Type 'group' into the input box
                     cy.get('#selectItems input').typeWithForce(`newgroup${id}`);
-                    
+
                     // # Click the first row for a number of times
                     cy.get('#multiSelectList').should('be.visible').first().click();
 

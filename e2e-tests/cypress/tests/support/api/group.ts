@@ -11,7 +11,7 @@ import {ChainableT} from '../../types';
 function apiCreateCustomUserGroup(displayName: string, name: string, userIds: string[]): ChainableT<Cypress.Group> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
-        url: `/api/v4/groups`,
+        url: '/api/v4/groups',
         method: 'POST',
         body: {
             display_name: displayName,
@@ -32,6 +32,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
+
             /**
              * Create custom user group
              * @param {string} displayName - the display name of the group
