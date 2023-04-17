@@ -11,5 +11,5 @@ then
         txt="${txt}use ../../enterprise\n"
     fi
     
-    printf "$txt" > "../go.work"
+    printf "$txt" > "go.work"
 fi
