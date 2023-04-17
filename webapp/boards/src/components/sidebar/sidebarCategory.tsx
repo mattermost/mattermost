@@ -211,9 +211,9 @@ const SidebarCategory = (props: Props) => {
         )
         if (UserSettings.lastBoardId && 
             UserSettings.lastBoardId[deleteBoard.teamId] == deleteBoard.id) {
-                UserSettings.setLastBoardID(deleteBoard.teamId, null)
-                UserSettings.setLastViewId(deleteBoard.id, null)
-            }
+            UserSettings.setLastBoardID(deleteBoard.teamId, null)
+            UserSettings.setLastViewId(deleteBoard.id, null)
+        }
     }, [showBoard, deleteBoard, props.boards])
 
     const updateCategory = useCallback(async (value: boolean) => {
