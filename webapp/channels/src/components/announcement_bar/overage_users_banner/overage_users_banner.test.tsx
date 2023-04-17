@@ -116,9 +116,7 @@ describe('components/overage_users_banner', () => {
                             name: 'Professional',
                             sku: SelfHostedProducts.PROFESSIONAL,
                             price_per_seat: 7.5,
-    
                         }),
-    
                     },
                 },
             },

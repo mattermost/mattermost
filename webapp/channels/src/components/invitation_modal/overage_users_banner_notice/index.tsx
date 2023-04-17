@@ -105,7 +105,6 @@ const OverageUsersBannerNotice = () => {
                                 href={`${siteURL}/${ConsolePages.LICENSE}?action=show_expansion_modal`}
                                 rel='noopener noreferrer'
                                 target="_blank"
-
                             >
                                 {chunks}
                             </ExternalLink>

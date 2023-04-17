@@ -4027,6 +4027,7 @@
   "licensingPage.overageUsersBanner.ctaExpandSeats": "Purchase additional seats",
   "licensingPage.overageUsersBanner.noticeDescription": "Notify your Customer Success Manager on your next true-up check. <a></a>",
   "licensingPage.overageUsersBanner.noticeTitle": "Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}",
+  "licensingPage.overageUsersBanner.selfHostedNoticeDescription": "<a>Purchase additional seats </a> to remain compliant.",
   "licensingPage.overageUsersBanner.text": "Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.",
   "link_preview.image_preview": "Show Image preview",
   "link_preview.remove_link_preview": "Remove link preview",
