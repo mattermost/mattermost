@@ -4712,7 +4712,6 @@
   "select_team.join.icon": "Join Team Icon",
   "select_team.private.icon": "Private Team",
   "self_hosted_expansion_rhs_card_add_new_seats": "Add new seats",
-  "self_hosted_expansion_rhs_card_additional_seats_limit_warning": "{warningIcon} Transaction amount limit reached.{break}Please contact sales",
   "self_hosted_expansion_rhs_card_cost_per_user_breakdown": "{costPerUser} x {monthsUntilExpiry} months",
   "self_hosted_expansion_rhs_card_cost_per_user_title": "Cost per user",
   "self_hosted_expansion_rhs_card_license_date": "{startsAt} - {endsAt}",

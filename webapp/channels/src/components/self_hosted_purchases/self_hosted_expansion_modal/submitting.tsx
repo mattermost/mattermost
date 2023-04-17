@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-
 import {FormattedMessage, useIntl} from 'react-intl';
-
 import {useSelector} from 'react-redux';
 
 import {getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
+
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 import {ValueOf} from '@mattermost/types/utilities';
 

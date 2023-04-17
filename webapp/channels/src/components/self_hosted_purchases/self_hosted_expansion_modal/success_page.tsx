@@ -3,13 +3,13 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import {useHistory} from 'react-router-dom';
 
 import IconMessage from 'components/purchase_modal/icon_message';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-import {ConsolePages} from 'utils/constants';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
+
+import {ConsolePages} from 'utils/constants';
 
 import './success_page.scss';
 
@@ -69,9 +69,7 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
                 testId='selfHostedExpansionSuccess'
                 icon={icon}
                 formattedButtonText={formattedButtonText}
-                buttonHandler={() => {
-                    props.onClose();
-                }}
+                buttonHandler={props.onClose}
             />
             <div className='background-svg'>
                 <BackgroundSvg/>
