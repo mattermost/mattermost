@@ -132,9 +132,9 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'v6/server/playbooks|v6/server/boards')
-BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/boards')
-PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/playbooks')
+TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards')
+BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
+PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
 
 TEMPLATES_DIR=templates
 

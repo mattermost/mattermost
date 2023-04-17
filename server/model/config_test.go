@@ -316,41 +316,6 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
-func TestConfigDefaultPlaybooksPluginState(t *testing.T) {
-	t.Run("should enable Playbooks plugin by default on enterprise-ready builds", func(t *testing.T) {
-		BuildEnterpriseReady = "true"
-		c1 := Config{}
-		c1.SetDefaults()
-
-		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
-	})
-
-	t.Run("should enable Playbooks plugin by default on non-enterprise-ready builds", func(t *testing.T) {
-		BuildEnterpriseReady = ""
-		c1 := Config{}
-		c1.SetDefaults()
-
-		assert.True(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
-	})
-
-	t.Run("should not re-enable Playbooks plugin after it has been disabled", func(t *testing.T) {
-		BuildEnterpriseReady = ""
-		c1 := Config{
-			PluginSettings: PluginSettings{
-				PluginStates: map[string]*PluginState{
-					"playbooks": {
-						Enable: false,
-					},
-				},
-			},
-		}
-
-		c1.SetDefaults()
-
-		assert.False(t, c1.PluginSettings.PluginStates["playbooks"].Enable)
-	})
-}
-
 func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 	t.Run("should enable ChannelExport plugin by default on enterprise-ready builds", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
@@ -383,30 +348,6 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 		c1.SetDefaults()
 
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
-	})
-}
-
-func TestConfigDefaultFocalboardPluginState(t *testing.T) {
-	t.Run("should enable Focalboard plugin by default", func(t *testing.T) {
-		c1 := Config{}
-		c1.SetDefaults()
-
-		assert.True(t, c1.PluginSettings.PluginStates["focalboard"].Enable)
-	})
-
-	t.Run("should not re-enable focalboard plugin after it has been disabled", func(t *testing.T) {
-		c1 := Config{
-			PluginSettings: PluginSettings{
-				PluginStates: map[string]*PluginState{
-					"focalboard": {
-						Enable: false,
-					},
-				},
-			},
-		}
-
-		c1.SetDefaults()
-		assert.False(t, c1.PluginSettings.PluginStates["focalboard"].Enable)
 	})
 }
 
