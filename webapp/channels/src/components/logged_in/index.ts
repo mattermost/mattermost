@@ -16,9 +16,10 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
 
+import {getChannelURL} from 'selectors/urls';
+
 import {getHistory} from 'utils/browser_history';
 import {checkIfMFARequired} from 'utils/route';
-import {getChannelURL} from 'utils/utils';
 import {isPermalinkURL} from 'utils/url';
 
 import LoggedIn from './logged_in';
