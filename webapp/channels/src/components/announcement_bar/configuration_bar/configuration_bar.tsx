@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -395,7 +395,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
             defaultMessage = 'Please configure your <linkSite>site URL</linkSite> on the <linkConsole>System Console</linkConsole>.';
         }
 
-        const values = {
+        const values: Record<string, ReactNode> = {
             linkSite: (msg: string) => (
                 <ExternalLink
                     href={props.siteURL}

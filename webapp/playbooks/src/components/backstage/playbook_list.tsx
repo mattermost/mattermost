@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import React, {PropsWithChildren, useRef} from 'react';
+import React, {PropsWithChildren, ReactNode, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -350,7 +350,7 @@ const PlaybookList = (props: { firstTimeUserExperience?: boolean }) => {
                                         {formatMessage({defaultMessage: 'Choose a template'})}
                                     </AltHeading>
                                     <ImportSub>
-                                        {formatMessage({defaultMessage: 'or <ImportPlaybookButton>Import a playbook</ImportPlaybookButton>'}, {
+                                        {formatMessage<ReactNode>({defaultMessage: 'or <ImportPlaybookButton>Import a playbook</ImportPlaybookButton>'}, {
                                             ImportPlaybookButton: (chunks) => (
                                                 <ImportLinkButton
                                                     onClick={handleImportClick}
