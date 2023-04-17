@@ -566,7 +566,7 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 	}
 
 	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
-		mlog.Error("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
 		return
 	}
 }
