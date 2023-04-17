@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, IntlShape, injectIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 
 import {InputActionMeta} from 'react-select/src/types';
@@ -67,6 +67,7 @@ export type Props<T extends Value> = {
     savingEnabled?: boolean;
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
+    intl: IntlShape;
 }
 
 export type State = {
@@ -77,7 +78,7 @@ export type State = {
 
 const KeyCodes = Constants.KeyCodes;
 
-export default class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
+class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
     private listRef = React.createRef<MultiSelectList<T>>();
     private reactSelectRef = React.createRef<ReactSelect>();
     private selected: T | null = null;
@@ -572,3 +573,5 @@ const styles = {
         };
     },
 };
+
+export default injectIntl(MultiSelect);

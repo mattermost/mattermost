@@ -2,23 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo} from 'react';
-
 import {Modal} from 'react-bootstrap';
-
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
 
 import {localizeMessage} from 'utils/utils';
-import {Group} from '@mattermost/types/groups';
+
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 import {ModalData} from 'types/actions';
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-import {ActionResult} from 'mattermost-redux/types/actions';
-
 import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
 
 export type Props = {
     onExited: () => void;
@@ -36,6 +33,8 @@ const AddUsersToGroupModal = (props: Props) => {
     const [saving, setSaving] = useState(false);
     const [usersToAdd, setUsersToAdd] = useState<UserProfile[]>([]);
     const [showUnknownError, setShowUnknownError] = useState(false);
+
+    const {formatMessage} = useIntl();
 
     const doHide = useCallback(() => {
         setShow(false);
@@ -109,7 +108,7 @@ const AddUsersToGroupModal = (props: Props) => {
                 >
                     <LocalizedIcon
                         className='icon icon-arrow-left'
-                        ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
+                        ariaLabel={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     />
                 </button>
                 <Modal.Title

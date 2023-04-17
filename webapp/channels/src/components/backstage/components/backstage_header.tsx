@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactNode} from 'react';
+import {useIntl} from 'react-intl';
 
 import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
 
 type Props = {
     children?: ReactNode;
 }
 
 const BackstageHeader = ({children}: Props) => {
+    const {formatMessage} = useIntl();
+
     const childrenElements: ReactNode[] = [];
 
     React.Children.forEach(children, (child, index) => {
@@ -23,7 +24,7 @@ const BackstageHeader = ({children}: Props) => {
                 >
                     <LocalizedIcon
                         className='fa fa-angle-right'
-                        title={{id: t('generic_icons.breadcrumb'), defaultMessage: 'Breadcrumb Icon'}}
+                        title={formatMessage({id: 'generic_icons.breadcrumb', defaultMessage: 'Breadcrumb Icon'})}
                     />
                 </span>,
             );

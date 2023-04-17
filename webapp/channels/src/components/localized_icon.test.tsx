@@ -9,16 +9,13 @@ import LocalizedIcon from './localized_icon';
 
 describe('LocalizedIcon', () => {
     const baseProps = {
-        title: {
-            id: 'test.id',
-            defaultMessage: 'test default message',
-        },
+        title: 'test default message',
     };
 
     test('should render localized title', () => {
         const wrapper = mountWithIntl(<LocalizedIcon {...baseProps}/>);
 
-        expect(wrapper.find('i').prop('title')).toBe(baseProps.title.defaultMessage);
+        expect(wrapper.find('i').prop('title')).toBe(baseProps.title);
     });
 
     test('should render using given component', () => {
@@ -35,7 +32,7 @@ describe('LocalizedIcon', () => {
 
         expect(wrapper.find('i').exists()).toBe(false);
         expect(wrapper.find('span').exists()).toBe(true);
-        expect(wrapper.find('span').prop('title')).toBe(baseProps.title.defaultMessage);
+        expect(wrapper.find('span').prop('title')).toBe(baseProps.title);
     });
 
     test('should pass other props to component', () => {

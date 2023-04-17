@@ -38,7 +38,6 @@ import {
     RHSStates,
 } from 'utils/constants';
 import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
-import {t} from 'utils/i18n';
 
 import {UserCustomStatus, UserProfile} from '@mattermost/types/users';
 import {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
@@ -632,7 +631,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                 />
                                 <LocalizedIcon
                                     className='icon icon-pencil-outline edit-icon'
-                                    ariaLabel={{id: t('channel_header.editLink'), defaultMessage: 'Edit'}}
+                                    ariaLabel={formatMessage({id: 'channel_header.editLink', defaultMessage: 'Edit'})}
                                 />
                             </button>
                         );
@@ -654,7 +653,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                 />
                                 <LocalizedIcon
                                     className='icon icon-pencil-outline edit-icon'
-                                    ariaLabel={{id: t('channel_header.editLink'), defaultMessage: 'Edit'}}
+                                    ariaLabel={formatMessage({id: 'channel_header.editLink', defaultMessage: 'Edit'})}
                                 />
                             </button>
                         </ChannelPermissionGate>

@@ -11,7 +11,6 @@ import {FilePreviewInfo} from '../file_preview/file_preview';
 import dragster from 'utils/dragster';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
-import {t} from 'utils/i18n';
 import {
     isIosChrome,
     isMobileApp,
@@ -43,31 +42,31 @@ import {UploadFile} from 'actions/file_actions';
 
 const holders = defineMessages({
     limited: {
-        id: t('file_upload.limited'),
+        id: 'file_upload.limited',
         defaultMessage: 'Uploads limited to {count, number} files maximum. Please use additional posts for more files.',
     },
     filesAbove: {
-        id: t('file_upload.filesAbove'),
+        id: 'file_upload.filesAbove',
         defaultMessage: 'Files above {max}MB could not be uploaded: {filenames}',
     },
     fileAbove: {
-        id: t('file_upload.fileAbove'),
+        id: 'file_upload.fileAbove',
         defaultMessage: 'File above {max}MB could not be uploaded: {filename}',
     },
     zeroBytesFiles: {
-        id: t('file_upload.zeroBytesFiles'),
+        id: 'file_upload.zeroBytesFiles',
         defaultMessage: 'You are uploading empty files: {filenames}',
     },
     zeroBytesFile: {
-        id: t('file_upload.zeroBytesFile'),
+        id: 'file_upload.zeroBytesFile',
         defaultMessage: 'You are uploading an empty file: {filename}',
     },
     pasted: {
-        id: t('file_upload.pasted'),
+        id: 'file_upload.pasted',
         defaultMessage: 'Image Pasted at ',
     },
     uploadFile: {
-        id: t('file_upload.upload_files'),
+        id: 'file_upload.upload_files',
         defaultMessage: 'Upload files',
     },
 });

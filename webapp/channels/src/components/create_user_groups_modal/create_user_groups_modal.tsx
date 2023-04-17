@@ -2,28 +2,29 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
+import {FormattedMessage, IntlShape, injectIntl} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 
-import {FormattedMessage} from 'react-intl';
-
 import {UserProfile} from '@mattermost/types/users';
-
-import * as Utils from 'utils/utils';
 import {GroupCreateWithUserIds} from '@mattermost/types/groups';
 
-import 'components/user_groups_modal/user_groups_modal.scss';
-import './create_user_groups_modal.scss';
+import {ActionResult} from 'mattermost-redux/types/actions';
+
 import {ModalData} from 'types/actions';
+
+import 'components/user_groups_modal/user_groups_modal.scss';
 import Input from 'components/widgets/inputs/input/input';
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
+
 import {localizeMessage} from 'utils/utils';
 import Constants, {ItemStatus} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import './create_user_groups_modal.scss';
 
 export type Props = {
+    intl: IntlShape;
     onExited: () => void;
     backButtonCallback?: () => void;
     actions: {
@@ -45,7 +46,7 @@ type State = {
     saving: boolean;
 }
 
-export default class CreateUserGroupsModal extends React.PureComponent<Props, State> {
+class CreateUserGroupsModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -164,6 +165,8 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
     };
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         return (
             <Modal
                 dialogClassName='a11y__modal user-groups-modal-create'
@@ -188,7 +191,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
                                 >
                                     <LocalizedIcon
                                         className='icon icon-arrow-left'
-                                        ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
+                                        ariaLabel={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                                     />
                                 </button>
                                 <Modal.Title
@@ -280,3 +283,5 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
         );
     }
 }
+
+export default injectIntl(CreateUserGroupsModal);

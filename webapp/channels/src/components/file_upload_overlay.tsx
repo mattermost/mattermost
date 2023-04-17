@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import fileOverlayImage from 'images/filesOverlay.png';
 import overlayLogoImage from 'images/logoWhite.png';
@@ -16,6 +16,8 @@ type Props = {
 }
 
 const FileUploadOverlay: React.FC<Props> = (props: Props) => {
+    const {formatMessage} = useIntl();
+
     let overlayClass = 'file-overlay hidden';
     if (props.overlayType === 'right') {
         overlayClass += ' right-file-overlay';
@@ -35,7 +37,7 @@ const FileUploadOverlay: React.FC<Props> = (props: Props) => {
                     <span>
                         <LocalizedIcon
                             className='fa fa-upload'
-                            title={{id: t('generic_icons.upload'), defaultMessage: 'Upload Icon'}}
+                            title={formatMessage({id: t('generic_icons.upload'), defaultMessage: 'Upload Icon'})}
                         />
                         <FormattedMessage
                             id='upload_overlay.info'

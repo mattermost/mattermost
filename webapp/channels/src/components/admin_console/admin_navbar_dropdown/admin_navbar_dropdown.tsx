@@ -11,7 +11,6 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
@@ -68,7 +67,7 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
                     icon={
                         <LocalizedIcon
                             className='fa fa-exchange'
-                            title={{id: t('select_team.icon'), defaultMessage: 'Select Team Icon'}}
+                            title={formatMessage({id: 'select_team.icon', defaultMessage: 'Select Team Icon'})}
                         />
                     }
                     text={formatMessage({id: 'admin.nav.switch', defaultMessage: 'Team Selection'})}

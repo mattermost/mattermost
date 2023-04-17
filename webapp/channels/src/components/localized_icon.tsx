@@ -2,17 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {HTMLAttributes} from 'react';
-import {useIntl, MessageDescriptor} from 'react-intl';
-import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
 type Props = Omit<HTMLAttributes<HTMLSpanElement | HTMLElement>, 'title' | 'component'> & {
     component?: 'i' | 'span';
-    ariaLabel?: MessageDescriptor & {
-        values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>;
-    };
-    title?: MessageDescriptor & {
-        values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>;
-    };
+    ariaLabel?: string;
+    title?: string;
 }
 
 const LocalizedIcon = React.forwardRef((props: Props, ref?: React.Ref<HTMLSpanElement | HTMLElement>) => {
@@ -22,8 +16,6 @@ const LocalizedIcon = React.forwardRef((props: Props, ref?: React.Ref<HTMLSpanEl
         title,
         ...otherProps
     } = props;
-
-    const {formatMessage} = useIntl();
 
     if (component !== 'i' && component !== 'span') {
         return null;
@@ -36,10 +28,10 @@ const LocalizedIcon = React.forwardRef((props: Props, ref?: React.Ref<HTMLSpanEl
         ...otherProps,
     };
     if (ariaLabel) {
-        iconProps['aria-label'] = formatMessage({id: ariaLabel.id, defaultMessage: ariaLabel.defaultMessage}, ariaLabel.values);
+        iconProps['aria-label'] = ariaLabel;
     }
     if (title) {
-        iconProps.title = formatMessage({id: title.id, defaultMessage: title.defaultMessage}, title.values);
+        iconProps.title = title;
     }
 
     return (
