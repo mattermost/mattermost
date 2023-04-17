@@ -759,6 +759,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"delay_channel_autocomplete":         *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
