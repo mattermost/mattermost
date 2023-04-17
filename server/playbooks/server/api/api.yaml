@@ -1405,6 +1405,10 @@ paths:
                   type: boolean
                   description: A boolean indicating whether the playbook runs created from this playbook should be public or private.
                   example: true
+                public:
+                  type: boolean
+                  description: A boolean indicating whether the playbook is licensed as public or private. Required 'true' for free tier.
+                  example: true
                 checklists:
                   type: array
                   description: The stages defined by this playbook.
