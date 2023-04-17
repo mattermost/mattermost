@@ -76,22 +76,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
-        options={
-          Array [
-            Object {
-              "delete_at": 0,
-              "id": "user-1",
-              "label": "user-1",
-              "value": "user-1",
-            },
-            Object {
-              "delete_at": 0,
-              "id": "user-2",
-              "label": "user-2",
-              "value": "user-2",
-            },
-          ]
-        }
+        options={Array []}
         perPage={50}
         saveButtonPosition="bottom"
         saving={false}
@@ -193,22 +178,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
-        options={
-          Array [
-            Object {
-              "delete_at": 0,
-              "id": "user-1",
-              "label": "user-1",
-              "value": "user-1",
-            },
-            Object {
-              "delete_at": 0,
-              "id": "user-2",
-              "label": "user-2",
-              "value": "user-2",
-            },
-          ]
-        }
+        options={Array []}
         perPage={50}
         saveButtonPosition="bottom"
         saving={false}
@@ -253,7 +223,6 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
       "current": null,
     }
   }
-  teamId="eatxocwc3bg9ffo9xyybnj4omr"
 />
 `;
 
@@ -333,22 +302,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
-        options={
-          Array [
-            Object {
-              "delete_at": 0,
-              "id": "user-2",
-              "label": "user-2",
-              "value": "user-2",
-            },
-            Object {
-              "delete_at": 0,
-              "id": "user-3",
-              "label": "user-3",
-              "value": "user-3",
-            },
-          ]
-        }
+        options={Array []}
         perPage={50}
         saveButtonPosition="bottom"
         saving={false}

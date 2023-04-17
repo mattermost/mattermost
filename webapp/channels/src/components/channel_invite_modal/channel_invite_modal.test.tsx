@@ -84,6 +84,7 @@ describe('components/channel_invite_modal', () => {
             loadStatusesForProfilesList: jest.fn(),
             searchProfiles: jest.fn(),
             closeModal: jest.fn(),
+            getTeamMembersByIds: jest.fn(),
         },
         onExited: jest.fn(),
     };

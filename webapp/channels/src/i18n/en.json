@@ -2916,6 +2916,8 @@
   "channel_invite.invite_team_members.message": "{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Add them to the {team} team to add them to this channel.",
   "channel_invite.invite_team_members.messageOthers": "{count} others",
   "channel_invite.invite_team_members.messageOverflow": "{firstUser} and {others} were not selected. Add them to the {team} team to add them to this channel.",
+  "channel_invite.invite_team_members.no_permission.message": "{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Please contact your system administrator to add them to the {team} team before you can add them to this channel.",
+  "channel_invite.invite_team_members.no_permission.messageOverflow": "{firstUser} and {others} were not selected. Please contact your system administrator to add them to the {team} team before you can add them to this channel.",
   "channel_invite.invite_team_members.success.message": "{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} added to the {team} team. You can now add them to this channel.",
   "channel_invite.invite_team_members.success.messageOverflow": "{firstUser} and {others} were added to the {team} team. You can now add them to this channel.",
   "channel_invite.invite_team_members.success.title": "{count, plural, =1 {1 user was} other {# users were}} added to the team",
