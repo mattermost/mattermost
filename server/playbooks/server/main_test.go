@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
@@ -30,12 +28,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	serverpathBytes, err := exec.Command("go", "list", "-f", "'{{.Dir}}'", "-m", "github.com/mattermost/mattermost-server/server/v8").Output()
-	if err != nil {
-		panic(err)
-	}
-	serverpath := string(serverpathBytes)
-	serverpath = strings.Trim(strings.TrimSpace(serverpath), "'")
+	// serverpathBytes, err := exec.Command("go", "list", "-f", "'{{.Dir}}'", "-m", "github.com/mattermost/mattermost-server/server/v8").Output()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// serverpath := string(serverpathBytes)
+	// serverpath = strings.Trim(strings.TrimSpace(serverpath), "'")
 
 	// This actually runs the tests
 	status := m.Run()
