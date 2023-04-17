@@ -1,0 +1,22 @@
+{
+  "name": "@mattermost/i18n",
+  "private": true,
+  "version": "7.9.1",
+  "description": "Translations for Mattermost products",
+  "keywords": [
+    "mattermost",
+    "i18n"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost#readme",
+  "main": "index.js",
+  "scripts": {
+    "i18n-extract": "formatjs extract \"../**/src/**/*.{ts,tsx,jsx,js}\" --ignore \"../**/*.d.ts\" \"../**/node_modules/**\" --id-interpolation-pattern \"[sha512:contenthash:base64:6]\" --format simple --out-file \"src/en.json\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattermost/mattermost"
+  },
+  "devDependencies": {
+    "@formatjs/cli": "6.1.0"
+  }
+}

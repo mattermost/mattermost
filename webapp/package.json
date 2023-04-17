@@ -14,6 +14,7 @@
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",
     "check-types": "npm run check-types --workspaces --if-present",
+    "i18n-extract": "npm run i18n-extract --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
@@ -34,6 +35,7 @@
     "platform/components",
     "platform/types",
     "playbooks",
-    "boards"
+    "boards",
+    "i18n"
   ]
 }
