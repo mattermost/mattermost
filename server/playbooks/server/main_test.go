@@ -28,13 +28,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// serverpathBytes, err := exec.Command("go", "list", "-f", "'{{.Dir}}'", "-m", "github.com/mattermost/mattermost-server/server/v8").Output()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// serverpath := string(serverpathBytes)
-	// serverpath = strings.Trim(strings.TrimSpace(serverpath), "'")
-
 	// This actually runs the tests
 	status := m.Run()
 
