@@ -533,6 +533,7 @@ const defaultServerConfig: AdminConfig = {
         EnableRemoteClusterService: false,
         EnableAppBar: false,
         PatchPluginsReactDOM: false,
+        DelayChannelAutocomplete: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
