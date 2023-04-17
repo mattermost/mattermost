@@ -213,7 +213,7 @@ export default class Plugin {
                 const siteStats = await fetchSiteStats();
                 return {
                     playbook_count: {
-                        name: <FormattedMessage defaultMessage={'Total Playbooks'}/>,
+                        name: <FormattedMessage defaultMessage={'Total Playbooks__ci-test__'}/>,
                         id: 'total_playbooks',
                         icon: 'fa-book', // font-awesome-4.7.0 handler
                         value: siteStats?.total_playbooks,
