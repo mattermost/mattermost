@@ -76,7 +76,7 @@ export default function SelfHostedExpansionCard(props: Props) {
     const maxAdditionalSeats = getMaximumAdditionalSeats();
 
     const handleNewSeatsInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let requestedSeats = parseInt(e.target.value, 10);
+        const requestedSeats = parseInt(e.target.value, 10);
 
         if (!isNaN(requestedSeats) && requestedSeats <= 0) {
             e.preventDefault();
@@ -160,7 +160,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                             defaultMessage='{warningIcon} You must purchase at least {minimumSeats} seats to be compliant with your license'
                             values={{
                                 warningIcon: <WarningIcon additionalClassName={'SelfHostedExpansionRHSCard__warning'}/>,
-                                minimumSeats: props.minimumSeats
+                                minimumSeats: props.minimumSeats,
                             }}
                         />
                     }
