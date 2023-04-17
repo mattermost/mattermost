@@ -42,7 +42,7 @@ describe('InviteMembers component', () => {
             <InviteMembers
                 {...defaultProps}
                 isSelfHosted={false}
-            />
+            />,
         );
         const {container} = render(component);
         expect(container).toMatchSnapshot();
@@ -90,7 +90,7 @@ describe('InviteMembers component', () => {
             <InviteMembers
                 {...defaultProps}
                 isSelfHosted={false}
-            />
+            />,
         );
         render(component);
         const button = screen.getByRole('button', {name: 'Send invites'});
