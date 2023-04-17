@@ -536,66 +536,6 @@ func (mr *MockStoreMockRecorder) GetBlocksComplianceHistory(arg0 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlocksComplianceHistory", reflect.TypeOf((*MockStore)(nil).GetBlocksComplianceHistory), arg0)
 }
 
-// GetBlocksForBoard mocks base method.
-func (m *MockStore) GetBlocksForBoard(arg0 string) ([]*model.Block, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlocksForBoard", arg0)
-	ret0, _ := ret[0].([]*model.Block)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBlocksForBoard indicates an expected call of GetBlocksForBoard.
-func (mr *MockStoreMockRecorder) GetBlocksForBoard(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlocksForBoard", reflect.TypeOf((*MockStore)(nil).GetBlocksForBoard), arg0)
-}
-
-// GetBlocksWithParent mocks base method.
-func (m *MockStore) GetBlocksWithParent(arg0, arg1 string) ([]*model.Block, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlocksWithParent", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBlocksWithParent indicates an expected call of GetBlocksWithParent.
-func (mr *MockStoreMockRecorder) GetBlocksWithParent(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlocksWithParent", reflect.TypeOf((*MockStore)(nil).GetBlocksWithParent), arg0, arg1)
-}
-
-// GetBlocksWithParentAndType mocks base method.
-func (m *MockStore) GetBlocksWithParentAndType(arg0, arg1, arg2 string) ([]*model.Block, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlocksWithParentAndType", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.Block)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBlocksWithParentAndType indicates an expected call of GetBlocksWithParentAndType.
-func (mr *MockStoreMockRecorder) GetBlocksWithParentAndType(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlocksWithParentAndType", reflect.TypeOf((*MockStore)(nil).GetBlocksWithParentAndType), arg0, arg1, arg2)
-}
-
-// GetBlocksWithType mocks base method.
-func (m *MockStore) GetBlocksWithType(arg0, arg1 string) ([]*model.Block, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlocksWithType", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Block)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBlocksWithType indicates an expected call of GetBlocksWithType.
-func (mr *MockStoreMockRecorder) GetBlocksWithType(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlocksWithType", reflect.TypeOf((*MockStore)(nil).GetBlocksWithType), arg0, arg1)
-}
-
 // GetBoard mocks base method.
 func (m *MockStore) GetBoard(arg0 string) (*model.Board, error) {
 	m.ctrl.T.Helper()

@@ -326,26 +326,6 @@ func (s *SQLStore) GetBlocksComplianceHistory(opts model.QueryBlocksComplianceHi
 
 }
 
-func (s *SQLStore) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
-	return s.getBlocksForBoard(s.db, boardID)
-
-}
-
-func (s *SQLStore) GetBlocksWithParent(boardID string, parentID string) ([]*model.Block, error) {
-	return s.getBlocksWithParent(s.db, boardID, parentID)
-
-}
-
-func (s *SQLStore) GetBlocksWithParentAndType(boardID string, parentID string, blockType string) ([]*model.Block, error) {
-	return s.getBlocksWithParentAndType(s.db, boardID, parentID, blockType)
-
-}
-
-func (s *SQLStore) GetBlocksWithType(boardID string, blockType string) ([]*model.Block, error) {
-	return s.getBlocksWithType(s.db, boardID, blockType)
-
-}
-
 func (s *SQLStore) GetBoard(id string) (*model.Board, error) {
 	return s.getBoard(s.db, id)
 

@@ -18,20 +18,11 @@ import (
 
 var ErrBlocksFromMultipleBoards = errors.New("the block set contain blocks from multiple boards")
 
-func (a *App) GetBlocks(boardID, parentID string, blockType string) ([]*model.Block, error) {
-	if boardID == "" {
+func (a *App) GetBlocks(opts model.QueryBlocksOptions) ([]*model.Block, error) {
+	if opts.BoardID == "" {
 		return []*model.Block{}, nil
 	}
-
-	if blockType != "" && parentID != "" {
-		return a.store.GetBlocksWithParentAndType(boardID, parentID, blockType)
-	}
-
-	if blockType != "" {
-		return a.store.GetBlocksWithType(boardID, blockType)
-	}
-
-	return a.store.GetBlocksWithParent(boardID, parentID)
+	return a.store.GetBlocks(opts)
 }
 
 func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTemplate bool) ([]*model.Block, error) {
@@ -512,10 +503,6 @@ func (a *App) UndeleteBlock(blockID string, modifiedBy string) (*model.Block, er
 
 func (a *App) GetBlockCountsByType() (map[string]int64, error) {
 	return a.store.GetBlockCountsByType()
-}
-
-func (a *App) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
-	return a.store.GetBlocksForBoard(boardID)
 }
 
 func (a *App) notifyBlockChanged(action notify.Action, block *model.Block, oldBlock *model.Block, modifiedByID string) {

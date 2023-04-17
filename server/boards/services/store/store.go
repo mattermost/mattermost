@@ -18,12 +18,8 @@ const CardLimitTimestampSystemKey = "card_limit_timestamp"
 // Store represents the abstraction of the data storage.
 type Store interface {
 	GetBlocks(opts model.QueryBlocksOptions) ([]*model.Block, error)
-	GetBlocksWithParentAndType(boardID, parentID string, blockType string) ([]*model.Block, error)
-	GetBlocksWithParent(boardID, parentID string) ([]*model.Block, error)
 	GetBlocksByIDs(ids []string) ([]*model.Block, error)
-	GetBlocksWithType(boardID, blockType string) ([]*model.Block, error)
 	GetSubTree2(boardID, blockID string, opts model.QuerySubtreeOptions) ([]*model.Block, error)
-	GetBlocksForBoard(boardID string) ([]*model.Block, error)
 	// @withTransaction
 	InsertBlock(block *model.Block, userID string) error
 	// @withTransaction

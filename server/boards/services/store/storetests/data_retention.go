@@ -98,7 +98,7 @@ func LoadData(t *testing.T, store store.Store) {
 func testRunDataRetention(t *testing.T, store store.Store, batchSize int) {
 	LoadData(t, store)
 
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	require.Len(t, blocks, 4)
 	initialCount := len(blocks)
@@ -115,7 +115,7 @@ func testRunDataRetention(t *testing.T, store store.Store, batchSize int) {
 		require.True(t, deletions > int64(initialCount))
 
 		// expect all blocks to be deleted.
-		blocks, errBlocks := store.GetBlocksForBoard(boardID)
+		blocks, errBlocks := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, errBlocks)
 		require.Equal(t, 0, len(blocks))
 
