@@ -13,4 +13,4 @@ test:
   before_script:
     - npm ci --ignore-scripts
   script:
-    - npm run test:speed
+    - npm run test

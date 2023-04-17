@@ -671,7 +671,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
     };
 
     handleGeneratedChange = (id, s) => {
-        this.handleChange(id, s.replace('+', '-').replace('/', '_'));
+        this.handleChange(id, s.replace(/\+/g, '-').replace(/\//g, '_'));
     };
 
     handleChange = (id, value, confirm = false, doSubmit = false, warning = false) => {
