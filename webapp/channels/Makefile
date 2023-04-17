@@ -2,10 +2,6 @@ BUILD_SERVER_DIR = ../mattermost-server
 
 export NODE_OPTIONS=--max-old-space-size=4096
 
-.PHONY: i18n-extract
-i18n-extract: ## Extract strings for translation from the source code
-	npm run i18n-extract
-
 .PHONY: emojis
 emojis: ## Creates emoji JSON, JSX and Go files and extracts emoji images from the system font
 	SERVER_DIR=$(BUILD_SERVER_DIR) npm run make-emojis
