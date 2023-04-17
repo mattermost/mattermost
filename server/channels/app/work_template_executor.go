@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
+	pbclient "github.com/mattermost/mattermost-server/v6/server/playbooks/client"
 
 	fb_model "github.com/mattermost/mattermost-server/v6/server/boards/model"
 

@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('digest messages', () => {
+describe('digest messages', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

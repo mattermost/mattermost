@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import Constants, {EventTypes, A11yClassNames, A11yAttributeNames, A11yCustomEventTypes, isA11yFocusEventDetail} from 'utils/constants';
-import {isKeyPressed, cmdOrCtrlPressed, isMac} from 'utils/utils';
-import {isDesktopApp} from 'utils/user_agent';
+import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
+import {isDesktopApp, isMac} from 'utils/user_agent';
 
 const listenerOptions = {
     capture: true,
@@ -824,11 +824,11 @@ export default class A11yController {
             this.lKeyIsPressed = true;
             break;
         }
-    }
+    };
 
     handleKeyUp = () => {
         this.resetInterractionStates();
-    }
+    };
 
     handleMouseClick = (event: Event) => {
         // hitting enter on a <button> triggers a click event
@@ -839,16 +839,16 @@ export default class A11yController {
             return;
         }
         this.cancelNavigation();
-    }
+    };
 
     handleMouseDown = () => {
         this.mouseIsPressed = true;
         this.lastInputEventIsKeyboard = false;
-    }
+    };
 
     handleMouseUp = () => {
         this.mouseIsPressed = false;
-    }
+    };
 
     handleFocus = (event: Event) => {
         if (event.target instanceof HTMLElement) {
@@ -866,7 +866,7 @@ export default class A11yController {
         if (!this.windowIsFocused) {
             this.windowIsFocused = true;
         }
-    }
+    };
 
     handleA11yFocus = (event: Event) => {
         if (!(event instanceof CustomEvent)) {
@@ -884,13 +884,13 @@ export default class A11yController {
         } else {
             event.detail.target.focus();
         }
-    }
+    };
 
     handleWindowBlur = (event: Event) => {
         if (event.target === window) {
             this.windowIsFocused = false;
         }
-    }
+    };
 
     handleActiveRegionUpdate = () => {
         if (this.navigationInProgress) {
@@ -899,7 +899,7 @@ export default class A11yController {
                 this.udpateCurrentFocus(true);
             }
         }
-    }
+    };
 
     handleActiveSectionUpdate = () => {
         if (this.navigationInProgress) {
@@ -908,7 +908,7 @@ export default class A11yController {
                 this.udpateCurrentFocus(true);
             }
         }
-    }
+    };
 
     handleActiveElementUpdate = () => {
         if (this.navigationInProgress) {
@@ -917,5 +917,5 @@ export default class A11yController {
                 this.udpateCurrentFocus(true);
             }
         }
-    }
+    };
 }

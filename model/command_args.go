@@ -19,9 +19,6 @@ type CommandArgs struct {
 	T               i18n.TranslateFunc `json:"-"`
 	UserMentions    UserMentionMap     `json:"-"`
 	ChannelMentions ChannelMentionMap  `json:"-"`
-
-	// DO NOT USE Session field is deprecated. MM-26398
-	Session Session `json:"-"`
 }
 
 func (o *CommandArgs) Auditable() map[string]interface{} {

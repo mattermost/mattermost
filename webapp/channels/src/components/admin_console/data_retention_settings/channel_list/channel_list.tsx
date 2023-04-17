@@ -58,14 +58,14 @@ export default class ChannelList extends React.PureComponent<Props, State> {
 
     componentDidMount = () => {
         this.loadPage(0, PAGE_SIZE * 2);
-    }
+    };
 
     private setStateLoading = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
     private setStatePage = (page: number) => {
         this.setState({page});
-    }
+    };
 
     private loadPage = async (page: number, pageSize = PAGE_SIZE) => {
         if (this.props.policyId) {
@@ -73,26 +73,26 @@ export default class ChannelList extends React.PureComponent<Props, State> {
             await this.props.actions.getDataRetentionCustomPolicyChannels(this.props.policyId, page, pageSize);
             this.setStateLoading(false);
         }
-    }
+    };
 
     private nextPage = () => {
         const page = this.state.page + 1;
         this.loadPage(page + 1);
         this.setStatePage(page);
-    }
+    };
 
     private previousPage = () => {
         const page = this.state.page - 1;
         this.loadPage(page + 1);
         this.setStatePage(page);
-    }
+    };
 
     private getVisibleTotalCount = (): number => {
         const {channelsToAdd, channelsToRemove, totalCount} = this.props;
         const channelsToAddCount = Object.keys(channelsToAdd).length;
         const channelsToRemoveCount = Object.keys(channelsToRemove).length;
         return totalCount + (channelsToAddCount - channelsToRemoveCount);
-    }
+    };
 
     public getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
         const {page} = this.state;
@@ -105,7 +105,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         endCount = endCount > total ? total : endCount;
 
         return {startCount, endCount, total};
-    }
+    };
 
     private removeChannel = (channel: ChannelWithTeamData) => {
         const {channelsToRemove} = this.props;
@@ -122,7 +122,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
 
         this.setStatePage(page);
-    }
+    };
 
     getColumns = (): Column[] => {
         const name = (
@@ -157,7 +157,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 fixed: true,
             },
         ];
-    }
+    };
 
     getRows = () => {
         const {page} = this.state;
@@ -235,11 +235,11 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 },
             };
         });
-    }
+    };
 
     onSearch = async (searchTerm: string) => {
         this.props.actions.setChannelListSearch(searchTerm);
-    }
+    };
     public async componentDidUpdate(prevProps: Props) {
         const {policyId, searchTerm, filters} = this.props;
         const filtersModified = !isEqual(prevProps.filters, this.props.filters);
@@ -284,7 +284,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
             filters.team_ids = teamIds.value as string[];
         }
         this.props.actions.setChannelListFilters(filters);
-    }
+    };
     render() {
         const rows: Row[] = this.getRows();
         const columns: Column[] = this.getColumns();

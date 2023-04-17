@@ -9,7 +9,7 @@ import {DateTime} from 'luxon';
 
 import moment, {Moment} from 'moment-timezone';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Input from 'components/widgets/inputs/input/input';
@@ -17,7 +17,8 @@ import DatePicker from 'components/date_picker';
 import Menu from 'components/widgets/menu/menu';
 import Timestamp from 'components/timestamp';
 import {getCurrentLocale} from 'selectors/i18n';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 

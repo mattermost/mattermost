@@ -48,9 +48,12 @@ import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import Input, {CustomMessageInputType, SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
+import CheckInput from 'components/widgets/inputs/check';
 import SaveButton from 'components/save_button';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import ExternalLink from 'components/external_link';
 
-import {Constants, ItemStatus, ValidationErrors} from 'utils/constants';
+import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import './signup.scss';
@@ -99,7 +102,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         TermsOfServiceLink,
         PrivacyPolicyLink,
     } = config;
-    const {IsLicensed} = useSelector(getLicense);
+    const {IsLicensed, Cloud} = useSelector(getLicense);
     const loggedIn = Boolean(useSelector(getCurrentUserId));
     const useCaseOnboarding = useSelector(getUseCaseOnboarding);
     const usedBefore = useSelector((state: GlobalState) => (!inviteId && !loggedIn && token ? getGlobalItem(state, token, null) : undefined));
@@ -110,6 +113,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     const isLicensed = IsLicensed === 'true';
+    const isCloud = Cloud === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const noAccounts = NoAccounts === 'true';
     const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
@@ -136,11 +140,23 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [teamName, setTeamName] = useState(parsedTeamName ?? '');
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
+    const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
+
+    const canReachCWS = useCWSAvailabilityCheck();
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
+
+    const subscribeToSecurityNewsletterFunc = () => {
+        try {
+            Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+        }
+    };
 
     const getExternalSignupOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
@@ -564,12 +580,80 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             }
 
             await handleSignupSuccess(user, data as UserProfile);
+            if (subscribeToSecurityNewsletter) {
+                subscribeToSecurityNewsletterFunc();
+            }
         } else {
             setIsWaiting(false);
         }
     };
 
     const handleReturnButtonOnClick = () => history.replace('/');
+
+    const getNewsletterCheck = () => {
+        if (isCloud) {
+            return null;
+        }
+
+        if (canReachCWS) {
+            return (
+                <CheckInput
+                    id='signup-body-card-form-check-newsletter'
+                    name='newsletter'
+                    onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
+                    text={
+                        formatMessage(
+                            {id: 'newsletter_optin.checkmark.text', defaultMessage: '<span>I would like to receive Mattermost security updates via newsletter.</span> By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time'},
+                            {
+                                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <ExternalLink
+                                        location='signup-newsletter-checkmark'
+                                        href={HostedCustomerLinks.PRIVACY}
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                                aa: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <ExternalLink
+                                        location='signup-newsletter-checkmark'
+                                        href={HostedCustomerLinks.NEWSLETTER_UNSUBSCRIBE_LINK}
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                                span: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <span className='header'>{chunks}</span>
+                                ),
+                            },
+                        )}
+                    checked={subscribeToSecurityNewsletter}
+                />
+            );
+        }
+        return (
+            <div className='newsletter'>
+                <span className='interested'>
+                    {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?'})}
+                </span>
+                <span className='link'>
+                    {formatMessage(
+                        {id: 'newsletter_optin.desc', defaultMessage: 'Sign up at <a>{link}</a>.'},
+                        {
+                            link: HostedCustomerLinks.SECURITY_UPDATES,
+                            a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                <ExternalLink
+                                    location='signup'
+                                    href={HostedCustomerLinks.SECURITY_UPDATES}
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
+                        },
+                    )}
+                </span>
+            </div>
+        );
+    };
 
     const handleOnBlur = (e: FocusEvent<HTMLInputElement>, inputId: string) => {
         const text = e.target.value;
@@ -736,6 +820,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         error={passwordError}
                                         onBlur={(e) => handleOnBlur(e, 'password')}
                                     />
+                                    {getNewsletterCheck()}
                                     <SaveButton
                                         extraClasses='signup-body-card-form-button-submit large'
                                         saving={isWaiting}
