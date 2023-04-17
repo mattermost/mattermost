@@ -32,6 +32,8 @@ func (api *API) InitHostedCustomer() {
 	api.BaseRoutes.HostedCustomer.Handle("/customer", api.APISessionRequired(selfHostedCustomer)).Methods("POST")
 	// POST /api/v4/hosted_customer/confirm
 	api.BaseRoutes.HostedCustomer.Handle("/confirm", api.APISessionRequired(selfHostedConfirm)).Methods("POST")
+	// POST /api.v4/hosted_customer/confirm-expand
+	api.BaseRoutes.HostedCustomer.Handle("/confirm-expand", api.APISessionRequired(selfHostedConfirmExpand)).Methods("POST")
 	// GET /api/v4/hosted_customer/invoices
 	api.BaseRoutes.HostedCustomer.Handle("/invoices", api.APISessionRequired(selfHostedInvoices)).Methods("GET")
 	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
@@ -68,18 +70,9 @@ func checkSelfHostedPurchaseEnabled(c *Context) bool {
 	return enabled != nil && *enabled
 }
 
-func checkSelfHostedExpansionEnabled(c *Context) bool {
-	config := c.App.Config()
-	if config == nil {
-		return false
-	}
-	enabled := config.ServiceSettings.SelfHostedExpansion
-	return enabled != nil && *enabled
-}
-
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	const where = "Api4.selfHostedBootstrap"
-	if !checkSelfHostedPurchaseEnabled(c) && !checkSelfHostedExpansionEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -115,7 +108,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedPurchaseEnabled(c) && !checkSelfHostedExpansionEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -158,16 +151,21 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedPurchaseEnabled(c) && !checkSelfHostedExpansionEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	expand := r.URL.Query().Get("expand") == "true"
-
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	var confirm model.SelfHostedConfirmPaymentMethodRequest
+	err = json.Unmarshal(bodyBytes, &confirm)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -177,25 +175,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var confirmResponse *model.SelfHostedSignupConfirmResponse
-	var confirm model.SelfHostedConfirmPaymentMethodRequest
-	if expand {
-		err = json.Unmarshal(bodyBytes, &confirm)
-		if err != nil {
-			c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
-			return
-		}
-
-		confirmResponse, err = c.App.Cloud().ConfirmSelfHostedExpansion(confirm, user.Email)
-	} else {
-		err = json.Unmarshal(bodyBytes, &confirm)
-		if err != nil {
-			c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
-			return
-		}
-
-		confirmResponse, err = c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
-	}
+	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
 	if err != nil {
 		if confirmResponse != nil {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
@@ -347,4 +327,82 @@ func handleSubscribeToNewsletter(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	ReturnStatusOK(w)
+}
+
+func selfHostedConfirmExpand(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.selfHostedConfirmExpand"
+
+	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
+
+	if !checkSelfHostedPurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	var confirm model.SelfHostedConfirmPaymentMethodRequest
+	err = json.Unmarshal(bodyBytes, &confirm)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = userErr
+		return
+	}
+
+	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedExpansion(confirm, user.Email)
+	if err != nil {
+		if confirmResponse != nil {
+			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
+		}
+
+		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+			return
+		}
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
+
+	// dealing with an AppError
+	if !(reflect.ValueOf(err).Kind() == reflect.Ptr && reflect.ValueOf(err).IsNil()) {
+		if confirmResponse != nil {
+			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
+		}
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	clientResponse, err := json.Marshal(model.SelfHostedSignupConfirmClientResponse{
+		License:  utils.GetClientLicense(license),
+		Progress: confirmResponse.Progress,
+	})
+	if err != nil {
+		if confirmResponse != nil {
+			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
+		}
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	go func() {
+		err := c.App.Cloud().ConfirmSelfHostedSignupLicenseApplication()
+		if err != nil {
+			c.Logger.Warn("Unable to confirm license application", mlog.Err(err))
+		}
+	}()
+
+	_, _ = w.Write(clientResponse)
 }
