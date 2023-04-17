@@ -175,12 +175,13 @@ export default function SelfHostedExpansionModal() {
     const licensedSeats = parseInt(license.Users, 10);
     const currentPlan = license.SkuName;
     const activeUsers = useSelector(getFilteredUsersStats)?.total_users_count || 0;
-    const [additionalSeats, setAdditionalSeats] = useState(activeUsers <= licensedSeats ? 1 : activeUsers - licensedSeats);
+    const [minimumSeats] = useState(activeUsers <= licensedSeats ? 1 : activeUsers - licensedSeats);
+    const [requestedSeats, setRequestedSeats] = useState(minimumSeats)
 
     const [stripeLoadHint, setStripeLoadHint] = useState(Math.random());
     const stripeRef = useLoadStripe(stripeLoadHint);
 
-    const initialState = makeInitialState(additionalSeats);
+    const initialState = makeInitialState(requestedSeats);
     const [formState, setFormState] = useState<FormState>(initialState);
     const [show] = useState(true);
     const canRetry = formState.error !== '422';
@@ -492,12 +493,12 @@ export default function SelfHostedExpansionModal() {
                                 <SelfHostedExpansionCard
                                     updateSeats={(seats: number) => {
                                         setFormState({...formState, seats});
-                                        setAdditionalSeats(seats);
+                                        setRequestedSeats(seats);
                                     }}
                                     canSubmit={canSubmitForm}
                                     submit={submit}
                                     licensedSeats={licensedSeats}
-                                    initialSeats={additionalSeats}
+                                    minimumSeats={minimumSeats}
                                 />
                             </div>
                         </div>

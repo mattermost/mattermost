@@ -24,7 +24,7 @@ const MAX_TRANSACTION_VALUE = 1_000_000 - 1;
 interface Props {
     canSubmit: boolean;
     licensedSeats: number;
-    initialSeats: number;
+    minimumSeats: number;
     submit: () => void;
     updateSeats: (seats: number) => void;
 }
@@ -34,10 +34,10 @@ export default function SelfHostedExpansionCard(props: Props) {
     const license = useSelector(getLicense);
     const startsAt = moment(parseInt(license.StartsAt, 10)).format('MMM. D, YYYY');
     const endsAt = moment(parseInt(license.ExpiresAt, 10)).format('MMM. D, YYYY');
-    const [additionalSeats, setAdditionalSeats] = useState(props.initialSeats);
+    const [additionalSeats, setAdditionalSeats] = useState(props.minimumSeats);
     const [overMaxSeats, setOverMaxSeats] = useState(false);
     const licenseExpiry = new Date(parseInt(license.ExpiresAt, 10));
-    const invalidAdditionalSeats = additionalSeats === 0 || isNaN(additionalSeats);
+    const invalidAdditionalSeats = additionalSeats === 0 || isNaN(additionalSeats) || additionalSeats < props.minimumSeats;
     const [products] = useGetSelfHostedProducts();
     const currentProduct = findSelfHostedProductBySku(products, license.SkuShortName);
     const costPerMonth = currentProduct?.price_per_seat || 0;
@@ -76,9 +76,9 @@ export default function SelfHostedExpansionCard(props: Props) {
     const maxAdditionalSeats = getMaximumAdditionalSeats();
 
     const handleNewSeatsInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const requestedSeats = parseInt(e.target.value, 10);
+        let requestedSeats = parseInt(e.target.value, 10);
 
-        if (requestedSeats <= 0) {
+        if (!isNaN(requestedSeats) && requestedSeats <= 0) {
             e.preventDefault();
             return;
         }
@@ -141,17 +141,26 @@ export default function SelfHostedExpansionCard(props: Props) {
                         type='number'
                         value={additionalSeats}
                         onChange={handleNewSeatsInputChange}
-                        error={invalidAdditionalSeats}
                         disabled={maxAdditionalSeats === 0}
                     />
                 </div>
                 <div className='SelfHostedExpansionRHSCard__AddSeatsWarning'>
-                    {invalidAdditionalSeats && !overMaxSeats &&
+                    {invalidAdditionalSeats && !overMaxSeats && isNaN(additionalSeats) &&
                         <FormattedMessage
                             id='self_hosted_expansion_rhs_card_must_add_seats_warning'
                             defaultMessage='{warningIcon} You must add a seat to continue'
                             values={{
                                 warningIcon: <WarningIcon additionalClassName={'SelfHostedExpansionRHSCard__warning'}/>,
+                            }}
+                        />
+                    }
+                    {invalidAdditionalSeats && additionalSeats < props.minimumSeats &&
+                        <FormattedMessage
+                            id='self_hosted_expansion_rhs_card_must_purchase_enough_seats'
+                            defaultMessage='{warningIcon} You must purchase at least {minimumSeats} seats to be compliant with your license'
+                            values={{
+                                warningIcon: <WarningIcon additionalClassName={'SelfHostedExpansionRHSCard__warning'}/>,
+                                minimumSeats: props.minimumSeats
                             }}
                         />
                     }
@@ -203,7 +212,7 @@ export default function SelfHostedExpansionCard(props: Props) {
                 </div>
                 <button
                     className='btn btn-primary SelfHostedExpansionRHSCard__CompletePurchaseButton'
-                    disabled={!props.canSubmit || maxAdditionalSeats === 0}
+                    disabled={!props.canSubmit || maxAdditionalSeats === 0 || invalidAdditionalSeats}
                     onClick={props.submit}
                 >
                     <FormattedMessage
