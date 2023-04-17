@@ -14,7 +14,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import Constants from 'utils/constants';
 import {isMac} from 'utils/user_agent';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 
 import FileUploadOverlay from 'components/file_upload_overlay';
 import RhsThread from 'components/rhs_thread';

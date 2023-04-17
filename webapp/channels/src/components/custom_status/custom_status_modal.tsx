@@ -25,7 +25,8 @@ import {GlobalState} from 'types/store';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {A11yCustomEventTypes, A11yFocusEventDetail, Constants, ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 
 import CustomStatusSuggestion from 'components/custom_status/custom_status_suggestion';
 import ExpiryMenu from 'components/custom_status/expiry_menu';

@@ -45,6 +45,7 @@ import {
 import {addUserToTeam} from 'actions/team_actions';
 import {searchForTerm} from 'actions/post_actions';
 import {getHistory} from 'utils/browser_history';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import {isDesktopApp} from 'utils/user_agent';
 import {t} from 'utils/i18n';
@@ -109,44 +110,14 @@ export function createSafeId(prop: {props: {defaultMessage: string}} | string): 
     return str.replace(new RegExp(' ', 'g'), '_');
 }
 
-export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAlt = false) {
-    const isMac = UserAgent.isMac();
-
-    if (allowAlt) {
-        return (isMac && e.metaKey) || (!isMac && e.ctrlKey);
-    }
-    return (isMac && e.metaKey) || (!isMac && e.ctrlKey && !e.altKey);
-}
-
-export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [string, number]) {
-    // There are two types of keyboards
-    // 1. English with different layouts(Ex: Dvorak)
-    // 2. Different language keyboards(Ex: Russian)
-
-    if (event.keyCode === Constants.KeyCodes.COMPOSING[1]) {
-        return false;
-    }
-
-    // checks for event.key for older browsers and also for the case of different English layout keyboards.
-    if (typeof event.key !== 'undefined' && event.key !== 'Unidentified' && event.key !== 'Dead') {
-        const isPressedByCode = event.key === key[0] || event.key === key[0].toUpperCase();
-        if (isPressedByCode) {
-            return true;
-        }
-    }
-
-    // used for different language keyboards to detect the position of keys
-    return event.keyCode === key[1];
-}
-
 /**
  * check keydown event for line break combo. Should catch alt/option + enter not all browsers except Safari
  */
 export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEvent): boolean {
     return Boolean(
-        isKeyPressed(e, Constants.KeyCodes.ENTER) &&
+        Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 

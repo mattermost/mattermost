@@ -11,6 +11,7 @@ import QuickSwitchModal from 'components/quick_switch_modal';
 import {ModalData} from 'types/actions';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -65,12 +66,12 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
     handleShortcut = (e: KeyboardEvent) => {
         const {actions: {closeModal}} = this.props;
 
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey) {
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.M)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.M)) {
                 e.preventDefault();
                 closeModal(ModalIdentifiers.QUICK_SWITCH);
             }
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.L)) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.L)) {
                 // just close the modal if it's open, but let someone else handle the shortcut
                 closeModal(ModalIdentifiers.QUICK_SWITCH);
             }
@@ -78,7 +79,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
     };
 
     handleQuickSwitchKeyPress = (e: KeyboardEvent) => {
-        if (Utils.cmdOrCtrlPressed(e) && !e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.K)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && !e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.K)) {
             if (!e.altKey) {
                 e.preventDefault();
                 this.toggleQuickSwitchModal();
