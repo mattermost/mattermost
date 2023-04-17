@@ -176,7 +176,7 @@ export default function SelfHostedExpansionModal() {
     const currentPlan = license.SkuName;
     const activeUsers = useSelector(getFilteredUsersStats)?.total_users_count || 0;
     const [minimumSeats] = useState(activeUsers <= licensedSeats ? 1 : activeUsers - licensedSeats);
-    const [requestedSeats, setRequestedSeats] = useState(minimumSeats)
+    const [requestedSeats, setRequestedSeats] = useState(minimumSeats);
 
     const [stripeLoadHint, setStripeLoadHint] = useState(Math.random());
     const stripeRef = useLoadStripe(stripeLoadHint);
