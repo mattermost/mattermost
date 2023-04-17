@@ -54,7 +54,7 @@ type State = {
 
 export default class ViewUserGroupModal extends React.PureComponent<Props, State> {
     private divScrollRef: RefObject<HTMLDivElement>;
-    private searchTimeoutId: number
+    private searchTimeoutId: number;
 
     constructor(props: Props) {
         super(props);
@@ -72,15 +72,15 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
 
     incrementMemberCount = () => {
         this.setState({memberCount: this.state.memberCount + 1});
-    }
+    };
 
     decrementMemberCount = () => {
         this.setState({memberCount: this.state.memberCount - 1});
-    }
+    };
 
     doHide = () => {
         this.setState({show: false});
-    }
+    };
 
     async componentDidMount() {
         const {
@@ -126,20 +126,20 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
 
     setMemberCount = (count: number) => {
         this.setState({memberCount: count});
-    }
+    };
 
     startLoad = () => {
         this.setState({loading: true});
-    }
+    };
 
     loadComplete = () => {
         this.setState({loading: false});
-    }
+    };
 
     handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
         this.props.actions.setModalSearchTerm(term);
-    }
+    };
 
     getGroupMembers = debounce(
         async () => {
@@ -166,7 +166,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
         if (((scrollTop + clientHeight + 30) >= scrollHeight && this.props.group) && (this.props.users.length !== this.props.group.member_count && this.state.loading === false)) {
             this.getGroupMembers();
         }
-    }
+    };
 
     mentionName = () => {
         const {group} = this.props;
@@ -188,7 +188,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
             );
         }
         return (<></>);
-    }
+    };
 
     render() {
         const {groupId, group, users, onExited} = this.props;

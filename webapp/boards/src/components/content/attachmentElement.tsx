@@ -94,7 +94,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
     }
 
     const confirmDialogProps: ConfirmationDialogBoxProps = {
-        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-attachment', defaultMessage: 'Confirm Attachment delete!'}),
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-attachment', defaultMessage: 'Confirm attachment delete'}),
         confirmButtonText: intl.formatMessage({id: 'AttachmentElement.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
         onConfirm: deleteAttachment,
         onClose: () => {

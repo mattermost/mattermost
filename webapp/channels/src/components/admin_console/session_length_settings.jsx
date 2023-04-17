@@ -24,7 +24,7 @@ export default class SessionLengthSettings extends AdminSettings {
         config.ServiceSettings.SessionIdleTimeoutInMinutes = this.parseIntZeroOrMin(this.state.sessionIdleTimeoutInMinutes, MINIMUM_IDLE_TIMEOUT);
 
         return config;
-    }
+    };
 
     getStateFromConfig(config) {
         return {
@@ -204,5 +204,5 @@ export default class SessionLengthSettings extends AdminSettings {
                 {sessionTimeoutSetting}
             </SettingsGroup>
         );
-    }
+    };
 }

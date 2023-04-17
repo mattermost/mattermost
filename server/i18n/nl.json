@@ -9027,50 +9027,6 @@
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Verhoog jouw productiviteit met deze geweldige functies"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hey {{.Naam}}, we hebben gemerkt dat jouw Mattermost server een beetje stof aan het verzamelen is. Kijk eens naar enkele functies die kunnen helpen om de werklast van jouw team te verlichten."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Open Mattermost om de productiviteit van je team te verhogen!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Beheer taken met "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Workflowbeheer met "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Gast-toegang tot gespecificeerd(e) "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Kom maar eens kijken!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermost openen"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanalen"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP is niet geconfigureerd in Systeem Console"
   },
@@ -9161,10 +9117,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Je hebt deze eenmalige email ontvangen omdat jouw Mattermost server inactief was voor meer dan {{.Hours}} uur. Deze e-mail werd automatisch aangemaakt door jouw Mattermost server."
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9503,10 +9455,6 @@
     "translation": "groepsnaam bestaat al als een gereserveerde naam"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Plugin {{.Name}} kan niet worden ingeschakeld in de productmodus."
-  },
-  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Fout bij het ophalen van het laatst toegankelijke bestand"
   },
@@ -9613,10 +9561,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "Kon geen berichtprioriteit ophalen voor bericht"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Kan het concept niet bijwerken."
   },
   {
     "id": "app.draft.save.app_error",
@@ -9885,5 +9829,45 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Contacteer de verkoopsafdeling"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Vandaag te voldoen"
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Gebruik `/playbook todo` om al je taken te zien."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Je hebt momenteel 0 runs lopen."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Runs in uitvoering"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Je hebt 0 runs achterstand."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Achterstallige statusupdates"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Kan commando niet uitvoeren."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS-server kan zich niet abonneren op nieuwsbrief."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Dienst alleen beschikbaar in Mattermost Enterprise editie"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
   }
 ]

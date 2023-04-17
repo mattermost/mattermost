@@ -8968,18 +8968,6 @@
     "translation": "функция пользовательских групп отключена"
   },
   {
-    "id": "Playbooks",
-    "translation": "Сценарии"
-  },
-  {
-    "id": "Channels",
-    "translation": "Каналы"
-  },
-  {
-    "id": "Boards",
-    "translation": "Доски"
-  },
-  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Ошибка при попытке получить первую завершенную настройку администратора из магазина."
   },
@@ -9036,34 +9024,6 @@
     "translation": "Ответ SAML слишком длинный"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Откройте для себя повышенную производительность с помощью этих замечательных функций"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Привет, {{.Name}}, мы заметили, что Ваш сервер Mattermost собирает немного пыли. Взгляните на некоторые функции, которые могут облегчить рабочую нагрузку в Вашей команде."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Откройте все возможности Mattermost, чтобы повысить производительность вашей команды!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Управляйте задачами с помощью "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Управление рабочим процессом с "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Приходите и проверьте это!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Открыть Mattermost"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP не настроен в Системной Консоли"
   },
@@ -9078,10 +9038,6 @@
   {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "Ошибка при попытке сохранить первую полную настройку администратора в магазине."
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Гостевой доступ к указанному "
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
@@ -9308,10 +9264,6 @@
     "translation": "Не удалось получить сведения об использовании команд"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Плагин {{.Name}} не может быть включен в продуктовом режиме."
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "Невозможно отправить сообщение с уведомлением."
   },
@@ -9370,10 +9322,6 @@
   {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Не удалось получить облачные продукты"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Вы получили это одноразовое письмо, потому что ваш сервер Mattermost был неактивен более {{.Hours}} часов. Это письмо было автоматически сгенерировано вашим сервером Mattermost."
   },
   {
     "id": "api.templates.delinquency_90.title",
@@ -9590,10 +9538,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "Невозможно получить приоритет для сообщения"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Невозможно обновить черновик."
   },
   {
     "id": "app.draft.save.app_error",

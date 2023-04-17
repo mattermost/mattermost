@@ -80,7 +80,7 @@ var config = {
                 type: 'javascript/auto',
                 test: /\.json$/,
                 include: [
-                    path.resolve(__dirname, 'i18n'),
+                    path.resolve(__dirname, 'src/i18n'),
                 ],
                 exclude: [/en\.json$/],
                 use: [
@@ -441,7 +441,9 @@ if (DEV) {
     config.devtool = 'source-map';
 }
 
-const env = {};
+const env = {
+    STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY || ''),
+};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
     env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');

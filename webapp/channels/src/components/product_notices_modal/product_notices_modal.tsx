@@ -189,7 +189,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
     private trackClickEvent = () => {
         const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
         trackEvent('ui', `notice_click_${presentNoticeInfo.id}`);
-    }
+    };
 
     private renderActionButton(presentNoticeInfo: ProductNotice) {
         const noOfNotices = this.state.noticesData.length;
@@ -225,7 +225,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 presentNoticeIndex: this.state.presentNoticeIndex + 1,
             });
         }
-    }
+    };
 
     private handlePreviousButton = () => {
         if (this.state.presentNoticeIndex !== 0) {
@@ -233,7 +233,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 presentNoticeIndex: this.state.presentNoticeIndex - 1,
             });
         }
-    }
+    };
 
     onModalDismiss = () => {
         this.clearDataTimer = window.setTimeout(() => {
@@ -242,7 +242,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 presentNoticeIndex: 0,
             });
         }, 3000);
-    }
+    };
 
     render() {
         if (!this.state.noticesData.length) {

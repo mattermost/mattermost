@@ -788,7 +788,7 @@ declare global {
             updateChannelHeader(text: string): ChainableT<void>;
 
             /**
-             * Navigate to system console-PluginManagement from account settings
+             * Navigate to system console-PluginManagement from profile settings
              */
             checkRunLDAPSync: typeof checkRunLDAPSync;
 
