@@ -99,7 +99,7 @@ describe('Onboarding', () => {
         });
 
         // * Check that the 'Beginning of 'General message is visible
-        cy.findByText('Beginning of 'General).should('be.visible');
+        cy.findByText('Beginning of General').should('be.visible');
     });
 
     // eslint-disable-next-line no-shadow

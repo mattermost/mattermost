@@ -121,6 +121,6 @@ describe('Team Settings', () => {
         cy.uiGetLHSHeader().findByText(testTeam.display_name);
 
         // * Check that the 'Beginning of 'General message is visible
-        cy.findByText('Beginning of 'General).should('be.visible');
+        cy.findByText('Beginning of General').should('be.visible');
     });
 });

@@ -79,7 +79,7 @@ describe('archive tests while preventing viewing archived channels', () => {
 
         cy.apiLogin(testUser);
 
-        // # Open a channel other than Town Square (aka General)
+        // # Open a channel other than Town Square
         cy.visit(`/${testTeam.name}/channels/off-topic`);
         cy.contains('#channelHeaderTitle', 'Off-Topic');
 

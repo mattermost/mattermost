@@ -287,7 +287,7 @@ describe('Teams Suite', () => {
 
         // # Verify Town square is visible
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
-        cy.findByText('Beginning of 'General).should('be.visible');
+        cy.findByText('Beginning of General').should('be.visible');
     });
 
     it('MM-T2322 Do not allow anyone to join this team', () => {

@@ -81,7 +81,7 @@ export const signupAndVerifyTutorial = (username, password, teamDisplayName) => 
     cy.uiGetLHSHeader().findByText(teamDisplayName);
 
     // * Check that the 'Beginning of 'General message is visible
-    cy.findByText('Beginning of 'General).should('be.visible');
+    cy.findByText('Beginning of General').should('be.visible');
 
     // * Check that 'General' is currently being selected
     cy.get('.active').within(() => {
