@@ -497,7 +497,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
-                    'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'Actions'}),
+                    'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.actions', defaultMessage: 'Actions'}),
                     children: <DotsHorizontalIcon size={16}/>,
                 }}
                 menu={{
@@ -510,7 +510,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }}
                 menuButtonTooltip={{
                     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
-                    text: formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'More'}),
+                    text: formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}),
                     class: 'hidden-xs',
                 }}
             >
