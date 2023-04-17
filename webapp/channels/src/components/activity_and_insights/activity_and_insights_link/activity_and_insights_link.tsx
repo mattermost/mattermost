@@ -6,8 +6,7 @@ import {Link, useRouteMatch, useLocation, matchPath} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import classNames from 'classnames';
-import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
-
+import {ChartLineIcon} from '@mattermost/compass-icons/components';
 import {insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
@@ -62,10 +61,7 @@ const ActivityAndInsightsLink = () => {
                     tabIndex={0}
                 >
                     <span className='icon'>
-                        <Icon
-                            size={12}
-                            glyph={'chart-line'}
-                        />
+                        <ChartLineIcon size={14}/>
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>

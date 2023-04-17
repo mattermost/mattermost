@@ -15,7 +15,9 @@
   },
   "typesVersions": {
     ">=3.1": {
-      "*": ["./lib/*.d.ts"]
+      "*": [
+        "./lib/*.d.ts"
+      ]
     }
   },
   "repository": {

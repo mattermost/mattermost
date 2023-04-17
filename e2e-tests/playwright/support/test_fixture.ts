@@ -1,13 +1,7 @@
 import {test as base, Browser} from '@playwright/test';
 
 import {TestBrowser} from './browser_context';
-import {
-    shouldHaveBoardsEnabled,
-    shouldHaveCallsEnabled,
-    shouldHaveFeatureFlag,
-    shouldSkipInSmallScreen,
-    shouldRunInLinux,
-} from './flag';
+import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldSkipInSmallScreen, shouldRunInLinux} from './flag';
 import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
@@ -36,7 +30,6 @@ class PlaywrightExtended {
     readonly testBrowser: TestBrowser;
 
     // ./flag
-    readonly shouldHaveBoardsEnabled;
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
     readonly shouldSkipInSmallScreen;
@@ -62,7 +55,6 @@ class PlaywrightExtended {
         this.testBrowser = new TestBrowser(browser);
 
         // ./flag
-        this.shouldHaveBoardsEnabled = shouldHaveBoardsEnabled;
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldSkipInSmallScreen = shouldSkipInSmallScreen;
