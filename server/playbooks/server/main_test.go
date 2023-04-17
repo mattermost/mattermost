@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -37,7 +36,6 @@ func TestMain(m *testing.M) {
 	}
 	serverpath := string(serverpathBytes)
 	serverpath = strings.Trim(strings.TrimSpace(serverpath), "'")
-	os.Setenv("MM_SERVER_PATH", filepath.Join(serverpath, "server"))
 
 	// This actually runs the tests
 	status := m.Run()
