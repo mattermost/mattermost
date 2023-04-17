@@ -979,6 +979,7 @@ type ExperimentalSettings struct {
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
 	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1016,6 +1017,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.PatchPluginsReactDOM == nil {
 		s.PatchPluginsReactDOM = NewBool(false)
+	}
+
+	if s.DelayChannelAutocomplete == nil {
+		s.DelayChannelAutocomplete = NewBool(false)
 	}
 }
 

@@ -16,7 +16,7 @@ describe('ChannelMentionProvider.handlePretextChanged', () => {
 
     let provider: ChannelMentionProvider;
     beforeEach(() => {
-        provider = new ChannelMentionProvider(autocompleteChannels);
+        provider = new ChannelMentionProvider(autocompleteChannels, false);
     });
 
     describe('basic cases', () => {
@@ -81,26 +81,6 @@ describe('ChannelMentionProvider.handlePretextChanged', () => {
 
             expect(matched).toBe(true);
             expect(autocompleteChannels).toHaveBeenCalledWith('off-topic', expect.anything(), expect.anything());
-            expect(resultsCallback).toHaveBeenCalled();
-        });
-
-        test('should not match a link shorter than the minimum length', () => {
-            let matched = provider.handlePretextChanged('~', resultsCallback);
-
-            expect(matched).toBe(false);
-            expect(autocompleteChannels).not.toHaveBeenCalled();
-            expect(resultsCallback).not.toHaveBeenCalled();
-
-            matched = provider.handlePretextChanged('~t', resultsCallback);
-
-            expect(matched).toBe(false);
-            expect(autocompleteChannels).not.toHaveBeenCalled();
-            expect(resultsCallback).not.toHaveBeenCalled();
-
-            matched = provider.handlePretextChanged('~to', resultsCallback);
-
-            expect(matched).toBe(true);
-            expect(autocompleteChannels).toHaveBeenCalledWith('to', expect.anything(), expect.anything());
             expect(resultsCallback).toHaveBeenCalled();
         });
 
@@ -196,5 +176,39 @@ describe('ChannelMentionProvider.handlePretextChanged', () => {
         expect(matched).toBe(true);
         expect(autocompleteChannels).toHaveBeenCalledWith('town', expect.anything(), expect.anything());
         expect(resultsCallback).toHaveBeenCalled();
+    });
+
+    describe('delayed autocomplete', () => {
+        test('with the setting enabled, should not match a link shorter than the minimum length', () => {
+            provider.setProps({delayChannelAutocomplete: true});
+
+            let matched = provider.handlePretextChanged('~', resultsCallback);
+
+            expect(matched).toBe(false);
+            expect(autocompleteChannels).not.toHaveBeenCalled();
+            expect(resultsCallback).not.toHaveBeenCalled();
+
+            matched = provider.handlePretextChanged('~t', resultsCallback);
+
+            expect(matched).toBe(false);
+            expect(autocompleteChannels).not.toHaveBeenCalled();
+            expect(resultsCallback).not.toHaveBeenCalled();
+
+            matched = provider.handlePretextChanged('~to', resultsCallback);
+
+            expect(matched).toBe(true);
+            expect(autocompleteChannels).toHaveBeenCalledWith('to', expect.anything(), expect.anything());
+            expect(resultsCallback).toHaveBeenCalled();
+        });
+
+        test('with the setting disabled, should match a link shorter than the minimum length', () => {
+            provider.setProps({delayChannelAutocomplete: false});
+
+            const matched = provider.handlePretextChanged('~', resultsCallback);
+
+            expect(matched).toBe(true);
+            expect(autocompleteChannels).toHaveBeenCalledWith('', expect.anything(), expect.anything());
+            expect(resultsCallback).toHaveBeenCalled();
+        });
     });
 });

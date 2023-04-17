@@ -895,6 +895,8 @@
   "admin.experimental.collapsedThreads.title": "Collapsed Reply Threads",
   "admin.experimental.defaultTheme.desc": "Set a default theme that applies to all new users on the system.",
   "admin.experimental.defaultTheme.title": "Default Theme:",
+  "admin.experimental.delayChannelAutocomplete.desc": "When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.",
+  "admin.experimental.delayChannelAutocomplete.title": "Delay Channel Autocomplete:",
   "admin.experimental.emailBatchingBufferSize.desc": "Specify the maximum number of notifications batched into a single email.",
   "admin.experimental.emailBatchingBufferSize.example": "E.g.: \"256\"",
   "admin.experimental.emailBatchingBufferSize.title": "Email Batching Buffer Size:",
