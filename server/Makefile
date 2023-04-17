@@ -270,7 +270,7 @@ else
 endif
 
 plugin-checker:
-	$(GO) run $(GOFLAGS) ../plugin/checker
+	$(GO) run $(GOFLAGS) ./plugin/checker
 
 prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	@echo Downloading prepackaged plugins
@@ -349,9 +349,9 @@ ldap-mocks: ## Creates mock files for ldap.
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
-	$(GOBIN)/mockery --dir ../plugin --name API --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir ../plugin --name Hooks --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir ../plugin --name Driver --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ./plugin --name API --output ./plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ./plugin --name Hooks --output ./plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ./plugin --name Driver --output ./plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
@@ -380,7 +380,7 @@ platform-mocks: ## Creates mocks for platform interfaces.
 	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
-	$(GO) generate $(GOFLAGS) ../plugin
+	$(GO) generate $(GOFLAGS) ./plugin
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks
 
@@ -733,18 +733,18 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) install github.com/tinylib/msgp@v1.1.6
-	$(GOBIN)/msgp -file=../model/session.go -tests=false -o=../model/session_serial_gen.go
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ../model/session_serial_gen.go >> tmp.go
-	@mv tmp.go ../model/session_serial_gen.go
-	$(GOBIN)/msgp -file=../model/user.go -tests=false -o=../model/user_serial_gen.go
+	@cat ./model/session_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/session_serial_gen.go
+	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ../model/user_serial_gen.go >> tmp.go
-	@mv tmp.go ../model/user_serial_gen.go
-	$(GOBIN)/msgp -file=../model/team_member.go -tests=false -o=../model/team_member_serial_gen.go
+	@cat ./model/user_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/user_serial_gen.go
+	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ../model/team_member_serial_gen.go >> tmp.go
-	@mv tmp.go ../model/team_member_serial_gen.go
+	@cat ./model/team_member_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
