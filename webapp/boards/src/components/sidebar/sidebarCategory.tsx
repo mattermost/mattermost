@@ -25,6 +25,7 @@ import CompassIcon from 'src/widgets/icons/compassIcon'
 import OptionsIcon from 'src/widgets/icons/options'
 import Menu from 'src/widgets/menu'
 import MenuWrapper from 'src/widgets/menuWrapper'
+import {UserSettings} from 'src/userSettings'
 
 import './sidebarCategory.scss'
 import {Category, CategoryBoardMetadata, CategoryBoards} from 'src/store/sidebar'
@@ -208,6 +209,11 @@ const SidebarCategory = (props: Props) => {
                 showBoard(deleteBoard.id)
             },
         )
+        if (UserSettings.lastBoardId && 
+            UserSettings.lastBoardId[deleteBoard.teamId] == deleteBoard.id) {
+                UserSettings.setLastBoardID(deleteBoard.teamId, null)
+                UserSettings.setLastViewId(deleteBoard.id, null)
+            }
     }, [showBoard, deleteBoard, props.boards])
 
     const updateCategory = useCallback(async (value: boolean) => {
