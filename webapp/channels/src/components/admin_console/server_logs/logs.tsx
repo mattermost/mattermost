@@ -57,11 +57,11 @@ export default class Logs extends React.PureComponent<Props, State> {
             dateTo: this.state.dateTo,
         });
         this.setState({loadingLogs: false});
-    }
+    };
 
     onSearchChange = (search: string) => {
         this.setState({search}, () => this.performSearch());
-    }
+    };
 
     performSearch = debounce(() => {
         const {search} = this.state;
@@ -74,7 +74,7 @@ export default class Logs extends React.PureComponent<Props, State> {
 
     onFiltersChange = ({dateFrom, dateTo, logLevels, serverNames}: LogFilter) => {
         this.setState({dateFrom, dateTo, logLevels, serverNames}, () => this.reload());
-    }
+    };
 
     render() {
         return (

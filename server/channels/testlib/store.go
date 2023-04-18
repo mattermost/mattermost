@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 type TestStore struct {
@@ -101,6 +101,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	oAuthStore := mocks.OAuthStore{}
 	groupStore := mocks.GroupStore{}
 
+	pluginStore := mocks.PluginStore{}
+	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
@@ -116,6 +119,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("OAuth").Return(&oAuthStore)
 	mockStore.On("Group").Return(&groupStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+	mockStore.On("Plugin").Return(&pluginStore)
 
 	return &mockStore
 }

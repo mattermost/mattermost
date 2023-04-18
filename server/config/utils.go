@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 // marshalConfig converts the given configuration into JSON bytes for persistence.
@@ -177,27 +177,6 @@ func IsDatabaseDSN(dsn string) bool {
 	return strings.HasPrefix(dsn, "mysql://") ||
 		strings.HasPrefix(dsn, "postgres://") ||
 		strings.HasPrefix(dsn, "postgresql://")
-}
-
-// stripPassword remove the password from a given DSN
-func stripPassword(dsn, schema string) string {
-	prefix := schema + "://"
-	dsn = strings.TrimPrefix(dsn, prefix)
-
-	i := strings.Index(dsn, ":")
-	j := strings.LastIndex(dsn, "@")
-
-	// Return error if no @ sign is found
-	if j < 0 {
-		return "(omitted due to error parsing the DSN)"
-	}
-
-	// Return back the input if no password is found
-	if i < 0 || i > j {
-		return prefix + dsn
-	}
-
-	return prefix + dsn[:i+1] + dsn[j:]
 }
 
 func isJSONMap(data string) bool {

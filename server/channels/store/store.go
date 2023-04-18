@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type StoreResult struct {
@@ -381,7 +381,6 @@ type PostStore interface {
 	AnalyticsPostCount(options *model.PostCountOptions) (int64, error)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelID string)
-	GetLastPostRowCreateAt() (int64, error)
 	GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error)
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
@@ -510,7 +509,6 @@ type SessionStore interface {
 	Remove(sessionIDOrToken string) error
 	RemoveAllSessions() error
 	PermanentDeleteSessionsByUser(teamID string) error
-	GetLastSessionRowCreateAt() (int64, error)
 	UpdateExpiresAt(sessionID string, timestamp int64) error
 	UpdateLastActivityAt(sessionID string, timestamp int64) error
 	UpdateRoles(userID string, roles string) (string, error)
@@ -566,6 +564,7 @@ type OAuthStore interface {
 	GetAuthData(code string) (*model.AuthData, error)
 	RemoveAuthData(code string) error
 	RemoveAuthDataByClientId(clientId string, userId string) error
+	RemoveAuthDataByUserId(userId string) error
 	PermanentDeleteAuthDataByUser(userID string) error
 	SaveAccessData(accessData *model.AccessData) (*model.AccessData, error)
 	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error)
@@ -987,11 +986,10 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
-	Save(d *model.Draft) (*model.Draft, error)
+	Upsert(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
-	Update(d *model.Draft) (*model.Draft, error)
 }
 
 type PostAcknowledgementStore interface {

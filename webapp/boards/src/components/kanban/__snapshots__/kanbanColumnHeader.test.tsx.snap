@@ -469,7 +469,7 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot readonly
 <div>
   <div
     class="octo-board-header-cell KanbanColumnHeader"
-    draggable="true"
+    draggable="false"
     style="opacity: 1;"
   >
     <span

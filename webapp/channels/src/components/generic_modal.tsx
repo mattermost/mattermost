@@ -11,5 +11,8 @@ import './generic_modal.scss';
 // find them there, so we've had to redefine them here
 t('generic_modal.cancel');
 t('generic_modal.confirm');
+t('footer_pagination.count');
+t('footer_pagination.prev');
+t('footer_pagination.next');
 
 export default GenericModal;

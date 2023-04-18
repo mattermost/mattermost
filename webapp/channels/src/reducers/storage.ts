@@ -144,7 +144,6 @@ function migrateDrafts(state: any) {
                 createAt: timestamp.getTime(),
                 updateAt: timestamp.getTime(),
                 show: true,
-                remote: false,
             },
         };
 

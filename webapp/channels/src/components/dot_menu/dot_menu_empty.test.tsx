@@ -59,7 +59,6 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
             threadId: 'post_id_1',
             userId: 'user_id_1',
             isMilitaryTime: false,
-            showForwardPostNewLabel: false,
         };
 
         const wrapper = shallow(

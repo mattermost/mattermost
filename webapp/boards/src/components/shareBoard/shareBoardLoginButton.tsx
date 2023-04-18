@@ -3,7 +3,7 @@
 
 import React, {useCallback} from 'react'
 import {FormattedMessage} from 'react-intl'
-import {generatePath, useRouteMatch, useHistory} from 'react-router-dom'
+import {generatePath, useRouteMatch} from 'react-router-dom'
 
 import Button from 'src/widgets/buttons/button'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
@@ -12,14 +12,17 @@ import './shareBoardLoginButton.scss'
 
 const ShareBoardLoginButton = () => {
     const match = useRouteMatch<{teamId: string, boardId: string, viewId?: string, cardId?: string}>()
-    const history = useHistory()
 
-    const redirectQueryParam = 'r=' + encodeURIComponent(generatePath('/:boardId?/:viewId?/:cardId?', match.params))
-    const loginPath = '/login?' + redirectQueryParam
+    // Mattermost login doesn't respect the redirect query parameter
+    // if the user is already logged in, so we send the user to the
+    // board and if they are not logged in, the webapp will take care
+    // of the redirection
+    const baseURL = window.location.href.split('/boards/public')[0]
+    const loginPath = `${baseURL}/${generatePath('/boards/team/:teamId/:boardId?/:viewId?/:cardId?', match.params)}`
 
     const onLoginClick = useCallback(() => {
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoardLogin)
-        history.push(loginPath)
+        location.assign(loginPath)
     }, [])
 
     return (

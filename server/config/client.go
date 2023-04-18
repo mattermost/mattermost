@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -223,9 +223,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHash"] = model.BuildHash
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
-	props["BuildHashBoards"] = model.BuildHashBoards
-	props["BuildBoards"] = model.BuildBoards
-	props["BuildHashPlaybooks"] = model.BuildHashPlaybooks
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)

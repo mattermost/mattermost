@@ -4,7 +4,7 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type CloudInterface interface {
@@ -47,4 +47,8 @@ type CloudInterface interface {
 	CheckCWSConnection(userId string) error
 
 	SelfServeDeleteWorkspace(userID string, deletionRequest *model.WorkspaceDeletionRequest) error
+	SubscribeToNewsletter(userID string, req *model.SubscribeNewsletterRequest) error
+
+	// Used only for when a customer has telemetry disabled. In this scenario, true up review telemetry will be submitted via CWS.
+	SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]any) error
 }

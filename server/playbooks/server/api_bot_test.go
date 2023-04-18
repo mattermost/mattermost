@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,8 +16,7 @@ func TestTrialLicences(t *testing.T) {
 	// This test is flaky due to upstream connectivity issues.
 	t.Skip()
 
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("request trial license without permissions", func(t *testing.T) {
