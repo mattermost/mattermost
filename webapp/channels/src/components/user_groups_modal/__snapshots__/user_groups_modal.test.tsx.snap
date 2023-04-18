@@ -162,6 +162,29 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
     bsClass="modal-body"
     componentClass="div"
   >
+    <div
+      className="user-groups-search"
+    >
+      <ForwardRef
+        className="user-group-search-input"
+        data-testid="searchInput"
+        inputPrefix={
+          <i
+            className="icon icon-magnify"
+          />
+        }
+        onChange={[Function]}
+        placeholder="Search Groups"
+        type="text"
+        value=""
+      />
+    </div>
+    <Memo(UserGroupsFilter)
+      getArchivedGroups={[Function]}
+      getGroups={[Function]}
+      getMyGroups={[Function]}
+      selectedFilter="all"
+    />
     <NoResultsIndicator
       variant="UserGroups"
     />
