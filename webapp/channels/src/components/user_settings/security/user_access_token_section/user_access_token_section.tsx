@@ -8,6 +8,7 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import ConfirmModal from 'components/confirm_modal';
@@ -263,7 +264,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
     };
 
     saveTokenKeyPress = (e: React.KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
             this.confirmCreateToken();
         }
     };

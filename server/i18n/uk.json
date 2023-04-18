@@ -3140,10 +3140,6 @@
     "translation": "Не вдається розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Еластичний пошук не запускається"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Не вдалося створити масовий процесор Elasticsearch"
   },

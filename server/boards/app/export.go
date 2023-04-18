@@ -11,9 +11,9 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 var (
@@ -86,7 +86,7 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 	var files []string
 	// write the board's blocks
 	// TODO: paginate this
-	blocks, err := a.GetBlocksForBoard(board.ID)
+	blocks, err := a.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
 	if err != nil {
 		return err
 	}
