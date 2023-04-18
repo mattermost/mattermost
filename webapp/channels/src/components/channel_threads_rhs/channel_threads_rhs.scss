@@ -11,18 +11,12 @@
             max-width: 100%;
 
             .thread-no-results-title {
-                margin-bottom: 0;
-                font-size: 16px;
-                line-height: 24px;
+                margin-bottom: 8px;
             }
 
             .thread-no-results-subtitle {
                 max-width: 100%;
-                font-size: 12px;
-
-                .thread-no-results-subtitle-shortcut {
-                    margin: 0;
-                }
+                height: 45px;
             }
         }
     }
@@ -49,9 +43,5 @@
             align-items: center;
             justify-content: center;
         }
-    }
-
-    .no-results__text-container {
-        padding-top: 23px;
     }
 }

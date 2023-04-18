@@ -41,11 +41,12 @@ import Attachment from './attachments';
 import './thread_item.scss';
 
 export type OwnProps = {
-    isSelected: boolean;
-    threadId: UserThread['id'];
-    style?: any;
+    hideUnreads?: boolean;
     isFirstThreadInList: boolean;
+    isSelected: boolean;
     routing: ThreadRouting;
+    style?: any;
+    threadId: UserThread['id'];
 };
 
 type Props = {
@@ -68,15 +69,16 @@ function ThreadItem({
     channel,
     currentRelativeTeamUrl,
     displayName,
+    hideUnreads,
+    isFirstThreadInList,
+    isPostPriorityEnabled,
     isSelected,
     post,
     postsInThread,
+    routing,
     style,
     thread,
     threadId,
-    isFirstThreadInList,
-    isPostPriorityEnabled,
-    routing,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId} = routing;
@@ -153,13 +155,21 @@ function ThreadItem({
         return null;
     }
 
-    const {
+    let {
         unread_replies: newReplies,
         unread_mentions: newMentions,
+    } = thread;
+
+    const {
         last_reply_at: lastReplyAt,
         reply_count: totalReplies,
         is_following: isFollowing,
     } = thread;
+
+    if (hideUnreads) {
+        newReplies = 0;
+        newMentions = 0;
+    }
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp

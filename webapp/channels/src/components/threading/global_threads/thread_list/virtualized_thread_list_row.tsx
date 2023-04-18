@@ -22,9 +22,10 @@ import ThreadItem from '../thread_item';
 
 type Props = {
     data: {
+        hideUnreads?: boolean;
         ids: Array<UserThread['id']>;
-        selectedThreadId?: UserThread['id'];
         routing: ThreadRouting;
+        selectedThreadId?: UserThread['id'];
     };
     index: number;
     style: any;
@@ -77,12 +78,13 @@ function Row({index, style, data}: Props) {
 
     return (
         <ThreadItem
-            isSelected={isSelected}
             key={itemId}
+            hideUnreads={data.hideUnreads}
+            isFirstThreadInList={index === 0}
+            isSelected={isSelected}
+            routing={data.routing}
             style={style}
             threadId={itemId}
-            isFirstThreadInList={index === 0}
-            routing={data.routing}
         />
     );
 }

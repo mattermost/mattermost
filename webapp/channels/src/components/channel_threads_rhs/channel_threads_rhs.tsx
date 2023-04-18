@@ -248,10 +248,12 @@ function ChannelThreads({
                                 expanded={true}
                                 iconGraphic={ThreadsIllustration}
                                 subtitle={noResultsSubtitle}
+                                subtitleClassName='thread-no-results-subtitle'
                                 title={formatMessage({
                                     id: 'channel_threads.noResults.title',
                                     defaultMessage: 'No threads here',
                                 })}
+                                titleClassName='thread-no-results-title'
                             />
                         )}
                     </>
@@ -260,11 +262,12 @@ function ChannelThreads({
                 {ids.length > 0 && (
                     <VirtualizedThreadList
                         key={`${selected}-${Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}`}
+                        hideUnreads={true}
                         ids={ids}
-                        total={totalThreads}
                         isLoading={isPaging}
                         loadMoreItems={handleLoadMoreItems}
                         routing={routing}
+                        total={totalThreads}
                     />
                 )}
             </div>
