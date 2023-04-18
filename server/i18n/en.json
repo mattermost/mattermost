@@ -4676,6 +4676,11 @@
     "translation": "Unable to get all the direct channels."
   },
   {
+    "id": 
+      "app.channel.get_bot_channels_by_user.app_error",
+      "translation": "Unable to get bot channels by user."
+  },
+  {
     "id": "app.channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel."
   },

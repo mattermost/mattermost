@@ -201,6 +201,16 @@ export const KEYBOARD_SHORTCUTS = {
             defaultMessage: 'Direct messages menu:\t⌘|Shift|K',
         },
     },
+    navAppsMenu: {
+        default: {
+            id: t('shortcuts.nav.apps_menu'),
+            defaultMessage: 'Direct messages menu:\tCtrl|Shift|J',
+        },
+        mac: {
+            id: t('shortcuts.nav.apps_menu.mac'),
+            defaultMessage: 'Direct messages menu:\t⌘|Shift|J',
+        },
+    },
     navSettings: {
         default: {
             id: t('shortcuts.nav.settings'),

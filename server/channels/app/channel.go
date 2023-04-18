@@ -3379,9 +3379,30 @@ func (a *App) FillInChannelProps(c request.CTX, channel *model.Channel) *model.A
 }
 
 func (a *App) FillInChannelsProps(c request.CTX, channelList model.ChannelList) *model.AppError {
+	currentUser, err := a.GetUser(c.Session().UserId)
+	if err != nil {
+		return err
+	}
+
+	botChannels, appErr := a.Srv().Store().Channel().GetBotChannelsByUser(currentUser.Id, store.ChannelSearchOpts{})
+	if appErr != nil {
+		return model.NewAppError("FillInChannelsProps", "app.channel.get_bot_channels_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	botChannelsIDs := make(map[string]struct{})
+	for _, botChannel := range botChannels {
+		botChannelsIDs[botChannel.Id] = struct{}{}
+	}
+
 	// Group the channels by team and call GetChannelsByNames just once per team.
 	channelsByTeam := make(map[string]model.ChannelList)
 	for _, channel := range channelList {
+		if _, ok := botChannelsIDs[channel.Id]; ok {
+			channel.AddProp("dm_bot", true)
+		} else {
+			delete(channel.Props, "dm_bot")
+		}
+
 		channelsByTeam[channel.TeamId] = append(channelsByTeam[channel.TeamId], channel)
 	}
 
