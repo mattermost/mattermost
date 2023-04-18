@@ -17,7 +17,7 @@ import './success_page.scss';
 export default function SuccessPage(props: Props) {
     const title = (
         <FormattedMessage
-            id={'admin.billing.subscription.upgradedSuccess'}
+            id={'admin.billing.subscription.subscribedSuccess'}
             defaultMessage={'You\'re now subscribed to {productName}'}
             values={{productName: props.planName}}
         />

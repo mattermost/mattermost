@@ -594,6 +594,20 @@ func (_m *CloudInterface) SelfServeDeleteWorkspace(userID string, deletionReques
 	return r0
 }
 
+// SubmitTrueUpReview provides a mock function with given fields: userID, trueUpReviewProfile
+func (_m *CloudInterface) SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]interface{}) error {
+	ret := _m.Called(userID, trueUpReviewProfile)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
+		r0 = rf(userID, trueUpReviewProfile)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SubscribeToNewsletter provides a mock function with given fields: userID, req
 func (_m *CloudInterface) SubscribeToNewsletter(userID string, req *model.SubscribeNewsletterRequest) error {
 	ret := _m.Called(userID, req)
