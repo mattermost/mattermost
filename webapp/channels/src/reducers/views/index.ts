@@ -28,6 +28,7 @@ import addChannelDropdown from './add_channel_dropdown';
 import addChannelCtaDropdown from './add_channel_cta_dropdown';
 import threads from './threads';
 import onboardingTasks from './onboarding_tasks';
+import drafts from './drafts';
 
 export default combineReducers({
     admin,
@@ -55,4 +56,5 @@ export default combineReducers({
     onboardingTasks,
     threads,
     productMenu,
+    drafts,
 });
