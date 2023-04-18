@@ -515,7 +515,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         };
         store.entities.general.license.IsGovSku = 'true';
 
-        await act( async () => {
+        await act(async () => {
             renderComponent({
                 store,
             });

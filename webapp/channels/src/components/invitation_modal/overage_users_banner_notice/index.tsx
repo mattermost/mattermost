@@ -4,7 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom'
 
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {GlobalState} from 'types/store';
@@ -104,15 +103,15 @@ const OverageUsersBannerNotice = () => {
                                 className='overage_users_banner__button'
                                 href={`${siteURL}/${ConsolePages.LICENSE}?action=show_expansion_modal`}
                                 rel='noopener noreferrer'
-                                target="_blank"
+                                target='_blank'
                             >
                                 {chunks}
                             </ExternalLink>
-                        )
-                    }
+                        );
+                    },
                 }}
             />
-        )
+        );
     } else if (!isGovSku) {
         message = (
             <FormattedMessage

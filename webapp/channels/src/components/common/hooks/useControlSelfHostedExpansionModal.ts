@@ -16,7 +16,6 @@ import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from 'components/self_hosted_purchase
 import SelfHostedExpansionModal from 'components/self_hosted_purchases/self_hosted_expansion_modal';
 
 import {useControlModal, ControlModal} from './useControlModal';
-import useCanSelfHostedExpand from './useCanSelfHostedExpand';
 
 interface HookOptions{
     trackingLocation?: string;
@@ -34,7 +33,6 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
         return {
             ...controlModal,
             open: async () => {
-
                 const purchaseInProgress = localStorage.getItem(STORAGE_KEY_EXPANSION_IN_PROGRESS) === 'true';
 
                 // check if user already has an open purchase modal in current browser.
