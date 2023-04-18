@@ -73,6 +73,9 @@ type Props = {
     // The current draft of the comment
     draft: PostDraft;
 
+    // Data used for knowing if the draft came from a WS event
+    isRemoteDraft: boolean;
+
     // Determines if the submit button should be rendered
     enableAddButton?: boolean;
 
@@ -232,8 +235,14 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const rootChanged = props.rootId !== state.rootId;
         const messageInHistoryChanged = props.messageInHistory !== state.messageInHistory;
-        if (rootChanged || messageInHistoryChanged || props.draft.remote) {
-            updatedState = {...updatedState, draft: {...props.draft, uploadsInProgress: rootChanged ? [] : props.draft.uploadsInProgress}};
+        if (rootChanged || messageInHistoryChanged || (props.isRemoteDraft && props.draft.message !== state.draft?.message)) {
+            updatedState = {
+                ...updatedState,
+                draft: {
+                    ...props.draft,
+                    uploadsInProgress: rootChanged ? [] : props.draft.uploadsInProgress,
+                },
+            };
         }
 
         return updatedState;
@@ -251,6 +260,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             serverError: null,
             showFormat: false,
             isFormattingBarHidden: props.isFormattingBarHidden,
+            caretPosition: props.draft.caretPosition,
         };
 
         this.textboxRef = React.createRef();
@@ -342,7 +352,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const updatedDraft = {
             ...this.state.draft,
             show: !isDraftEmpty(this.state.draft),
-            remote: false,
         } as PostDraft;
 
         this.props.onUpdateCommentDraft(updatedDraft, true);
@@ -355,7 +364,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     draft: {
                         ...prev.draft,
                         show: !isDraftEmpty(prev.draft),
-                        remote: false,
                     } as PostDraft,
                 };
             }
