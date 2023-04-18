@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 import {Team} from '@mattermost/types/teams';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import Scrollbars from 'react-custom-scrollbars';
+import {useIntl} from 'react-intl';
 
 import {OVERLAY_DELAY} from 'src/constants';
 
@@ -43,6 +44,8 @@ const teamNameSelector = (teamId: string) => (state: GlobalState): Team => getTe
 const Sidebar = (props: SidebarProps) => {
     const team = useSelector(teamNameSelector(props.team_id));
 
+    const {formatMessage} = useIntl();
+
     return (
         <SidebarComponent>
             <Header>
@@ -51,11 +54,13 @@ const Sidebar = (props: SidebarProps) => {
                     delay={OVERLAY_DELAY}
                     shouldUpdatePosition={true}
                     overlay={
-                        <Tooltip id='team-name__tooltip'>{team?.description?.length ? team.description : 'No team is selected'}</Tooltip>
+                        <Tooltip id='team-name__tooltip'>
+                            {team?.description?.length ? team.description : formatMessage({defaultMessage: 'No team is selected'})}
+                        </Tooltip>
                     }
                 >
                     <TeamName>
-                        {team?.display_name?.length ? team.display_name : 'All Teams'}
+                        {team?.display_name?.length ? team.display_name : formatMessage({defaultMessage: 'All Teams'})}
                     </TeamName>
                 </OverlayTrigger>
                 {props.headerDropdown}

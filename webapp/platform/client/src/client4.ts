@@ -2474,6 +2474,7 @@ export default class Client4 {
     ping = () => {
         return this.doFetch<{
             status: string;
+            ActiveSearchBackend: string;
         }>(
             `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
             {method: 'get'},
