@@ -5948,11 +5948,11 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		{"no matches", teamID, m1.UserId, "blargh", false, model.ChannelList{}},
 		{"prefix", teamID, m1.UserId, "off-", false, model.ChannelList{&o7, &o6}},
 		{"full match with dash", teamID, m1.UserId, "off-topic", false, model.ChannelList{&o6}},
-		{"town square", teamID, m1.UserId, "town square", false, model.ChannelList{&o9}},
+		{"general", teamID, m1.UserId, "general", false, model.ChannelList{&o9}},
 		{"the in name", teamID, m1.UserId, "thename", false, model.ChannelList{&o10}},
 		{"Mobile", teamID, m1.UserId, "Mobile", false, model.ChannelList{&o11}},
 		{"search purpose", teamID, m1.UserId, "now searchable", false, model.ChannelList{&o12}},
-		{"pipe ignored", teamID, m1.UserId, "town square |", false, model.ChannelList{&o9}},
+		{"pipe ignored", teamID, m1.UserId, "general |", false, model.ChannelList{&o9}},
 	}
 
 	for _, testCase := range testCases {
@@ -6501,11 +6501,11 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{}, 0},
 		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o6, &o7, &o8}, 0},
 		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o6}, 0},
-		{"town square", "town square", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o9}, 0},
+		{"general", "general", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o9}, 0},
 		{"which in name", "which", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o10}, 0},
 		{"Mobile", "Mobile", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o11}, 0},
 		{"search purpose", "now searchable", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o12}, 0},
-		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o9}, 0},
+		{"pipe ignored", "general |", store.ChannelSearchOpts{IncludeDeleted: false}, model.ChannelList{&o9}, 0},
 		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, model.ChannelList{&o7, &o8}, 0},
 		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, model.ChannelList{}, 0},
 		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, model.ChannelList{&o6, &o8}, 0},
