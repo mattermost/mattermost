@@ -43,7 +43,7 @@ describe('channels > App Bar', {testIsolation: true}, () => {
             });
 
             cy.apiGetConfig(true).then(({config}) => {
-                appBarEnabled = config.EnableAppBar === 'true';
+                appBarEnabled = config.DisableAppBar === 'false';
             });
         });
     });
