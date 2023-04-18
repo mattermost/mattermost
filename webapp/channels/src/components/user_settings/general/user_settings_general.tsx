@@ -1301,7 +1301,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 imgSrc = Utils.imageURLForUser(user.id, user.last_picture_update);
                 helpText = (
                     <FormattedMessage
-                        id={'setting_picture.help.profile'}
+                        id='setting_picture.help.profile'
                         defaultMessage='Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}'
                         values={{max: Utils.fileSizeToString(this.props.maxFileSize)}}
                     />
