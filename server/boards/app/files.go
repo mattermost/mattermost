@@ -208,6 +208,7 @@ func (a *App) CopyAndUpdateCardFiles(boardID, userID string, blocks []*model.Blo
 					UpdatedFields: map[string]interface{}{
 						fieldName: fileID,
 					},
+					DeletedFields: []string{"attachmentId"},
 				})
 			}
 		}
