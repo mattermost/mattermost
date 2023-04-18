@@ -392,6 +392,14 @@ func (a *App) DeleteBlock(blockID string, modifiedBy string) error {
 	return a.DeleteBlockAndNotify(blockID, modifiedBy, false)
 }
 
+func retriveFileIDFromBlockFieldStorage(id string) string {
+	parts := strings.Split(id, ".")
+	if len(parts) < 1 {
+		return ""
+	}
+	return parts[0][1:]
+}
+
 func (a *App) DeleteBlockAndNotify(blockID string, modifiedBy string, disableNotify bool) error {
 	block, err := a.store.GetBlock(blockID)
 	if err != nil {
@@ -408,31 +416,28 @@ func (a *App) DeleteBlockAndNotify(blockID string, modifiedBy string, disableNot
 		return nil
 	}
 
+	fileID := ""
 	if block.Type == model.TypeImage {
-		fileName, fileIDExists := block.Fields["fileId"]
-		if fileName, fileIDIsString := fileName.(string); fileIDExists && fileIDIsString {
-			filePath := filepath.Join(block.BoardID, fileName)
-			err = a.filesBackend.RemoveFile(filePath)
-			if err != nil {
-				return err
-			}
+		fileIdWithExtention, fileIDExists := block.Fields["fileId"]
+		if fileIDExists {
+			fileID = retriveFileIDFromBlockFieldStorage(fileIdWithExtention.(string))
+		}
+	} else if block.Type == model.TypeAttachment {
+		attachmentIDWithExtention, attachmentIDExists := block.Fields["attachmentId"]
+		if attachmentIDExists {
+			fileID = retriveFileIDFromBlockFieldStorage(attachmentIDWithExtention.(string))
 		}
 	}
 
-	if block.Type == model.TypeAttachment {
-		attachmentIDWithExtention, attachmentIDExists := block.Fields["attachmentId"]
-		if attachmentIDWithExtention, attachmentIDIsString := attachmentIDWithExtention.(string); attachmentIDExists && attachmentIDIsString {
-			parts := strings.Split(attachmentIDWithExtention, ".")
-			attachmentID := parts[0][1:]
-			fileInfo, fiErr := a.store.GetFileInfo(attachmentID)
-			if fiErr != nil {
-				return fiErr
-			}
+	if fileID != "" {
+		fileInfo, fiErr := a.store.GetFileInfo(fileID)
+		if fiErr != nil {
+			return fiErr
+		}
 
-			err = a.filesBackend.RemoveFile(fileInfo.Path)
-			if err != nil {
-				return err
-			}
+		err = a.filesBackend.RemoveFile(fileInfo.Path)
+		if err != nil {
+			return err
 		}
 	}
 
