@@ -56,7 +56,7 @@ describe('Channels', () => {
             },
         });
 
-        // # Login as new user and go to "/"
+        // # Login as new user and go to "/" dummy
         cy.apiLogin(otherUser);
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
