@@ -121,6 +121,9 @@ type Props = {
     // Data used for populating message state from previous draft
     draft: PostDraft;
 
+    // Data used for knowing if the draft came from a WS event
+    isRemoteDraft: boolean;
+
     // Data used dispatching handleViewAction ex: edit post
     latestReplyablePostId?: string;
     locale: string;
@@ -275,7 +278,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         };
         if (
             props.currentChannel.id !== state.currentChannel.id ||
-            (props.draft.remote && props.draft.message !== state.message)
+            (props.isRemoteDraft && props.draft.message !== state.message)
         ) {
             updatedState = {
                 ...updatedState,
@@ -290,8 +293,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            message: this.props.draft.message,
-            caretPosition: this.props.draft.message.length,
+            message: props.draft.message,
+            caretPosition: props.draft.message.length,
             submitting: false,
             showEmojiPicker: false,
             uploadsProgressPercent: {},
@@ -382,7 +385,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 this.draftsForChannel[channelId] = {
                     ...draft,
                     show: !isDraftEmpty(draft),
-                    remote: false,
                 } as PostDraft;
             }
         }

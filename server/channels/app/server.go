@@ -138,6 +138,8 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
+	skipProductsInit bool
+
 	products map[string]product.Product
 	services map[product.ServiceKey]any
 

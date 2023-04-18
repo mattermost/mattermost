@@ -27,6 +27,7 @@ describe('components/drafts/drafts_row', () => {
         user: {} as UserProfile,
         value: {} as PostDraft,
         postPriorityEnabled: false,
+        isRemote: false,
     };
 
     it('should match snapshot for channel draft', () => {
