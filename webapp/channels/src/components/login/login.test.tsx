@@ -290,12 +290,12 @@ describe('components/login/Login', () => {
     });
 
     it('should redirect on login', () => {
-        mockState.entities.users.currentUserId = 'user1'
+        mockState.entities.users.currentUserId = 'user1';
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
         const redirectPath = '/boards/team/teamID/boardID';
         mockLocation.search = '?redirect_to=' + redirectPath;
-        const wrapper = mount(
+        mount(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,
