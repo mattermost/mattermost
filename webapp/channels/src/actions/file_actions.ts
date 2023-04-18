@@ -87,7 +87,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     ]));
 
                     onSuccess(response, channelId, rootId);
-                } else if (xhr.readyState === 4 && xhr.status === 400) {
+                } else if (xhr.status >= 400 && xhr.readyState === 4) {
                     const errorResponse = JSON.parse(xhr.response);
                     const errorMessage =
                         (errorResponse?.id && errorResponse?.message) ? localizeMessage(errorResponse.id, errorResponse.message) :
@@ -100,7 +100,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                         rootId,
                     });
 
-                    onError(errorMessage, clientId, channelId, rootId);
+                    onError?.(errorMessage, clientId, channelId, rootId);
                 }
             };
         }

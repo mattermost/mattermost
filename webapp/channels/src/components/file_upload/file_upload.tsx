@@ -282,7 +282,7 @@ export class FileUpload extends PureComponent<Props, State> {
                 clientId,
                 onProgress: this.props.onUploadProgress,
                 onSuccess: this.fileUploadSuccess,
-                onError: this.fileUploadFail,
+                onError: ()=>,
             });
 
             this.setState({requests: {...this.state.requests, [clientId]: request}});
