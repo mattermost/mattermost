@@ -72,13 +72,13 @@ export function getReactionsForPosts(state: GlobalState): RelationOneToOne<Post,
 
 export function makeGetReactionsForPost(): (state: GlobalState, postId: Post['id']) => {
     [x: string]: Reaction;
-} | undefined | null {
+} | undefined {
     return createSelector('makeGetReactionsForPost', getReactionsForPosts, (state: GlobalState, postId: string) => postId, (reactions, postId) => {
         if (reactions[postId]) {
             return reactions[postId];
         }
 
-        return null;
+        return undefined;
     });
 }
 
