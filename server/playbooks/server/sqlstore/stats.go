@@ -15,7 +15,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type StatsStore struct {
