@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
@@ -42,13 +42,13 @@ export default class Confirm extends React.PureComponent<Props> {
     submit = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
         redirectUserToDefaultTeam();
-    }
+    };
 
     onKeyPress = (e: KeyboardEvent | React.FormEvent<HTMLFormElement>): void => {
         if (isKeyPressed(e as KeyboardEvent, KeyCodes.ENTER)) {
             this.submit(e);
         }
-    }
+    };
 
     public render(): JSX.Element {
         return (

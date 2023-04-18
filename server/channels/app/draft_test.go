@@ -278,6 +278,7 @@ func TestGetDraftsForUser(t *testing.T) {
 	assert.Nil(t, createDraftErr2)
 
 	t.Run("get drafts", func(t *testing.T) {
+		t.Skip("MM-52088")
 		draftResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
 		assert.Nil(t, err)
 

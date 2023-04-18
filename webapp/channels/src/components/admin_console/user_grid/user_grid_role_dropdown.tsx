@@ -47,7 +47,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             makeAdmin: Utils.localizeMessage('channel_members_dropdown.make_channel_admin', 'Make Channel Admin'),
             makeMember: Utils.localizeMessage('channel_members_dropdown.make_channel_member', 'Make Channel Member'),
         };
-    }
+    };
 
     private getCurrentRole = (): Role => {
         const {user, membership, scope} = this.props;
@@ -77,7 +77,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
         }
 
         return 'guest';
-    }
+    };
 
     private getLocalizedRole = (role: Role) => {
         switch (role) {
@@ -95,7 +95,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
         default:
             return Utils.localizeMessage('admin.user_grid.guest', 'Guest');
         }
-    }
+    };
 
     private handleMakeAdmin = () => {
         this.props.handleUpdateMembership({
@@ -103,7 +103,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             scheme_admin: true,
             scheme_user: true,
         });
-    }
+    };
 
     private handleMakeUser = () => {
         this.props.handleUpdateMembership({
@@ -111,7 +111,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             scheme_admin: false,
             scheme_user: true,
         });
-    }
+    };
 
     private getAriaLabel = () => {
         const {scope} = this.props;
@@ -119,7 +119,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             return Utils.localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member');
         }
         return Utils.localizeMessage('channel_members_dropdown.menuAriaLabel', 'Change the role of channel member');
-    }
+    };
 
     public render = (): React.ReactNode => {
         if (!this.props.membership) {
@@ -194,5 +194,5 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
                 </Menu>
             </MenuWrapper>
         );
-    }
+    };
 }

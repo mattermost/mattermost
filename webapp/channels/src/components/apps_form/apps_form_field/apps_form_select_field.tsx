@@ -81,11 +81,11 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
 
     onChange = (selectedOption: AppSelectOption) => {
         this.props.onChange(selectedOption);
-    }
+    };
 
     loadDynamicOptions = async (userInput: string): Promise<AppSelectOption[]> => {
         return this.props.performLookup(this.props.field.name, userInput);
-    }
+    };
 
     loadDynamicUserOptions = async (userInput: string): Promise<AppSelectOption[]> => {
         const usersSearchResults: UserAutocomplete = await this.props.actions.autocompleteUsers(userInput.toLowerCase());
@@ -95,7 +95,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
 
             return {...user, label, value: user.id, icon_data: imageURLForUser(user.id)};
         });
-    }
+    };
 
     loadDynamicChannelOptions = async (userInput: string): Promise<AppSelectOption[]> => {
         let channelsSearchResults: Channel[] = [];
@@ -105,7 +105,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
         }, () => {});
 
         return channelsSearchResults.map((channel) => ({...channel, label: channel.display_name, value: channel.id}));
-    }
+    };
 
     renderDynamicSelect() {
         const {field} = this.props;

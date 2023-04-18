@@ -126,29 +126,29 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
 
     private setStateLoading = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
 
     private loadPage = async (page: number) => {
         const {loadProfilesAndReloadChannelMembers} = this.props.actions;
         const {channelId, filters} = this.props;
         await loadProfilesAndReloadChannelMembers(page + 1, PROFILE_CHUNK_SIZE, channelId, '', {active: true, ...filters});
-    }
+    };
 
     private removeUser = (user: UserProfile) => {
         this.props.onRemoveCallback(user);
-    }
+    };
 
     private onAddCallback = (users: UserProfile[]) => {
         this.props.onAddCallback(users);
-    }
+    };
 
     private onSearch = async (term: string) => {
         this.props.actions.setUserGridSearch(term);
-    }
+    };
 
     private updateMembership = (membership: BaseMembership) => {
         this.props.updateRole(membership.user_id, membership.scheme_user, membership.scheme_admin);
-    }
+    };
 
     private onFilter = async (filterOptions: FilterOptions) => {
         const roles = filterOptions.role.values;
@@ -181,7 +181,7 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
         } else {
             this.props.actions.setUserGridFilters(filters);
         }
-    }
+    };
 
     render = () => {
         const {users, channel, channelId, usersToAdd, usersToRemove, channelMembers, totalCount, searchTerm, isDisabled} = this.props;
@@ -294,5 +294,5 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                 />
             </AdminPanel>
         );
-    }
+    };
 }

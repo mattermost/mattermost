@@ -66,7 +66,7 @@ export default class RhsCard extends React.Component<Props, State> {
 
     static defaultProps = {
         pluginPostCardTypes: {},
-    }
+    };
 
     constructor(props: Props) {
         super(props);
@@ -93,13 +93,13 @@ export default class RhsCard extends React.Component<Props, State> {
         }
 
         this.scrollStopAction.fireAfter(Constants.SCROLL_DELAY);
-    }
+    };
 
     handleScrollStop = () => {
         this.setState({
             isScrolling: false,
         });
-    }
+    };
 
     handleClick = () => {
         if (this.props.isMobileView) {

@@ -152,7 +152,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                 reactedClass: 'Reaction--reacting',
             };
         });
-    }
+    };
 
     handleAnimationEnded = (): void => {
         const {actions, currentUserReacted, post, emojiName} = this.props;
@@ -176,12 +176,12 @@ export default class Reaction extends React.PureComponent<Props, State> {
         } else {
             actions.addReaction(post.id, emojiName);
         }
-    }
+    };
 
     loadMissingProfiles = async (): Promise<void> => {
         const ids = this.props.reactions.map((reaction) => reaction.user_id);
         this.props.actions.getMissingProfilesByIds(ids);
-    }
+    };
 
     render(): React.ReactNode {
         if (!this.props.emojiImageUrl) {

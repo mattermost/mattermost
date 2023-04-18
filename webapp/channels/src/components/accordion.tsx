@@ -23,7 +23,7 @@ export default class Accordion extends React.PureComponent<Props, State> {
 
     setExpanded = (expandedKey: string) => {
         this.setState({expandedKey});
-    }
+    };
 
     render() {
         return (
