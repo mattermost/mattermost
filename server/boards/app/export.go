@@ -96,8 +96,8 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 			return err
 		}
 		if block.Type == model.TypeImage || block.Type == model.TypeAttachment {
-			filename, err2 := extractFilename(block)
-			if err2 != nil {
+			filename, err := extractFilename(block)
+			if err != nil {
 				return err
 			}
 			files = append(files, filename)
@@ -246,10 +246,10 @@ func (a *App) getBoardsForArchive(boardIDs []string) ([]model.Board, error) {
 	return boards, nil
 }
 
-func extractFilename(imageBlock *model.Block) (string, error) {
-	f, ok := imageBlock.Fields["fileId"]
+func extractFilename(block *model.Block) (string, error) {
+	f, ok := block.Fields["fileId"]
 	if !ok {
-		f, ok = imageBlock.Fields["attachmentId"]
+		f, ok = block.Fields["attachmentId"]
 		if !ok {
 			return "", model.ErrInvalidImageBlock
 		}

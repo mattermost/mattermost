@@ -200,18 +200,13 @@ func (a *App) CopyAndUpdateCardFiles(boardID, userID string, blocks []*model.Blo
 	blockIDs := make([]string, 0)
 	blockPatches := make([]model.BlockPatch, 0)
 	for _, block := range blocks {
-		fieldName := ""
-		if block.Type == model.TypeImage {
-			fieldName = "fileId"
-		} else if block.Type == model.TypeAttachment {
-			fieldName = "attachmentId"
-		}
-		if fieldName != "" {
-			if fieldID, ok := block.Fields[fieldName]; ok {
+		if block.Type == model.TypeImage || block.Type == model.TypeAttachment {
+			fieldName := "fileId"
+			if fileID, ok := block.Fields[fieldName]; ok {
 				blockIDs = append(blockIDs, block.ID)
 				blockPatches = append(blockPatches, model.BlockPatch{
 					UpdatedFields: map[string]interface{}{
-						fieldName: fieldID,
+						fieldName: fileID,
 					},
 				})
 			}
@@ -247,28 +242,21 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 
 	var destBoard *model.Board
 
-	for i := range copiedBlocks {
-		block := copiedBlocks[i]
-		fileName := ""
-		isOk := false
-
-		switch block.Type {
-		case model.TypeImage:
-			fileName, isOk = block.Fields["fileId"].(string)
-			if !isOk || fileName == "" {
-				continue
-			}
-		case model.TypeAttachment:
-			fileName, isOk = block.Fields["attachmentId"].(string)
-			if !isOk || fileName == "" {
-				continue
-			}
-		default:
+	for _, block := range copiedBlocks {
+		if block.Type != model.TypeImage && block.Type != model.TypeAttachment {
 			continue
 		}
 
+		fileId, isOk := block.Fields["fileId"].(string)
+		if !isOk {
+			fileId, isOk = block.Fields["attachmentId"].(string)
+			if !isOk {
+				continue
+			}
+		}
+
 		// create unique filename
-		ext := filepath.Ext(fileName)
+		ext := filepath.Ext(fileId)
 		fileInfoID := utils.NewID(utils.IDTypeNone)
 		destFilename := fileInfoID + ext
 
@@ -284,7 +272,7 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 
 		// GetFilePath will retrieve the correct path
 		// depending on whether FileInfo table is used for the file.
-		fileInfo, sourceFilePath, err := a.GetFilePath(sourceBoard.TeamID, sourceBoard.ID, fileName)
+		fileInfo, sourceFilePath, err := a.GetFilePath(sourceBoard.TeamID, sourceBoard.ID, fileId)
 		if err != nil {
 			return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
 		}
@@ -343,11 +331,7 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 				mlog.Err(err),
 			)
 		}
-		if block.Type == model.TypeAttachment {
-			block.Fields["attachmentId"] = destFilename
-		} else {
-			block.Fields["fileId"] = destFilename
-		}
+		block.Fields["fileId"] = destFilename
 	}
 
 	return nil

@@ -473,7 +473,7 @@ func TestCopyCard(t *testing.T) {
 			Schema:     1,
 			Type:       "attachment",
 			Title:      "",
-			Fields:     map[string]interface{}{"attachmentId": "7fileName.jpg"},
+			Fields:     map[string]interface{}{"fileId": "7fileName.jpg"},
 			CreateAt:   1680725585250,
 			UpdateAt:   1680725585250,
 			DeleteAt:   0,
@@ -498,7 +498,7 @@ func TestCopyCard(t *testing.T) {
 
 		err := th.App.CopyCardFiles("boardID", []*model.Block{attachmentBlock}, false)
 		assert.NoError(t, err)
-		assert.NotEqual(t, path, attachmentBlock.Fields["attachmentId"])
+		assert.NotEqual(t, path, attachmentBlock.Fields["fileId"])
 	})
 
 	t.Run("Board exists, image block, without FileInfo", func(t *testing.T) {

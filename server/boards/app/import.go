@@ -105,11 +105,6 @@ func (a *App) ImportArchive(r io.Reader, opt model.ImportArchiveOptions) error {
 				mlog.String("newFileName", newFileName),
 			)
 		}
-
-		a.logger.Trace("import archive file",
-			mlog.String("dir", dir),
-			mlog.String("filename", filename),
-		)
 	}
 }
 
@@ -129,15 +124,8 @@ func (a *App) fixImagesAttachments(boardMap map[string]*model.Board, fileMap map
 		}
 
 		for _, block := range newBlocks {
-			a.logger.Debug("block type",
-				mlog.String("block", block.Type.String()),
-			)
-
 			if block.Type == "image" || block.Type == "attachment" {
 				fieldName := "fileId"
-				if block.Type == "attachment" {
-					fieldName = "attachmentId"
-				}
 				oldId := block.Fields[fieldName]
 				blockIDs = append(blockIDs, block.ID)
 

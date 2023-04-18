@@ -176,7 +176,7 @@ func TestApp_ImportArchive(t *testing.T) {
 			Schema:     1,
 			Type:       "attachment",
 			Title:      "",
-			Fields:     map[string]interface{}{"attachmentId": "oldFileName2.jpg"},
+			Fields:     map[string]interface{}{"fileId": "oldFileName2.jpg"},
 			CreateAt:   1680725585250,
 			UpdateAt:   1680725585250,
 			DeleteAt:   0,
@@ -190,7 +190,7 @@ func TestApp_ImportArchive(t *testing.T) {
 		}
 
 		blockPatch2 := model.BlockPatch{
-			UpdatedFields: map[string]interface{}{"attachmentId": "newFileName2.jpg"},
+			UpdatedFields: map[string]interface{}{"fileId": "newFileName2.jpg"},
 		}
 
 		blockPatches := []model.BlockPatch{blockPatch, blockPatch2}
