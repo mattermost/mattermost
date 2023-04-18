@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"image"
@@ -18,12 +19,12 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"golang.org/x/net/idna"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/imgutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/markdown"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/imgutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/markdown"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type linkMetadataCache struct {
@@ -764,7 +765,24 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
 }
 
+// peekContentType peeks at the first 512 bytes of p, and attempts to detect
+// the content type.  Returns empty string if error occurs.
+func peekContentType(p *bufio.Reader) string {
+	byt, err := p.Peek(512)
+	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+		return ""
+	}
+	return http.DetectContentType(byt)
+}
+
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
+	if contentType == "" {
+		bufRd := bufio.NewReader(body)
+		// If the content-type is missing we try to detect it from the actual data.
+		contentType = peekContentType(bufRd)
+		body = bufRd
+	}
+
 	if contentType == "image/svg+xml" {
 		image := &model.PostImage{
 			Format: "svg",

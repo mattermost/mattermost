@@ -102,11 +102,11 @@ GOFLAGS ?= $(GOFLAGS:)
 export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUILD_DATE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/server/v8/model.BuildNumber=$(BUILD_NUMBER)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/server/v8/model.BuildDate=$(BUILD_DATE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/server/v8/model.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/server/v8/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/server/v8/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -132,9 +132,9 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'v6/server/playbooks|v6/server/boards')
-BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/boards')
-PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'v6/server/playbooks')
+TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards')
+BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
+PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
 
 TEMPLATES_DIR=templates
 
@@ -142,7 +142,7 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.15.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.15.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
@@ -189,7 +189,7 @@ endif
 include config.mk
 include build/*.mk
 
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/server/v8/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
@@ -270,7 +270,7 @@ else
 endif
 
 plugin-checker:
-	$(GO) run $(GOFLAGS) ../plugin/checker
+	$(GO) run $(GOFLAGS) ./plugin/checker
 
 prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	@echo Downloading prepackaged plugins
@@ -349,9 +349,9 @@ ldap-mocks: ## Creates mock files for ldap.
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
-	$(GOBIN)/mockery --dir ../plugin --name API --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir ../plugin --name Hooks --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir ../plugin --name Driver --output ../plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ./plugin --name API --output ./plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ./plugin --name Hooks --output ./plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --dir ./plugin --name Driver --output ./plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
@@ -380,7 +380,7 @@ platform-mocks: ## Creates mocks for platform interfaces.
 	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
-	$(GO) generate $(GOFLAGS) ../plugin
+	$(GO) generate $(GOFLAGS) ./plugin
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks
 
@@ -552,20 +552,20 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/server/v8/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/server/v8/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/server/v8/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
@@ -733,18 +733,18 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) install github.com/tinylib/msgp@v1.1.6
-	$(GOBIN)/msgp -file=../model/session.go -tests=false -o=../model/session_serial_gen.go
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ../model/session_serial_gen.go >> tmp.go
-	@mv tmp.go ../model/session_serial_gen.go
-	$(GOBIN)/msgp -file=../model/user.go -tests=false -o=../model/user_serial_gen.go
+	@cat ./model/session_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/session_serial_gen.go
+	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ../model/user_serial_gen.go >> tmp.go
-	@mv tmp.go ../model/user_serial_gen.go
-	$(GOBIN)/msgp -file=../model/team_member.go -tests=false -o=../model/team_member_serial_gen.go
+	@cat ./model/user_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/user_serial_gen.go
+	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
-	@cat ../model/team_member_serial_gen.go >> tmp.go
-	@mv tmp.go ../model/team_member_serial_gen.go
+	@cat ./model/team_member_serial_gen.go >> tmp.go
+	@mv tmp.go ./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir runtime '(TODO|XXX|FIXME|"FIX ME")[: ]+'
