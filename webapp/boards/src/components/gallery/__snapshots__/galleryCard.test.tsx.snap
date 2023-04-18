@@ -946,7 +946,7 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
           <h3
             class="text-heading5"
           >
-            Confirm card delete!
+            Confirm card delete
           </h3>
           <div
             class="sub-text"

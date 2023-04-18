@@ -3332,10 +3332,6 @@
     "translation": "Nem sikerült létrehozni az Elasticsearch tömeges feldolgozót."
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Az Elasticsearch már elindult."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Nem sikerült dekódolni a keresési eredményeket"
   },
@@ -9020,50 +9016,6 @@
     "translation": "hiba a tagok számának lekérdezésében"
   },
   {
-    "id": "Boards",
-    "translation": "Táblák"
-  },
-  {
-    "id": "Channels",
-    "translation": "Csatornák"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Forgatókönyvek"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermost megnyitása"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Helló {{.Name}}, észrevettük, hogy a Mattermost szervered egy kicsit porosodik. Vess egy pillantást néhány funkcióra, amelyek segíthetnek könnyíteni csapatod munkaterhét."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Növelje a termelékenységet ezekkel a fantasztikus funkciókkal"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Feladatok kezelése a "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Munkafolyamatok kezelése a "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Vendég hozzáférés a megadott "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Jöjjön és nézze meg!"
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Nem lehet lekérni az összes munkát típus és státusz szerint."
   },
@@ -9162,10 +9114,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Az Elasticsearch beállításában nem mentett értékek vannak."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Ezt az egyszeri e-mailt azért kapta, mert a Mattermost szervere több mint {{.Hours}} órán keresztül inaktív volt. Ezt az e-mailt a Mattermost szervere automatikusan generálta."
   },
   {
     "id": "api.file.cloud_upload.app_error",

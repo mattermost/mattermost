@@ -213,7 +213,7 @@ export default class Bots extends React.PureComponent<Props, State> {
         );
 
         return [sections, enabledBots.length > 0 || disabledBots.length > 0];
-    }
+    };
 
     public render(): JSX.Element {
         return (

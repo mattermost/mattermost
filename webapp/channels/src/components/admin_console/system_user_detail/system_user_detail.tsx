@@ -108,11 +108,11 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
         this.setState({teams});
         this.setState({teamIds});
         this.setState({refreshTeams: false});
-    }
+    };
 
     openAddTeam = (): void => {
         this.setState({addTeamOpen: true});
-    }
+    };
 
     addTeams = (teams: Team[]): void => {
         const promises = [];
@@ -120,63 +120,63 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             promises.push(this.props.actions.addUserToTeam(team.id, this.props.user.id));
         }
         Promise.all(promises).finally(() => this.setState({refreshTeams: true}));
-    }
+    };
 
     closeAddTeam = (): void => {
         this.setState({addTeamOpen: false});
-    }
+    };
 
     doPasswordReset = (user: UserProfile): void => {
         this.setState({
             showPasswordModal: true,
             user,
         });
-    }
+    };
 
     doPasswordResetDismiss = (): void => {
         this.setState({
             showPasswordModal: false,
         });
-    }
+    };
 
     doPasswordResetSubmit = (): void => {
         this.setState({
             showPasswordModal: false,
         });
-    }
+    };
 
     handleMakeActive = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         this.props.actions.updateUserActive(this.props.user.id, true).
             then((data) => this.onUpdateActiveResult(data.error));
-    }
+    };
 
     handleShowDeactivateMemberModal = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         this.setState({showDeactivateMemberModal: true});
-    }
+    };
 
     handleDeactivateMember = (): void => {
         this.props.actions.updateUserActive(this.props.user.id, false).
             then((data) => this.onUpdateActiveResult(data.error));
         this.setState({showDeactivateMemberModal: false});
-    }
+    };
 
     onUpdateActiveResult = (error: ServerError): void => {
         if (error) {
             this.setState({error});
         }
-    }
+    };
 
     handleDeactivateCancel = (): void => {
         this.setState({showDeactivateMemberModal: false});
-    }
+    };
 
     // TODO: add error handler function
     handleResetMfa = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         adminResetMfa(this.props.user.id, null, null);
-    }
+    };
 
     handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const emailChanged = e.target.value !== this.props.user.email;
@@ -187,7 +187,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             saveNeeded: emailChanged,
         });
         this.props.actions.setNavigationBlocked(emailChanged);
-    }
+    };
 
     handleSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
@@ -220,7 +220,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             });
             this.props.actions.setNavigationBlocked(false);
         }
-    }
+    };
 
     renderDeactivateMemberModal = (user: UserProfile): React.ReactNode => {
         const title = (
@@ -279,7 +279,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                 onCancel={this.handleDeactivateCancel}
             />
         );
-    }
+    };
 
     renderActivateDeactivate = (): React.ReactNode => {
         if (this.props.user.delete_at > 0) {
@@ -302,7 +302,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                 {Utils.localizeMessage('admin.user_item.makeInactive', 'Deactivate')}
             </AdminButtonOutline>
         );
-    }
+    };
 
     renderRemoveMFA = (): React.ReactNode => {
         if (this.props.user.mfa_active) {
@@ -317,7 +317,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             );
         }
         return null;
-    }
+    };
 
     getAuthenticationText(): string {
         const {user, mfaEnabled} = this.props;

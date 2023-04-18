@@ -4,6 +4,7 @@
 import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
 
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
@@ -60,6 +61,9 @@ type State = {
     show: boolean;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
 export default class SubMenuItem extends React.PureComponent<Props, State> {
     private node: React.RefObject<HTMLLIElement>;
 
@@ -81,11 +85,11 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
 
     show = () => {
         this.setState({show: true});
-    }
+    };
 
     hide = () => {
         this.setState({show: false});
-    }
+    };
 
     private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
         event.preventDefault();
@@ -107,10 +111,10 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         } else if (event.currentTarget.id === id && action) {
             action(postId);
         }
-    }
+    };
 
     handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER)) {
             if (this.props.action) {
                 this.onClick(event);
             } else {
@@ -118,7 +122,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             }
         }
 
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.RIGHT)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.RIGHT)) {
             if (this.props.direction === 'right') {
                 this.show();
             } else {
@@ -126,14 +130,14 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             }
         }
 
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.LEFT)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.LEFT)) {
             if (this.props.direction === 'left') {
                 this.show();
             } else {
                 this.hide();
             }
         }
-    }
+    };
 
     public render() {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex} = this.props;

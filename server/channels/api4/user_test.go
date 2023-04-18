@@ -20,13 +20,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 
-	_ "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
+	_ "github.com/mattermost/mattermost-server/server/v8/model/oauthproviders/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -2714,7 +2714,7 @@ func TestGetUsersInTeam(t *testing.T) {
 }
 
 func TestGetUsersNotInTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -4339,7 +4339,38 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("create user access token for basic user as as system admin", func(t *testing.T) {
+	t.Run("create user access token for another user, with permission", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+
+		rtoken, _, err := th.Client.CreateUserAccessToken(th.BasicUser2.Id, "test token")
+		require.NoError(t, err)
+		assert.Equal(t, th.BasicUser2.Id, rtoken.UserId)
+
+		oldSessionToken := th.Client.AuthToken
+		defer func() { th.Client.AuthToken = oldSessionToken }()
+
+		assertToken(t, th, rtoken, th.BasicUser2.Id)
+	})
+
+	t.Run("create user access token for system admin, as system user manager", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+
+		_, resp, err := th.Client.CreateUserAccessToken(th.SystemAdminUser.Id, "test token")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

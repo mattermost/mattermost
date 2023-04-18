@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
 )
 
 func (api *API) InitCloud() {
@@ -243,16 +243,6 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	ensured := ensureCloudInterface(c, "Api4.validateBusinessEmail")
 	if !ensured {
-		return
-	}
-
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
 		return
 	}
 

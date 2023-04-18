@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func (api *API) InitWorkTemplate() {
@@ -20,23 +20,6 @@ func (api *API) InitWorkTemplate() {
 func areWorkTemplatesEnabled(c *Context) *model.AppError {
 	if !c.App.Config().FeatureFlags.WorkTemplate {
 		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "feature flag is off", http.StatusNotFound)
-	}
-
-	// we have to make sure that playbooks plugin is enabled and board is a product
-	pbActive, err := c.App.IsPluginActive(model.PluginIdPlaybooks)
-	if err != nil {
-		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if !pbActive {
-		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "playbook plugin not active", http.StatusNotFound)
-	}
-
-	hasBoard, err := c.App.HasBoardProduct()
-	if err != nil {
-		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if !hasBoard {
-		return model.NewAppError("areWorkTemplatesEnabled", "api.work_templates.disabled", nil, "board product not found", http.StatusNotFound)
 	}
 
 	return nil

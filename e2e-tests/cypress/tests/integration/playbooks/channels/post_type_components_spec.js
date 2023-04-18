@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('channels > post type components', () => {
+describe('channels > post type components', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testChannel;

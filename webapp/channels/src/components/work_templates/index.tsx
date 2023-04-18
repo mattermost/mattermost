@@ -298,7 +298,7 @@ const WorkTemplateModal = () => {
     let confirmButtonAction;
     switch (modalState) {
     case ModalState.Menu:
-        title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Start from a template'});
+        title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Create from a template'});
         break;
     case ModalState.Preview:
         title = formatMessage({id: 'work_templates.preview.modal_title', defaultMessage: 'Preview {useCase}'}, {useCase: selectedTemplate?.useCase});

@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import timezones, {Timezone} from 'timezones.json';
-
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import timezones from 'timezones.json';
 
 import {GlobalState} from '@mattermost/types/store';
-import {UserProfile, UserTimezone} from '@mattermost/types/users';
+import {UserProfile} from '@mattermost/types/users';
 import {createSelector} from 'reselect';
 
-import {getUserCurrentTimezone, getTimezoneLabel as getTimezoneLabelUtil} from 'mattermost-redux/utils/timezone_utils';
+import {getTimezoneLabel, getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-export function getTimezoneForUserProfile(profile: UserProfile) {
+import {getCurrentUser} from './common';
+
+function getTimezoneForUserProfile(profile: UserProfile) {
     if (profile && profile.timezone) {
         return {
             ...profile.timezone,
@@ -31,23 +31,30 @@ export function isTimezoneEnabled(state: GlobalState) {
     return config.ExperimentalTimezone === 'true';
 }
 
-export const makeGetUserTimezone = () => createSelector(
-    'makeGetUserTimezone',
-    (state: GlobalState, userId: string) => getUser(state, userId),
-    (user: UserProfile) => {
-        return getTimezoneForUserProfile(user);
+export const getCurrentTimezoneFull = createSelector(
+    'getCurrentTimezoneFull',
+    getCurrentUser,
+    (currentUser) => {
+        return getTimezoneForUserProfile(currentUser);
     },
 );
 
-export const getTimezoneLabel: (state: GlobalState, userId: UserProfile['id']) => string = createSelector(
-    'getTimezoneLabel',
-    () => timezones,
-    makeGetUserTimezone(),
-    (timezones: Timezone[], timezoneObject: UserTimezone) => {
-        const timezone = getUserCurrentTimezone(timezoneObject);
+export const getCurrentTimezone = createSelector(
+    'getCurrentTimezone',
+    getCurrentTimezoneFull,
+    (timezoneFull) => {
+        return getUserCurrentTimezone(timezoneFull);
+    },
+);
+
+export const getCurrentTimezoneLabel = createSelector(
+    'getCurrentTimezoneLabel',
+    getCurrentTimezone,
+    (timezone) => {
         if (!timezone) {
             return '';
         }
-        return getTimezoneLabelUtil(timezones, timezone);
+
+        return getTimezoneLabel(timezones, timezone);
     },
 );
