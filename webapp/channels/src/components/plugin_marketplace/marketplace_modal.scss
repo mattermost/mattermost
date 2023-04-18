@@ -93,15 +93,13 @@
             min-height: 80px;
             padding: 16px 20px;
             border-bottom: none;
+            overflow: hidden;
 
             .marketplace__tag {
                 margin-left: 6px;
             }
 
             .update {
-                padding: 10px 10px 0 0;
-                border-top: 1px solid rgba(black, 0.1);
-                margin: 10px 10px 0 0;
                 font-size: 0.9em;
             }
 
