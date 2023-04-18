@@ -117,7 +117,10 @@ func (a *App) fixImagesAttachments(boardMap map[string]*model.Board, fileMap map
 			continue
 		}
 
-		newBlocks, err := a.GetBlocksForBoard(board.ID)
+		opts := model.QueryBlocksOptions{
+			BoardID: board.ID,
+		}
+		newBlocks, err := a.GetBlocks(opts)
 		if err != nil {
 			a.logger.Info("cannot retrieve imported blocks for board", mlog.String("BoardID", board.ID), mlog.Err(err))
 			return
