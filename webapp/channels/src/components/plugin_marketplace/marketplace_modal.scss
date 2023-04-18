@@ -90,10 +90,10 @@
         overflow-y: scroll;
 
         .more-modal__row {
+            overflow: hidden;
             min-height: 80px;
             padding: 16px 20px;
             border-bottom: none;
-            overflow: hidden;
 
             .marketplace__tag {
                 margin-left: 6px;
