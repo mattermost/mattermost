@@ -101,6 +101,10 @@
 
             .update {
                 font-size: 0.9em;
+
+                a {
+                    text-decoration: none;
+                }
             }
 
             .more-modal__details {
@@ -115,7 +119,7 @@
 
                 .more-modal__description {
                     margin: 2px 0 0;
-                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    color: var(--center-channel-color-rgb);
                     font-size: 14px;
                     font-weight: 400;
                     line-height: 20px;
