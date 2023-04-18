@@ -96,9 +96,9 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 			return err
 		}
 		if block.Type == model.TypeImage || block.Type == model.TypeAttachment {
-			filename, err := extractFilename(block)
-			if err != nil {
-				return err
+			filename, err2 := extractFilename(block)
+			if err2 != nil {
+				return err2
 			}
 			files = append(files, filename)
 		}
