@@ -65,6 +65,11 @@ func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 	}
 }
 
+// IsConfigReadOnly returns true if the underlying configstore is readonly.
+func (ps *PlatformService) IsConfigReadOnly() bool {
+	return ps.configStore.IsReadOnly()
+}
+
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {

@@ -70,9 +70,10 @@ func New(dbType string, db *sql.DB, store store.Store, logger mlog.LoggerIFace, 
 	return layer, nil
 }
 
-// Shutdown close the connection with the store.
+// For MattermostAuthLayer we don't close the database connection
+// because it's directly managed by the platform
 func (s *MattermostAuthLayer) Shutdown() error {
-	return s.Store.Shutdown()
+	return nil
 }
 
 func (s *MattermostAuthLayer) GetRegisteredUserCount() (int, error) {
@@ -1218,7 +1219,7 @@ func (s *MattermostAuthLayer) GetChannel(teamID, channelID string) (*mm_model.Ch
 func (s *MattermostAuthLayer) getBoardsBotID() (string, error) {
 	if boardsBotID == "" {
 		var err error
-		boardsBotID, err = s.servicesAPI.EnsureBot(model.FocalboardBot)
+		boardsBotID, err = s.servicesAPI.EnsureBot(model.GetDefaultFocalboardBot())
 		if err != nil {
 			s.logger.Error("failed to ensure boards bot", mlog.Err(err))
 			return "", err

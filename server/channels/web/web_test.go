@@ -55,7 +55,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	th := setupTestHelper(tb, false)
+	th := setupTestHelper(tb, false, []app.Option{app.SkipProductsInitialization()})
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().SetStore(&emptyMockStore)
@@ -68,17 +68,18 @@ func Setup(tb testing.TB) *TestHelper {
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	return setupTestHelper(tb, true)
+	mainHelper.PreloadBoardsMigrationsIfNeeded()
+	return setupTestHelper(tb, true, nil)
 }
 
-func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
+func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option) *TestHelper {
 	memoryStore := config.NewTestMemoryStore()
 	newConfig := memoryStore.Get().Clone()
+	newConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	memoryStore.Set(newConfig)
-	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 

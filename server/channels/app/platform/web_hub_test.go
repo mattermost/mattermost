@@ -82,6 +82,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
 	th := Setup(t).InitBasic()
+	defer th.Service.Store.Close()
 	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
 	// Making it idempotent is not really important to the server because close only happens once.
 	// So we just use this quick hack for the test.

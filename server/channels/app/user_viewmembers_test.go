@@ -14,7 +14,7 @@ import (
 )
 
 func TestRestrictedViewMembers(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
