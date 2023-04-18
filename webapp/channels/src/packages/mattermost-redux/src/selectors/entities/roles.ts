@@ -185,7 +185,7 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     (state: GlobalState, groupID: string, permission: string) => permission,
     (systemPermissions, permissionGroups, group, permission) => {
         if (permission === Permissions.RESTORE_CUSTOM_GROUP) {
-            if (group.source !== 'ldap' && group.delete_at !== 0) {
+            if ((group.source !== 'ldap' && group.delete_at !== 0) && (systemPermissions.has(permission) || (permissionGroups[group.id] && permissionGroups[group.id].has(permission)))) {
                 return true;
             }
             return false;

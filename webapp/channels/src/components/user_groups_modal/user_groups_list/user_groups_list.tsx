@@ -105,14 +105,6 @@ const UserGroupsList = (props: Props) => {
         onExited();
     }, [actions.openModal, onExited, backButtonAction]);
 
-    const groupListOpenUp = (groupListItemIndex: number): boolean => {
-        if (groups.length > 1 && groupListItemIndex === 0) {
-            return false;
-        }
-
-        return true;
-    };
-
     const Item = ({index, style}: ListChildComponentProps) => {
         if (groups.length === 0 && searchTerm) {
             return (
@@ -167,7 +159,7 @@ const UserGroupsList = (props: Props) => {
                             </button>
                             <Menu
                                 openLeft={true}
-                                openUp={groupListOpenUp(index)}
+                                openUp={false}
                                 className={'group-actions-menu'}
                                 ariaLabel={Utils.localizeMessage('admin.user_item.menuAriaLabel', 'User Actions Menu')}
                             >
@@ -197,6 +189,7 @@ const UserGroupsList = (props: Props) => {
                                         onClick={() => {
                                             restoreGroup(group.id);
                                         }}
+                                        icon={<i className='icon-restore'/>}
                                         text={Utils.localizeMessage('user_groups_modal.restoreGroup', 'Restore Group')}
                                         disabled={false}
                                     />

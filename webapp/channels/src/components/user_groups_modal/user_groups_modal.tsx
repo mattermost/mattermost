@@ -203,6 +203,13 @@ const UserGroupsModal = (props: Props) => {
         return <i className={'icon icon-magnify'}/>;
     }, []);
 
+    const noResultsType = useMemo(() => {
+        if (selectedFilter === 'archived') {
+            return NoResultsVariant.UserGroupsArchived;
+        }
+        return NoResultsVariant.UserGroups;
+    }, [selectedFilter]);
+
     return (
         <Modal
             dialogClassName='a11y__modal user-groups-modal'
@@ -218,29 +225,29 @@ const UserGroupsModal = (props: Props) => {
                 backButtonAction={props.backButtonAction}
             />
             <Modal.Body>
+                <div className='user-groups-search'>
+                    <Input
+                        type='text'
+                        placeholder={Utils.localizeMessage('user_groups_modal.searchGroups', 'Search Groups')}
+                        onChange={handleSearch}
+                        value={props.searchTerm}
+                        data-testid='searchInput'
+                        className={'user-group-search-input'}
+                        inputPrefix={inputPrefix}
+                    />
+                </div>
+                <UserGroupsFilter
+                    selectedFilter={selectedFilter}
+                    getGroups={getGroups}
+                    getMyGroups={getMyGroups}
+                    getArchivedGroups={getArchivedGroups}
+                />
                 {(groups.length === 0 && !props.searchTerm) ? <>
                     <NoResultsIndicator
-                        variant={NoResultsVariant.UserGroups}
+                        variant={noResultsType}
                     />
                     <ADLDAPUpsellBanner/>
                 </> : <>
-                    <div className='user-groups-search'>
-                        <Input
-                            type='text'
-                            placeholder={Utils.localizeMessage('user_groups_modal.searchGroups', 'Search Groups')}
-                            onChange={handleSearch}
-                            value={props.searchTerm}
-                            data-testid='searchInput'
-                            className={'user-group-search-input'}
-                            inputPrefix={inputPrefix}
-                        />
-                    </div>
-                    <UserGroupsFilter
-                        selectedFilter={selectedFilter}
-                        getGroups={getGroups}
-                        getMyGroups={getMyGroups}
-                        getArchivedGroups={getArchivedGroups}
-                    />
                     <UserGroupsList
                         groups={groups}
                         searchTerm={props.searchTerm}
