@@ -1331,3 +1331,49 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 
 	require.True(t, hookCalled)
 }
+
+func TestHookMessageWillBeConsumed(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBeConsumed(post *model.Post)(*model.Post, string) {
+			post.Message = "mwbc_plugin:" + post.Message
+			return post, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	newPost := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+	assert.Nil(t, err)
+	post, err := th.App.GetSinglePost(newPost.Id, true)
+	assert.Nil(t, err)
+	require.Equal(t, "mwbc_plugin:message", post.Message)
+}

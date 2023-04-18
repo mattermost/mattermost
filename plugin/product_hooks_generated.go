@@ -50,6 +50,10 @@ type MessageHasBeenUpdatedIFace interface {
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 }
 
+type MessageWillBeConsumedIFace interface {
+	MessageWillBeConsumed(post *model.Post) (*model.Post, string)
+}
+
 type ChannelHasBeenCreatedIFace interface {
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 }
@@ -230,6 +234,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		a.implemented[MessageHasBeenUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenUpdated"); ok {
 		return nil, errors.New("hook has MessageHasBeenUpdated method but does not implement plugin.MessageHasBeenUpdated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessageWillBeConsumed interface.
+	tt = reflect.TypeOf((*MessageWillBeConsumedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessageWillBeConsumedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessageWillBeConsumed"); ok {
+		return nil, errors.New("hook has MessageWillBeConsumed method but does not implement plugin.MessageWillBeConsumed interface")
 	}
 
 	// Assessing the type of the productHooks if it individually implements ChannelHasBeenCreated interface.
@@ -512,6 +525,14 @@ func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 
 	a.productHooks.(MessageHasBeenUpdatedIFace).MessageHasBeenUpdated(c, newPost, oldPost)
 
+}
+
+func (a *HooksAdapter) MessageWillBeConsumed(post *model.Post) (*model.Post, string) {
+	if _, ok := a.implemented[MessageWillBeConsumedID]; !ok {
+		panic("product hooks must implement MessageWillBeConsumed")
+	}
+	p, err := a.productHooks.(MessageWillBeConsumedIFace).MessageWillBeConsumed(post)
+	return p, err
 }
 
 func (a *HooksAdapter) ChannelHasBeenCreated(c *Context, channel *model.Channel) {

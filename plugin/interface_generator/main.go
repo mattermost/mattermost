@@ -32,6 +32,7 @@ var excludedPluginHooks = []string{
 	"LogWarn",
 	"MessageWillBePosted",
 	"MessageWillBeUpdated",
+	"MessageWillBeConsumed",
 	"OnActivate",
 	"PluginHTTP",
 	"ServeHTTP",

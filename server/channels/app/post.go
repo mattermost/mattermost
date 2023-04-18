@@ -911,6 +911,14 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		postReplacement, err := hooks.MessageWillBeConsumed(post.ForPlugin())
+		if(err != ""){
+			fmt.Println(err)
+		}
+		post = postReplacement
+		return true
+	}, plugin.MessageWillBeConsumedID)
 	return post, nil
 }
 

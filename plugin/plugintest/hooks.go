@@ -295,6 +295,32 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
+// MessageWillBeConsumed provides a mock function with given fields: post
+func (_m *Hooks) MessageWillBeConsumed(post *model.Post) (*model.Post, string) {
+	ret := _m.Called(post)
+
+	var r0 *model.Post
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*model.Post) (*model.Post, string)); ok {
+		return rf(post)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
+		r0 = rf(post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Post) string); ok {
+		r1 = rf(post)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
 // OnActivate provides a mock function with given fields:
 func (_m *Hooks) OnActivate() error {
 	ret := _m.Called()

@@ -700,6 +700,45 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 	return nil
 }
 
+// MessageWillBeConsumed is in this file because of the difficulty of identifying which fields need special behaviour.
+// The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
+// of fields by older plugins.
+func init() {
+	hookNameToId["MessageWillBeConsumed"] = MessageWillBeConsumedID
+}
+
+type Z_MessageWillBeConsumedArgs struct {
+	A *model.Post
+}
+
+type Z_MessageWillBeConsumedReturns struct {
+	A *model.Post
+	B string
+}
+
+func (g *hooksRPCClient) MessageWillBeConsumed(post *model.Post) (*model.Post, string) {
+	_args := &Z_MessageWillBeConsumedArgs{post}
+	_returns := &Z_MessageWillBeConsumedReturns{}
+	if g.implemented[MessageWillBeConsumedID] {
+		if err := g.client.Call("Plugin.MessageWillBeConsumed", _args, _returns); err != nil {
+			g.log.Error("RPC call MessageWillBeConsumed to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) MessageWillBeConsumed(args *Z_MessageWillBeConsumedArgs, returns *Z_MessageWillBeConsumedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessageWillBeConsumed(post *model.Post) (*model.Post, string)
+	}); ok {
+		returns.A, returns.B = hook.MessageWillBeConsumed(args.A)
+
+	} else {
+		return encodableError(fmt.Errorf("hook MessageWillBeConsumed called but not implemented"))
+	}
+	return nil
+}
+
 type Z_LogDebugArgs struct {
 	A string
 	B []any
