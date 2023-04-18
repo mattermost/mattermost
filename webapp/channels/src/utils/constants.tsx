@@ -165,6 +165,7 @@ export const Preferences = {
 export const Touched = {
     INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
+    ADD_APPS: 'add_apps',
 };
 
 // Category for actions/interactions that will happen just once
@@ -1057,6 +1058,7 @@ export const DraggingStateTypes = {
     CATEGORY: 'category',
     CHANNEL: 'channel',
     DM: 'DM',
+    APPS: 'apps',
     MIXED_CHANNELS: 'mixed_channels',
 };
 

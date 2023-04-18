@@ -1,6 +1,8 @@
 import React from 'react';
 import {SelectComponentsConfig, components as defaultComponents} from 'react-select';
 import {useSelector} from 'react-redux';
+
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {makeGetCategoriesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
 
 import {ChannelCategory} from '@mattermost/types/channel_categories';
@@ -29,7 +31,7 @@ const CategorySelector = (props: Props & { className?: string }) => {
 
     const options = React.useMemo(() => {
         return selectableCategories
-            .filter((category) => category.type !== 'direct_messages' && category.type !== 'channels')
+            .filter((category) => category.type !== CategoryTypes.DIRECT_MESSAGES && category.type !== CategoryTypes.CHANNELS)
             .map((category) => ({value: category.display_name, label: category.display_name}));
     }, [selectableCategories]);
 

@@ -4976,6 +4976,7 @@
   "sidebar.team_menu.button.teamInitials": "{teamName} Team Initials",
   "sidebar.team_menu.menuAriaLabel": "team menu",
   "sidebar.team_select": "{siteName} - Join a team",
+  "sidebar.types.apps": "APPS",
   "sidebar.types.channels": "CHANNELS",
   "sidebar.types.direct_messages": "DIRECT MESSAGES",
   "sidebar.types.favorites": "FAVORITES",

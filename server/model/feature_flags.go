@@ -109,7 +109,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
-	f.AppsSidebarCategory = false
+	f.AppsSidebarCategory = true
 	f.CloudReverseTrial = false
 }
 

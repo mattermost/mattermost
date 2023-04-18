@@ -93,6 +93,7 @@ describe('SidebarList', () => {
         draggingState: {},
         categoryCollapsedState: {},
         handleOpenMoreDirectChannelsModal: jest.fn(),
+        handleOpenAppsModal: jest.fn(),
         onDragStart: jest.fn(),
         onDragEnd: jest.fn(),
         showUnreadsCategory: false,

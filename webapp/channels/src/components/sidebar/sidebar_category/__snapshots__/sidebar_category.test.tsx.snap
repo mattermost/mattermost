@@ -260,7 +260,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
     <Component />
   </Connect(Droppable)>
   <InviteMembersButton
-    className="followingSibling"
     isAdmin={false}
     onClick={[Function]}
     touchedInviteMembersButton={false}
@@ -297,7 +296,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
           "user_id": "",
         }
       }
-      handleOpenDirectMessagesModal={[Function]}
+      handleCtaMenuItemOnClick={[Function]}
     />
     <OverlayTrigger
       defaultOverlayShown={false}
@@ -307,7 +306,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
           className="hidden-xs"
           id="new-group-tooltip"
         >
-          Create new direct message
+          Write a direct message
           <Memo(KeyboardShortcutSequence)
             hideDescription={true}
             isInsideTooltip={true}
@@ -335,7 +334,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       }
     >
       <button
-        aria-label="Create new direct message"
+        aria-label="Write a direct message"
         className="SidebarChannelGroupHeader_addButton"
         onClick={[Function]}
       >
@@ -385,7 +384,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
     <Component />
   </Connect(Droppable)>
   <InviteMembersButton
-    className="followingSibling"
     isAdmin={false}
     onClick={[Function]}
     touchedInviteMembersButton={false}
@@ -422,7 +420,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
           "user_id": "",
         }
       }
-      handleOpenDirectMessagesModal={[Function]}
+      handleCtaMenuItemOnClick={[Function]}
     />
     <OverlayTrigger
       defaultOverlayShown={false}
@@ -432,7 +430,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
           className="hidden-xs"
           id="new-group-tooltip"
         >
-          Create new direct message
+          Write a direct message
           <Memo(KeyboardShortcutSequence)
             hideDescription={true}
             isInsideTooltip={true}
@@ -460,7 +458,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       }
     >
       <button
-        aria-label="Create new direct message"
+        aria-label="Write a direct message"
         className="SidebarChannelGroupHeader_addButton"
         onClick={[Function]}
       >

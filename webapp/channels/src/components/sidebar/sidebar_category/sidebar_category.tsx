@@ -17,14 +17,14 @@ import {DraggingState} from 'types/store';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates, Preferences, Touched} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
+import AddAppsButton from '../add_apps_button';
+import AddChannelsCtaButton from '../add_channels_cta_button';
+import InviteMembersButton from '../invite_members_button';
 import SidebarChannel from '../sidebar_channel';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
-import InviteMembersButton from '../invite_members_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-
-import AddChannelsCtaButton from '../add_channels_cta_button';
 
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
 import SidebarCategoryMenu from './sidebar_category_menu';
@@ -34,12 +34,13 @@ type Props = {
     categoryIndex: number;
     channelIds: string[];
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
-    handleOpenMoreDirectChannelsModal: (e: Event) => void;
+    handleCtaOnClick: (e: Event) => void;
     isNewCategory: boolean;
     draggingState: DraggingState;
     currentUserId: string;
     touchedInviteMembersButton: boolean;
     isAdmin: boolean;
+    canOpenMarketplace: boolean;
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
         setCategorySorting: (categoryId: string, sorting: CategorySorting) => void;
@@ -142,10 +143,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
     };
 
-    handleOpenDirectMessagesModal = (event: MouseEvent<HTMLLIElement | HTMLButtonElement> | KeyboardEvent<HTMLLIElement | HTMLButtonElement>) => {
+    handleCtaMenuItemOnClick = (event: MouseEvent<HTMLLIElement | HTMLButtonElement> | KeyboardEvent<HTMLLIElement | HTMLButtonElement>) => {
         event.preventDefault();
 
-        this.props.handleOpenMoreDirectChannelsModal(event.nativeEvent);
+        this.props.handleCtaOnClick(event.nativeEvent);
         trackEvent('ui', 'ui_sidebar_create_direct_message');
     };
 
@@ -153,9 +154,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         const {draggingState, category} = this.props;
 
         if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            return draggingState.type === DraggingStateTypes.CHANNEL;
+            return draggingState.type === DraggingStateTypes.CHANNEL || draggingState.type === DraggingStateTypes.APPS;
         } else if (category.type === CategoryTypes.CHANNELS) {
-            return draggingState.type === DraggingStateTypes.DM;
+            return draggingState.type === DraggingStateTypes.DM || draggingState.type === DraggingStateTypes.APPS;
+        } else if (category.type === CategoryTypes.APPS) {
+            return draggingState.type === DraggingStateTypes.CHANNEL || draggingState.type === DraggingStateTypes.DM;
         }
 
         return false;
@@ -262,17 +265,33 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             );
 
             categoryMenu = <SidebarCategoryMenu category={category}/>;
-        } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            const addHelpLabel = localizeMessage('sidebar.createDirectMessage', 'Create new direct message');
+        } else if (category.type === CategoryTypes.DIRECT_MESSAGES || category.type === CategoryTypes.APPS) {
+            let handleCtaMenuItemOnClick;
+            handleCtaMenuItemOnClick = this.handleCtaMenuItemOnClick;
+            let shortcut = KEYBOARD_SHORTCUTS.navDMMenu;
+            let helpLabel = localizeMessage('sidebar.createDirectMessage', 'Write a direct message');
+
+            if (category.type === CategoryTypes.APPS) {
+                shortcut = KEYBOARD_SHORTCUTS.navAppsMenu;
+                helpLabel = this.props.canOpenMarketplace ? (
+                    localizeMessage('sidebar.openAppMarketplaceModal', 'App Marketplace')
+                ) : (
+                    localizeMessage('sidebar.openAppsModal', 'Apps')
+                );
+
+                if (!this.props.canOpenMarketplace) {
+                    handleCtaMenuItemOnClick = undefined;
+                }
+            }
 
             const addTooltip = (
                 <Tooltip
                     id='new-group-tooltip'
                     className='hidden-xs'
                 >
-                    {addHelpLabel}
+                    {helpLabel}
                     <KeyboardShortcutSequence
-                        shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
+                        shortcut={shortcut}
                         hideDescription={true}
                         isInsideTooltip={true}
                     />
@@ -283,7 +302,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 <React.Fragment>
                     <SidebarCategorySortingMenu
                         category={category}
-                        handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
+                        handleCtaMenuItemOnClick={handleCtaMenuItemOnClick}
                     />
                     <OverlayTrigger
                         delayShow={500}
@@ -292,8 +311,8 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     >
                         <button
                             className='SidebarChannelGroupHeader_addButton'
-                            onClick={this.handleOpenDirectMessagesModal}
-                            aria-label={addHelpLabel}
+                            onClick={this.handleCtaMenuItemOnClick}
+                            aria-label={helpLabel}
                         >
                             <i className='icon-plus'/>
                         </button>
@@ -320,35 +339,44 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 disableInteractiveElementBlocking={true}
             >
                 {(provided, snapshot) => {
-                    let inviteMembersButton = null;
-                    if (category.type === 'direct_messages' && !category.collapsed) {
-                        inviteMembersButton = (
-                            <InviteMembersButton
-                                className='followingSibling'
-                                touchedInviteMembersButton={this.props.touchedInviteMembersButton}
-                                isAdmin={this.props.isAdmin}
-                                onClick={() => {
-                                    if (!this.props.touchedInviteMembersButton) {
-                                        this.props.actions.savePreferences(
-                                            this.props.currentUserId,
-                                            [{
-                                                category: Preferences.TOUCHED,
-                                                user_id: this.props.currentUserId,
-                                                name: Touched.INVITE_MEMBERS,
-                                                value: 'true',
-                                            }],
-                                        );
-                                    }
-                                }}
-                            />
-                        );
-                    }
+                    let ctaButton = null;
 
-                    let addChannelsCtaButton = null;
-                    if (category.type === 'channels' && !category.collapsed) {
-                        addChannelsCtaButton = (
-                            <AddChannelsCtaButton/>
-                        );
+                    if (!category.collapsed) {
+                        switch (category.type) {
+                        case CategoryTypes.DIRECT_MESSAGES:
+                            ctaButton = (
+                                <InviteMembersButton
+                                    touchedInviteMembersButton={this.props.touchedInviteMembersButton}
+                                    isAdmin={this.props.isAdmin}
+                                    onClick={() => {
+                                        if (!this.props.touchedInviteMembersButton) {
+                                            this.props.actions.savePreferences(
+                                                this.props.currentUserId,
+                                                [{
+                                                    category: Preferences.TOUCHED,
+                                                    user_id: this.props.currentUserId,
+                                                    name: Touched.INVITE_MEMBERS,
+                                                    value: 'true',
+                                                }],
+                                            );
+                                        }
+                                    }}
+                                />
+                            );
+                            break;
+                        case CategoryTypes.CHANNELS:
+                            ctaButton = (
+                                <AddChannelsCtaButton/>
+                            );
+                            break;
+                        case CategoryTypes.APPS:
+                            ctaButton = (
+                                <AddAppsButton/>
+                            );
+                            break;
+                        default:
+                            break;
+                        }
                     }
 
                     return (
@@ -407,8 +435,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                     );
                                 }}
                             </Droppable>
-                            {inviteMembersButton}
-                            {addChannelsCtaButton}
+                            {ctaButton}
                         </div>
                     );
                 }}
@@ -421,3 +448,4 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 t('sidebar.types.channels');
 t('sidebar.types.direct_messages');
 t('sidebar.types.favorites');
+t('sidebar.types.apps');

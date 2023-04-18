@@ -12,6 +12,7 @@ import MoreChannels from 'components/more_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -54,6 +55,7 @@ type Props = {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     showWorkTemplateButton: boolean;
+    canOpenMarketplace: boolean;
 };
 
 type State = {
@@ -196,6 +198,27 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         }
     };
 
+    handleOpenAppsModal = (e: Event) => {
+        e.preventDefault();
+
+        if (this.props.canOpenMarketplace) {
+            const target = e.target as HTMLElement;
+            const openedFrom = target.className.includes('_addButton') ? 'apps_category_plus' : 'apps_category_menu';
+
+            this.props.actions.openModal({
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogType: MarketplaceModal,
+                dialogProps: {openedFrom},
+            });
+        } else {
+            this.props.actions.openModal({
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogType: MarketplaceModal,
+                dialogProps: {openedFrom: 'apps_category_plus'},
+            });
+        }
+    };
+
     onDragStart = () => {
         this.setState({isDragging: true});
     };
@@ -284,6 +307,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 </div>
                 <SidebarList
                     handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
+                    handleOpenAppsModal={this.handleOpenAppsModal}
                     onDragStart={this.onDragStart}
                     onDragEnd={this.onDragEnd}
                 />

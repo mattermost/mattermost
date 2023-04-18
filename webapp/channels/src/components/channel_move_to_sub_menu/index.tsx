@@ -141,10 +141,15 @@ const ChannelMoveToSubMenu = (props: Props) => {
 
     function filterCategoriesBasedOnChannelType(categories: ChannelCategory[], isDmOrGm = false) {
         if (isDmOrGm) {
-            return categories.filter((category) => category.type !== CategoryTypes.CHANNELS);
+            const dmBot: boolean = props.channel.props?.dm_bot;
+
+            return categories.filter((category) => (
+                category.type !== CategoryTypes.CHANNELS &&
+                ((dmBot && category.type !== CategoryTypes.DIRECT_MESSAGES) || (!dmBot && category.type !== CategoryTypes.APPS))
+            ));
         }
 
-        return categories.filter((category) => category.type !== CategoryTypes.DIRECT_MESSAGES);
+        return categories.filter((category) => category.type !== CategoryTypes.DIRECT_MESSAGES && category.type !== CategoryTypes.APPS);
     }
 
     function getMoveToCategorySubmenuItems(categories: ChannelCategory[], currentCategory?: ChannelCategory) {

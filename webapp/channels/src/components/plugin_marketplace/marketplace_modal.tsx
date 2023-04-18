@@ -46,7 +46,8 @@ const linkConsole = (msg: string): ReactNode => (
     </Link>
 );
 
-export type OpenedFromType = 'actions_menu' | 'app_bar' | 'channel_header' | 'command' | 'open_plugin_install_post' | 'product_menu';
+export type OpenedFromType = 'actions_menu' | 'app_bar' | 'channel_header' | 'command' | 'open_plugin_install_post' |
+'product_menu' | 'apps_category_plus' | 'apps_category_menu' | 'apps_category_cta';
 
 type MarketplaceModalProps = {
     openedFrom: OpenedFromType;

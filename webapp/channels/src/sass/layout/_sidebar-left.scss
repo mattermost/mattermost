@@ -179,7 +179,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         &__inviteMembersLhsButton,
-        &__addChannelsCtaLhsButton {
+        &__addChannelsCtaLhsButton,
+        &__addAppsCtaLhsButton {
             display: flex;
             padding: 6px 0;
             margin-left: 15px;
@@ -642,6 +643,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
+    .SidebarNavContainer .SidebarChannelGroup {
+        margin-bottom: 16px;
+
+        &:first-child {
+            margin-top: 16px;
+        }
+    }
+
     .SidebarChannelGroup.a11y--active {
         .SidebarCategory_newLabel {
             opacity: 0;
@@ -746,7 +755,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     #introTextInvite,
-    #addChannelsCta {
+    #addChannelsCta,
+    #addAppsCta {
         display: flex;
         width: 100%;
         margin-top: -6px;
@@ -923,11 +933,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             padding-bottom: 6px;
             margin-bottom: 0;
         }
-
-        .followingSibling {
-            padding-bottom: 14px;
-            margin-bottom: 0;
-        }
     }
 
     .SidebarChannelGroupHeader_addButton {
@@ -987,17 +992,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         margin-bottom: 6px;
     }
 
-    .followingSibling {
-        min-height: 2px;
-        margin-bottom: 14px;
-    }
-
     .SidebarChannelGroup.a11y--active .SidebarChannelGroup_content {
-        padding-bottom: 14px;
-        margin-bottom: 0;
-    }
-
-    .SidebarChannelGroup.a11y--active .followingSibling {
         padding-bottom: 14px;
         margin-bottom: 0;
     }
