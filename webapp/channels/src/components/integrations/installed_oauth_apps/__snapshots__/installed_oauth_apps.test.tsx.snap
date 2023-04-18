@@ -20,7 +20,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
   header={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="OAuth 2.0 Applications"
-      id="installed_oauth_apps.header"
+      id="installed_oauth2_apps.header"
     />
   }
   helpText={
