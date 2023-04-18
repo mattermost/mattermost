@@ -66,7 +66,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     }
 
     public componentDidMount() {
-        if (this.props.isCollapsedThreadsEnabled && this.props.userThread !== null) {
+        if (this.props.isCollapsedThreadsEnabled && this.props.userThread?.is_following) {
             this.markThreadRead();
         }
 
@@ -92,7 +92,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
 
         if (
             this.props.isCollapsedThreadsEnabled &&
-            this.props.userThread?.id !== prevProps.userThread?.id
+            this.props.userThread?.is_following !== prevProps.userThread?.is_following
         ) {
             this.markThreadRead();
         }
@@ -136,7 +136,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     }
 
     markThreadRead() {
-        if (this.props.userThread) {
+        if (this.props.userThread?.is_following) {
             // update last viewed at for thread before marking as read.
             this.props.actions.updateThreadLastOpened(
                 this.props.userThread.id,

@@ -476,7 +476,11 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
             dispatch({
                 type: actionType,
                 data: {
-                    threads: data?.threads?.map((thread) => ({...thread, is_following: thread.post.is_following})) ?? [],
+                    threads: data?.threads?.map((thread) => ({
+                        ...thread,
+                        is_following: thread.post.is_following,
+                        last_viewed_at: thread.post.is_following ? thread.last_viewed_at : undefined,
+                    })) ?? [],
                     channel_id: channelId,
                 },
             });
