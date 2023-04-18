@@ -41,7 +41,6 @@ import Attachment from './attachments';
 import './thread_item.scss';
 
 export type OwnProps = {
-    hideUnreads?: boolean;
     isFirstThreadInList: boolean;
     isSelected: boolean;
     routing: ThreadRouting;
@@ -69,7 +68,6 @@ function ThreadItem({
     channel,
     currentRelativeTeamUrl,
     displayName,
-    hideUnreads,
     isFirstThreadInList,
     isPostPriorityEnabled,
     isSelected,
@@ -155,21 +153,13 @@ function ThreadItem({
         return null;
     }
 
-    let {
+    const {
         unread_replies: newReplies,
         unread_mentions: newMentions,
-    } = thread;
-
-    const {
         last_reply_at: lastReplyAt,
         reply_count: totalReplies,
         is_following: isFollowing,
     } = thread;
-
-    if (hideUnreads) {
-        newReplies = 0;
-        newMentions = 0;
-    }
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp

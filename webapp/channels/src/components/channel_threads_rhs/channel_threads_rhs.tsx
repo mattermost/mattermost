@@ -262,7 +262,6 @@ function ChannelThreads({
                 {ids.length > 0 && (
                     <VirtualizedThreadList
                         key={`${selected}-${Math.min(totalThreads, Constants.THREADS_PAGE_SIZE)}`}
-                        hideUnreads={true}
                         ids={ids}
                         isLoading={isPaging}
                         loadMoreItems={handleLoadMoreItems}

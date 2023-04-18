@@ -15,7 +15,6 @@ import type {ThreadRouting} from 'components/threading/hooks';
 
 type Props = {
     addNoMoreResultsItem?: boolean;
-    hideUnreads?: boolean;
     ids: Array<UserThread['id']>;
     isLoading?: boolean;
     loadMoreItems: (startIndex: number, stopIndex: number) => Promise<any>;
@@ -30,7 +29,6 @@ const style = {
 
 function VirtualizedThreadList({
     addNoMoreResultsItem,
-    hideUnreads,
     ids,
     isLoading,
     loadMoreItems,
@@ -84,10 +82,9 @@ function VirtualizedThreadList({
                 ids: cids,
                 selectedThreadId,
                 routing,
-                hideUnreads,
             };
         },
-        [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total, routing, hideUnreads],
+        [ids, selectedThreadId, isLoading, addNoMoreResultsItem, total, routing],
     );
 
     const itemKey = useCallback((index, data) => data.ids[index], []);
