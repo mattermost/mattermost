@@ -58,7 +58,8 @@
             }
 
             .section-title {
-                margin-bottom: 24px;
+                display: block;
+                margin-bottom: 10px;
                 color: rgba(var(--center-channel-color-rgb), 0.72);
                 font-size: 16px;
                 font-weight: 600;
