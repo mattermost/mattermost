@@ -603,15 +603,26 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
                     text={
                         formatMessage(
-                            {id: 'newsletter_optin.checkmark.text', defaultMessage: 'I would like to receive Mattermost security updates via newsletter. Data <a>Terms and Conditions</a> apply'},
+                            {id: 'newsletter_optin.checkmark.text', defaultMessage: '<span>I would like to receive Mattermost security updates via newsletter.</span> By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time'},
                             {
                                 a: (chunks: React.ReactNode | React.ReactNodeArray) => (
                                     <ExternalLink
                                         location='signup-newsletter-checkmark'
-                                        href={HostedCustomerLinks.SECURITY_UPDATES}
+                                        href={HostedCustomerLinks.PRIVACY}
                                     >
                                         {chunks}
                                     </ExternalLink>
+                                ),
+                                aa: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <ExternalLink
+                                        location='signup-newsletter-checkmark'
+                                        href={HostedCustomerLinks.NEWSLETTER_UNSUBSCRIBE_LINK}
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                                span: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                    <span className='header'>{chunks}</span>
                                 ),
                             },
                         )}
@@ -622,7 +633,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         return (
             <div className='newsletter'>
                 <span className='interested'>
-                    {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security updates via newsletter?'})}
+                    {formatMessage({id: 'newsletter_optin.title', defaultMessage: 'Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?'})}
                 </span>
                 <span className='link'>
                     {formatMessage(

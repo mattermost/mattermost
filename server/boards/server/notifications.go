@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify/notifymentions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify/notifysubscriptions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify/plugindelivery"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify/notifymentions"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify/notifysubscriptions"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify/plugindelivery"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type notifyBackendParams struct {

@@ -17,14 +17,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -93,6 +93,39 @@ func TestCreateTeam(t *testing.T) {
 		_, resp, err = th.Client.CreateTeam(team)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should verify user permissions during team creation", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		th.App.SetPhase2PermissionsMigrationStatus(true)
+
+		sc := th.SystemAdminClient
+		scheme, _, err := sc.CreateScheme(&model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		team, _, err := sc.CreateTeam(&model.Team{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		require.Equal(t, scheme.Id, *team.SchemeId)
+
+		_, r, err := th.Client.CreateTeam(&model.Team{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, r)
 	})
 
 	t.Run("should take under consideration the server language when creating a new team", func(t *testing.T) {

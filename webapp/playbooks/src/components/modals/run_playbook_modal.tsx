@@ -284,6 +284,7 @@ const RunNameSection = ({runName, onSetRunName}: runNameProps) => {
 
     return (<>
         <RunNameLabel invalid={Boolean(error)}>
+            {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
             {formatMessage({defaultMessage: 'Run name'})}{error ? ' *' : ''}
         </RunNameLabel>
         <BaseInput
