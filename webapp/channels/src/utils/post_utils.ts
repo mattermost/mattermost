@@ -42,11 +42,11 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {GlobalState} from 'types/store';
 
 import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 import EmojiMap from './emoji_map';
 import * as Emoticons from './emoticons';
@@ -236,7 +236,7 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
     }
 
     // Focus if it is an attempted paste
-    if (Utils.cmdOrCtrlPressed(e) && Utils.isKeyPressed(e, Constants.KeyCodes.V)) {
+    if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.V)) {
         return true;
     }
 
@@ -257,7 +257,7 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
 
     // Do not focus when pressing space on link elements
     const spaceKeepFocusTags = ['BUTTON', 'A'];
-    if (Utils.isKeyPressed(e, Constants.KeyCodes.SPACE) && spaceKeepFocusTags.includes(activeElement.tagName)) {
+    if (Keyboard.isKeyPressed(e, Constants.KeyCodes.SPACE) && spaceKeepFocusTags.includes(activeElement.tagName)) {
         return false;
     }
 
@@ -311,7 +311,7 @@ export function postMessageOnKeyPress(
     }
 
     // Only ENTER sends, unless shift or alt key pressed.
-    if (!Utils.isKeyPressed(event, Constants.KeyCodes.ENTER) || event.shiftKey || event.altKey) {
+    if (!Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER) || event.shiftKey || event.altKey) {
         return {allowSending: false};
     }
 
