@@ -27,7 +27,7 @@ import {
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {DispatchFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {
@@ -44,12 +44,15 @@ import {ModalIdentifiers, suitePluginIds, TELEMETRY_CATEGORIES} from 'utils/cons
 
 import {AutoTourStatus} from 'components/tours';
 
+import ChannelOnly from './components/channel_only';
 import Customize from './components/customize';
 import Menu from './components/menu';
+import Mode from './components/mode';
 import GenericModal from './components/modal';
 import Preview from './components/preview';
 import {useGetRHSPluggablesIds} from './hooks';
 import {getContentCount} from './utils';
+import {ModalState} from './types';
 
 const BackIconInHeader = styled(LocalizedIcon)`
     font-size: 24px;
@@ -83,17 +86,11 @@ const ModalTitle = (props: ModalTitleProps) => {
     );
 };
 
-enum ModalState {
-    Menu = 'menu',
-    Customize = 'customize',
-    Preview = 'preview',
-}
-
 const WorkTemplateModal = () => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<DispatchFunc>();
 
-    const [modalState, setModalState] = useState(ModalState.Menu);
+    const [modalState, setModalState] = useState(ModalState.ChannelOnly);
     const [selectedTemplate, setSelectedTemplate] = useState<WorkTemplate | null>(null);
     const [selectedName, setSelectedName] = useState<string>('');
     const [selectedVisibility, setSelectedVisibility] = useState(Visibility.Public);
@@ -290,13 +287,20 @@ const WorkTemplateModal = () => {
         };
     };
 
-    let title;
+    let title = '';
     let cancelButtonText;
     let cancelButtonAction;
     let backArrowAction;
     let confirmButtonText;
     let confirmButtonAction;
     switch (modalState) {
+    case ModalState.ChannelOnly:
+        title = formatMessage({id: "work_templates.channel_only.title", defaultMessage: "Create a new channel"});
+        cancelButtonText = formatMessage({id: "work_templates.channel_only.cancel", defaultMessage: "Cancel"});
+        // cancelButtonAction = trackAction('btn_back_to_menu', goToMenu);
+        confirmButtonText = formatMessage({id: "work_templates.channel_only.confirm", defaultMessage: "Create channel"});
+        // confirmButtonAction = trackAction('btn_go_to_customize', () => setModalState(ModalState.Customize));
+        break
     case ModalState.Menu:
         title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Create from a template'});
         break;
@@ -339,6 +343,16 @@ const WorkTemplateModal = () => {
             autoCloseOnConfirmButton={false}
             errorText={errorText}
         >
+            {(modalState === ModalState.ChannelOnly || modalState === ModalState.Menu) && (
+                <Mode
+                    mode={modalState}
+                    setMode={setModalState}
+                />
+            )}
+            {modalState === ModalState.ChannelOnly && (
+                <ChannelOnly
+                />
+            )}
             {modalState === ModalState.Menu && (
                 <Menu
                     categories={categories}
