@@ -26,7 +26,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
             overlay={
                 <Tooltip id='close-icon-tooltip'>
                     <FormattedMessage
-                        id='generic.previous'
+                        id='generic.close'
                         defaultMessage='Close'
                     />
                 </Tooltip>

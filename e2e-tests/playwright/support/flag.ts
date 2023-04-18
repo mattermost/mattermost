@@ -5,21 +5,9 @@ import os from 'node:os';
 
 import {expect, test} from '@playwright/test';
 
-import {boardsPluginId, callsPluginId} from './constant';
+import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
 import {isSmallScreen} from './util';
-
-export async function shouldHaveBoardsEnabled(enabled = true) {
-    const {adminClient} = await getAdminClient();
-    const config = await adminClient.getConfig();
-
-    const boardsEnabled =
-        (typeof config.FeatureFlags.BoardsProduct === 'boolean' && config.FeatureFlags.BoardsProduct) ||
-        config.PluginSettings.PluginStates[boardsPluginId].Enable;
-
-    const matched = boardsEnabled === enabled;
-    expect(matched, matched ? '' : `Boards expect "${enabled}" but actual "${boardsEnabled}"`).toBeTruthy();
-}
 
 export async function shouldHaveCallsEnabled(enabled = true) {
     const {adminClient} = await getAdminClient();
