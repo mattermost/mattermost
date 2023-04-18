@@ -198,7 +198,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 
-    test('should NOT show when subscription has payment method and billing type of internal', () => {
+    test('should NOT show when subscription has billing type of internal', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users.profiles = {
             current_user_id: {roles: 'system_admin'},
@@ -224,7 +224,7 @@ describe('ToYearlyNudgeBannerDismissable', () => {
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 
-    test('should NOT show when subscription has payment method and billing type of licensed', () => {
+    test('should NOT show when subscription has billing type of licensed', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users.profiles = {
             current_user_id: {roles: 'system_admin'},
@@ -295,7 +295,7 @@ describe('ToYearlyNudgeBanner', () => {
 
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });
-    test('should NOT show when subscription has payment method and billing type of internal', () => {
+    test('should NOT show when subscription has billing type of internal', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
             subscription: {
@@ -318,7 +318,7 @@ describe('ToYearlyNudgeBanner', () => {
         expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });
 
-    test('should NOT show when subscription has payment method and billing type of licensed', () => {
+    test('should NOT show when subscription has billing type of licensed', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
             subscription: {
