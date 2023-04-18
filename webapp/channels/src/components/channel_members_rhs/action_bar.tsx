@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 
 const Title = styled.div`
     flex:1;
