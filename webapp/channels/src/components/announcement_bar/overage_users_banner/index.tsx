@@ -56,7 +56,7 @@ const OverageUsersBanner = () => {
         activeUsers,
         seatsPurchased,
     });
-    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
+    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
     const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedExpansionEnabled;
     const siteURL = getSiteURL();
     const prefixPreferences = isOver10PercerntPurchasedSeats ? 'error' : 'warn';

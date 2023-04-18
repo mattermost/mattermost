@@ -45,8 +45,8 @@ const OverageUsersBannerNotice = () => {
     const currentUser = useSelector((state: GlobalState) => getCurrentUser(state));
     const overagePreferences = useSelector((state: GlobalState) => getPreferencesCategory(state, Preferences.OVERAGE_USERS_BANNER));
     const activeUsers = ((stats || {})[StatTypes.TOTAL_USERS]) as number || 0;
-    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedExpansion;
-    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedExpansionEnabled;
+    const isSelfHostedPurchaseEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
+    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedPurchaseEnabled;
     const siteURL = getSiteURL();
 
     const {
