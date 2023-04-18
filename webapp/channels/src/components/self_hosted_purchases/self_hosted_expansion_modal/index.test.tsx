@@ -283,22 +283,6 @@ describe('SelfHostedExpansionModal Open', () => {
         fillForm(defaultSuccessForm);
     });
 
-    it('disables expansion if too few seats or no seats entered', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
-        fillForm(defaultSuccessForm);
-
-        // 0 seats entered.
-        const tooFewSeats = 0;
-        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, valueEvent(tooFewSeats.toString()));
-        expect(screen.getByText('Complete purchase')).toBeDisabled();
-        expect(screen.getByText('You must add a seat to continue')).toBeVisible();
-
-        // No seats value entered.
-        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, undefined);
-        expect(screen.getByText('Complete purchase')).toBeDisabled();
-        expect(screen.getByText('You must add a seat to continue')).toBeVisible();
-    });
-
     it('happy path submit shows success screen when confirmation succeeds', async () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
         expect(screen.getByText('Complete purchase')).toBeDisabled();
@@ -336,11 +320,47 @@ describe('SelfHostedExpansionModal RHS Card', () => {
     it('New seats input should be pre-populated with the difference from the active users and licensed seats', () => {
         renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
-        const expectedPrePopulatedSeats = (initialState.entities?.users?.filteredStats?.total_users_count || 1) - parseInt(initialState.entities?.general?.license?.Users || '0', 10);
+        const expectedPrePopulatedSeats = (initialState.entities?.users?.filteredStats?.total_users_count || 1) - parseInt(initialState.entities?.general?.license?.Users || '1', 10);
 
         const seatsField = screen.getByTestId('seatsInput').querySelector('input');
         expect(seatsField).toBeInTheDocument();
         expect(seatsField?.value).toBe(expectedPrePopulatedSeats.toString());
+    });
+
+    it('Seat input only allows users to fill input with the licensed seats and active users difference if it is not 0', () => {
+        const expectedUserOverage = '50';
+
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        fillForm(defaultSuccessForm);
+
+        // The seat input should already have the expected value.
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedUserOverage);
+
+        // Try to set an undefined value.
+        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, undefined);
+
+        // Expecting the seats input to now contain the difference between active users and licensed seats.
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedUserOverage);
+        expect(screen.getByText('Complete purchase')).toBeEnabled();
+    });
+
+    it('New seats input cannot be less than 1', () => {
+        if (initialState.entities?.users?.filteredStats?.total_users_count) {
+            initialState.entities.users.filteredStats.total_users_count = 50;
+        }
+
+        const expectedAddNewSeats = '1';
+
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        fillForm(defaultSuccessForm);
+
+        // Try to set a negative value.
+        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, -10);
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedAddNewSeats);
+
+        // Try to set a 0 value.
+        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, 0);
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedAddNewSeats);
     });
 
     it('Cost per User should be represented as the current subscription price multiplied by the remaining months', () => {
@@ -366,7 +386,7 @@ describe('SelfHostedExpansionModal RHS Card', () => {
 
         const costAmount = document.getElementsByClassName('totalCostAmount')[0];
         expect(costAmount).toBeInTheDocument();
-        expect(costAmount).toHaveTextContent('$' + expectedTotalCost);
+        expect(costAmount).toHaveTextContent(Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(expectedTotalCost));
     });
 });
 

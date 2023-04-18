@@ -2440,6 +2440,7 @@ export default class Client4 {
     ping = () => {
         return this.doFetch<{
             status: string;
+            ActiveSearchBackend: string;
         }>(
             `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
             {method: 'get'},
@@ -3898,7 +3899,7 @@ export default class Client4 {
 
     confirmSelfHostedExpansion = (setupIntentId: string, expandRequest: SelfHostedExpansionRequest) => {
         return this.doFetch<SelfHostedSignupSuccessResponse>(
-            `${this.getHostedCustomerRoute()}/confirm?expand=true`,
+            `${this.getHostedCustomerRoute()}/confirm-expand`,
             {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, expand_request: expandRequest})},
         );
     }

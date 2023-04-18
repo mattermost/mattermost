@@ -10,7 +10,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -271,7 +271,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -532,7 +532,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -796,7 +796,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -1024,7 +1024,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -1252,7 +1252,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage

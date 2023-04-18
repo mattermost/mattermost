@@ -69,7 +69,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             admin: {
                 config: {
                     ServiceSettings: {
-                        SelfHostedExpansion: true,
+                        SelfHostedPurchase: true,
                     },
                 },
             },
