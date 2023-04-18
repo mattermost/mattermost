@@ -188,9 +188,8 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
-	// dealing with an AppError
-	if !(reflect.ValueOf(err).Kind() == reflect.Ptr && reflect.ValueOf(err).IsNil()) {
+	license, appErr := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
+	if appErr != nil {
 		if confirmResponse != nil {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
