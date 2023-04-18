@@ -124,7 +124,7 @@ const PlaybooksSelector = (props: Props) => {
         return props.searchTerm === '' ? (
             <ErrorContainer>
                 <ClipboardSvg/>
-                <ErrorTitle>{formatMessage({defaultMessage: 'Get started with Playbooks'}, {searchTerm: props.searchTerm})}</ErrorTitle>
+                <ErrorTitle>{formatMessage({defaultMessage: 'Get started with Playbooks'})}</ErrorTitle>
                 <ErrorSubTitle>{formatMessage({defaultMessage: 'Playbooks are configurable checklists that define a repeatable process for teams to achieve specific and predictable outcomes'})}</ErrorSubTitle>
                 <PrimaryButton onClick={props.onCreatePlaybook}>
                     <Plus size={16}/>
