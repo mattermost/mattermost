@@ -63,7 +63,6 @@ const OverageUsersBanner = () => {
     const prefixLicenseId = (license.Id || '').substring(0, 8);
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
 
-
     const overageByUsers = activeUsers - seatsPurchased;
 
     const isOverageState = isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats;
@@ -114,8 +113,7 @@ const OverageUsersBanner = () => {
         return null;
     }
 
-
-    let message = (
+    const message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
             defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
