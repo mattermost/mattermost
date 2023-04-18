@@ -1210,7 +1210,7 @@ func (s SqlChannelStore) GetBotChannelsByUser(userId string, opts store.ChannelS
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetBotChannelsByUser_ToSql")
+		return nil, errors.Wrap(err, "GetBotChannelsByUser_ToSql")
 	}
 
 	channels := model.ChannelList{}

@@ -32,16 +32,16 @@ func (a *App) GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID s
 		AppsCategoryEnabled: appsCategoryEnabled,
 	}
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID, options)
-	if err == nil {
-		if len(categories.Categories) == 0 || (appsCategoryEnabled && checkMissingSystemSidebarCategories(categories)) {
-			// A user must always have system categories, so migration must not have happened yet, and we should run it ourselves
-			categories, appErr = a.createInitialSidebarCategories(userID, options)
+	if err == nil && (len(categories.Categories) == 0 || (appsCategoryEnabled && checkMissingSystemSidebarCategories(categories))) {
+		// A user must always have system categories, so migration must not have happened yet, and we should run it ourselves
+		categories, appErr = a.createInitialSidebarCategories(userID, options)
 
-			if appErr != nil {
-				return nil, appErr
-			}
+		if appErr != nil {
+			return nil, appErr
 		}
-	} else {
+	}
+
+	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -63,16 +63,16 @@ func (a *App) GetSidebarCategories(c request.CTX, userID string, opts *store.Sid
 		AppsCategoryEnabled: appsCategoryEnabled,
 	}
 	categories, err := a.Srv().Store().Channel().GetSidebarCategories(userID, options)
-	if err == nil {
-		if len(categories.Categories) == 0 || (appsCategoryEnabled && checkMissingSystemSidebarCategories(categories)) {
-			// A user must always have system categories, so migration must not have happened yet, and we should run it ourselves
-			categories, appErr = a.createInitialSidebarCategories(userID, options)
+	if err == nil && (len(categories.Categories) == 0 || (appsCategoryEnabled && checkMissingSystemSidebarCategories(categories))) {
+		// A user must always have system categories, so migration must not have happened yet, and we should run it ourselves
+		categories, appErr = a.createInitialSidebarCategories(userID, options)
 
-			if appErr != nil {
-				return nil, appErr
-			}
+		if appErr != nil {
+			return nil, appErr
 		}
-	} else {
+	}
+
+	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
