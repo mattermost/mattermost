@@ -115,7 +115,7 @@ const TopChannelsLineChart = ({topChannels, timeFrame, channelLineChartData, tim
         <LineChart
             title={
                 <FormattedMessage
-                    id='analytics.system.totalBotPosts'
+                    id='analytics.system.topChannels'
                     defaultMessage='Top Channels'
                 />
             }
