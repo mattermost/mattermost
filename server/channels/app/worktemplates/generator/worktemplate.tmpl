@@ -93,6 +93,7 @@ var wt{{.MD5}} = &WorkTemplate{
 				Illustration: "{{.Playbook.Illustration}}",
 			},{{end}}{{if .Integration}}Integration: &Integration{
 				ID: "{{.Integration.ID}}",
+				Recommended: {{.Integration.Recommended}},
 			},{{end}}
 		},
 		{{end}}

@@ -116,7 +116,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
             if (c.playbook) {
                 playbooks.push(c.playbook);
             }
-            if (c.integration) {
+            if (c.integration && c.integration.recommended) {
                 availableIntegrations.push(c.integration);
             }
         });
