@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 // JoinedThread allows querying the Threads + Posts table in a single query, before looking up
@@ -645,9 +644,6 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 		OrderBy("Threads.LastReplyAt " + order).
 		Limit(pageSize)
 
-	q, args, _ := query.ToSql()
-	mlog.Debug("GetThreadsForChannel", mlog.String("query", q), mlog.Any("args", args))
-
 	var threads []*JoinedThread
 	if err := s.GetReplicaX().SelectBuilder(&threads, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get threads for channel id=%s and user id=%s", channelID, userID)
@@ -709,9 +705,6 @@ func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, userID stri
 	if !opts.Deleted {
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
-
-	q, args, _ := query.ToSql()
-	mlog.Debug("logsql", mlog.String("query", q), mlog.Any("args", args))
 
 	var totalThreads int64
 	err := s.GetReplicaX().GetBuilder(&totalThreads, query)
