@@ -7,7 +7,7 @@ import (
 	"context"
 	"database/sql/driver"
 
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 // Conn is a DB driver conn implementation
