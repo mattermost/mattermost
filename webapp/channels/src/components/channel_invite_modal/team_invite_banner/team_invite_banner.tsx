@@ -83,7 +83,7 @@ const TeamInviteBanner = (props: Props) => {
                 formatMessage(
                     {
                         id: t('channel_invite.invite_team_members.guests.messageOverflow'),
-                        defaultMessage: '{firstUser} and {others} are guest users and will have to be invited to the team separately to add them to this channel.',
+                        defaultMessage: '{firstUser} and {others} are guest users and need to first be invited to the team before you can add them to the channel. Once they\'ve joined the team, you can add them to this channel.',
                     },
                     {
                         firstUser: (
@@ -123,7 +123,7 @@ const TeamInviteBanner = (props: Props) => {
         const message: string = formatMessage(
             {
                 id: t('channel_invite.invite_team_members.guests.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} is a guest user} other {{users} and {lastUser} are guest users}} and will have to be invited to the team separately to add them to this channel.',
+                defaultMessage: '{count, plural, =1 {{firstUser} is a guest user and needs} other {{users} and {lastUser} are guest users and need}} to first be invited to the team before you can add them to the channel. Once they\'ve joined the team, you can add them to this channel.',
             },
             {
                 count: guests.length,
@@ -156,13 +156,13 @@ const TeamInviteBanner = (props: Props) => {
         if (userprofiles.length > 10) {
             let formattedMessage = {
                 id: t('channel_invite.invite_team_members.messageOverflow'),
-                defaultMessage: '{firstUser} and {others} were not selected. Add them to the {team} team to add them to this channel.',
+                defaultMessage: 'You can add {firstUser} and {others} to this channel once they are members of the **{team}** team.',
             };
 
             if (!canAddUsersToTeam) {
                 formattedMessage = {
                     id: t('channel_invite.invite_team_members.no_permission.messageOverflow'),
-                    defaultMessage: '{firstUser} and {others} were not selected. Please contact your system administrator to add them to the {team} team before you can add them to this channel.',
+                    defaultMessage: '{firstUser} and {others} were not selected. Please contact your system administrator to add them to the **{team}** team before you can add them to this channel.',
                 };
             }
 
@@ -174,7 +174,7 @@ const TeamInviteBanner = (props: Props) => {
             } else if (type === 'error') {
                 formattedMessage = {
                     id: t('channel_invite.invite_team_members.error.messageOverflow'),
-                    defaultMessage: '{firstUser} and {others} were not added to the {team} team. Please contact your system administrator to add them to the team.',
+                    defaultMessage: '{firstUser} and {others} were not added to the **{team}** team. Please contact your system administrator to add them to the team.',
                 };
             }
 
@@ -217,13 +217,13 @@ const TeamInviteBanner = (props: Props) => {
 
         let formattedMessage = {
             id: t('channel_invite.invite_team_members.message'),
-            defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Add them to the {team} team to add them to this channel.',
+            defaultMessage: 'You can add {count, plural, =1 {{firstUser}} other {{users} and {lastUser}}} to this channel once they are members of the **{team}** team.',
         };
 
         if (!canAddUsersToTeam) {
             formattedMessage = {
                 id: t('channel_invite.invite_team_members.no_permission.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Please contact your system administrator to add them to the {team} team before you can add them to this channel.',
+                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not selected. Please contact your system administrator to add them to the **{team}** team before you can add them to this channel.',
             };
         }
 
@@ -235,7 +235,7 @@ const TeamInviteBanner = (props: Props) => {
         } else if (type === 'error') {
             formattedMessage = {
                 id: t('channel_invite.invite_team_members.error.message'),
-                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not added to the {team} team. Please contact your system administrator to add them to the team.',
+                defaultMessage: '{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not added to the **{team}** team. Please contact your system administrator to add them to the team.',
             };
         }
 

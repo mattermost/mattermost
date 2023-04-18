@@ -7,7 +7,7 @@ import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeammateNameDisplaySetting, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {UserProfile} from '@mattermost/types/users';
@@ -76,6 +76,9 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         const isLicensed = license && license.IsLicensed === 'true';
         const isGroupConstrained = Boolean(currentTeam.group_constrained);
         const canInviteGuests = !isGroupConstrained && isLicensed && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
+        const enableCustomUserGroups = isCustomGroupsEnabled(state);
+
+        const isGroupsEnabled = enableCustomUserGroups || (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true');
 
         const userStatuses = getUserStatuses(state);
 
@@ -93,6 +96,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             canInviteGuests,
             emailInvitationsEnabled,
             groups,
+            isGroupsEnabled,
         };
     };
 }

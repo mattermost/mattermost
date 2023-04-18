@@ -63,6 +63,7 @@ export type Props = {
     canInviteGuests?: boolean;
     emailInvitationsEnabled?: boolean;
     groups: Group[];
+    isGroupsEnabled: boolean;
     actions: {
         addUsersToChannel: (channelId: string, userIds: string[]) => Promise<ActionResult>;
         getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number) => Promise<ActionResult>;
@@ -345,10 +346,13 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                     include_member_count: true,
                     include_member_ids: true,
                 };
-                await Promise.all([
+                const promises = [
                     this.props.actions.searchProfiles(term, options),
-                    this.props.actions.searchAssociatedGroupsForReference(term, this.props.channel.team_id, this.props.channel.id, opts),
-                ]);
+                ];
+                if (this.props.isGroupsEnabled) {
+                    promises.push(this.props.actions.searchAssociatedGroupsForReference(term, this.props.channel.team_id, this.props.channel.id, opts));
+                }
+                await Promise.all(promises);
                 this.setUsersLoadingState(false);
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS,
@@ -525,7 +529,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.state.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={localizeMessage('multiselect.placeholder', 'Search for people')}
+                placeholderText={this.props.isGroupsEnabled ? localizeMessage('multiselect.placeholder.peopleOrGroups', 'Search for people or groups') : localizeMessage('multiselect.placeholder', 'Search for people')}
                 valueWithImage={true}
                 backButtonText={localizeMessage('multiselect.cancel', 'Cancel')}
                 backButtonClick={closeMembersInviteModal}

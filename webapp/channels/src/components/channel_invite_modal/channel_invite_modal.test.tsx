@@ -68,6 +68,7 @@ describe('components/channel_invite_modal', () => {
         groups: [],
         userStatuses: {},
         teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
+        isGroupsEnabled: true,
         actions: {
             addUsersToChannel: jest.fn().mockImplementation(() => {
                 const error = {
