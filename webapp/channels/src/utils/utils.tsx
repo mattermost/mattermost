@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import React, {LinkHTMLAttributes} from 'react';
 import {FormattedMessage, IntlShape} from 'react-intl';
 
@@ -30,7 +28,6 @@ import {
     getChannel,
     getChannelsNameMapInTeam,
     getMyChannelMemberships,
-    getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, getTeammateNameDisplaySetting, Theme, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -38,10 +35,6 @@ import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/s
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {
-    getCurrentRelativeTeamUrl,
-    getCurrentTeam,
-    getCurrentTeamId,
-    getTeam,
     getTeamByName,
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
@@ -50,14 +43,9 @@ import {
 import {addUserToTeam} from 'actions/team_actions';
 import {searchForTerm} from 'actions/post_actions';
 import {getHistory} from 'utils/browser_history';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import {isDesktopApp} from 'utils/user_agent';
-import bing from 'sounds/bing.mp3';
-import crackle from 'sounds/crackle.mp3';
-import down from 'sounds/down.mp3';
-import hello from 'sounds/hello.mp3';
-import ripple from 'sounds/ripple.mp3';
-import upstairs from 'sounds/upstairs.mp3';
 import {t} from 'utils/i18n';
 import store from 'stores/redux_store.jsx';
 
@@ -108,14 +96,6 @@ export enum TimeInformation {
 export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
 export type TimeDirection = TimeInformation.FUTURE | TimeInformation.PAST;
 
-export function isMac() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-
-export function isLinux() {
-    return navigator.platform.toUpperCase().indexOf('LINUX') >= 0;
-}
-
 export function createSafeId(prop: {props: {defaultMessage: string}} | string): string | undefined {
     let str = '';
 
@@ -128,42 +108,14 @@ export function createSafeId(prop: {props: {defaultMessage: string}} | string): 
     return str.replace(new RegExp(' ', 'g'), '_');
 }
 
-export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAlt = false) {
-    if (allowAlt) {
-        return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
-    }
-    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
-}
-
-export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [string, number]) {
-    // There are two types of keyboards
-    // 1. English with different layouts(Ex: Dvorak)
-    // 2. Different language keyboards(Ex: Russian)
-
-    if (event.keyCode === Constants.KeyCodes.COMPOSING[1]) {
-        return false;
-    }
-
-    // checks for event.key for older browsers and also for the case of different English layout keyboards.
-    if (typeof event.key !== 'undefined' && event.key !== 'Unidentified' && event.key !== 'Dead') {
-        const isPressedByCode = event.key === key[0] || event.key === key[0].toUpperCase();
-        if (isPressedByCode) {
-            return true;
-        }
-    }
-
-    // used for different language keyboards to detect the position of keys
-    return event.keyCode === key[1];
-}
-
 /**
  * check keydown event for line break combo. Should catch alt/option + enter not all browsers except Safari
  */
 export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEvent): boolean {
     return Boolean(
-        isKeyPressed(e, Constants.KeyCodes.ENTER) &&
+        Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 
@@ -184,83 +136,6 @@ export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElemen
 
     // return the updated string so that component state can be updated
     return newValue;
-}
-
-export function isInRole(roles: string, inRole: string): boolean {
-    if (roles) {
-        const parts = roles.split(' ');
-        for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === inRole) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-export function getTeamRelativeUrl(team: Team) {
-    if (!team) {
-        return '';
-    }
-
-    return '/' + team.name;
-}
-
-export function getPermalinkURL(state: GlobalState, teamId: Team['id'], postId: Post['id']): string {
-    let team = getTeam(state, teamId);
-    if (!team) {
-        team = getCurrentTeam(state);
-    }
-    return `${getTeamRelativeUrl(team)}/pl/${postId}`;
-}
-
-export function getChannelURL(state: GlobalState, channel: Channel, teamId: string): string {
-    let notificationURL;
-    if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
-        notificationURL = getCurrentRelativeTeamUrl(state) + '/channels/' + channel.name;
-    } else if (channel) {
-        const team = getTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + '/channels/' + channel.name;
-    } else if (teamId) {
-        const team = getTeam(state, teamId);
-        const redirectChannel = getRedirectChannelNameForTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + `/channels/${redirectChannel}`;
-    } else {
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        notificationURL = getCurrentRelativeTeamUrl(state) + `/channels/${redirectChannel}`;
-    }
-    return notificationURL;
-}
-
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
-]);
-
-let canDing = true;
-export function ding(name: string) {
-    if (hasSoundOptions() && canDing) {
-        tryNotificationSound(name);
-        canDing = false;
-        setTimeout(() => {
-            canDing = true;
-        }, 3000);
-    }
-}
-
-export function tryNotificationSound(name: string) {
-    const audio = new Audio(notificationSounds.get(name) ?? notificationSounds.get('Bing'));
-    audio.play();
-}
-
-export function hasSoundOptions() {
-    return (!UserAgent.isEdge());
 }
 
 export function getDateForUnixTicks(ticks: number): Date {

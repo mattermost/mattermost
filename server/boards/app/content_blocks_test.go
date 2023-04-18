@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 type contentOrderMatcher struct {
