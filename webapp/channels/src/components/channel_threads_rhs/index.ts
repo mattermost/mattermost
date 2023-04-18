@@ -36,7 +36,7 @@ function makeGetChannelThreadsTab() {
         const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
         const tab = getGlobalItem(state, key);
 
-        if (isCRT && tab === Tabs.FOLLOWING) {
+        if (!isCRT && tab === Tabs.FOLLOWING) {
             return Tabs.ALL;
         }
 
