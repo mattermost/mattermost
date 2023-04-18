@@ -10,8 +10,8 @@ import {ActionResult} from 'mattermost-redux/types/actions';
 import {reconnect} from 'actions/websocket_actions.jsx';
 
 import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isIosSafari} from 'utils/user_agent';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
 
 import {makeAsyncComponent} from 'components/async_load';
 import ChannelController from 'components/channel_layout/channel_controller';

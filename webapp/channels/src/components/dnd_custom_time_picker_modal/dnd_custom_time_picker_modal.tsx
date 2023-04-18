@@ -22,7 +22,8 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import './dnd_custom_time_picker_modal.scss';
 import {toUTCUnix} from 'utils/datetime';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 import Input from 'components/widgets/inputs/input/input';
 import DatePicker from 'components/date_picker';
 

@@ -12,10 +12,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/audit"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func (a *API) registerBlocksRoutes(r *mux.Router) {
@@ -72,7 +72,6 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	parentID := query.Get("parent_id")
 	blockType := query.Get("type")
-	all := query.Get("all")
 	blockID := query.Get("block_id")
 	boardID := mux.Vars(r)["boardID"]
 
@@ -122,18 +121,11 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("boardID", boardID)
 	auditRec.AddMeta("parentID", parentID)
 	auditRec.AddMeta("blockType", blockType)
-	auditRec.AddMeta("all", all)
 	auditRec.AddMeta("blockID", blockID)
 
 	var blocks []*model.Block
 	var block *model.Block
 	switch {
-	case all != "":
-		blocks, err = a.app.GetBlocksForBoard(boardID)
-		if err != nil {
-			a.errorResponse(w, r, err)
-			return
-		}
 	case blockID != "":
 		block, err = a.app.GetBlockByID(blockID)
 		if err != nil {
@@ -148,7 +140,12 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 
 		blocks = append(blocks, block)
 	default:
-		blocks, err = a.app.GetBlocks(boardID, parentID, blockType)
+		opts := model.QueryBlocksOptions{
+			BoardID:   boardID,
+			ParentID:  parentID,
+			BlockType: model.BlockType(blockType),
+		}
+		blocks, err = a.app.GetBlocks(opts)
 		if err != nil {
 			a.errorResponse(w, r, err)
 			return
