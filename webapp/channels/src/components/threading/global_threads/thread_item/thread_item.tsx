@@ -9,7 +9,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
-import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {setUnreadPost} from 'mattermost-redux/actions/posts';
+import {getInt, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
@@ -82,6 +83,7 @@ function ThreadItem({
     const {select, goToInChannel, currentTeamId} = routing;
     const {formatMessage} = useIntl();
     const isMobileView = useSelector(getIsMobileView);
+    const isCRT = useSelector(isCollapsedThreadsEnabled);
     const currentUserId = useSelector(getCurrentUserId);
     const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
@@ -114,14 +116,18 @@ function ThreadItem({
 
     const selectHandler = useCallback((e: MouseEvent<HTMLDivElement>) => {
         if (e.altKey) {
-            const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
-            const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
+            if (isCRT) {
+                const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
+                const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
 
-            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
-            if (hasUnreads) {
-                dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
+                dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
+                if (hasUnreads) {
+                    dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
+                } else {
+                    dispatch(markLastPostInThreadAsUnread(currentUserId, currentTeamId, threadId));
+                }
             } else {
-                dispatch(markLastPostInThreadAsUnread(currentUserId, currentTeamId, threadId));
+                dispatch(setUnreadPost(currentUserId, threadId));
             }
         } else {
             select(threadId);

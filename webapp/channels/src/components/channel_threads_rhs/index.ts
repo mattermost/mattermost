@@ -7,6 +7,7 @@ import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 import {getThreadsForChannel} from 'mattermost-redux/actions/threads';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
 
@@ -31,8 +32,15 @@ function makeGetChannelThreadsTab() {
     const getGlobalItem = makeGetGlobalItemWithDefault(Tabs.ALL);
 
     return (state: GlobalState, channelId: Channel['id']) => {
+        const isCRT = isCollapsedThreadsEnabled(state);
         const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
-        return getGlobalItem(state, key);
+        const tab = getGlobalItem(state, key);
+
+        if (isCRT && tab === Tabs.FOLLOWING) {
+            return Tabs.ALL;
+        }
+
+        return tab;
     };
 }
 
@@ -85,6 +93,7 @@ function makeMapStateToProps() {
             currentTeamName: team.name,
             currentUserId,
             following,
+            isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
             isSideBarExpanded: getIsRhsExpanded(state),
             total: counts.total || 0,
             totalFollowing: counts.total_following || 0,

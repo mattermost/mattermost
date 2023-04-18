@@ -37,6 +37,7 @@ export type Props = {
     currentTeamName: Team['name'];
     currentUserId: UserProfile['id'];
     following: Array<UserThread['id']>;
+    isCollapsedThreadsEnabled: boolean;
     isSideBarExpanded: boolean;
     selected: Tabs;
     total: number;
@@ -69,11 +70,12 @@ function ChannelThreads({
     currentTeamName,
     currentUserId,
     following,
+    isCollapsedThreadsEnabled,
+    isSideBarExpanded,
+    selected,
     total,
     totalFollowing,
     totalUser,
-    isSideBarExpanded,
-    selected,
 }: Props) {
     const {formatMessage} = useIntl();
     const history = useHistory();
@@ -213,18 +215,20 @@ function ChannelThreads({
                         />
                     </Button>
                 </div>
-                <div className='tab-button-wrapper'>
-                    <Button
-                        className='Button___large Margined'
-                        isActive={selected === Tabs.FOLLOWING}
-                        onClick={makeHandleTab(Tabs.FOLLOWING)}
-                    >
-                        <FormattedMessage
-                            id='channel_threads.filters.following'
-                            defaultMessage='Following'
-                        />
-                    </Button>
-                </div>
+                {isCollapsedThreadsEnabled && (
+                    <div className='tab-button-wrapper'>
+                        <Button
+                            className='Button___large Margined'
+                            isActive={selected === Tabs.FOLLOWING}
+                            onClick={makeHandleTab(Tabs.FOLLOWING)}
+                        >
+                            <FormattedMessage
+                                id='channel_threads.filters.following'
+                                defaultMessage='Following'
+                            />
+                        </Button>
+                    </div>
+                )}
                 <div className='tab-button-wrapper'>
                     <Button
                         className='Button___large Margined'

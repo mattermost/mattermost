@@ -7,8 +7,9 @@ import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {UserThread} from '@mattermost/types/threads';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {get, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+import {setUnreadPost} from 'mattermost-redux/actions/posts';
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
@@ -57,16 +58,20 @@ function ThreadMenu({
 
     const teamName = params?.team;
 
+    const isCRT = useSelector(isCollapsedThreadsEnabled);
     const isSaved = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_FLAGGED_POST, threadId, null) != null, shallowEqual);
 
     const handleReadUnread = useCallback(() => {
-        const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
-
-        dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
-        if (hasUnreads) {
-            dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
+        if (isCRT) {
+            const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
+            dispatch(manuallyMarkThreadAsUnread(threadId, lastViewedAt));
+            if (hasUnreads) {
+                dispatch(updateThreadRead(currentUserId, currentTeamId, threadId, Date.now()));
+            } else {
+                dispatch(markLastPostInThreadAsUnread(currentUserId, currentTeamId, threadId));
+            }
         } else {
-            dispatch(markLastPostInThreadAsUnread(currentUserId, currentTeamId, threadId));
+            dispatch(setUnreadPost(currentUserId, threadId));
         }
     }, [
         currentUserId,
@@ -77,6 +82,10 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
+    const handleFollow = useCallback(() => {
+        dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
+    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow]);
+
     return (
         <MenuWrapper
             stopPropagationOnToggle={true}
@@ -86,30 +95,30 @@ function ThreadMenu({
                 ariaLabel={''}
                 openLeft={true}
             >
-                <Menu.ItemAction
-                    {...isFollowing ? {
-                        text: formatMessage({
-                            id: t('threading.threadMenu.unfollow'),
-                            defaultMessage: 'Unfollow thread',
-                        }),
-                        extraText: formatMessage({
-                            id: t('threading.threadMenu.unfollowExtra'),
-                            defaultMessage: 'You won’t be notified about replies',
-                        }),
-                    } : {
-                        text: formatMessage({
-                            id: t('threading.threadMenu.follow'),
-                            defaultMessage: 'Follow thread',
-                        }),
-                        extraText: formatMessage({
-                            id: t('threading.threadMenu.followExtra'),
-                            defaultMessage: 'You will be notified about replies',
-                        }),
-                    }}
-                    onClick={useCallback(() => {
-                        dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
-                    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow])}
-                />
+                {isCRT && (
+                    <Menu.ItemAction
+                        {...isFollowing ? {
+                            text: formatMessage({
+                                id: t('threading.threadMenu.unfollow'),
+                                defaultMessage: 'Unfollow thread',
+                            }),
+                            extraText: formatMessage({
+                                id: t('threading.threadMenu.unfollowExtra'),
+                                defaultMessage: 'You won’t be notified about replies',
+                            }),
+                        } : {
+                            text: formatMessage({
+                                id: t('threading.threadMenu.follow'),
+                                defaultMessage: 'Follow thread',
+                            }),
+                            extraText: formatMessage({
+                                id: t('threading.threadMenu.followExtra'),
+                                defaultMessage: 'You will be notified about replies',
+                            }),
+                        }}
+                        onClick={handleFollow}
+                    />
+                )}
                 <Menu.ItemAction
                     text={formatMessage({
                         id: t('threading.threadMenu.openInChannel'),
