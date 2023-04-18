@@ -145,7 +145,7 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
         const {formatMessage} = this.props.intl;
         return (
             <ListModal
-                titleText={formatMessage({id: 'groups', defaultMessage: '{channel} Groups'}, {channel: this.props.channel.display_name})}
+                titleText={formatMessage({id: 'channel_groups', defaultMessage: '{channel} Groups'}, {channel: this.props.channel.display_name})}
                 searchPlaceholderText={formatMessage({id: 'manage_channel_groups_modal.search_placeholder', defaultMessage: 'Search groups'})}
                 renderRow={this.renderRow}
                 loadItems={this.loadItems}
