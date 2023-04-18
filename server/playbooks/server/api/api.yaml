@@ -584,7 +584,7 @@ paths:
       x-codeSamples:
         - lang: curl
           source: |
-            curl -X GET 'http://localhost:8065/plugins/playbooks/api/v0/runs/1igmynxs77ywmcbwbsujzktter/details' \
+            curl -X GET 'http://localhost:8065/plugins/playbooks/api/v0/runs/1igmynxs77ywmcbwbsujzktter/metadata' \
             -H 'Authorization: Bearer 9g64ig7q9pds8yjz8rsgd6e36e'
       responses:
         200:
