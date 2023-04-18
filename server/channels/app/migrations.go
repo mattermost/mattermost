@@ -566,7 +566,8 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 	}
 
 	license := s.License()
-	if model.BuildEnterpriseReady == "false" || license == nil || !*license.Features.Elasticsearch {
+	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
+		mlog.Info("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
 		return
 	}
 
