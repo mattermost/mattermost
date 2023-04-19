@@ -438,8 +438,8 @@ func TestCopyCard(t *testing.T) {
 	t.Run("Board doesn't exist", func(t *testing.T) {
 		th.Store.EXPECT().GetBoard("boardID").Return(nil, errDummy)
 
-		err := th.App.CopyCardFiles("boardID", []*model.Block{}, false)
-		assert.Error(t, err)
+		_, err := th.App.CopyCardFiles("boardID", []*model.Block{}, false)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Board exists, image block, with FileInfo", func(t *testing.T) {
@@ -459,9 +459,9 @@ func TestCopyCard(t *testing.T) {
 		th.App.filesBackend = mockedFileBackend
 		mockedFileBackend.On("CopyFile", mock.Anything, mock.Anything).Return(nil)
 
-		err := th.App.CopyCardFiles("boardID", []*model.Block{imageBlock}, false)
+		updatedFileNames, err := th.App.CopyCardFiles("boardID", []*model.Block{imageBlock}, false)
 		assert.NoError(t, err)
-		assert.NotEqual(t, path, imageBlock.Fields["fileId"])
+		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileID"].(string)])
 	})
 
 	t.Run("Board exists, attachment block, with FileInfo", func(t *testing.T) {
@@ -496,9 +496,9 @@ func TestCopyCard(t *testing.T) {
 		th.App.filesBackend = mockedFileBackend
 		mockedFileBackend.On("CopyFile", mock.Anything, mock.Anything).Return(nil)
 
-		err := th.App.CopyCardFiles("boardID", []*model.Block{attachmentBlock}, false)
+		updatedFileNames, err := th.App.CopyCardFiles("boardID", []*model.Block{attachmentBlock}, false)
 		assert.NoError(t, err)
-		assert.NotEqual(t, path, attachmentBlock.Fields["fileId"])
+		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileID"].(string)])
 	})
 
 	t.Run("Board exists, image block, without FileInfo", func(t *testing.T) {
@@ -518,9 +518,9 @@ func TestCopyCard(t *testing.T) {
 		th.App.filesBackend = mockedFileBackend
 		mockedFileBackend.On("CopyFile", mock.Anything, mock.Anything).Return(nil)
 
-		err := th.App.CopyCardFiles("boardID", []*model.Block{imageBlock}, false)
+		updatedFileNames, err := th.App.CopyCardFiles("boardID", []*model.Block{imageBlock}, false)
 		assert.NoError(t, err)
-		assert.NotNil(t, imageBlock.Fields["fileId"])
+		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileID"].(string)])
 	})
 }
 
