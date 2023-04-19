@@ -1433,6 +1433,10 @@ func TestPushNotificationRace(t *testing.T) {
 
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
+	// Playbooks DB job requires a plugin mock
+	pluginStore := mocks.PluginStore{}
+	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	mockStore.On("Plugin").Return(&pluginStore)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get",
 		mock.AnythingOfType("string"),
@@ -1445,10 +1449,12 @@ func TestPushNotificationRace(t *testing.T) {
 		Router:   mux.NewRouter(),
 	}
 	var err error
-	s.platform, err = platform.New(platform.ServiceConfig{
-		ConfigStore: memoryStore,
-	}, platform.SetFileStore(&fmocks.FileBackend{}))
-	s.SetStore(mockStore)
+	s.platform, err = platform.New(
+		platform.ServiceConfig{
+			ConfigStore: memoryStore,
+		},
+		platform.SetFileStore(&fmocks.FileBackend{}),
+		platform.StoreOverride(mockStore))
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:            s,
