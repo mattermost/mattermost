@@ -71,9 +71,6 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
                 formattedButtonText={formattedButtonText}
                 buttonHandler={props.onClose}
             />
-            <div className='background-svg'>
-                <BackgroundSvg/>
-            </div>
         </div>
     );
 }
