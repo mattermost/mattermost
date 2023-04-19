@@ -17,7 +17,8 @@ import DatePicker from 'components/date_picker';
 import Menu from 'components/widgets/menu/menu';
 import Timestamp from 'components/timestamp';
 import {getCurrentLocale} from 'selectors/i18n';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 

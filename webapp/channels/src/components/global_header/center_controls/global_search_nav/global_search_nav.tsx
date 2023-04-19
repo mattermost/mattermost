@@ -17,7 +17,7 @@ import {
     Constants,
     RHSStates,
 } from 'utils/constants';
-import * as Utils from 'utils/utils';
+import * as Keyboard from 'utils/keyboard';
 
 const GlobalSearchNav = (): JSX.Element => {
     const dispatch = useDispatch();
@@ -25,8 +25,8 @@ const GlobalSearchNav = (): JSX.Element => {
 
     useEffect(() => {
         const handleShortcut = (e: KeyboardEvent) => {
-            if (Utils.cmdOrCtrlPressed(e) && e.shiftKey) {
-                if (Utils.isKeyPressed(e, Constants.KeyCodes.M)) {
+            if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey) {
+                if (Keyboard.isKeyPressed(e, Constants.KeyCodes.M)) {
                     e.preventDefault();
                     if (rhsState === RHSStates.MENTION) {
                         dispatch(closeRightHandSide());
