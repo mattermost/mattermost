@@ -4,10 +4,9 @@
 import {ActionFunc} from 'mattermost-redux/types/actions';
 import {getTeamByName, selectTeam} from 'mattermost-redux/actions/teams';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
-import {fetchMyChannelsAndMembersREST} from 'mattermost-redux/actions/channels';
 import {getGroups, getAllGroupsAssociatedToChannelsInTeam, getAllGroupsAssociatedToTeam, getGroupsByUserIdPaginated} from 'mattermost-redux/actions/groups';
 import {logError} from 'mattermost-redux/actions/errors';
-import {isCustomGroupsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
@@ -15,7 +14,6 @@ import {isSuccess} from 'types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
-import {fetchChannelsAndMembers} from 'actions/channel_actions';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -29,19 +27,6 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
         const state = getState();
         const currentUser = getCurrentUser(state);
         LocalStorageStore.setPreviousTeamId(currentUser.id, team.id);
-
-        const graphQLEnabled = isGraphQLEnabled(state);
-        try {
-            if (graphQLEnabled) {
-                await dispatch(fetchChannelsAndMembers(team.id));
-            } else {
-                await dispatch(fetchMyChannelsAndMembersREST(team.id));
-            }
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
-        }
 
         dispatch(loadStatusesForChannelAndSidebar());
 
