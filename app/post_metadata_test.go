@@ -1709,6 +1709,21 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
+		"test with denied domain as username, password": {
+			Input:             "link as http://example.com:example.com@example1.com/link1",
+			ExpectedFirstLink: "http://example.com:example.com@example1.com/link1",
+			ExpectedImages:    []string{},
+		},
+		"test with URL encoded": {
+			Input:             "link as https://example%E3%80%82com/link1",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"test with unicode": {
+			Input:             "link as https://example。com/link1",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
 	} {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.RestrictLinkPreviews = "example.com, test.com"

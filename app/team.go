@@ -199,12 +199,6 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 	return rteam, nil
 }
 
-func (a *App) normalizeDomains(domains string) []string {
-	// commas and @ signs are optional
-	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
-}
-
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
 	if err != nil {
