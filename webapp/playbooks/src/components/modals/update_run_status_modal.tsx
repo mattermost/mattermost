@@ -1,7 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps, useMemo, useState} from 'react';
+import React, {
+    ComponentProps,
+    ReactNode,
+    useMemo,
+    useState,
+} from 'react';
 import {Link} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -205,7 +210,7 @@ const UpdateRunStatusModal = ({
         }
         const followersChannelCount = run?.followers?.length ?? 0;
 
-        const OverviewLink = (...chunks: string[]) => (
+        const OverviewLink = (...chunks: string[]): ReactNode => (
             <Link
                 data-testid='run-overview-link'
                 to={pluginUrl(`/runs/${playbookRunId}?from=status_modal`)}

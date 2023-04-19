@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/sqlstore"
 	"github.com/mgdelacroix/foundation"
 	"github.com/stretchr/testify/require"
 )

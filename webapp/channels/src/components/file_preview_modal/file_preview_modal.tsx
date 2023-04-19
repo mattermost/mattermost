@@ -12,6 +12,7 @@ import {Post} from '@mattermost/types/posts';
 import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 import LoadingImagePreview from 'components/loading_image_preview';
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview from 'components/code_preview';
@@ -115,9 +116,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleKeyPress = (e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, KeyCodes.RIGHT)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.RIGHT)) {
             this.handleNext();
-        } else if (Utils.isKeyPressed(e, KeyCodes.LEFT)) {
+        } else if (Keyboard.isKeyPressed(e, KeyCodes.LEFT)) {
             this.handlePrev();
         }
     };
