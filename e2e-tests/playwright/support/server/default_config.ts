@@ -532,6 +532,7 @@ const defaultServerConfig: AdminConfig = {
         EnableRemoteClusterService: false,
         EnableAppBar: false,
         PatchPluginsReactDOM: false,
+        DisableRefetchingOnBrowserFocus: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,

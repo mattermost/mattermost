@@ -38,6 +38,7 @@ export type ClientConfig = {
     DefaultTheme: string;
     DiagnosticId: string;
     DiagnosticsEnabled: string;
+    DisableRefetchingOnBrowserFocus: string;
     EmailLoginButtonBorderColor: string;
     EmailLoginButtonColor: string;
     EmailLoginButtonTextColor: string;
@@ -729,6 +730,7 @@ export type ExperimentalSettings = {
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
     PatchPluginsReactDOM: boolean;
+    DisableRefetchingOnBrowserFocus: boolean;
 };
 
 export type AnalyticsSettings = {
