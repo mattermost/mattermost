@@ -5,6 +5,10 @@ import React, {ComponentProps} from 'react';
 import {set} from 'lodash';
 import {shallow} from 'enzyme';
 
+import {Preferences} from 'mattermost-redux/constants';
+import {setUnreadPost} from 'mattermost-redux/actions/posts';
+jest.mock('mattermost-redux/actions/posts');
+
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
 jest.mock('mattermost-redux/actions/threads');
 
@@ -59,7 +63,22 @@ describe('components/threading/common/thread_menu', () => {
             routing: mockRouting as unknown as ThreadRouting,
         };
 
-        mockState = {entities: {preferences: {myPreferences: {}}}} as GlobalState;
+        mockState = {
+            entities: {
+                general: {
+                    config: {
+                        CollapsedThreads: 'default_off',
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.COLLAPSED_REPLY_THREADS}`]: {
+                            value: 'on',
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
     });
 
     test('should match snapshot', () => {
@@ -194,5 +213,56 @@ describe('components/threading/common/thread_menu', () => {
         expect(copyToClipboard).toHaveBeenCalledWith('http://localhost:8065/team-name-1/pl/1y8hpek81byspd4enyk9mp1ncw');
         expect(mockDispatch).not.toHaveBeenCalled();
     });
-});
 
+    describe('CRT - off', () => {
+        beforeEach(() => {
+            set(mockState, 'entities.preferences.myPreferences', {
+                [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.COLLAPSED_REPLY_THREADS}`]: {
+                    value: 'off',
+                },
+            });
+        });
+
+        test('should not allow following', () => {
+            const wrapper = shallow(
+                <ThreadMenu
+                    {...props}
+                    isFollowing={false}
+                />,
+            );
+            wrapper.find('button').simulate('click');
+            expect(wrapper.find(Menu.ItemAction).find({text: 'Follow thread'}).exists()).toBe(false);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
+
+        test('should not allow unfollowing', () => {
+            const wrapper = shallow(
+                <ThreadMenu
+                    {...props}
+                    isFollowing={true}
+                />,
+            );
+            wrapper.find('button').simulate('click');
+            expect(wrapper.find(Menu.ItemAction).find({text: 'Unfollow thread'}).exists()).toBe(false);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
+
+        test('should allow marking as unread', () => {
+            const wrapper = shallow(
+                <ThreadMenu
+                    {...props}
+                    hasUnreads={false}
+                />,
+            );
+
+            wrapper.find('button').simulate('click');
+            wrapper.find(Menu.ItemAction).find({text: 'Mark as unread'}).simulate('click');
+
+            expect(updateThreadRead).not.toHaveBeenCalled();
+            expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
+            expect(manuallyMarkThreadAsUnread).not.toHaveBeenCalled();
+            expect(setUnreadPost).toHaveBeenCalledWith('uid', '1y8hpek81byspd4enyk9mp1ncw');
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
+    });
+});

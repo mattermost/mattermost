@@ -128,6 +128,7 @@ describe('components/threading/ThreadViewer', () => {
             id: 'id',
             last_viewed_at: 42,
             last_reply_at: 32,
+            is_following: true,
         } as UserThread;
 
         shallow(
@@ -151,6 +152,7 @@ describe('components/threading/ThreadViewer', () => {
             id: 'id',
             last_viewed_at: 42,
             last_reply_at: 142,
+            is_following: true,
         } as UserThread;
 
         shallow(
@@ -177,6 +179,7 @@ describe('components/threading/ThreadViewer', () => {
             id: 'id',
             last_viewed_at: 42,
             last_reply_at: 142,
+            is_following: true,
         } as UserThread;
 
         const wrapper = shallow(
@@ -201,6 +204,30 @@ describe('components/threading/ThreadViewer', () => {
             Date.now = dateNowOrig;
             done();
         });
+    });
+
+    test('should not call updateThreadLastOpened and updateThreadRead on mount thread is not followed', () => {
+        jest.useFakeTimers('modern').setSystemTime(400);
+        const {actions} = baseProps;
+        const userThread = {
+            id: 'id',
+            last_viewed_at: 42,
+            last_reply_at: 142,
+            is_following: false,
+        } as UserThread;
+
+        shallow(
+            <ThreadViewer
+                {...baseProps}
+                userThread={userThread}
+                isCollapsedThreadsEnabled={true}
+            />,
+        );
+
+        expect.assertions(3);
+        expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
+        expect(actions.updateThreadRead).not.toHaveBeenCalled();
+        expect(actions.getThread).not.toHaveBeenCalled();
     });
 
     test('should call fetchRHSAppsBindings on mount if appsEnabled', () => {

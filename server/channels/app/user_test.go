@@ -1717,7 +1717,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		mockUserStore.On("Get", mock.Anything, "user1").Return(&model.User{Id: "user1"}, nil)
 
 		mockThreadStore := storemocks.ThreadStore{}
-		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, errors.New("error"))
+		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, false, errors.New("error"))
 
 		var err error
 		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
