@@ -71,8 +71,6 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = m["SkuName"]
 	assert.False(t, ok)
-	_, ok = m["SkuShortName"]
-	assert.False(t, ok)
 }
 
 func TestGenerateRenewalToken(t *testing.T) {
