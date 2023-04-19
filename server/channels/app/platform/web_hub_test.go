@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
 	"time"
 
@@ -16,11 +17,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	platform_mocks "github.com/mattermost/mattermost-server/v6/server/channels/app/platform/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	platform_mocks "github.com/mattermost/mattermost-server/server/v8/channels/app/platform/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -81,6 +82,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
 	th := Setup(t).InitBasic()
+	defer th.Service.Store.Close()
 	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
 	// Making it idempotent is not really important to the server because close only happens once.
 	// So we just use this quick hack for the test.
@@ -537,6 +539,42 @@ func BenchmarkHubConnIndex(b *testing.B) {
 			connIndex.Remove(wc2)
 		}
 	})
+}
+
+func TestHubConnIndexRemoveMemLeak(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(1 * time.Second)
+
+	wc := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+	}
+	wc.SetConnectionID(model.NewId())
+	wc.SetSession(&model.Session{})
+
+	ch := make(chan struct{})
+
+	runtime.SetFinalizer(wc, func(*WebConn) {
+		close(ch)
+	})
+
+	connIndex.Add(wc)
+	connIndex.Remove(wc)
+
+	runtime.GC()
+
+	timer := time.NewTimer(3 * time.Second)
+	defer timer.Stop()
+
+	select {
+	case <-ch:
+	case <-timer.C:
+		require.Fail(t, "timeout waiting for collection of wc")
+	}
+
+	assert.Len(t, connIndex.byConnection, 0)
 }
 
 var hubSink *Hub

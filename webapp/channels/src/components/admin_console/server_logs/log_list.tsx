@@ -46,21 +46,21 @@ export default class LogList extends React.PureComponent<Props, State> {
 
     isSearching = (term: string, filters: ChannelSearchOpts) => {
         return term.length > 0 || Object.keys(filters).length > 0;
-    }
+    };
 
     onSearch = (term: string) => {
         this.props.onSearchChange(term);
-    }
+    };
 
     nextPage = () => {
         const page = this.state.page + 1;
         this.setState({page});
-    }
+    };
 
     previousPage = () => {
         const page = this.state.page - 1;
         this.setState({page});
-    }
+    };
 
     getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
         const {page} = this.state;
@@ -73,12 +73,12 @@ export default class LogList extends React.PureComponent<Props, State> {
         endCount = endCount > total ? total : endCount;
 
         return {startCount, endCount, total};
-    }
+    };
 
     handleDateSort = () => {
         this.setState({dateAsc: !this.state.dateAsc});
         this.getColumns(this.state.dateAsc);
-    }
+    };
 
     getColumns = (dateAsc: boolean): Column[] => {
         const timestamp: JSX.Element = (
@@ -95,7 +95,7 @@ export default class LogList extends React.PureComponent<Props, State> {
         );
         const level: JSX.Element = (
             <FormattedMessage
-                id='admin.log.logLevel'
+                id='admin.log.Level'
                 defaultMessage='Level'
             />
         );
@@ -155,7 +155,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                 width: 1,
             },
         ];
-    }
+    };
 
     getRows = (): Row[] => {
         const {startCount, endCount} = this.getPaginationProps();
@@ -219,21 +219,21 @@ export default class LogList extends React.PureComponent<Props, State> {
                 onClick: () => this.showFullLogEvent(log),
             };
         });
-    }
+    };
 
     showFullLogEvent = (log: LogObject) => {
         this.setState({
             modalLog: log,
             modalOpen: true,
         });
-    }
+    };
 
     hideModal = () => {
         this.setState({
             modalLog: null,
             modalOpen: false,
         });
-    }
+    };
 
     onFilter = (filterOptions: FilterOptions) => {
         const filters = {} as unknown as LogFilter;
@@ -249,17 +249,17 @@ export default class LogList extends React.PureComponent<Props, State> {
             }, []);
         }
         this.props.onFiltersChange(filters);
-    }
+    };
 
     showErrors = () => {
         this.props.onFiltersChange({logLevels: ['error']} as unknown as LogFilter);
-    }
+    };
 
     getErrorCount = (): number => {
         let n = 0;
         this.props.logs.map((log) => log.level === 'error' && ++n);
         return n;
-    }
+    };
 
     render = (): JSX.Element => {
         const {search} = this.props;
@@ -377,5 +377,5 @@ export default class LogList extends React.PureComponent<Props, State> {
                 />
             </div>
         );
-    }
+    };
 }

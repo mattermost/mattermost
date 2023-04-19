@@ -109,7 +109,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
     };
 }
 
-export function searchMoreChannels(term: string, showArchivedChannels: boolean, hideJoinedChannels: boolean): ActionFunc<Channel[], ServerError> {
+export function searchMoreChannels(term: string, showArchivedChannels: boolean): ActionFunc<Channel[], ServerError> {
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
@@ -121,7 +121,9 @@ export function searchMoreChannels(term: string, showArchivedChannels: boolean, 
         const {data, error} = await dispatch(ChannelActions.searchChannels(teamId, term, showArchivedChannels));
         if (data) {
             const myMembers = getMyChannelMemberships(state);
-            const channels = hideJoinedChannels ? (data as Channel[]).filter((channel) => !myMembers[channel.id]) : data;
+
+            // When searching public channels, only get channels user is not a member of
+            const channels = showArchivedChannels ? data : (data as Channel[]).filter((c) => !myMembers[c.id]);
             return {data: channels};
         }
 
@@ -252,24 +254,21 @@ export function fetchChannelsAndMembers(teamId: Team['id'] = ''): ActionFunc<{ch
                 teamId,
                 data: channels,
             });
-            actions.push({
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelMembers,
-            });
-            actions.push({
-                type: RoleTypes.RECEIVED_ROLES,
-                data: roles,
-            });
         } else {
             actions.push({
                 type: ChannelTypes.RECEIVED_ALL_CHANNELS,
                 data: channels,
             });
-            actions.push({
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelMembers,
-            });
         }
+
+        actions.push({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+            data: channelMembers,
+        });
+        actions.push({
+            type: RoleTypes.RECEIVED_ROLES,
+            data: roles,
+        });
 
         await dispatch(batchActions(actions));
 

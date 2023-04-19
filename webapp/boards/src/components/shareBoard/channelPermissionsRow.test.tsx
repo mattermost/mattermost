@@ -17,13 +17,11 @@ import client from 'src/octoClient'
 
 import ChannelPermissionsRow from './channelPermissionsRow'
 
-jest.useFakeTimers()
-
 const boardId = '1'
 
 jest.mock('src/octoClient')
 
-const mockedOctoClient = mocked(client, true)
+const mockedOctoClient = mocked(client)
 
 const board = TestBlockFactory.createBoard()
 board.id = boardId
@@ -126,7 +124,7 @@ describe('src/components/shareBoard/channelPermissionsRow', () => {
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })
@@ -173,7 +171,7 @@ describe('src/components/shareBoard/channelPermissionsRow', () => {
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })
@@ -204,7 +202,7 @@ describe('src/components/shareBoard/channelPermissionsRow', () => {
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })

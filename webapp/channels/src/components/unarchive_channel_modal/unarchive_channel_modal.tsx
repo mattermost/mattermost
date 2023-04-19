@@ -38,11 +38,11 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
         }
         this.props.actions.unarchiveChannel(this.props.channel.id);
         this.onHide();
-    }
+    };
 
     onHide = (): void => {
         this.setState({show: false});
-    }
+    };
 
     render(): JSX.Element {
         return (

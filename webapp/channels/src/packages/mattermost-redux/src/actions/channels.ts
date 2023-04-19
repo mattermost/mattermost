@@ -4,11 +4,22 @@
 import {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import {ServerError} from '@mattermost/types/errors';
+import {
+    Channel,
+    ChannelNotifyProps,
+    ChannelMembership,
+    ChannelModerationPatch,
+    ChannelsWithTotalCount,
+    ChannelSearchOpts,
+    ServerChannel,
+} from '@mattermost/types/channels';
+import {PreferenceType} from '@mattermost/types/preferences';
+
 import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {General, Preferences} from '../constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {MarkUnread} from 'mattermost-redux/constants/channels';
 
@@ -20,17 +31,14 @@ import {
     getRedirectChannelNameForTeam,
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getServerVersion} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
-import {Channel, ChannelNotifyProps, ChannelMembership, ChannelModerationPatch, ChannelsWithTotalCount, ChannelSearchOpts} from '@mattermost/types/channels';
+import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 
-import {PreferenceType} from '@mattermost/types/preferences';
-
-import {getChannelsIdForTeam, getChannelByName} from 'mattermost-redux/utils/channel_utils';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+import {General, Preferences} from '../constants';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
@@ -460,52 +468,33 @@ export function getChannelTimezones(channelId: string): ActionFunc {
     };
 }
 
-export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc {
+export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        dispatch({
-            type: ChannelTypes.CHANNELS_REQUEST,
-            data: null,
-        });
-
         let channels;
         let channelMembers;
-        const state = getState();
-        const shouldFetchArchived = isMinimumServerVersion(getServerVersion(state), 5, 21);
         try {
             [channels, channelMembers] = await Promise.all([
-                Client4.getMyChannels(teamId, shouldFetchArchived),
+                Client4.getMyChannels(teamId),
                 Client4.getMyChannelMembers(teamId),
             ]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: ChannelTypes.CHANNELS_FAILURE, error});
             dispatch(logError(error));
-            return {error};
+            return {error: error as ServerError};
         }
-
-        const {currentUserId} = state.entities.users;
-        const {currentChannelId} = state.entities.channels;
 
         dispatch(batchActions([
             {
                 type: ChannelTypes.RECEIVED_CHANNELS,
                 teamId,
                 data: channels,
-                currentChannelId,
-            },
-            {
-                type: ChannelTypes.CHANNELS_SUCCESS,
             },
             {
                 type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
                 data: channelMembers,
-                sync: !shouldFetchArchived,
-                channels,
-                remove: getChannelsIdForTeam(state, teamId),
-                currentUserId,
-                currentChannelId,
             },
         ]));
+
         const roles = new Set<string>();
         for (const member of channelMembers) {
             for (const role of member.roles.split(' ')) {
@@ -516,7 +505,7 @@ export function fetchMyChannelsAndMembersREST(teamId: string): ActionFunc {
             dispatch(loadRolesIfNeeded(roles));
         }
 
-        return {data: {channels, members: channelMembers}};
+        return {data: {channels, channelMembers}};
     };
 }
 
@@ -1074,11 +1063,11 @@ export function searchGroupChannels(term: string): ActionFunc {
     });
 }
 
-export function getChannelStats(channelId: string): ActionFunc {
+export function getChannelStats(channelId: string, excludeFilesCount?: boolean): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let stat;
         try {
-            stat = await Client4.getChannelStats(channelId);
+            stat = await Client4.getChannelStats(channelId, excludeFilesCount);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

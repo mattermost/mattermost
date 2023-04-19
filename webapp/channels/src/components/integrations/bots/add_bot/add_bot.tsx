@@ -138,37 +138,37 @@ export default class AddBot extends React.PureComponent<Props, State> {
         this.setState({
             username: e.target.value,
         });
-    }
+    };
 
     updateDisplayName = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             displayName: e.target.value,
         });
-    }
+    };
 
     updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateRole = (e: ChangeEvent<HTMLSelectElement>) => {
         this.setState({
             role: e.target.value,
         });
-    }
+    };
 
     updatePostAll = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             postAll: e.target.checked,
         });
-    }
+    };
 
     updatePostChannels = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             postChannels: e.target.checked,
         });
-    }
+    };
 
     updatePicture = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -191,11 +191,11 @@ export default class AddBot extends React.PureComponent<Props, State> {
         } else {
             this.setState({pictureFile: null, image: ''});
         }
-    }
+    };
 
     setDefault = () => {
         this.setState({pictureFile: 'default', image: BotDefaultIcon});
-    }
+    };
 
     isFile(file: File | string): file is File {
         return (file as File).size !== undefined;
@@ -218,7 +218,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
         }
 
         return null;
-    }
+    };
 
     handleSubmit = async (e: FormEvent<HTMLButtonElement | HTMLFormElement>) => {
         e.preventDefault();
@@ -249,6 +249,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         />
                     ),
                 });
+                return;
             } else if (this.state.pictureFile.size > this.props.maxFileSize) {
                 this.setState({
                     error: (
@@ -258,6 +259,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         />
                     ),
                 });
+                return;
             }
         }
 
@@ -320,7 +322,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         error: (
                             <FormattedMessage
                                 id='bots.manage.add.invalid_username'
-                                defaultMessage='Usernames must begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.'
+                                defaultMessage='Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.'
                             />
                         ),
                     };
@@ -376,12 +378,12 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 error: error.message,
             });
         }
-    }
+    };
 
     render() {
         let subtitle = (
             <FormattedMessage
-                id='bots.manage.add'
+                id='bots.manage.add.add'
                 defaultMessage='Add'
             />
         );
@@ -628,7 +630,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         <div className='row bot-profile__section'>
                             <div className='col-md-5 col-sm-8 col-sm-offset-4'>
                                 <FormattedMessage
-                                    id='admin.manage_roles.additionalRoles'
+                                    id='admin.manage_roles.botAdditionalRoles'
                                     defaultMessage='Select additional permissions for the account. <link>Read more about roles and permissions</link>.'
                                     values={{
                                         link: (msg: React.ReactNode) => (

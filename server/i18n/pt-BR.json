@@ -3140,10 +3140,6 @@
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch já está iniciado."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Erro ao criar o bulk processor do Elastisearch."
   },
@@ -8618,18 +8614,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Administrador já notificado"
-  },
-  {
-    "id": "Channels",
-    "translation": "Canais"
-  },
-  {
-    "id": "Boards",
-    "translation": "Quadros"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooks"
   },
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",

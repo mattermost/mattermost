@@ -3132,10 +3132,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "ElasticSearch 已启动。"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "创建 Elasticsearch 批量处理器失败。"
   },
@@ -9000,38 +8996,6 @@
     "translation": "SAML的请求信息太长"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "解锁这些令人敬佩的、提高生产力的功能"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "嗨, {{.Name}}, 我们注意到您的 Mattermost 服务器集了一些“灰尘”（有一段时间没有维护了），快来看看可以帮助减轻团队工作量的一些功能."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "快来打开 Mattermost 以提高您团队的生产力！"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "管理任务由 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "工作流管理于 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "指定客户专访 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "快来看看吧!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "打开 Mattermost"
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
   },
@@ -9128,18 +9092,6 @@
     "translation": "统计“组”时出现错误"
   },
   {
-    "id": "Playbooks",
-    "translation": "规划书"
-  },
-  {
-    "id": "Channels",
-    "translation": "频道"
-  },
-  {
-    "id": "Boards",
-    "translation": "面板"
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID 的最大长度为 32 个字符。"
   },
@@ -9170,10 +9122,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "Insights 功能已禁用。"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9505,7 +9453,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "产品团队"
+    "translation": "产品"
   },
   {
     "id": "worktemplate.category.leadership",
@@ -9513,7 +9461,7 @@
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9688,10 +9636,6 @@
     "translation": "无法取得消息的优先级"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "在生产模式中无法启用 {{.Name}} 插件。"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "无法发送通知消息。"
   },
@@ -9718,10 +9662,6 @@
   {
     "id": "app.file.cloud.get.app_error",
     "translation": "由于云订阅的限制，无法取得文件。"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "无法更新草稿。"
   },
   {
     "id": "app.draft.save.app_error",
@@ -9858,5 +9798,293 @@
   {
     "id": "api.command_templates.unsupported.app_error",
     "translation": "您的设备不支持模板命令。"
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "状态更新"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "更新状态"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "下次更新的提醒"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "other": "为利益相关者提供一次更新提醒。这条提醒将被广播到{{.Count}} 个频道。"
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "并且标记此运行为已结束"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "结束运行"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "对比上次存在更改"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{{.Username}} 启用了对 [{{.RunName}}]({{.RunURL}})的状态更新"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} 停止用了 [{{.RunName}}]({{.RunURL}})的状态更新。"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here — @{{.Name}} 请求对 [{{.RunName}}]({{.RunURL}}) 进行状态更新。 \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} 是一个运行的参与者，并且希望要参加这个频道。任何的频道成员都可以邀请他们。\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "确认完成运行"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "完成运行"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "other": "一共有 **{{.Count}} 未完成的任务**. 您确定想为所有的参与者结束*{{.RunName}}*吗？"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "添加到运行队列"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "时间表里显示的简单概要"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "最大64个字符"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "概要"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "添加到运行队列"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Playbook运行"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "添加新任务"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "添加任务"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "名字"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "描述"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "运行playbook"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "开始运行"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "运行名"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**所有者** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "您没有任务。"
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "other": "您有 {{.Count}} 个任务现在已经逾期："
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "other": "您一共有{{.Count}}个任务："
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "您的任务"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "于昨天过期"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "{{.Count}}天已过期"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "将于今天过期"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "other": "{{.Count}}天后过期"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "other": "您有 **{{.Count}} 项目任务今天之后将要过期**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "请使用`/playbook todo`来查看您所有的任务。"
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "您有0项正在运行。"
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "other": "您有{{.Count}}正在运行："
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "正在运行"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "您没有逾期。"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "other": "您有 {{.Count}} 过期需要状态更新："
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "过期状态更新"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "不能删除oauth认证信息。"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "无法执行命令。"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "联系销售"
+  },
+  {
+    "id": "api.license.true_up_review.not_allowed_for_cloud",
+    "translation": "云实例不允许真实性评估"
+  },
+  {
+    "id": "api.license.true_up_review.license_required",
+    "translation": "真实性评估需要许可证"
+  },
+  {
+    "id": "api.license.true_up_review.get_status_error",
+    "translation": "无法获取真实的状态记录"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "无法创建真实的状态记录"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "无效的商务试用邮箱"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "通过集成大多您使用过的工具（比如 GitHub）在您的频道里提高生产力，实现你的功能发布。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "在一个频道与你的团队讨论任何的发布障碍和变动，并很容易的与你的面板，Playbook或者其他的集成功能连接。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "使用会议安排面板保持会议一起正常。使用项目任务面板管理你的工作量。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "通过集成大多您使用过的工具（比如Jira）在您的频道里提高生产力，跟踪你的Bug解决过程。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "在一单独频道与您的团队讨论优先级、添加利益相关者，提供更新，向解决的方向努力。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "使用事故解决面板来实现重复性的流程和分配跨越整个团队的任务。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "通过集成大多您使用过的工具在您的频道里提高生产力。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "与您的团队在一个协作频道里讨论新的项目并且决定如何你们将如此组织。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "使用看板面板定义和跟踪您的项目任务列表和进度。"
   }
 ]

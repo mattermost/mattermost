@@ -9,15 +9,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
 )
 
 func TestGetSiteStats(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("get sites stats", func(t *testing.T) {
@@ -50,8 +49,7 @@ func TestGetSiteStats(t *testing.T) {
 }
 
 func TestPlaybookKeyMetricsStats(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("3 runs with published metrics, 2 runs without publishing", func(t *testing.T) {
