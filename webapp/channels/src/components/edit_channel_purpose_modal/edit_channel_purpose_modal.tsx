@@ -9,6 +9,7 @@ import {Channel} from '@mattermost/types/channels';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 type Actions = {
@@ -68,10 +69,10 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.preventDefault();
             this.setState({purpose: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>)});
-        } else if (ctrlSend && Utils.isKeyPressed(e, Constants.KeyCodes.ENTER) && e.ctrlKey) {
+        } else if (ctrlSend && Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && e.ctrlKey) {
             e.preventDefault();
             this.handleSave();
-        } else if (!ctrlSend && Utils.isKeyPressed(e, Constants.KeyCodes.ENTER) && !e.shiftKey && !e.altKey) {
+        } else if (!ctrlSend && Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             this.handleSave();
         }

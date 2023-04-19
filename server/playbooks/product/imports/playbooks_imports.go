@@ -6,5 +6,5 @@ package imports
 import (
 	// Needed to ensure the init() method in the Playbooks product is run.
 	// This file is copied to the mmserver imports package via makefile.
-	_ "github.com/mattermost/mattermost-server/v6/server/playbooks/product"
+	_ "github.com/mattermost/mattermost-server/server/v8/playbooks/product"
 )
