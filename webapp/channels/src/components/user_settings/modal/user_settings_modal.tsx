@@ -15,6 +15,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {StatusOK} from '@mattermost/types/client4';
 import store from 'stores/redux_store.jsx';
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import ConfirmModal from 'components/confirm_modal';
@@ -128,7 +129,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 this.setState({resendStatus: 'failure'});
             }
         });
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeyDown);
@@ -146,11 +147,11 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.A)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
             this.handleHide();
         }
-    }
+    };
 
     // Called when the close button is pressed on the main modal
     handleHide = () => {
@@ -162,7 +163,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         this.setState({
             show: false,
         });
-    }
+    };
 
     // called after the dialog is fully hidden and faded out
     handleHidden = () => {
@@ -171,7 +172,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             active_section: '',
         });
         this.props.onExited();
-    }
+    };
 
     // Called to hide the settings pane when on mobile
     handleCollapse = () => {
@@ -182,7 +183,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             active_tab: '',
             active_section: '',
         });
-    }
+    };
 
     handleConfirm = () => {
         this.setState({
@@ -197,7 +198,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             this.afterConfirm();
             this.afterConfirm = null;
         }
-    }
+    };
 
     handleCancelConfirmation = () => {
         this.setState({
@@ -206,7 +207,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         });
 
         this.afterConfirm = null;
-    }
+    };
 
     showConfirmModal = (afterConfirm: () => void) => {
         if (afterConfirm) {
@@ -222,7 +223,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             showConfirmModal: true,
             enforceFocus: false,
         });
-    }
+    };
 
     // Called by settings tabs when their close button is pressed
     closeModal = () => {
@@ -231,7 +232,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else {
             this.handleHide();
         }
-    }
+    };
 
     // Called by settings tabs when their back button is pressed
     collapseModal = () => {
@@ -240,7 +241,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else {
             this.handleCollapse();
         }
-    }
+    };
 
     updateTab = (tab?: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
@@ -251,7 +252,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 active_section: '',
             });
         }
-    }
+    };
 
     updateSection = (section?: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
@@ -261,7 +262,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 active_section: section ?? '',
             });
         }
-    }
+    };
 
     render() {
         const {formatMessage} = this.props.intl;

@@ -35,7 +35,7 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 import {GlobalState} from 'types/store';
 
 import {t} from 'utils/i18n';
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import WorkTemplateModal from 'components/work_templates';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
@@ -175,7 +175,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                         const errorResponse = res.error;
                         return createErrorMessage(errorResponse.text || intlShim.formatMessage({
                             id: 'apps.error.unknown',
-                            defaultMessage: 'Unknown error.',
+                            defaultMessage: 'Unknown error occurred.',
                         }));
                     }
 
@@ -201,7 +201,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                         ));
                     }
                 } catch (err: any) {
-                    return createErrorMessage(err.message || localizeMessage('apps.error.unknown', 'Unknown error.'));
+                    return createErrorMessage(err.message || localizeMessage('apps.error.unknown', 'Unknown error occurred.'));
                 }
             }
         }

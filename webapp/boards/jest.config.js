@@ -7,7 +7,7 @@ const config = {
     transform: {
         "^.+\\.(t|j)sx?$": ["@swc/jest"]
     },
-    moduleFileExtensions: [      
+    moduleFileExtensions: [
         "ts",
         "tsx",
         "js",
@@ -20,7 +20,6 @@ const config = {
         "/nanoevents/",
         "node_modules/(?!react-native|react-router|react-day-picker)"
     ],
-    maxWorkers: "80%",
     testEnvironment: "jsdom",
     collectCoverage: true,
     collectCoverageFrom: [

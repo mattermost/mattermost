@@ -3132,10 +3132,6 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearchは既に起動しています。"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした。"
   },
@@ -8984,18 +8980,6 @@
     "translation": "グループのカウント中にエラーが発生しました"
   },
   {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "チャンネル"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "既存のシステム絵文字名と名前が競合しています。"
   },
@@ -9018,38 +9002,6 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "グループ名が重複しています"
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "これらの機能による生産性の向上をアンロックする"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "{{.Name}} さん、あなたのMattermostサーバーが少し埃をかぶっていることに気づきました。チームの作業負荷を軽減するのに役立ついくつかの機能を確認してみてください。"
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Mattermostを開いてチームの生産性を向上しましょう!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "タスク管理のための "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "ワークフロー管理のための "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "ゲストアクセス可能な "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "ぜひご覧ください!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermostを開く"
   },
   {
     "id": "api.license_error",
@@ -9162,10 +9114,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearchの設定に未設定の値があります。"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "あなたの Mattermost サーバが {{.Hours}} 時間以上アクティブでなかったため、このワンタイム電子メールが送信されました。この電子メールは、Mattermost サーバによって自動的に生成されたものです。"
   },
   {
     "id": "app.recent_searches.app_error",
@@ -9500,10 +9448,6 @@
     "translation": "グループ名は予約語として既に登録されています"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "プラグイン {{.Name}} はプロダクトモードでは有効化できません。"
-  },
-  {
     "id": "app.last_accessible_file.app_error",
     "translation": "最後にアクセスしたファイルの取得エラー"
   },
@@ -9570,10 +9514,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "投稿に対する優先度を取得できませんでした"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "下書きを更新できませんでした。"
   },
   {
     "id": "app.draft.save.app_error",

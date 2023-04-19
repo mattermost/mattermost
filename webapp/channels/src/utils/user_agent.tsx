@@ -142,6 +142,10 @@ export function isMac(): boolean {
     return userAgent().indexOf('Macintosh') !== -1;
 }
 
+export function isLinux(): boolean {
+    return navigator.platform.toUpperCase().indexOf('LINUX') >= 0;
+}
+
 export function isWindows7(): boolean {
     const appVersion = navigator.appVersion;
 

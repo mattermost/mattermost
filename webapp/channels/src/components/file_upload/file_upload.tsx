@@ -12,6 +12,7 @@ import dragster from 'utils/dragster';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import {t} from 'utils/i18n';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {
     isIosChrome,
     isMobileApp,
@@ -19,8 +20,6 @@ import {
 import {getTable} from 'utils/paste';
 import {
     clearFileInput,
-    cmdOrCtrlPressed,
-    isKeyPressed,
     generateId,
     isFileTransfer,
     isUriDrop,
@@ -215,17 +214,17 @@ export class FileUpload extends PureComponent<Props, State> {
             }
             this.setState({requests});
         }
-    }
+    };
 
     fileUploadFail = (err: string | ServerError, clientId: string, channelId: string, currentRootId: string) => {
         this.props.onUploadError(err, clientId, channelId, currentRootId);
-    }
+    };
 
     pluginUploadFiles = (files: File[]) => {
         // clear any existing errors
         this.props.onUploadError('');
         this.uploadFiles(files);
-    }
+    };
 
     checkPluginHooksAndUploadFiles = (files: FileList | File[]) => {
         // clear any existing errors
@@ -248,7 +247,7 @@ export class FileUpload extends PureComponent<Props, State> {
         if (sortedFiles && sortedFiles.length) {
             this.uploadFiles(sortedFiles);
         }
-    }
+    };
 
     uploadFiles = (sortedFiles: File[]) => {
         const {channelId, rootId} = this.props;
@@ -318,7 +317,7 @@ export class FileUpload extends PureComponent<Props, State> {
         if (errors.length > 0) {
             this.props.onUploadError(errors.join(', '));
         }
-    }
+    };
 
     handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -328,7 +327,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         this.props.onFileUploadChange();
-    }
+    };
 
     handleDrop = (e: DragEvent<HTMLInputElement>) => {
         if (!this.props.canUploadFiles) {
@@ -371,7 +370,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         this.props.onFileUploadChange();
-    }
+    };
 
     registerDragEvents = (containerSelector: string, overlaySelector: string) => {
         const overlay = document.querySelector(overlaySelector);
@@ -445,7 +444,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         this.unbindDragsterEvents = dragster(containerSelector, dragsterActions);
-    }
+    };
 
     containsEventTarget = (targetElement: HTMLInputElement | null, eventTarget: EventTarget | null) => targetElement && targetElement.contains(eventTarget as Node);
 
@@ -513,7 +512,7 @@ export class FileUpload extends PureComponent<Props, State> {
                 this.props.onFileUploadChange();
             }
         }
-    }
+    };
 
     keyUpload = (e: KeyboardEvent) => {
         if (cmdOrCtrlPressed(e) && !e.shiftKey && isKeyPressed(e, Constants.KeyCodes.U)) {
@@ -531,7 +530,7 @@ export class FileUpload extends PureComponent<Props, State> {
                 this.fileInput.current?.click();
             }
         }
-    }
+    };
 
     cancelUpload = (clientId: string) => {
         const requests = Object.assign({}, this.state.requests);
@@ -543,7 +542,7 @@ export class FileUpload extends PureComponent<Props, State> {
             Reflect.deleteProperty(requests, clientId);
             this.setState({requests});
         }
-    }
+    };
 
     handleMaxUploadReached = (e: MouseEvent<HTMLInputElement>) => {
         if (e) {
@@ -554,7 +553,7 @@ export class FileUpload extends PureComponent<Props, State> {
         const {formatMessage} = this.props.intl;
 
         onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
-    }
+    };
 
     handleLocalFileUploaded = (e: MouseEvent<HTMLInputElement>) => {
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
@@ -566,13 +565,13 @@ export class FileUpload extends PureComponent<Props, State> {
             this.handleMaxUploadReached(e);
         }
         this.setState({menuOpen: false});
-    }
+    };
 
     simulateInputClick = (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
         this.fileInput.current?.click();
-    }
+    };
 
     render() {
         const {formatMessage} = this.props.intl;

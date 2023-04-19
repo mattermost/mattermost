@@ -15,10 +15,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
 )
 
 // APIs for self-hosted workspaces to communicate with the backing customer & payments system.
@@ -36,6 +36,8 @@ func (api *API) InitHostedCustomer() {
 	api.BaseRoutes.HostedCustomer.Handle("/invoices", api.APISessionRequired(selfHostedInvoices)).Methods("GET")
 	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
 	api.BaseRoutes.HostedCustomer.Handle("/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(selfHostedInvoicePDF)).Methods("GET")
+
+	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods(http.MethodPost)
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
@@ -292,4 +294,34 @@ func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
 		w,
 		r,
 	)
+}
+
+func handleSubscribeToNewsletter(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.handleSubscribeToNewsletter"
+	ensured := ensureCloudInterface(c, where)
+	if !ensured {
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	req := new(model.SubscribeNewsletterRequest)
+	err = json.Unmarshal(bodyBytes, req)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	req.ServerID = c.App.Srv().TelemetryId()
+
+	if err := c.App.Cloud().SubscribeToNewsletter("", req); err != nil {
+		c.Err = model.NewAppError(where, "api.server.cws.subscribe_to_newsletter.app_error", nil, "CWS Server failed to subscribe to newsletter.", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
 }

@@ -2869,7 +2869,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableSVGsTitle'),
                         label_default: 'Enable SVGs:',
                         help_text: t('admin.customization.enableSVGsDesc'),
-                        help_text_default: 'Enable previews for SVG file attachments and allow them to appear in messages.',
+                        help_text_default: 'Enable previews for SVG file attachments and allow them to appear in messages.\n\nEnabling SVGs is not recommended in environments where not all users are trusted.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -2878,7 +2878,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableLatexTitle'),
                         label_default: 'Enable Latex Rendering:',
                         help_text: t('admin.customization.enableLatexDesc'),
-                        help_text_default: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only.',
+                        help_text_default: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only.\n\nEnabling Latex is not recommended in environments where not all users are trusted.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -5746,7 +5746,6 @@ const AdminDefinition = {
         sectionTitle: t('admin.sidebar.products'),
         sectionTitleDefault: 'Products',
         isHidden: it.any(
-            it.configIsFalse('FeatureFlags', 'BoardsProduct'),
             it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
         ),
         boards: {
@@ -6886,6 +6885,15 @@ const AdminDefinition = {
                             ),
                         },
                         isHidden: it.licensedForFeature('Cloud'),
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
+                        label: t('admin.experimental.disableRefetchingOnBrowserFocus.title'),
+                        label_default: 'Disable data refetching on browser refocus:',
+                        help_text: t('admin.experimental.disableRefetchingOnBrowserFocus.desc'),
+                        help_text_default: 'When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },
                 ],

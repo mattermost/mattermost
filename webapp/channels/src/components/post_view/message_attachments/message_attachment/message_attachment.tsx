@@ -99,14 +99,14 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.thumb_url])) {
             this.handleHeightReceived(height);
         }
-    }
+    };
 
     handleHeightReceivedForImageUrl = ({height}: {height: number}) => {
         const {attachment} = this.props;
         if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.image_url])) {
             this.handleHeightReceived(height);
         }
-    }
+    };
 
     handleHeightReceived = (height: number) => {
         if (!this.mounted) {
@@ -125,7 +125,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         this.setState((prevState) => {
             return {checkOverflow: prevState.checkOverflow + 1};
         });
-    }
+    };
 
     renderPostActions = () => {
         const actions = this.props.attachment.actions;
@@ -206,7 +206,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             const mailtoPayload = JSON.parse(extUrlOption.value);
             window.location.href = 'mailto:' + mailtoPayload.mail_recipient + '?cc=' + mailtoPayload.mail_cc + '&subject=' + encodeURIComponent(mailtoPayload.mail_subject) + '&body=' + encodeURIComponent(mailtoPayload.mail_body);
         }
-    }
+    };
 
     getActionOption = (actionOptions: PostActionOption[] | undefined, optionName: string) => {
         let opt = null;
@@ -214,7 +214,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             opt = actionOptions.find((option) => option.text === optionName);
         }
         return opt;
-    }
+    };
 
     getFieldsTable = () => {
         const fields = this.props.attachment.fields;
@@ -335,7 +335,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 startIndex: 0,
             },
         });
-    }
+    };
 
     render() {
         const {attachment, options} = this.props;

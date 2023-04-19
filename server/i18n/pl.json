@@ -3140,10 +3140,6 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch jest obecnie uruchomiony."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch."
   },
@@ -9024,50 +9020,6 @@
     "translation": "błąd liczenia grup"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Odblokuj zwiększoną produktywność dzięki tym wspaniałym funkcjom"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hej {{.Name}}, zauważyliśmy, że twój serwer Mattermost zbiera trochę kurzu. Zapoznaj się z kilkoma funkcjami, które pomogą odciążyć Twój zespół."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Otwórz Mattermost, aby zwiększyć produktywność swojego zespołu!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Zarządzaj zadaniami za pomocą "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Zarządzanie przepływem pracy z "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Dostęp gości do określenia "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Przyjdź i sprawdź to!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Otwórz Mattermost"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooki"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanały"
-  },
-  {
-    "id": "Boards",
-    "translation": "Tablice"
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Maksymalna długość identyfikatora MattermostAppID wynosi 32 znaki."
   },
@@ -9170,10 +9122,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Ustawienia Elasticsearch mają nieustawione wartości."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9512,10 +9460,6 @@
     "translation": "nazwa grupy już istnieje jako nazwa zastrzeżona"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Wtyczka {{.Name}} nie może być włączona w trybie produktu."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Twoja licencja nie wspiera kont gości"
   },
@@ -9590,10 +9534,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "Nie można uzyskać priorytetu dla posta"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Nie można zaktualizować szkicu."
   },
   {
     "id": "app.draft.save.app_error",
@@ -9914,5 +9854,197 @@
   {
     "id": "app.command.execute.error",
     "translation": "Nie można wykonać polecenia."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Obecnie masz 0 uruchomień w trakcie."
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Użyj `/playbook todo`, aby zobaczyć wszystkie swoje zadania."
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Twoje przydzielone zadania"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Masz 0 przydzielonych zadań."
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Nazwa uruchomienia"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Uruchom playbook"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Opis"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Nazwa"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Dodaj zadanie"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Dodaj nowe zadanie"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Uruchomienie Playbooka"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Dodaj do osi czasu uruchomienia"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Podsumowanie"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Maksymalnie 64 znaki"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Krótkie podsumowanie widoczne na osi czasu"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Zakończ uruchomienie"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Oznacz również uruchomienie jako zakończone"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Przypomnienie o następnej aktualizacji"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Status aktualizacji"
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "few": "Masz {{.Count}} uruchomienia w toku:",
+      "many": "Masz {{.Count}} uruchomień w toku:",
+      "one": "Masz {{.Count}} uruchomienie w toku:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "few": "Termin płatności za {{.Count}} dni",
+      "many": "Termin płatności za {{.Count}} dni",
+      "one": "Termin płatności za {{.Count}} dzień"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "few": "Masz **{{.Count}} przydzielone zadania, których termin wykonania wypada po dzisiejszym dniu**.",
+      "many": "Masz **{{.Count}} przydzielonych zadań, których termin wykonania wypada po dzisiejszym dniu**.",
+      "one": "Masz **{{.Count}} przydzielone zadanie, którego termin wykonania wypada po dzisiejszym dniu**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Do zapłaty dzisiaj"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Termin {{.Count}} dni temu"
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "few": "Masz {{.Count}} przydzielone zadania:",
+      "many": "Masz {{.Count}} przydzielonych zadań:",
+      "one": "Masz {{.Count}} przydzielone zadanie:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "few": "Masz {{.Count}} przydzielone zadania, których termin wykonania właśnie upływa:",
+      "many": "Masz {{.Count}} przydzielonych zadań, których termin wykonania właśnie upływa:",
+      "one": "Masz {{.Count}} przydzielone zadanie, którego termin wykonania właśnie upływa:"
+    }
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Właściciel** {{.Username}}"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Rozpocznij uruchomienie"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "few": "Są **{.Count}} zaległe zadania**. Czy na pewno chcesz zakończyć uruchomienie *{.RunName}}* dla wszystkich uczestników?",
+      "many": "Jest **{.Count}} zaległych zadań**. Czy na pewno chcesz zakończyć uruchomienie *{.RunName}}* dla wszystkich uczestników?",
+      "one": "Jest **{.Count}} zaległe zadanie**. Czy na pewno chcesz zakończyć uruchomienie *{.RunName}}* dla wszystkich uczestników?"
+    }
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "few": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanałach.",
+      "many": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanałach.",
+      "one": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanale."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Aktualizacje statusu"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Termin na wczoraj"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{.Username}} wyłączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{.Username}} włączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Zmiana od ostatniej aktualizacji"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Zakończ uruchomienie"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Potwierdź zakończenie uruchomienia"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} jest uczestnikiem uruchomienia i chce dołączyć do tego kanału. Każdy członek kanału może go zaprosić.\n"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here - @{.Name}} zażądał aktualizacji statusu dla [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Dodaj do osi czasu uruchomienia"
   }
 ]
