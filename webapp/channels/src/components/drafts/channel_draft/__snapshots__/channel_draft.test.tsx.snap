@@ -42,8 +42,8 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
     displayName=""
     draftId=""
     id={Object {}}
-    postPriorityEnabled={false}
     isRemote={false}
+    postPriorityEnabled={false}
     status={Object {}}
     type="channel"
     user={Object {}}
@@ -90,8 +90,8 @@ exports[`components/drafts/drafts_row should match snapshot for undefined channe
     displayName=""
     draftId=""
     id={Object {}}
-    postPriorityEnabled={false}
     isRemote={false}
+    postPriorityEnabled={false}
     status={Object {}}
     type="channel"
     user={Object {}}
