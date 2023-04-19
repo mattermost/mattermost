@@ -38,6 +38,7 @@ export type ClientConfig = {
     DefaultTheme: string;
     DiagnosticId: string;
     DiagnosticsEnabled: string;
+    DisableRefetchingOnBrowserFocus: string;
     EmailLoginButtonBorderColor: string;
     EmailLoginButtonColor: string;
     EmailLoginButtonTextColor: string;
@@ -535,7 +536,6 @@ export type EmailSettings = {
     LoginButtonColor: string;
     LoginButtonBorderColor: string;
     LoginButtonTextColor: string;
-    EnableInactivityEmail: boolean;
 };
 
 export type RateLimitSettings = {
@@ -739,6 +739,7 @@ export type ExperimentalSettings = {
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
     PatchPluginsReactDOM: boolean;
+    DisableRefetchingOnBrowserFocus: boolean;
 };
 
 export type AnalyticsSettings = {
