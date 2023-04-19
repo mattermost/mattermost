@@ -3140,10 +3140,6 @@
     "translation": "Impossible de décoder les résultats de recherche"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch est déjà démarré"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Impossible de créer le processeur d'opérations en masse d'Elasticsearch (Elasticsearch bulk processor)"
   },
