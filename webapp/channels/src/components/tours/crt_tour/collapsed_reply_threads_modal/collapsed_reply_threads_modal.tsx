@@ -13,7 +13,7 @@ import GenericModal from 'components/generic_modal';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import {Constants, ModalIdentifiers, Preferences} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import * as Keyboard from 'utils/keyboard';
 
 import './collapsed_reply_threads_modal.scss';
 import {AutoTourStatus, TTNameMapToATStatusKey, TutorialTourName} from '../../constant';
@@ -26,7 +26,7 @@ function CollapsedReplyThreadsModal(props: Props) {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
             onNext();
         }
     }, []);

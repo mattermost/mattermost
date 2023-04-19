@@ -12,6 +12,7 @@ import dragster from 'utils/dragster';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import {t} from 'utils/i18n';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {
     isIosChrome,
     isMobileApp,
@@ -19,8 +20,6 @@ import {
 import {getTable} from 'utils/paste';
 import {
     clearFileInput,
-    cmdOrCtrlPressed,
-    isKeyPressed,
     generateId,
     isFileTransfer,
     isUriDrop,
