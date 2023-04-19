@@ -439,7 +439,7 @@ describe('playbooks > overview', {testIsolation: true}, () => {
                 cy.get('input[type=text]').should('not.be.disabled');
 
                 // # Select channel
-                cy.findByText('Select a channel').click().type('Town{enter}');
+                cy.findByText('Select a channel').click().type('General{enter}');
             });
 
             // # Click Run Playbook
@@ -462,7 +462,7 @@ describe('playbooks > overview', {testIsolation: true}, () => {
             cy.findByTestId('Runs').findByTestId(runName).should('exist');
 
             // * Verify the channel is created
-            cy.findByTestId('runinfo-channel-link').contains('Town');
+            cy.findByTestId('runinfo-channel-link').contains('General');
         });
     });
 });

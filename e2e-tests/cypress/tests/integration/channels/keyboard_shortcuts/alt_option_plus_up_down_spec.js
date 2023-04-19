@@ -58,9 +58,9 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#channelHeaderTitle').should('contain', sysadmin.username).wait(TIMEOUTS.ONE_SEC);
 
         // * Switch to channels by Alt+Up/Down keypress and verify
-        verifyChannelSwitch(testTeam.name, townSquare, dmWithSysadmin, '{uparrow}');
         verifyChannelSwitch(testTeam.name, privateChannel, townSquare, '{uparrow}');
         verifyChannelSwitch(testTeam.name, offTopic, privateChannel, '{uparrow}');
+        verifyChannelSwitch(testTeam.name, townSquare, dmWithSysadmin, '{uparrow}');
         verifyChannelSwitch(testTeam.name, publicChannel, offTopic, '{uparrow}');
 
         // * Should switch to Insights
@@ -77,10 +77,10 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#channelHeaderTitle').should('contain', publicChannel.display_name).wait(TIMEOUTS.ONE_SEC);
 
         // # Switch to channels by Alt+Up/Down keypress and verify
+        verifyChannelSwitch(testTeam.name, townSquare, publicChannel, '{downarrow}');
         verifyChannelSwitch(testTeam.name, offTopic, publicChannel, '{downarrow}');
         verifyChannelSwitch(testTeam.name, privateChannel, offTopic, '{downarrow}');
-        verifyChannelSwitch(testTeam.name, townSquare, privateChannel, '{downarrow}');
-        verifyChannelSwitch(testTeam.name, dmWithSysadmin, townSquare, '{downarrow}');
+        verifyChannelSwitch(testTeam.name, dmWithSysadmin, privateChannel, '{downarrow}');
 
         // * Should switch to top (Insights) when current channel is at the very bottom
         verifyChannelSwitch(testTeam.name, insightsSidebar, dmWithSysadmin, '{downarrow}');

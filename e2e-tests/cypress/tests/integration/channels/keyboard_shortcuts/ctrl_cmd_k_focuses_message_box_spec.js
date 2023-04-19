@@ -27,7 +27,7 @@ describe('Keyboard Shortcuts', () => {
 
         // # Press CTRL/CMD+K
         cy.get('body').cmdOrCtrlShortcut('K');
-        cy.get('#quickSwitchInput').type('T');
+        cy.get('#quickSwitchInput').type('Off');
 
         // # Press down arrow
         cy.wait(TIMEOUTS.HALF_SEC);

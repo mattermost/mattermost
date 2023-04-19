@@ -70,8 +70,8 @@ describe('Profile popover', () => {
         clickAddToChannel(testUser);
 
         cy.get('div[aria-labelledby="addChannelModalLabel"]').within(() => {
-            // # Type "Town" and press enter.
-            cy.get('input').should('be.visible').type('Town').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+            // # Type "General" and press enter.
+            cy.get('input').should('be.visible').type('General').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * Verify error message
             cy.get('#add-user-to-channel-modal__user-is-member').should('have.text', `${testUser.first_name} ${testUser.last_name} is already a member of that channel`);
@@ -134,8 +134,8 @@ describe('Profile popover', () => {
         clickAddToChannel(testUser);
 
         cy.get('div[aria-labelledby="addChannelModalLabel"]').within(() => {
-            // # Type "Town" and press enter.
-            cy.get('input').should('be.visible').type('Town').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+            // # Type "General" and press enter.
+            cy.get('input').should('be.visible').type('General').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * And verify that button is disabled
             cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');

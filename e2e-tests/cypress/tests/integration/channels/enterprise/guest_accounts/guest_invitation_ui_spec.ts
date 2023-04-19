@@ -85,7 +85,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             cy.get('.channels-input__placeholder').should('have.text', 'e.g. General');
 
             // # Type the channel name
-            cy.get('input').typeWithForce('town sq');
+            cy.get('input').typeWithForce('general');
         });
 
         cy.get('.channels-input__menu').

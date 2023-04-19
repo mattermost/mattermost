@@ -42,8 +42,8 @@ describe('Channel sidebar', () => {
         cy.uiGetLhsSection('CHANNELS').within(() => {
             cy.get('.SidebarChannel > .SidebarLink').should('be.visible').as('fromChannelSidebarLink');
             cy.get('@fromChannelSidebarLink').eq(0).should('contain', channelName);
-            cy.get('@fromChannelSidebarLink').eq(1).should('contain', 'Off-Topic');
-            cy.get('@fromChannelSidebarLink').eq(2).should('contain', 'General');
+            cy.get('@fromChannelSidebarLink').eq(1).should('contain', 'General');
+            cy.get('@fromChannelSidebarLink').eq(2).should('contain', 'Off-Topic');
         });
 
         // # Perform drag using keyboard
