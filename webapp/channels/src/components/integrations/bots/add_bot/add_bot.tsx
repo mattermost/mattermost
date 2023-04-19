@@ -322,7 +322,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         error: (
                             <FormattedMessage
                                 id='bots.manage.add.invalid_username'
-                                defaultMessage='Usernames must begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.'
+                                defaultMessage='Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.'
                             />
                         ),
                     };
@@ -383,7 +383,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
     render() {
         let subtitle = (
             <FormattedMessage
-                id='bots.manage.add'
+                id='bots.manage.add.add'
                 defaultMessage='Add'
             />
         );
@@ -630,7 +630,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         <div className='row bot-profile__section'>
                             <div className='col-md-5 col-sm-8 col-sm-offset-4'>
                                 <FormattedMessage
-                                    id='admin.manage_roles.additionalRoles'
+                                    id='admin.manage_roles.botAdditionalRoles'
                                     defaultMessage='Select additional permissions for the account. <link>Read more about roles and permissions</link>.'
                                     values={{
                                         link: (msg: React.ReactNode) => (

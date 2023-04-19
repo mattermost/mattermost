@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -4154,6 +4154,12 @@ func TestGetChannelModerations(t *testing.T) {
 		scheme.DefaultChannelGuestRole = ""
 
 		mockStore := mocks.Store{}
+
+		// Playbooks DB job requires a plugin mock
+		pluginStore := mocks.PluginStore{}
+		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		mockStore.On("Plugin").Return(&pluginStore)
+
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
@@ -4296,6 +4302,12 @@ func TestPatchChannelModerations(t *testing.T) {
 		scheme.DefaultChannelGuestRole = ""
 
 		mockStore := mocks.Store{}
+
+		// Playbooks DB job requires a plugin mock
+		pluginStore := mocks.PluginStore{}
+		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		mockStore.On("Plugin").Return(&pluginStore)
+
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
 		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
@@ -4354,7 +4366,6 @@ func TestPatchChannelModerations(t *testing.T) {
 			require.Equal(t, moderation.Roles.Members.Enabled, true)
 		}
 	})
-
 }
 
 func TestGetChannelMemberCountsByGroup(t *testing.T) {
