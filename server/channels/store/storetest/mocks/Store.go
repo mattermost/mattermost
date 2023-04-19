@@ -7,12 +7,12 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost-server/server/v8/model"
 	mock "github.com/stretchr/testify/mock"
 
 	sql "database/sql"
 
-	store "github.com/mattermost/mattermost-server/v6/server/channels/store"
+	store "github.com/mattermost/mattermost-server/server/v8/channels/store"
 
 	time "time"
 )
@@ -340,22 +340,6 @@ func (_m *Store) GetInternalReplicaDB() *sql.DB {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*sql.DB)
-		}
-	}
-
-	return r0
-}
-
-// GetInternalReplicaDBs provides a mock function with given fields:
-func (_m *Store) GetInternalReplicaDBs() []*sql.DB {
-	ret := _m.Called()
-
-	var r0 []*sql.DB
-	if rf, ok := ret.Get(0).(func() []*sql.DB); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*sql.DB)
 		}
 	}
 

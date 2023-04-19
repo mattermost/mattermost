@@ -7,7 +7,7 @@ import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
 
 import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 
 export interface Props extends MuiMenuItemProps {
 
