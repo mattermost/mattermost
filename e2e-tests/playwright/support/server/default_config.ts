@@ -319,7 +319,6 @@ const defaultServerConfig: AdminConfig = {
         LoginButtonColor: '#0000',
         LoginButtonBorderColor: '#2389D7',
         LoginButtonTextColor: '#2389D7',
-        EnableInactivityEmail: true,
     },
     RateLimitSettings: {
         Enable: false,
@@ -622,12 +621,6 @@ const defaultServerConfig: AdminConfig = {
             'com.mattermost.nps': {
                 Enable: true,
             },
-            focalboard: {
-                Enable: true,
-            },
-            playbooks: {
-                Enable: true,
-            },
         },
         EnableMarketplace: true,
         EnableRemoteMarketplace: true,
@@ -671,13 +664,12 @@ const defaultServerConfig: AdminConfig = {
         BoardsFeatureFlags: '',
         BoardsDataRetention: false,
         NormalizeLdapDNs: false,
-        EnableInactivityCheckJob: true,
         UseCaseOnboarding: true,
         GraphQL: false,
         InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
-        WorkTemplate: false,
+        WorkTemplate: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
@@ -686,7 +678,9 @@ const defaultServerConfig: AdminConfig = {
         ThreadsEverywhere: false,
         GlobalDrafts: true,
         OnboardingTourTips: true,
+        DeprecateCloudFree: false,
         AppsSidebarCategory: false,
+        CloudReverseTrial: false,
     },
     ImportSettings: {
         Directory: './import',
