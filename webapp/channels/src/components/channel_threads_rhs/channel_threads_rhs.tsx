@@ -82,21 +82,13 @@ function ChannelThreads({
     const [isPaging, setIsPaging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const totalThreads = useMemo(() => {
-        if (selected === Tabs.FOLLOWING) {
-            return totalFollowing;
-        }
-        if (selected === Tabs.USER) {
-            return totalUser;
-        }
-
-        return total;
-    }, [
-        selected,
-        total,
-        totalFollowing,
-        totalUser,
-    ]);
+    let totalThreads = total;
+    if (selected === Tabs.FOLLOWING) {
+        totalThreads = totalFollowing;
+    }
+    if (selected === Tabs.USER) {
+        totalThreads = totalUser;
+    }
 
     const ids = useMemo(() => {
         if (selected === Tabs.FOLLOWING) {
