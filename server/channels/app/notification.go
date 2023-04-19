@@ -278,7 +278,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
 				}
-				threadMembership, err := a.Srv().Store().Thread().MaintainMembership(userID, post.RootId, opts)
+				threadMembership, _, err := a.Srv().Store().Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					return
@@ -621,7 +621,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 							UpdateViewedTimestamp: true,
 						}
 						// should set unread mentions, and unread replies to 0
-						_, err = a.Srv().Store().Thread().MaintainMembership(uid, post.RootId, opts)
+						_, _, err = a.Srv().Store().Thread().MaintainMembership(uid, post.RootId, opts)
 						if err != nil {
 							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
 						}

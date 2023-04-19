@@ -9384,10 +9384,10 @@ func (s *TimerLayerThreadStore) GetTotalUnreadUrgentMentions(userId string, team
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, bool, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
+	result, resultVar1, err := s.ThreadStore.MaintainMembership(userID, postID, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9397,7 +9397,7 @@ func (s *TimerLayerThreadStore) MaintainMembership(userID string, postID string,
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MaintainMembership", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerThreadStore) MarkAllAsRead(userID string, threadIds []string) error {

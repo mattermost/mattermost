@@ -675,7 +675,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
-		_, err = ss.Thread().MaintainMembership(o1.UserId, o1.Id, store.ThreadMembershipOpts{
+		_, _, err = ss.Thread().MaintainMembership(o1.UserId, o1.Id, store.ThreadMembershipOpts{
 			Following:       true,
 			UpdateFollowing: true,
 		})
@@ -705,7 +705,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
-		_, err = ss.Thread().MaintainMembership(o1.UserId, o1.Id, store.ThreadMembershipOpts{
+		_, _, err = ss.Thread().MaintainMembership(o1.UserId, o1.Id, store.ThreadMembershipOpts{
 			Following:       false,
 			UpdateFollowing: true,
 		})

@@ -2770,7 +2770,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 				UpdateViewedTimestamp: false,
 				UpdateParticipants:    false,
 			}
-			threadMembership, mErr = a.Srv().Store().Thread().MaintainMembership(user.Id, threadId, opts)
+			threadMembership, _, mErr = a.Srv().Store().Thread().MaintainMembership(user.Id, threadId, opts)
 			if mErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 			}

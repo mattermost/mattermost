@@ -458,12 +458,13 @@ func (_m *ThreadStore) GetTotalUnreadUrgentMentions(userId string, teamID string
 }
 
 // MaintainMembership provides a mock function with given fields: userID, postID, opts
-func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, bool, error) {
 	ret := _m.Called(userID, postID, opts)
 
 	var r0 *model.ThreadMembership
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, store.ThreadMembershipOpts) (*model.ThreadMembership, error)); ok {
+	var r1 bool
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string, string, store.ThreadMembershipOpts) (*model.ThreadMembership, bool, error)); ok {
 		return rf(userID, postID, opts)
 	}
 	if rf, ok := ret.Get(0).(func(string, string, store.ThreadMembershipOpts) *model.ThreadMembership); ok {
@@ -474,13 +475,19 @@ func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts sto
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, store.ThreadMembershipOpts) error); ok {
+	if rf, ok := ret.Get(1).(func(string, string, store.ThreadMembershipOpts) bool); ok {
 		r1 = rf(userID, postID, opts)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(bool)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(string, string, store.ThreadMembershipOpts) error); ok {
+		r2 = rf(userID, postID, opts)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // MarkAllAsRead provides a mock function with given fields: userID, threadIds

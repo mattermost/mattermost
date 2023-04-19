@@ -2786,7 +2786,7 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	require.Nil(t, err)
 
 	// unfollow thread
-	m, nErr := th.App.Srv().Store().Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
+	m, _, nErr := th.App.Srv().Store().Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -2851,7 +2851,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.Nil(t, err)
 
 	// User2 unfollows thread
-	m, nErr := th.App.Srv().Store().Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
+	m, _, nErr := th.App.Srv().Store().Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -3138,7 +3138,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, _, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})

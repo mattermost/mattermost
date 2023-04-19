@@ -2546,7 +2546,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 		UpdateViewedTimestamp: state,
 		UpdateParticipants:    false,
 	}
-	_, err := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
+	_, _, err := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2574,7 +2574,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 		UpdateViewedTimestamp: false,
 		UpdateParticipants:    false,
 	}
-	tm, err := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
+	tm, _, err := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2650,7 +2650,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		Following:       true,
 		UpdateFollowing: true,
 	}
-	membership, storeErr := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
+	membership, followChanged, storeErr := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
 	if storeErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
@@ -2688,6 +2688,14 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	// Clear if user has read the messages
 	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(c, userID) {
 		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
+	}
+
+	if followChanged {
+		message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, teamID, "", userID, nil, "")
+		message.Add("thread_id", threadID)
+		message.Add("state", membership.Following)
+		message.Add("reply_count", thread.ReplyCount)
+		a.Publish(message)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")

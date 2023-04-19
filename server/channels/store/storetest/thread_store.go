@@ -326,7 +326,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    true,
 		}
-		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		tm, _, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.Equal(t, int64(0), tm.LastViewed)
 
@@ -336,14 +336,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		assert.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, th.Participants)
 
 		opts.UpdateViewedTimestamp = true
-		_, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		_, _, e = ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.NoError(t, err2)
 		require.Greater(t, m2.LastViewed, int64(0))
 
 		// Adding a new participant
-		_, e = ss.Thread().MaintainMembership("newuser", newPosts[0].Id, opts)
+		_, _, e = ss.Thread().MaintainMembership("newuser", newPosts[0].Id, opts)
 		require.NoError(t, e)
 		th, e = ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, e)
@@ -360,7 +360,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: true,
 			UpdateParticipants:    false,
 		}
-		tm, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		tm, _, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 		require.NotEqual(t, int64(0), tm.LastViewed)
 	})
@@ -374,7 +374,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		m, _, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
 		th, err := ss.Thread().GetThreadForUser(m, false, false)
 		require.NoError(t, err)
@@ -406,7 +406,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    true,
 		}
-		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
+		m, _, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
 		require.NoError(t, err)
 		m.UserId = newPosts[0].UserId
 		th, err := ss.Thread().GetThreadForUser(m, true, false)
@@ -426,7 +426,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			UpdateParticipants:    false,
 		}
 
-		_, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
+		_, _, e := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, e)
 
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
@@ -460,7 +460,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			}
 
 			userID := newPosts[0].UserId
-			_, e := ss.Thread().MaintainMembership(userID, newPosts[0].Id, opts)
+			_, _, e := ss.Thread().MaintainMembership(userID, newPosts[0].Id, opts)
 			require.NoError(t, e)
 
 			m, e := ss.Thread().GetMembershipForUser(userID, newPosts[0].Id)
@@ -576,7 +576,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		_, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 		threadMembership, err := ss.Thread().GetMembershipForUser(userID, postID)
 		require.NoError(t, err)
@@ -674,7 +674,7 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		_, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 	}
 	team1, err := ss.Team().Save(&model.Team{
@@ -760,7 +760,7 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 		Following:         true,
 		IncrementMentions: true,
 	}
-	_, err = ss.Thread().MaintainMembership(userID, post2.Id, opts)
+	_, _, err = ss.Thread().MaintainMembership(userID, post2.Id, opts)
 	require.NoError(t, err)
 
 	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id}, true)
@@ -788,7 +788,7 @@ func testVarious(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		_, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 	}
 
@@ -802,7 +802,7 @@ func testVarious(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: true,
 			UpdateParticipants:    false,
 		}
-		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		_, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 	}
 
@@ -1242,7 +1242,7 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		_, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 	}
 
@@ -1476,11 +1476,11 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		}
 
 		// create threadmemberships entries.
-		_, err = ss.Thread().MaintainMembership(post1.UserId, post1.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(post1.UserId, post1.Id, opts)
 		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(post2.UserId, post2.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(post2.UserId, post2.Id, opts)
 		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(post2.UserId, post3.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(post2.UserId, post3.Id, opts)
 		require.NoError(t, err)
 
 		//  get top threads by user
@@ -1613,13 +1613,13 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		}
 
 		// create threadmemberships entries.
-		_, err = ss.Thread().MaintainMembership(u1.Id, post1.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(u1.Id, post1.Id, opts)
 		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(u1.Id, post2.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(u1.Id, post2.Id, opts)
 		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(u2.Id, post1.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(u2.Id, post1.Id, opts)
 		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(u2.Id, post2.Id, opts)
+		_, _, err = ss.Thread().MaintainMembership(u2.Id, post2.Id, opts)
 		require.NoError(t, err)
 
 		//  assert that getting top threads from teamid 1 doesn't have DMs
@@ -1699,7 +1699,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		_, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		_, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 	}
 

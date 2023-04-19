@@ -913,10 +913,10 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 // - post creation (mentions handling)
 // - channel marked unread
 // - user explicitly following a thread
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.ThreadMembershipOpts) (_ *model.ThreadMembership, err error) {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.ThreadMembershipOpts) (_ *model.ThreadMembership, followChanged bool, err error) {
 	trx, err := s.GetMasterX().Beginx()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, false, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(trx, &err)
 
@@ -927,7 +927,8 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	// b. mention count changed
 	// c. user viewed a thread
 	if err == nil {
-		followingNeedsUpdate := (opts.UpdateFollowing && (membership.Following != opts.Following))
+		followChanged = membership.Following != opts.Following
+		followingNeedsUpdate := (opts.UpdateFollowing && followChanged)
 		if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp {
 			if followingNeedsUpdate {
 				membership.Following = opts.Following
@@ -940,20 +941,20 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 			}
 			membership.LastUpdated = now
 			if _, err = s.updateMembership(trx, membership); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 		}
 
 		if err = trx.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+			return nil, false, errors.Wrap(err, "commit_transaction")
 		}
 
-		return membership, err
+		return membership, followChanged, err
 	}
 
 	var nfErr *store.ErrNotFound
 	if !errors.As(err, &nfErr) {
-		return nil, errors.Wrap(err, "failed to get thread membership")
+		return nil, false, errors.Wrap(err, "failed to get thread membership")
 	}
 
 	membership = &model.ThreadMembership{
@@ -970,14 +971,14 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 	membership, err = s.saveMembership(trx, membership)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if opts.UpdateParticipants {
 		if s.DriverName() == model.DatabaseDriverPostgres {
 			userIdParam, err2 := jsonArray([]string{userId}).Value()
 			if err2 != nil {
-				return nil, err2
+				return nil, false, err2
 			}
 			if s.IsBinaryParamEnabled() {
 				userIdParam = AppendBinaryFlag(userIdParam.([]byte))
@@ -987,7 +988,7 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
                         SET participants = participants || $1::jsonb
                         WHERE postid=$2
                         AND NOT participants ? $3`, userIdParam, postId, userId); err2 != nil {
-				return nil, err2
+				return nil, false, err2
 			}
 		} else {
 			// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
@@ -996,16 +997,16 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 				SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
 				WHERE PostId=?
 				AND NOT JSON_CONTAINS(Participants, ?)`, userId, postId, strconv.Quote(userId)); err2 != nil {
-				return nil, err2
+				return nil, false, err2
 			}
 		}
 	}
 
 	if err = trx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, false, errors.Wrap(err, "commit_transaction")
 	}
 
-	return membership, err
+	return membership, true, err
 }
 
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by

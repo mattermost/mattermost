@@ -851,7 +851,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, _, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})

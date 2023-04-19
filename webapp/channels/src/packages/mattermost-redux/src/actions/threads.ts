@@ -364,15 +364,21 @@ export function handleReadChanged(
 export function handleFollowChanged(threadId: string, teamId: string, following: boolean) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const channelId = getChannelIdFromPostId(getState(), threadId);
-        return dispatch({
-            type: ThreadTypes.FOLLOW_CHANGED_THREAD,
-            data: {
-                id: threadId,
-                team_id: teamId,
-                following,
-                channel_id: channelId,
-            },
-        });
+        const thread = getThreadSelector(getState(), threadId);
+
+        if (thread && thread.is_following !== following) {
+            return dispatch({
+                type: ThreadTypes.FOLLOW_CHANGED_THREAD,
+                data: {
+                    id: threadId,
+                    team_id: teamId,
+                    following,
+                    channel_id: channelId,
+                },
+            });
+        }
+
+        return {};
     };
 }
 
