@@ -28,6 +28,11 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetVarious", func(t *testing.T) { testVarious(t, ss) })
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
 	t.Run("GetTopThreads", func(t *testing.T) { testGetTopThreads(t, ss) })
+<<<<<<< HEAD:store/storetest/thread_store.go
+=======
+	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, ss) })
+	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, ss) })
+>>>>>>> a24111f9bd (MM-45009: Delete ThreadMemberships from "left" channels (#22559)):server/channels/store/storetest/thread_store.go
 }
 
 func testThreadStorePopulation(t *testing.T, ss store.Store) {
@@ -1568,4 +1573,122 @@ func testGetTopThreads(t *testing.T, ss store.Store) {
 		require.Equal(t, topThreadsInTeamOlder.Items[1].PostId, post2.Id)
 	})
 
+}
+
+func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
+	createThreadMembership := func(userID, postID string) (*model.ThreadMembership, func()) {
+		t.Helper()
+		opts := store.ThreadMembershipOpts{
+			Following:             true,
+			IncrementMentions:     false,
+			UpdateFollowing:       true,
+			UpdateViewedTimestamp: false,
+			UpdateParticipants:    false,
+		}
+		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		require.NoError(t, err)
+
+		return mem, func() {
+			err := ss.Thread().DeleteMembershipForUser(userID, postID)
+			require.NoError(t, err)
+		}
+	}
+
+	postingUserID := model.NewId()
+	userAID := model.NewId()
+	userBID := model.NewId()
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	channel1, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel1" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	channel2, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName2",
+		Name:        "channel2" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	rootPost1, err := ss.Post().Save(&model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: channel1.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost1.Id,
+	})
+	require.NoError(t, err)
+
+	rootPost2, err := ss.Post().Save(&model.Post{
+		ChannelId: channel2.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: channel2.Id,
+		UserId:    postingUserID,
+		Message:   model.NewRandomString(10),
+		RootId:    rootPost2.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("should return memberships for user", func(t *testing.T) {
+		memA1, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer cleanupA1()
+		memA2, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer cleanupA2()
+
+		membershipsA, err := ss.Thread().GetMembershipsForUser(userAID, team.Id)
+		require.NoError(t, err)
+
+		require.Len(t, membershipsA, 2)
+		require.ElementsMatch(t, []*model.ThreadMembership{memA1, memA2}, membershipsA)
+	})
+
+	t.Run("should delete memberships for user for channel", func(t *testing.T) {
+		_, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer cleanupA1()
+		memA2, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer cleanupA2()
+
+		ss.Thread().DeleteMembershipsForChannel(userAID, channel1.Id)
+		membershipsA, err := ss.Thread().GetMembershipsForUser(userAID, team.Id)
+		require.NoError(t, err)
+
+		require.Len(t, membershipsA, 1)
+		require.ElementsMatch(t, []*model.ThreadMembership{memA2}, membershipsA)
+	})
+
+	t.Run("deleting memberships for channel for userA should not affect userB", func(t *testing.T) {
+		_, cleanupA1 := createThreadMembership(userAID, rootPost1.Id)
+		defer cleanupA1()
+		_, cleanupA2 := createThreadMembership(userAID, rootPost2.Id)
+		defer cleanupA2()
+		memB1, cleanupB2 := createThreadMembership(userBID, rootPost1.Id)
+		defer cleanupB2()
+
+		membershipsB, err := ss.Thread().GetMembershipsForUser(userBID, team.Id)
+		require.NoError(t, err)
+
+		require.Len(t, membershipsB, 1)
+		require.ElementsMatch(t, []*model.ThreadMembership{memB1}, membershipsB)
+	})
 }
