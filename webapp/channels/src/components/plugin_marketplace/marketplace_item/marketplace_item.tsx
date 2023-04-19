@@ -154,7 +154,6 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
             description = (
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
-                    delayHide={30000}
                     placement='top'
                     overlay={displayNameToolTip}
                 >
