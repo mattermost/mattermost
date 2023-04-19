@@ -437,9 +437,8 @@ func TestCopyCard(t *testing.T) {
 	}
 	t.Run("Board doesn't exist", func(t *testing.T) {
 		th.Store.EXPECT().GetBoard("boardID").Return(nil, errDummy)
-
 		_, err := th.App.CopyCardFiles("boardID", []*model.Block{}, false)
-		assert.NoError(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("Board exists, image block, with FileInfo", func(t *testing.T) {
@@ -461,7 +460,9 @@ func TestCopyCard(t *testing.T) {
 
 		updatedFileNames, err := th.App.CopyCardFiles("boardID", []*model.Block{imageBlock}, false)
 		assert.NoError(t, err)
-		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileID"].(string)])
+		assert.Equal(t, "7fileName.jpg", imageBlock.Fields["fileId"])
+		assert.NotNil(t, updatedFileNames["7fileName.jpg"])
+		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileId"].(string)])
 	})
 
 	t.Run("Board exists, attachment block, with FileInfo", func(t *testing.T) {
@@ -498,7 +499,7 @@ func TestCopyCard(t *testing.T) {
 
 		updatedFileNames, err := th.App.CopyCardFiles("boardID", []*model.Block{attachmentBlock}, false)
 		assert.NoError(t, err)
-		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileID"].(string)])
+		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileId"].(string)])
 	})
 
 	t.Run("Board exists, image block, without FileInfo", func(t *testing.T) {
