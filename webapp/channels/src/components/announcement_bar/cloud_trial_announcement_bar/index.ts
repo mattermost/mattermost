@@ -21,6 +21,7 @@ import {Preferences, TrialPeriodDays} from 'utils/constants';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 function mapStateToProps(state: GlobalState) {
     const getCategory = makeGetCategory();
@@ -29,6 +30,7 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = getLicense(state).Cloud === 'true';
     let isFreeTrial = false;
     let daysLeftOnTrial = 0;
+    const config = getConfig(state);
 
     if (isCloud && subscription?.is_free_trial === 'true') {
         isFreeTrial = true;
@@ -46,6 +48,7 @@ function mapStateToProps(state: GlobalState) {
         isCloud,
         subscription,
         preferences: getCategory(state, Preferences.CLOUD_TRIAL_BANNER),
+        reverseTrial: Boolean(config.FeatureFlags?.CloudReverseTrial),
     };
 }
 

@@ -55,7 +55,7 @@ const config: TestConfig = {
     // CI
     isCI: !!process.env.CI,
     // Playwright
-    headless: parseBool(process.env.PW_HEADLESS, false),
+    headless: parseBool(process.env.PW_HEADLESS, true),
     slowMo: parseNumber(process.env.PW_SLOWMO, 0),
     workers: parseNumber(process.env.PW_WORKERS, 1),
     // Visual tests

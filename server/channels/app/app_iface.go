@@ -18,23 +18,23 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
@@ -264,8 +264,6 @@ type AppIface interface {
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 	// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
-	// NewWebConn returns a new WebConn instance.
-	NewWebConn(cfg *platform.WebConnConfig) *platform.WebConn
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() error
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
@@ -402,6 +400,7 @@ type AppIface interface {
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
+	ActiveSearchBackend() string
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError
@@ -682,7 +681,7 @@ type AppIface interface {
 	GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
-	GetLogs(page, perPage int) ([]string, *model.AppError)
+	GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
 	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
@@ -893,6 +892,7 @@ type AppIface interface {
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
+	IsConfigReadOnly() bool
 	IsFirstAdmin(user *model.User) bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
@@ -961,9 +961,9 @@ type AppIface interface {
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
-	QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
+	QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
-	RecycleDatabaseConnection()
+	RecycleDatabaseConnection(c request.CTX)
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
