@@ -97,7 +97,7 @@
       }
     ],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
-    "formatjs/no-multiple-whitespaces": ["error"]
+    "formatjs/no-multiple-whitespaces": 2
   },
   "overrides": [
     {
