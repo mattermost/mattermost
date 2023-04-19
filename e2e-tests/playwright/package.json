@@ -1,14 +1,14 @@
 {
     "scripts": {
-        "test": "NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true playwright test",
-        "percy": "PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=iphone --project=ipad",
+        "test": "cross-env PW_SNAPSHOT_ENABLE=true playwright test",
+        "percy": "cross-env PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=iphone --project=ipad",
         "tsc": "tsc -b",
         "lint": "eslint . --ext .js,.ts",
         "prettier": "prettier --write .",
         "check": "npm run tsc && npm run lint && npm run prettier",
-        "codegen": "playwright codegen $PW_BASE_URL",
-        "playwright-ui": "npx playwright test --ui",
-        "test-slomo": "NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true PW_HEADLESS=false PW_SLOWMO=1000 playwright test",
+        "codegen": "cross-env playwright codegen $PW_BASE_URL",
+        "playwright-ui": "playwright test --ui",
+        "test-slomo": "cross-env PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
         "show-report": "npx playwright show-report"
     },
     "dependencies": {
@@ -27,6 +27,7 @@
         "@types/uuid": "9.0.1",
         "@typescript-eslint/eslint-plugin": "5.59.0",
         "@typescript-eslint/parser": "5.59.0",
+        "cross-env": "7.0.3",
         "eslint": "8.38.0",
         "prettier": "2.8.7",
         "typescript": "5.0.4"

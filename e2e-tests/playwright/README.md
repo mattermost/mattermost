@@ -15,6 +15,8 @@ cd server && make run-server
 
 #### 2. Install dependencies and run the test.
 
+Note: If you're using Node.js version 18 and above, you may need to set `NODE_OPTIONS='--no-experimental-fetch'`.
+
 ```
 # Install npm packages
 npm i
@@ -49,6 +51,7 @@ docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwr
 #### 2. Inside the docker container
 
 ```
+export NODE_OPTIONS='--no-experimental-fetch'
 export PW_BASE_URL=http://host.docker.internal:8065
 export PW_HEADLESS=true
 cd mattermost/e2e-tests/playwright
