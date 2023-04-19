@@ -70,7 +70,7 @@ function TeamController(props: Props) {
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
-                // If the user has been inactive for more than WAKEUP_THRESHOLD, try to reconnect the websocket
+                console.log('computer woke up - reconnecting'); //eslint-disable-line no-console
                 reconnect();
             }
             lastTime.current = currentTime;
@@ -93,7 +93,7 @@ function TeamController(props: Props) {
             }
 
             // Temporary flag to disable refetching of channel members on browser focus
-            if (props.disableRefetchingOnBrowserFocus === false) {
+            if (!props.disableRefetchingOnBrowserFocus) {
                 const currentTime = Date.now();
                 if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
                     if (props.graphQLEnabled) {
