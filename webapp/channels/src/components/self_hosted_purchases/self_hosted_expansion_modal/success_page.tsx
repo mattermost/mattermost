@@ -7,7 +7,6 @@ import {useHistory} from 'react-router-dom';
 
 import IconMessage from 'components/purchase_modal/icon_message';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-import BackgroundSvg from 'components/common/svg_images_components/background_svg';
 
 import {ConsolePages} from 'utils/constants';
 
