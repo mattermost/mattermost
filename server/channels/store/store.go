@@ -72,10 +72,7 @@ type Store interface {
 	// GetInternalMasterDB allows access to the raw master DB
 	// handle for the multi-product architecture.
 	GetInternalMasterDB() *sql.DB
-	// GetInternalReplicaDBs allows access to the raw replica DB
-	// handles for the multi-product architecture.
 	GetInternalReplicaDB() *sql.DB
-	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
