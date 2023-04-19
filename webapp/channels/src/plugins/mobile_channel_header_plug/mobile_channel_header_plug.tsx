@@ -81,7 +81,7 @@ class MobileChannelHeaderPlug extends React.PureComponent<Props> {
                 </button>
             </li>
         );
-    }
+    };
     createButton = (plug: PluginComponent) => {
         const onClick = () => this.fireAction(plug);
 
@@ -115,7 +115,7 @@ class MobileChannelHeaderPlug extends React.PureComponent<Props> {
                 </button>
             </li>
         );
-    }
+    };
 
     createList(plugs: PluginComponent[]) {
         return plugs.map(this.createButton);
@@ -174,7 +174,7 @@ class MobileChannelHeaderPlug extends React.PureComponent<Props> {
             this.props.actions.postEphemeralCallResponseForChannel(callResp, errorMessage, channel.id);
         }
         }
-    }
+    };
 
     render() {
         const components = this.props.components || [];

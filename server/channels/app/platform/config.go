@@ -17,12 +17,12 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
@@ -63,6 +63,11 @@ func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 	if _, _, err := ps.configStore.Set(updated); err != nil {
 		ps.logger.Error("Failed to update config", mlog.Err(err))
 	}
+}
+
+// IsConfigReadOnly returns true if the underlying configstore is readonly.
+func (ps *PlatformService) IsConfigReadOnly() bool {
+	return ps.configStore.IsReadOnly()
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.

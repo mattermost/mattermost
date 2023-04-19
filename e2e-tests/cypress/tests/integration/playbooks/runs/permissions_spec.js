@@ -13,7 +13,7 @@
 
 import {getRandomId} from '../../../utils';
 
-describe('runs > permissions', () => {
+describe('runs > permissions', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testOtherTeam;

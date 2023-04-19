@@ -18,25 +18,25 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
@@ -85,6 +85,23 @@ func (a *OpenTracingAppLayer) ActivateMfa(userID string, token string) *model.Ap
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) ActiveSearchBackend() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ActiveSearchBackend")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ActiveSearchBackend()
 
 	return resultVar0
 }
@@ -7111,7 +7128,7 @@ func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLogs(c request.CTX, page int, perPage int) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogs")
 
@@ -7123,7 +7140,7 @@ func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.A
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogs(page, perPage)
+	resultVar0, resultVar1 := a.app.GetLogs(c, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11992,6 +12009,23 @@ func (a *OpenTracingAppLayer) IsCRTEnabledForUser(c request.CTX, userID string) 
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) IsConfigReadOnly() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsConfigReadOnly")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsConfigReadOnly()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) IsFirstAdmin(user *model.User) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsFirstAdmin")
@@ -12757,23 +12791,6 @@ func (a *OpenTracingAppLayer) NewPluginAPI(c *request.Context, manifest *model.M
 
 	defer span.Finish()
 	resultVar0 := a.app.NewPluginAPI(c, manifest)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) NewWebConn(cfg *platform.WebConnConfig) *platform.WebConn {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.NewWebConn(cfg)
 
 	return resultVar0
 }
@@ -13624,7 +13641,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) QueryLogs(page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (a *OpenTracingAppLayer) QueryLogs(c request.CTX, page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.QueryLogs")
 
@@ -13636,7 +13653,7 @@ func (a *OpenTracingAppLayer) QueryLogs(page int, perPage int, logFilter *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.QueryLogs(page, perPage, logFilter)
+	resultVar0, resultVar1 := a.app.QueryLogs(c, page, perPage, logFilter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13668,7 +13685,7 @@ func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RecycleDatabaseConnection() {
+func (a *OpenTracingAppLayer) RecycleDatabaseConnection(c request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RecycleDatabaseConnection")
 
@@ -13680,7 +13697,7 @@ func (a *OpenTracingAppLayer) RecycleDatabaseConnection() {
 	}()
 
 	defer span.Finish()
-	a.app.RecycleDatabaseConnection()
+	a.app.RecycleDatabaseConnection(c)
 }
 
 func (a *OpenTracingAppLayer) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
