@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import Chip from 'components/common/chip/chip';
 
-import {ItemStatus} from './dashboard.data';
+import {ItemStatus} from './dashboard.type';
 
 import './dashboard.scss';
 
