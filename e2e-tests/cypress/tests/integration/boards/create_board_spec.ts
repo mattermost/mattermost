@@ -98,7 +98,7 @@ describe('Create and delete board / card', () => {
         cy.findByText('for testing purposes only').should('be.visible');
     });
 
-    it('MM-T4275 Set up Board emoji', () => {
+    it('MM-T4276 Set up Board emoji', () => {
         cy.visit('/boards');
 
         // # Create an empty board and change tile to Testing
