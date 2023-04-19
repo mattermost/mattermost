@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -838,11 +837,8 @@ func TestGetFileHeaders(t *testing.T) {
 	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false, false))
 	t.Run("html", testHeaders(data, "test.html", "text/plain", false, false))
 	t.Run("js", testHeaders(data, "test.js", "text/plain", false, false))
-	if os.Getenv("IS_CI") == "true" || runtime.GOOS == "darwin" {
-		t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
-	} else if runtime.GOOS == "linux" {
-		t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
-	}
+	// *.go are categorized differently by different platforms
+	// t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
 	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
