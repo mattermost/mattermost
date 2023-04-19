@@ -214,8 +214,10 @@ const SidebarCategory = (props: Props) => {
                 showBoard(deleteBoard.id)
             },
         )
-        if (UserSettings.lastBoardId && 
-            UserSettings.lastBoardId[deleteBoard.teamId] == deleteBoard.id) {
+        if (
+            UserSettings.lastBoardId && 
+            UserSettings.lastBoardId[deleteBoard.teamId] == deleteBoard.id
+        ) {
             UserSettings.setLastBoardID(deleteBoard.teamId, null)
             UserSettings.setLastViewId(deleteBoard.id, null)
         }
