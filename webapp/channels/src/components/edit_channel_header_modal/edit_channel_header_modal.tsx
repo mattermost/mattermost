@@ -13,8 +13,9 @@ import Textbox, {TextboxElement} from 'components/textbox';
 import TextboxClass from 'components/textbox/textbox';
 import TextboxLinks from 'components/textbox/textbox_links';
 import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
-import {insertLineBreakFromKeyEvent, isKeyPressed, isUnhandledLineBreakKeyCombo, localizeMessage} from 'utils/utils';
+import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo, localizeMessage} from 'utils/utils';
 
 const KeyCodes = Constants.KeyCodes;
 

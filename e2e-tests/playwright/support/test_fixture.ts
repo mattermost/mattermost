@@ -18,6 +18,7 @@ export const test = base.extend<ExtendedFixtures>({
     pw: async ({browser}, use) => {
         const pw = new PlaywrightExtended(browser);
         await use(pw);
+        await pw.testBrowser.close();
     },
     // eslint-disable-next-line no-empty-pattern
     pages: async ({}, use) => {
