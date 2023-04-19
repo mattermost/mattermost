@@ -1155,33 +1155,33 @@ func (mr *MockStoreMockRecorder) GetUserByUsername(arg0 interface{}) *gomock.Cal
 }
 
 // GetUserCategories mocks base method.
-func (m *MockStore) GetUserCategories(arg0, arg1 string) ([]model0.Category, error) {
+func (m *MockStore) GetUserCategories(arg0, arg1 string, arg2 model0.QueryUserCategoriesOptions) ([]model0.Category, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserCategories", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetUserCategories", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]model0.Category)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserCategories indicates an expected call of GetUserCategories.
-func (mr *MockStoreMockRecorder) GetUserCategories(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetUserCategories(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCategories", reflect.TypeOf((*MockStore)(nil).GetUserCategories), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCategories", reflect.TypeOf((*MockStore)(nil).GetUserCategories), arg0, arg1, arg2)
 }
 
 // GetUserCategoryBoards mocks base method.
-func (m *MockStore) GetUserCategoryBoards(arg0, arg1 string) ([]model0.CategoryBoards, error) {
+func (m *MockStore) GetUserCategoryBoards(arg0, arg1 string, arg2 model0.QueryUserCategoriesOptions) ([]model0.CategoryBoards, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserCategoryBoards", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetUserCategoryBoards", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]model0.CategoryBoards)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserCategoryBoards indicates an expected call of GetUserCategoryBoards.
-func (mr *MockStoreMockRecorder) GetUserCategoryBoards(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetUserCategoryBoards(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCategoryBoards", reflect.TypeOf((*MockStore)(nil).GetUserCategoryBoards), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserCategoryBoards", reflect.TypeOf((*MockStore)(nil).GetUserCategoryBoards), arg0, arg1, arg2)
 }
 
 // GetUserPreferences mocks base method.

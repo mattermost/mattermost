@@ -143,33 +143,44 @@ func (a *App) DeleteCategory(categoryID, userID, teamID string) (*model.Category
 }
 
 func (a *App) moveBoardsToDefaultCategory(userID, teamID, sourceCategoryID string) error {
-	// we need a list of boards associated to this category
-	// so we can move them to user's default Boards category
-	categoryBoards, err := a.GetUserCategoryBoards(userID, teamID)
-	if err != nil {
-		return err
-	}
-
 	var sourceCategoryBoards *model.CategoryBoards
 	defaultCategoryID := ""
 
-	// iterate user's categories to find the source category
-	// and the default category.
-	// We need source category to get the list of its board
-	// and the default category to know its ID to
-	// move source category's boards to.
-	for i := range categoryBoards {
-		if categoryBoards[i].ID == sourceCategoryID {
-			sourceCategoryBoards = &categoryBoards[i]
+	page := 0
+	const perPage = 100
+done:
+	for ; true; page++ {
+		// we need a list of boards associated to this category
+		// so we can move them to user's default Boards category
+		// TODO: this should be a store API instead of fetching all categories and looping.
+		categoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
 		}
+		// iterate user's categories to find the source category
+		// and the default category.
+		// We need source category to get the list of its board
+		// and the default category to know its ID to
+		// move source category's boards to.
+		for i := range categoryBoards {
+			if categoryBoards[i].ID == sourceCategoryID {
+				sourceCategoryBoards = &categoryBoards[i]
+			}
 
-		if categoryBoards[i].Name == defaultCategoryBoards {
-			defaultCategoryID = categoryBoards[i].ID
+			if categoryBoards[i].Name == defaultCategoryBoards {
+				defaultCategoryID = categoryBoards[i].ID
+			}
+
+			// if both categories are found, no need to iterate furthur.
+			if sourceCategoryBoards != nil && defaultCategoryID != "" {
+				break done
+			}
 		}
-
-		// if both categories are found, no need to iterate furthur.
-		if sourceCategoryBoards != nil && defaultCategoryID != "" {
-			break
+		if len(categoryBoards) < perPage {
+			break done
 		}
 	}
 
@@ -211,25 +222,36 @@ func (a *App) ReorderCategories(userID, teamID string, newCategoryOrder []string
 }
 
 func (a *App) verifyNewCategoriesMatchExisting(userID, teamID string, newCategoryOrder []string) error {
-	existingCategories, err := a.store.GetUserCategories(userID, teamID)
-	if err != nil {
-		return err
+	existingCategoriesMap := map[string]struct{}{}
+	page := 0
+	const perPage = 100
+
+	for ; true; page++ {
+		// TODO: this should be a store API instead of fetching all categories and looping.
+		existingCategories, err := a.store.GetUserCategories(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for _, category := range existingCategories {
+			existingCategoriesMap[category.ID] = struct{}{}
+		}
+		if len(existingCategories) < perPage {
+			break
+		}
 	}
 
-	if len(newCategoryOrder) != len(existingCategories) {
+	if len(newCategoryOrder) != len(existingCategoriesMap) {
 		return fmt.Errorf(
 			"%w length new categories: %d, length existing categories: %d, userID: %s, teamID: %s",
 			errCategoriesLengthMismatch,
 			len(newCategoryOrder),
-			len(existingCategories),
+			len(existingCategoriesMap),
 			userID,
 			teamID,
 		)
-	}
-
-	existingCategoriesMap := map[string]bool{}
-	for _, category := range existingCategories {
-		existingCategoriesMap[category.ID] = true
 	}
 
 	for _, newCategoryID := range newCategoryOrder {

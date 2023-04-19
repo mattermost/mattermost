@@ -207,7 +207,7 @@ func testGetUserCategories(t *testing.T, store store.Store) {
 	err = store.CreateCategory(category3)
 	assert.NoError(t, err)
 
-	userCategories, err := store.GetUserCategoryBoards("user_id_1", "team_id_1")
+	userCategories, err := store.GetUserCategoryBoards("user_id_1", "team_id_1", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(userCategories))
 }
@@ -242,7 +242,7 @@ func testReorderCategories(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify the current order
-	categories, err := store.GetUserCategories("user_id", "team_id")
+	categories, err := store.GetUserCategories("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(categories))
 
@@ -260,7 +260,7 @@ func testReorderCategories(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify the board order
-	categories, err = store.GetUserCategories("user_id", "team_id")
+	categories, err = store.GetUserCategories("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(categories))
 	assert.Equal(t, "category_id_2", categories[0].ID)
@@ -277,7 +277,7 @@ func testReorderCategories(t *testing.T, store store.Store) {
 	})
 	assert.NoError(t, err)
 
-	categories, err = store.GetUserCategories("user_id", "team_id")
+	categories, err = store.GetUserCategories("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(categories))
 	assert.Equal(t, "category_id_1", categories[0].ID)
@@ -305,7 +305,7 @@ func testReorderCategoryBoards(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify current order
-	categoryBoards, err := store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err := store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, 4, len(categoryBoards[0].BoardMetadata))
@@ -328,7 +328,7 @@ func testReorderCategoryBoards(t *testing.T, store store.Store) {
 	assert.Equal(t, "board_id_4", newOrder[3])
 
 	// verify new order
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, 4, len(categoryBoards[0].BoardMetadata))

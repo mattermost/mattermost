@@ -118,14 +118,14 @@ type Store interface {
 
 	GetCategory(id string) (*model.Category, error)
 
-	GetUserCategories(userID, teamID string) ([]model.Category, error)
+	GetUserCategories(userID, teamID string, opts model.QueryUserCategoriesOptions) ([]model.Category, error)
 	// @withTransaction
 	CreateCategory(category model.Category) error
 	UpdateCategory(category model.Category) error
 	DeleteCategory(categoryID, userID, teamID string) error
 	ReorderCategories(userID, teamID string, newCategoryOrder []string) ([]string, error)
 
-	GetUserCategoryBoards(userID, teamID string) ([]model.CategoryBoards, error)
+	GetUserCategoryBoards(userID, teamID string, opts model.QueryUserCategoriesOptions) ([]model.CategoryBoards, error)
 
 	GetFileInfo(id string) (*mm_model.FileInfo, error)
 	SaveFileInfo(fileInfo *mm_model.FileInfo) error

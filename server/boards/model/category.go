@@ -116,3 +116,8 @@ func CategoryFromJSON(data io.Reader) *Category {
 	_ = json.NewDecoder(data).Decode(&category)
 	return category
 }
+
+type QueryUserCategoriesOptions struct {
+	Page    int // page number to select when paginating
+	PerPage int // number of blocks per page (default=0, meaning unlimited)
+}

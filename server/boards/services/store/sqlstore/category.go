@@ -166,7 +166,7 @@ func (s *SQLStore) deleteCategory(db sq.BaseRunner, categoryID, userID, teamID s
 	return nil
 }
 
-func (s *SQLStore) getUserCategories(db sq.BaseRunner, userID, teamID string) ([]model.Category, error) {
+func (s *SQLStore) getUserCategories(db sq.BaseRunner, userID, teamID string, opts model.QueryUserCategoriesOptions) ([]model.Category, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.categoryFields()...).
 		From(s.tablePrefix+"categories").
@@ -175,7 +175,15 @@ func (s *SQLStore) getUserCategories(db sq.BaseRunner, userID, teamID string) ([
 			"team_id":   teamID,
 			"delete_at": 0,
 		}).
-		OrderBy("sort_order", "name")
+		OrderBy("sort_order", "name", "id") // need stable order for pagination
+
+	if opts.Page != 0 {
+		query = query.Offset(uint64(opts.Page * opts.PerPage))
+	}
+
+	if opts.PerPage > 0 {
+		query = query.Limit(uint64(opts.PerPage))
+	}
 
 	rows, err := query.Query()
 	if err != nil {

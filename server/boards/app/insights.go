@@ -76,11 +76,12 @@ func getUserBoards(userID string, teamID string, a *App) ([]string, error) {
 	// get boards accessible by user and filter boardIDs
 	boardIDs := []string{}
 	page := 0
+	const perPage = 100
 	for ; true; page++ {
 		boards, err := a.store.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
 			IncludePublicBoards: true,
 			Page:                page,
-			PerPage:             100,
+			PerPage:             perPage,
 		})
 		if err != nil {
 			return nil, errors.New("error getting boards for user")
@@ -88,7 +89,7 @@ func getUserBoards(userID string, teamID string, a *App) ([]string, error) {
 		for _, board := range boards {
 			boardIDs = append(boardIDs, board.ID)
 		}
-		if len(boards) == 0 || len(boards) < 100 {
+		if len(boards) < perPage {
 			break
 		}
 	}

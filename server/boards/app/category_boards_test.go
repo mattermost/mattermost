@@ -6,6 +6,8 @@ package app
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 
 	"github.com/stretchr/testify/assert"
@@ -13,13 +15,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 )
 
+var (
+	mockCategoryOptions = gomock.AssignableToTypeOf(model.QueryUserCategoriesOptions{})
+	mockBoardOptions    = gomock.AssignableToTypeOf(model.QueryBoardOptions{})
+)
+
 func TestGetUserCategoryBoards(t *testing.T) {
 	th, tearDown := SetupTestHelper(t)
 	defer tearDown()
 
 	t.Run("user had no default category and had boards", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{}, nil).Times(1)
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{}, nil).Times(1)
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:   "boards_category_id",
@@ -46,7 +53,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 			ID: "board_id_3",
 		}
 
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{board1, board2, board3}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{board1, board2, board3}, nil)
 
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
 			{
@@ -65,7 +72,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 		th.Store.EXPECT().GetBoard(utils.Anything).Return(nil, nil).Times(3)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id", "boards_category_id", []string{"board_id_1", "board_id_2", "board_id_3"}).Return(nil)
 
-		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id")
+		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(categoryBoards))
 		assert.Equal(t, "Boards", categoryBoards[0].Name)
@@ -76,7 +83,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 	})
 
 	t.Run("user had no default category BUT had no boards", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{}, nil)
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{}, nil)
 		th.Store.EXPECT().CreateCategory(utils.Anything).Return(nil)
 		th.Store.EXPECT().GetCategory(utils.Anything).Return(&model.Category{
 			ID:   "boards_category_id",
@@ -84,9 +91,9 @@ func TestGetUserCategoryBoards(t *testing.T) {
 		}, nil)
 
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 
-		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id")
+		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(categoryBoards))
 		assert.Equal(t, "Boards", categoryBoards[0].Name)
@@ -94,7 +101,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 	})
 
 	t.Run("user already had a default Boards category with boards in it", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{Name: "Boards"},
 				BoardMetadata: []model.CategoryBoardMetadata{
@@ -104,7 +111,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 			},
 		}, nil)
 
-		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id")
+		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(categoryBoards))
 		assert.Equal(t, "Boards", categoryBoards[0].Name)
@@ -123,7 +130,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 			Type: "system",
 			Name: "Boards",
 		}, nil)
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
 
 		existingCategoryBoards := []model.CategoryBoards{}
@@ -141,7 +148,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 			Type: "system",
 			Name: "Boards",
 		}, nil)
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
@@ -186,7 +193,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 		board3 := &model.Board{
 			ID: "board_id_3",
 		}
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{board1, board2, board3}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{board1, board2, board3}, nil)
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
@@ -204,7 +211,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 		th.Store.EXPECT().GetBoard(utils.Anything).Return(nil, nil).Times(3)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id", "boards_category_id", []string{"board_id_1", "board_id_2", "board_id_3"}).Return(nil)
 
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					Type: model.CategoryTypeSystem,
@@ -236,7 +243,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 		board1 := &model.Board{
 			ID: "board_id_1",
 		}
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{board1}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{board1}, nil)
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
@@ -254,7 +261,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 		th.Store.EXPECT().GetBoard(utils.Anything).Return(nil, nil).Times(3)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id", "boards_category_id", []string{"board_id_1"}).Return(nil)
 
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					Type: model.CategoryTypeSystem,
@@ -282,7 +289,7 @@ func TestReorderCategoryBoards(t *testing.T) {
 	defer tearDown()
 
 	t.Run("base case", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "category_id_1", Name: "Category 1"},
 				BoardMetadata: []model.CategoryBoardMetadata{
@@ -312,7 +319,7 @@ func TestReorderCategoryBoards(t *testing.T) {
 	})
 
 	t.Run("not specifying all boards", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "category_id_1", Name: "Category 1"},
 				BoardMetadata: []model.CategoryBoardMetadata{

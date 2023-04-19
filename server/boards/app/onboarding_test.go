@@ -67,10 +67,10 @@ func TestPrepareOnboardingTour(t *testing.T) {
 		}
 
 		th.Store.EXPECT().PatchUserPreferences(userID, userPreferencesPatch).Return(nil, nil)
-		th.Store.EXPECT().GetUserCategoryBoards(userID, "team_id").Return([]model.CategoryBoards{}, nil).Times(1)
+		th.Store.EXPECT().GetUserCategoryBoards(userID, "team_id", mockCategoryOptions).Return([]model.CategoryBoards{}, nil).Times(1)
 
 		// when this is called the second time, the default category is created so we need to include that in the response list
-		th.Store.EXPECT().GetUserCategoryBoards(userID, "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards(userID, "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "boards_category_id", Name: "Boards"},
 			},
@@ -81,7 +81,7 @@ func TestPrepareOnboardingTour(t *testing.T) {
 			ID:   "boards_category",
 			Name: "Boards",
 		}, nil)
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id_1", teamID, false).Return([]*model.Board{}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id_1", teamID, mockBoardOptions).Return([]*model.Board{}, nil)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id_1", "boards_category_id", []string{"board_id_2"}).Return(nil)
 
 		teamID, boardID, err := th.App.PrepareOnboardingTour(userID, teamID)
@@ -120,7 +120,7 @@ func TestCreateWelcomeBoard(t *testing.T) {
 		}
 		newType := model.BoardTypePrivate
 		th.Store.EXPECT().PatchBoard("board_id_1", &model.BoardPatch{Type: &newType}, "user_id_1").Return(&privateWelcomeBoard, nil)
-		th.Store.EXPECT().GetUserCategoryBoards(userID, "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards(userID, "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "boards_category_id", Name: "Boards"},
 			},

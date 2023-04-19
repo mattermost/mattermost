@@ -289,6 +289,16 @@ func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request
 	//   description: Team ID
 	//   required: true
 	//   type: string
+	// - name: page
+	//   in: query
+	//   description: The page to select (default=0)
+	//   required: false
+	//   type: integer
+	// - name: per_page
+	//   in: query
+	//   description: Number of cards to return per page(default=100)
+	//   required: false
+	//   type: integer
 	// security:
 	// - BearerAuth: []
 	// responses:
@@ -310,6 +320,12 @@ func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	teamID := vars["teamID"]
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	auditRec := a.makeAuditRecord(r, "getUserCategoryBoards", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
 
@@ -318,7 +334,10 @@ func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	categoryBlocks, err := a.app.GetUserCategoryBoards(userID, teamID)
+	categoryBlocks, err := a.app.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+		Page:    page,
+		PerPage: perPage,
+	})
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

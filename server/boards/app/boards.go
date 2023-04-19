@@ -145,21 +145,32 @@ func (a *App) getBoardDescendantModifiedInfo(boardID string, latest bool) (int64
 }
 
 func (a *App) setBoardCategoryFromSource(sourceBoardID, destinationBoardID, userID, teamID string, asTemplate bool) error {
-	// find source board's category ID for the user
-	userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID)
-	if err != nil {
-		return err
-	}
-
 	var destinationCategoryID string
+	page := 0
+	const perPage = 100
 
-	for _, categoryBoard := range userCategoryBoards {
-		for _, metadata := range categoryBoard.BoardMetadata {
-			if metadata.BoardID == sourceBoardID {
-				// category found!
-				destinationCategoryID = categoryBoard.ID
-				break
+done:
+	for ; true; page++ {
+		// find source board's category ID for the user
+		// TODO: this should be a store API instead of fetching all categories and looping through them.
+		userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for _, categoryBoard := range userCategoryBoards {
+			for _, metadata := range categoryBoard.BoardMetadata {
+				if metadata.BoardID == sourceBoardID {
+					// category found!
+					destinationCategoryID = categoryBoard.ID
+					break done
+				}
 			}
+		}
+		if len(userCategoryBoards) < perPage {
+			break done
 		}
 	}
 
@@ -319,16 +330,28 @@ func (a *App) CreateBoard(board *model.Board, userID string, addMember bool) (*m
 }
 
 func (a *App) addBoardsToDefaultCategory(userID, teamID string, boards []*model.Board) error {
-	userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID)
-	if err != nil {
-		return err
-	}
-
 	defaultCategoryID := ""
-	for _, categoryBoard := range userCategoryBoards {
-		if categoryBoard.Name == defaultCategoryBoards {
-			defaultCategoryID = categoryBoard.ID
-			break
+	page := 0
+	const perPage = 100
+
+done:
+	for ; true; page++ {
+		// TODO: this should be a store API instead of fetching all categories and looping.
+		userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for _, categoryBoard := range userCategoryBoards {
+			if categoryBoard.Name == defaultCategoryBoards {
+				defaultCategoryID = categoryBoard.ID
+				break done
+			}
+		}
+		if len(userCategoryBoards) < perPage {
+			break done
 		}
 	}
 

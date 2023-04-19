@@ -272,7 +272,7 @@ func TestDeleteCategory(t *testing.T) {
 			DeleteAt: 10000,
 		}, nil)
 
-		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:       "category_id_default",
@@ -336,7 +336,7 @@ func TestMoveBoardsToDefaultCategory(t *testing.T) {
 	defer tearDown()
 
 	t.Run("When default category already exists", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:   "category_id_1",
@@ -358,7 +358,7 @@ func TestMoveBoardsToDefaultCategory(t *testing.T) {
 	})
 
 	t.Run("When default category doesn't already exists", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:   "category_id_2",
@@ -375,7 +375,7 @@ func TestMoveBoardsToDefaultCategory(t *testing.T) {
 			Type: "system",
 		}, nil)
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 
 		err := th.App.moveBoardsToDefaultCategory("user_id", "team_id", "category_id_2")
 		assert.NoError(t, err)
@@ -387,7 +387,7 @@ func TestReorderCategories(t *testing.T) {
 	defer tearDown()
 
 	t.Run("base case", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategories("user_id", "team_id").Return([]model.Category{
+		th.Store.EXPECT().GetUserCategories("user_id", "team_id", mockCategoryOptions).Return([]model.Category{
 			{
 				ID:   "category_id_1",
 				Name: "Boards",
@@ -414,7 +414,7 @@ func TestReorderCategories(t *testing.T) {
 	})
 
 	t.Run("not specifying all categories should fail", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategories("user_id", "team_id").Return([]model.Category{
+		th.Store.EXPECT().GetUserCategories("user_id", "team_id", mockCategoryOptions).Return([]model.Category{
 			{
 				ID:   "category_id_1",
 				Name: "Boards",
@@ -443,7 +443,7 @@ func TestVerifyNewCategoriesMatchExisting(t *testing.T) {
 	defer tearDown()
 
 	t.Run("base case", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategories("user_id", "team_id").Return([]model.Category{
+		th.Store.EXPECT().GetUserCategories("user_id", "team_id", mockCategoryOptions).Return([]model.Category{
 			{
 				ID:   "category_id_1",
 				Name: "Boards",
@@ -470,7 +470,7 @@ func TestVerifyNewCategoriesMatchExisting(t *testing.T) {
 	})
 
 	t.Run("different category counts", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategories("user_id", "team_id").Return([]model.Category{
+		th.Store.EXPECT().GetUserCategories("user_id", "team_id", mockCategoryOptions).Return([]model.Category{
 			{
 				ID:   "category_id_1",
 				Name: "Boards",

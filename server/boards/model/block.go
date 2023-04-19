@@ -171,6 +171,11 @@ func (p *BlockPatch) Patch(block *Block) *Block {
 	return block
 }
 
+type QueryPageOptions struct {
+	Page    int // page number to select when paginating
+	PerPage int // number of blocks per page (default=0, meaning unlimited)
+}
+
 type QueryBlocksOptions struct {
 	BoardID   string    // if not empty then filter for blocks belonging to specified board
 	ParentID  string    // if not empty then filter for blocks belonging to specified parent
@@ -214,7 +219,7 @@ type QueryBlockHistoryChildOptions struct {
 	BeforeUpdateAt int64 // if non-zero then filter for records with update_at less than BeforeUpdateAt
 	AfterUpdateAt  int64 // if non-zero then filter for records with update_at greater than AfterUpdateAt
 	Page           int   // page number to select when paginating
-	PerPage        int   // number of blocks per page (default=-1, meaning unlimited)
+	PerPage        int   // number of blocks per page (default=0, meaning unlimited)
 }
 
 func StampModificationMetadata(userID string, blocks []*Block, auditRec *audit.Record) {

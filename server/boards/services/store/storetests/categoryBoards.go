@@ -80,7 +80,7 @@ func testGetUserCategoryBoards(t *testing.T, store store.Store) {
 
 	// we'll leave category 3 empty
 
-	userCategoryBoards, err := store.GetUserCategoryBoards("user_id_1", "team_id_1")
+	userCategoryBoards, err := store.GetUserCategoryBoards("user_id_1", "team_id_1", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 
 	// we created 3 categories for the user
@@ -111,7 +111,7 @@ func testGetUserCategoryBoards(t *testing.T, store store.Store) {
 	assert.Equal(t, 0, len(category3BoardCategory.BoardMetadata))
 
 	t.Run("get empty category boards", func(t *testing.T) {
-		userCategoryBoards, err := store.GetUserCategoryBoards("nonexistent-user-id", "nonexistent-team-id")
+		userCategoryBoards, err := store.GetUserCategoryBoards("nonexistent-user-id", "nonexistent-team-id", model.QueryUserCategoriesOptions{})
 		assert.NoError(t, err)
 		assert.Empty(t, userCategoryBoards)
 	})
@@ -146,7 +146,7 @@ func testAddUpdateCategoryBoard(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify inserted data
-	categoryBoards, err := store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err := store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -159,7 +159,7 @@ func testAddUpdateCategoryBoard(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify inserted data
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -171,7 +171,7 @@ func testAddUpdateCategoryBoard(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify inserted data
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -182,7 +182,7 @@ func testAddUpdateCategoryBoard(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify inserted data
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -194,7 +194,7 @@ func testAddUpdateCategoryBoard(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify inserted data
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -205,7 +205,7 @@ func testAddUpdateCategoryBoard(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify inserted data
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -240,7 +240,7 @@ func testSetBoardVisibility(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify set visibility
-	categoryBoards, err := store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err := store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(categoryBoards))
 	assert.Equal(t, "category_id", categoryBoards[0].ID)
@@ -251,7 +251,7 @@ func testSetBoardVisibility(t *testing.T, store store.Store) {
 	assert.NoError(t, err)
 
 	// verify set visibility
-	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id")
+	categoryBoards, err = store.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
 	assert.NoError(t, err)
 	assert.True(t, categoryBoards[0].BoardMetadata[0].Hidden)
 }

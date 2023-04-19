@@ -16,8 +16,8 @@ var errCategoryBoardsLengthMismatch = errors.New("cannot update category boards 
 var errBoardNotFoundInCategory = errors.New("specified board ID not found in specified category ID")
 var errBoardMembershipNotFound = errors.New("board membership not found for user's board")
 
-func (a *App) GetUserCategoryBoards(userID, teamID string) ([]model.CategoryBoards, error) {
-	categoryBoards, err := a.store.GetUserCategoryBoards(userID, teamID)
+func (a *App) GetUserCategoryBoards(userID, teamID string, opts model.QueryUserCategoriesOptions) ([]model.CategoryBoards, error) {
+	categoryBoards, err := a.store.GetUserCategoryBoards(userID, teamID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -169,16 +169,27 @@ func (a *App) AddUpdateUserCategoryBoard(teamID, userID, categoryID string, boar
 		return err
 	}
 
-	userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID)
-	if err != nil {
-		return err
-	}
-
 	var updatedCategory *model.CategoryBoards
-	for i := range userCategoryBoards {
-		if userCategoryBoards[i].ID == categoryID {
-			updatedCategory = &userCategoryBoards[i]
-			break
+	page := 0
+	const perPage = 100
+done:
+	for ; true; page++ {
+		// TODO: this should be a store API instead of fetching all categories and looping.
+		userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for i := range userCategoryBoards {
+			if userCategoryBoards[i].ID == categoryID {
+				updatedCategory = &userCategoryBoards[i]
+				break done
+			}
+		}
+		if len(userCategoryBoards) < perPage {
+			break done
 		}
 	}
 
@@ -229,16 +240,28 @@ func (a *App) ReorderCategoryBoards(userID, teamID, categoryID string, newBoards
 func (a *App) verifyNewCategoryBoardsMatchExisting(userID, teamID, categoryID string, newBoardsOrder []string) error {
 	// this function is to ensure that we don't miss specifying
 	// all boards of the category while reordering.
-	existingCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID)
-	if err != nil {
-		return err
-	}
-
+	// TODO: Can this be replaced with `SqlStore.GetCategory(categoryID)` ?
 	var targetCategoryBoards *model.CategoryBoards
-	for i := range existingCategoryBoards {
-		if existingCategoryBoards[i].Category.ID == categoryID {
-			targetCategoryBoards = &existingCategoryBoards[i]
-			break
+	page := 0
+	const perPage = 100
+done:
+	for ; true; page++ {
+		// TODO: this should be a store API instead of fetching all categories and looping.
+		existingCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for i := range existingCategoryBoards {
+			if existingCategoryBoards[i].ID == categoryID {
+				targetCategoryBoards = &existingCategoryBoards[i]
+				break done
+			}
+		}
+		if len(existingCategoryBoards) < perPage {
+			break done
 		}
 	}
 

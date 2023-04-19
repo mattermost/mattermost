@@ -47,7 +47,7 @@ func TestAddMemberToBoard(t *testing.T) {
 		// for WS change broadcast
 		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
 
-		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:   "default_category_id",
@@ -121,7 +121,7 @@ func TestAddMemberToBoard(t *testing.T) {
 		// for WS change broadcast
 		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
 
-		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:   "default_category_id",
@@ -528,7 +528,7 @@ func TestBoardCategory(t *testing.T) {
 	defer tearDown()
 
 	t.Run("no boards default category exists", func(t *testing.T) {
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "category_id_1", Name: "Category 1"},
 				BoardMetadata: []model.CategoryBoardMetadata{
@@ -549,7 +549,7 @@ func TestBoardCategory(t *testing.T) {
 		}, nil).Times(1)
 
 		// when this function is called the second time, the default category is created
-		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id", "team_id", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{ID: "category_id_1", Name: "Category 1"},
 				BoardMetadata: []model.CategoryBoardMetadata{
@@ -578,7 +578,7 @@ func TestBoardCategory(t *testing.T) {
 			Name: "Boards",
 		}, nil)
 		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
-		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", false).Return([]*model.Board{}, nil)
+		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id", "default_category_id", []string{
 			"board_id_1",
 			"board_id_2",
@@ -626,7 +626,7 @@ func TestDuplicateBoard(t *testing.T) {
 
 		th.Store.EXPECT().GetBoard("board_id_1").Return(&model.Board{}, nil)
 
-		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1").Return([]model.CategoryBoards{
+		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
 				Category: model.Category{
 					ID:   "category_id_1",

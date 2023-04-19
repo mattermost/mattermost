@@ -531,13 +531,13 @@ func (s *SQLStore) GetUserByUsername(username string) (*model.User, error) {
 
 }
 
-func (s *SQLStore) GetUserCategories(userID string, teamID string) ([]model.Category, error) {
-	return s.getUserCategories(s.db, userID, teamID)
+func (s *SQLStore) GetUserCategories(userID string, teamID string, opts model.QueryUserCategoriesOptions) ([]model.Category, error) {
+	return s.getUserCategories(s.db, userID, teamID, opts)
 
 }
 
-func (s *SQLStore) GetUserCategoryBoards(userID string, teamID string) ([]model.CategoryBoards, error) {
-	return s.getUserCategoryBoards(s.db, userID, teamID)
+func (s *SQLStore) GetUserCategoryBoards(userID string, teamID string, opts model.QueryUserCategoriesOptions) ([]model.CategoryBoards, error) {
+	return s.getUserCategoryBoards(s.db, userID, teamID, opts)
 
 }
 

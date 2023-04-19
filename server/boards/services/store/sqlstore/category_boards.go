@@ -15,13 +15,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
 )
 
-func (s *SQLStore) getUserCategoryBoards(db sq.BaseRunner, userID, teamID string) ([]model.CategoryBoards, error) {
-	categories, err := s.getUserCategories(db, userID, teamID)
+func (s *SQLStore) getUserCategoryBoards(db sq.BaseRunner, userID, teamID string, opts model.QueryUserCategoriesOptions) ([]model.CategoryBoards, error) {
+	userCategoryBoards := []model.CategoryBoards{}
+
+	categories, err := s.getUserCategories(db, userID, teamID, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	userCategoryBoards := []model.CategoryBoards{}
 	for _, category := range categories {
 		boardMetadata, err := s.getCategoryBoardAttributes(db, category.ID)
 		if err != nil {
@@ -58,7 +59,7 @@ func (s *SQLStore) getCategoryBoardAttributes(db sq.BaseRunner, categoryID strin
 }
 
 func (s *SQLStore) addUpdateCategoryBoard(db sq.BaseRunner, userID, categoryID string, boardIDsParam []string) error {
-	// we need to de-duplicate this array as Postgres failes to
+	// we need to de-duplicate this array as Postgres fails to
 	// handle upsert if there are multiple incoming rows
 	// that conflict the same existing row.
 	// For example, having the entry "1" in DB and trying to upsert "1" and "1" will fail
