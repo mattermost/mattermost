@@ -141,6 +141,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
 
+    const query = new URLSearchParams(search);
+    const redirectTo = query.get('redirect_to');
+
     const getExternalLoginOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
@@ -372,6 +375,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     useEffect(() => {
         if (currentUser) {
+            if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
+                history.push(redirectTo);
+                return;
+            }
             redirectUserToDefaultTeam();
             return;
         }
@@ -614,9 +621,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (isCloud && isSystemAdmin(userProfile.roles)) {
             dispatch(setNeedsLoggedInLimitReachedCheck(true));
         }
-
-        const query = new URLSearchParams(search);
-        const redirectTo = query.get('redirect_to');
 
         setCSRFFromCookie();
 
