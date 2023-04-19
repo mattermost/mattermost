@@ -50,7 +50,7 @@ func TestApp_ImportArchive(t *testing.T) {
 		}
 
 		th.Store.EXPECT().CreateBoardsAndBlocks(gomock.AssignableToTypeOf(&model.BoardsAndBlocks{}), "user").Return(babs, nil)
-		th.Store.EXPECT().GetMembersForBoard(board.ID).AnyTimes().Return([]*model.BoardMember{boardMember}, nil)
+		th.Store.EXPECT().GetMembersForBoard(board.ID, mockPageOptions).AnyTimes().Return([]*model.BoardMember{boardMember}, nil)
 		th.Store.EXPECT().GetBoard(board.ID).Return(board, nil)
 		th.Store.EXPECT().GetMemberForBoard(board.ID, "user").Return(boardMember, nil)
 		th.Store.EXPECT().GetUserCategoryBoards("user", "test-team", mockCategoryOptions).Return([]model.CategoryBoards{
@@ -111,7 +111,7 @@ func TestApp_ImportArchive(t *testing.T) {
 		}
 
 		th.Store.EXPECT().CreateBoardsAndBlocks(gomock.AssignableToTypeOf(&model.BoardsAndBlocks{}), "f1tydgc697fcbp8ampr6881jea").Return(babs, nil)
-		th.Store.EXPECT().GetMembersForBoard(board.ID).AnyTimes().Return([]*model.BoardMember{bm1, bm2, bm3}, nil)
+		th.Store.EXPECT().GetMembersForBoard(board.ID, mockPageOptions).AnyTimes().Return([]*model.BoardMember{bm1, bm2, bm3}, nil)
 		th.Store.EXPECT().GetUserCategoryBoards("f1tydgc697fcbp8ampr6881jea", "test-team", mockCategoryOptions).Return([]model.CategoryBoards{}, nil)
 		th.Store.EXPECT().GetUserCategoryBoards("f1tydgc697fcbp8ampr6881jea", "test-team", mockCategoryOptions).Return([]model.CategoryBoards{
 			{

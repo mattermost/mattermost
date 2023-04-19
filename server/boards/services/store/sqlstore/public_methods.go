@@ -411,8 +411,8 @@ func (s *SQLStore) GetMemberForBoard(boardID string, userID string) (*model.Boar
 
 }
 
-func (s *SQLStore) GetMembersForBoard(boardID string) ([]*model.BoardMember, error) {
-	return s.getMembersForBoard(s.db, boardID)
+func (s *SQLStore) GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
+	return s.getMembersForBoard(s.db, boardID, opts)
 
 }
 

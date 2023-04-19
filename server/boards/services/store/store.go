@@ -101,7 +101,7 @@ type Store interface {
 	DeleteMember(boardID, userID string) error
 	GetMemberForBoard(boardID, userID string) (*model.BoardMember, error)
 	GetBoardMemberHistory(boardID, userID string, limit uint64) ([]*model.BoardMemberHistoryEntry, error)
-	GetMembersForBoard(boardID string) ([]*model.BoardMember, error)
+	GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error)
 	GetMembersForUser(userID string) ([]*model.BoardMember, error)
 	CanSeeUser(seerID string, seenID string) (bool, error)
 	SearchBoardsForUser(term string, searchField model.BoardSearchField, userID string, includePublicBoards bool) ([]*model.Board, error)

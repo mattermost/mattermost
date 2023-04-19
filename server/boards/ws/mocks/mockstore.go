@@ -53,16 +53,16 @@ func (mr *MockStoreMockRecorder) GetBlock(arg0 interface{}) *gomock.Call {
 }
 
 // GetMembersForBoard mocks base method.
-func (m *MockStore) GetMembersForBoard(arg0 string) ([]*model.BoardMember, error) {
+func (m *MockStore) GetMembersForBoard(arg0 string, arg1 model.QueryPageOptions) ([]*model.BoardMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMembersForBoard", arg0)
+	ret := m.ctrl.Call(m, "GetMembersForBoard", arg0, arg1)
 	ret0, _ := ret[0].([]*model.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMembersForBoard indicates an expected call of GetMembersForBoard.
-func (mr *MockStoreMockRecorder) GetMembersForBoard(arg0 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetMembersForBoard(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForBoard", reflect.TypeOf((*MockStore)(nil).GetMembersForBoard), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForBoard", reflect.TypeOf((*MockStore)(nil).GetMembersForBoard), arg0, arg1)
 }

@@ -41,8 +41,8 @@ func TestPrepareOnboardingTour(t *testing.T) {
 			},
 		}},
 			nil, nil)
-		th.Store.EXPECT().GetMembersForBoard(welcomeBoard.ID).Return([]*model.BoardMember{}, nil).Times(2)
-		th.Store.EXPECT().GetMembersForBoard("board_id_2").Return([]*model.BoardMember{}, nil).Times(1)
+		th.Store.EXPECT().GetMembersForBoard(welcomeBoard.ID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard("board_id_2", mockPageOptions).Return([]*model.BoardMember{}, nil).Times(1)
 		th.Store.EXPECT().GetBoard(welcomeBoard.ID).Return(&welcomeBoard, nil).Times(2)
 		th.Store.EXPECT().GetBoard("board_id_2").Return(&welcomeBoard, nil).Times(1)
 		th.Store.EXPECT().GetUsersByTeam("0", "", false, false).Return([]*model.User{}, nil)
@@ -107,7 +107,7 @@ func TestCreateWelcomeBoard(t *testing.T) {
 		th.Store.EXPECT().GetTemplateBoards("0", "").Return([]*model.Board{&welcomeBoard}, nil)
 		th.Store.EXPECT().DuplicateBoard(welcomeBoard.ID, userID, teamID, false).
 			Return(&model.BoardsAndBlocks{Boards: []*model.Board{&welcomeBoard}}, nil, nil)
-		th.Store.EXPECT().GetMembersForBoard(welcomeBoard.ID).Return([]*model.BoardMember{}, nil).Times(3)
+		th.Store.EXPECT().GetMembersForBoard(welcomeBoard.ID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(3)
 		th.Store.EXPECT().GetBoard(welcomeBoard.ID).Return(&welcomeBoard, nil).AnyTimes()
 		th.Store.EXPECT().GetUsersByTeam("0", "", false, false).Return([]*model.User{}, nil)
 

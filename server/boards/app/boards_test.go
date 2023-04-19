@@ -45,7 +45,7 @@ func TestAddMemberToBoard(t *testing.T) {
 		}, nil)
 
 		// for WS change broadcast
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 
 		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
@@ -119,7 +119,7 @@ func TestAddMemberToBoard(t *testing.T) {
 		}, nil)
 
 		// for WS change broadcast
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 
 		th.Store.EXPECT().GetUserCategoryBoards("user_id_1", "team_id_1", mockCategoryOptions).Return([]model.CategoryBoards{
 			{
@@ -163,7 +163,7 @@ func TestPatchBoard(t *testing.T) {
 			nil)
 
 		// for WS BroadcastBoardChange
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(1)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(1)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -202,7 +202,7 @@ func TestPatchBoard(t *testing.T) {
 		// Should call GetMembersForBoard 2 times
 		// - for WS BroadcastBoardChange
 		// - for AddTeamMembers check
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -240,7 +240,7 @@ func TestPatchBoard(t *testing.T) {
 		// Should call GetMembersForBoard 2 times
 		// - for WS BroadcastBoardChange
 		// - for AddTeamMembers check
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestPatchBoard(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// for WS BroadcastMemberChange
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(3)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(3)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -316,7 +316,7 @@ func TestPatchBoard(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// for WS BroadcastMemberChange
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(3)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(3)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -357,7 +357,7 @@ func TestPatchBoard(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// We are returning the user as a direct Board Member, so BroadcastMemberDelete won't be called
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).Times(2)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -399,7 +399,7 @@ func TestPatchBoard(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// We are returning the user as a direct Board Member, so BroadcastMemberDelete won't be called
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).Times(2)
 
 		patchedBoard, err := th.App.PatchBoard(patch, boardID, userID)
 		require.NoError(t, err)
@@ -459,7 +459,7 @@ func TestPatchBoard(t *testing.T) {
 		// Should call GetMembersForBoard 2 times
 		// - for WS BroadcastBoardChange
 		// - for AddTeamMembers check
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
 
 		th.Store.EXPECT().PostMessage(utils.Anything, "", "").Times(1)
 
@@ -502,7 +502,9 @@ func TestPatchBoard2(t *testing.T) {
 		// for WS BroadcastBoardChange
 		// for AddTeamMembers check
 		// We are returning the user as a direct Board Member, so BroadcastMemberDelete won't be called
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{{BoardID: boardID, UserID: userID, SchemeEditor: true}}, nil).AnyTimes()
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{
+			{BoardID: boardID, UserID: userID, SchemeEditor: true},
+		}, nil).AnyTimes()
 
 		_, err := th.App.PatchBoard(patch, boardID, userID)
 		require.Error(t, err)
@@ -639,7 +641,7 @@ func TestDuplicateBoard(t *testing.T) {
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id_1", "category_id_1", utils.Anything).Return(nil)
 
 		// for WS change broadcast
-		th.Store.EXPECT().GetMembersForBoard(utils.Anything).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(utils.Anything, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
 
 		bab, members, err := th.App.DuplicateBoard("board_id_1", "user_id_1", "team_id_1", false)
 		assert.NoError(t, err)
@@ -674,7 +676,7 @@ func TestDuplicateBoard(t *testing.T) {
 		th.Store.EXPECT().GetBoard("board_id_1").Return(&model.Board{}, nil)
 
 		// for WS change broadcast
-		th.Store.EXPECT().GetMembersForBoard(utils.Anything).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(utils.Anything, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
 
 		bab, members, err := th.App.DuplicateBoard("board_id_1", "user_id_1", "team_id_1", true)
 		assert.NoError(t, err)
@@ -691,7 +693,7 @@ func TestGetMembersForBoard(t *testing.T) {
 	const userID = "user_id_1"
 	const teamID = "team_id_1"
 
-	th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{
+	th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{
 		{
 			BoardID:      boardID,
 			UserID:       userID,
@@ -700,7 +702,7 @@ func TestGetMembersForBoard(t *testing.T) {
 	}, nil).Times(3)
 	th.Store.EXPECT().GetBoard(boardID).Return(nil, nil).Times(1)
 	t.Run("-base case", func(t *testing.T) {
-		members, err := th.App.GetMembersForBoard(boardID)
+		members, err := th.App.GetMembersForBoard(boardID, model.QueryPageOptions{})
 		assert.NoError(t, err)
 		assert.NotNil(t, members)
 		assert.False(t, members[0].SchemeAdmin)
@@ -714,7 +716,7 @@ func TestGetMembersForBoard(t *testing.T) {
 	th.API.EXPECT().HasPermissionToTeam(userID, teamID, model.PermissionManageTeam).Return(false).Times(1)
 
 	t.Run("-team check false ", func(t *testing.T) {
-		members, err := th.App.GetMembersForBoard(boardID)
+		members, err := th.App.GetMembersForBoard(boardID, model.QueryPageOptions{})
 		assert.NoError(t, err)
 		assert.NotNil(t, members)
 
@@ -723,7 +725,7 @@ func TestGetMembersForBoard(t *testing.T) {
 
 	th.API.EXPECT().HasPermissionToTeam(userID, teamID, model.PermissionManageTeam).Return(true).Times(1)
 	t.Run("-team check true", func(t *testing.T) {
-		members, err := th.App.GetMembersForBoard(boardID)
+		members, err := th.App.GetMembersForBoard(boardID, model.QueryPageOptions{})
 		assert.NoError(t, err)
 		assert.NotNil(t, members)
 

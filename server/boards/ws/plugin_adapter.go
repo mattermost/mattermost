@@ -220,25 +220,35 @@ func (pa *PluginAdapter) getUserIDsForTeamAndBoard(teamID, boardID string, ensur
 		}
 	}
 
-	members, err := pa.store.GetMembersForBoard(boardID)
-	if err != nil {
-		pa.logger.Error("error getting members for board",
-			mlog.String("method", "getUserIDsForTeamAndBoard"),
-			mlog.String("teamID", teamID),
-			mlog.String("boardID", boardID),
-		)
-		return nil
-	}
-
-	// the list of users would be the intersection between the ones
-	// that are connected to the team and the board members that need
-	// to see the updates
 	userIDs := []string{}
-	for _, member := range members {
-		for userID := range userMap {
-			if userID == member.UserID && pa.auth.DoesUserHaveTeamAccess(userID, teamID) {
-				userIDs = append(userIDs, userID)
+
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		members, err := pa.store.GetMembersForBoard(boardID, model.QueryPageOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			pa.logger.Error("error getting members for board",
+				mlog.String("method", "getUserIDsForTeamAndBoard"),
+				mlog.String("teamID", teamID),
+				mlog.String("boardID", boardID),
+			)
+			return nil
+		}
+		// the list of users would be the intersection between the ones
+		// that are connected to the team and the board members that need
+		// to see the updates
+		for _, member := range members {
+			for userID := range userMap {
+				if userID == member.UserID && pa.auth.DoesUserHaveTeamAccess(userID, teamID) {
+					userIDs = append(userIDs, userID)
+				}
 			}
+		}
+		if len(members) < perPage {
+			break
 		}
 	}
 

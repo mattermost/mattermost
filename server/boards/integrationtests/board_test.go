@@ -157,7 +157,7 @@ func TestCreateBoard(t *testing.T) {
 		require.Equal(t, me.ID, board.ModifiedBy)
 
 		t.Run("creating a board should make the creator an admin", func(t *testing.T) {
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 1)
 			require.Equal(t, me.ID, members[0].UserID)
@@ -212,7 +212,7 @@ func TestCreateBoard(t *testing.T) {
 		require.Equal(t, me.ID, board.ModifiedBy)
 
 		t.Run("creating a board should make the creator an admin", func(t *testing.T) {
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 1)
 			require.Equal(t, me.ID, members[0].UserID)
@@ -325,7 +325,7 @@ func TestCreateBoardTemplate(t *testing.T) {
 		require.Equal(t, me.ID, board.ModifiedBy)
 
 		t.Run("creating a board template should make the creator an admin", func(t *testing.T) {
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 1)
 			require.Equal(t, me.ID, members[0].UserID)
@@ -381,7 +381,7 @@ func TestCreateBoardTemplate(t *testing.T) {
 		require.Equal(t, me.ID, board.ModifiedBy)
 
 		t.Run("creating a board template should make the creator an admin", func(t *testing.T) {
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 1)
 			require.Equal(t, me.ID, members[0].UserID)
@@ -1224,13 +1224,18 @@ func TestGetMembersForBoard(t *testing.T) {
 		return board
 	}
 
+	opts := model.QueryPageOptions{
+		Page:    0,
+		PerPage: 100,
+	}
+
 	t.Run("a non authenticated user should be rejected", func(t *testing.T) {
 		th := SetupTestHelper(t).InitBasic()
 		defer th.TearDown()
 		board := createBoardWithUsers(th)
 		th.Logout(th.Client)
 
-		members, resp := th.Client.GetMembersForBoard(board.ID)
+		members, resp := th.Client.GetMembersForBoard(board.ID, opts)
 		th.CheckUnauthorized(resp)
 		require.Empty(t, members)
 	})
@@ -1242,7 +1247,7 @@ func TestGetMembersForBoard(t *testing.T) {
 
 		_ = th.Server.App().DeleteBoardMember(board.ID, th.GetUser2().ID)
 
-		members, resp := th.Client2.GetMembersForBoard(board.ID)
+		members, resp := th.Client2.GetMembersForBoard(board.ID, opts)
 		th.CheckForbidden(resp)
 		require.Empty(t, members)
 	})
@@ -1251,7 +1256,7 @@ func TestGetMembersForBoard(t *testing.T) {
 		th := SetupTestHelper(t).InitBasic()
 		defer th.TearDown()
 
-		members, resp := th.Client.GetMembersForBoard("non-existing-board")
+		members, resp := th.Client.GetMembersForBoard("non-existing-board", opts)
 		th.CheckForbidden(resp)
 		require.Empty(t, members)
 	})
@@ -1261,9 +1266,29 @@ func TestGetMembersForBoard(t *testing.T) {
 		defer th.TearDown()
 		board := createBoardWithUsers(th)
 
-		members, resp := th.Client.GetMembersForBoard(board.ID)
+		members, resp := th.Client.GetMembersForBoard(board.ID, opts)
 		th.CheckOK(resp)
 		require.Len(t, members, 2)
+	})
+
+	t.Run("invalid pagination should be rejected", func(t *testing.T) {
+		th := SetupTestHelper(t).InitBasic()
+		defer th.TearDown()
+		board := createBoardWithUsers(th)
+
+		members, resp := th.Client.GetMembersForBoard(board.ID, model.QueryPageOptions{
+			Page:    -1,
+			PerPage: 10,
+		})
+		th.CheckBadRequest(resp)
+		require.Empty(t, members)
+
+		members, resp = th.Client.GetMembersForBoard(board.ID, model.QueryPageOptions{
+			Page:    0,
+			PerPage: -1,
+		})
+		th.CheckBadRequest(resp)
+		require.Empty(t, members)
 	})
 }
 
@@ -1383,7 +1408,10 @@ func TestAddMember(t *testing.T) {
 			th.CheckForbidden(resp)
 			require.Nil(t, member)
 
-			members, resp := th.Client2.GetMembersForBoard(board.ID)
+			members, resp := th.Client2.GetMembersForBoard(board.ID, model.QueryPageOptions{
+				Page:    0,
+				PerPage: 100,
+			})
 			th.CheckForbidden(resp)
 			require.Nil(t, members)
 
@@ -1399,7 +1427,10 @@ func TestAddMember(t *testing.T) {
 			th.CheckOK(resp)
 			require.NotNil(t, member)
 
-			members, resp = th.Client2.GetMembersForBoard(board.ID)
+			members, resp = th.Client2.GetMembersForBoard(board.ID, model.QueryPageOptions{
+				Page:    0,
+				PerPage: 100,
+			})
 			th.CheckOK(resp)
 			require.Len(t, members, 2)
 		})
@@ -1453,7 +1484,7 @@ func TestAddMember(t *testing.T) {
 			SchemeEditor: true,
 		}
 
-		members, err := th.Server.App().GetMembersForBoard(board.ID)
+		members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
 		require.True(t, members[0].SchemeAdmin)
@@ -1464,7 +1495,7 @@ func TestAddMember(t *testing.T) {
 		require.True(t, member.SchemeAdmin)
 		require.True(t, member.SchemeEditor)
 
-		members, err = th.Server.App().GetMembersForBoard(board.ID)
+		members, err = th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
 		require.True(t, members[0].SchemeAdmin)
@@ -1595,7 +1626,7 @@ func TestUpdateMember(t *testing.T) {
 		th.CheckBadRequest(resp)
 		require.Nil(t, updatedUser1Member)
 
-		members, err := th.Server.App().GetMembersForBoard(board.ID)
+		members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
 		require.True(t, members[0].SchemeAdmin)
@@ -1740,7 +1771,7 @@ func TestDeleteMember(t *testing.T) {
 				BoardID: board.ID,
 			}
 
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 2)
 
@@ -1748,7 +1779,7 @@ func TestDeleteMember(t *testing.T) {
 			th.CheckOK(resp)
 			require.True(t, success)
 
-			members, err = th.Server.App().GetMembersForBoard(board.ID)
+			members, err = th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 1)
 		})
@@ -1782,7 +1813,7 @@ func TestDeleteMember(t *testing.T) {
 				BoardID: board.ID,
 			}
 
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 2)
 
@@ -1791,7 +1822,7 @@ func TestDeleteMember(t *testing.T) {
 			th.CheckForbidden(resp)
 			require.False(t, success)
 
-			members, err = th.Server.App().GetMembersForBoard(board.ID)
+			members, err = th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 2)
 		})
@@ -1825,7 +1856,7 @@ func TestDeleteMember(t *testing.T) {
 				BoardID: board.ID,
 			}
 
-			members, err := th.Server.App().GetMembersForBoard(board.ID)
+			members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 2)
 
@@ -1833,7 +1864,7 @@ func TestDeleteMember(t *testing.T) {
 			th.CheckForbidden(resp)
 			require.False(t, success)
 
-			members, err = th.Server.App().GetMembersForBoard(board.ID)
+			members, err = th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members, 2)
 		})
@@ -1860,7 +1891,7 @@ func TestDeleteMember(t *testing.T) {
 		th.CheckBadRequest(resp)
 		require.False(t, success)
 
-		members, err := th.Server.App().GetMembersForBoard(board.ID)
+		members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
 		require.True(t, members[0].SchemeAdmin)
@@ -1967,7 +1998,7 @@ func TestDuplicateBoard(t *testing.T) {
 		}
 		th.Client.AddMemberToBoard(newUserMember)
 
-		members, err := th.Server.App().GetMembersForBoard(board.ID)
+		members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 2)
 
@@ -1980,7 +2011,7 @@ func TestDuplicateBoard(t *testing.T) {
 		duplicateBoard := rBoardsAndBlock.Boards[0]
 		require.Equal(t, duplicateBoard.Type, model.BoardTypePrivate, "Duplicated board should be private")
 
-		members, err = th.Server.App().GetMembersForBoard(duplicateBoard.ID)
+		members, err = th.Server.App().GetMembersForBoard(duplicateBoard.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 1, "Duplicated board should only have one member")
 		require.Equal(t, me.ID, members[0].UserID)
@@ -2052,7 +2083,7 @@ func TestDuplicateBoard(t *testing.T) {
 		}
 		th.Client.AddMemberToBoard(newUserMember)
 
-		members, err := th.Server.App().GetMembersForBoard(board.ID)
+		members, err := th.Server.App().GetMembersForBoard(board.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 2)
 
@@ -2067,7 +2098,7 @@ func TestDuplicateBoard(t *testing.T) {
 		require.Equal(t, duplicateBoard.Type, model.BoardTypePrivate, "Duplicated board should be private")
 		require.Equal(t, "Public board copy", duplicateBoard.Title)
 
-		members, err = th.Server.App().GetMembersForBoard(duplicateBoard.ID)
+		members, err = th.Server.App().GetMembersForBoard(duplicateBoard.ID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, members, 1, "Duplicated board should only have one member")
 		require.Equal(t, me.ID, members[0].UserID)

@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
 
 	mm_model "github.com/mattermost/mattermost-server/v6/model"
@@ -309,6 +311,10 @@ func TestGetUserIDsForTeam(t *testing.T) {
 	})
 }
 
+var (
+	mockPageOptions = gomock.AssignableToTypeOf(model.QueryPageOptions{})
+)
+
 func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	th := SetupTestHelper(t)
 
@@ -353,7 +359,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	t.Run("should find that only user1 is connected to team 1 and board 1", func(t *testing.T) {
 		mockedMembers := []*model.BoardMember{{UserID: userID1}}
 		th.store.EXPECT().
-			GetMembersForBoard(boardID1).
+			GetMembersForBoard(boardID1, mockPageOptions).
 			Return(mockedMembers, nil).
 			Times(1)
 
@@ -369,7 +375,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	t.Run("should find that both users are connected to team 2 and board 2", func(t *testing.T) {
 		mockedMembers := []*model.BoardMember{{UserID: userID1}, {UserID: userID2}}
 		th.store.EXPECT().
-			GetMembersForBoard(boardID2).
+			GetMembersForBoard(boardID2, mockPageOptions).
 			Return(mockedMembers, nil).
 			Times(1)
 
@@ -389,7 +395,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	t.Run("should find that only one user is connected to team 2 and board 2 if there is only one membership with both connected", func(t *testing.T) {
 		mockedMembers := []*model.BoardMember{{UserID: userID1}}
 		th.store.EXPECT().
-			GetMembersForBoard(boardID2).
+			GetMembersForBoard(boardID2, mockPageOptions).
 			Return(mockedMembers, nil).
 			Times(1)
 
@@ -408,7 +414,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 
 		mockedMembers := []*model.BoardMember{{UserID: userID1}, {UserID: userID2}}
 		th.store.EXPECT().
-			GetMembersForBoard(boardID2).
+			GetMembersForBoard(boardID2, mockPageOptions).
 			Return(mockedMembers, nil).
 			Times(1)
 
@@ -425,7 +431,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 		userID3 := mm_model.NewId()
 		mockedMembers := []*model.BoardMember{{UserID: userID1}, {UserID: userID2}}
 		th.store.EXPECT().
-			GetMembersForBoard(boardID2).
+			GetMembersForBoard(boardID2, mockPageOptions).
 			Return(mockedMembers, nil).
 			Times(1)
 
@@ -445,7 +451,7 @@ func TestGetUserIDsForTeamAndBoard(t *testing.T) {
 	t.Run("should not include a user that, although present, has no team access anymore", func(t *testing.T) {
 		mockedMembers := []*model.BoardMember{{UserID: userID1}, {UserID: userID2}}
 		th.store.EXPECT().
-			GetMembersForBoard(boardID2).
+			GetMembersForBoard(boardID2, mockPageOptions).
 			Return(mockedMembers, nil).
 			Times(1)
 

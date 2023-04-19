@@ -795,18 +795,18 @@ func (mr *MockStoreMockRecorder) GetMemberForBoard(arg0, arg1 interface{}) *gomo
 }
 
 // GetMembersForBoard mocks base method.
-func (m *MockStore) GetMembersForBoard(arg0 string) ([]*model0.BoardMember, error) {
+func (m *MockStore) GetMembersForBoard(arg0 string, arg1 model0.QueryPageOptions) ([]*model0.BoardMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMembersForBoard", arg0)
+	ret := m.ctrl.Call(m, "GetMembersForBoard", arg0, arg1)
 	ret0, _ := ret[0].([]*model0.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMembersForBoard indicates an expected call of GetMembersForBoard.
-func (mr *MockStoreMockRecorder) GetMembersForBoard(arg0 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetMembersForBoard(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForBoard", reflect.TypeOf((*MockStore)(nil).GetMembersForBoard), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForBoard", reflect.TypeOf((*MockStore)(nil).GetMembersForBoard), arg0, arg1)
 }
 
 // GetMembersForUser mocks base method.

@@ -35,7 +35,7 @@ func TestInsertBlock(t *testing.T) {
 		board := &model.Board{ID: boardID}
 		th.Store.EXPECT().GetBoard(boardID).Return(board, nil)
 		th.Store.EXPECT().InsertBlock(block, "user-id-1").Return(nil)
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 		err := th.App.InsertBlock(block, "user-id-1")
 		require.NoError(t, err)
 	})
@@ -68,7 +68,7 @@ func TestPatchBlocks(t *testing.T) {
 		th.Store.EXPECT().PatchBlocks(gomock.Eq(&blockPatches), gomock.Eq("user-id-1")).Return(nil)
 		th.Store.EXPECT().GetBlock("block1").Return(block1, nil)
 		// this call comes from the WS server notification
-		th.Store.EXPECT().GetMembersForBoard(gomock.Any()).Times(1)
+		th.Store.EXPECT().GetMembersForBoard(gomock.Any(), mockPageOptions).Times(1)
 		err := th.App.PatchBlocks("team-id", &blockPatches, "user-id-1")
 		require.NoError(t, err)
 	})
@@ -132,7 +132,7 @@ func TestDeleteBlock(t *testing.T) {
 		th.Store.EXPECT().GetBlock(gomock.Eq("block-id")).Return(block, nil)
 		th.Store.EXPECT().DeleteBlock(gomock.Eq("block-id"), gomock.Eq("user-id-1")).Return(nil)
 		th.Store.EXPECT().GetBoard(gomock.Eq(testBoardID)).Return(board, nil)
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 		err := th.App.DeleteBlock("block-id", "user-id-1")
 		require.NoError(t, err)
 	})
@@ -170,7 +170,7 @@ func TestUndeleteBlock(t *testing.T) {
 		th.Store.EXPECT().UndeleteBlock(gomock.Eq("block-id"), gomock.Eq("user-id-1")).Return(nil)
 		th.Store.EXPECT().GetBlock(gomock.Eq("block-id")).Return(block, nil)
 		th.Store.EXPECT().GetBoard(boardID).Return(board, nil)
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 		_, err := th.App.UndeleteBlock("block-id", "user-id-1")
 		require.NoError(t, err)
 	})
@@ -321,7 +321,7 @@ func TestInsertBlocks(t *testing.T) {
 		board := &model.Board{ID: boardID}
 		th.Store.EXPECT().GetBoard(boardID).Return(board, nil)
 		th.Store.EXPECT().InsertBlock(block, "user-id-1").Return(nil)
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 		_, err := th.App.InsertBlocks([]*model.Block{block}, "user-id-1")
 		require.NoError(t, err)
 	})
@@ -348,7 +348,7 @@ func TestInsertBlocks(t *testing.T) {
 		board := &model.Board{ID: boardID}
 		th.Store.EXPECT().GetBoard(boardID).Return(board, nil)
 		th.Store.EXPECT().InsertBlock(block, "user-id-1").Return(nil)
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 
 		// setting up mocks for limits
 		fakeLicense := &mm_model.License{
@@ -435,7 +435,7 @@ func TestInsertBlocks(t *testing.T) {
 		board := &model.Board{ID: boardID}
 		th.Store.EXPECT().GetBoard(boardID).Return(board, nil)
 		th.Store.EXPECT().InsertBlock(view1, "user-id-1").Return(nil).Times(2)
-		th.Store.EXPECT().GetMembersForBoard(boardID).Return([]*model.BoardMember{}, nil).Times(2)
+		th.Store.EXPECT().GetMembersForBoard(boardID, mockPageOptions).Return([]*model.BoardMember{}, nil).Times(2)
 
 		// setting up mocks for limits
 		fakeLicense := &mm_model.License{

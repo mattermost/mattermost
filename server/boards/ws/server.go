@@ -477,20 +477,31 @@ func (ws *Server) getListenersForTeam(teamID string) []*websocketSession {
 // getListenersForTeamAndBoard returns the listeners subscribed to a
 // team changes and members of a given board.
 func (ws *Server) getListenersForTeamAndBoard(teamID, boardID string, ensureUsers ...string) []*websocketSession {
-	members, err := ws.store.GetMembersForBoard(boardID)
-	if err != nil {
-		ws.logger.Error("error getting members for board",
-			mlog.String("method", "getListenersForTeamAndBoard"),
-			mlog.String("teamID", teamID),
-			mlog.String("boardID", boardID),
-		)
-		return nil
+	memberMap := map[string]bool{}
+
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		members, err := ws.store.GetMembersForBoard(boardID, model.QueryPageOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			ws.logger.Error("error getting members for board",
+				mlog.String("method", "getListenersForTeamAndBoard"),
+				mlog.String("teamID", teamID),
+				mlog.String("boardID", boardID),
+			)
+			return nil
+		}
+		for _, member := range members {
+			memberMap[member.UserID] = true
+		}
+		if len(members) < perPage {
+			break
+		}
 	}
 
-	memberMap := map[string]bool{}
-	for _, member := range members {
-		memberMap[member.UserID] = true
-	}
 	for _, id := range ensureUsers {
 		memberMap[id] = true
 	}

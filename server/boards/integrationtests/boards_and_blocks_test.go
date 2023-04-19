@@ -154,11 +154,11 @@ func TestCreateBoardsAndBlocks(t *testing.T) {
 
 			// user should be an admin of both newly created boards
 			user1 := th.GetUser1()
-			members1, err := th.Server.App().GetMembersForBoard(board1.ID)
+			members1, err := th.Server.App().GetMembersForBoard(board1.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members1, 1)
 			require.Equal(t, user1.ID, members1[0].UserID)
-			members2, err := th.Server.App().GetMembersForBoard(board2.ID)
+			members2, err := th.Server.App().GetMembersForBoard(board2.ID, model.QueryPageOptions{})
 			require.NoError(t, err)
 			require.Len(t, members2, 1)
 			require.Equal(t, user1.ID, members2[0].UserID)

@@ -6,18 +6,11 @@ package app
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
-
 	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-)
-
-var (
-	mockCategoryOptions = gomock.AssignableToTypeOf(model.QueryUserCategoriesOptions{})
-	mockBoardOptions    = gomock.AssignableToTypeOf(model.QueryBoardOptions{})
 )
 
 func TestGetUserCategoryBoards(t *testing.T) {

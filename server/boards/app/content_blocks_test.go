@@ -177,7 +177,7 @@ func TestMoveContentBlock(t *testing.T) {
 							th.Store.EXPECT().GetBlock(tc.parentBlock.ID).Return(tc.parentBlock, nil)
 							th.Store.EXPECT().GetBoard(tc.parentBlock.BoardID).Return(&model.Board{ID: "test-board"}, nil)
 							// this call comes from the WS server notification
-							th.Store.EXPECT().GetMembersForBoard(gomock.Any()).Times(1)
+							th.Store.EXPECT().GetMembersForBoard(gomock.Any(), mockPageOptions).Times(1)
 						}
 					}
 				}

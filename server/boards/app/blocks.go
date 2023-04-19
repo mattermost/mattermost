@@ -25,6 +25,31 @@ func (a *App) GetBlocks(opts model.QueryBlocksOptions) ([]*model.Block, error) {
 	return a.store.GetBlocks(opts)
 }
 
+func (a *App) ForEachBlock(opts model.QueryBlocksOptions, fn func(*model.Block) error) error {
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		opts.Page = page
+		opts.PerPage = perPage
+
+		blocks, err := a.GetBlocks(opts)
+		if err != nil {
+			return err
+		}
+
+		for _, block := range blocks {
+			if err = fn(block); err != nil {
+				return err
+			}
+		}
+
+		if len(blocks) < perPage {
+			break
+		}
+	}
+	return nil
+}
+
 func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTemplate bool) ([]*model.Block, error) {
 	board, err := a.GetBoard(boardID)
 	if err != nil {

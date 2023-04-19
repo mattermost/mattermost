@@ -747,8 +747,9 @@ func (c *Client) SearchBoardsForTeam(teamID, term string) ([]*model.Board, *Resp
 	return model.BoardsFromJSON(r.Body), BuildResponse(r)
 }
 
-func (c *Client) GetMembersForBoard(boardID string) ([]*model.BoardMember, *Response) {
-	r, err := c.DoAPIGet(c.GetBoardRoute(boardID)+"/members", "")
+func (c *Client) GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, *Response) {
+	query := fmt.Sprintf("page=%d&per_page=%d", opts.Page, opts.PerPage)
+	r, err := c.DoAPIGet(c.GetBoardRoute(boardID)+"/members?"+query, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

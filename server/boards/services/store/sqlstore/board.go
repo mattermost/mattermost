@@ -641,12 +641,21 @@ func (s *SQLStore) getMembersForUser(db sq.BaseRunner, userID string) ([]*model.
 	return members, nil
 }
 
-func (s *SQLStore) getMembersForBoard(db sq.BaseRunner, boardID string) ([]*model.BoardMember, error) {
+func (s *SQLStore) getMembersForBoard(db sq.BaseRunner, boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardMemberFields...).
 		From(s.tablePrefix + "board_members AS BM").
 		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
-		Where(sq.Eq{"BM.board_id": boardID})
+		Where(sq.Eq{"BM.board_id": boardID}).
+		OrderBy("BM.user_id") // requires stable order for pagination
+
+	if opts.Page != 0 {
+		query = query.Offset(uint64(opts.Page * opts.PerPage))
+	}
+
+	if opts.PerPage > 0 {
+		query = query.Limit(uint64(opts.PerPage))
+	}
 
 	rows, err := query.Query()
 	if err != nil {

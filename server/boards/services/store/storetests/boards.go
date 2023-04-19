@@ -685,7 +685,7 @@ func testGetMemberForBoard(t *testing.T, store store.Store) {
 
 func testGetMembersForBoard(t *testing.T, store store.Store) {
 	t.Run("should return empty list if there are no members on a board", func(t *testing.T) {
-		members, err := store.GetMembersForBoard(testBoardID)
+		members, err := store.GetMembersForBoard(testBoardID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Empty(t, members)
 	})
@@ -718,12 +718,12 @@ func testGetMembersForBoard(t *testing.T, store store.Store) {
 			return ids
 		}
 
-		board1Members, err := store.GetMembersForBoard(boardID1)
+		board1Members, err := store.GetMembersForBoard(boardID1, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, board1Members, 2)
 		require.ElementsMatch(t, []string{userID1, userID2}, getMemberIDs(board1Members))
 
-		board2Members, err := store.GetMembersForBoard(boardID2)
+		board2Members, err := store.GetMembersForBoard(boardID2, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Len(t, board2Members, 1)
 		require.ElementsMatch(t, []string{userID3}, getMemberIDs(board2Members))

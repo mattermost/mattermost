@@ -40,7 +40,7 @@ func TestCreateCard(t *testing.T) {
 	t.Run("success scenario", func(t *testing.T) {
 		th.Store.EXPECT().GetBoard(board.ID).Return(board, nil)
 		th.Store.EXPECT().InsertBlock(gomock.AssignableToTypeOf(reflect.TypeOf(block)), userID).Return(nil)
-		th.Store.EXPECT().GetMembersForBoard(board.ID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(board.ID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 
 		newCard, err := th.App.CreateCard(card, board.ID, userID, false)
 
@@ -151,7 +151,7 @@ func TestPatchCard(t *testing.T) {
 		var blockPatch *model.BlockPatch
 		th.Store.EXPECT().GetBoard(board.ID).Return(board, nil)
 		th.Store.EXPECT().PatchBlock(card.ID, gomock.AssignableToTypeOf(reflect.TypeOf(blockPatch)), userID).Return(nil)
-		th.Store.EXPECT().GetMembersForBoard(board.ID).Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard(board.ID, mockPageOptions).Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().GetBlock(card.ID).Return(expectedPatchedBlock, nil).AnyTimes()
 
 		patchedCard, err := th.App.PatchCard(cardPatch, card.ID, userID, false)

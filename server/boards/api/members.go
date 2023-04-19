@@ -39,6 +39,16 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 	//   description: Board ID
 	//   required: true
 	//   type: string
+	// - name: page
+	//   in: query
+	//   description: The page to select (default=0)
+	//   required: false
+	//   type: integer
+	// - name: per_page
+	//   in: query
+	//   description: Number of cards to return per page(default=100)
+	//   required: false
+	//   type: integer
 	// security:
 	// - BearerAuth: []
 	// responses:
@@ -56,6 +66,12 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 	boardID := mux.Vars(r)["boardID"]
 	userID := getUserID(r)
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionViewBoard) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to board members"))
 		return
@@ -65,7 +81,10 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
 	auditRec.AddMeta("boardID", boardID)
 
-	members, err := a.app.GetMembersForBoard(boardID)
+	members, err := a.app.GetMembersForBoard(boardID, model.QueryPageOptions{
+		Page:    page,
+		PerPage: perPage,
+	})
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

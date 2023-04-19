@@ -84,35 +84,30 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 	}
 
 	var files []string
-	// write the board's blocks
-	// TODO: paginate this
-	blocks, err := a.GetBlocks(model.QueryBlocksOptions{BoardID: board.ID})
-	if err != nil {
-		return err
-	}
 
-	for _, block := range blocks {
+	// write the board's blocks
+	err = a.ForEachBlock(model.QueryBlocksOptions{BoardID: board.ID}, func(block *model.Block) error {
 		if err = a.writeArchiveBlockLine(w, block); err != nil {
 			return err
 		}
 		if block.Type == model.TypeImage {
 			filename, err2 := extractImageFilename(block)
 			if err2 != nil {
-				return err
+				return err2
 			}
 			files = append(files, filename)
 		}
-	}
-
-	boardMembers, err := a.GetMembersForBoard(board.ID)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	for _, boardMember := range boardMembers {
-		if err = a.writeArchiveBoardMemberLine(w, boardMember); err != nil {
-			return err
-		}
+	err = a.ForEachMemberOfBoard(board.ID, func(member *model.BoardMember) error {
+		return a.writeArchiveBoardMemberLine(w, member)
+	})
+	if err != nil {
+		return err
 	}
 
 	// write the files

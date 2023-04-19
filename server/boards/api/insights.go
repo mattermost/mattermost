@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -78,6 +77,12 @@ func (a *API) handleTeamBoardsInsights(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	timeRange := query.Get("time_range")
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
@@ -85,26 +90,6 @@ func (a *API) handleTeamBoardsInsights(w http.ResponseWriter, r *http.Request) {
 
 	auditRec := a.makeAuditRecord(r, "getTeamBoardsInsights", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-
-	page, err := strconv.Atoi(query.Get("page"))
-	if err != nil {
-		message := fmt.Sprintf("error converting page parameter to integer: %s", err)
-		a.errorResponse(w, r, model.NewErrBadRequest(message))
-		return
-	}
-	if page < 0 {
-		a.errorResponse(w, r, model.NewErrBadRequest("Invalid page parameter"))
-	}
-
-	perPage, err := strconv.Atoi(query.Get("per_page"))
-	if err != nil {
-		message := fmt.Sprintf("error converting per_page parameter to integer: %s", err)
-		a.errorResponse(w, r, model.NewErrBadRequest(message))
-		return
-	}
-	if perPage < 0 {
-		a.errorResponse(w, r, model.NewErrBadRequest("Invalid page parameter"))
-	}
 
 	userTimezone, aErr := a.app.GetUserTimezone(userID)
 	if aErr != nil {
@@ -198,6 +183,12 @@ func (a *API) handleUserBoardsInsights(w http.ResponseWriter, r *http.Request) {
 	teamID := query.Get("team_id")
 	timeRange := query.Get("time_range")
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
@@ -205,25 +196,7 @@ func (a *API) handleUserBoardsInsights(w http.ResponseWriter, r *http.Request) {
 
 	auditRec := a.makeAuditRecord(r, "getUserBoardsInsights", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	page, err := strconv.Atoi(query.Get("page"))
-	if err != nil {
-		a.errorResponse(w, r, model.NewErrBadRequest("error converting page parameter to integer"))
-		return
-	}
 
-	if page < 0 {
-		a.errorResponse(w, r, model.NewErrBadRequest("Invalid page parameter"))
-	}
-	perPage, err := strconv.Atoi(query.Get("per_page"))
-	if err != nil {
-		message := fmt.Sprintf("error converting per_page parameter to integer: %s", err)
-		a.errorResponse(w, r, model.NewErrBadRequest(message))
-		return
-	}
-
-	if perPage < 0 {
-		a.errorResponse(w, r, model.NewErrBadRequest("Invalid page parameter"))
-	}
 	userTimezone, aErr := a.app.GetUserTimezone(userID)
 	if aErr != nil {
 		message := fmt.Sprintf("Error getting time zone of user: %s", aErr)

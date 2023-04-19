@@ -1125,12 +1125,14 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string) ([]*model.BoardMe
 	return members, nil
 }
 
-func (s *MattermostAuthLayer) GetMembersForBoard(boardID string) ([]*model.BoardMember, error) {
-	explicitMembers, err := s.Store.GetMembersForBoard(boardID)
+func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
+	explicitMembers, err := s.Store.GetMembersForBoard(boardID, opts)
 	if err != nil {
 		s.logger.Error(`getMembersForBoard ERROR`, mlog.Err(err))
 		return nil, err
 	}
+
+	xxx
 
 	query := s.getQueryBuilder().
 		Select("CM.userID, B.Id").
@@ -1155,6 +1157,7 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string) ([]*model.Board
 	if err != nil {
 		return nil, err
 	}
+
 	members := []*model.BoardMember{}
 	existingMembers := map[string]bool{}
 	for _, m := range explicitMembers {

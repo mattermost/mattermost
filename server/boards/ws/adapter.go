@@ -29,7 +29,7 @@ const (
 
 type Store interface {
 	GetBlock(blockID string) (*model.Block, error)
-	GetMembersForBoard(boardID string) ([]*model.BoardMember, error)
+	GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error)
 }
 
 type Adapter interface {
