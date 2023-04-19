@@ -245,10 +245,6 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableCustomGroups === 'true';
 }
 
-export function getUseCaseOnboarding(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'UseCaseOnboarding') === 'true' && getLicense(state)?.Cloud === 'true';
-}
-
 export function insightsAreEnabled(state: GlobalState): boolean {
     const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
     const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';
