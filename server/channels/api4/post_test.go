@@ -1541,6 +1541,12 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockStore.On("License").Return(th.App.Srv().Store().License())
 	mockStore.On("Role").Return(th.App.Srv().Store().Role())
 	mockStore.On("Close").Return(nil)
+
+	// Playbooks DB job requires a plugin mock
+	pluginStore := mocks.PluginStore{}
+	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	mockStore.On("Plugin").Return(&pluginStore)
+
 	th.App.Srv().SetStore(&mockStore)
 
 	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
