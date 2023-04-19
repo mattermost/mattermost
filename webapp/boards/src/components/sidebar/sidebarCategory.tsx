@@ -203,6 +203,11 @@ const SidebarCategory = (props: Props) => {
                     setTimeout(() => {
                         showBoard(props.boards[nextBoardId as number].id)
                     }, 120)
+                } else {
+                    setTimeout(() => {
+                        const newPath = generatePath('/team/:teamId', {teamId: teamID,})
+                        history.push(newPath)
+                    }, 120)
                 }
             },
             async () => {
