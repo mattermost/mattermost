@@ -143,7 +143,10 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
 
         if (this.state.showTooltip) {
             const displayNameToolTip = (
-                <Tooltip id='marketplace-item-description__tooltip'>
+                <Tooltip
+                    id='marketplace-item-description__tooltip'
+                    className='more-modal__description-tooltip'
+                >
                     {descriptionText}
                 </Tooltip>
             );
@@ -151,6 +154,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
             description = (
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
+                    delayHide={30000}
                     placement='top'
                     overlay={displayNameToolTip}
                 >
