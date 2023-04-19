@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
@@ -374,10 +373,9 @@ func selfHostedConfirmExpand(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
-
+	license, appErr := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
 	// dealing with an AppError
-	if !(reflect.ValueOf(err).Kind() == reflect.Ptr && reflect.ValueOf(err).IsNil()) {
+	if appErr != nil {
 		if confirmResponse != nil {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
