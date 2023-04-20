@@ -78,6 +78,7 @@ const OverageUsersBanner = () => {
         licenseId: license.Id,
         isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
         banner: 'global banner',
+        canSelfHostedExpand: canSelfHostedExpand || false,
     });
 
     const handleClose = () => {
@@ -113,7 +114,7 @@ const OverageUsersBanner = () => {
         return null;
     }
 
-    const message = (
+    let message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
             defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
@@ -121,6 +122,17 @@ const OverageUsersBanner = () => {
                 seats: overageByUsers,
             }}
         />);
+    
+    if (canSelfHostedExpand) {
+        message = (
+            <FormattedMessage
+                id='licensingPage.overageUsersBanner.textSelfHostedExpand'
+                defaultMessage='Your workspace user count has exceeded your paid license seat count. Update your seat count to stay compliant.'
+                values={{
+                    seats: overageByUsers,
+                }}
+            />);
+    }
 
     return (
         <AnnouncementBar
