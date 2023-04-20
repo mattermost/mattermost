@@ -599,9 +599,8 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 		).
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId AND ThreadMemberships.UserId = ?", userID)
-
-	query = query.Where(sq.Eq{"Threads.ChannelId": channelID})
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId AND ThreadMemberships.UserId = ?", userID).
+		Where(sq.Eq{"Threads.ChannelId": channelID})
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -685,9 +684,8 @@ func (s *SqlThreadStore) GetThreadsForChannel(channelID, userID string, opts mod
 func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, userID string, opts model.GetChannelThreadsOpts) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(Threads.PostId)").
-		From("Threads")
-
-	query = query.Where(sq.Eq{"Threads.ChannelId": channelID})
+		From("Threads").
+		Where(sq.Eq{"Threads.ChannelId": channelID})
 
 	if opts.Filter == model.GetChannelThreadsFilterFollowing {
 		query = query.
