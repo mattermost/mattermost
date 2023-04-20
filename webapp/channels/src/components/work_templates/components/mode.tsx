@@ -5,7 +5,7 @@ import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {ModalState} from '../types';
-import RadioButtonGroup from 'components/common/radio_group';
+import Tabs from 'components/modal_tabs';
 
 function Tourtip() {
   const intl = useIntl();
@@ -24,26 +24,27 @@ interface Props {
   setMode: (mode: ModalState) => void;
 }
 function Mode(props: Props) {
+  const [originalMode] = useState(props.mode === ModalState.ChannelOnly ? ModalState.ChannelOnly : ModalState.Menu);
+  const currentMode = props.mode === ModalState.ChannelOnly ? ModalState.ChannelOnly : ModalState.Menu;
   const intl = useIntl();
-  props.setMode(ModalState.Customize);
   if (props.mode != ModalState.ChannelOnly && props.mode != ModalState.Menu) {
     return null
   }
   return <div>
     <div>
-      <RadioButtonGroup
-          id='work-template-mode'
-          values={[
+      <Tabs
+          tabs={[
             {
-              key:  intl.formatMessage({
+              content:  intl.formatMessage({
                 id: "work_templates.mode.new",
                 defaultMessage: "New",
               }),
-              value: ModalState.ChannelOnly,
+              onClick: () => props.setMode(ModalState.ChannelOnly),
+              key: ModalState.ChannelOnly,
               testId: 'mode-channel',
             },
             {
-              key: (
+              content: (
                 <div>
                   {intl.formatMessage({
                     id: "work_templates.mode.templates",
@@ -57,16 +58,13 @@ function Mode(props: Props) {
                 </span>
                 </div>
               ),
-              value: ModalState.Menu,
+              onClick: () => props.setMode(ModalState.Menu),
               testId: 'mode-work-template',
+              key: ModalState.Menu,
             },
           ]}
-          value={props.mode === ModalState.ChannelOnly ? ModalState.ChannelOnly : ModalState.Menu }
-          // badge?: {matchVal: string; badgeContent: ReactNode; extraClass?: string} | undefined | null;
-          // sideLegend?: {matchVal: string; text: ReactNode};
-          // isDisabled?: null | ((id: string) => boolean);
-          onChange={(e) => {props.setMode(e.target.value as ModalState);}}
-          testId='work-template-mode-picker'
+          startKey={originalMode}
+          selected={currentMode}
         />
       <Tourtip/>
     </div>

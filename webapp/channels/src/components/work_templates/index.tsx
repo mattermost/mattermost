@@ -351,6 +351,7 @@ const WorkTemplateModal = () => {
             )}
             {modalState === ModalState.ChannelOnly && (
                 <ChannelOnly
+                    tryTemplates={() => {}}
                 />
             )}
             {modalState === ModalState.Menu && (
