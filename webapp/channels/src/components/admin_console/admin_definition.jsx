@@ -6889,6 +6889,15 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
+                        label: t('admin.experimental.disableRefetchingOnBrowserFocus.title'),
+                        label_default: 'Disable data refetching on browser refocus:',
+                        help_text: t('admin.experimental.disableRefetchingOnBrowserFocus.desc'),
+                        help_text_default: 'When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
                         key: 'ExperimentalSettings.DelayChannelAutocomplete',
                         label: t('admin.experimental.delayChannelAutocomplete.title'),
                         label_default: 'Delay Channel Autocomplete:',

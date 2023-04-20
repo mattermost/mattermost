@@ -337,6 +337,8 @@ export const ActionTypes = keyMirror({
     RECEIVED_PLUGIN_INSIGHT: null,
     SET_EDIT_CHANNEL_MEMBERS: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
+
+    SET_DRAFT_SOURCE: null,
 });
 
 export const PostRequestTypes = keyMirror({
@@ -1097,6 +1099,7 @@ export const DocLinks = {
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
+    ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
 };
 
 export const LicenseLinks = {
