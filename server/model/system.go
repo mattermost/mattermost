@@ -16,6 +16,7 @@ const (
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
 	SystemInstallationDateKey              = "InstallationDate"
+	SystemOrganizationName                 = "OrganizationName"
 	SystemFirstServerRunTimestampKey       = "FirstServerRunTimestamp"
 	SystemClusterEncryptionKey             = "ClusterEncryptionKey"
 	SystemUpgradedFromTeId                 = "UpgradedFromTE"

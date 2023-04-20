@@ -103,6 +103,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			DNS:             "",
 			LastInvoice:     &model.Invoice{},
 			DelinquentSince: subscription.DelinquentSince,
+			BillingType:     "",
 		}
 	}
 
