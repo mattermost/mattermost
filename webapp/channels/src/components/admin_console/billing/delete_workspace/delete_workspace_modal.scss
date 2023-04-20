@@ -25,7 +25,7 @@
     }
 
     &__Usage {
-        color: var(--center-channel-text);
+        color: var(--center-channel-color);
         text-align: left;
 
         &-Highlighted {
@@ -35,7 +35,7 @@
     }
 
     &__Warning {
-        color: var(--center-channel-text);
+        color: var(--center-channel-color);
         text-align: left;
     }
 
