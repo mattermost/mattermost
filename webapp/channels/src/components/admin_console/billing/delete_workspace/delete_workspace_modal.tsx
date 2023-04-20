@@ -122,7 +122,6 @@ export default function DeleteWorkspaceModal(props: Props) {
                 modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
                 dialogType: DeleteWorkspaceSuccessModal,
             }));
-            trackEvent('cloud_admin', 'self_serve_workspace_deletion_completed');
         } else { // Failure
             dispatch(openModal({
                 modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
