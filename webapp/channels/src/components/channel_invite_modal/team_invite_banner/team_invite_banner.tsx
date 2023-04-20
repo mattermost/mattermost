@@ -147,7 +147,7 @@ const TeamInviteBanner = (props: Props) => {
         );
     }, [guests]);
 
-    const getMessage = (type: string, userprofiles: Array<UserProfileValue | UserProfile>) => {
+    const getMessage = useCallback((type: string, userprofiles: Array<UserProfileValue | UserProfile>) => {
         const mentionKeys = getMentionKeys(userprofiles);
         const commaSeparatedUsernames = getCommaSeparatedUsernames(userprofiles);
         const firstName = userprofiles[0].username;
@@ -261,7 +261,7 @@ const TeamInviteBanner = (props: Props) => {
                 }}
             />
         );
-    };
+    }, [canAddUsersToTeam, team, formatMessage]);
 
     const sendInvites = async () => {
         setLoading(true);
