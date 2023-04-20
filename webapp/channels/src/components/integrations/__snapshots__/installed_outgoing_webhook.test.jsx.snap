@@ -34,7 +34,7 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
           onClick={[Function]}
         >
           <MemoizedFormattedMessage
-            defaultMessage="Regen Token"
+            defaultMessage="Regenerate Token"
             id="installed_integrations.regenToken"
           />
         </button>

@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import semver from 'semver';
 
 import {NotificationLevels} from 'utils/constants';
+import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {isDesktopApp} from 'utils/user_agent';
@@ -86,7 +87,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         if (selectedOption && 'value' in selectedOption) {
             this.props.setParentState('desktopNotificationSound', selectedOption.value);
             this.setState({selectedOption});
-            Utils.tryNotificationSound(selectedOption.value);
+            NotificationSounds.tryNotificationSound(selectedOption.value);
         }
     };
 
@@ -123,7 +124,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
             }
 
             if (this.props.sound === 'true') {
-                const sounds = Array.from(Utils.notificationSounds.keys());
+                const sounds = Array.from(NotificationSounds.notificationSounds.keys());
                 const options = sounds.map((sound) => {
                     return {value: sound, label: sound};
                 });
@@ -144,7 +145,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 }
             }
 
-            if (Utils.hasSoundOptions()) {
+            if (NotificationSounds.hasSoundOptions()) {
                 soundSection = (
                     <fieldset>
                         <legend className='form-legend'>
@@ -344,7 +345,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
 
     buildMinimizedSetting = () => {
         let formattedMessageProps;
-        const hasSoundOption = Utils.hasSoundOptions();
+        const hasSoundOption = NotificationSounds.hasSoundOptions();
         if (this.props.activity === NotificationLevels.MENTION) {
             if (hasSoundOption && this.props.sound !== 'false') {
                 formattedMessageProps = {

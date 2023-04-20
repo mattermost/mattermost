@@ -1,0 +1,12 @@
+@mixin input {
+    width: 452px;
+    padding: 12px 16px;
+    border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    font-size: 16px;
+
+    &:active,
+    &:focus {
+        border: 2px solid var(--button-bg);
+    }
+}

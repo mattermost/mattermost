@@ -77,6 +77,7 @@ function makeMapStateToProps() {
         const currentChannel = getCurrentChannel(state) || {};
         const currentChannelTeammateUsername = getUser(state, currentChannel.teammate_id || '')?.username;
         const draft = getChannelDraft(state, currentChannel.id);
+        const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`] || false;
         const latestReplyablePostId = getLatestReplyablePostId(state);
         const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state).member_count : 1;
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
@@ -117,6 +118,7 @@ function makeMapStateToProps() {
             showSendTutorialTip,
             messageInHistoryItem: getMessageInHistoryItem(state),
             draft,
+            isRemoteDraft,
             latestReplyablePostId,
             locale: getCurrentLocale(state),
             currentUsersLatestPost: getCurrentUsersLatestPost(state, ''),
@@ -181,12 +183,7 @@ function setDraft(key: string, value: PostDraft, draftChannelId: string, save = 
         const channelId = draftChannelId || getCurrentChannelId(getState());
         let updatedValue = null;
         if (value) {
-            updatedValue = {...value};
-            updatedValue = {
-                ...value,
-                channelId,
-                remote: false,
-            };
+            updatedValue = {...value, channelId};
         }
         if (updatedValue) {
             return dispatch(updateDraft(key, updatedValue, '', save));
