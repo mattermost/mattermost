@@ -67,6 +67,7 @@ const EnterpriseEditionLeftPanel = ({
     useEffect(() => {
         if (actionQueryParam === 'show_expansion_modal' && canExpand && isSelfHostedPurchaseEnabled) {
             selfHostedExpansionModal.open();
+            query.set('action', '');
         }
     }, []);
 
