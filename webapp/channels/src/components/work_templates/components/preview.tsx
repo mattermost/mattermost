@@ -51,8 +51,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
 
     const [integrations, setIntegrations] = useState<Integration[]>();
 
-    const marketplacePlugins: MarketplacePlugin[] = useSelector((state: GlobalState) => state.views.marketplace.plugins);
-    const loadedPlugins = useSelector((state: GlobalState) => state.plugins.plugins);
+    const plugins: MarketplacePlugin[] = useSelector((state: GlobalState) => state.views.marketplace.plugins);
 
     const [illustrationDetails, setIllustrationDetails] = useState<IllustrationAnimations>(() => {
         const defaultIllustration = getTemplateDefaultIllustration(template);
@@ -131,14 +130,13 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
         const intg =
             availableIntegrations?.
                 flatMap((integration) => {
-                    return marketplacePlugins.reduce((acc: Integration[], curr) => {
+                    return plugins.reduce((acc: Integration[], curr) => {
                         if (curr.manifest.id === integration.id) {
-                            const installed = Boolean(loadedPlugins[integration.id]);
                             acc.push({
                                 ...integration,
                                 name: curr.manifest.name,
                                 icon: curr.icon_data,
-                                installed,
+                                installed: curr.installed_version !== '',
                             });
 
                             return acc;
@@ -151,7 +149,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
         if (intg?.length) {
             setIntegrations(intg);
         }
-    }, [marketplacePlugins, availableIntegrations, loadedPlugins, pluginsEnabled]);
+    }, [plugins, availableIntegrations, pluginsEnabled]);
 
     // building accordion items
     const accordionItemsData: AccordionItemType[] = [];
@@ -206,7 +204,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
             )],
         });
     }
-    if (pluginsEnabled && integrations?.length) {
+    if (integrations?.length && pluginsEnabled) {
         accordionItemsData.push({
             id: 'integrations',
             icon: <i className='icon-power-plug-outline'/>,
@@ -305,7 +303,6 @@ const StyledPreview = styled(Preview)`
         width: 387px;
         height: 416px;
         padding-right: 32px;
-        margin-top: 17px;
     }
 
     strong {

@@ -6360,15 +6360,6 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uss.TotalUnreadThreads, int64(2))
 	})
-
-	t.Run("should error when not a team member", func(t *testing.T) {
-		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
-		defer th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
-
-		_, resp, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
 }
 
 func TestThreadSocketEvents(t *testing.T) {
@@ -6864,64 +6855,52 @@ func TestSingleThreadGet(t *testing.T) {
 	})
 
 	client := th.Client
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
-	t.Run("get single thread", func(t *testing.T) {
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	// create a post by regular user
+	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	// reply with another
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
-		// create a post by regular user
-		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-		// reply with another
-		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-
-		// create another thread to check that we are not returning it by mistake
-		rpost2, _ := postAndCheck(t, client, &model.Post{
-			ChannelId: th.BasicChannel2.Id,
-			Message:   "testMsg2",
-			Metadata: &model.PostMetadata{
-				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
-				},
+	// create another thread to check that we are not returning it by mistake
+	rpost2, _ := postAndCheck(t, client, &model.Post{
+		ChannelId: th.BasicChannel2.Id,
+		Message:   "testMsg2",
+		Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewString(model.PostPriorityUrgent),
 			},
-		})
-		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply", RootId: rpost2.Id})
+		},
+	})
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply", RootId: rpost2.Id})
 
-		// regular user should have two threads with 3 replies total
-		threads, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
+	// regular user should have two threads with 3 replies total
+	threads, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
 
-		tr, _, err := th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, false)
-		require.NoError(t, err)
-		require.NotNil(t, tr)
-		require.Equal(t, threads.Threads[0].PostId, tr.PostId)
-		require.Empty(t, tr.Participants[0].Username)
+	tr, _, err := th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, false)
+	require.NoError(t, err)
+	require.NotNil(t, tr)
+	require.Equal(t, threads.Threads[0].PostId, tr.PostId)
+	require.Empty(t, tr.Participants[0].Username)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostPriority = false
-		})
-
-		tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
-		require.NoError(t, err)
-		require.NotEmpty(t, tr.Participants[0].Username)
-		require.Equal(t, false, tr.IsUrgent)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
-		})
-
-		tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
-		require.NoError(t, err)
-		require.Equal(t, true, tr.IsUrgent)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = false
 	})
 
-	t.Run("should error when not a team member", func(t *testing.T) {
-		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
-		defer th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+	tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
+	require.NoError(t, err)
+	require.NotEmpty(t, tr.Participants[0].Username)
+	require.Equal(t, false, tr.IsUrgent)
 
-		_, resp, err := th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, model.NewId(), false)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+		cfg.FeatureFlags.PostPriority = true
 	})
+
+	tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
+	require.NoError(t, err)
+	require.Equal(t, true, tr.IsUrgent)
 }
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
@@ -7092,23 +7071,6 @@ func TestReadThreads(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 1, nil)
-	})
-
-	t.Run("should error when not a team member", func(t *testing.T) {
-		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
-		defer th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
-
-		_, resp, err := th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, model.NewId(), model.GetMillis())
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
-		_, resp, err = th.Client.SetThreadUnreadByPostId(th.BasicUser.Id, th.BasicTeam.Id, model.NewId(), model.NewId())
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
-		resp, err = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
 	})
 }
 

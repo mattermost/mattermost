@@ -892,7 +892,6 @@ func TestCompleteOnboarding(t *testing.T) {
 
 	req := &model.CompleteOnboardingRequest{
 		InstallPlugins: []string{"testplugin2"},
-		Organization:   "my-org",
 	}
 
 	t.Run("as a regular user", func(t *testing.T) {

@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`components/preparing-workspace/organization_status should match snapshot 1`] = `
-<div
-  class="Organization__status"
-/>
-`;

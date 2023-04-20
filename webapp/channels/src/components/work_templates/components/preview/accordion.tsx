@@ -12,7 +12,6 @@ const Accordion = styled(LibAccordion)`
         .accordion-card {
             margin-bottom: 8px;
             border-radius: 4px;
-            border: 1px solid transparent;
             color: var(--center-channel-color);
 
             .accordion-card-header {
@@ -47,7 +46,7 @@ const Accordion = styled(LibAccordion)`
             }
 
             &.active {
-                border-color: var(--denim-button-bg);
+                border: 1px solid var(--denim-button-bg);
 
                 .accordion-card-header {
                     color: var(--denim-button-bg);

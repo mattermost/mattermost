@@ -165,8 +165,7 @@ const StyledCustomized = styled(Customize)`
         border-radius: 4px;
         border: 1px solid rgba(var(--center-channel-text-rgb), 0.16);
         &:focus {
-            border: 1px solid var(--button-bg);
-            box-shadow: inset 0 0 0 1px var(--button-bg);
+            border: 2px solid var(--button-bg);
         }
     }
 

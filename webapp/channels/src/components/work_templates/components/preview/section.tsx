@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, useCallback, useEffect, useState} from 'react';
+import React, {ReactNode, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import classnames from 'classnames';
 import styled from 'styled-components';
@@ -110,28 +110,6 @@ const IntegrationsPreview = ({items, categoryId}: IntegrationPreviewSectionProps
         id: 'work_templates.preview.integrations.admin_install.notify',
         defaultMessage: 'Notify admin to install integrations.',
     });
-
-    const makeIntegrationSubtext = useCallback((integration: IntegrationPreviewSectionItemsProps) => {
-        if (integration.installed) {
-            return formatMessage({
-                id: 'work_templates.preview.integrations.already_installed',
-                defaultMessage: 'Already installed',
-            });
-        }
-
-        if (!pluginInstallationPossible) {
-            return formatMessage({
-                id: 'work_templates.preview.integrations.app_install',
-                defaultMessage: 'App Install',
-            });
-        }
-
-        return formatMessage({
-            id: 'work_templates.preview.integrations.to_be_installed',
-            defaultMessage: 'To be installed',
-        });
-    }, [pluginInstallationPossible, formatMessage]);
-
     return (
         <div className='preview-integrations'>
             <div className='preview-integrations-plugins'>
@@ -141,17 +119,15 @@ const IntegrationsPreview = ({items, categoryId}: IntegrationPreviewSectionProps
                             key={item.id}
                             className={classnames('preview-integrations-plugins-item', {'preview-integrations-plugins-item__readonly': !item.installed && !pluginInstallationPossible})}
                         >
-                            <div className='preview-integrations-plugins-item__illustration'>
+                            <div className='preview-integrations-plugins-item__icon'>
                                 <img src={item.icon}/>
                             </div>
                             <div className='preview-integrations-plugins-item__name'>
-                                {item.name}<br/>
-                                <span className='preview-integrations-plugins-item__name-sub'>
-                                    {makeIntegrationSubtext(item)}
-                                </span>
+                                {item.name}
                             </div>
                             {item.installed &&
-                                <div className='preview-integrations-plugins-item__icon icon-check-circle preview-integrations-plugins-item__icon_blue'/>}
+                                <div className='icon-check-circle preview-integrations-plugins-item__icon_blue'/>}
+                            {!item.installed && <div className='icon-download-outline'/>}
                         </div>);
                 })}
             </div>
@@ -229,7 +205,6 @@ const StyledPreviewSection = styled(PreviewSection)`
 
             &-item {
                 display: flex;
-                align-items: center;
                 width: 128px;
                 height: 48px;
                 flex-basis: 45%;
@@ -240,7 +215,7 @@ const StyledPreviewSection = styled(PreviewSection)`
                     opacity: 65%;
                 }
 
-                &__illustration {
+                &__icon {
                     display: flex;
                     width: 24px;
                     height: 24px;
@@ -252,30 +227,22 @@ const StyledPreviewSection = styled(PreviewSection)`
                         width: 100%;
                         height: 100%;
                     }
+
+                    &_blue {
+                        color: var(--denim-button-bg);
+                    }
                 }
 
                 &__name {
                     flex-grow: 2;
+                    margin-top: 8px;
                     color: var(--center-channel-text);
                     font-family: 'Open Sans';
                     font-size: 11px;
                     font-style: normal;
                     font-weight: 600;
                     letter-spacing: 0.02em;
-                    line-height: 16px;
-                    &-sub {
-                        color: rgba(var(--center-channel-color-rgb), 0.72);
-                        font-weight: 400;
-                        font-size: 10px;
-                    }
-                }
-
-                &__icon {
-                    align-self: flex-start;
-
-                     &_blue {
-                        color: var(--denim-button-bg);
-                    }
+                    line-height: 22px;
                 }
             }
         }
@@ -297,8 +264,8 @@ const StyledPreviewSection = styled(PreviewSection)`
     }
 
     .icon-check-circle::before {
-        margin-top: 2px;
-        margin-right: 2px;
+        margin-top: 8px;
+        margin-right: 8px;
     }
 
     .icon-download-outline::before {

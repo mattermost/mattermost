@@ -9112,22 +9112,6 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 	return err
 }
 
-func (s *TimerLayerThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
-	start := time.Now()
-
-	err := s.ThreadStore.DeleteMembershipsForChannel(userID, channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipsForChannel", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
 	start := time.Now()
 
