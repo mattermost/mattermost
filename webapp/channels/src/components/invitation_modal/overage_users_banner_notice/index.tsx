@@ -95,7 +95,7 @@ const OverageUsersBannerNotice = () => {
         message = (
             <FormattedMessage
                 id='licensingPage.overageUsersBanner.selfHostedNoticeDescription'
-                defaultMessage={'<a>Purchase additional seats </a> to remain compliant.'}
+                defaultMessage={'<a>Purchase additional seats</a> to remain compliant.'}
                 values={{
                     a: (chunks: React.ReactNode) => {
                         return (
