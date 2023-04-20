@@ -1,0 +1,366 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should match snapshot on read only 1`] = `
+<div>
+  <div
+    class="octo-group-header-cell expanded"
+    draggable="true"
+    style="opacity: 1;"
+  >
+    <div
+      class="octo-table-cell"
+      style="width: 100px;"
+    >
+      <button
+        class="IconButton octo-table-cell__expand readonly"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-menu-right"
+        />
+      </button>
+      <span
+        class="Label propColorBrown "
+      >
+        <input
+          class="Editable readonly "
+          placeholder="New Select"
+          readonly=""
+          spellcheck="true"
+          title="value 1"
+          value="value 1"
+        />
+      </span>
+    </div>
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        0
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`should match snapshot with Group 1`] = `
+<div>
+  <div
+    class="octo-group-header-cell expanded"
+    draggable="true"
+    style="opacity: 1;"
+  >
+    <div
+      class="octo-table-cell"
+      style="width: 100px;"
+    >
+      <button
+        class="IconButton octo-table-cell__expand "
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-menu-right"
+        />
+      </button>
+      <span
+        class="Label propColorBrown "
+      >
+        <input
+          class="Editable "
+          placeholder="New Select"
+          spellcheck="true"
+          title="value 1"
+          value="value 1"
+        />
+      </span>
+    </div>
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        0
+      </span>
+    </button>
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <button
+        class="IconButton"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-dots-horizontal OptionsIcon"
+        />
+      </button>
+    </div>
+    <button
+      class="IconButton"
+      type="button"
+    >
+      <i
+        class="CompassIcon icon-plus AddIcon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`should match snapshot, add new 1`] = `
+<div>
+  <div
+    class="octo-group-header-cell expanded"
+    draggable="true"
+    style="opacity: 1;"
+  >
+    <div
+      class="octo-table-cell"
+      style="width: 100px;"
+    >
+      <button
+        class="IconButton octo-table-cell__expand "
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-menu-right"
+        />
+      </button>
+      <span
+        class="Label propColorBrown "
+      >
+        <input
+          class="Editable "
+          placeholder="New Select"
+          spellcheck="true"
+          title="value 1"
+          value="value 1"
+        />
+      </span>
+    </div>
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        0
+      </span>
+    </button>
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <button
+        class="IconButton"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-dots-horizontal OptionsIcon"
+        />
+      </button>
+    </div>
+    <button
+      class="IconButton"
+      type="button"
+    >
+      <i
+        class="CompassIcon icon-plus AddIcon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`should match snapshot, edit title 1`] = `
+<div>
+  <div
+    class="octo-group-header-cell expanded"
+    draggable="true"
+    style="opacity: 1;"
+  >
+    <div
+      class="octo-table-cell"
+      style="width: 100px;"
+    >
+      <button
+        class="IconButton octo-table-cell__expand "
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-menu-right"
+        />
+      </button>
+      <span
+        class="Label propColorBrown "
+      >
+        <input
+          class="Editable "
+          placeholder="New Select"
+          spellcheck="true"
+          title="value 1"
+          value="value 1"
+        />
+      </span>
+    </div>
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        0
+      </span>
+    </button>
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <button
+        class="IconButton"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-dots-horizontal OptionsIcon"
+        />
+      </button>
+    </div>
+    <button
+      class="IconButton"
+      type="button"
+    >
+      <i
+        class="CompassIcon icon-plus AddIcon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`should match snapshot, hide group 1`] = `
+<div>
+  <div
+    class="octo-group-header-cell"
+    draggable="true"
+    style="opacity: 1;"
+  >
+    <div
+      class="octo-table-cell"
+      style="width: 100px;"
+    >
+      <button
+        class="IconButton octo-table-cell__expand "
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-menu-right"
+        />
+      </button>
+      <span
+        class="Label propColorBrown "
+      >
+        <input
+          class="Editable "
+          placeholder="New Select"
+          spellcheck="true"
+          title="value 1"
+          value="value 1"
+        />
+      </span>
+    </div>
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        0
+      </span>
+    </button>
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <button
+        class="IconButton"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-dots-horizontal OptionsIcon"
+        />
+      </button>
+    </div>
+    <button
+      class="IconButton"
+      type="button"
+    >
+      <i
+        class="CompassIcon icon-plus AddIcon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`should match snapshot, no groups 1`] = `
+<div>
+  <div
+    class="octo-group-header-cell expanded"
+    draggable="true"
+    style="opacity: 1;"
+  >
+    <div
+      class="octo-table-cell"
+      style="width: 100px;"
+    >
+      <button
+        class="IconButton octo-table-cell__expand "
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-menu-right"
+        />
+      </button>
+      <span
+        class="Label empty "
+        title="Items with an empty Property 1 property will go here. This column can't be removed."
+      >
+        No Property 1
+      </span>
+      
+    </div>
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        0
+      </span>
+    </button>
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <button
+        class="IconButton"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-dots-horizontal OptionsIcon"
+        />
+      </button>
+    </div>
+    <button
+      class="IconButton"
+      type="button"
+    >
+      <i
+        class="CompassIcon icon-plus AddIcon"
+      />
+    </button>
+  </div>
+</div>
+`;

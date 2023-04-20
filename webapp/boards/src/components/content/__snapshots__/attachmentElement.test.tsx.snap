@@ -1,0 +1,135 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/content/FileBlock archived file 1`] = `
+<div>
+  <div
+    class="FileElement mr-4"
+  >
+    <div
+      class="fileElement-icon-division"
+    >
+      <i
+        class="CompassIcon icon-file-text-outline-large fileElement-icon"
+      />
+    </div>
+    <div
+      class="fileElement-file-details mt-3"
+    >
+      <div
+        class="octo-tooltip tooltip-bottom"
+        data-tooltip="test.txt"
+      >
+        <div
+          class="fileElement-file-name"
+        >
+          test.txt
+        </div>
+      </div>
+      <div
+        class="fileElement-file-ext-and-size"
+      >
+        txt
+         
+        2.2 KiB
+      </div>
+    </div>
+    <div
+      class="fileElement-delete-download"
+    >
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper mt-3 fileElement-menu-icon"
+        role="button"
+      >
+        <button
+          class="IconButton size--medium"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-vertical"
+          />
+        </button>
+      </div>
+      <div
+        class="octo-tooltip tooltip-bottom"
+        data-tooltip="Download"
+      >
+        <div
+          class="fileElement-download-btn mt-3 mr-2"
+        >
+          <i
+            class="CompassIcon icon-download-outline"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`component/content/FileBlock should match snapshot 1`] = `
+<div>
+  <div
+    class="FileElement mr-4"
+  >
+    <div
+      class="fileElement-icon-division"
+    >
+      <i
+        class="CompassIcon icon-file-text-outline-large fileElement-icon"
+      />
+    </div>
+    <div
+      class="fileElement-file-details mt-3"
+    >
+      <div
+        class="octo-tooltip tooltip-bottom"
+        data-tooltip="test.txt"
+      >
+        <div
+          class="fileElement-file-name"
+        >
+          test.txt
+        </div>
+      </div>
+      <div
+        class="fileElement-file-ext-and-size"
+      >
+        txt
+         
+        2.2 KiB
+      </div>
+    </div>
+    <div
+      class="fileElement-delete-download"
+    >
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper mt-3 fileElement-menu-icon"
+        role="button"
+      >
+        <button
+          class="IconButton size--medium"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-vertical"
+          />
+        </button>
+      </div>
+      <div
+        class="octo-tooltip tooltip-bottom"
+        data-tooltip="Download"
+      >
+        <div
+          class="fileElement-download-btn mt-3 mr-2"
+        >
+          <i
+            class="CompassIcon icon-download-outline"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

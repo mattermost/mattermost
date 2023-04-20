@@ -1,0 +1,2394 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`src/components/workspace return workspace and showcard 1`] = `
+<div>
+  <div
+    class="Workspace"
+  >
+    <div
+      class="Sidebar octo-sidebar"
+    >
+      <div
+        class="WorkspaceTitle"
+      >
+        <div
+          class="octo-spacer"
+        />
+        <div
+          class="sidebarSwitcher"
+        >
+          <button
+            type="button"
+          >
+            <svg
+              class="HideSidebarIcon Icon"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="80,20 50,50 80,80"
+              />
+              <polyline
+                points="50,20 20,50, 50,80"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
+        class="BoardsSwitcherWrapper"
+      >
+        <div
+          class="BoardsSwitcher"
+        >
+          <i
+            class="CompassIcon icon-magnify MagnifyIcon"
+          />
+          <div>
+            <span>
+              Find boards
+            </span>
+          </div>
+        </div>
+        <div
+          aria-label="menuwrapper"
+          class="MenuWrapper"
+          role="button"
+        >
+          <button
+            aria-label="Add Board Dropdown"
+            title="Add Board Dropdown"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-plus AddIcon"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        class="octo-sidebar-list"
+        data-rbd-droppable-context-id="1"
+        data-rbd-droppable-id="lhs-categories"
+      >
+        <div
+          data-rbd-draggable-context-id="1"
+          data-rbd-draggable-id="categoryAttributeId1"
+        >
+          <div
+            class="SidebarCategory"
+          >
+            <div
+              class="categoryBoardsDroppableArea"
+              data-rbd-droppable-context-id="1"
+              data-rbd-droppable-id="categoryAttributeId1"
+            >
+              <div
+                class="octo-sidebar-item category expanded "
+              >
+                <div
+                  aria-describedby="rbd-hidden-text-1-hidden-text-5"
+                  class="octo-sidebar-title category-title"
+                  data-rbd-drag-handle-context-id="1"
+                  data-rbd-drag-handle-draggable-id="categoryAttributeId1"
+                  draggable="false"
+                  role="button"
+                  tabindex="0"
+                  title="Category 1"
+                >
+                  <i
+                    class="CompassIcon icon-chevron-down ChevronDownIcon"
+                  />
+                  Category 1
+                  <div
+                    class="sidebarCategoriesTour"
+                  />
+                </div>
+                <div
+                  class=""
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <button
+                      type="button"
+                    >
+                      <i
+                        class="CompassIcon icon-dots-horizontal OptionsIcon"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                data-rbd-draggable-context-id="1"
+                data-rbd-draggable-id="board1"
+              >
+                <div
+                  aria-describedby="rbd-hidden-text-1-hidden-text-5"
+                  class="SidebarBoardItem subitem active"
+                  data-rbd-drag-handle-context-id="1"
+                  data-rbd-drag-handle-draggable-id="board1"
+                  draggable="false"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="octo-sidebar-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-sidebar-title"
+                    title="board title"
+                  >
+                    board title
+                  </div>
+                  <div>
+                    <div
+                      aria-label="menuwrapper"
+                      class="MenuWrapper x"
+                      role="button"
+                    >
+                      <button
+                        type="button"
+                      >
+                        <i
+                          class="CompassIcon icon-dots-horizontal OptionsIcon"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="SidebarBoardItem sidebar-view-item active"
+                >
+                  <svg
+                    class="BoardIcon Icon"
+                    fill="currentColor"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g
+                      opacity="0.8"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M4 4H20V20H4V4ZM2 4C2 2.89543 2.89543 2 4 2H20C21.1046 2 22 2.89543 22 4V20C22 21.1046 21.1046 22 20 22H4C2.89543 22 2 21.1046 2 20V4ZM8 6H6V12H8V6ZM11 6H13V16H11V6ZM18 6H16V9H18V6Z"
+                        fill="currentColor"
+                        fill-rule="evenodd"
+                      />
+                    </g>
+                  </svg>
+                  <div
+                    class="octo-sidebar-title"
+                    title="view title"
+                  >
+                    view title
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="octo-spacer"
+      />
+    </div>
+    <div
+      class="mainFrame"
+    >
+      <div
+        class="BoardComponent"
+      >
+        <div
+          class="top-head"
+        >
+          <div
+            class="TopBar"
+          >
+            <a
+              class="link"
+              href="https://www.focalboard.com/fwlink/feedback-boards.html?v=1.0.0"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Give feedback
+            </a>
+            <div
+              class="versionFrame"
+            >
+              <div
+                class="version"
+                title="v1.0.0"
+              >
+                v1.0.0
+              </div>
+            </div>
+          </div>
+          <div
+            class="mid-head"
+          >
+            <div
+              class="ViewTitle"
+            >
+              <div
+                class="add-buttons add-visible"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-eye-off-outline"
+                  />
+                  <span>
+                    hide description
+                  </span>
+                </button>
+              </div>
+              <div
+                class="title"
+              >
+                <div
+                  class="IconSelector"
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <div
+                      class="octo-icon size-m"
+                    >
+                      <span>
+                        i
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <input
+                  class="Editable title"
+                  placeholder="Untitled board"
+                  spellcheck="true"
+                  title="board title"
+                  value="board title"
+                />
+              </div>
+              <div
+                class="description"
+              >
+                <div
+                  class="MarkdownEditor octo-editor  "
+                >
+                  <div
+                    class="octo-editor-preview"
+                    data-testid="preview-element"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="shareButtonWrapper"
+            >
+              <div
+                class="ShareBoardButton"
+              >
+                <button
+                  title="Share board"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-lock-outline LockOutlineIcon"
+                  />
+                  <span>
+                    Share
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="ViewHeader"
+          >
+            <div
+              class="viewSelector"
+            >
+              <input
+                class="Editable "
+                placeholder="Untitled View"
+                spellcheck="true"
+                title="view title"
+                value="view title"
+              />
+              <div>
+                <div
+                  aria-label="View menu"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-chevron-down DropdownIcon"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="octo-spacer"
+            />
+            <div
+              aria-label="Properties menu"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Properties
+                </span>
+              </button>
+            </div>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Group by: 
+                  <span
+                    id="groupByLabel"
+                  >
+                    Property 2
+                  </span>
+                </span>
+              </button>
+            </div>
+            <div
+              class="ModalWrapper"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Filter
+                </span>
+              </button>
+            </div>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Sort
+                </span>
+              </button>
+            </div>
+            <div
+              class="board-search-field"
+            >
+              <i
+                class="CompassIcon icon-magnify board-search-icon"
+              />
+              <input
+                class="Editable "
+                placeholder="Search cards"
+                value=""
+              />
+            </div>
+            <div
+              class="ModalWrapper"
+            >
+              <div
+                aria-label="View header menu"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="ButtonWithMenu"
+            >
+              <div
+                class="button-text"
+              >
+                New
+              </div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <div
+                  class="button-dropdown"
+                >
+                  <i
+                    class="CompassIcon icon-chevron-down DropdownIcon"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Kanban"
+        >
+          <div
+            class="octo-board-header"
+            id="mainBoardHeader"
+          >
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="true"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label empty "
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
+              >
+                No Property 2
+              </span>
+              
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="3"
+                  type="button"
+                >
+                  <span>
+                    3
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+              <button
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-plus AddIcon"
+                />
+              </button>
+            </div>
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="true"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label propColorBlue "
+              >
+                <input
+                  class="Editable "
+                  placeholder="New Select"
+                  spellcheck="true"
+                  title="value 2"
+                  value="value 2"
+                />
+              </span>
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="0"
+                  type="button"
+                >
+                  <span>
+                    0
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+              <button
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-plus AddIcon"
+                />
+              </button>
+            </div>
+            <div
+              class="octo-board-header-cell narrow"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  + Add a group
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="octo-board-body"
+            id="mainBoardBody"
+          >
+            <div
+              class="octo-board-column"
+            >
+              <div
+                class="KanbanCard false"
+                draggable="true"
+                style="opacity: 1;"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper optionsMenu "
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-1
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="true"
+                style="opacity: 1;"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper optionsMenu "
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-2
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="true"
+                style="opacity: 1;"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper optionsMenu "
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-3
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+              >
+                <span>
+                  + New
+                </span>
+              </button>
+            </div>
+            <div
+              class="octo-board-column"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  + New
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/workspace return workspace readonly and showcard 1`] = `
+<div>
+  <div
+    class="Workspace"
+  >
+    <div
+      class="mainFrame"
+    >
+      <div
+        class="BoardComponent"
+      >
+        <div
+          class="top-head"
+        >
+          <div
+            class="TopBar"
+          >
+            <a
+              class="link"
+              href="https://www.focalboard.com/fwlink/feedback-boards.html?v=1.0.0"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Give feedback
+            </a>
+            <div
+              class="versionFrame"
+            >
+              <div
+                class="version"
+                title="v1.0.0"
+              >
+                v1.0.0
+              </div>
+            </div>
+          </div>
+          <div
+            class="mid-head"
+          >
+            <div
+              class="ViewTitle"
+            >
+              <div
+                class="add-buttons add-visible"
+              />
+              <div
+                class="title"
+              >
+                <div
+                  class="IconSelector"
+                >
+                  <div
+                    class="octo-icon size-m readonly"
+                  >
+                    <span>
+                      i
+                    </span>
+                  </div>
+                </div>
+                <input
+                  class="Editable readonly title"
+                  placeholder="Untitled board"
+                  readonly=""
+                  spellcheck="true"
+                  title="board title"
+                  value="board title"
+                />
+              </div>
+              <div
+                class="description"
+              >
+                <div
+                  class="MarkdownEditor octo-editor  "
+                >
+                  <div
+                    class="octo-editor-preview"
+                    data-testid="preview-element"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="shareButtonWrapper"
+            >
+              <div
+                class="ShareBoardLoginButton"
+              >
+                <button
+                  title="Login"
+                  type="button"
+                >
+                  <span>
+                    Login
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="ViewHeader"
+          >
+            <div
+              class="viewSelector"
+            >
+              <input
+                class="Editable readonly "
+                placeholder="Untitled View"
+                readonly=""
+                spellcheck="true"
+                title="view title"
+                value="view title"
+              />
+            </div>
+            <div
+              class="octo-spacer"
+            />
+            <div
+              class="board-search-field"
+            >
+              <i
+                class="CompassIcon icon-magnify board-search-icon"
+              />
+              <input
+                class="Editable "
+                placeholder="Search cards"
+                value=""
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="Kanban"
+        >
+          <div
+            class="octo-board-header"
+            id="mainBoardHeader"
+          >
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="false"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label empty "
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
+              >
+                No Property 2
+              </span>
+              
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="3"
+                  type="button"
+                >
+                  <span>
+                    3
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+            </div>
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="false"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label propColorBlue "
+              >
+                <input
+                  class="Editable readonly "
+                  placeholder="New Select"
+                  readonly=""
+                  spellcheck="true"
+                  title="value 2"
+                  value="value 2"
+                />
+              </span>
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="0"
+                  type="button"
+                >
+                  <span>
+                    0
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+            </div>
+          </div>
+          <div
+            class="octo-board-body"
+            id="mainBoardBody"
+          >
+            <div
+              class="octo-board-column"
+            >
+              <div
+                class="KanbanCard false"
+                draggable="false"
+                style="opacity: 1;"
+              >
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-1
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="false"
+                style="opacity: 1;"
+              >
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-2
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="false"
+                style="opacity: 1;"
+              >
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-3
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="octo-board-column"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/workspace return workspace with BoardTemplateSelector component 1`] = `
+<div>
+  <div
+    class="Workspace"
+  >
+    <div
+      class="mainFrame"
+    />
+  </div>
+</div>
+`;
+
+exports[`src/components/workspace should match snapshot 1`] = `
+<div>
+  <div
+    class="Workspace"
+  >
+    <div
+      class="Sidebar octo-sidebar"
+    >
+      <div
+        class="WorkspaceTitle"
+      >
+        <div
+          class="octo-spacer"
+        />
+        <div
+          class="sidebarSwitcher"
+        >
+          <button
+            type="button"
+          >
+            <svg
+              class="HideSidebarIcon Icon"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="80,20 50,50 80,80"
+              />
+              <polyline
+                points="50,20 20,50, 50,80"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
+        class="BoardsSwitcherWrapper"
+      >
+        <div
+          class="BoardsSwitcher"
+        >
+          <i
+            class="CompassIcon icon-magnify MagnifyIcon"
+          />
+          <div>
+            <span>
+              Find boards
+            </span>
+          </div>
+        </div>
+        <div
+          aria-label="menuwrapper"
+          class="MenuWrapper"
+          role="button"
+        >
+          <button
+            aria-label="Add Board Dropdown"
+            title="Add Board Dropdown"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-plus AddIcon"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        class="octo-sidebar-list"
+        data-rbd-droppable-context-id="0"
+        data-rbd-droppable-id="lhs-categories"
+      >
+        <div
+          data-rbd-draggable-context-id="0"
+          data-rbd-draggable-id="categoryAttributeId1"
+        >
+          <div
+            class="SidebarCategory"
+          >
+            <div
+              class="categoryBoardsDroppableArea"
+              data-rbd-droppable-context-id="0"
+              data-rbd-droppable-id="categoryAttributeId1"
+            >
+              <div
+                class="octo-sidebar-item category expanded "
+              >
+                <div
+                  aria-describedby="rbd-hidden-text-0-hidden-text-0"
+                  class="octo-sidebar-title category-title"
+                  data-rbd-drag-handle-context-id="0"
+                  data-rbd-drag-handle-draggable-id="categoryAttributeId1"
+                  draggable="false"
+                  role="button"
+                  tabindex="0"
+                  title="Category 1"
+                >
+                  <i
+                    class="CompassIcon icon-chevron-down ChevronDownIcon"
+                  />
+                  Category 1
+                  <div
+                    class="sidebarCategoriesTour"
+                  />
+                </div>
+                <div
+                  class=""
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <button
+                      type="button"
+                    >
+                      <i
+                        class="CompassIcon icon-dots-horizontal OptionsIcon"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                data-rbd-draggable-context-id="0"
+                data-rbd-draggable-id="board1"
+              >
+                <div
+                  aria-describedby="rbd-hidden-text-0-hidden-text-0"
+                  class="SidebarBoardItem subitem active"
+                  data-rbd-drag-handle-context-id="0"
+                  data-rbd-drag-handle-draggable-id="board1"
+                  draggable="false"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div
+                    class="octo-sidebar-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-sidebar-title"
+                    title="board title"
+                  >
+                    board title
+                  </div>
+                  <div>
+                    <div
+                      aria-label="menuwrapper"
+                      class="MenuWrapper x"
+                      role="button"
+                    >
+                      <button
+                        type="button"
+                      >
+                        <i
+                          class="CompassIcon icon-dots-horizontal OptionsIcon"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="SidebarBoardItem sidebar-view-item active"
+                >
+                  <svg
+                    class="BoardIcon Icon"
+                    fill="currentColor"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g
+                      opacity="0.8"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M4 4H20V20H4V4ZM2 4C2 2.89543 2.89543 2 4 2H20C21.1046 2 22 2.89543 22 4V20C22 21.1046 21.1046 22 20 22H4C2.89543 22 2 21.1046 2 20V4ZM8 6H6V12H8V6ZM11 6H13V16H11V6ZM18 6H16V9H18V6Z"
+                        fill="currentColor"
+                        fill-rule="evenodd"
+                      />
+                    </g>
+                  </svg>
+                  <div
+                    class="octo-sidebar-title"
+                    title="view title"
+                  >
+                    view title
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="octo-spacer"
+      />
+    </div>
+    <div
+      class="mainFrame"
+    >
+      <div
+        class="BoardComponent"
+      >
+        <div
+          class="top-head"
+        >
+          <div
+            class="TopBar"
+          >
+            <a
+              class="link"
+              href="https://www.focalboard.com/fwlink/feedback-boards.html?v=1.0.0"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Give feedback
+            </a>
+            <div
+              class="versionFrame"
+            >
+              <div
+                class="version"
+                title="v1.0.0"
+              >
+                v1.0.0
+              </div>
+            </div>
+          </div>
+          <div
+            class="mid-head"
+          >
+            <div
+              class="ViewTitle"
+            >
+              <div
+                class="add-buttons add-visible"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-eye-off-outline"
+                  />
+                  <span>
+                    hide description
+                  </span>
+                </button>
+              </div>
+              <div
+                class="title"
+              >
+                <div
+                  class="IconSelector"
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <div
+                      class="octo-icon size-m"
+                    >
+                      <span>
+                        i
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <input
+                  class="Editable title"
+                  placeholder="Untitled board"
+                  spellcheck="true"
+                  title="board title"
+                  value="board title"
+                />
+              </div>
+              <div
+                class="description"
+              >
+                <div
+                  class="MarkdownEditor octo-editor  "
+                >
+                  <div
+                    class="octo-editor-preview"
+                    data-testid="preview-element"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="shareButtonWrapper"
+            >
+              <div
+                class="ShareBoardButton"
+              >
+                <button
+                  title="Share board"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-lock-outline LockOutlineIcon"
+                  />
+                  <span>
+                    Share
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="ViewHeader"
+          >
+            <div
+              class="viewSelector"
+            >
+              <input
+                class="Editable "
+                placeholder="Untitled View"
+                spellcheck="true"
+                title="view title"
+                value="view title"
+              />
+              <div>
+                <div
+                  aria-label="View menu"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-chevron-down DropdownIcon"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="octo-spacer"
+            />
+            <div
+              aria-label="Properties menu"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Properties
+                </span>
+              </button>
+            </div>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Group by: 
+                  <span
+                    id="groupByLabel"
+                  >
+                    Property 2
+                  </span>
+                </span>
+              </button>
+            </div>
+            <div
+              class="ModalWrapper"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Filter
+                </span>
+              </button>
+            </div>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Sort
+                </span>
+              </button>
+            </div>
+            <div
+              class="board-search-field"
+            >
+              <i
+                class="CompassIcon icon-magnify board-search-icon"
+              />
+              <input
+                class="Editable "
+                placeholder="Search cards"
+                value=""
+              />
+            </div>
+            <div
+              class="ModalWrapper"
+            >
+              <div
+                aria-label="View header menu"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="ButtonWithMenu"
+            >
+              <div
+                class="button-text"
+              >
+                New
+              </div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <div
+                  class="button-dropdown"
+                >
+                  <i
+                    class="CompassIcon icon-chevron-down DropdownIcon"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Kanban"
+        >
+          <div
+            class="octo-board-header"
+            id="mainBoardHeader"
+          >
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="true"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label empty "
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
+              >
+                No Property 2
+              </span>
+              
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="3"
+                  type="button"
+                >
+                  <span>
+                    3
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+              <button
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-plus AddIcon"
+                />
+              </button>
+            </div>
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="true"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label propColorBlue "
+              >
+                <input
+                  class="Editable "
+                  placeholder="New Select"
+                  spellcheck="true"
+                  title="value 2"
+                  value="value 2"
+                />
+              </span>
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="0"
+                  type="button"
+                >
+                  <span>
+                    0
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+              <button
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-plus AddIcon"
+                />
+              </button>
+            </div>
+            <div
+              class="octo-board-header-cell narrow"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  + Add a group
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="octo-board-body"
+            id="mainBoardBody"
+          >
+            <div
+              class="octo-board-column"
+            >
+              <div
+                class="KanbanCard false"
+                draggable="true"
+                style="opacity: 1;"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper optionsMenu "
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-1
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="true"
+                style="opacity: 1;"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper optionsMenu "
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-2
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="true"
+                style="opacity: 1;"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper optionsMenu "
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-3
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+              >
+                <span>
+                  + New
+                </span>
+              </button>
+            </div>
+            <div
+              class="octo-board-column"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  + New
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/workspace should match snapshot with readonly 1`] = `
+<div>
+  <div
+    class="Workspace"
+  >
+    <div
+      class="mainFrame"
+    >
+      <div
+        class="BoardComponent"
+      >
+        <div
+          class="top-head"
+        >
+          <div
+            class="TopBar"
+          >
+            <a
+              class="link"
+              href="https://www.focalboard.com/fwlink/feedback-boards.html?v=1.0.0"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Give feedback
+            </a>
+            <div
+              class="versionFrame"
+            >
+              <div
+                class="version"
+                title="v1.0.0"
+              >
+                v1.0.0
+              </div>
+            </div>
+          </div>
+          <div
+            class="mid-head"
+          >
+            <div
+              class="ViewTitle"
+            >
+              <div
+                class="add-buttons add-visible"
+              />
+              <div
+                class="title"
+              >
+                <div
+                  class="IconSelector"
+                >
+                  <div
+                    class="octo-icon size-m readonly"
+                  >
+                    <span>
+                      i
+                    </span>
+                  </div>
+                </div>
+                <input
+                  class="Editable readonly title"
+                  placeholder="Untitled board"
+                  readonly=""
+                  spellcheck="true"
+                  title="board title"
+                  value="board title"
+                />
+              </div>
+              <div
+                class="description"
+              >
+                <div
+                  class="MarkdownEditor octo-editor  "
+                >
+                  <div
+                    class="octo-editor-preview"
+                    data-testid="preview-element"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="shareButtonWrapper"
+            >
+              <div
+                class="ShareBoardLoginButton"
+              >
+                <button
+                  title="Login"
+                  type="button"
+                >
+                  <span>
+                    Login
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="ViewHeader"
+          >
+            <div
+              class="viewSelector"
+            >
+              <input
+                class="Editable readonly "
+                placeholder="Untitled View"
+                readonly=""
+                spellcheck="true"
+                title="view title"
+                value="view title"
+              />
+            </div>
+            <div
+              class="octo-spacer"
+            />
+            <div
+              class="board-search-field"
+            >
+              <i
+                class="CompassIcon icon-magnify board-search-icon"
+              />
+              <input
+                class="Editable "
+                placeholder="Search cards"
+                value=""
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="Kanban"
+        >
+          <div
+            class="octo-board-header"
+            id="mainBoardHeader"
+          >
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="false"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label empty "
+                title="Items with an empty Property 2 property will go here. This column can't be removed."
+              >
+                No Property 2
+              </span>
+              
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="3"
+                  type="button"
+                >
+                  <span>
+                    3
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+            </div>
+            <div
+              class="octo-board-header-cell KanbanColumnHeader"
+              draggable="false"
+              style="opacity: 1;"
+            >
+              <span
+                class="Label propColorBlue "
+              >
+                <input
+                  class="Editable readonly "
+                  placeholder="New Select"
+                  readonly=""
+                  spellcheck="true"
+                  title="value 2"
+                  value="value 2"
+                />
+              </span>
+              <div
+                class="KanbanCalculation"
+              >
+                <button
+                  title="0"
+                  type="button"
+                >
+                  <span>
+                    0
+                  </span>
+                </button>
+              </div>
+              <div
+                class="octo-spacer"
+              />
+            </div>
+          </div>
+          <div
+            class="octo-board-body"
+            id="mainBoardBody"
+          >
+            <div
+              class="octo-board-column"
+            >
+              <div
+                class="KanbanCard false"
+                draggable="false"
+                style="opacity: 1;"
+              >
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-1
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="false"
+                style="opacity: 1;"
+              >
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-2
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+              <div
+                class="KanbanCard false"
+                draggable="false"
+                style="opacity: 1;"
+              >
+                <div
+                  class="octo-icontitle"
+                >
+                  <div
+                    class="octo-icon"
+                  >
+                    i
+                  </div>
+                  <div
+                    class="octo-titletext"
+                  >
+                    card-3
+                  </div>
+                </div>
+                <div
+                  class="octo-tooltip tooltip-top"
+                  data-tooltip="Property 1"
+                >
+                  <div
+                    class="octo-propertyvalue octo-propertyvalue--readonly"
+                  >
+                    value1
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="octo-board-column"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/workspace show add new view tooltip 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box AddViewTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="bottom-start"
+  data-reference-hidden=""
+  data-state="visible"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 250ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="visible"
+    style="transition-duration: 250ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Add a new view
+          </h4>
+          <button
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          Go here to create a new view to organise your board using different layouts.
+        </div>
+        <div
+          class="tutorial-tour-tip__image"
+        >
+          <img
+            alt="tutorial tour tip product image"
+            src="test-file-stub"
+          />
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            >
+              <div
+                class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
+              >
+                <a
+                  class="tutorial-tour-tip__circle active"
+                  data-screen="0"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="1"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="2"
+                  href="#"
+                />
+              </div>
+            </div>
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            >
+              <button
+                type="button"
+              >
+                <span>
+                  Next
+                </span>
+                <i
+                  class="CompassIcon icon-chevron-right icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; left: 0px; transform: translate(3px, 0px);"
+  />
+</div>
+`;
+
+exports[`src/components/workspace show copy link tooltip 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box CopyLinkTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="right-start"
+  data-reference-hidden=""
+  data-state="visible"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 250ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="visible"
+    style="transition-duration: 250ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Copy link
+          </h4>
+          <button
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          You can share your cards with teammates by copying the link and pasting it in a channel, direct message, or group message.
+        </div>
+        <div
+          class="tutorial-tour-tip__image"
+        >
+          <img
+            alt="tutorial tour tip product image"
+            src="test-file-stub"
+          />
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            >
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="0"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
+              >
+                <a
+                  class="tutorial-tour-tip__circle active"
+                  data-screen="1"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="2"
+                  href="#"
+                />
+              </div>
+            </div>
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            >
+              <button
+                title="Previous"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-chevron-left icon"
+                />
+                <span>
+                  Previous
+                </span>
+              </button>
+              <button
+                type="button"
+              >
+                <span>
+                  Next
+                </span>
+                <i
+                  class="CompassIcon icon-chevron-right icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; top: 0px; transform: translate(0px, 3px);"
+  />
+</div>
+`;
+
+exports[`src/components/workspace show open card tooltip 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box OpenCardTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="top"
+  data-reference-hidden=""
+  data-state="visible"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 250ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="visible"
+    style="transition-duration: 250ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Open a card
+          </h4>
+          <button
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          Open a card to explore the powerful ways that Boards can help you organize your work.
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            />
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; left: 0px; transform: translate(3px, 0px);"
+  />
+</div>
+`;

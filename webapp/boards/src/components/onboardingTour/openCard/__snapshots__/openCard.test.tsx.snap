@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box OpenCardTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="top"
+  data-reference-hidden=""
+  data-state="hidden"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 0ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="hidden"
+    style="transition-duration: 0ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Open a card
+          </h4>
+          <button
+            class="IconButton tutorial-tour-tip__header__close size--small"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          Open a card to explore the powerful ways that Boards can help you organize your work.
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            />
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; left: 0px; transform: translate(3px, 0px);"
+  />
+</div>
+`;
+
+exports[`components/onboardingTour/addComments/OpenCardTourStep before hover 1`] = `
+<div>
+  <div
+    aria-expanded="true"
+    class="tutorial-tour-tip__pulsating-dot-ctr OpenCardTourStep"
+  >
+    <span
+      class="pulsating_dot"
+    />
+  </div>
+</div>
+`;
