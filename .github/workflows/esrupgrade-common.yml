@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run docker compose
         run: |
-          cd build
+          cd server/build
           docker-compose --no-ansi run --rm start_dependencies
           cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
@@ -45,7 +45,7 @@ jobs:
           curl ${{ inputs.db-dump-url }} | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
       - name: Common preprocessing of the DB dump
         run: |
-          cd scripts/esrupgrades
+          cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $PREPROCESS_SCRIPT
       - name: Pull EE image
         run: |
@@ -53,7 +53,7 @@ jobs:
       - name: Run migration through server
         run: |
           mkdir -p client/plugins
-          cd build
+          cd server/build
           # Run the server in the background to trigger the migrations
           docker run --name mmserver \
             --net ghactions_mm-test \
@@ -75,7 +75,7 @@ jobs:
           docker stop mmserver > /dev/null
       - name: Cleanup DB
         run : |
-          cd scripts/esrupgrades
+          cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database
         run: |
@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run docker compose
         run: |
-          cd build
+          cd server/build
           docker-compose --no-ansi run --rm start_dependencies
           cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
@@ -116,15 +116,15 @@ jobs:
           curl ${{ inputs.db-dump-url }} | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
       - name: Preprocess the DB dump
         run: |
-          cd scripts/esrupgrades
+          cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $PREPROCESS_SCRIPT
       - name: Run migration through script
         run : |
-          cd scripts/esrupgrades
+          cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $MIGRATION_SCRIPT
       - name: Cleanup DB
         run : |
-          cd scripts/esrupgrades
+          cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database
         run: |
