@@ -113,7 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.AppsSidebarCategory = false
 	f.CloudReverseTrial = false
-	f.RecentChannelThreads = true
+	f.RecentChannelThreads = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
