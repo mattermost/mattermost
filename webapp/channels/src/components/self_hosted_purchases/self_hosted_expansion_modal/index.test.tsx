@@ -11,11 +11,12 @@ import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/
 
 import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {TestHelper as TH} from 'utils/test_helper';
-import {SelfHostedProducts, ModalIdentifiers} from 'utils/constants';
+import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 
-import SelfHostedPurchaseModal, {makeInitialState, canSubmit, State} from './';
+import SelfHostedExpansionModal, {makeInitialState, canSubmit, FormState} from './';
+import moment from 'moment-timezone';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;
@@ -50,7 +51,7 @@ jest.mock('components/payment_form/card_input', () => {
     };
 });
 
-jest.mock('components/self_hosted_purchase_modal/stripe_provider', () => {
+jest.mock('components/self_hosted_purchases/stripe_provider', () => {
     return function(props: {children: React.ReactNode | React.ReactNodeArray}) {
         return props.children;
     };
@@ -69,7 +70,15 @@ const mockCreatedIntent = SelfHostedSignupProgress.CREATED_INTENT;
 const mockCreatedLicense = SelfHostedSignupProgress.CREATED_LICENSE;
 const failOrg = 'failorg';
 
-const existingUsers = 11;
+const existingUsers = 10;
+
+const mockProfessionalProduct = TH.getProductMock({
+    id: 'prod_professional',
+    name: 'Professional',
+    sku: SelfHostedProducts.PROFESSIONAL,
+    price_per_seat: 7.5,
+    recurring_interval: RecurringIntervals.MONTH,
+});
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');
@@ -89,12 +98,9 @@ jest.mock('mattermost-redux/client', () => {
                     progress: mockCreatedIntent,
                 });
             },
-            confirmSelfHostedSignup: () => Promise.resolve({
+            confirmSelfHostedExpansion: () => Promise.resolve({
                 progress: mockCreatedLicense,
                 license: {Users: existingUsers * 2},
-            }),
-            getClientLicenseOld: () => Promise.resolve({
-                data: {Sku: 'Enterprise'},
             }),
         },
     };
@@ -109,13 +115,29 @@ jest.mock('components/payment_form/stripe', () => {
     };
 });
 
-const productName = 'Professional';
+jest.mock('utils/hosted_customer', () => {
+    const original = jest.requireActual('utils/hosted_customer');
+    return {
+        __esModule: true,
+        ...original,
+        findSelfHostedProductBySku: () => {
+            return mockProfessionalProduct;
+        },
+    };
+});
+
+const productName = SelfHostedProducts.PROFESSIONAL;
+
+// Licensed expiry set as 3 months from the current date (rolls over to new years).
+let licenseExpiry = moment();
+const monthsUntilLicenseExpiry = 3;
+licenseExpiry = licenseExpiry.add(monthsUntilLicenseExpiry, 'months');
 
 const initialState: DeepPartial<GlobalState> = {
     views: {
         modals: {
             modalState: {
-                [ModalIdentifiers.SELF_HOSTED_PURCHASE]: {
+                [ModalIdentifiers.SELF_HOSTED_EXPANSION]: {
                     open: true,
                 },
             },
@@ -125,11 +147,6 @@ const initialState: DeepPartial<GlobalState> = {
         storage: {},
     },
     entities: {
-        admin: {
-            analytics: {
-                TOTAL_USERS: existingUsers,
-            },
-        },
         teams: {
             currentTeamId: '',
         },
@@ -143,7 +160,10 @@ const initialState: DeepPartial<GlobalState> = {
                 EnableDeveloper: 'false',
             },
             license: {
-                Sku: 'Enterprise',
+                SkuName: productName,
+                Sku: productName,
+                Users: '50',
+                ExpiresAt: licenseExpiry.valueOf().toString(),
             },
         },
         cloud: {
@@ -165,19 +185,15 @@ const initialState: DeepPartial<GlobalState> = {
                     last_name: '',
                 }),
             },
+            filteredStats: {
+                total_users_count: 100,
+            },
         },
         hostedCustomer: {
             products: {
                 productsLoaded: true,
                 products: {
-                    prod_professional: TH.getProductMock({
-                        id: 'prod_professional',
-                        name: 'Professional',
-                        sku: SelfHostedProducts.PROFESSIONAL,
-                        price_per_seat: 7.5,
-
-                    }),
-
+                    prod_professional: mockProfessionalProduct,
                 },
             },
             signupProgress: SelfHostedSignupProgress.START,
@@ -190,10 +206,13 @@ function changeByPlaceholder(sel: string, val: any) {
     fireEvent.change(screen.getByPlaceholderText(sel), valueEvent(val));
 }
 
-// having issues with normal selection of texts and clicks.
 function selectDropdownValue(testId: string, value: string) {
     fireEvent.change(screen.getByTestId(testId).querySelector('input') as any, valueEvent(value));
     fireEvent.click(screen.getByTestId(testId).querySelector('.DropDown__option--is-focused') as any);
+}
+
+function changeByTestId(testId: string, value: string) {
+    fireEvent.change(screen.getByTestId(testId).querySelector('input') as any, valueEvent(value));
 }
 
 interface PurchaseForm {
@@ -205,8 +224,8 @@ interface PurchaseForm {
     city: string;
     state: string;
     zip: string;
+    seats: string;
     agree: boolean;
-
 }
 
 const defaultSuccessForm: PurchaseForm = {
@@ -218,150 +237,206 @@ const defaultSuccessForm: PurchaseForm = {
     city: 'Minneapolis',
     state: 'MN',
     zip: '55423',
+    seats: '50',
     agree: true,
 };
+
 function fillForm(form: PurchaseForm) {
     changeByPlaceholder('Card number', form.card);
     changeByPlaceholder('Organization Name', form.org);
     changeByPlaceholder('Name on Card', form.name);
-    selectDropdownValue('selfHostedPurchaseCountrySelector', form.country);
+    selectDropdownValue('selfHostedExpansionCountrySelector', form.country);
     changeByPlaceholder('Address', form.address);
     changeByPlaceholder('City', form.city);
-    selectDropdownValue('selfHostedPurchaseStateSelector', form.state);
+    selectDropdownValue('selfHostedExpansionStateSelector', form.state);
     changeByPlaceholder('Zip/Postal Code', form.zip);
     if (form.agree) {
         fireEvent.click(screen.getByText('I have read and agree', {exact: false}));
     }
 
-    // not changing the license seats number,
-    // because it is expected to be pre-filled with the correct number of seats.
+    const completeButton = screen.getByText('Complete purchase');
 
-    const upgradeButton = screen.getByText('Upgrade');
-
-    // while this will will not if the caller passes in an object
-    // that has member equality but not reference equality, this is
-    // good enough for the limited usage this function has
     if (form === defaultSuccessForm) {
-        expect(upgradeButton).toBeEnabled();
+        expect(completeButton).toBeEnabled();
     }
 
-    return upgradeButton;
+    return completeButton;
 }
 
-describe('SelfHostedPurchaseModal', () => {
+describe('SelfHostedExpansionModal Open', () => {
     it('renders the form', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
-        // check title, and some of the most prominent details and secondary actions
         screen.getByText('Provide your payment details');
+        screen.getByText('Add new seats');
         screen.getByText('Contact Sales');
-        screen.getByText('USD per seat/month', {exact: false});
-        screen.getByText('billed annually', {exact: false});
-        screen.getByText(productName);
-        screen.getByText('You will be billed today. Your license will be applied automatically', {exact: false});
+        screen.getByText('Cost per user', {exact: false});
+
+        // screen.getByText(productName, {normalizer: (val) => {return val.charAt(0).toUpperCase() + val.slice(1)}});
+        screen.getByText('Your credit card will be charged today.');
         screen.getByText('See how billing works', {exact: false});
     });
 
-    it('filling the form enables signup', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
-        expect(screen.getByText('Upgrade')).toBeDisabled();
+    it('filling the form enables expansion', () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
         fillForm(defaultSuccessForm);
     });
 
-    it('disables signup if too few seats chosen', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
-        fillForm(defaultSuccessForm);
+    it('happy path submit shows success screen when confirmation succeeds', async () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
 
-        const tooFewSeats = existingUsers - 1;
-        fireEvent.change(screen.getByTestId('selfHostedPurchaseSeatsInput'), valueEvent(tooFewSeats.toString()));
-        expect(screen.getByText('Upgrade')).toBeDisabled();
-        screen.getByText('Your workspace currently has 11 users', {exact: false});
-    });
-
-    it('Minimum of 10 seats is required for sign up', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
-        fillForm(defaultSuccessForm);
-
-        const tooFewSeats = 9;
-        fireEvent.change(screen.getByTestId('selfHostedPurchaseSeatsInput'), valueEvent(tooFewSeats.toString()));
-        expect(screen.getByText('Upgrade')).toBeDisabled();
-        screen.getByText('Minimum of 10 seats required', {exact: false});
-    });
-
-    it('happy path submit shows success screen', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
-        expect(screen.getByText('Upgrade')).toBeDisabled();
         const upgradeButton = fillForm(defaultSuccessForm);
-
         upgradeButton.click();
-        await waitFor(() => expect(screen.getByText(`You're now subscribed to ${productName}`)).toBeTruthy(), {timeout: 1234});
+
+        expect(screen.findByText('The license has been automatically applied')).toBeTruthy();
+    });
+
+    it('happy path submit shows submitting screen while requesting confirmation', async () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
+
+        const upgradeButton = fillForm(defaultSuccessForm);
+        upgradeButton.click();
+
+        await waitFor(() => expect(document.getElementsByClassName('submitting')[0]).toBeTruthy(), {timeout: 1234});
     });
 
     it('sad path submit shows error screen', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
-        expect(screen.getByText('Upgrade')).toBeDisabled();
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        expect(screen.getByText('Complete purchase')).toBeDisabled();
         fillForm(defaultSuccessForm);
         changeByPlaceholder('Organization Name', failOrg);
 
-        const upgradeButton = screen.getByText('Upgrade');
+        const upgradeButton = screen.getByText('Complete purchase');
         expect(upgradeButton).toBeEnabled();
         upgradeButton.click();
         await waitFor(() => expect(screen.getByText('Sorry, the payment verification failed')).toBeTruthy(), {timeout: 1234});
     });
 });
 
-describe('SelfHostedPurchaseModal :: canSubmit', () => {
-    function makeHappyPathState(): State {
-        return {
+describe('SelfHostedExpansionModal RHS Card', () => {
+    it('New seats input should be pre-populated with the difference from the active users and licensed seats', () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
 
+        const expectedPrePopulatedSeats = (initialState.entities?.users?.filteredStats?.total_users_count || 1) - parseInt(initialState.entities?.general?.license?.Users || '1', 10);
+
+        const seatsField = screen.getByTestId('seatsInput').querySelector('input');
+        expect(seatsField).toBeInTheDocument();
+        expect(seatsField?.value).toBe(expectedPrePopulatedSeats.toString());
+    });
+
+    it('Seat input only allows users to fill input with the licensed seats and active users difference if it is not 0', () => {
+        const expectedUserOverage = '50';
+
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        fillForm(defaultSuccessForm);
+
+        // The seat input should already have the expected value.
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedUserOverage);
+
+        // Try to set an undefined value.
+        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, undefined);
+
+        // Expecting the seats input to now contain the difference between active users and licensed seats.
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedUserOverage);
+        expect(screen.getByText('Complete purchase')).toBeEnabled();
+    });
+
+    it('New seats input cannot be less than 1', () => {
+        if (initialState.entities?.users?.filteredStats?.total_users_count) {
+            initialState.entities.users.filteredStats.total_users_count = 50;
+        }
+
+        const expectedAddNewSeats = '1';
+
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        fillForm(defaultSuccessForm);
+
+        // Try to set a negative value.
+        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, -10);
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedAddNewSeats);
+
+        // Try to set a 0 value.
+        fireEvent.change(screen.getByTestId('seatsInput').querySelector('input') as HTMLElement, 0);
+        expect(screen.getByTestId('seatsInput').querySelector('input')?.value).toContain(expectedAddNewSeats);
+    });
+
+    it('Cost per User should be represented as the current subscription price multiplied by the remaining months', () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+
+        const expectedCostPerUser = monthsUntilLicenseExpiry * mockProfessionalProduct.price_per_seat;
+
+        const costPerUser = document.getElementsByClassName('costPerUser')[0];
+        expect(costPerUser).toBeInTheDocument();
+        expect(costPerUser.innerHTML).toContain('Cost per user<br>$' + mockProfessionalProduct.price_per_seat.toFixed(2) + ' x ' + monthsUntilLicenseExpiry + ' months');
+
+        const costAmount = document.getElementsByClassName('costAmount')[0];
+        expect(costAmount).toBeInTheDocument();
+        expect(costAmount.innerHTML).toContain('$' + expectedCostPerUser);
+    });
+
+    it('Total cost User should be represented as the current subscription price multiplied by the remaining months multiplied by the number of users', () => {
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        const seatsInputValue = 100;
+        changeByTestId('seatsInput', seatsInputValue.toString());
+
+        const expectedTotalCost = monthsUntilLicenseExpiry * mockProfessionalProduct.price_per_seat * seatsInputValue;
+
+        const costAmount = document.getElementsByClassName('totalCostAmount')[0];
+        expect(costAmount).toBeInTheDocument();
+        expect(costAmount).toHaveTextContent(Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(expectedTotalCost));
+    });
+});
+
+describe('SelfHostedExpansionModal Submit', () => {
+    function makeHappyPathState(): FormState {
+        return {
             address: 'string',
             address2: 'string',
             city: 'string',
             state: 'string',
             country: 'string',
             postalCode: '12345',
-
-            shippingSame: true,
-            shippingAddress: '',
-            shippingAddress2: '',
-            shippingCity: '',
-            shippingState: '',
-            shippingCountry: '',
-            shippingPostalCode: '',
-
+            shippingAddress: 'string',
+            shippingAddress2: 'string',
+            shippingCity: 'string',
+            shippingState: 'string',
+            shippingCountry: 'string',
+            shippingPostalCode: '12345',
+            shippingSame: false,
+            agreedTerms: true,
             cardName: 'string',
             organization: 'string',
-            agreedTerms: true,
             cardFilled: true,
-            seats: {
-                quantity: '12',
-                error: null,
-            },
+            seats: 1,
             submitting: false,
             succeeded: false,
             progressBar: 0,
             error: '',
         };
     }
-    it('if submitting, can not submit', () => {
+    it('if submitting, can not submit again', () => {
         const state = makeHappyPathState();
         state.submitting = true;
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_LICENSE)).toBe(false);
     });
+
     it('if created license, can submit', () => {
-        const state = makeInitialState();
+        const state = makeInitialState(1);
         state.submitting = false;
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_LICENSE)).toBe(true);
     });
 
     it('if paid, can submit', () => {
-        const state = makeInitialState();
+        const state = makeInitialState(1);
         state.submitting = false;
         expect(canSubmit(state, SelfHostedSignupProgress.PAID)).toBe(true);
     });
 
     it('if created subscription, can submit', () => {
-        const state = makeInitialState();
+        const state = makeInitialState(1);
         state.submitting = false;
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_SUBSCRIPTION)).toBe(true);
     });
@@ -379,20 +454,6 @@ describe('SelfHostedPurchaseModal :: canSubmit', () => {
         expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(false);
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_CUSTOMER)).toBe(false);
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_INTENT)).toBe(false);
-    });
-
-    it('if shipping address different and is not filled, can not submit', () => {
-        const state = makeHappyPathState();
-        state.shippingSame = false;
-        expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(false);
-
-        state.shippingAddress = 'more shipping info';
-        state.shippingAddress2 = 'more shipping info';
-        state.shippingCity = 'more shipping info';
-        state.shippingState = 'more shipping info';
-        state.shippingCountry = 'more shipping info';
-        state.shippingPostalCode = 'more shipping info';
-        expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(true);
     });
 
     it('if card number missing and card has not been confirmed, can not submit', () => {
@@ -413,15 +474,7 @@ describe('SelfHostedPurchaseModal :: canSubmit', () => {
 
     it('if seats not valid and card has not been confirmed, can not submit', () => {
         const state = makeHappyPathState();
-        state.seats.error = 'some seats error';
-        expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(false);
-        expect(canSubmit(state, SelfHostedSignupProgress.CREATED_CUSTOMER)).toBe(false);
-        expect(canSubmit(state, SelfHostedSignupProgress.CREATED_INTENT)).toBe(false);
-    });
-
-    it('if did not agree to terms and card has not been confirmed, can not submit', () => {
-        const state = makeHappyPathState();
-        state.agreedTerms = false;
+        state.seats = 0;
         expect(canSubmit(state, SelfHostedSignupProgress.START)).toBe(false);
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_CUSTOMER)).toBe(false);
         expect(canSubmit(state, SelfHostedSignupProgress.CREATED_INTENT)).toBe(false);
