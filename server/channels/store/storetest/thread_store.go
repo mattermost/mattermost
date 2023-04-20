@@ -1926,7 +1926,7 @@ func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
 			UpdateViewedTimestamp: false,
 			UpdateParticipants:    false,
 		}
-		mem, err := ss.Thread().MaintainMembership(userID, postID, opts)
+		mem, _, err := ss.Thread().MaintainMembership(userID, postID, opts)
 		require.NoError(t, err)
 
 		return mem, func() {
