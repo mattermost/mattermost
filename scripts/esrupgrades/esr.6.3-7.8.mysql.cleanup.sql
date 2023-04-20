@@ -13,20 +13,6 @@ DELETE FROM ProductNoticeViewState;
 DROP TABLE IF EXISTS db_lock;
 DROP TABLE IF EXISTS db_migrations;
 
-/* Migration 000054_create_crt_channelmembership_count.up sets
-   ChannelMembers.LastUpdateAt to the results of SELECT ROUND(UNIX_TIMESTAMP(NOW(3))*1000)
-   which will be different each time the migration is run. Thus, the column will always be
-   different when comparing the server and script migrations. To bypass this, we update all
-   rows in ChannelMembers so that they contain the same value for such column. */
-UPDATE ChannelMembers SET LastUpdateAt = 1;
-
-/* Migration 000055_create_crt_thread_count_and_unreads.up sets
-   ThreadMemberships.LastUpdated to the results of SELECT ROUND(UNIX_TIMESTAMP(NOW(3))*1000)
-   which will be different each time the migration is run. Thus, the column will always be
-   different when comparing the server and script migrations. To bypass this, we update all
-   rows in ThreadMemberships so that they contain the same value for such column. */
-UPDATE ThreadMemberships SET LastUpdated = 1;
-
 /* The security update check in the server may update the LastSecurityTime system value. To
    avoid any spurious difference in the migrations, we update it to a fixed value. */
 UPDATE Systems SET Value = 1 WHERE Name = 'LastSecurityTime';
@@ -35,23 +21,11 @@ UPDATE Systems SET Value = 1 WHERE Name = 'LastSecurityTime';
    There are no migrations related to this, so we can simply drop it here. */
 DELETE FROM Systems WHERE Name = 'FirstAdminSetupComplete';
 
-/* The server migration contains an in-app migration that adds new roles for Playbooks:
-   doPlaybooksRolesCreationMigration, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/migrations.go#L345-L469
-   The roles are the ones defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/model/role.go#L874-L929
-   When this migration finishes, it also adds a new row to the Systems table with the key of the migration.
-   This in-app migration does not happen in the script, so we remove those rows here. */
-DELETE FROM Roles WHERE Name = 'playbook_member';
-DELETE FROM Roles WHERE Name = 'playbook_admin';
-DELETE FROM Roles WHERE Name = 'run_member';
-DELETE FROM Roles WHERE Name = 'run_admin';
-DELETE FROM Systems WHERE Name = 'PlaybookRolesCreationMigrationComplete';
-
-/* The server migration contains two in-app migrations that add playbooks permissions to certain roles:
-    getAddPlaybooksPermissions and getPlaybooksPermissionsAddManageRoles, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/permissions_migrations.go#L1021-L1072
+/* The server migration contains an in-app migration that add playbooks permissions to certain roles:
+    getPlaybooksPermissionsAddManageRoles, defined in https://github.com/mattermost/mattermost-server/blob/56a093ceaee6389a01a35b6d4626ef5a9fea4759/app/permissions_migrations.go#L1056-L1072
     The specific roles ('%playbook%') are removed in the procedure below, but the migrations also add new rows to the Systems table marking the migrations as complete.
-    These in-app migrations do not happen in the script, so we remove those rows here. */
+    This in-app migration does not happen in the script, so we remove that rows here. */
 DELETE FROM Systems WHERE Name = 'playbooks_manage_roles';
-DELETE FROM Systems WHERE Name = 'playbooks_permissions';
 
 /* The server migration contains an in-app migration that adds boards permissions to certain roles:
    getProductsBoardsPermissions, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/permissions_migrations.go#L1074-L1093
@@ -60,9 +34,7 @@ DELETE FROM Systems WHERE Name = 'playbooks_permissions';
    This in-app migration does not happen in the script, so we remove that row here. */
 DELETE FROM Systems WHERE Name = 'products_boards';
 
-/* TODO: REVIEW STARTING HERE */
-
-/* The server migration contain an in-app migration that adds Ids to the Teams whose InviteId is an empty string:
+/* The server migration contains an in-app migration that adds Ids to the Teams whose InviteId is an empty string:
    doRemainingSchemaMigrations, defined in https://github.com/mattermost/mattermost-server/blob/282bd351e3767dcfd8c8340da2e0915197c0dbcb/app/migrations.go#L515-L540
    The migration is not replicated in the script, since it happens in-app, but the server adds a new row to the
    Systems table marking the table as complete, which the script doesn't do, so we remove that row here. */
@@ -167,11 +139,8 @@ BEGIN
   /* 2. Filter out the new permissions added by the in-app migrations */
   DELETE FROM temp_roles WHERE permission LIKE 'sysconsole_read_products_boards';
   DELETE FROM temp_roles WHERE permission LIKE 'sysconsole_write_products_boards';
-  DELETE FROM temp_roles WHERE permission LIKE '%playbook%';
-  DELETE FROM temp_roles WHERE permission LIKE 'run_create';
-  DELETE FROM temp_roles WHERE permission LIKE 'run_manage_members';
-  DELETE FROM temp_roles WHERE permission LIKE 'run_manage_properties';
-  DELETE FROM temp_roles WHERE permission LIKE 'run_view';
+  DELETE FROM temp_roles WHERE permission LIKE 'playbook_public_manage_roles';
+  DELETE FROM temp_roles WHERE permission LIKE 'playbook_private_manage_roles';
   DELETE FROM temp_roles WHERE permission LIKE '%custom_group%';
 
   /* Temporarily set to the maximum permitted value, since the call to group_concat
