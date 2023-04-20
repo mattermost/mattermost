@@ -974,6 +974,7 @@ type ExperimentalSettings struct {
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
 	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
+	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1011,6 +1012,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.PatchPluginsReactDOM == nil {
 		s.PatchPluginsReactDOM = NewBool(false)
+	}
+
+	if s.DisableRefetchingOnBrowserFocus == nil {
+		s.DisableRefetchingOnBrowserFocus = NewBool(false)
 	}
 }
 
@@ -1163,6 +1168,7 @@ type SqlSettings struct {
 	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	ReplicaMonitorIntervalSeconds     *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1226,6 +1232,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ReplicaLagSettings == nil {
 		s.ReplicaLagSettings = []*ReplicaLagSettings{}
+	}
+
+	if s.ReplicaMonitorIntervalSeconds == nil {
+		s.ReplicaMonitorIntervalSeconds = NewInt(5)
 	}
 }
 
