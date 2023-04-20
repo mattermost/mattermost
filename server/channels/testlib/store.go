@@ -102,6 +102,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	oAuthStore := mocks.OAuthStore{}
 	groupStore := mocks.GroupStore{}
 
+	pluginStore := mocks.PluginStore{}
+	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
@@ -117,6 +120,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("OAuth").Return(&oAuthStore)
 	mockStore.On("Group").Return(&groupStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+	mockStore.On("Plugin").Return(&pluginStore)
 
 	return &mockStore
 }

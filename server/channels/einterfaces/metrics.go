@@ -13,6 +13,7 @@ import (
 type MetricsInterface interface {
 	Register()
 	RegisterDBCollector(db *sql.DB, name string)
+	UnregisterDBCollector(db *sql.DB, name string)
 
 	IncrementPostCreate()
 	IncrementWebhookPost()
