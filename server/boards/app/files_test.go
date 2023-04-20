@@ -521,7 +521,8 @@ func TestCopyCard(t *testing.T) {
 
 		updatedFileNames, err := th.App.CopyCardFiles("boardID", []*model.Block{imageBlock}, false)
 		assert.NoError(t, err)
-		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileID"].(string)])
+		assert.NotNil(imageBlock.Fields["fileId"].(string))
+		assert.NotNil(t, updatedFileNames[imageBlock.Fields["fileId"].(string)])
 	})
 }
 
