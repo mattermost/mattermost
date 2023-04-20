@@ -29,7 +29,6 @@ import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud'
 import {isCloudLicense} from 'utils/license_utils';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {trackEvent} from 'actions/telemetry_actions';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 
 import DeleteWorkspaceSuccessModal from './success_modal';
