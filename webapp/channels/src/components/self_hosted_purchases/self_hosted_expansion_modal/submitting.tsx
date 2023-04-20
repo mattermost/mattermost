@@ -13,6 +13,8 @@ import {ValueOf} from '@mattermost/types/utilities';
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import IconMessage from 'components/purchase_modal/icon_message';
 
+import './submitting_page.scss';
+
 function useConvertProgressToWaitingExplanation(progress: ValueOf<typeof SelfHostedSignupProgress>, planName: string): React.ReactNode {
     const intl = useIntl();
     switch (progress) {

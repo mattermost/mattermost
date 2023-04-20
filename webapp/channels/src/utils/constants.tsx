@@ -506,6 +506,11 @@ export const CloudProducts = {
     LEGACY: 'cloud-legacy',
 };
 
+export const CloudBillingTypes = {
+    INTERNAL: 'internal',
+    LICENSED: 'licensed',
+};
+
 export const SelfHostedProducts = {
     STARTER: 'starter',
     PROFESSIONAL: 'professional',
@@ -1103,6 +1108,7 @@ export const DocLinks = {
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
     SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
+    ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
 };
 
 export const LicenseLinks = {

@@ -15,5 +15,9 @@
 }
 
 .self_hosted_expansion_success {
-    margin-top: 163px;
+    overflow: hidden;
+
+    .selfHostedExpansionModal__success {
+        margin-top: 163px;
+    }
 }
