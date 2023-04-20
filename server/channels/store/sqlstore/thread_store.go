@@ -707,7 +707,7 @@ func (s *SqlThreadStore) GetTotalThreadsForChannel(channelID string, userID stri
 	var totalThreads int64
 	err := s.GetReplicaX().GetBuilder(&totalThreads, query)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to count unread threads for channel id=%s", channelID)
+		return 0, errors.Wrapf(err, "failed to count threads for channel id=%s", channelID)
 	}
 
 	return totalThreads, nil
