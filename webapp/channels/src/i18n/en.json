@@ -3028,6 +3028,7 @@
   "cloud_archived.error.access": "Permalink belongs to a message that has been archived because of {planName} limits. Upgrade to access message again.",
   "cloud_archived.error.title": "Message Archived",
   "cloud_billing_history_modal.title": "Invoice(s)",
+  "cloud_billing.nudge_to_yearly.announcement_bar": "Monthly billing will be discontinued in {days} days . Switch to annual billing",
   "cloud_billing.nudge_to_yearly.contact_sales": "Contact sales",
   "cloud_billing.nudge_to_yearly.description": "Monthly billing will be discontinued on {date}. To keep your workspace, switch to annual billing.",
   "cloud_billing.nudge_to_yearly.learn_more": "Update billing",
