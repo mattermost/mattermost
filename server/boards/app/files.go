@@ -71,13 +71,13 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, filestore.ReadCloseSeeker, error) {
 	fileInfo, filePath, err := a.GetFilePath(teamID, rootID, fileName)
 	if err != nil {
-		a.logger.Error(fmt.Sprintf("GetFile: Failed to GetFilePath. Team: %s, board: %s, filename: %s, error: %e", teamID, rootID, fileName, err))
+		a.logger.Error("GetFile: Failed to GetFilePath.", mlog.String("Team", teamID), mlog.string("board", rootID), mlog.string("filename", filename), mlog.Err(err))
 		return nil, nil, err
 	}
 
 	exists, err := a.filesBackend.FileExists(filePath)
 	if err != nil {
-		a.logger.Error(fmt.Sprintf("GetFile: Failed to check if file exists as path. Path: %s, error: %e", filePath, err))
+		a.logger.Error("GetFile: Failed to check if file exists as path. ", mlog.String("Path", filePath), mlog.Err(err))
 		return nil, nil, err
 	}
 	if !exists {
@@ -86,7 +86,7 @@ func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, file
 
 	reader, err := a.filesBackend.Reader(filePath)
 	if err != nil {
-		a.logger.Error(fmt.Sprintf("GetFile: Failed to get file reader of existing file at path: %s, error: %e", filePath, err))
+		a.logger.Error("GetFile: Failed to get file reader of existing file at path", mlog.String("Path", filePath), mlog.Err(err))
 		return nil, nil, err
 	}
 	return fileInfo, reader, nil
