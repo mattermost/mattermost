@@ -19,7 +19,7 @@ import {Client4} from 'mattermost-redux/client';
 import {isDevModeEnabled} from 'selectors/general';
 
 import {closeModal} from 'actions/views/modals';
-import {pageVisited} from 'actions/telemetry_actions';
+import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 import {confirmSelfHostedExpansion} from 'actions/hosted_customer';
 
 import {ValueOf} from '@mattermost/types/utilities';
