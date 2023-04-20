@@ -278,14 +278,16 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
     };
 }
 
-export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
+export function getProfilesByIds(userIds: string[], options?: any, includeCurrentUser?: boolean): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const {currentUserId} = getState().entities.users;
         let profiles: UserProfile[];
 
         try {
             profiles = await Client4.getProfilesByIds(userIds, options);
-            removeUserFromList(currentUserId, profiles);
+            if (!includeCurrentUser) {
+                removeUserFromList(currentUserId, profiles);
+            }
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1432,7 +1434,7 @@ export function clearUserAccessTokens(): ActionFunc {
     };
 }
 
-export function checkForModifiedUsers() {
+export function checkForModifiedUsers(includeCurrentUser?: boolean) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const users = getUsers(state);
@@ -1443,7 +1445,7 @@ export function checkForModifiedUsers() {
             return {data: true};
         }
 
-        await dispatch(getProfilesByIds(Object.keys(users), {since: lastDisconnectAt}));
+        await dispatch(getProfilesByIds(Object.keys(users), {since: lastDisconnectAt}, includeCurrentUser));
         return {data: true};
     };
 }
