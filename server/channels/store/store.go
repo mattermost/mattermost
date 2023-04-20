@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type StoreResult struct {
@@ -72,10 +72,7 @@ type Store interface {
 	// GetInternalMasterDB allows access to the raw master DB
 	// handle for the multi-product architecture.
 	GetInternalMasterDB() *sql.DB
-	// GetInternalReplicaDBs allows access to the raw replica DB
-	// handles for the multi-product architecture.
 	GetInternalReplicaDB() *sql.DB
-	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -347,6 +344,7 @@ type ThreadStore interface {
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
+	DeleteMembershipsForChannel(userID, channelID string) error
 
 	// Insights - threads
 	GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error)
