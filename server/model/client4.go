@@ -8412,10 +8412,10 @@ func (c *Client4) GetThreadsForChannel(channelID, userID string, opts GetChannel
 		v.Set("deleted", "true")
 	}
 	if opts.ThreadsOnly {
-		v.Set("threadsOnly", "true")
+		v.Set("threads_only", "true")
 	}
 	if opts.TotalsOnly {
-		v.Set("totalsOnly", "true")
+		v.Set("totals_only", "true")
 	}
 	if opts.Filter != "" {
 		v.Set("filter", string(opts.Filter))

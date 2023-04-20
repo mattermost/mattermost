@@ -1899,18 +1899,8 @@ func getThreadsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts.Before = queryValues.Get("before")
 	opts.After = queryValues.Get("after")
 	opts.Extended, _ = strconv.ParseBool(queryValues.Get("extended"))
-
-	totalsOnlyKey := "totalsOnly"
-	if !queryValues.Has(totalsOnlyKey) {
-		totalsOnlyKey = "totals_only"
-	}
-	opts.TotalsOnly, _ = strconv.ParseBool(queryValues.Get(totalsOnlyKey))
-
-	threadsOnlyKey := "threadsOnly"
-	if !queryValues.Has(threadsOnlyKey) {
-		threadsOnlyKey = "threads_only"
-	}
-	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get(threadsOnlyKey))
+	opts.TotalsOnly, _ = strconv.ParseBool(queryValues.Get("totals_only"))
+	opts.ThreadsOnly, _ = strconv.ParseBool(queryValues.Get("threads_only"))
 
 	// Before and After are mutually exclusive
 	if opts.Before != "" && opts.After != "" {

@@ -2137,8 +2137,8 @@ export default class Client4 {
             extended,
             deleted,
             since,
-            totalsOnly,
-            threadsOnly,
+            totals_only: totalsOnly,
+            threads_only: threadsOnly,
             filter,
         };
 
