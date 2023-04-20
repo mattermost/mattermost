@@ -6,7 +6,7 @@ package integrationtests
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -133,7 +133,7 @@ func TestCreateBoardsAndBlocks(t *testing.T) {
 			require.Equal(t, "public board", board1.Title)
 			require.Equal(t, model.BoardTypeOpen, board1.Type)
 			require.NotEqual(t, "board-id-1", board1.ID)
-			blocks1, err := th.Server.App().GetBlocksForBoard(board1.ID)
+			blocks1, err := th.Server.App().GetBlocks(model.QueryBlocksOptions{BoardID: board1.ID})
 			require.NoError(t, err)
 			require.Len(t, blocks1, 1)
 			require.Equal(t, "block 1", blocks1[0].Title)
@@ -147,7 +147,7 @@ func TestCreateBoardsAndBlocks(t *testing.T) {
 			require.Equal(t, "private board", board2.Title)
 			require.Equal(t, model.BoardTypePrivate, board2.Type)
 			require.NotEqual(t, "board-id-2", board2.ID)
-			blocks2, err := th.Server.App().GetBlocksForBoard(board2.ID)
+			blocks2, err := th.Server.App().GetBlocks(model.QueryBlocksOptions{BoardID: board2.ID})
 			require.NoError(t, err)
 			require.Len(t, blocks2, 1)
 			require.Equal(t, "block 2", blocks2[0].Title)

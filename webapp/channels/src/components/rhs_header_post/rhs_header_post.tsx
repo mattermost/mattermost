@@ -58,7 +58,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
         default:
             break;
         }
-    }
+    };
 
     handleJumpClick = () => {
         if (this.props.isMobileView) {
@@ -68,12 +68,12 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
         this.props.setRhsExpanded(false);
         const teamUrl = this.props.relativeTeamUrl;
         getHistory().push(`${teamUrl}/pl/${this.props.rootPostId}`);
-    }
+    };
 
     handleFollowChange = () => {
         const {currentTeamId, currentUserId, rootPostId, isFollowingThread} = this.props;
         this.props.setThreadFollow(currentUserId, currentTeamId, rootPostId, !isFollowingThread);
-    }
+    };
 
     render() {
         let back;

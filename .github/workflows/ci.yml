@@ -1,4 +1,4 @@
-name: mattermost-build
+name: Mattermost Build
 on:
   pull_request:
   push:
@@ -232,77 +232,4 @@ jobs:
         with:
           name: server-build-artifact
           path: server/build/
-          retention-days: 14 
-  upload-s3:
-    name: Upload to S3 bucket
-    runs-on: ubuntu-22.04
-    needs: build-mattermost-server
-    env:
-      REPO_NAME: ${{ github.event.repository.name }}
-    steps:
-    - name: Download dist artifacts
-      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
-      with:
-        name: server-dist-artifact
-        path: server/dist/
-    - name: Configure AWS
-      uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
-      with:
-        aws-region: us-east-1
-        aws-access-key-id: ${{ secrets.MM_SERVER_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.MM_SERVER_AWS_SECRET_ACCESS_KEY }}
-    # We need to sanitize the branch name before using it
-    - name: ci/sanitize-branch-name
-      id: branch
-      uses: transferwise/sanitize-branch-name@b10b4d524ac5a7b645b43a3527db3a6cca017b9d # v1
-    # Search for the string "pull" and replace it with "PR" in branch-name
-    - name: ci/sanitize-branch-name-replace-pull-with-PR-
-      run: echo "BRANCH_NAME=$(echo ${{ steps.branch.outputs.sanitized-branch-name }} | sed 's/^pull\//PR-/g')" >> $GITHUB_ENV
-    - name: ci/artifact-upload
-      run: |
-        aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/$BRANCH_NAME/ --acl public-read --cache-control "no-cache" --recursive
-        aws s3 cp server/dist/ s3://pr-builds.mattermost.com/$REPO_NAME/commit/${{ github.sha }}/ --acl public-read --cache-control "no-cache" --recursive
-  build-docker:
-    name: Build docker image
-    runs-on: ubuntu-22.04
-    needs: upload-s3
-    steps:
-    - name: Download build artifacts
-      uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
-      with:
-        name: server-build-artifact
-        path: server/build/
-    - name: Login to Docker Hub
-      uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
-    - name: Docker build and push
-      env:
-        DOCKER_CLI_EXPERIMENTAL: enabled
-      run: |
-        export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
-        cd server/build
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
-        docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
-  sentry:
-    name: Send build info to sentry
-    runs-on: ubuntu-22.04
-    needs:
-      - test-postgres-binary
-      - test-postgres-normal
-      - test-mysql
-      - build-mattermost-server
-    if: ${{ github.event_name == 'push' }}
-    env:
-      SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
-      SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
-      SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
-    steps:
-      - name: Checkout mattermost-server
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Create Sentry release
-        uses: getsentry/action-release@85e0095193a153d57c458995f99d0afd81b9e5ea # v1.3.0
+          retention-days: 14

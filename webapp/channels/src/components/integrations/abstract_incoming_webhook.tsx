@@ -92,7 +92,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             serverError: '',
             clientError: null,
         };
-    }
+    };
 
     handleSubmit = (e: MouseEvent<HTMLElement> | FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -137,43 +137,43 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         };
 
         this.props.action(hook).then(() => this.setState({saving: false}));
-    }
+    };
 
     updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
         this.setState({
             displayName: e.target.value,
         });
-    }
+    };
 
     updateDescription: ChangeEventHandler<HTMLInputElement> = (e) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateChannelId: ChangeEventHandler<HTMLSelectElement> = (e) => {
         this.setState({
             channelId: e.target.value,
         });
-    }
+    };
 
     updateChannelLocked: ChangeEventHandler<HTMLInputElement> = (e) => {
         this.setState({
             channelLocked: e.target.checked,
         });
-    }
+    };
 
     updateUsername: ChangeEventHandler<HTMLInputElement> = (e) => {
         this.setState({
             username: e.target.value,
         });
-    }
+    };
 
     updateIconURL: ChangeEventHandler<HTMLInputElement> = (e) => {
         this.setState({
             iconURL: e.target.value,
         });
-    }
+    };
 
     render() {
         const headerToRender = this.props.header;
@@ -184,7 +184,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                 <BackstageHeader>
                     <Link to={`/${this.props.team.name}/integrations/incoming_webhooks`}>
                         <FormattedMessage
-                            id='installed_incoming_webhooks.header'
+                            id='incoming_webhooks.header'
                             defaultMessage='Incoming Webhooks'
                         />
                     </Link>

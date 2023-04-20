@@ -9,6 +9,7 @@ import {Channel} from '@mattermost/types/channels';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 type Actions = {
@@ -55,11 +56,11 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         if (this.purpose.current) {
             Utils.placeCaretAtEnd(this.purpose.current);
         }
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     handleKeyDown = (e: React.KeyboardEvent) => {
         const {ctrlSend} = this.props;
@@ -68,14 +69,14 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.preventDefault();
             this.setState({purpose: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>)});
-        } else if (ctrlSend && Utils.isKeyPressed(e, Constants.KeyCodes.ENTER) && e.ctrlKey) {
+        } else if (ctrlSend && Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && e.ctrlKey) {
             e.preventDefault();
             this.handleSave();
-        } else if (!ctrlSend && Utils.isKeyPressed(e, Constants.KeyCodes.ENTER) && !e.shiftKey && !e.altKey) {
+        } else if (!ctrlSend && Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             this.handleSave();
         }
-    }
+    };
 
     handleSave = async () => {
         const {channel, actions: {patchChannel}} = this.props;
@@ -96,12 +97,12 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         if (data) {
             this.onHide();
         }
-    }
+    };
 
     handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         e.preventDefault();
         this.setState({purpose: e.target.value});
-    }
+    };
 
     render() {
         let serverError = null;

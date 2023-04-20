@@ -12,6 +12,7 @@ import {Post} from '@mattermost/types/posts';
 import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 import LoadingImagePreview from 'components/loading_image_preview';
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview from 'components/code_preview';
@@ -104,7 +105,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             id = 0;
         }
         this.showImage(id);
-    }
+    };
 
     handlePrev = () => {
         let id = this.state.imageIndex - 1;
@@ -112,15 +113,15 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             id = this.props.fileInfos.length - 1;
         }
         this.showImage(id);
-    }
+    };
 
     handleKeyPress = (e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, KeyCodes.RIGHT)) {
+        if (Keyboard.isKeyPressed(e, KeyCodes.RIGHT)) {
             this.handleNext();
-        } else if (Utils.isKeyPressed(e, KeyCodes.LEFT)) {
+        } else if (Keyboard.isKeyPressed(e, KeyCodes.LEFT)) {
             this.handlePrev();
         }
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keyup', this.handleKeyPress);
@@ -156,7 +157,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (!this.state.loaded[id]) {
             this.loadImage(id);
         }
-    }
+    };
 
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
@@ -184,7 +185,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             // there's nothing to load for non-image files
             this.handleImageLoaded(index);
         }
-    }
+    };
 
     handleImageLoaded = (index: number) => {
         this.setState((prevState) => {
@@ -195,7 +196,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 },
             };
         });
-    }
+    };
 
     handleImageProgress = (index: number, completedPercentage: number) => {
         this.setState((prevState) => {
@@ -206,15 +207,15 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 },
             };
         });
-    }
+    };
 
     onMouseEnterImage = () => {
         this.setState({showCloseBtn: true});
-    }
+    };
 
     onMouseLeaveImage = () => {
         this.setState({showCloseBtn: false});
-    }
+    };
 
     setScale = (index: number, scale: number) => {
         this.setState((prevState) => {
@@ -225,7 +226,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 },
             };
         });
-    }
+    };
 
     handleZoomIn = () => {
         let newScale = this.state.scale[this.state.imageIndex];
@@ -241,21 +242,21 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     handleZoomReset = () => {
         this.setScale(this.state.imageIndex, ZoomSettings.DEFAULT_SCALE);
-    }
+    };
 
     handleModalClose = () => {
         this.setState({show: false});
-    }
+    };
 
     getContent = (content: string) => {
         this.setState({content});
-    }
+    };
 
     handleBgClose = (e: React.MouseEvent) => {
         if (e.currentTarget === e.target) {
             this.handleModalClose();
         }
-    }
+    };
 
     render() {
         if (this.props.fileInfos.length < 1 || this.props.fileInfos.length - 1 < this.state.imageIndex) {

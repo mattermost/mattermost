@@ -14,7 +14,9 @@ export interface PluginRegistry {
     registerCustomRoute(route: string, component: ReactResolvable): any
     registerProductRoute(route: string, component: ReactResolvable): any
     unregisterComponent(componentId: string): any
-    registerProduct(baseURL: string, switcherIcon: string, switcherText: string, switcherLinkURL: string, mainComponent: ReactResolvable, headerCentreComponent: ReactResolvable, headerRightComponent: ReactResolvable, showTeamSidebar: boolean): any
+    registerProduct(baseURL: string, switcherIcon: string, switcherText: string, switcherLinkURL: string, 
+        mainComponent: ReactResolvable, headerCentreComponent: ReactResolvable, headerRightComponent: ReactResolvable, 
+        showTeamSidebar: boolean, showAppBar: boolean, wrapped: boolean, publicComponent: ReactResolvable | null): any
     registerPostWillRenderEmbedComponent(match: (embed: {type: string, data: any}) => void, component: any, toggleable: boolean): any
     registerWebSocketEventHandler(event: string, handler: (e: any) => void): any
     unregisterWebSocketEventHandler(event: string): any

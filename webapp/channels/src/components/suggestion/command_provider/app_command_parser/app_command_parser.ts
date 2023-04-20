@@ -541,7 +541,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'Empty values are not allowed.',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -581,7 +581,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'Empty values are not allowed.',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -730,7 +730,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'empty values are not allowed',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -770,7 +770,7 @@ export class ParsedCommand {
                     if (this.incompleteStart === this.i - 1) {
                         return this.asError(this.intl.formatMessage({
                             id: 'apps.error.parser.empty_value',
-                            defaultMessage: 'empty values are not allowed',
+                            defaultMessage: 'Empty values are not allowed',
                         }));
                     }
                     this.i++;
@@ -1122,7 +1122,7 @@ export class AppCommandParser {
         }
 
         return suggestions.map((suggestion) => this.decorateSuggestionComplete(parsed, suggestion));
-    }
+    };
 
     getNoMatchingSuggestion = () => {
         return [{
@@ -1506,7 +1506,7 @@ export class AppCommandParser {
             const errorResponse = res.error;
             return {error: errorResponse.text || this.intl.formatMessage({
                 id: 'apps.error.unknown',
-                defaultMessage: 'Unknown error.',
+                defaultMessage: 'Unknown error occurred.',
             })};
         }
 
@@ -1822,7 +1822,7 @@ export class AppCommandParser {
             const errorResponse = res.error;
             return this.makeDynamicSelectSuggestionError(errorResponse.text || this.intl.formatMessage({
                 id: 'apps.error.unknown',
-                defaultMessage: 'Unknown error.',
+                defaultMessage: 'Unknown error occurred.',
             }));
         }
 

@@ -175,7 +175,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                         const errorResponse = res.error;
                         return createErrorMessage(errorResponse.text || intlShim.formatMessage({
                             id: 'apps.error.unknown',
-                            defaultMessage: 'Unknown error.',
+                            defaultMessage: 'Unknown error occurred.',
                         }));
                     }
 
@@ -201,7 +201,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                         ));
                     }
                 } catch (err: any) {
-                    return createErrorMessage(err.message || localizeMessage('apps.error.unknown', 'Unknown error.'));
+                    return createErrorMessage(err.message || localizeMessage('apps.error.unknown', 'Unknown error occurred.'));
                 }
             }
         }
