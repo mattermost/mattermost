@@ -231,6 +231,58 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
 
         expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
     });
+
+    test('should NOT show when subscription has billing type of internal', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.users.profiles = {
+            current_user_id: {roles: 'system_admin'},
+        };
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'internal',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
+    });
+
+    test('should NOT show when subscription has billing type of licensed', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.users.profiles = {
+            current_user_id: {roles: 'system_admin'},
+        };
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'licensed',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
+    });
 });
 
 describe('components/admin_console/billing/ToYearlyNudgeBanner', () => {
@@ -286,5 +338,50 @@ describe('components/admin_console/billing/ToYearlyNudgeBanner', () => {
         );
 
         expect(wrapper.find('AlertBanner').exists()).toBe(false);
+    });
+    test('should NOT show when subscription has billing type of internal', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'internal',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBanner/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
+    });
+
+    test('should NOT show when subscription has billing type of licensed', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'licensed',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBanner/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });
 });
