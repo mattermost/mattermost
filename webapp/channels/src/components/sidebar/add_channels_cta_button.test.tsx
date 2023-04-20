@@ -80,6 +80,12 @@ describe('components/new_channel_modal', () => {
                         system_user: {
                             permissions: [Permissions.JOIN_PUBLIC_CHANNELS, Permissions.CREATE_PRIVATE_CHANNEL, Permissions.CREATE_PUBLIC_CHANNEL],
                         },
+                        system_user_join_permissions: {
+                            permissions: [Permissions.JOIN_PUBLIC_CHANNELS],
+                        },
+                        system_user_create_public_permissions: {
+                            permissions: [Permissions.JOIN_PUBLIC_CHANNELS, Permissions.CREATE_PUBLIC_CHANNEL],
+                        },
                     },
                 },
             },
@@ -92,6 +98,25 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should match snapshot', () => {
+        expect(
+            shallow(
+                <AddChannelsCtaButton/>,
+            ),
+        ).toMatchSnapshot();
+    });
+
+    test('should match snapshot when user has only join channel permissions', () => {
+        const userWithJoinChannelsPermission = {
+            currentUserId: 'current_user_id',
+            profiles: {
+                current_user_id: {
+                    id: 'current_user_id',
+                    roles: 'system_user_join_permissions',
+                },
+            },
+        } as unknown as UsersState;
+        mockState = {...mockState, entities: {...mockState.entities, users: userWithJoinChannelsPermission}};
+
         expect(
             shallow(
                 <AddChannelsCtaButton/>,
@@ -144,5 +169,53 @@ describe('components/new_channel_modal', () => {
         button.simulate('click');
 
         expect(trackEvent).toHaveBeenCalledWith('ui', 'add_channels_cta_button_clicked');
+    });
+
+    test('should not display as a Cta Dropdown when user only has permissions to join channels ', () => {
+        const userWithJoinChannelsPermission = {
+            currentUserId: 'current_user_id',
+            profiles: {
+                current_user_id: {
+                    id: 'current_user_id',
+                    roles: 'system_user_join_permissions',
+                },
+            },
+        } as unknown as UsersState;
+        mockState = {...mockState, entities: {...mockState.entities, users: userWithJoinChannelsPermission}};
+
+        const wrapper = mountWithIntl(
+            <AddChannelsCtaButton/>,
+        );
+
+        // do not find the menu
+        expect(wrapper.find('.AddChannelsCtaDropdown').exists()).toBeFalsy();
+
+        // only find the button
+        const button = wrapper.find('button#addChannelsCta');
+        expect(button.exists()).toBeTruthy();
+
+        button.simulate('click');
+
+        // when clicked show the browse channels modal
+        expect(trackEvent).toHaveBeenCalledWith('ui', 'browse_channels_button_is_clicked');
+    });
+
+    test('should still display as a Cta Dropdown when user has permissions to create at least one form of channel', () => {
+        const userWithJoinChannelsPermission = {
+            currentUserId: 'current_user_id',
+            profiles: {
+                current_user_id: {
+                    id: 'current_user_id',
+                    roles: 'system_user_create_public_permissions',
+                },
+            },
+        } as unknown as UsersState;
+        mockState = {...mockState, entities: {...mockState.entities, users: userWithJoinChannelsPermission}};
+
+        const wrapper = mountWithIntl(
+            <AddChannelsCtaButton/>,
+        );
+
+        expect(wrapper.find('.AddChannelsCtaDropdown').exists()).toBeTruthy();
     });
 });

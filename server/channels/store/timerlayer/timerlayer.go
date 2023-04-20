@@ -10,9 +10,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type TimerLayer struct {
@@ -3038,10 +3038,10 @@ func (s *TimerLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	start := time.Now()
 
-	result, err := s.DraftStore.Save(d)
+	result, err := s.DraftStore.Upsert(d)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3049,23 +3049,7 @@ func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
-	start := time.Now()
-
-	result, err := s.DraftStore.Update(d)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Update", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Upsert", success, elapsed)
 	}
 	return result, err
 }
@@ -5048,6 +5032,22 @@ func (s *TimerLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthDataByClientId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
+	start := time.Now()
+
+	err := s.OAuthStore.RemoveAuthDataByUserId(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthDataByUserId", success, elapsed)
 	}
 	return err
 }
@@ -9108,6 +9108,22 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipForUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.DeleteMembershipsForChannel(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipsForChannel", success, elapsed)
 	}
 	return err
 }

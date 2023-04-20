@@ -65,11 +65,11 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
         e.preventDefault();
 
         this.props.onRegenToken(this.props.outgoingWebhook);
-    }
+    };
 
     handleDelete = () => {
         this.props.onDelete(this.props.outgoingWebhook);
-    }
+    };
 
     makeDisplayName(outgoingWebhook: OutgoingWebhook, channel: Channel) {
         if (outgoingWebhook.display_name) {
@@ -167,7 +167,7 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                     >
                         <FormattedMessage
                             id='installed_integrations.regenToken'
-                            defaultMessage='Regen Token'
+                            defaultMessage='Regenerate Token'
                         />
                     </button>
                     {' - '}

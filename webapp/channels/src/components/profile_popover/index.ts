@@ -19,12 +19,12 @@ import {
 import {getCallsConfig, getCalls} from 'mattermost-redux/selectors/entities/common';
 import {Action} from 'mattermost-redux/types/actions';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {getMembershipForEntities} from 'actions/views/profile_popover';
 import {closeModal, openModal} from 'actions/views/modals';
 
-import {areTimezonesEnabledAndSupported, getCurrentUserTimezone} from 'selectors/general';
 import {getRhsState, getSelectedPost} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isAnyModalOpen} from 'selectors/views/modals';
@@ -50,12 +50,12 @@ function getDefaultChannelId(state: GlobalState) {
     return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
 }
 
-function checkUserInCall(state: GlobalState, userId: string) {
+export function checkUserInCall(state: GlobalState, userId: string) {
     let isUserInCall = false;
 
     const calls = getCalls(state);
     Object.keys(calls).forEach((channelId) => {
-        const usersInCall = calls[channelId];
+        const usersInCall = calls[channelId] || [];
 
         for (const user of usersInCall) {
             if (user.id === userId) {
@@ -98,7 +98,7 @@ function makeMapStateToProps() {
         return {
             currentTeamId: team.id,
             currentUserId,
-            enableTimezone: areTimezonesEnabledAndSupported(state),
+            enableTimezone: isTimezoneEnabled(state),
             isTeamAdmin,
             isChannelAdmin,
             isInCurrentTeam: Boolean(teamMember) && teamMember?.delete_at === 0,
@@ -111,7 +111,7 @@ function makeMapStateToProps() {
             isCustomStatusEnabled: isCustomStatusEnabled(state),
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
             channelId,
-            currentUserTimezone: getCurrentUserTimezone(state),
+            currentUserTimezone: getCurrentTimezone(state),
             lastActivityTimestamp,
             enableLastActiveTime,
             timestampUnits,

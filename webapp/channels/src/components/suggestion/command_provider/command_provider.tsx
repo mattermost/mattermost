@@ -5,7 +5,7 @@ import React from 'react';
 
 import {Store} from 'redux';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon';
+import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
 
 import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -14,7 +14,6 @@ import {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integration
 import globalStore from 'stores/redux_store';
 
 import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 import {Constants} from 'utils/constants';
 
 import Suggestion from '../suggestion';
@@ -229,7 +228,7 @@ export default class CommandProvider extends Provider {
                 let matches: AutocompleteSuggestion[] = [];
 
                 let cmd = 'Ctrl';
-                if (Utils.isMac()) {
+                if (UserAgent.isMac()) {
                     cmd = '⌘';
                 }
 

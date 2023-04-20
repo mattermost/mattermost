@@ -23,14 +23,14 @@ describe('Channel sidebar', () => {
         });
     });
 
-    it('MM-T3161_1 should create a new category from sidebar menu -- KNOWN ISSUE: MM-42576', () => {
+    it('MM-T3161_1 should create a new category from sidebar menu', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // * Check if the category exists
         cy.findByLabelText(categoryName).should('be.visible');
     });
 
-    it('MM-T3161_2 should create a new category from category menu -- KNOWN ISSUE: MM-42576', () => {
+    it('MM-T3161_2 should create a new category from category menu', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Create new category from category menu
@@ -43,7 +43,7 @@ describe('Channel sidebar', () => {
         cy.findByLabelText(newCategoryName).should('be.visible');
     });
 
-    it('MM-T3161_3 move an existing channel to a new category -- KNOWN ISSUE: MM-42576', () => {
+    it('MM-T3161_3 move an existing channel to a new category', () => {
         const newCategoryName = `category-${getRandomId()}`;
 
         // # Move to a new category
@@ -53,7 +53,7 @@ describe('Channel sidebar', () => {
         cy.findByLabelText(newCategoryName).should('be.visible');
     });
 
-    it('MM-T3163 Rename a category -- KNOWN ISSUE: MM-42576', () => {
+    it('MM-T3163 Rename a category', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Rename category from category menu
@@ -71,7 +71,7 @@ describe('Channel sidebar', () => {
         cy.findByLabelText(renameCategory).should('be.visible');
     });
 
-    it('MM-T3165 Delete a category -- KNOWN ISSUE: MM-42576', () => {
+    it('MM-T3165 Delete a category', () => {
         const categoryName = createCategoryFromSidebarMenu();
 
         // # Delete category from category menu
@@ -90,10 +90,10 @@ function createCategoryFromSidebarMenu() {
     const categoryName = `category-${getRandomId()}`;
 
     // # Click on the sidebar menu dropdown
-    cy.findByLabelText('Add Channel Dropdown').click();
+    cy.uiGetLHSAddChannelButton().click();
 
     // # Click on create category link
-    cy.findByText('Create New Category').should('be.visible').click();
+    cy.findByText('Create new category').should('be.visible').click();
 
     // # Verify that Create Category modal has shown up.
     // # Wait for a while until the modal has fully loaded, especially during first-time access.

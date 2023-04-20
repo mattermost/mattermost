@@ -34,5 +34,5 @@ export default class UserGridName extends React.Component<Props> {
                 </div>
             </div>
         );
-    }
+    };
 }
