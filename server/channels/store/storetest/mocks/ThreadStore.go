@@ -29,20 +29,6 @@ func (_m *ThreadStore) DeleteMembershipForUser(userId string, postID string) err
 	return r0
 }
 
-// DeleteMembershipsForChannel provides a mock function with given fields: userID, channelID
-func (_m *ThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
-	ret := _m.Called(userID, channelID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userID, channelID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteOrphanedRows provides a mock function with given fields: limit
 func (_m *ThreadStore) DeleteOrphanedRows(limit int) (int64, error) {
 	ret := _m.Called(limit)

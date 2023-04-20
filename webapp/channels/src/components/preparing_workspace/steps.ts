@@ -4,9 +4,7 @@
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 export const WizardSteps = {
-    Organization: 'Organization',
     Plugins: 'Plugins',
-    InviteMembers: 'InviteMembers',
     LaunchingWorkspace: 'LaunchingWorkspace',
 } as const;
 
@@ -22,12 +20,8 @@ export const Animations = {
 
 export function mapStepToNextName(step: WizardStep): string {
     switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_next_organization';
     case WizardSteps.Plugins:
         return 'admin_onboarding_next_plugins';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_next_invite_members';
     case WizardSteps.LaunchingWorkspace:
         return 'admin_onboarding_next_transitioning_out';
     default:
@@ -37,12 +31,8 @@ export function mapStepToNextName(step: WizardStep): string {
 
 export function mapStepToPrevious(step: WizardStep): string {
     switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_previous_organization';
     case WizardSteps.Plugins:
         return 'admin_onboarding_previous_plugins';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_previous_invite_members';
     case WizardSteps.LaunchingWorkspace:
         return 'admin_onboarding_previous_transitioning_out';
     default:
@@ -52,12 +42,8 @@ export function mapStepToPrevious(step: WizardStep): string {
 
 export function mapStepToPageView(step: WizardStep): string {
     switch (step) {
-    case WizardSteps.Organization:
-        return 'pageview_admin_onboarding_organization';
     case WizardSteps.Plugins:
         return 'pageview_admin_onboarding_plugins';
-    case WizardSteps.InviteMembers:
-        return 'pageview_admin_onboarding_invite_members';
     case WizardSteps.LaunchingWorkspace:
         return 'pageview_admin_onboarding_transitioning_out';
     default:
@@ -67,12 +53,8 @@ export function mapStepToPageView(step: WizardStep): string {
 
 export function mapStepToSubmitFail(step: WizardStep): string {
     switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_organization_submit_fail';
     case WizardSteps.Plugins:
         return 'admin_onboarding_plugins_submit_fail';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_invite_members_submit_fail';
     case WizardSteps.LaunchingWorkspace:
         return 'admin_onboarding_transitioning_out_submit_fail';
     default:
@@ -82,12 +64,8 @@ export function mapStepToSubmitFail(step: WizardStep): string {
 
 export function mapStepToSkipName(step: WizardStep): string {
     switch (step) {
-    case WizardSteps.Organization:
-        return 'admin_onboarding_skip_organization';
     case WizardSteps.Plugins:
         return 'admin_onboarding_skip_plugins';
-    case WizardSteps.InviteMembers:
-        return 'admin_onboarding_skip_invite_members';
     case WizardSteps.LaunchingWorkspace:
         return 'admin_onboarding_skip_transitioning_out';
     default:
@@ -150,14 +128,12 @@ export type Form = {
         skipped: boolean;
     };
     teamMembers: {
-        inviteId: string;
         invites: string[];
         skipped: boolean;
     };
 }
 
 export const emptyForm = deepFreeze({
-    organization: '',
     inferredProtocol: null,
     urlSkipped: false,
     useCase: {
@@ -180,7 +156,6 @@ export const emptyForm = deepFreeze({
         skipped: false,
     },
     teamMembers: {
-        inviteId: '',
         invites: [],
         skipped: false,
     },
@@ -190,7 +165,7 @@ export type PreparingWorkspacePageProps = {
     transitionDirection: AnimationReason;
     next?: () => void;
     skip?: () => void;
-    previous?: React.ReactNode;
+    previous?: JSX.Element;
     show: boolean;
     onPageView: () => void;
 }

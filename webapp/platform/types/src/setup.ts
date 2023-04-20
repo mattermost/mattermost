@@ -2,6 +2,5 @@
 // See LICENSE.txt for license information.
 
 export type CompleteOnboardingRequest = {
-    organization: string;
     install_plugins: string[];
 }

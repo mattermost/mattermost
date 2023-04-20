@@ -10,7 +10,7 @@ import classNames from 'classnames';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {Theme, getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {setUrl} from 'mattermost-redux/actions/general';
@@ -88,8 +88,6 @@ import {UserProfile} from '@mattermost/types/users';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import WelcomePostRenderer from 'components/welcome_post_renderer';
-
-import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {applyLuxonDefaults} from './effects';
 
@@ -360,8 +358,8 @@ export default class Root extends React.PureComponent<Props, State> {
             return;
         }
 
-        const myTeams = getMyTeams(storeState);
-        if (myTeams.length > 0) {
+        const useCaseOnboarding = getUseCaseOnboarding(storeState);
+        if (!useCaseOnboarding) {
             GlobalActions.redirectUserToDefaultTeam();
             return;
         }

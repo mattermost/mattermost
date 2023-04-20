@@ -761,15 +761,13 @@ func TestReplicaLagQuery(t *testing.T) {
 			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
 			store := &SqlStore{
-				rrCounter:   0,
-				srCounter:   0,
-				settings:    settings,
-				metrics:     mockMetrics,
-				quitMonitor: make(chan struct{}),
-				wgMonitor:   &sync.WaitGroup{},
+				rrCounter: 0,
+				srCounter: 0,
+				settings:  settings,
+				metrics:   mockMetrics,
 			}
 
-			require.NoError(t, store.initConnection())
+			store.initConnection()
 			store.stores.post = newSqlPostStore(store, mockMetrics)
 			err = store.migrate(migrationsDirectionUp)
 			require.NoError(t, err)
@@ -841,11 +839,9 @@ func TestMySQLReadTimeout(t *testing.T) {
 	settings.DataSource = &dataSource
 
 	store := &SqlStore{
-		settings:    settings,
-		quitMonitor: make(chan struct{}),
-		wgMonitor:   &sync.WaitGroup{},
+		settings: settings,
 	}
-	require.NoError(t, store.initConnection())
+	store.initConnection()
 	defer store.Close()
 
 	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)

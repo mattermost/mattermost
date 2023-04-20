@@ -10,7 +10,6 @@ import (
 
 // CompleteOnboardingRequest describes parameters of the requested plugin.
 type CompleteOnboardingRequest struct {
-	Organization   string   `json:"organization"`    // Organization is the name of the organization
 	InstallPlugins []string `json:"install_plugins"` // InstallPlugins is a list of plugins to be installed
 }
 

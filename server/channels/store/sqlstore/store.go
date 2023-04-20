@@ -49,7 +49,7 @@ const (
 	MySQLForeignKeyViolationErrorCode = 1452
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
-	DBPingAttempts                    = 5
+	DBPingAttempts                    = 18
 	DBPingTimeoutSecs                 = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
@@ -123,9 +123,9 @@ type SqlStore struct {
 
 	masterX *sqlxDBWrapper
 
-	ReplicaXs []*atomic.Pointer[sqlxDBWrapper]
+	ReplicaXs []*sqlxDBWrapper
 
-	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
+	searchReplicaXs []*sqlxDBWrapper
 
 	replicaLagHandles []*dbsql.DB
 	stores            SqlStoreStores
@@ -138,28 +138,17 @@ type SqlStore struct {
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
-
-	quitMonitor chan struct{}
-	wgMonitor   *sync.WaitGroup
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
 	store := &SqlStore{
-		rrCounter:   0,
-		srCounter:   0,
-		settings:    &settings,
-		metrics:     metrics,
-		quitMonitor: make(chan struct{}),
-		wgMonitor:   &sync.WaitGroup{},
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
+		metrics:   metrics,
 	}
 
-	err := store.initConnection()
-	if err != nil {
-		mlog.Fatal("Error setting up connections", mlog.Err(err))
-	}
-
-	store.wgMonitor.Add(1)
-	go store.monitorReplicas()
+	store.initConnection()
 
 	ver, err := store.GetDbVersion(true)
 	if err != nil {
@@ -241,28 +230,29 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 // SetupConnection sets up the connection to the database and pings it to make sure it's alive.
 // It also applies any database configuration settings that are required.
-func SetupConnection(connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
+func SetupConnection(connType string, dataSource string, settings *model.SqlSettings) *dbsql.DB {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open SQL connection")
+		mlog.Fatal("Failed to open SQL connection to err.", mlog.Err(err))
 	}
 
-	for i := 0; i < attempts; i++ {
+	for i := 0; i < DBPingAttempts; i++ {
 		// At this point, we have passed sql.Open, so we deliberately ignore any errors.
 		sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
 		mlog.Info("Pinging SQL", mlog.String("database", connType), mlog.String("dataSource", sanitized))
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
-		if err != nil {
-			if i == attempts-1 {
-				return nil, err
+		if err == nil {
+			break
+		} else {
+			if i == DBPingAttempts-1 {
+				mlog.Fatal("Failed to ping DB, server will exit.", mlog.Err(err))
+			} else {
+				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
+				time.Sleep(DBPingTimeoutSecs * time.Second)
 			}
-			mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
-			time.Sleep(DBPingTimeoutSecs * time.Second)
-			continue
 		}
-		break
 	}
 
 	if strings.HasPrefix(connType, replicaLagPrefix) {
@@ -282,7 +272,7 @@ func SetupConnection(connType string, dataSource string, settings *model.SqlSett
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
-	return db, nil
+	return db
 }
 
 func (ss *SqlStore) SetContext(context context.Context) {
@@ -295,7 +285,7 @@ func (ss *SqlStore) Context() context.Context {
 
 func noOpMapper(s string) string { return s }
 
-func (ss *SqlStore) initConnection() error {
+func (ss *SqlStore) initConnection() {
 	dataSource := *ss.settings.DataSource
 	if ss.DriverName() == model.DatabaseDriverMysql {
 		// TODO: We ignore the readTimeout datasource parameter for MySQL since QueryTimeout
@@ -304,14 +294,11 @@ func (ss *SqlStore) initConnection() error {
 		var err error
 		dataSource, err = ResetReadTimeout(dataSource)
 		if err != nil {
-			return errors.Wrap(err, "failed to reset read timeout from datasource")
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
 	}
 
-	handle, err := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
-	if err != nil {
-		return err
-	}
+	handle := SetupConnection("master", dataSource, ss.settings)
 	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
@@ -323,32 +310,34 @@ func (ss *SqlStore) initConnection() error {
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
+		ss.ReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
-			if err != nil {
-				// Initializing to be offline
-				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
-				mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", fmt.Sprintf("replica-%v", i)), mlog.Err(err))
-				continue
+			handle := SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.ReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+				time.Duration(*ss.settings.QueryTimeout)*time.Second,
+				*ss.settings.Trace)
+			if ss.DriverName() == model.DatabaseDriverMysql {
+				ss.ReplicaXs[i].MapperFunc(noOpMapper)
 			}
-			ss.setDB(ss.ReplicaXs[i], handle, "replica-"+strconv.Itoa(i))
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.ReplicaXs[i].DB.DB, "replica-"+strconv.Itoa(i))
+			}
 		}
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
-		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
+		ss.searchReplicaXs = make([]*sqlxDBWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
-			if err != nil {
-				// Initializing to be offline
-				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
-				mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", fmt.Sprintf("search-replica-%v", i)), mlog.Err(err))
-				continue
+			handle := SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			ss.searchReplicaXs[i] = newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
+				time.Duration(*ss.settings.QueryTimeout)*time.Second,
+				*ss.settings.Trace)
+			if ss.DriverName() == model.DatabaseDriverMysql {
+				ss.searchReplicaXs[i].MapperFunc(noOpMapper)
 			}
-			ss.setDB(ss.searchReplicaXs[i], handle, "searchreplica-"+strconv.Itoa(i))
+			if ss.metrics != nil {
+				ss.metrics.RegisterDBCollector(ss.searchReplicaXs[i].DB.DB, "searchreplica-"+strconv.Itoa(i))
+			}
 		}
 	}
 
@@ -358,14 +347,9 @@ func (ss *SqlStore) initConnection() error {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
-			if err != nil {
-				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
-				continue
-			}
+			ss.replicaLagHandles[i] = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
 		}
 	}
-	return nil
 }
 
 func (ss *SqlStore) DriverName() string {
@@ -471,15 +455,8 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 		return ss.GetReplicaX()
 	}
 
-	for i := 0; i < len(ss.searchReplicaXs); i++ {
-		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
-		if ss.searchReplicaXs[rrNum].Load().Online() {
-			return ss.searchReplicaXs[rrNum].Load()
-		}
-	}
-
-	// If all search replicas are down, then go with replica.
-	return ss.GetReplicaX()
+	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
+	return ss.searchReplicaXs[rrNum]
 }
 
 func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
@@ -487,64 +464,23 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 		return ss.GetMasterX()
 	}
 
-	for i := 0; i < len(ss.ReplicaXs); i++ {
-		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
-		if ss.ReplicaXs[rrNum].Load().Online() {
-			return ss.ReplicaXs[rrNum].Load()
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	return ss.ReplicaXs[rrNum]
+}
+
+func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return []*sql.DB{
+			ss.GetMasterX().DB.DB,
 		}
 	}
 
-	// If all replicas are down, then go with master.
-	return ss.GetMasterX()
-}
-
-func (ss *SqlStore) monitorReplicas() {
-	t := time.NewTicker(time.Duration(*ss.settings.ReplicaMonitorIntervalSeconds) * time.Second)
-	defer func() {
-		t.Stop()
-		ss.wgMonitor.Done()
-	}()
-	for {
-		select {
-		case <-ss.quitMonitor:
-			return
-		case <-t.C:
-			setupReplica := func(r *atomic.Pointer[sqlxDBWrapper], dsn, name string) {
-				if r.Load().Online() {
-					return
-				}
-
-				handle, err := SetupConnection(name, dsn, ss.settings, 1)
-				if err != nil {
-					mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", name), mlog.Err(err))
-					return
-				}
-				if ss.metrics != nil && r.Load() != nil && r.Load().DB != nil {
-					ss.metrics.UnregisterDBCollector(r.Load().DB.DB, name)
-				}
-				ss.setDB(r, handle, name)
-			}
-			for i, replica := range ss.ReplicaXs {
-				setupReplica(replica, ss.settings.DataSourceReplicas[i], "replica-"+strconv.Itoa(i))
-			}
-
-			for i, replica := range ss.searchReplicaXs {
-				setupReplica(replica, ss.settings.DataSourceSearchReplicas[i], "search-replica-"+strconv.Itoa(i))
-			}
-		}
+	dbs := make([]*sql.DB, len(ss.ReplicaXs))
+	for i, rx := range ss.ReplicaXs {
+		dbs[i] = rx.DB.DB
 	}
-}
 
-func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *dbsql.DB, name string) {
-	replica.Store(newSqlxDBWrapper(sqlx.NewDb(handle, ss.DriverName()),
-		time.Duration(*ss.settings.QueryTimeout)*time.Second,
-		*ss.settings.Trace))
-	if ss.DriverName() == model.DatabaseDriverMysql {
-		replica.Load().MapperFunc(noOpMapper)
-	}
-	if ss.metrics != nil {
-		ss.metrics.RegisterDBCollector(replica.Load().DB.DB, name)
-	}
+	return dbs
 }
 
 func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
@@ -553,7 +489,7 @@ func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
-	return ss.ReplicaXs[rrNum].Load().DB.DB
+	return ss.ReplicaXs[rrNum].DB.DB
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -605,10 +541,7 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 
 	count := 0
 	for _, db := range ss.ReplicaXs {
-		if !db.Load().Online() {
-			continue
-		}
-		count = count + db.Load().Stats().OpenConnections
+		count = count + db.Stats().OpenConnections
 	}
 
 	return count
@@ -621,10 +554,7 @@ func (ss *SqlStore) TotalSearchDbConnections() int {
 
 	count := 0
 	for _, db := range ss.searchReplicaXs {
-		if !db.Load().Online() {
-			continue
-		}
-		count = count + db.Load().Stats().OpenConnections
+		count = count + db.Stats().OpenConnections
 	}
 
 	return count
@@ -852,14 +782,9 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 }
 
 func (ss *SqlStore) GetAllConns() []*sqlxDBWrapper {
-	all := make([]*sqlxDBWrapper, 0, len(ss.ReplicaXs)+1)
-	for i := range ss.ReplicaXs {
-		if !ss.ReplicaXs[i].Load().Online() {
-			continue
-		}
-		all = append(all, ss.ReplicaXs[i].Load())
-	}
-	all = append(all, ss.masterX)
+	all := make([]*sqlxDBWrapper, len(ss.ReplicaXs)+1)
+	copy(all, ss.ReplicaXs)
+	all[len(ss.ReplicaXs)] = ss.masterX
 	return all
 }
 
@@ -882,24 +807,11 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 
 func (ss *SqlStore) Close() {
 	ss.masterX.Close()
-	// Closing monitor and waiting for it to be done.
-	// This needs to be done before closing the replica handles.
-	close(ss.quitMonitor)
-	ss.wgMonitor.Wait()
-
 	for _, replica := range ss.ReplicaXs {
-		if replica.Load().Online() {
-			replica.Load().Close()
-		}
+		replica.Close()
 	}
 
 	for _, replica := range ss.searchReplicaXs {
-		if replica.Load().Online() {
-			replica.Load().Close()
-		}
-	}
-
-	for _, replica := range ss.replicaLagHandles {
 		replica.Close()
 	}
 }
@@ -1220,10 +1132,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		if err != nil {
 			return err
 		}
-		db, err2 := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
-		if err2 != nil {
-			return err2
-		}
+		db := SetupConnection("master", dataSource, ss.settings)
 		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
