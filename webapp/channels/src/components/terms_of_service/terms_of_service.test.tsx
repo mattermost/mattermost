@@ -27,7 +27,6 @@ describe('components/terms_of_service/TermsOfService', () => {
         location: {search: ''},
         termsEnabled: true,
         emojiMap: {} as EmojiMap,
-        useCaseOnboarding: false,
     };
 
     test('should match snapshot', () => {

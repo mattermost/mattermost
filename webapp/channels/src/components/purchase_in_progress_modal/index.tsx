@@ -13,13 +13,13 @@ import {Client4} from 'mattermost-redux/client';
 
 import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import {useControlPurchaseInProgressModal} from 'components/common/hooks/useControlModal';
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchase_modal/constants';
 
 import './index.scss';
 import {GlobalState} from '@mattermost/types/store';
 
 interface Props {
     purchaserEmail: string;
+    storageKey: string;
 }
 
 export default function PurchaseInProgressModal(props: Props) {
@@ -64,7 +64,7 @@ export default function PurchaseInProgressModal(props: Props) {
         );
 
         genericModalProps.handleConfirm = () => {
-            localStorage.removeItem(STORAGE_KEY_PURCHASE_IN_PROGRESS);
+            localStorage.removeItem(props.storageKey);
             Client4.bootstrapSelfHostedSignup(true);
             close();
         };
