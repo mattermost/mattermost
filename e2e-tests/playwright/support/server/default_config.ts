@@ -180,7 +180,6 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
-        SelfHostedExpansion: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',

@@ -32,6 +32,7 @@ import {
     SelfHostedSignupCustomerResponse,
     SelfHostedSignupSuccessResponse,
     SelfHostedSignupBootstrapResponse,
+    SelfHostedExpansionRequest,
 } from '@mattermost/types/hosted_customer';
 import {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 
@@ -3892,6 +3893,13 @@ export default class Client4 {
             {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, subscription: createSubscriptionRequest})},
         );
     };
+
+    confirmSelfHostedExpansion = (setupIntentId: string, expandRequest: SelfHostedExpansionRequest) => {
+        return this.doFetch<SelfHostedSignupSuccessResponse>(
+            `${this.getHostedCustomerRoute()}/confirm-expand`,
+            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, expand_request: expandRequest})},
+        );
+    }
 
     createPaymentMethod = async () => {
         return this.doFetch(
