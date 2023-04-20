@@ -71,7 +71,7 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, filestore.ReadCloseSeeker, error) {
 	fileInfo, filePath, err := a.GetFilePath(teamID, rootID, fileName)
 	if err != nil {
-		a.logger.Error("GetFile: Failed to GetFilePath.", mlog.String("Team", teamID), mlog.String("board", rootID), mlog.String("filename", filename), mlog.Err(err))
+		a.logger.Error("GetFile: Failed to GetFilePath.", mlog.String("Team", teamID), mlog.String("board", rootID), mlog.String("filename", fileName), mlog.Err(err))
 		return nil, nil, err
 	}
 
