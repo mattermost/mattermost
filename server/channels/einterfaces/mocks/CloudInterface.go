@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost-server/server/v8/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -587,6 +587,20 @@ func (_m *CloudInterface) SelfServeDeleteWorkspace(userID string, deletionReques
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, *model.WorkspaceDeletionRequest) error); ok {
 		r0 = rf(userID, deletionRequest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SubmitTrueUpReview provides a mock function with given fields: userID, trueUpReviewProfile
+func (_m *CloudInterface) SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]interface{}) error {
+	ret := _m.Called(userID, trueUpReviewProfile)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
+		r0 = rf(userID, trueUpReviewProfile)
 	} else {
 		r0 = ret.Error(0)
 	}

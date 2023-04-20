@@ -12,6 +12,7 @@ import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
 
 import Constants from 'utils/constants';
 import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {GlobalState} from 'types/store';
 
@@ -77,13 +78,13 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
-        const ctrlKeyCombo = Utils.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Utils.cmdOrCtrlPressed(e, true) && e.altKey;
-        const ctrlShiftCombo = Utils.cmdOrCtrlPressed(e, true) && e.shiftKey;
-        const markdownLinkKey = Utils.isKeyPressed(e, KeyCodes.K);
+        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
+        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
+        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
+        const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
         const ctrlEnterKeyCombo =
-            Utils.isKeyPressed(e, KeyCodes.ENTER) && ctrlOrMetaKeyPressed;
+            Keyboard.isKeyPressed(e, KeyCodes.ENTER) && ctrlOrMetaKeyPressed;
 
         const {selectionStart, selectionEnd, value} =
             e.target as TextboxElement;
@@ -98,28 +99,28 @@ const ForwardPostCommentInput = ({channelId, canForwardPost, comment, permaLinkL
                 selectionEnd,
                 message: value,
             });
-        } else if (ctrlKeyCombo && Utils.isKeyPressed(e, KeyCodes.B)) {
+        } else if (ctrlKeyCombo && Keyboard.isKeyPressed(e, KeyCodes.B)) {
             applyMarkdownMode({
                 markdownMode: 'bold',
                 selectionStart,
                 selectionEnd,
                 message: value,
             });
-        } else if (ctrlKeyCombo && Utils.isKeyPressed(e, KeyCodes.I)) {
+        } else if (ctrlKeyCombo && Keyboard.isKeyPressed(e, KeyCodes.I)) {
             applyMarkdownMode({
                 markdownMode: 'italic',
                 selectionStart,
                 selectionEnd,
                 message: value,
             });
-        } else if (ctrlShiftCombo && Utils.isKeyPressed(e, KeyCodes.X)) {
+        } else if (ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.X)) {
             applyMarkdownMode({
                 markdownMode: 'strike',
                 selectionStart,
                 selectionEnd,
                 message: value,
             });
-        } else if (ctrlShiftCombo && Utils.isKeyPressed(e, KeyCodes.E)) {
+        } else if (ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.E)) {
             e.stopPropagation();
             e.preventDefault();
         } else if (ctrlEnterKeyCombo && canForwardPost) {

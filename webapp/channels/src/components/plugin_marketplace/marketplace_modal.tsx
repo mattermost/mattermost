@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, ReactNode} from 'react';
 import {Tabs, Tab, SelectCallback} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -40,7 +40,7 @@ const MarketplaceTabs = {
 
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
-const linkConsole = (msg: string) => (
+const linkConsole = (msg: string): ReactNode => (
     <Link to='/admin_console/plugins/plugin_management'>
         {msg}
     </Link>

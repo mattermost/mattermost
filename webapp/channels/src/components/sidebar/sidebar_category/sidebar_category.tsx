@@ -16,7 +16,7 @@ import Tooltip from 'components/tooltip';
 import {DraggingState} from 'types/store';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates, Preferences, Touched} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 import SidebarChannel from '../sidebar_channel';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import InviteMembersButton from '../invite_members_button';

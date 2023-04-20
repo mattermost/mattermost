@@ -8,7 +8,7 @@ import (
 	logr "github.com/mattermost/logr/v2"
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost-server/server/v8/model"
 
 	sql "database/sql"
 )
@@ -317,6 +317,11 @@ func (_m *MetricsInterface) SetReplicaLagAbsolute(node string, value float64) {
 // SetReplicaLagTime provides a mock function with given fields: node, value
 func (_m *MetricsInterface) SetReplicaLagTime(node string, value float64) {
 	_m.Called(node, value)
+}
+
+// UnregisterDBCollector provides a mock function with given fields: db, name
+func (_m *MetricsInterface) UnregisterDBCollector(db *sql.DB, name string) {
+	_m.Called(db, name)
 }
 
 type mockConstructorTestingTNewMetricsInterface interface {

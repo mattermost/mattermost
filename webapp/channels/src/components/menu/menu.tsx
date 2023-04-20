@@ -20,7 +20,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {openModal, closeModal} from 'actions/views/modals';
 
 import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 
 import CompassDesignProvider from 'components/compass_design_provider';
 import Tooltip from 'components/tooltip';

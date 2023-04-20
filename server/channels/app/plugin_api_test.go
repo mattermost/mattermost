@@ -25,13 +25,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -143,7 +143,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
 		)
 
 		type MyPlugin struct {
@@ -304,7 +304,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIGetUsers(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -759,7 +759,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_load_configuration_plugin", "main.go")
 
@@ -794,7 +794,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_load_configuration_defaults_plugin", "main.go")
 
@@ -830,7 +830,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/v6/plugin"
+      "github.com/mattermost/mattermost-server/server/v8/plugin"
     )
 
     type MyPlugin struct {
@@ -982,7 +982,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
 		)
 
 		type configuration struct {
@@ -1160,7 +1160,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 
 func TestBasicAPIPlugins(t *testing.T) {
 	defaultSchema := getDefaultPluginSettingsSchema()
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot read find app folder")
 	dirs, err := os.ReadDir(testFolder)
 	require.NoError(t, err, "Cannot read test folder %v", testFolder)
@@ -1171,7 +1171,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 				mainPath := path.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
-				th := Setup(t).InitBasic()
+				th := Setup(t).InitBasic().DeleteBots()
 				defer th.TearDown()
 				setDefaultPluginConfig(th, dir.Name())
 				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), defaultSchema)
@@ -1498,7 +1498,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1539,8 +1539,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 			"bytes"
 			"net/http"
 			"io"
@@ -1644,8 +1644,8 @@ func TestAPIMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v6/model"
-		"github.com/mattermost/mattermost-server/v6/plugin"
+		"github.com/mattermost/mattermost-server/server/v8/model"
+		"github.com/mattermost/mattermost-server/server/v8/plugin"
 	)
 
 	type MyPlugin struct {
@@ -1746,7 +1746,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_http_hijack_plugin", "main.go")
 
@@ -1781,7 +1781,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_http_upgrade_websocket_plugin", "main.go")
 
@@ -2044,7 +2044,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
     import (
 	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost-server/v6/plugin"
+      "github.com/mattermost/mattermost-server/server/v8/plugin"
     )
 
     type MyPlugin struct {
@@ -2112,8 +2112,8 @@ func TestPluginUploadsAPI(t *testing.T) {
 		  "fmt"
 			"bytes"
 
-      "github.com/mattermost/mattermost-server/v6/model"
-      "github.com/mattermost/mattermost-server/v6/plugin"
+      "github.com/mattermost/mattermost-server/server/v8/model"
+      "github.com/mattermost/mattermost-server/server/v8/plugin"
     )
 
     type TestPlugin struct {
