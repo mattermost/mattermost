@@ -2916,7 +2916,7 @@
   "channel_info_rhs.top_buttons.muted": "Muted",
   "channel_invite.addNewMembers": "Add people to {channel}",
   "channel_invite.invite_guest": "Invite as a Guest",
-  "channel_invite.invite_team_members.button": "Add users to team",
+  "channel_invite.invite_team_members.button": "Add {count} users to team",
   "channel_invite.invite_team_members.button.adding": "Adding...",
   "channel_invite.invite_team_members.error.message": "{count, plural, =1 {{firstUser} was} other {{users} and {lastUser} were}} not added to the **{team}** team. Please contact your system administrator to add them to the team.",
   "channel_invite.invite_team_members.error.messageOverflow": "{firstUser} and {others} were not added to the **{team}** team. Please contact your system administrator to add them to the team.",

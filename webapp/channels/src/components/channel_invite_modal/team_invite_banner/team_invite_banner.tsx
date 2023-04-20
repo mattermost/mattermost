@@ -306,6 +306,21 @@ const TeamInviteBanner = (props: Props) => {
         setUnsuccessfulInvites([]);
     }, []);
 
+    const buttonText = useCallback(() => {
+        if (loading) {
+            return formatMessage({id: 'channel_invite.invite_team_members.button.adding', defaultMessage: 'Adding...'});
+        }
+        return formatMessage(
+            {
+                id: 'channel_invite.invite_team_members.button',
+                defaultMessage: 'Add {count} users to team',
+            },
+            {
+                count: users.length,
+            },
+        );
+    }, [loading, users.length]);
+
     return (
         <>
             {
@@ -339,12 +354,7 @@ const TeamInviteBanner = (props: Props) => {
                                 onClick={sendInvites}
                                 disabled={loading}
                             >
-                                {
-                                    loading ?
-                                        formatMessage({id: 'channel_invite.invite_team_members.button.adding', defaultMessage: 'Adding...'}) :
-                                        formatMessage({id: 'channel_invite.invite_team_members.button', defaultMessage: 'Add users to team'})
-                                }
-
+                                {buttonText()}
                             </button>
                         </TeamPermissionGate>
                     }
