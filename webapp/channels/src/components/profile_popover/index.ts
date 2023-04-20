@@ -50,12 +50,12 @@ function getDefaultChannelId(state: GlobalState) {
     return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
 }
 
-function checkUserInCall(state: GlobalState, userId: string) {
+export function checkUserInCall(state: GlobalState, userId: string) {
     let isUserInCall = false;
 
     const calls = getCalls(state);
     Object.keys(calls).forEach((channelId) => {
-        const usersInCall = calls[channelId];
+        const usersInCall = calls[channelId] || [];
 
         for (const user of usersInCall) {
             if (user.id === userId) {
