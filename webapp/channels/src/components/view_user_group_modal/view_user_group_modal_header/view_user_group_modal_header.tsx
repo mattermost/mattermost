@@ -120,7 +120,7 @@ const ViewUserGroupModalHeader = ({
                 >
                     <FormattedMessage
                         id='user_groups_modal.button.restoreGroup'
-                        defaultMessage='Restore group'
+                        defaultMessage='Restore Group'
                     />
                 </button>
             );
