@@ -23,6 +23,8 @@ jobs:
       - name: cd/Download artifacts
         uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
         with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          run_id: ${{ github.event.workflow_run.id }}
           workflow_conclusion: success
           name: server-dist-artifact
           path: server/dist
@@ -52,6 +54,8 @@ jobs:
     - name: cd/Download artifacts
       uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
       with:
+        workflow: ${{ github.event.workflow_run.workflow_id }}
+        run_id: ${{ github.event.workflow_run.id }}
         workflow_conclusion: success
         name: server-build-artifact
         path: server/build/
@@ -86,6 +90,8 @@ jobs:
     - name: cd/Download artifacts
       uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
       with:
+        workflow: ${{ github.event.workflow_run.workflow_id }}
+        run_id: ${{ github.event.workflow_run.id }}
         workflow_conclusion: success
         name: server-build-artifact
         path: server/build/

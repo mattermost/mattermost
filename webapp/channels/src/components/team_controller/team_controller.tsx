@@ -10,8 +10,8 @@ import {ActionResult} from 'mattermost-redux/types/actions';
 import {reconnect} from 'actions/websocket_actions.jsx';
 
 import Constants from 'utils/constants';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isIosSafari} from 'utils/user_agent';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
 
 import {makeAsyncComponent} from 'components/async_load';
 import ChannelController from 'components/channel_layout/channel_controller';
@@ -70,7 +70,7 @@ function TeamController(props: Props) {
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
-                console.log('computer woke up - fetching latest'); //eslint-disable-line no-console
+                console.log('computer woke up - reconnecting'); //eslint-disable-line no-console
                 reconnect();
             }
             lastTime.current = currentTime;
@@ -92,12 +92,15 @@ function TeamController(props: Props) {
                 props.markChannelAsReadOnFocus(props.currentChannelId);
             }
 
-            const currentTime = Date.now();
-            if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                if (props.graphQLEnabled) {
-                    props.fetchChannelsAndMembers(props.currentTeamId);
-                } else {
-                    props.fetchMyChannelsAndMembersREST(props.currentTeamId);
+            // Temporary flag to disable refetching of channel members on browser focus
+            if (!props.disableRefetchingOnBrowserFocus) {
+                const currentTime = Date.now();
+                if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
+                    if (props.graphQLEnabled) {
+                        props.fetchChannelsAndMembers(props.currentTeamId);
+                    } else {
+                        props.fetchMyChannelsAndMembersREST(props.currentTeamId);
+                    }
                 }
             }
         }

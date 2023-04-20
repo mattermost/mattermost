@@ -3132,10 +3132,6 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearchは既に起動しています。"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした。"
   },

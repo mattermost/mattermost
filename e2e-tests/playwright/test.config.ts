@@ -3,6 +3,9 @@
 
 import {Page, ViewportSize} from '@playwright/test';
 import * as dotenv from 'dotenv';
+
+import {appsPluginId, callsPluginId} from '@e2e-support/constant';
+
 dotenv.config();
 
 export type TestArgs = {
@@ -17,7 +20,7 @@ export type TestConfig = {
     adminUsername: string;
     adminPassword: string;
     adminEmail: string;
-    boardsProductEnabled: boolean;
+    ensurePluginsInstalled: string[];
     resetBeforeTest: boolean;
     haClusterEnabled: boolean;
     haClusterNodeCount: number;
@@ -41,7 +44,10 @@ const config: TestConfig = {
     adminUsername: process.env.PW_ADMIN_USERNAME || 'sysadmin',
     adminPassword: process.env.PW_ADMIN_PASSWORD || 'Sys@dmin-sample1',
     adminEmail: process.env.PW_ADMIN_EMAIL || 'sysadmin@sample.mattermost.com',
-    boardsProductEnabled: parseBool(process.env.PW_BOARDS_PRODUCT_ENABLED, true),
+    ensurePluginsInstalled:
+        typeof process.env?.PW_ENSURE_PLUGINS_INSTALLED === 'string'
+            ? process.env.PW_ENSURE_PLUGINS_INSTALLED.split(',')
+            : [appsPluginId, callsPluginId],
     haClusterEnabled: parseBool(process.env.PW_HA_CLUSTER_ENABLED, false),
     haClusterNodeCount: parseNumber(process.env.PW_HA_CLUSTER_NODE_COUNT, 2),
     haClusterName: process.env.PW_HA_CLUSTER_NAME || 'mm_dev_cluster',
@@ -49,7 +55,7 @@ const config: TestConfig = {
     // CI
     isCI: !!process.env.CI,
     // Playwright
-    headless: parseBool(process.env.PW_HEADLESS, false),
+    headless: parseBool(process.env.PW_HEADLESS, true),
     slowMo: parseNumber(process.env.PW_SLOWMO, 0),
     workers: parseNumber(process.env.PW_WORKERS, 1),
     // Visual tests

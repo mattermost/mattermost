@@ -39,7 +39,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
     const team = useAppSelector(getCurrentTeam)
     const me = useAppSelector(getMe)
     const title = intl.formatMessage({id: 'FindBoardsDialog.Title', defaultMessage: 'Find Boards'})
-    const subTitle = intl.formatMessage(
+    const subTitle = intl.formatMessage<ReactNode>(
         {
             id: 'FindBoardsDialog.SubTitle',
             defaultMessage: 'Type to find a board. Use <b>UP/DOWN</b> to browse. <b>ENTER</b> to select, <b>ESC</b> to dismiss',
