@@ -12,6 +12,10 @@
         }
     }
 
+    &__Icon {
+        padding-top: 8px;
+    }
+
     &__Title {
         color: var(--sys-denim-center-channel-text);
         font-family: Metropolis;
@@ -22,10 +26,11 @@
 
     &__Usage {
         text-align: left;
+        color: var(--sys-center-channel-text);
 
         &-Highlighted {
             color: black;
-            font-weight: 700;
+            font-weight: bold;
         }
     }
 
