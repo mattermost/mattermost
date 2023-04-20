@@ -10,12 +10,12 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
-import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getSubscriptionProduct as selectSubscriptionProduct, getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
-import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals} from 'utils/constants';
+import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals, CloudBillingTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import {GlobalState} from '@mattermost/types/store';
@@ -29,6 +29,7 @@ const ToYearlyNudgeBannerDismissable = () => {
 
     const nudgeDismissed = useSelector((state: GlobalState) => getPreference(state, Preferences.CLOUD_YEARLY_NUDGE_BANNER, CloudBanners.NUDGE_TO_YEARLY_BANNER_DISMISSED)) === 'true';
     const currentUser = useSelector(getCurrentUser);
+    const subscription = useSelector(selectCloudSubscription);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
@@ -56,10 +57,22 @@ const ToYearlyNudgeBannerDismissable = () => {
         return null;
     }
 
-    const message = {
-        id: 'cloud_billing.nudge_to_yearly.announcement_bar',
-        defaultMessage: 'Simplify your billing and switch to an annual plan today',
-    };
+    if (subscription?.billing_type === CloudBillingTypes.INTERNAL || subscription?.billing_type === CloudBillingTypes.LICENSED) {
+        return null;
+    }
+
+    const message = (
+        <FormattedMessage
+            id='cloud_billing.nudge_to_yearly.announcement_bar'
+            defaultMessage='Monthly billing will be discontinued in {days} days . Switch to annual billing'
+            values={{
+                days: daysToProMonthlyEnd,
+
+            }}
+        />
+    );
+
+    const announcementType = (daysToProMonthlyEnd <= 10) ? AnnouncementBarTypes.CRITICAL : AnnouncementBarTypes.ANNOUNCEMENT;
 
     return (
         <AnnouncementBar
@@ -67,8 +80,8 @@ const ToYearlyNudgeBannerDismissable = () => {
             showCloseButton={true}
             onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
             modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
-            modalButtonDefaultText='Learn more'
-            message={<FormattedMessage {...message}/>}
+            modalButtonDefaultText='Update billing'
+            message={message}
             showLinkAsButton={true}
             handleClose={savedDismissedPref}
         />
@@ -81,6 +94,7 @@ const ToYearlyNudgeBanner = () => {
     const [openSalesLink] = useOpenSalesLink();
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
+    const subscription = useSelector(selectCloudSubscription);
     const product = useSelector(selectSubscriptionProduct);
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
     const currentProductIsMonthly = product?.recurring_interval === RecurringIntervals.MONTH;
@@ -89,6 +103,14 @@ const ToYearlyNudgeBanner = () => {
     if (!currentProductProMonthly) {
         return null;
     }
+
+    if (subscription?.billing_type === CloudBillingTypes.INTERNAL || subscription?.billing_type === CloudBillingTypes.LICENSED) {
+        return null;
+    }
+
+    const now = moment(Date.now());
+    const proMonthlyEndDate = moment(cloudProMonthlyCloseMoment, 'YYYYMMDD');
+    const daysToProMonthlyEnd = proMonthlyEndDate.diff(now, 'days');
 
     const title = (
         <FormattedMessage
