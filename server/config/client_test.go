@@ -336,7 +336,6 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			nil,
 			map[string]string{
-				"EnableAppBar":  "false",
 				"DisableAppBar": "true",
 			},
 		},
