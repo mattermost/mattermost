@@ -6166,8 +6166,8 @@ func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted, testCase.IsGuest)
-			require.NoError(t, err)
+			channels, err2 := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted, testCase.IsGuest)
+			require.NoError(t, err2)
 			var gotChannelIds []string
 			var gotTeamNames []string
 			for _, ch := range channels {
