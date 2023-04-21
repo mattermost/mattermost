@@ -17,7 +17,7 @@ import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
 import {StoragePrefixes} from 'utils/constants';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
@@ -25,8 +25,8 @@ import type {GlobalState} from 'types/store';
 import ChannelThreads, {Props, Tabs} from './channel_threads_rhs';
 
 function setChannelThreadsTab(tab: Tabs) {
-    return (dispatch: DispatchFunc, state: GlobalState) => {
-        const teamId = getCurrentTeamId(state);
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const teamId = getCurrentTeamId(getState());
         const key = StoragePrefixes.CHANNEL_THREADS_TAB + teamId;
         return setGlobalItem(key, tab);
     };
