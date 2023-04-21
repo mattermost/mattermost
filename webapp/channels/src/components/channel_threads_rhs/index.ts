@@ -8,40 +8,40 @@ import {getThreadsForChannel} from 'mattermost-redux/actions/threads';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadCountsInChannelView, makeGetThreadsInChannelView} from 'mattermost-redux/selectors/entities/threads';
 
 import {setGlobalItem} from 'actions/storage';
 import {closeRightHandSide, goBack, selectPostFromRightHandSideSearchByPostId, toggleRhsExpanded} from 'actions/views/rhs';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
-import {makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {getGlobalItem} from 'selectors/storage';
 import {StoragePrefixes} from 'utils/constants';
 
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
 
 import ChannelThreads, {Props, Tabs} from './channel_threads_rhs';
 
-function setChannelThreadsTab(channelId: Channel['id'], tab: Tabs) {
-    const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
-    return setGlobalItem(key, tab);
+function setChannelThreadsTab(tab: Tabs) {
+    return (dispatch: DispatchFunc, state: GlobalState) => {
+        const teamId = getCurrentTeamId(state);
+        const key = StoragePrefixes.CHANNEL_THREADS_TAB + teamId;
+        return setGlobalItem(key, tab);
+    };
 }
 
-function makeGetChannelThreadsTab() {
-    const getGlobalItem = makeGetGlobalItemWithDefault(Tabs.ALL);
+function getChannelThreadsTab(state: GlobalState) {
+    const teamId = getCurrentTeamId(state);
+    const isCRT = isCollapsedThreadsEnabled(state);
+    const tab = getGlobalItem(state, StoragePrefixes.CHANNEL_THREADS_TAB + teamId, Tabs.ALL);
 
-    return (state: GlobalState, channelId: Channel['id']) => {
-        const isCRT = isCollapsedThreadsEnabled(state);
-        const key = StoragePrefixes.CHANNEL_THREADS_TAB + channelId;
-        const tab = getGlobalItem(state, key);
+    if (!isCRT && tab === Tabs.FOLLOWING) {
+        return Tabs.ALL;
+    }
 
-        if (!isCRT && tab === Tabs.FOLLOWING) {
-            return Tabs.ALL;
-        }
-
-        return tab;
-    };
+    return tab;
 }
 
 function getThreadsForChannelWithFilter(channelId: Channel['id'], tab: Tabs, options?: FetchChannelThreadOptions) {
@@ -61,7 +61,6 @@ function makeMapStateToProps() {
     const getFollowingThreadsInChannelView = makeGetThreadsInChannelView('following');
     const getCreatedThreadsInChannelView = makeGetThreadsInChannelView('created');
     const getThreadCountInChannelView = makeGetThreadCountsInChannelView();
-    const getChannelThreadsTab = makeGetChannelThreadsTab();
 
     return (state: GlobalState) => {
         const channel = getCurrentChannel(state);
@@ -98,7 +97,7 @@ function makeMapStateToProps() {
             total: counts.total || 0,
             totalFollowing: counts.total_following || 0,
             totalUser: counts.total_user || 0,
-            selected: getChannelThreadsTab(state, channel.id),
+            selected: getChannelThreadsTab(state),
         };
     };
 }

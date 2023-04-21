@@ -37,21 +37,8 @@ function VirtualizedThreadList({
     total,
 }: Props) {
     const infiniteLoaderRef = React.useRef<any>();
-    const hasMountedRef = React.useRef<boolean>(false);
     const startIndexRef = React.useRef<number>(0);
     const stopIndexRef = React.useRef<number>(0);
-
-    // Each time we add an item in the total we call the method resetloadMoreItemsCache to clear the cache
-    useEffect(() => {
-        // We only need to reset cached items when 'total' changes.
-        // This effect will run on mount too; there's no need to reset in that case.
-        if (hasMountedRef.current) {
-            if (infiniteLoaderRef.current) {
-                infiniteLoaderRef.current.resetloadMoreItemsCache();
-            }
-        }
-        hasMountedRef.current = true;
-    }, [total]);
 
     useEffect(() => {
         if (ids.length > 0 && selectedThreadId) {

@@ -49,7 +49,7 @@ export type Props = {
         getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => void;
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
-        setSelected: (channelId: Channel['id'], tab: Tabs) => void;
+        setSelected: (tab: Tabs) => void;
         toggleRhsExpanded: () => void;
     };
 }
@@ -146,8 +146,8 @@ function ChannelThreads({
     }, [currentTeamName]);
 
     const makeHandleTab = useCallback((tab: Tabs) => () => {
-        actions.setSelected(channel.id, tab);
-    }, [channel.id]);
+        actions.setSelected(tab);
+    }, []);
 
     const routing = useMemo(() => {
         return {
