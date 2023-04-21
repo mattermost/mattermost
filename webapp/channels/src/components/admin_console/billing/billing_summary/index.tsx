@@ -34,14 +34,14 @@ const BillingSummary = ({isFreeTrial, daysLeftOnTrial, onUpgradeMattermostCloud}
 
     const isPreTrial = subscription?.is_free_trial === 'false' && subscription?.trial_end_at === 0;
     const hasPriorTrial = useSelector(checkHadPriorTrial);
-    const showTryEnterprise = product?.sku === CloudProducts.STARTER && isPreTrial;
-    const showUpgradeProfessional = product?.sku === CloudProducts.STARTER && hasPriorTrial;
+    const isStarterPreTrial = product?.sku === CloudProducts.STARTER && isPreTrial;
+    const isStarterPostTrial = product?.sku === CloudProducts.STARTER && hasPriorTrial;
 
-    if (reverseTrial) {
+    if (isStarterPreTrial && reverseTrial) {
         body = <UpgradeToProfessionalCard/>;
-    } else if (showTryEnterprise) {
+    } else if (isStarterPreTrial) {
         body = tryEnterpriseCard;
-    } else if (showUpgradeProfessional) {
+    } else if (isStarterPostTrial) {
         body = <UpgradeToProfessionalCard/>;
     } else if (isFreeTrial) {
         body = freeTrial(onUpgradeMattermostCloud, daysLeftOnTrial);
