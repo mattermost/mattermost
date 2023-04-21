@@ -44,6 +44,7 @@ services:
     networks:
       - mm-test
     environment:
+      PGUSER: mmuser
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
       POSTGRES_DB: mattermost_test

@@ -558,7 +558,7 @@ debug-server: start-docker ## Compile and start server using delve.
 		-X github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
-debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
+debug-server-headless: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
 		-X github.com/mattermost/mattermost-server/v6/model.BuildNumber=$(BUILD_NUMBER)\
