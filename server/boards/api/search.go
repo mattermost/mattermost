@@ -75,7 +75,7 @@ func (a *API) handleSearchMyChannels(w http.ResponseWriter, r *http.Request) {
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 	auditRec.AddMeta("teamID", teamID)
 
-	channels, err := a.app.SearchUserChannels(teamID, userID, searchQuery)
+	channels, err := a.app.SearchUserChannels(teamID, userID, searchQuery) // returns up to 10 channels
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
