@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -452,32 +452,68 @@ func testCreatePostWithOutgoingHook(
 }
 
 func TestCreatePostWithOutgoingHook_form_urlencoded(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", "", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", "", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, true)
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsStartsWith, true)
+	t.Run("Case 1", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
+	})
+	t.Run("Case 2", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
+	})
+	t.Run("Case 3", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", "", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
+	})
+	t.Run("Case 4", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", "", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
+	})
+	t.Run("Case 5", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, true)
+	})
+	t.Run("Case 6", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsStartsWith, true)
+	})
 }
 
 func TestCreatePostWithOutgoingHook_json(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, false)
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TriggerwordsStartsWith, false)
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, true)
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1"}, app.TriggerwordsStartsWith, true)
+	t.Run("Case 1", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, false)
+	})
+	t.Run("Case 2", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TriggerwordsStartsWith, false)
+	})
+	t.Run("Case 3", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
+	})
+	t.Run("Case 4", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
+	})
+	t.Run("Case 5", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, true)
+	})
+	t.Run("Case 6", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1"}, app.TriggerwordsStartsWith, true)
+	})
 }
 
 // hooks created before we added the ContentType field should be considered as
 // application/x-www-form-urlencoded
 func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, false)
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TriggerwordsStartsWith, false)
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, true)
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, true)
+	t.Run("Case 1", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, false)
+	})
+	t.Run("Case 2", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsStartsWith, false)
+	})
+	t.Run("Case 3", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, false)
+	})
+	t.Run("Case 4", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TriggerwordsStartsWith, false)
+	})
+	t.Run("Case 5", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TriggerwordsExactMatch, true)
+	})
+	t.Run("Case 6", func(t *testing.T) {
+		testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TriggerwordsExactMatch, true)
+	})
 }
 
 func TestCreatePostPublic(t *testing.T) {
@@ -1541,6 +1577,12 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockStore.On("License").Return(th.App.Srv().Store().License())
 	mockStore.On("Role").Return(th.App.Srv().Store().Role())
 	mockStore.On("Close").Return(nil)
+
+	// Playbooks DB job requires a plugin mock
+	pluginStore := mocks.PluginStore{}
+	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	mockStore.On("Plugin").Return(&pluginStore)
+
 	th.App.Srv().SetStore(&mockStore)
 
 	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
@@ -3193,6 +3235,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	th := Setup(t).InitBasic()
+	defer th.TearDown()
 	rpost := th.CreatePost()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

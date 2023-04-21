@@ -3140,10 +3140,6 @@
     "translation": "Не удалось декодировать результаты поиска"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch уже запущен."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Не удалось создать массовый обработчик Elasticsearch."
   },

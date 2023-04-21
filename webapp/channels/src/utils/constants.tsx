@@ -337,6 +337,8 @@ export const ActionTypes = keyMirror({
     RECEIVED_PLUGIN_INSIGHT: null,
     SET_EDIT_CHANNEL_MEMBERS: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
+
+    SET_DRAFT_SOURCE: null,
 });
 
 export const PostRequestTypes = keyMirror({
@@ -462,6 +464,8 @@ export const ModalIdentifiers = {
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',
     SCREENING_IN_PROGRESS: 'screening_in_progress',
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
+    EXPANSION_IN_PROGRESS: 'expansion_in_progress',
+    SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
 };
@@ -500,6 +504,11 @@ export const CloudProducts = {
     PROFESSIONAL: 'cloud-professional',
     ENTERPRISE: 'cloud-enterprise',
     LEGACY: 'cloud-legacy',
+};
+
+export const CloudBillingTypes = {
+    INTERNAL: 'internal',
+    LICENSED: 'licensed',
 };
 
 export const SelfHostedProducts = {
@@ -744,6 +753,7 @@ export const TELEMETRY_CATEGORIES = {
     CLOUD_PURCHASING: 'cloud_purchasing',
     CLOUD_PRICING: 'cloud_pricing',
     SELF_HOSTED_PURCHASING: 'self_hosted_purchasing',
+    SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
     CLOUD_ADMIN: 'cloud_admin',
     CLOUD_DELINQUENCY: 'cloud_delinquency',
     SELF_HOSTED_ADMIN: 'self_hosted_admin',
@@ -1097,6 +1107,8 @@ export const DocLinks = {
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
+    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
+    ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
 };
 
 export const LicenseLinks = {
@@ -2009,6 +2021,8 @@ export const ConsolePages = {
     WEB_SERVER: '/admin_console/environment/web_server',
     PUSH_NOTIFICATION_CENTER: '/admin_console/environment/push_notification_server',
     SMTP: '/admin_console/environment/smtp',
+    PAYMENT_INFO: '/admin_console/billing/payment_info',
+    BILLING_HISTORY: '/admin_console/billing/billing_history',
 };
 
 export const WindowSizes = {

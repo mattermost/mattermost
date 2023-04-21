@@ -90,6 +90,7 @@
         overflow-y: scroll;
 
         .more-modal__row {
+            overflow: hidden;
             min-height: 80px;
             padding: 16px 20px;
             border-bottom: none;
@@ -99,10 +100,11 @@
             }
 
             .update {
-                padding: 10px 10px 0 0;
-                border-top: 1px solid rgba(black, 0.1);
-                margin: 10px 10px 0 0;
                 font-size: 0.9em;
+
+                a {
+                    text-decoration: none;
+                }
             }
 
             .more-modal__details {
@@ -117,7 +119,7 @@
 
                 .more-modal__description {
                     margin: 2px 0 0;
-                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    color: var(--center-channel-color-rgb);
                     font-size: 14px;
                     font-weight: 400;
                     line-height: 20px;
@@ -273,5 +275,11 @@
 
     .loading {
         height: 390px;
+    }
+}
+
+.more-modal__description-tooltip {
+    .tooltip-inner {
+        text-align: left;
     }
 }
