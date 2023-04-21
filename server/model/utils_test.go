@@ -116,6 +116,13 @@ func TestAppErrorRender(t *testing.T) {
 		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
 		assert.EqualError(t, aerr, "here: message, details, my error (inner error)")
 	})
+
+	t.Run("MaxLength", func(t *testing.T) {
+		str := strings.Repeat("error", 65536)
+		msg := "msg"
+		aerr := NewAppError("id", msg, nil, str, http.StatusTeapot).Wrap(errors.New(str))
+		assert.Len(t, aerr.Error(), maxErrorLength+len(msg))
+	})
 }
 
 func TestAppErrorSerialize(t *testing.T) {

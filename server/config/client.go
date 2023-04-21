@@ -94,6 +94,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["CWSURL"] = *c.CloudSettings.CWSURL
 
+	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
+
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"

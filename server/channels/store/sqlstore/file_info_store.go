@@ -681,7 +681,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 	items := []fileInfoWithChannelID{}
 	err = fs.GetSearchReplicaX().Select(&items, queryString, args...)
 	if err != nil {
-		mlog.Warn("Query error searching files.", mlog.Err(err))
+		mlog.Warn("Query error searching files.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, item := range items {
