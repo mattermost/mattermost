@@ -1002,6 +1002,33 @@ func (s *MattermostAuthLayer) implicitBoardMembershipsFromRows(rows *sql.Rows) (
 	return boardMembers, nil
 }
 
+func (s *MattermostAuthLayer) boardMembersFromRows(rows *sql.Rows) ([]*model.BoardMember, error) {
+	boardMembers := []*model.BoardMember{}
+
+	for rows.Next() {
+		var boardMember model.BoardMember
+
+		err := rows.Scan(
+			&boardMember.MinimumRole,
+			&boardMember.BoardID,
+			&boardMember.UserID,
+			&boardMember.Roles,
+			&boardMember.SchemeAdmin,
+			&boardMember.SchemeEditor,
+			&boardMember.SchemeCommenter,
+			&boardMember.SchemeViewer,
+			&boardMember.Synthetic,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		boardMembers = append(boardMembers, &boardMember)
+	}
+
+	return boardMembers, nil
+}
+
 func (s *MattermostAuthLayer) GetMemberForBoard(boardID, userID string) (*model.BoardMember, error) {
 	bm, originalErr := s.Store.GetMemberForBoard(boardID, userID)
 	// Explicit membership not found
@@ -1126,16 +1153,34 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string) ([]*model.BoardMe
 }
 
 func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
-	explicitMembers, err := s.Store.GetMembersForBoard(boardID, opts)
-	if err != nil {
-		s.logger.Error(`getMembersForBoard ERROR`, mlog.Err(err))
-		return nil, err
-	}
+	queryExplicit := s.getQueryBuilder().PlaceholderFormat(sq.Question).
+		Select(
+			"COALESCE(B.minimum_role, '') AS minimum_role",
+			"BM.board_id AS board_id",
+			"BM.user_id AS user_id",
+			"BM.roles AS roles",
+			"BM.scheme_admin AS scheme_admin",
+			"BM.scheme_editor AS scheme_editor",
+			"BM.scheme_commenter AS scheme_commenter",
+			"BM.scheme_viewer AS scheme_viewer",
+			"false AS synthetic",
+		).
+		From(s.tablePrefix + "board_members AS BM").
+		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
+		Where(sq.Eq{"BM.board_id": boardID})
 
-	xxx
-
-	query := s.getQueryBuilder().
-		Select("CM.userID, B.Id").
+	queryImplicit := s.getQueryBuilder().PlaceholderFormat(sq.Question).
+		Select(
+			"'' AS minimum_role",
+			"B.Id AS board_id",
+			"CM.userID AS user_id",
+			"'editor' AS roles",
+			"false AS scheme_admin",
+			"true AS scheme_editor",
+			"false AS scheme_commenter",
+			"false AS scheme_viewer",
+			"true AS synthetic",
+		).
 		From(s.tablePrefix + "boards AS B").
 		Join("ChannelMembers AS CM ON B.channel_id=CM.channelId").
 		Join("Users as U on CM.userID = U.id").
@@ -1146,28 +1191,50 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.Quer
 		Where(sq.NotEq{"U.roles": "system_guest"}).
 		Where(sq.Eq{"bo.UserId IS NOT NULL": false})
 
-	rows, err := query.Query()
+	explicitSQL, explicitArgs, err := queryExplicit.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	implicitSQL, implicitArgs, err := queryImplicit.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	unionSQL := fmt.Sprintf("(%s) UNION DISTINCT (%s) ORDER BY user_id", explicitSQL, implicitSQL)
+	unionArgs := append(explicitArgs, implicitArgs...)
+
+	if opts.Page != 0 {
+		unionSQL += fmt.Sprintf(" OFFSET %d", opts.Page*opts.PerPage)
+	}
+
+	if opts.PerPage > 0 {
+		unionSQL += fmt.Sprintf(" LIMIT %d", opts.PerPage)
+	}
+
+	// Postgres requires dollar sign positional placeholders.
+	if s.DBType() == model.PostgresDBType {
+		unionSQL, err = sq.Dollar.ReplacePlaceholders(unionSQL)
+		if err != nil {
+			return nil, fmt.Errorf("error replacing placeholders: %w", err)
+		}
+	}
+
+	s.logger.Trace("getMembersForBoard",
+		mlog.String("sql", unionSQL),
+		mlog.Any("args", unionArgs),
+	)
+
+	rows, err := s.mmDB.Query(unionSQL, unionArgs...)
 	if err != nil {
 		s.logger.Error(`getMembersForBoard ERROR`, mlog.Err(err))
 		return nil, err
 	}
 	defer s.CloseRows(rows)
 
-	implicitMembers, err := s.implicitBoardMembershipsFromRows(rows)
+	members, err := s.boardMembersFromRows(rows)
 	if err != nil {
 		return nil, err
-	}
-
-	members := []*model.BoardMember{}
-	existingMembers := map[string]bool{}
-	for _, m := range explicitMembers {
-		members = append(members, m)
-		existingMembers[m.UserID] = true
-	}
-	for _, m := range implicitMembers {
-		if !existingMembers[m.UserID] {
-			members = append(members, m)
-		}
 	}
 
 	return members, nil

@@ -138,6 +138,10 @@ func getPagination(r *http.Request, maxPerPage int) (int, int, error) {
 		strPage = "0"
 	}
 
+	if strPerPage == "" {
+		strPerPage = "0"
+	}
+
 	page, err := strconv.Atoi(strPage)
 	if err != nil {
 		message := fmt.Sprintf("invalid `page` parameter: %s", err)
@@ -154,6 +158,8 @@ func getPagination(r *http.Request, maxPerPage int) (int, int, error) {
 		return 0, 0, model.NewErrBadRequest(message)
 	}
 
+	// TODO: return error if perPage <= 0
+	// if perPage <= 0 || perPage > maxPerPage {
 	if perPage < 0 || perPage > maxPerPage {
 		message := fmt.Sprintf("invalid `per_page` parameter: must be >= %d and <= %d", 0, maxPerPage)
 		return 0, 0, model.NewErrBadRequest(message)
