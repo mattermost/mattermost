@@ -1,38 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/*
-import React from 'react';
-import styled from 'styled-components';
-import {useIntl} from 'react-intl';
-
-interface Props {
-  tryTemplates: () => void;
-}
-function ChannelOnly(props: Props) {
-  const intl = useIntl();
-  return <div>
-    </div>
-}
-
-const StyledChannelOnly = styled(ChannelOnly)`
-  
-`;
-export default StyledChannelOnly
-*/
-
 import React, {useState} from 'react';
 import styled, {createGlobalStyle} from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 
-import classNames from 'classnames';
-
 import OverlayTrigger from 'components/overlay_trigger';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
+import TeamConversationSvg from 'components/common/svg_images_components/team_conversation_svg';
+import tertiaryButton from 'components/common/styled/tertiary_button';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -94,11 +74,12 @@ const enum ServerErrorId {
 }
 interface Props {
     tryTemplates: () => void;
+
     // component does not need any of the external actions
     manager: Omit<ReturnType<typeof useChannelOnlyManager>, 'actions'>;
 }
 
-export function useChannelOnlyManager () {
+export function useChannelOnlyManager() {
     const intl = useIntl();
     const {formatMessage} = intl;
     const currentTeamId = useSelector(getCurrentTeam).id;
@@ -107,7 +88,6 @@ export function useChannelOnlyManager () {
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
     const dispatch = useDispatch<DispatchFunc>();
 
-  
     const [type, setType] = useState(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
@@ -118,7 +98,6 @@ export function useChannelOnlyManager () {
     const [urlError, setURLError] = useState('');
     const [purposeError, setPurposeError] = useState('');
     const [serverError, setServerError] = useState('');
-
 
     // create a board along with the channel
     const pluginsComponentsList = useSelector((state: GlobalState) => state.plugins.components);
@@ -292,37 +271,39 @@ export function useChannelOnlyManager () {
     const canCreate = displayName && !displayNameError && url && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
 
     return {
-      state: {
-        canCreate,
-        displayName,
-        url,
-        purpose,
-        displayNameModified,
-        urlModified,
-        displayNameError,
-        urlError,
-        purposeError,
-        serverError,
-        type,
-        canCreatePublicChannel,
-        canCreatePrivateChannel,
-        createBoardFromChannelPlugin,
-      },
-      // for internal state
-      set: {
-          name: handleOnDisplayNameChange,
-          type: handleOnTypeChange,
-          purpose: handleOnPurposeChange, 
-          url: handleOnURLChange,
-          handleNameBlur,
-          canCreateFromPluggable: setCanCreateFromPluggable,
-          actionFromPluggable: setActionFromPluggable,
-      },
-      // for external state
-      actions: {
-          handleOnModalConfirm, 
-      },
-    }
+        state: {
+            canCreate,
+            displayName,
+            url,
+            purpose,
+            displayNameModified,
+            urlModified,
+            displayNameError,
+            urlError,
+            purposeError,
+            serverError,
+            type,
+            canCreatePublicChannel,
+            canCreatePrivateChannel,
+            createBoardFromChannelPlugin,
+        },
+
+        // for internal state
+        set: {
+            name: handleOnDisplayNameChange,
+            type: handleOnTypeChange,
+            purpose: handleOnPurposeChange,
+            url: handleOnURLChange,
+            handleNameBlur,
+            canCreateFromPluggable: setCanCreateFromPluggable,
+            actionFromPluggable: setActionFromPluggable,
+        },
+
+        // for external state
+        actions: {
+            handleOnModalConfirm,
+        },
+    };
 }
 
 const handleOnPurposeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -365,21 +346,25 @@ const ChannelOnly = (props: Props) => {
 
     return (
         <ChannelOnlyBody className='channel-only-body'>
-           <GlobalStyle/>
-            {'true' && (
-              <Aside>
-                  {intl.formatMessage({
-                    id: "work_templates.channel_only.what",
-                    defaultMessage: "Channels allow you to organize conversations, tasks and content in one convenient place.",
-                  })}
-                  {'svg here'}
-                  <button onClick={() => {props.tryTemplates()}}>
-                    {intl.formatMessage({
-                      id: "work_templates.channel_only.try_template",
-                      defaultMessage: "Try a template",
-                    })}
-                  </button>
-              </Aside>
+            <GlobalStyle/>
+            {'fill in here for if work templates would typically even be showable' && (
+                <Aside>
+                    <div>
+                        <TeamConversationSvg/>
+                    </div>
+                    <ChannelsUse>
+                        {intl.formatMessage({
+                            id: 'work_templates.channel_only.what',
+                            defaultMessage: 'Channels allow you to organize conversations, tasks and content in one convenient place.',
+                        })}
+                    </ChannelsUse>
+                    <TryTemplate onClick={props.tryTemplates}>
+                        {intl.formatMessage({
+                            id: 'work_templates.channel_only.try_template',
+                            defaultMessage: 'Try a template',
+                        })}
+                    </TryTemplate>
+                </Aside>
             )}
             <Main>
                 <Input
@@ -425,7 +410,7 @@ const ChannelOnly = (props: Props) => {
                 <PurposeContainer>
                     <Purpose
                         id='new-channel-modal-purpose'
-                        error={state.purposeError != ''}
+                        error={state.purposeError !== ''}
                         placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
                         rows={4}
                         maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
@@ -472,14 +457,14 @@ const PurposeInfo = styled.div`
 `;
 
 interface PurposeProps{
-  error: boolean;
+    error: boolean;
 }
 const Purpose = styled.textarea<PurposeProps>`
     width: 100%;
     box-sizing: border-box;
     padding: 12px 16px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    ${(props) => props.error ? 'border-color: var(--error-text);' : ''}    
+    ${(props) => (props.error ? 'border-color: var(--error-text);' : '')}    
     background: var(--center-channel-bg);
     border-radius: 4px;
     color: var(--center-channel-color);
@@ -493,7 +478,7 @@ const Purpose = styled.textarea<PurposeProps>`
 
     &:focus {
         border-color: var(--button-bg);
-        box-shadow: inset 0 0 0 1px var(${(props) => props.error ? '--error-text' : '--button-bg' });
+        box-shadow: inset 0 0 0 1px var(${(props) => (props.error ? '--error-text' : '--button-bg')});
     }
 `;
 
@@ -516,7 +501,6 @@ const PurposeError = styled.div`
         }
     }
 `;
-  
 
 const ChannelOnlyBody = styled.div`
   display: flex;
@@ -525,8 +509,8 @@ const Aside = styled.div`
     text-align: center;
     flex-shrink: 0;
     flex-grow: 0;
-    width: 230px;
-    padding-right: 26px;
+    width: 224px;
+    padding-right: 32px;
 `;
 const Main = styled.div`
     flex-grow: 1;
@@ -552,7 +536,7 @@ const GlobalStyle = createGlobalStyle`
 }
 `;
 
-const boardTooltipTextStyle =`
+const boardTooltipTextStyle = `
     span {
         display: block;
         width: 100%;
@@ -566,6 +550,14 @@ const BoardTooltipTitle = styled.div`
 const BoardTooltipDescription = styled.div`
     font-weight: 500;
     ${boardTooltipTextStyle}
+`;
+
+const TryTemplate = styled.button`
+  ${tertiaryButton}
+`;
+
+const ChannelsUse = styled.div`
+  padding: 20px 0;
 `;
 
 export default ChannelOnly;

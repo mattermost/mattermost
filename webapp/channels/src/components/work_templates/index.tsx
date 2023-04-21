@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -9,6 +9,7 @@ import styled from 'styled-components';
 
 import LocalizedIcon from 'components/localized_icon';
 import {TTNameMapToATStatusKey, TutorialTourName} from 'components/tours/constant';
+import usePreference from 'components/common/hooks/usePreference';
 
 import {closeModal as closeModalAction} from 'actions/views/modals';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -40,7 +41,7 @@ import {
 
 import {GlobalState} from 'types/store';
 
-import {ModalIdentifiers, suitePluginIds, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ModalIdentifiers, suitePluginIds, TELEMETRY_CATEGORIES, Preferences, Touched} from 'utils/constants';
 
 import {AutoTourStatus} from 'components/tours';
 
@@ -86,17 +87,23 @@ const ModalTitle = (props: ModalTitleProps) => {
     );
 };
 
-const WorkTemplateModal = () => {
+interface Props {
+    initialMode?: ModalState;
+}
+
+const WorkTemplateModal = (props: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch<DispatchFunc>();
 
-    const [modalState, setModalState] = useState(ModalState.ChannelOnly);
+    const [modalState, setModalState] = useState(props.initialMode || ModalState.ChannelOnly);
     const [selectedTemplate, setSelectedTemplate] = useState<WorkTemplate | null>(null);
     const [selectedName, setSelectedName] = useState<string>('');
     const [selectedVisibility, setSelectedVisibility] = useState(Visibility.Public);
     const [currentCategoryId, setCurrentCategoryId] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [errorText, setErrorText] = useState('');
+    const viewedTemplatesRef = useRef(false);
+    const [viewedTemplates, setViewedTemplates] = usePreference(Preferences.TOUCHED, Touched.ADD_CHANNEL_TEMPLATE_MODE);
 
     const categories = useSelector((state: GlobalState) => state.entities.worktemplates.categories);
     const workTemplates = useSelector((state: GlobalState) => state.entities.worktemplates.templatesInCategory);
@@ -109,8 +116,17 @@ const WorkTemplateModal = () => {
 
     const channelOnlyManager = useChannelOnlyManager();
 
+    if (modalState !== ModalState.ChannelOnly) {
+        viewedTemplatesRef.current = true;
+    }
+
     useEffect(() => {
         trackEvent(TELEMETRY_CATEGORIES.WORK_TEMPLATES, 'open_modal');
+        return () => {
+            if (viewedTemplatesRef.current && viewedTemplates !== 'true') {
+                setViewedTemplates('true');
+            }
+        };
     }, []);
 
     // load the categories if they are not found, or load the work templates for those categories.
@@ -298,16 +314,17 @@ const WorkTemplateModal = () => {
     let isConfirmDisabled = false;
     let handleEnterKeyPress;
     switch (modalState) {
-    case ModalState.ChannelOnly:
+    case ModalState.ChannelOnly: {
         const createChannelOnly = trackAction('btn_go_to_customize', channelOnlyManager.actions.handleOnModalConfirm);
-        title = formatMessage({id: "work_templates.channel_only.title", defaultMessage: "Create a new channel"});
-        cancelButtonText = formatMessage({id: "work_templates.channel_only.cancel", defaultMessage: "Cancel"});
+        title = formatMessage({id: 'work_templates.channel_only.title', defaultMessage: 'Create a new channel'});
+        cancelButtonText = formatMessage({id: 'work_templates.channel_only.cancel', defaultMessage: 'Cancel'});
         cancelButtonAction = trackAction('close_channel_only', closeModal);
-        confirmButtonText = formatMessage({id: "work_templates.channel_only.confirm", defaultMessage: "Create channel"});
+        confirmButtonText = formatMessage({id: 'work_templates.channel_only.confirm', defaultMessage: 'Create channel'});
         confirmButtonAction = createChannelOnly;
         isConfirmDisabled = !channelOnlyManager.state.canCreate;
         handleEnterKeyPress = createChannelOnly;
-        break
+        break;
+    }
     case ModalState.Menu:
         title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Create from a template'});
         break;

@@ -18,6 +18,7 @@ import {
     TTNameMapToATStatusKey,
     TutorialTourName,
 } from 'components/tours';
+import usePreference from 'components/common/hooks/usePreference';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
@@ -38,7 +39,7 @@ import {
     switchToChannels,
 } from 'actions/views/onboarding_tasks';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, ExploreOtherToolsTourSteps, Preferences, Touched} from 'utils/constants';
 
 import BullsEye from 'components/common/svg_images_components/bulls_eye_svg';
 import Channels from 'components/common/svg_images_components/channels_svg';
@@ -276,6 +277,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
     const history = useHistory();
     const {pathname} = useLocation();
 
+    const [, setKnowsTemplatesExist] = usePreference(Preferences.TOUCHED, Touched.KNOWS_TEMPLATES_EXIST);
     const handleSaveData = useHandleOnBoardingTaskData();
     const currentUserId = useSelector(getCurrentUserId);
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));
@@ -287,6 +289,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
     return (taskName: string) => {
         switch (taskName) {
         case OnboardingTasksName.CREATE_FROM_WORK_TEMPLATE: {
+            setKnowsTemplatesExist('true');
             localStorage.setItem(OnboardingTaskCategory, 'true');
             dispatch(openWorkTemplateModal(inAdminConsole));
             handleSaveData(taskName, TaskNameMapToSteps[taskName].FINISHED, true);

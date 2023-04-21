@@ -165,6 +165,8 @@ export const Preferences = {
 export const Touched = {
     INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
+    ADD_CHANNEL_TEMPLATE_MODE: 'add_channel_template_mode',
+    KNOWS_TEMPLATES_EXIST: 'knows_templates_exist',
 };
 
 // Category for actions/interactions that will happen just once

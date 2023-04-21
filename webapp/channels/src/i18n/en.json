@@ -5790,8 +5790,6 @@
   "work_templates.mode.templates_new": "New",
   "work_templates.mode.tourtip_title": "Try one of our templates",
   "work_templates.mode.tourtip_what": "Our templates cover a variety of use cases and include critical tools.",
-  "work_templates.mode.tourtip_why": "Use them to define your channel's purpose and set your team up for success.",
-  "work_templates.mode.tourtip_cta": "Select a template",
   "work_templates.customize.modal_cancel_button": "Back",
   "work_templates.customize.modal_create_button": "Create",
   "work_templates.customize.modal_title": "Name your {useCase}",

@@ -15,6 +15,7 @@ import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import WorkTemplateModal from 'components/work_templates';
 
 import {openModal} from './modals';
+import {ModalState} from 'components/work_templates/types';
 
 export function switchToChannels() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -47,7 +48,7 @@ export function openInvitationsModal(timeout = 1) {
     };
 }
 
-export function openWorkTemplateModal(redirectToChannels = true) {
+export function openWorkTemplateModal(redirectToChannels = true, mode = ModalState.Menu) {
     return (dispatch: DispatchFunc) => {
         if (redirectToChannels) {
             dispatch(switchToChannels());
@@ -57,6 +58,7 @@ export function openWorkTemplateModal(redirectToChannels = true) {
                 modalId: ModalIdentifiers.WORK_TEMPLATE,
                 dialogType: WorkTemplateModal,
                 dialogProps: {
+                    initialMode: mode,
                 },
             }));
         }, redirectToChannels ? 1000 : 1);
