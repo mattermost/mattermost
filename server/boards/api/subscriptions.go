@@ -189,6 +189,16 @@ func (a *API) handleGetSubscriptions(w http.ResponseWriter, r *http.Request) {
 	//   description: Subscriber ID
 	//   required: true
 	//   type: string
+	// - name: page
+	//   in: query
+	//   description: The page to select (default=0)
+	//   required: false
+	//   type: integer
+	// - name: per_page
+	//   in: query
+	//   description: Number of cards to return per page(default=100)
+	//   required: false
+	//   type: integer
 	// security:
 	// - BearerAuth: []
 	// responses:
@@ -208,6 +218,12 @@ func (a *API) handleGetSubscriptions(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	subscriberID := vars["subscriberID"]
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	auditRec := a.makeAuditRecord(r, "getSubscriptions", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 	auditRec.AddMeta("subscriber_id", subscriberID)
@@ -218,7 +234,10 @@ func (a *API) handleGetSubscriptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subs, err := a.app.GetSubscriptions(subscriberID)
+	subs, err := a.app.GetSubscriptions(subscriberID, model.QueryPageOptions{
+		Page:    page,
+		PerPage: perPage,
+	})
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

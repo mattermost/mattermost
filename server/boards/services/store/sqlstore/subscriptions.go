@@ -159,12 +159,20 @@ func (s *SQLStore) getSubscription(db sq.BaseRunner, blockID string, subscriberI
 }
 
 // getSubscriptions fetches all subscriptions for a specific subscriber.
-func (s *SQLStore) getSubscriptions(db sq.BaseRunner, subscriberID string) ([]*model.Subscription, error) {
+func (s *SQLStore) getSubscriptions(db sq.BaseRunner, subscriberID string, opts model.QueryPageOptions) ([]*model.Subscription, error) {
 	query := s.getQueryBuilder(db).
 		Select(subscriptionFields...).
 		From(s.tablePrefix + "subscriptions").
 		Where(sq.Eq{"subscriber_id": subscriberID}).
 		Where(sq.Eq{"delete_at": 0})
+
+	if opts.Page != 0 {
+		query = query.Offset(uint64(opts.Page * opts.PerPage))
+	}
+
+	if opts.PerPage > 0 {
+		query = query.Limit(uint64(opts.PerPage))
+	}
 
 	rows, err := query.Query()
 	if err != nil {

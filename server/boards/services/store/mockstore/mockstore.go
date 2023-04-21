@@ -960,18 +960,18 @@ func (mr *MockStoreMockRecorder) GetSubscription(arg0, arg1 interface{}) *gomock
 }
 
 // GetSubscriptions mocks base method.
-func (m *MockStore) GetSubscriptions(arg0 string) ([]*model.Subscription, error) {
+func (m *MockStore) GetSubscriptions(arg0 string, arg1 model.QueryPageOptions) ([]*model.Subscription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSubscriptions", arg0)
+	ret := m.ctrl.Call(m, "GetSubscriptions", arg0, arg1)
 	ret0, _ := ret[0].([]*model.Subscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSubscriptions indicates an expected call of GetSubscriptions.
-func (mr *MockStoreMockRecorder) GetSubscriptions(arg0 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetSubscriptions(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscriptions", reflect.TypeOf((*MockStore)(nil).GetSubscriptions), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscriptions", reflect.TypeOf((*MockStore)(nil).GetSubscriptions), arg0, arg1)
 }
 
 // GetSystemSetting mocks base method.

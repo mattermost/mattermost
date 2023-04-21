@@ -466,8 +466,8 @@ func (s *SQLStore) GetSubscription(blockID string, subscriberID string) (*model.
 
 }
 
-func (s *SQLStore) GetSubscriptions(subscriberID string) ([]*model.Subscription, error) {
-	return s.getSubscriptions(s.db, subscriberID)
+func (s *SQLStore) GetSubscriptions(subscriberID string, opts model.QueryPageOptions) ([]*model.Subscription, error) {
+	return s.getSubscriptions(s.db, subscriberID, opts)
 
 }
 

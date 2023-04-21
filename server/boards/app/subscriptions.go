@@ -34,8 +34,8 @@ func (a *App) DeleteSubscription(blockID string, subscriberID string) (*model.Su
 	return sub, nil
 }
 
-func (a *App) GetSubscriptions(subscriberID string) ([]*model.Subscription, error) {
-	return a.store.GetSubscriptions(subscriberID)
+func (a *App) GetSubscriptions(subscriberID string, opts model.QueryPageOptions) ([]*model.Subscription, error) {
+	return a.store.GetSubscriptions(subscriberID, opts)
 }
 
 func (a *App) notifySubscriptionChanged(subscription *model.Subscription) {

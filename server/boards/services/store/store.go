@@ -138,7 +138,7 @@ type Store interface {
 	CreateSubscription(sub *model.Subscription) (*model.Subscription, error)
 	DeleteSubscription(blockID string, subscriberID string) error
 	GetSubscription(blockID string, subscriberID string) (*model.Subscription, error)
-	GetSubscriptions(subscriberID string) ([]*model.Subscription, error)
+	GetSubscriptions(subscriberID string, opts model.QueryPageOptions) ([]*model.Subscription, error)
 	GetSubscribersForBlock(blockID string) ([]*model.Subscriber, error)
 	GetSubscribersCountForBlock(blockID string) (int, error)
 	UpdateSubscribersNotifiedAt(blockID string, notifiedAt int64) error

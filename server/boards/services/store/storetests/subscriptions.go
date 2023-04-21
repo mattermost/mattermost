@@ -59,7 +59,7 @@ func testCreateSubscription(t *testing.T, store store.Store) {
 
 		// ensure each user has the right number of subscriptions
 		for i, user := range users {
-			subs, err := store.GetSubscriptions(user.ID)
+			subs, err := store.GetSubscriptions(user.ID, model.QueryPageOptions{})
 			require.NoError(t, err, "get subscriptions should not error")
 			assert.Len(t, subs, i)
 		}
@@ -138,7 +138,7 @@ func testDeleteSubscription(t *testing.T, s store.Store) {
 		require.NoError(t, err, "create subscription should not error")
 
 		// check the subscription exists
-		subs, err := s.GetSubscriptions(user.ID)
+		subs, err := s.GetSubscriptions(user.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Len(t, subs, 1)
 		assert.Equal(t, subNew.BlockID, subs[0].BlockID)
@@ -148,7 +148,7 @@ func testDeleteSubscription(t *testing.T, s store.Store) {
 		require.NoError(t, err, "delete subscription should not error")
 
 		// check the subscription was deleted
-		subs, err = s.GetSubscriptions(user.ID)
+		subs, err = s.GetSubscriptions(user.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Empty(t, subs)
 	})
@@ -175,7 +175,7 @@ func testUndeleteSubscription(t *testing.T, s store.Store) {
 		require.NoError(t, err, "create subscription should not error")
 
 		// check the subscription exists
-		subs, err := s.GetSubscriptions(user.ID)
+		subs, err := s.GetSubscriptions(user.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Len(t, subs, 1)
 		assert.Equal(t, subNew.BlockID, subs[0].BlockID)
@@ -185,7 +185,7 @@ func testUndeleteSubscription(t *testing.T, s store.Store) {
 		require.NoError(t, err, "delete subscription should not error")
 
 		// check the subscription was deleted
-		subs, err = s.GetSubscriptions(user.ID)
+		subs, err = s.GetSubscriptions(user.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Empty(t, subs)
 
@@ -194,7 +194,7 @@ func testUndeleteSubscription(t *testing.T, s store.Store) {
 		require.NoError(t, err, "create subscription should not error")
 
 		// check the undeleted subscription exists
-		subs, err = s.GetSubscriptions(user.ID)
+		subs, err = s.GetSubscriptions(user.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Len(t, subs, 1)
 		assert.Equal(t, subUndeleted.BlockID, subs[0].BlockID)
@@ -248,18 +248,18 @@ func testGetSubscriptions(t *testing.T, store store.Store) {
 		}
 
 		// ensure user has the right number of subscriptions
-		subs, err := store.GetSubscriptions(user.ID)
+		subs, err := store.GetSubscriptions(user.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Len(t, subs, len(blocks))
 
 		// ensure author has no subscriptions
-		subs, err = store.GetSubscriptions(author.ID)
+		subs, err = store.GetSubscriptions(author.ID, model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Empty(t, subs)
 	})
 
 	t.Run("get subscriptions for invalid user", func(t *testing.T) {
-		subs, err := store.GetSubscriptions("bogus")
+		subs, err := store.GetSubscriptions("bogus", model.QueryPageOptions{})
 		require.NoError(t, err, "get subscriptions should not error")
 		assert.Empty(t, subs)
 	})
