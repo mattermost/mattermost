@@ -41,17 +41,26 @@ type SelectOption = {
 
 const Insights = () => {
     const dispatch = useDispatch();
-
-    // check if either of focalboard plugin or boards product is enabled
-    const focalboardPluginEnabled = useSelector((state: GlobalState) => state.plugins.plugins?.focalboard);
-    let focalboardProductEnabled = false;
     const products = useProducts();
+
+    // check if plugins or products are enabled for boards and playbooks
+    const focalboardPluginEnabled = useSelector((state: GlobalState) => state.plugins.plugins?.focalboard);
+    const playbooksPluginEnabled = useSelector((state: GlobalState) => state.plugins.plugins?.playbooks);
+
+    let focalboardProductEnabled = false;
+    let playbooksProductEnabled = false;
     if (products) {
-        focalboardProductEnabled = products.some((product) => product.pluginId === suitePluginIds.focalboard || product.pluginId === suitePluginIds.boards);
+        products.forEach((product) => {
+            if (product.pluginId === suitePluginIds.focalboard || product.pluginId === suitePluginIds.boards) {
+                focalboardProductEnabled = true;
+            } else if (product.pluginId === suitePluginIds.playbooks) {
+                playbooksProductEnabled = true;
+            }
+        });
     }
     const focalboardEnabled = focalboardPluginEnabled || focalboardProductEnabled;
+    const playbooksEnabled = playbooksPluginEnabled || playbooksProductEnabled;
 
-    const playbooksEnabled = useSelector((state: GlobalState) => state.plugins.plugins?.playbooks);
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
 
