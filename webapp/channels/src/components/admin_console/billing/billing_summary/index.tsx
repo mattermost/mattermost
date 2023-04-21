@@ -5,6 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 
 import {getSubscriptionProduct, checkHadPriorTrial, getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {cloudReverseTrial} from 'mattermost-redux/selectors/entities/preferences';
 
 import {CloudProducts} from 'utils/constants';
 
@@ -27,6 +28,7 @@ type BillingSummaryProps = {
 const BillingSummary = ({isFreeTrial, daysLeftOnTrial, onUpgradeMattermostCloud}: BillingSummaryProps) => {
     const subscription = useSelector(getCloudSubscription);
     const product = useSelector(getSubscriptionProduct);
+    const reverseTrial = useSelector(cloudReverseTrial);
 
     let body = noBillingHistory;
 
@@ -35,7 +37,9 @@ const BillingSummary = ({isFreeTrial, daysLeftOnTrial, onUpgradeMattermostCloud}
     const showTryEnterprise = product?.sku === CloudProducts.STARTER && isPreTrial;
     const showUpgradeProfessional = product?.sku === CloudProducts.STARTER && hasPriorTrial;
 
-    if (showTryEnterprise) {
+    if (reverseTrial) {
+        body = <UpgradeToProfessionalCard/>;
+    } else if (showTryEnterprise) {
         body = tryEnterpriseCard;
     } else if (showUpgradeProfessional) {
         body = <UpgradeToProfessionalCard/>;
