@@ -15,6 +15,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {StatusOK} from '@mattermost/types/client4';
 import store from 'stores/redux_store.jsx';
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import ConfirmModal from 'components/confirm_modal';
@@ -146,7 +147,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.A)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
             this.handleHide();
         }
