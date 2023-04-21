@@ -4,14 +4,14 @@
 import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 import type {Channel} from '@mattermost/types/channels';
-import type {ThreadsState} from '@mattermost/types/threads';
+import type {ThreadsState, UserThread} from '@mattermost/types/threads';
+import type {RelationOneToMany} from '@mattermost/types/utilities';
+
 import {handleFollowChanged, handlePostRemoved, handleReceivedThread, handleReceiveThreads} from './utils';
 
 import type {ExtraData} from './types';
 
-type State = ThreadsState['threadsInChannel'] | ThreadsState['followingThreadsInChannel'] | ThreadsState['userThreadsInChannel'];
-
-function handleLeaveChannel(state: State, action: GenericAction) {
+function handleLeaveChannel<S extends RelationOneToMany<Channel, UserThread>>(state: S, action: GenericAction): S {
     const channel: Channel = action.data;
 
     if (!state[channel.id]) {
@@ -39,7 +39,7 @@ export function threadsInChannelReducer(state: ThreadsState['threadsInChannel'] 
         return {};
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.LEAVE_CHANNEL:
-        return handleLeaveChannel(state, action);
+        return handleLeaveChannel<ThreadsState['threadsInChannel']>(state, action);
     }
 
     return state;
@@ -63,7 +63,7 @@ export function followingThreadsInChannelReducer(state: ThreadsState['followingT
         return {};
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.LEAVE_CHANNEL:
-        return handleLeaveChannel(state, action);
+        return handleLeaveChannel<ThreadsState['followingThreadsInChannel']>(state, action);
     case ThreadTypes.FOLLOW_CHANGED_THREAD:
         return handleFollowChanged<ThreadsState['followingThreadsInChannel']>(state, action, action.data.channel_id, extra);
     }
@@ -78,7 +78,7 @@ export function userThreadsInChannelReducer(state: ThreadsState['userThreadsInCh
         if (thread.post.user_id !== currentUserId) {
             return state;
         }
-        return handleReceivedThread<ThreadsState['followingThreadsInChannel']>(state, thread, thread.post.channel_id, extra);
+        return handleReceivedThread<ThreadsState['userThreadsInChannel']>(state, thread, thread.post.channel_id, extra);
     }
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
@@ -89,7 +89,7 @@ export function userThreadsInChannelReducer(state: ThreadsState['userThreadsInCh
         return {};
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
     case ChannelTypes.LEAVE_CHANNEL:
-        return handleLeaveChannel(state, action);
+        return handleLeaveChannel<ThreadsState['userThreadsInChannel']>(state, action);
     }
 
     return state;

@@ -801,8 +801,7 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
     );
 }
 
-export const getChannelIdFromPostId = createSelector(
-    'getChannelIdFromPostId',
-    getPost,
-    (post) => post.channel_id,
-);
+export function getChannelIdFromPostId(state: GlobalState, id: Post['id']) {
+    const post = getPost(state, id);
+    return post.channel_id;
+}

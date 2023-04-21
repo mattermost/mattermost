@@ -46,7 +46,7 @@ export type Props = {
 
     actions: {
         closeRightHandSide: () => void;
-        getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => any;
+        getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => void;
         goBack: () => void;
         selectPostFromRightHandSideSearchByPostId: (id: string) => void;
         setSelected: (channelId: Channel['id'], tab: Tabs) => void;
@@ -82,29 +82,28 @@ function ChannelThreads({
     const [isPaging, setIsPaging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    let ids = all;
     let totalThreads = total;
+    let noResultsSubtitle = formatMessage({
+        id: 'channel_threads.noResults.all',
+        defaultMessage: 'There are no threads in this channel.',
+    });
     if (selected === Tabs.FOLLOWING) {
+        ids = following;
         totalThreads = totalFollowing;
+        noResultsSubtitle = formatMessage({
+            id: 'channel_threads.noResults.following',
+            defaultMessage: 'You don\'t follow any threads in this channel.',
+        });
     }
     if (selected === Tabs.USER) {
+        ids = created;
         totalThreads = totalUser;
+        noResultsSubtitle = formatMessage({
+            id: 'channel_threads.noResults.created',
+            defaultMessage: 'You don\'t have any threads that you created in this channel.',
+        });
     }
-
-    const ids = useMemo(() => {
-        if (selected === Tabs.FOLLOWING) {
-            return following;
-        }
-        if (selected === Tabs.USER) {
-            return created;
-        }
-
-        return all;
-    }, [
-        selected,
-        all,
-        following,
-        created,
-    ]);
 
     useEffect(() => {
         setIsLoading(true);
@@ -134,7 +133,7 @@ function ChannelThreads({
         };
         await actions.getThreadsForChannel(channel.id, selected, options);
         setIsPaging(false);
-    }, [currentTeamId, ids]);
+    }, [channel.id, ids]);
 
     const select = useCallback((threadId?: UserThread['id']) => {
         if (threadId) {
@@ -161,25 +160,6 @@ function ChannelThreads({
             },
         };
     }, [select, goToInChannel, currentTeamId]);
-
-    const noResultsSubtitle = useMemo(() => {
-        if (selected === Tabs.FOLLOWING) {
-            return formatMessage({
-                id: 'channel_threads.noResults.following',
-                defaultMessage: 'You don’t follow any threads in this channel.',
-            });
-        }
-        if (selected === Tabs.USER) {
-            return formatMessage({
-                id: 'channel_threads.noResults.created',
-                defaultMessage: 'You don’t have any threads that you created in this channel.',
-            });
-        }
-        return formatMessage({
-            id: 'channel_threads.noResults.all',
-            defaultMessage: 'There are no threads in this channel.',
-        });
-    }, [selected]);
 
     return (
         <div

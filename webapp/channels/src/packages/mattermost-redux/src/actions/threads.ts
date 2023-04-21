@@ -453,67 +453,67 @@ export function getThreadsForChannel(channelId: string, {before = '', after = ''
 
         try {
             data = await Client4.getThreadsForChannel(channelId, {before, after, perPage, extended, totalsOnly, threadsOnly, since, filter});
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
 
-            if (!data) {
-                return {error: true};
-            }
+        if (!data) {
+            return {error: true};
+        }
 
-            if (data?.threads?.length) {
-                await dispatch(getMissingProfilesByIds(uniq(data.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
+        if (data?.threads?.length) {
+            await dispatch(getMissingProfilesByIds(uniq(data.threads.map(({participants}) => participants.map(({id}) => id)).flat())));
 
-                dispatch({
-                    type: PostTypes.RECEIVED_POSTS,
-                    data: {posts: data.threads.map(({post}) => ({...post, update_at: 0}))},
-                });
+            dispatch({
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: data.threads.map(({post}) => ({...post, update_at: 0}))},
+            });
 
-                dispatch(getMissingFilesByPosts(uniq(data.threads.map(({post}) => post))));
-            }
+            dispatch(getMissingFilesByPosts(uniq(data.threads.map(({post}) => post))));
+        }
 
-            let actionType: keyof (typeof ChannelTypes) = ChannelTypes.RECEIVED_CHANNEL_THREADS;
+        let actionType: keyof (typeof ChannelTypes) = ChannelTypes.RECEIVED_CHANNEL_THREADS;
+
+        if (filter === FetchChannelThreadFilters.FOLLOWING) {
+            actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREADS;
+        }
+
+        if (filter === FetchChannelThreadFilters.USER) {
+            actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREADS;
+        }
+
+        dispatch({
+            type: actionType,
+            data: {
+                threads: data?.threads?.map((thread) => ({
+                    ...thread,
+                    is_following: thread.post.is_following,
+                    last_viewed_at: thread.post.is_following ? thread.last_viewed_at : undefined,
+                })) ?? [],
+                channel_id: channelId,
+            },
+        });
+
+        if (!threadsOnly && !totalsOnly) {
+            let actionType: keyof (typeof ChannelTypes) = ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS;
 
             if (filter === FetchChannelThreadFilters.FOLLOWING) {
-                actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREADS;
+                actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREAD_COUNTS;
             }
 
             if (filter === FetchChannelThreadFilters.USER) {
-                actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREADS;
+                actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREAD_COUNTS;
             }
 
             dispatch({
                 type: actionType,
                 data: {
-                    threads: data?.threads?.map((thread) => ({
-                        ...thread,
-                        is_following: thread.post.is_following,
-                        last_viewed_at: thread.post.is_following ? thread.last_viewed_at : undefined,
-                    })) ?? [],
                     channel_id: channelId,
+                    total: data.total,
                 },
             });
-
-            if (!threadsOnly && !totalsOnly) {
-                let actionType: keyof (typeof ChannelTypes) = ChannelTypes.RECEIVED_CHANNEL_THREAD_COUNTS;
-
-                if (filter === FetchChannelThreadFilters.FOLLOWING) {
-                    actionType = ChannelTypes.RECEIVED_FOLLOWING_CHANNEL_THREAD_COUNTS;
-                }
-
-                if (filter === FetchChannelThreadFilters.USER) {
-                    actionType = ChannelTypes.RECEIVED_CREATED_CHANNEL_THREAD_COUNTS;
-                }
-
-                dispatch({
-                    type: actionType,
-                    data: {
-                        channel_id: channelId,
-                        total: data.total,
-                    },
-                });
-            }
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
         }
 
         return {data};
