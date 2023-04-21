@@ -16,16 +16,20 @@ interface Props {
   selected: string;
 }
 export default function ModalTabs( props: Props ) {
-  return <div>
-    'ASDF ASDF ASDF'
+  return <TabContainer>
     {
       props.tabs.map((tab) => (
-        <Tab key={tab.key} onClick={tab.onClick} data-testid={tab.testId} selected={tab.key === props.selected}>
+        <Tab
+          key={tab.key}
+          onClick={tab.onClick}
+          data-testid={tab.testId}
+          selected={tab.key === props.selected}
+        >
           {tab.content}
         </Tab>
       ))
     }
-  </div>
+  </TabContainer>
 }
 
 
@@ -33,7 +37,26 @@ interface TabStyles {
   selected: boolean;
 }
 
+const TabContainer = styled.div`
+  display: flex;
+  margin-bottom: 32px;
+`
+
 const Tab = styled.div<TabStyles>`
-  padding: 10px;
-  background: ${props => props.selected ? "palevioletred" : "white"};
+  padding: 13px 8px;
+  position: relative;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: ${props => props.selected ? 'var(--link-color)' : 'rgba(var(--center-channel-text-rgb), 064)'};
+
+  &:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: ${props => props.selected ? 'var(--link-color)' : ''};
+  }
 `;
