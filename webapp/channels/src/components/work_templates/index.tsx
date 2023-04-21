@@ -44,7 +44,7 @@ import {ModalIdentifiers, suitePluginIds, TELEMETRY_CATEGORIES} from 'utils/cons
 
 import {AutoTourStatus} from 'components/tours';
 
-import ChannelOnly from './components/channel_only';
+import ChannelOnly, {useChannelOnlyManager} from './components/channel_only';
 import Customize from './components/customize';
 import Menu from './components/menu';
 import Mode from './components/mode';
@@ -106,6 +106,8 @@ const WorkTemplateModal = () => {
     const playbookTemplates = useSelector((state: GlobalState) => state.entities.worktemplates.playbookTemplates);
     const {rhsPluggableIds} = useGetRHSPluggablesIds();
     const currentUserId = useSelector(getCurrentUserId);
+
+    const channelOnlyManager = useChannelOnlyManager();
 
     useEffect(() => {
         trackEvent(TELEMETRY_CATEGORIES.WORK_TEMPLATES, 'open_modal');
@@ -293,13 +295,18 @@ const WorkTemplateModal = () => {
     let backArrowAction;
     let confirmButtonText;
     let confirmButtonAction;
+    let isConfirmDisabled = false;
+    let handleEnterKeyPress;
     switch (modalState) {
     case ModalState.ChannelOnly:
+        const createChannelOnly = trackAction('btn_go_to_customize', channelOnlyManager.actions.handleOnModalConfirm);
         title = formatMessage({id: "work_templates.channel_only.title", defaultMessage: "Create a new channel"});
         cancelButtonText = formatMessage({id: "work_templates.channel_only.cancel", defaultMessage: "Cancel"});
-        // cancelButtonAction = trackAction('btn_back_to_menu', goToMenu);
+        cancelButtonAction = trackAction('close_channel_only', closeModal);
         confirmButtonText = formatMessage({id: "work_templates.channel_only.confirm", defaultMessage: "Create channel"});
-        // confirmButtonAction = trackAction('btn_go_to_customize', () => setModalState(ModalState.Customize));
+        confirmButtonAction = createChannelOnly;
+        isConfirmDisabled = !channelOnlyManager.state.canCreate;
+        handleEnterKeyPress = createChannelOnly;
         break
     case ModalState.Menu:
         title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Create from a template'});
@@ -319,6 +326,7 @@ const WorkTemplateModal = () => {
         backArrowAction = trackAction('arrow_back_to_preview', () => setModalState(ModalState.Preview));
         confirmButtonText = formatMessage({id: 'work_templates.customize.modal_create_button', defaultMessage: 'Create'});
         confirmButtonAction = trackAction('btn_execute', () => execute(selectedTemplate!, selectedName, selectedVisibility));
+        isConfirmDisabled = errorText !== '';
         break;
     }
 
@@ -338,7 +346,8 @@ const WorkTemplateModal = () => {
             handleCancel={cancelButtonAction}
             confirmButtonText={confirmButtonText}
             handleConfirm={confirmButtonAction}
-            isConfirmDisabled={isCreating || (modalState === ModalState.Customize && errorText !== '')}
+            isConfirmDisabled={isCreating || isConfirmDisabled}
+            handleEnterKeyPress={handleEnterKeyPress}
             autoCloseOnCancelButton={false}
             autoCloseOnConfirmButton={false}
             errorText={errorText}
@@ -352,6 +361,7 @@ const WorkTemplateModal = () => {
             {modalState === ModalState.ChannelOnly && (
                 <ChannelOnly
                     tryTemplates={() => {}}
+                    manager={channelOnlyManager}
                 />
             )}
             {modalState === ModalState.Menu && (

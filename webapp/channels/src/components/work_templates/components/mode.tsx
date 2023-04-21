@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 import {ModalState} from '../types';
 import Tabs from 'components/modal_tabs';
+import Badge from './badge';
 
 function Tourtip() {
   const intl = useIntl();
@@ -50,12 +51,13 @@ function Mode(props: Props) {
                     id: "work_templates.mode.templates",
                     defaultMessage: "Templates",
                   })}
-                <span>
-                  {intl.formatMessage({
-                    id: "work_templates.mode.templates_new",
-                    defaultMessage: "New",
-                  })}
-                </span>
+                  <BadgeSpacer />
+                  <Badge>
+                    {intl.formatMessage({
+                      id: "work_templates.mode.templates_new",
+                      defaultMessage: "New",
+                    })}
+                  </Badge>
                 </div>
               ),
               onClick: () => props.setMode(ModalState.Menu),
@@ -72,6 +74,8 @@ function Mode(props: Props) {
 }
 
 const StyledMode = styled(Mode)`
-  
+`;
+const BadgeSpacer = styled.span`
+  padding-left: 6px;
 `;
 export default StyledMode 
