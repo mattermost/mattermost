@@ -62,8 +62,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
         .SidebarChannelNavigator__addChannelsCtaLhsButton,
         .SidebarChannelNavigator__inviteMembersLhsButton,
         .SidebarChannelNavigator__addAppsCtaLhsButton {
-            opacity: 0.4;
             cursor: no-drop !important;
+            opacity: 0.4;
 
             &:hover {
                 background: none !important;
@@ -186,10 +186,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &__addAppsCtaLhsButton {
             display: flex;
             padding: 6px 0;
-            margin-left: 15px;
+            border: none;
+            margin-left: 0;
+            background: none;
             color: rgba(var(--sidebar-text-rgb), 0.72);
             line-height: 20px;
             list-style: none;
+
+            li {
+                display: flex;
+                margin-left: 15px;
+            }
 
             i {
                 font-size: 20px;
@@ -208,19 +215,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
                 i::before {
                     font-weight: $font-weight--semibold;
                 }
-            }
-        }
-
-        &__inviteMembersLhsButton,
-        &__addChannelsCtaLhsButton,
-        &__addAppsCtaLhsButton {
-            border: none;
-            margin-left: 0;
-            background: none;
-
-            li {
-                display: flex;
-                margin-left: 15px;
             }
         }
 
