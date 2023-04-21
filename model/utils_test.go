@@ -85,6 +85,15 @@ func TestAppErrorJunk(t *testing.T) {
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
+func TestAppErrorRender(t *testing.T) {
+	t.Run("MaxLength", func(t *testing.T) {
+		str := strings.Repeat("error", 65536)
+		msg := "msg"
+		aerr := NewAppError("id", msg, nil, str, http.StatusTeapot)
+		assert.Len(t, aerr.Error(), maxErrorLength+len(msg))
+	})
+}
+
 func TestCopyStringMap(t *testing.T) {
 	itemKey := "item1"
 	originalMap := make(map[string]string)
