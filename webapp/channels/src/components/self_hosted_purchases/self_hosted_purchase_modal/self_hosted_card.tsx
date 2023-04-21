@@ -17,8 +17,8 @@ import {
     SelfHostedProducts,
 } from 'utils/constants';
 
-import Consequences from '../seats_calculator/consequences';
-import SeatsCalculator, {Seats} from '../seats_calculator';
+import Consequences from '../../seats_calculator/consequences';
+import SeatsCalculator, {Seats} from '../../seats_calculator';
 
 // Card has a bunch of props needed for monthly/yearly payments that
 // do not apply to self-hosted.

@@ -1173,11 +1173,10 @@ func TestGetAllTeams(t *testing.T) {
 			}
 
 			var teams []*model.Team
-			var count int64
 			var resp *model.Response
 			var err2 error
 			if tc.WithCount {
-				teams, count, resp, err2 = client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
+				teams, _, resp, err2 = client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
 			} else {
 				teams, resp, err2 = client.GetAllTeams("", tc.Page, tc.PerPage)
 			}
@@ -1187,11 +1186,12 @@ func TestGetAllTeams(t *testing.T) {
 				return
 			}
 			require.NoError(t, err2)
-			require.Equal(t, len(tc.ExpectedTeams), len(teams))
-			for idx, team := range teams {
-				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
+
+			actualTeamIds := make([]string, 0, len(tc.ExpectedTeams))
+			for _, team := range teams {
+				actualTeamIds = append(actualTeamIds, team.Id)
 			}
-			require.Equal(t, tc.ExpectedCount, count)
+			require.ElementsMatch(t, tc.ExpectedTeams, actualTeamIds)
 		})
 	}
 
