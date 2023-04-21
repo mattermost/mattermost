@@ -10046,5 +10046,45 @@
   {
     "id": "app.user.run.add_to_timeline.title",
     "translation": "Dodaj do osi czasu uruchomienia"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacji dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Zwiększ produktywność na swoim kanale, integrując najczęściej używane narzędzia. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Porozmawiaj ze swoim zespołem o nowym projekcie i zdecyduj, jak zamierzasz go ustrukturyzować, na kanale współpracy."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Użyj tablicy Kanban, aby zdefiniować i śledzić zadania i postępy w projekcie."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Nieprawidłowa wartość dla bajtów podczas wgrywania licencji."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Wersja Elasticsearch {{.Version}} jest wyższa niż maksymalnie obsługiwana wersja {{.MaxVersion}}"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Wtyczka {{.Id}} jest na liście blokowanych. Niektóre wtyczki są zablokowane, ponieważ są wbudowane w tę wersję Mattermost."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
   }
 ]
