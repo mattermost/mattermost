@@ -3072,7 +3072,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 	}
 
 	channels := model.ChannelListWithTeamData{}
-	err = s.GetSearchReplicaX().Select(&channels, sql, args...)
+	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not find channel with term=%s", term)
 	}
@@ -3242,7 +3242,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 
 	// query the channel list from the database using SQLX
 	channels := model.ChannelList{}
-	if err := s.GetSearchReplicaX().Select(&channels, sql, args...); err != nil {
+	if err := s.GetReplicaX().Select(&channels, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' (%s %% %v)", term, sql, args)
 	}
 
@@ -3650,7 +3650,7 @@ func (s SqlChannelStore) performSearch(searchQuery sq.SelectBuilder, term string
 	}
 
 	channels := model.ChannelList{}
-	err = s.GetSearchReplicaX().Select(&channels, sql, args...)
+	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
 		return channels, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 	}
@@ -3744,7 +3744,7 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 	}
 
 	groupChannels := model.ChannelList{}
-	if err := s.GetSearchReplicaX().Select(&groupChannels, sql, params...); err != nil {
+	if err := s.GetReplicaX().Select(&groupChannels, sql, params...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' and userId=%s", term, userId)
 	}
 	return groupChannels, nil
