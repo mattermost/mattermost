@@ -233,7 +233,7 @@ func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getUsers", audit.Fail)
+	auditRec := a.makeAuditRecord(r, "getTeamUsers", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 
 	isGuest, err := a.userIsGuest(userID)
@@ -246,7 +246,7 @@ func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
 		asGuestUser = userID
 	}
 
-	users, err := a.app.SearchTeamUsers(teamID, searchQuery, asGuestUser, excludeBots)
+	users, err := a.app.SearchTeamUsers(teamID, searchQuery, asGuestUser, excludeBots) // returns up to 10 users
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
