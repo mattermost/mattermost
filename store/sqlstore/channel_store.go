@@ -3035,7 +3035,8 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
 		}).
-		OrderBy("c.DisplayName")
+		OrderBy("c.DisplayName").
+		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
 		query = query.Where(sq.And{
