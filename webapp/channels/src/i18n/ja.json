@@ -1403,7 +1403,7 @@
   "admin.logs.Warn": "Warn",
   "admin.logs.bannerDesc": "ユーザーIDかトークンIDでユーザーを検索するには、ユーザー管理 > ユーザーへ行き検索フィルターにIDをペーストしてください。",
   "admin.logs.caller": "Caller",
-  "admin.logs.fullEvent": "すべてのログイベンド",
+  "admin.logs.fullEvent": "すべてのログイベント",
   "admin.logs.options": "Options",
   "admin.logs.showErrors": "最新の {n} エラーを表示",
   "admin.logs.title": "サーバーログ",
