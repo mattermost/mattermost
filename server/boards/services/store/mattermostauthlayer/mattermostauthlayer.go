@@ -988,29 +988,6 @@ func (s *MattermostAuthLayer) GetCloudLimits() (*mm_model.ProductLimits, error) 
 	return s.servicesAPI.GetCloudLimits()
 }
 
-func (s *MattermostAuthLayer) implicitBoardMembershipsFromRows(rows *sql.Rows) ([]*model.BoardMember, error) {
-	boardMembers := []*model.BoardMember{}
-
-	for rows.Next() {
-		var boardMember model.BoardMember
-
-		err := rows.Scan(
-			&boardMember.UserID,
-			&boardMember.BoardID,
-		)
-		if err != nil {
-			return nil, err
-		}
-		boardMember.Roles = "editor"
-		boardMember.SchemeEditor = true
-		boardMember.Synthetic = true
-
-		boardMembers = append(boardMembers, &boardMember)
-	}
-
-	return boardMembers, nil
-}
-
 func (s *MattermostAuthLayer) boardMembersFromRows(rows *sql.Rows) ([]*model.BoardMember, error) {
 	boardMembers := []*model.BoardMember{}
 

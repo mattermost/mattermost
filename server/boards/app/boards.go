@@ -419,9 +419,9 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 	if patch.ChannelID != nil {
 		var username string
 
-		user, err := a.store.GetUserByID(userID)
-		if err != nil {
-			a.logger.Error("Unable to get the board updater", mlog.Err(err))
+		user, err2 := a.store.GetUserByID(userID)
+		if err2 != nil {
+			a.logger.Error("Unable to get the board updater", mlog.Err(err2))
 			username = "unknown"
 		} else {
 			username = user.Username
