@@ -193,6 +193,17 @@ func (a *API) handleGetMyMemberships(w http.ResponseWriter, r *http.Request) {
 	// ---
 	// produces:
 	// - application/json
+	// parameters:
+	// - name: page
+	//   in: query
+	//   description: The page to select (default=0)
+	//   required: false
+	//   type: integer
+	// - name: per_page
+	//   in: query
+	//   description: Number of cards to return per page
+	//   required: false
+	//   type: integer
 	// security:
 	// - BearerAuth: []
 	// responses:
@@ -209,11 +220,20 @@ func (a *API) handleGetMyMemberships(w http.ResponseWriter, r *http.Request) {
 
 	userID := getUserID(r)
 
+	page, perPage, err := getPagination(r, defaultMaxPerPage)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	auditRec := a.makeAuditRecord(r, "getMyBoardMemberships", audit.Fail)
 	auditRec.AddMeta("userID", userID)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 
-	members, err := a.app.GetMembersForUser(userID)
+	members, err := a.app.GetMembersForUser(userID, model.QueryPageOptions{
+		Page:    page,
+		PerPage: perPage,
+	})
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

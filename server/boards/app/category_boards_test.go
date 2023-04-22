@@ -48,7 +48,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{board1, board2, board3}, nil)
 
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
 				Synthetic: false,
@@ -83,7 +83,7 @@ func TestGetUserCategoryBoards(t *testing.T) {
 			Name: "Boards",
 		}, nil)
 
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 
 		categoryBoards, err := th.App.GetUserCategoryBoards("user_id", "team_id", model.QueryUserCategoriesOptions{})
@@ -124,7 +124,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 			Name: "Boards",
 		}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{}, nil)
 
 		existingCategoryBoards := []model.CategoryBoards{}
 		boardsCategory, err := th.App.createBoardsCategory("user_id", "team_id", existingCategoryBoards)
@@ -142,7 +142,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 			Name: "Boards",
 		}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
 				Synthetic: true,
@@ -187,7 +187,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 			ID: "board_id_3",
 		}
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{board1, board2, board3}, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
 				Synthetic: false,
@@ -237,7 +237,7 @@ func TestCreateBoardsCategory(t *testing.T) {
 			ID: "board_id_1",
 		}
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{board1}, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{
 			{
 				BoardID:   "board_id_1",
 				Synthetic: false,

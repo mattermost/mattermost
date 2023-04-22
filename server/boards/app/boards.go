@@ -592,8 +592,8 @@ func (a *App) ForEachMemberOfBoard(boardID string, fn func(*model.BoardMember) e
 	return nil
 }
 
-func (a *App) GetMembersForUser(userID string) ([]*model.BoardMember, error) {
-	members, err := a.store.GetMembersForUser(userID)
+func (a *App) GetMembersForUser(userID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
+	members, err := a.store.GetMembersForUser(userID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -781,8 +781,8 @@ func (a *App) SearchBoardsForUser(term string, searchField model.BoardSearchFiel
 	return a.store.SearchBoardsForUser(term, searchField, userID, includePublicBoards)
 }
 
-func (a *App) SearchBoardsForUserInTeam(teamID, term, userID string) ([]*model.Board, error) {
-	return a.store.SearchBoardsForUserInTeam(teamID, term, userID)
+func (a *App) SearchBoardsForUserInTeam(teamID, term, userID string, opts model.QueryPageOptions) ([]*model.Board, error) {
+	return a.store.SearchBoardsForUserInTeam(teamID, term, userID, opts)
 }
 
 func (a *App) UndeleteBoard(boardID string, modifiedBy string) error {

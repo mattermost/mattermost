@@ -70,8 +70,8 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 
 	// once the category is created, we need to move all boards which do not
 	// belong to any category, into this category.
-
-	boardMembers, err := a.GetMembersForUser(userID)
+	// TODO: paginate this
+	boardMembers, err := a.GetMembersForUser(userID, model.QueryPageOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("createBoardsCategory error fetching user's board memberships: %w", err)
 	}
@@ -86,7 +86,7 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 		BoardMetadata: []model.CategoryBoardMetadata{},
 	}
 
-	// get user's current team's baords
+	// get user's current team's boards
 	userTeamBoardIDs := []string{}
 	page := 0
 	for ; true; page++ {

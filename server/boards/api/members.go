@@ -46,7 +46,7 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 	//   type: integer
 	// - name: per_page
 	//   in: query
-	//   description: Number of cards to return per page(default=100)
+	//   description: Number of cards to return per page
 	//   required: false
 	//   type: integer
 	// security:

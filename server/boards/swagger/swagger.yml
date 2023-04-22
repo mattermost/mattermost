@@ -581,7 +581,7 @@ paths:
                   in: query
                   name: page
                   type: integer
-                - description: Number of cards to return per page(default=100)
+                - description: Number of cards to return per page
                   in: query
                   name: per_page
                   type: integer

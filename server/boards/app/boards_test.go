@@ -579,7 +579,7 @@ func TestBoardCategory(t *testing.T) {
 			ID:   "default_category_id",
 			Name: "Boards",
 		}, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user_id", "default_category_id", []string{
 			"board_id_1",
@@ -741,7 +741,7 @@ func TestGetMembersForUser(t *testing.T) {
 	const userID = "user_id_1"
 	const teamID = "team_id_1"
 
-	th.Store.EXPECT().GetMembersForUser(userID).Return([]*model.BoardMember{
+	th.Store.EXPECT().GetMembersForUser(userID, mockPageOptions).Return([]*model.BoardMember{
 		{
 			BoardID:      boardID,
 			UserID:       userID,
@@ -750,7 +750,7 @@ func TestGetMembersForUser(t *testing.T) {
 	}, nil).Times(3)
 	th.Store.EXPECT().GetBoard(boardID).Return(nil, nil)
 	t.Run("-base case", func(t *testing.T) {
-		members, err := th.App.GetMembersForUser(userID)
+		members, err := th.App.GetMembersForUser(userID, model.QueryPageOptions{})
 		assert.NoError(t, err)
 		assert.NotNil(t, members)
 		assert.False(t, members[0].SchemeAdmin)
@@ -764,7 +764,7 @@ func TestGetMembersForUser(t *testing.T) {
 
 	th.API.EXPECT().HasPermissionToTeam(userID, teamID, model.PermissionManageTeam).Return(false).Times(1)
 	t.Run("-team check false ", func(t *testing.T) {
-		members, err := th.App.GetMembersForUser(userID)
+		members, err := th.App.GetMembersForUser(userID, model.QueryPageOptions{})
 		assert.NoError(t, err)
 		assert.NotNil(t, members)
 
@@ -773,7 +773,7 @@ func TestGetMembersForUser(t *testing.T) {
 
 	th.API.EXPECT().HasPermissionToTeam(userID, teamID, model.PermissionManageTeam).Return(true).Times(1)
 	t.Run("-team check true", func(t *testing.T) {
-		members, err := th.App.GetMembersForUser(userID)
+		members, err := th.App.GetMembersForUser(userID, model.QueryPageOptions{})
 		assert.NoError(t, err)
 		assert.NotNil(t, members)
 

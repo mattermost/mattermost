@@ -222,19 +222,33 @@ func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error)
 	if !user.IsGuest {
 		return true, nil
 	}
-	seerMembers, err := s.GetMembersForUser(seerID)
-	if err != nil {
-		return false, err
-	}
-	seenMembers, err := s.GetMembersForUser(seenID)
-	if err != nil {
-		return false, err
-	}
-	for _, seerMember := range seerMembers {
-		for _, seenMember := range seenMembers {
-			if seerMember.BoardID == seenMember.BoardID {
-				return true, nil
+
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		seerMembers, err := s.GetMembersForUser(seerID, model.QueryPageOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return false, err
+		}
+		seenMembers, err := s.GetMembersForUser(seenID, model.QueryPageOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return false, err
+		}
+		for _, seerMember := range seerMembers {
+			for _, seenMember := range seenMembers {
+				if seerMember.BoardID == seenMember.BoardID {
+					return true, nil
+				}
 			}
+		}
+		if len(seerMembers) < perPage && len(seenMembers) < perPage {
+			break
 		}
 	}
 	return false, nil

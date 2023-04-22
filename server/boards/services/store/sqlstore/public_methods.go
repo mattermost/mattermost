@@ -416,8 +416,8 @@ func (s *SQLStore) GetMembersForBoard(boardID string, opts model.QueryPageOption
 
 }
 
-func (s *SQLStore) GetMembersForUser(userID string) ([]*model.BoardMember, error) {
-	return s.getMembersForUser(s.db, userID)
+func (s *SQLStore) GetMembersForUser(userID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
+	return s.getMembersForUser(s.db, userID, opts)
 
 }
 
@@ -779,8 +779,8 @@ func (s *SQLStore) SearchBoardsForUser(term string, searchField model.BoardSearc
 
 }
 
-func (s *SQLStore) SearchBoardsForUserInTeam(teamID string, term string, userID string) ([]*model.Board, error) {
-	return s.searchBoardsForUserInTeam(s.db, teamID, term, userID)
+func (s *SQLStore) SearchBoardsForUserInTeam(teamID string, term string, userID string, opts model.QueryPageOptions) ([]*model.Board, error) {
+	return s.searchBoardsForUserInTeam(s.db, teamID, term, userID, opts)
 
 }
 

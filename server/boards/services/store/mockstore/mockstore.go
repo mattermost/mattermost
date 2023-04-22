@@ -810,18 +810,18 @@ func (mr *MockStoreMockRecorder) GetMembersForBoard(arg0, arg1 interface{}) *gom
 }
 
 // GetMembersForUser mocks base method.
-func (m *MockStore) GetMembersForUser(arg0 string) ([]*model.BoardMember, error) {
+func (m *MockStore) GetMembersForUser(arg0 string, arg1 model.QueryPageOptions) ([]*model.BoardMember, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMembersForUser", arg0)
+	ret := m.ctrl.Call(m, "GetMembersForUser", arg0, arg1)
 	ret0, _ := ret[0].([]*model.BoardMember)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMembersForUser indicates an expected call of GetMembersForUser.
-func (mr *MockStoreMockRecorder) GetMembersForUser(arg0 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetMembersForUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForUser", reflect.TypeOf((*MockStore)(nil).GetMembersForUser), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForUser", reflect.TypeOf((*MockStore)(nil).GetMembersForUser), arg0, arg1)
 }
 
 // GetNextNotificationHint mocks base method.
@@ -1508,18 +1508,18 @@ func (mr *MockStoreMockRecorder) SearchBoardsForUser(arg0, arg1, arg2, arg3 inte
 }
 
 // SearchBoardsForUserInTeam mocks base method.
-func (m *MockStore) SearchBoardsForUserInTeam(arg0, arg1, arg2 string) ([]*model.Board, error) {
+func (m *MockStore) SearchBoardsForUserInTeam(arg0, arg1, arg2 string, arg3 model.QueryPageOptions) ([]*model.Board, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchBoardsForUserInTeam", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SearchBoardsForUserInTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SearchBoardsForUserInTeam indicates an expected call of SearchBoardsForUserInTeam.
-func (mr *MockStoreMockRecorder) SearchBoardsForUserInTeam(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) SearchBoardsForUserInTeam(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchBoardsForUserInTeam", reflect.TypeOf((*MockStore)(nil).SearchBoardsForUserInTeam), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchBoardsForUserInTeam", reflect.TypeOf((*MockStore)(nil).SearchBoardsForUserInTeam), arg0, arg1, arg2, arg3)
 }
 
 // SearchUserChannels mocks base method.

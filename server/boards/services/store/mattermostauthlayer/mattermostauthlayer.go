@@ -823,7 +823,7 @@ func (s *MattermostAuthLayer) SearchBoardsForUser(term string, searchField model
 // term that are either private and which the user is a member of, or
 // they're open, regardless of the user membership.
 // Search is case-insensitive.
-func (s *MattermostAuthLayer) SearchBoardsForUserInTeam(teamID, term, userID string) ([]*model.Board, error) {
+func (s *MattermostAuthLayer) SearchBoardsForUserInTeam(teamID, term, userID string, opts model.QueryPageOptions) ([]*model.Board, error) {
 	// as we're joining three queries, we need to avoid numbered
 	// placeholders until the join is done, so we use the default
 	// question mark placeholder here
@@ -890,6 +890,14 @@ func (s *MattermostAuthLayer) SearchBoardsForUserInTeam(teamID, term, userID str
 		Prefix("(").
 		Suffix(") UNION ("+memberBoardsSQL, memberBoardsArgs...).
 		Suffix(") UNION ("+channelMemberBoardsSQL+")", channelMemberBoardsArgs...)
+
+	if opts.Page != 0 {
+		unionQ = unionQ.Offset(uint64(opts.Page * opts.PerPage))
+	}
+
+	if opts.PerPage > 0 {
+		unionQ = unionQ.Limit(uint64(opts.PerPage))
+	}
 
 	unionSQL, unionArgs, err := unionQ.ToSql()
 	if err != nil {
@@ -1104,50 +1112,83 @@ func (s *MattermostAuthLayer) GetMemberForBoard(boardID, userID string) (*model.
 	return bm, nil
 }
 
-func (s *MattermostAuthLayer) GetMembersForUser(userID string) ([]*model.BoardMember, error) {
-	explicitMembers, err := s.Store.GetMembersForUser(userID)
-	if err != nil {
-		s.logger.Error(`getMembersForUser ERROR`, mlog.Err(err))
-		return nil, err
-	}
+func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryPageOptions) ([]*model.BoardMember, error) {
+	queryExplicit := s.getQueryBuilder().PlaceholderFormat(sq.Question).
+		Select(
+			"COALESCE(B.minimum_role, '') AS minimum_role",
+			"BM.board_id AS board_id",
+			"BM.user_id AS user_id",
+			"BM.roles AS roles",
+			"BM.scheme_admin AS scheme_admin",
+			"BM.scheme_editor AS scheme_editor",
+			"BM.scheme_commenter AS scheme_commenter",
+			"BM.scheme_viewer AS scheme_viewer",
+			"false AS synthetic",
+		).
+		From(s.tablePrefix + "board_members AS BM").
+		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
+		Where(sq.Eq{"BM.user_id": userID})
 
-	query := s.getQueryBuilder().
-		Select("CM.userID, B.Id").
+	queryImplicit := s.getQueryBuilder().PlaceholderFormat(sq.Question).
+		Select(
+			"'' AS minimum_role",
+			"B.Id AS board_id",
+			"CM.userID AS user_id",
+			"'editor' AS roles",
+			"false AS scheme_admin",
+			"true AS scheme_editor",
+			"false AS scheme_commenter",
+			"false AS scheme_viewer",
+			"true AS synthetic",
+		).
 		From(s.tablePrefix + "boards AS B").
 		Join("ChannelMembers AS CM ON B.channel_id=CM.channelId").
 		Where(sq.Eq{"CM.userID": userID})
 
-	rows, err := query.Query()
+	explicitSQL, explicitArgs, err := queryExplicit.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	implicitSQL, implicitArgs, err := queryImplicit.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	unionSQL := fmt.Sprintf("(%s) UNION DISTINCT (%s) ORDER BY board_id", explicitSQL, implicitSQL)
+	unionArgs := append(explicitArgs, implicitArgs...)
+
+	if opts.Page != 0 {
+		unionSQL += fmt.Sprintf(" OFFSET %d", opts.Page*opts.PerPage)
+	}
+
+	if opts.PerPage > 0 {
+		unionSQL += fmt.Sprintf(" LIMIT %d", opts.PerPage)
+	}
+
+	// Postgres requires dollar sign positional placeholders.
+	if s.DBType() == model.PostgresDBType {
+		unionSQL, err = sq.Dollar.ReplacePlaceholders(unionSQL)
+		if err != nil {
+			return nil, fmt.Errorf("error replacing placeholders: %w", err)
+		}
+	}
+
+	s.logger.Trace("getMembersForUser",
+		mlog.String("sql", unionSQL),
+		mlog.Any("args", unionArgs),
+	)
+
+	rows, err := s.mmDB.Query(unionSQL, unionArgs...)
 	if err != nil {
 		s.logger.Error(`getMembersForUser ERROR`, mlog.Err(err))
 		return nil, err
 	}
 	defer s.CloseRows(rows)
 
-	members := []*model.BoardMember{}
-	existingMembers := map[string]bool{}
-	for _, m := range explicitMembers {
-		members = append(members, m)
-		existingMembers[m.BoardID] = true
-	}
-
-	// No synthetic memberships for guests
-	user, err := s.GetUserByID(userID)
+	members, err := s.boardMembersFromRows(rows)
 	if err != nil {
 		return nil, err
-	}
-	if user.IsGuest {
-		return members, nil
-	}
-
-	implicitMembers, err := s.implicitBoardMembershipsFromRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	for _, m := range implicitMembers {
-		if !existingMembers[m.BoardID] {
-			members = append(members, m)
-		}
 	}
 
 	return members, nil
@@ -1243,7 +1284,10 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.Quer
 
 func (s *MattermostAuthLayer) GetBoardsForUserAndTeam(userID, teamID string, opts model.QueryBoardOptions) ([]*model.Board, error) {
 	if opts.IncludePublicBoards {
-		boards, err := s.SearchBoardsForUserInTeam(teamID, "", userID)
+		boards, err := s.SearchBoardsForUserInTeam(teamID, "", userID, model.QueryPageOptions{
+			Page:    opts.Page,
+			PerPage: opts.PerPage,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -1252,7 +1296,10 @@ func (s *MattermostAuthLayer) GetBoardsForUserAndTeam(userID, teamID string, opt
 
 	// retrieve only direct memberships for user
 	// this is usually done for guests.
-	members, err := s.GetMembersForUser(userID)
+	members, err := s.GetMembersForUser(userID, model.QueryPageOptions{
+		Page:    opts.Page,
+		PerPage: opts.PerPage,
+	})
 	if err != nil {
 		return nil, err
 	}

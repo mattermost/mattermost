@@ -732,7 +732,7 @@ func testGetMembersForBoard(t *testing.T, store store.Store) {
 
 func testGetMembersForUser(t *testing.T, store store.Store) {
 	t.Run("should return empty list if there are no memberships for a user", func(t *testing.T) {
-		members, err := store.GetMembersForUser(testUserID)
+		members, err := store.GetMembersForUser(testUserID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Empty(t, members)
 	})
@@ -938,7 +938,7 @@ func testSearchBoardsForUser(t *testing.T, store store.Store) {
 
 func testSearchBoardsForUserInTeam(t *testing.T, store store.Store) {
 	t.Run("should return empty list if there are no resutls", func(t *testing.T) {
-		boards, err := store.SearchBoardsForUserInTeam("nonexistent-team-id", "", testUserID)
+		boards, err := store.SearchBoardsForUserInTeam("nonexistent-team-id", "", testUserID, model.QueryPageOptions{})
 		require.NoError(t, err)
 		require.Empty(t, boards)
 	})

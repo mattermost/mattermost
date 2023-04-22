@@ -102,10 +102,10 @@ type Store interface {
 	GetMemberForBoard(boardID, userID string) (*model.BoardMember, error)
 	GetBoardMemberHistory(boardID, userID string, limit uint64) ([]*model.BoardMemberHistoryEntry, error)
 	GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([]*model.BoardMember, error)
-	GetMembersForUser(userID string) ([]*model.BoardMember, error)
+	GetMembersForUser(userID string, opts model.QueryPageOptions) ([]*model.BoardMember, error)
 	CanSeeUser(seerID string, seenID string) (bool, error)
 	SearchBoardsForUser(term string, searchField model.BoardSearchField, userID string, includePublicBoards bool) ([]*model.Board, error)
-	SearchBoardsForUserInTeam(teamID, term, userID string) ([]*model.Board, error)
+	SearchBoardsForUserInTeam(teamID, term, userID string, opts model.QueryPageOptions) ([]*model.Board, error)
 
 	// @withTransaction
 	CreateBoardsAndBlocksWithAdmin(bab *model.BoardsAndBlocks, userID string) (*model.BoardsAndBlocks, []*model.BoardMember, error)

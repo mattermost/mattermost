@@ -253,8 +253,12 @@ func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 	auditRec.AddMeta("teamID", teamID)
 
-	// retrieve boards list
-	boards, err := a.app.SearchBoardsForUserInTeam(teamID, term, userID)
+	// retrieve boards list.
+	// TODO: this cannot be paginated without refactoring since the boards returned are filtered
+	//       below based on a permissions check, and may result in an empty list returned for a
+	//       page. The empty list would indicate to the client no more boards are found, meanwhile
+	//       there may be linkable boards left on subsequent pages.
+	boards, err := a.app.SearchBoardsForUserInTeam(teamID, term, userID, model.QueryPageOptions{})
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

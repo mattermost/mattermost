@@ -56,7 +56,7 @@ func TestPrepareOnboardingTour(t *testing.T) {
 		}
 		newType := model.BoardTypePrivate
 		th.Store.EXPECT().PatchBoard("board_id_2", &model.BoardPatch{Type: &newType}, "user_id_1").Return(&privateWelcomeBoard, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id_1").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("user_id_1", mockPageOptions).Return([]*model.BoardMember{}, nil)
 
 		userPreferencesPatch := model.UserPreferencesPatch{
 			UpdatedFields: map[string]string{

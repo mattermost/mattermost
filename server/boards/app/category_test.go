@@ -374,7 +374,7 @@ func TestMoveBoardsToDefaultCategory(t *testing.T) {
 			Name: "Boards",
 			Type: "system",
 		}, nil)
-		th.Store.EXPECT().GetMembersForUser("user_id").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("user_id", mockPageOptions).Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user_id", "team_id", mockBoardOptions).Return([]*model.Board{}, nil)
 
 		err := th.App.moveBoardsToDefaultCategory("user_id", "team_id", "category_id_2")

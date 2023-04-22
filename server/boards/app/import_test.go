@@ -69,7 +69,7 @@ func TestApp_ImportArchive(t *testing.T) {
 			Name: "Boards",
 		}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("user", "test-team", mockBoardOptions).Return([]*model.Board{}, nil)
-		th.Store.EXPECT().GetMembersForUser("user").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("user", mockPageOptions).Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().AddUpdateCategoryBoard("user", utils.Anything, utils.Anything).Return(nil)
 
 		err := th.App.ImportArchive(r, opts)
@@ -127,7 +127,7 @@ func TestApp_ImportArchive(t *testing.T) {
 			ID:   "boards_category_id",
 			Name: "Boards",
 		}, nil)
-		th.Store.EXPECT().GetMembersForUser("f1tydgc697fcbp8ampr6881jea").Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForUser("f1tydgc697fcbp8ampr6881jea", mockPageOptions).Return([]*model.BoardMember{}, nil)
 		th.Store.EXPECT().GetBoardsForUserAndTeam("f1tydgc697fcbp8ampr6881jea", "test-team", mockBoardOptions).Return([]*model.Board{}, nil)
 		th.Store.EXPECT().AddUpdateCategoryBoard("f1tydgc697fcbp8ampr6881jea", utils.Anything, utils.Anything).Return(nil)
 		th.Store.EXPECT().GetBoard(board.ID).AnyTimes().Return(board, nil)

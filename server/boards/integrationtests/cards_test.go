@@ -114,7 +114,7 @@ func TestGetCards(t *testing.T) {
 	}
 
 	t.Run("fetch all cards", func(t *testing.T) {
-		cards, resp := th.Client.GetCards(board.ID, 0, -1)
+		cards, resp := th.Client.GetCards(board.ID, 0, 50)
 		th.CheckOK(resp)
 		assert.Len(t, cards, cardCount)
 	})
