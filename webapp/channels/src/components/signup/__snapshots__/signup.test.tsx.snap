@@ -99,7 +99,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               <span
                 className="interested"
               >
-                Interested in receiving Mattermost security updates via newsletter?
+                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
               </span>
               <span
                 className="link"
@@ -272,7 +272,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               <span
                 className="interested"
               >
-                Interested in receiving Mattermost security updates via newsletter?
+                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
               </span>
               <span
                 className="link"

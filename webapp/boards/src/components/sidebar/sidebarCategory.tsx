@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    ReactNode,
     useCallback,
     useEffect,
     useMemo,
@@ -167,7 +168,7 @@ const SidebarCategory = (props: Props) => {
             id: 'SidebarCategories.CategoryMenu.DeleteModal.Title',
             defaultMessage: 'Delete this category?',
         }),
-        subText: intl.formatMessage(
+        subText: intl.formatMessage<ReactNode>(
             {
                 id: 'SidebarCategories.CategoryMenu.DeleteModal.Body',
                 defaultMessage: 'Boards in <b>{categoryName}</b> will move back to the Boards categories. You\'re not removed from any boards.',

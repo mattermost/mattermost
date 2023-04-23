@@ -6,7 +6,7 @@ import {shallow} from 'enzyme';
 
 import ChipsList, {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
 
-import {ItemStatus} from './dashboard.data';
+import {ItemStatus} from './dashboard.type';
 
 describe('components/admin_console/workspace-optimization/chips_list', () => {
     const overallScoreChips: ChipsInfoType = {
