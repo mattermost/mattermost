@@ -1723,7 +1723,7 @@ func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
 			require.Nil(t, appErr)
 
 			t.Cleanup(func() {
-				appErr = th2.App.DeletePublicKey("pub_key")
+				appErr = th.App.DeletePublicKey("pub_key")
 				require.Nil(t, appErr)
 			})
 
