@@ -1960,10 +1960,6 @@
     "translation": "پردازنده انبوه جستجوی الاستیک ایجاد نشد."
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "جستجوی الاستیک در حال حاضر آغاز شده است."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "رمزگشایی نتایج جستجو انجام نشد"
   },

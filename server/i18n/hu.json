@@ -3332,10 +3332,6 @@
     "translation": "Nem sikerült létrehozni az Elasticsearch tömeges feldolgozót."
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Az Elasticsearch már elindult."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Nem sikerült dekódolni a keresési eredményeket"
   },

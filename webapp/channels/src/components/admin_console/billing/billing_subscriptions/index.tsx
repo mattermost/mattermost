@@ -48,6 +48,7 @@ import {
 import LimitReachedBanner from './limit_reached_banner';
 import CancelSubscription from './cancel_subscription';
 import {ToYearlyNudgeBanner} from './to_yearly_nudge_banner';
+import {ToPaidNudgeBanner} from './to_paid_plan_nudge_banner';
 
 import './billing_subscriptions.scss';
 
@@ -136,6 +137,7 @@ const BillingSubscriptions = () => {
                         />
                         {shouldShowPaymentFailedBanner() && paymentFailedBanner()}
                         {<ToYearlyNudgeBanner/>}
+                        {<ToPaidNudgeBanner/>}
                         {showCreditCardBanner &&
                             isCardExpired &&
                             creditCardExpiredBanner(setShowCreditCardBanner)}
