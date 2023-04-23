@@ -6,8 +6,8 @@ package slashcommands
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type TeamEnvironment struct {

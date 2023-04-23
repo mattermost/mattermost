@@ -9,7 +9,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import * as GlobalActions from 'actions/global_actions';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {Constants, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import InvitationModal from 'components/invitation_modal';

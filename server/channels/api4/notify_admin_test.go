@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestNotifyAdmin(t *testing.T) {
@@ -23,7 +23,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Unable to save notify data.")
+		require.Equal(t, ": Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
 
 	})
@@ -39,7 +39,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Unable to save notify data.")
+		require.Equal(t, ": Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
 
 	})
@@ -54,7 +54,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Unable to save notify data.")
+		require.Equal(t, ": Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
 	})
 
@@ -69,7 +69,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Unable to save notify data.")
+		require.Equal(t, ": Unable to save notify data.", err.Error())
 		require.Equal(t, http.StatusInternalServerError, statusCode)
 	})
 
@@ -91,7 +91,7 @@ func TestNotifyAdmin(t *testing.T) {
 		})
 		require.Error(t, err)
 
-		require.Equal(t, err.Error(), ": Already notified admin")
+		require.Equal(t, ": Already notified admin", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
 	})
 
@@ -119,7 +119,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Internal error during cloud api request.")
+		require.Equal(t, ": Internal error during cloud api request.", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
 
 	})
@@ -133,7 +133,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		statusCode, err := th.Client.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
+		require.Equal(t, ": You do not have the appropriate permissions.", err.Error())
 		require.Equal(t, http.StatusForbidden, statusCode)
 	})
 
