@@ -116,16 +116,11 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 		} else {
 			body = strings.NewReader(payload.ToFormValues())
 		}
-			js, err := json.Marshal(payload)
-			if err != nil {
-				c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
-			}
-			body = bytes.NewReader(js)
-			contentType = "application/json"
-		} else {
-			body = strings.NewReader(payload.ToFormValues())
-			contentType = "application/x-www-form-urlencoded"
+		js, err := json.Marshal(payload)
+		if err != nil {
+			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
 		}
+		body = bytes.NewReader(js)
 
 		// Get the callback URL by index to properly capture it for the go func
 		url := hook.CallbackURLs[i]
