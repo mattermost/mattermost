@@ -74,12 +74,12 @@ export default function SelfHostedExpansionErrorPage(props: Props) {
                 error={true}
                 formattedButtonText={formattedButtonText}
                 buttonHandler={() => {
-                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'self_hosted_expansion_failure_try_again_clicked');
+                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'failure_try_again_clicked');
                     props.tryAgain();
                 }}
                 formattedTertiaryButonText={tertiaryButtonText}
                 tertiaryButtonHandler={() => {
-                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'self_hosted_expansion_failure_contact_support_clicked');
+                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'failure_contact_support_clicked');
                     window.open(contactSupportLink, '_blank', 'noreferrer');
                 }}
             />

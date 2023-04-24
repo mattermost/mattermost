@@ -35,7 +35,7 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
                     <a
                         href='#'
                         onClick={() => {
-                            trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'self_hosted_expansion_success_screen_closed');
+                            trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'success_screen_closed');
                             history.push(ConsolePages.BILLING_HISTORY);
                             props.onClose();
                         }}
