@@ -13,7 +13,7 @@
 
 import {stubClipboard} from '../../../utils';
 
-describe('runs > run details page > header', () => {
+describe('runs > run details page > header', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testViewerUser;

@@ -1505,7 +1505,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nKanallar eklendi:\n"
+    "translation": "\nEklenen kanallar:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1521,7 +1521,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nKullanıcılar eklendi:\n"
+    "translation": "\nEklenen kullanıcılar:\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
@@ -3134,10 +3134,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Arama sonuçlarının kodu çözülemedi"
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch zaten başlatılmış."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
@@ -9023,50 +9019,6 @@
     "translation": "gruplar sayılırken sorun çıktı"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Bu harika özelliklerle üretkenliğinizi artırın"
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Ekibinizin üretkenliğini arttırmak için Mattermost açın!"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Merhaba {{.Name}}, Mattermost sunucunuzun biraz toz tuttuğunu fark ettik. Ekibinizin iş yükünü hafifletmeye yardımcı olabilecek bazı özelliklere göz atın."
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Belirtilen konuk erişimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Görev yönetimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "İş akışı yönetimi "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Gelin ve inceleyin!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermost uygulamasını aç"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Senaryolar"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanallar"
-  },
-  {
-    "id": "Boards",
-    "translation": "Panolar"
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Türe ve duruma göre tüm görevler alınamadı."
   },
@@ -9165,10 +9117,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost üst tarifeye geçme onayı"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Bu bir kerelik e-posta Mattermost sunucunuz {{.Hours}} saatten uzun süredir etkin olmadığı için gönderildi. Bu e-posta Mattermost sunucunuz tarafından otomatik olarak oluşturuldu."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -9511,10 +9459,6 @@
     "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
   },
@@ -9559,24 +9503,8 @@
     "translation": "Arşivlenmiş bir kanaldaki bir onayı kaldıramazsınız."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Özellik geliştirme sürecinizin sorunsuz olmasını sağlamak için geliştirme ekipleri arasında şeffaf iş akışları oluşturun."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Bir Jira botu ve Github botu ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bu botlar sizin için indirilir."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Panolarınıza, senaryolarınıza ve uygulama botlarınıza kolayca bağlanan bir özellik yayını kanalında ekibinizle sohbet edin."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Ayaküstü gibi yinelenen toplantılar için toplantı gündemi panosu kalıbımızı ve yol boyunca görevlerin ilerleyişini yönetmek için proje görevleri panomuzu kullanın."
-  },
-  {
     "id": "worktemplate.category.product_teams",
-    "translation": "Ürün takımları"
+    "translation": "Ürün"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -9633,10 +9561,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "İletinin önceliği alınamadı"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Taslak güncellenemedi."
   },
   {
     "id": "app.draft.get_drafts.app_error",
@@ -9843,120 +9767,12 @@
     "translation": "Geliştirme işlemleri"
   },
   {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Bu proje panosunu kullanarak bir yol haritası planlayın ve bu kalıpla oluşturulan kanalda konu üzerine işbirliği yapın."
-  },
-  {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
     "translation": "Kimlik doğrulama hizmeti geçersiz: {{.AuthService}}"
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Bu hizmet yalnızca Mattermost Enterprise sürümüyle kullanılabilir"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Acil işlerin planlamasını kolaylaştırmak için bir proje kullanın. Kanal, konuşmanın ve soruların odaklanmasını sağlar. Acil iş planı herkesin hafta boyunca görevler üzerinde kalmasını sağlar ve geçmiş değerlendirmesi panosu takımı sürekli geliştirme için bir araya getirir."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Kanallara neden gerek duyulduğunun açıklaması"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Panolara neden gerek duyulduğunun açıklaması"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Bu proje ile organize olun ve tüm hatalardan kurtulun! Senaryo, Pano ve Kanal özelliklerini kullanarak çalışmaya başlayın ve ilerlemeyi ölçün."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Takım başarısı için net odaklanma şarttır ve bu proje ile ekibin hedefleri ile OKR kriterlerini belgeleyebilir ve güncellemeleri özel bir kanalda yayınlayabilirsiniz."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Bu proje ile bir ürün sürümü sırasında hiçbir adımı atlamayın. Senaryo kontrol listesinden görevler atayın ve Pano ile kilometre taşlarına ulaşın. Herkesin aynı şeyleri bilmesi için Kanalları kullanın."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "İşler ters gittiğinde, yinelenebilir bir sürecinizin olması, her şeyin olabilecek en kısa sürede doğru olarak yapılmasını sağlar. Bu özellik projelerdeki yangınların söndürülmesini ve paydaşların yol boyunca bilgilendirilmesini sağlamak için Mattermost tarafından sunulan her şeyi bir araya getirir."
   },
   {
     "id": "app.worktemplates.execute_work_template.name_too_long",
@@ -10013,5 +9829,345 @@
   {
     "id": "api.command_templates.desc",
     "translation": "Kalıptan oluştur penceresini aç"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Acil sorunlar, önceliklendirme, sahip atama ve yorumlarla ekibinizin haftalık hedeflere doğru ilerlemesini izleyin."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Zoom gibi sık kullandığınız araçlar ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Panolarınız ve bütünleştirmelerinizle kolayca bağlantı kuran bir kanalda ekibinizle sohbet edin."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Müşterilerinizin geri bildirimleri ve önceliklendirme hakkında ekibinizle sohbet ederek birlikte ilerleme kaydedin."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Kullanıcı geri bildirimlerini yönetmek, kaynak atamak, çıktıları takvimde görüntülemek ve sorunları önceliklendirmek için ürün yol haritası panosunu kullanın."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Amaçlar ve anahtar sonuçlar (OKR) panosu ile ekibinizin kurumsal hedeflere doğru ilerlemesini izleyin. Toplantı gündemi panosu ile toplantıları izleyin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Özellik geliştirme sürecinizi destekleyen görev kontrol listeleri ve otomasyon ile işlevsel ekipler arasında işbirliğini artırın. İşiniz bittiğinde bir geçmiş değerlendirmesi yaparak ve süreci bir sonraki sürümünüz için iyileştirin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Özellikleri yayınlamak için GitHub gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Panolarınıza, senaryolarınıza ve diğer bütünleştirmelere kolayca bağlanan bir kanalda sürüm engelleyicileri ve değişiklikler hakkında ekibinizle sohbet edin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Toplantı gündemi panosu ile toplantıları izleyin. Proje görevleri panosu ile iş yükünüzü yönetin."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Kapsamlı bir hata ayıklama süreci yürütmek için deneme alanları ve otomatik görevler atamak üzere kontrol listeleri kullanın. Sürecinizi gözden geçirmek ve gelecek sefer daha iyi olmasını sağlamak için bir geçmiş değerlendirmesi yapın."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Hata ayıklama işlerinizi kolaylaştırmak için Jira gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Hata raporlarını ve çözümlerini ekibinizin ve kuruluşunuzun kolayca erişebileceği tek bir kanalda planlayın ve yönetin."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Amaçlar ve anahtar sonuçlar (OKR) panosu ile ekibinizin kurumsal hedeflere doğru ilerlemesini izleyin. Toplantı gündemi panosu ile toplantıları izleyin."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Ürün çıkışlarının güvenilir ve zamanında olması için izlenmesi ve uygulanması kolay, yinelenebilir iş akışları oluşturun."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Ekibinizle günlük kilometre taşları, engeller ve çıktılardaki değişiklikler hakkında kolay ve hızlı bir şekilde sohbet edin."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Sürüm zaman çerçevenizi ve sürecinizi desteklemek için ürün çıkarma panosunu kullanın ve herkesin hangi görevlerin bitiş zamanının geldiğini bilmesini sağlayın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Kilit ekip üyelerini bir araya getirmek için kontrol listeleri ve otomasyon kullanarak olayın çözüme doğru ilerlemesini paylaşın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Ekibinizle tek bir kanal kullanarak öncelikler hakkında sohbet edin, paydaşlar ekleyin, güncellemeler yayınlayın ve çözüm için çalışın."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Yinelenebilen süreçleri desteklemek ve ekip genelinde tanımlanmış görevler atamak için olay çözümleme panosunu kullanın."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "İşbirliğini kolaylaştırmak için Zoom gibi sık kullandığınız araçları bütünleştirin ve kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Hedefleriniz ve ilerlemeniz hakkında ekibinizle farklı zamanlarda ya da gerçek zamanlı olarak sohbet edin ve değişiklikleri tek bir kanaldan izleyerek güncel kalın."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Amaçlar ve anahtar sonuçlar (OKR) panosu ile ekibinizin kurumsal hedeflere doğru ilerlemesini izleyin. Toplantı gündemi panosu ile toplantıları izleyin."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Sık kullandığınız araçlar ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bunlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Ekibinizle yeni projeniz üzerine sohbet edin ve işbirlikli bir kanalda projeyi nasıl yapılandıracağınıza karar verin."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Proje görevlerinizi ve ilerlemenizi tanımlamak ve izlemek için bir Kanban panosu kullanın."
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Durum güncellemesi"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Durumu güncelle"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Sonraki güncelleme anımsatıcısı"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "one": "Paydaşlara bir güncelleme duyurun. Bu gönderi {{.Count}} kanalında yayınlanacak.",
+      "other": "Paydaşlara bir güncelleme duyurun. Bu gönderi {{.Count}} kanalında yayınlanacak."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Ayrıca oyunu da tamamlanmış olarak işaretle"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Oyunu tamamla"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Son güncellemeden sonraki değişiklik"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini etkinleştirdi"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}}, [{{.RunName}}]({{.RunURL}}) için durum güncellemelerini devre dışı bıraktı"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here — @{{.Name}}, [{{.RunName}}]({{.RunURL}}) için bir durum güncellemesi istedi. \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} bir oyun katılımcısı ve bu kanala katılmak istiyor. Kanalın herhangi bir üyesi onu çağırabilir.\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Oyunu tamamlamayı onayla"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Oyunu tamamla"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "one": "Bekleyen **{{.Count}} görev** var. *{{.RunName}}* oyununu tüm katılımcılar için tamamlamak istediğinize emin misiniz?",
+      "other": "Bekleyen **{{.Count}} görev** var. *{{.RunName}}* oyununu tüm katılımcılar için tamamlamak istediğinize emin misiniz?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Oyun zaman akışına ekle"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Zaman akışında görüntülenecek kısa açıklama"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "En fazla 64 karakter"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Özet"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Oyun zaman akışına ekle"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Senaryo oyunu"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Yeni görev ekle"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Görev ekle"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Ad"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Açıklama"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Senaryoyu oyna"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Oyunu başlat"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Oyun adı"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Senaryo"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Sahibi** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Size atanmış bir görev yok."
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "one": "Süresi dolmuş {{.Count}} atanmış göreviniz var:",
+      "other": "Süresi dolmuş {{.Count}} atanmış göreviniz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "one": "{{.Count}} atanmış göreviniz var:",
+      "other": "{{.Count}} atanmış göreviniz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Atanmış görevleriniz"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Süresi dün doldu"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Süresi {{.Count}} gün önce doldu"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Süresi bugün dolacak"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "one": "{{.Count}} gün içinde süresi dolacak",
+      "other": "{{.Count}} gün içinde süresi dolacak"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "one": "Bugünden sonra süresi dolacak **{{.Count}} göreviniz var**.",
+      "other": "Bugünden sonra süresi dolacak **{{.Count}} göreviniz var**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Tüm görevlerinizi görüntülemek için `/playbook todo` kullanın."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Süren bir oyununuz yok."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "one": "Süren {{.Count}} oyununuz var:",
+      "other": "Süren {{.Count}} oyununuz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Süren oyunlar"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Gecikmiş bir oyununuz yok."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "one": "Bir durum güncellemesi için {{.Count}} oyun gecikmeniz var:",
+      "other": "Bir durum güncellemesi için {{.Count}} oyun gecikmeniz var:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Gecikmiş durum güncellemeleri"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Komut yürütülemedi."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS sunucusu duyurulara abone olamadı."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Deneme için iş e-postası geçersiz"
   }
 ]

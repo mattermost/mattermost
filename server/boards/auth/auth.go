@@ -7,11 +7,11 @@ package auth
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 )
 
 type AuthInterface interface {
@@ -56,6 +56,10 @@ func (a *Auth) IsValidReadToken(boardID string, readToken string) (bool, error) 
 	}
 	if err != nil {
 		return false, err
+	}
+
+	if !a.config.EnablePublicSharedBoards {
+		return false, errors.New("public shared boards disabled")
 	}
 
 	if sharing != nil && (sharing.ID == boardID && sharing.Enabled && sharing.Token == readToken) {

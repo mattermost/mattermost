@@ -89,11 +89,8 @@
     "unused-imports/no-unused-imports": 2,
     "no-relative-import-paths/no-relative-import-paths": [
       "error",
-      { "allowSameFolder": true, "rootDir": "webapp/src"}
+      { "allowSameFolder": true, "rootDir": "webapp/boards"}
     ],
- /*    "no-restricted-imports": ["error", {
-      "patterns": ["..*"]
-    }], */
     "import-newlines/enforce": [
       2,
       3
@@ -101,7 +98,8 @@
     "object-curly-spacing": [
       2,
       "never"
-    ]
+    ],
+    "formatjs/no-multiple-whitespaces": 2
   },
   "overrides": [
     {

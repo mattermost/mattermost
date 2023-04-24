@@ -18,7 +18,7 @@ type Props = {
 }
 
 export default class LineChart extends React.PureComponent<Props> {
-    private canvasRef = React.createRef<HTMLCanvasElement>()
+    private canvasRef = React.createRef<HTMLCanvasElement>();
     public static propTypes = {
 
         /*
@@ -94,7 +94,7 @@ export default class LineChart extends React.PureComponent<Props> {
         if (this.chart && this.canvasRef.current && this.chart.options.responsive) {
             this.canvasRef.current.style.width = '100%';
         }
-    }
+    };
 
     public initChart = (update?: boolean): void => {
         if (!this.canvasRef.current) {
@@ -113,7 +113,7 @@ export default class LineChart extends React.PureComponent<Props> {
         } else {
             this.chart = new Chart(ctx, {type: 'line', data: dataCopy, options: options || {}});
         }
-    }
+    };
 
     public render(): JSX.Element {
         let content;

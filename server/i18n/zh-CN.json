@@ -3132,10 +3132,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "ElasticSearch 已启动。"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "创建 Elasticsearch 批量处理器失败。"
   },
@@ -9000,38 +8996,6 @@
     "translation": "SAML的请求信息太长"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "解锁这些令人敬佩的、提高生产力的功能"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "嗨, {{.Name}}, 我们注意到您的 Mattermost 服务器集了一些“灰尘”（有一段时间没有维护了），快来看看可以帮助减轻团队工作量的一些功能."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "快来打开 Mattermost 以提高您团队的生产力！"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "管理任务由 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "工作流管理于 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "指定客户专访 "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "快来看看吧!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "打开 Mattermost"
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelsLen }} 频道组"
   },
@@ -9128,18 +9092,6 @@
     "translation": "统计“组”时出现错误"
   },
   {
-    "id": "Playbooks",
-    "translation": "规划书"
-  },
-  {
-    "id": "Channels",
-    "translation": "频道"
-  },
-  {
-    "id": "Boards",
-    "translation": "面板"
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID 的最大长度为 32 个字符。"
   },
@@ -9170,10 +9122,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "Insights 功能已禁用。"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9505,7 +9453,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "产品团队"
+    "translation": "产品"
   },
   {
     "id": "worktemplate.category.leadership",
@@ -9513,7 +9461,7 @@
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9688,10 +9636,6 @@
     "translation": "无法取得消息的优先级"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "在生产模式中无法启用 {{.Name}} 插件。"
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "无法发送通知消息。"
   },
@@ -9718,10 +9662,6 @@
   {
     "id": "app.file.cloud.get.app_error",
     "translation": "由于云订阅的限制，无法取得文件。"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "无法更新草稿。"
   },
   {
     "id": "app.draft.save.app_error",
@@ -9858,130 +9798,6 @@
   {
     "id": "api.command_templates.unsupported.app_error",
     "translation": "您的设备不支持模板命令。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "项目面板可以使迭代计划前所未来的容易。频道可以用来对话和保证问题的被关注。迭代计划面板可以使所以有本周对任务的关注，回顾面板让团队作为一个整体不断改进。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "项目面板可以使迭代计划前所未来的容易。频道可以用来对话和保证问题的被关注。迭代计划面板可以使所以有本周对任务的关注，回顾面板让团队作为一个整体不断改进。"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "项目面板可以使迭代计划前所未来的容易。频道可以用来对话和保证问题的被关注。迭代计划面板可以使所以有本周对任务的关注，回顾面板让团队作为一个整体不断改进。"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "这里描述了为什么需要面板"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "这里描述了为什么需要面板"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "通过建立透明的跨越整个研发团队的工作流程确保你的功能开发过程完美流畅。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "在你的频道通过集成Jira和Gtihub机器人提高效率。这些会自动下载安装。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Boards,Playbooks和应用Bot可以很容易地接入功能发布频道并且和你的团队进行相关互动和讨论。"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "使用我们的会议日程模板安排像站立会议这样的定期会议，使用我们的项目任务面板在一路上管理任务的进度。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "把事情安排好并且干掉此项目里的所有bug！用包含的Playbook, Board, and Channel推动项目并评估进度。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "把事情安排好并且干掉此项目里的所有bug！用包含的Playbook, Board, and Channel推动项目并评估进度。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "把事情安排好并且干掉此项目里的所有bug！用包含的Playbook, Board, and Channel推动项目并评估进度。"
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "把事情安排好并且干掉此项目里的所有bug！用包含的Playbook, Board, and Channel推动项目并评估进度。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "不要丢失此项目的任何一个步骤。从Playbook的检验清单分离成任务部署并达到项目面板的里程碑。用频道来保持所有人对事情的理解一致。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "不要丢失此项目的任何一个步骤。从Playbook的检验清单分离成任务部署并达到项目面板的里程碑。用频道来保持所有人对事情的理解一致。"
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "不要丢失此项目的任何一个步骤。从Playbook的检验清单分离成任务部署并达到项目面板的里程碑。用频道来保持所有人对事情的理解一致。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "当到处都是问题的时候，有一个能够确保一切都尽快回归正确的可重复流程是关键。此项目使用Mattermost提供的一切功能保证火被一步步扑灭以及利益相关者被告知。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "当到处都是问题的时候，有一个能够确保一切都尽快回归正确的可重复流程是关键。此项目使用Mattermost提供的一切功能保证火被一步步扑灭以及利益相关者被告知。"
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "当到处都是问题的时候，有一个能够确保一切都尽快回归正确的可重复流程是关键。此项目使用Mattermost提供的一切功能保证火被一步步扑灭以及利益相关者被告知。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "清晰的目标对团队的成功至关重要，在此项目里你可以在文档里写下团队的目标和OKR，并在相关的频道里会有消息提醒。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "使用此项目面板设计一个路线图，并在产生的频道里就相应话题进行探讨合作。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "使用此项目面板设计一个路线图，并在产生的频道里就相应话题进行探讨合作。"
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "使用此项目面板设计一个路线图，并在产生的频道里就相应话题进行探讨合作。"
   },
   {
     "id": "app.user.run.update_status.title",
@@ -10206,5 +10022,69 @@
   {
     "id": "api.license.true_up_review.create_error",
     "translation": "无法创建真实的状态记录"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "无效的商务试用邮箱"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "通过集成大多您使用过的工具（比如 GitHub）在您的频道里提高生产力，实现你的功能发布。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "在一个频道与你的团队讨论任何的发布障碍和变动，并很容易的与你的面板，Playbook或者其他的集成功能连接。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "使用会议安排面板保持会议一起正常。使用项目任务面板管理你的工作量。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "通过集成大多您使用过的工具（比如Jira）在您的频道里提高生产力，跟踪你的Bug解决过程。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "在一单独频道与您的团队讨论优先级、添加利益相关者，提供更新，向解决的方向努力。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "使用事故解决面板来实现重复性的流程和分配跨越整个团队的任务。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "通过集成大多您使用过的工具（比如 Zoom）在您的频道里提高生产力，实行更容易的协作。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "和您的团队讨论目标和进度，以异步或者同步的方式，在同一个频道中保持跟上任何发生的变化。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "使用目标和OKR面板跟踪您的团队进度向组织目标推进。使用会议安排面板保持会议一起正常。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "通过集成大多您使用过的工具在您的频道里提高生产力。这些工具将为你下载。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "与您的团队在一个协作频道里讨论新的项目并且决定如何你们将如此组织。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "使用看板面板定义和跟踪您的项目任务列表和进度。"
   }
 ]

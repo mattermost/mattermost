@@ -37,7 +37,6 @@ func init() {
 	_ = T("worktemplate.product_teams.goals_and_okrs.board")
 	_ = T("worktemplate.product_teams.goals_and_okrs.integration")
 	_ = T("worktemplate.product_teams.bug_bash.channel")
-	_ = T("worktemplate.product_teams.bug_bash.board")
 	_ = T("worktemplate.product_teams.bug_bash.playbook")
 	_ = T("worktemplate.product_teams.bug_bash.integration")
 	_ = T("worktemplate.product_teams.sprint_planning.channel")
@@ -92,22 +91,22 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.channel",
-			DefaultMessage: "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots.",
+			DefaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.board",
-			DefaultMessage: "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way.",
+			DefaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board.",
 			Illustration:   "",
 		},
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.playbook",
-			DefaultMessage: "Create transparent workflows across development teams to ensure your feature development process is seamless.",
+			DefaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release.",
 			Illustration:   "",
 		},
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.feature_release.description.integration",
-			DefaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -149,12 +148,14 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "jira",
+				ID:          "jira",
+				Recommended: true,
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "github",
+				ID:          "github",
+				Recommended: true,
 			},
 		},
 	},
@@ -170,18 +171,18 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.channel",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.board",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.integration",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -215,7 +216,8 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -231,22 +233,18 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.product_teams.bug_bash.channel",
-			DefaultMessage: "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel.",
+			DefaultMessage: "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization.",
 			Illustration:   "",
 		},
-		Board: &TranslatableString{
-			ID:             "worktemplate.product_teams.bug_bash.board",
-			DefaultMessage: "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel.",
-			Illustration:   "",
-		},
+
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.product_teams.bug_bash.playbook",
-			DefaultMessage: "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel.",
+			DefaultMessage: "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time.",
 			Illustration:   "",
 		},
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.bug_bash.integration",
-			DefaultMessage: "Get organized and bash all the bugs with  this project! Build momentum and measure progress using included Playbook, Board, and Channel.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -270,7 +268,8 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "jira",
+				ID:          "jira",
+				Recommended: true,
 			},
 		},
 	},
@@ -286,18 +285,18 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.channel",
-			DefaultMessage: "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve.",
+			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.board",
-			DefaultMessage: "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve.",
+			DefaultMessage: "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.",
 			Illustration:   "",
 		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.integration",
-			DefaultMessage: "Use a Project to make sprint planning a breeze. The channel keeps the conversation and questions focused. The sprint plan keeps everyone on task for the week and the Retrospective board brings the team together to continuously improve.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -322,7 +321,8 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -338,12 +338,12 @@ var wt00ab91a945627f4a624957dd80490bb2 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.product_teams.product_roadmap.channel",
-			DefaultMessage: "Description of why the channel(s) are needed",
+			DefaultMessage: "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.product_roadmap.board",
-			DefaultMessage: "Description of why the board(s) are needed",
+			DefaultMessage: "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues.",
 			Illustration:   "",
 		},
 	},
@@ -379,17 +379,17 @@ var wtce19b9352a59d6a5d26f292d83e84377 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.devops.incident_resolution.description.channel",
-			DefaultMessage: "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way.",
+			DefaultMessage: "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.devops.incident_resolution.description.board",
-			DefaultMessage: "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way.",
+			DefaultMessage: "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team.",
 			Illustration:   "",
 		},
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.devops.incident_resolution.description.playbook",
-			DefaultMessage: "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way.",
+			DefaultMessage: "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution.",
 			Illustration:   "",
 		},
 	},
@@ -433,17 +433,17 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.devops.product_release.channel",
-			DefaultMessage: "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page.",
+			DefaultMessage: "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.devops.product_release.board",
-			DefaultMessage: "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page.",
+			DefaultMessage: "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.",
 			Illustration:   "",
 		},
 		Playbook: &TranslatableString{
 			ID:             "worktemplate.devops.product_release.playbook",
-			DefaultMessage: "Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page.",
+			DefaultMessage: "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.",
 			Illustration:   "",
 		},
 	},
@@ -457,21 +457,21 @@ var wt37406285a41c18bcdeb881189f7acde0 = &WorkTemplate{
 			},
 		},
 		{
-			Channel: &Channel{
-				ID:           "channel-1674851385983",
-				Name:         "Product Release",
-				Purpose:      "",
-				Playbook:     "playbook-1674851385983",
-				Illustration: "/static/worktemplates/devops/product_release/channel.png",
-			},
-		},
-		{
 			Board: &Board{
 				ID:           "board-1674851386432",
 				Template:     "a4ec399ab4f2088b1051c3cdf1dde4c3",
 				Name:         "Product Release",
 				Channel:      "channel-1674851385983",
 				Illustration: "/static/worktemplates/boards/project_tasks.png",
+			},
+		},
+		{
+			Channel: &Channel{
+				ID:           "channel-1674851385983",
+				Name:         "Product Release",
+				Purpose:      "",
+				Playbook:     "playbook-1674851385983",
+				Illustration: "/static/worktemplates/devops/product_release/channel.png",
 			},
 		},
 	},
@@ -487,18 +487,18 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.channel",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.board",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.integration",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -523,7 +523,8 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -533,24 +534,24 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 	ID:           "companywide/create_project:v1",
 	Category:     "companywide",
 	UseCase:      "Create a project",
-	Illustration: "/static/worktemplates/companywide/create_project/create_project.svg",
+	Illustration: "/static/worktemplates/companywide/create_project/create_project.png",
 	Visibility:   "public",
 
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.companywide.create_project.channel",
-			DefaultMessage: "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template.",
+			DefaultMessage: "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.companywide.create_project.board",
-			DefaultMessage: "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template.",
+			DefaultMessage: "Use a Kanban board to define and track your project tasks and progress.",
 			Illustration:   "",
 		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.companywide.create_project.integration",
-			DefaultMessage: "Plan a Roadmap using this Project Board and collaborate on topic in the channel created with this template.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -575,17 +576,20 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "jira",
+				ID:          "jira",
+				Recommended: true,
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "github",
+				ID:          "github",
+				Recommended: true,
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -601,18 +605,18 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.channel",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.board",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
 		Integration: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.integration",
-			DefaultMessage: "Clear focus is essential to team success and with this Project you can document the team’s goals and OKR’s as well as post updates in the dedicated channel.",
+			DefaultMessage: "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.",
 			Illustration:   "/static/worktemplates/integrations.png",
 		},
 	},
@@ -637,7 +641,8 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},

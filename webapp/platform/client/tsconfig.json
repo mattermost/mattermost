@@ -2,7 +2,7 @@
     "compilerOptions": {
         "module": "commonjs",
         "moduleResolution": "node",
-        "target": "es6",
+        "target": "es2022",
         "declaration": true,
         "strict": true,
         "resolveJsonModule": true,

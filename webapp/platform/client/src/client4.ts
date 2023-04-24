@@ -26,12 +26,14 @@ import {
     CreateSubscriptionRequest,
     Feedback,
     WorkspaceDeletionRequest,
+    NewsletterRequestBody,
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
     SelfHostedSignupCustomerResponse,
     SelfHostedSignupSuccessResponse,
     SelfHostedSignupBootstrapResponse,
+    SelfHostedExpansionRequest,
 } from '@mattermost/types/hosted_customer';
 import {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 
@@ -2438,6 +2440,7 @@ export default class Client4 {
     ping = () => {
         return this.doFetch<{
             status: string;
+            ActiveSearchBackend: string;
         }>(
             `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
             {method: 'get'},
@@ -3893,6 +3896,21 @@ export default class Client4 {
         );
     };
 
+
+    confirmSelfHostedExpansion = (setupIntentId: string, expandRequest: SelfHostedExpansionRequest) => {
+        return this.doFetch<SelfHostedSignupSuccessResponse>(
+            `${this.getHostedCustomerRoute()}/confirm-expand`,
+            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, expand_request: expandRequest})},
+        );
+    }
+
+    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
+            {method: 'post', body: JSON.stringify(newletterRequestBody)},
+        );
+    };
+
     createPaymentMethod = async () => {
         return this.doFetch(
             `${this.getCloudRoute()}/payment`,
@@ -4150,7 +4168,7 @@ export default class Client4 {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',
                 url,
-            });
+            }, err);
         }
 
         if (headers.has(HEADER_X_VERSION_ID) && !headers.get('Cache-Control')) {
@@ -4255,7 +4273,7 @@ export default class Client4 {
     }
 
     cwsAvailabilityCheck = () => {
-        return this.doFetch<StatusOK>(
+        return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,
             {method: 'get'},
         );
@@ -4293,8 +4311,8 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
 
-    constructor(baseUrl: string, data: ServerError) {
-        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''));
+    constructor(baseUrl: string, data: ServerError, cause?: any) {
+        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
 
         this.message = data.message;
         this.url = data.url;

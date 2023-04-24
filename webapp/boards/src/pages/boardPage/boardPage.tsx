@@ -11,7 +11,6 @@ import {FormattedMessage, useIntl} from 'react-intl'
 import {useRouteMatch, useHistory} from 'react-router-dom'
 
 import Workspace from 'src/components/workspace'
-import CloudMessage from 'src/components/messages/cloudMessage'
 import VersionMessage from 'src/components/messages/versionMessage'
 import octoClient from 'src/octoClient'
 import {Subscription, WSClient} from 'src/wsclient'
@@ -187,7 +186,9 @@ const BoardPage = (props: Props): JSX.Element => {
     const joinBoard = async (myUser: IUser, boardTeamId: string, boardId: string, allowAdmin: boolean) => {
         const member = await octoClient.joinBoard(boardId, allowAdmin)
         if (!member) {
-            if (myUser.permissions?.find((s) => s === 'manage_system' || s === 'manage_team')) {
+            // if allowAdmin is true, then we failed to join the board
+            // as an admin, normally, this is deleted/missing board
+            if (!allowAdmin && myUser.permissions?.find((s) => s === 'manage_system' || s === 'manage_team')) {
                 setShowJoinBoardDialog(true)
                 return
             }
@@ -297,7 +298,6 @@ const BoardPage = (props: Props): JSX.Element => {
                     <SetWindowTitleAndIcon/>
                     <UndoRedoHotKeys/>
                     <WebsocketConnection/>
-                    <CloudMessage/>
                     <VersionMessage/>
 
                     {!mobileWarningClosed &&

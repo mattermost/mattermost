@@ -12,8 +12,7 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import Constants from 'utils/constants';
-
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 
 type Props = {
     currentUser: UserProfile;
@@ -53,7 +52,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
         this.setState({
             show: false,
         });
-    }
+    };
 
     handleKeyPress = (e: KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {

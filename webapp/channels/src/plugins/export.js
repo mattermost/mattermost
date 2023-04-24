@@ -21,6 +21,7 @@ import PurchaseModal from 'components/purchase_modal';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
+import StartTrialFormModal from 'components/start_trial_form_modal';
 
 import {openPricingModal} from '../components/global_header/right_controls/plan_upgrade_button';
 
@@ -70,6 +71,7 @@ window.Components = {
     Avatar,
     imageURLForUser,
     BotBadge: BotTag,
+    StartTrialFormModal,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture
