@@ -38,6 +38,7 @@ import PostBodyAdditionalContent from 'components/post_view/post_body_additional
 import PostMessageContainer from 'components/post_view/post_message_view';
 import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
 import {getHistory} from 'utils/browser_history';
+import {isKeyPressed} from 'utils/keyboard';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -150,7 +151,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const handleAlt = (e: KeyboardEvent) => setAlt(e.altKey);
 
     const handleA11yKeyboardFocus = useCallback((e: KeyboardEvent) => {
-        if (e.key === Constants.KeyCodes.TAB[0] && e.shiftKey && shouldHighlight && !hasReceivedA11yFocus) {
+        if (!hasReceivedA11yFocus && shouldHighlight && isKeyPressed(e, Constants.KeyCodes.TAB) && e.shiftKey) {
             e.preventDefault();
             e.stopPropagation();
 
