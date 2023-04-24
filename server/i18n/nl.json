@@ -9971,5 +9971,13 @@
   {
     "id": "app.plugin.blocked.app_error",
     "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Samenvatting"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Toevoegen aan de uitvoeringstijdlijn"
   }
 ]
