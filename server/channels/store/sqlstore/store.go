@@ -1185,6 +1185,7 @@ func (ss *SqlStore) hasLicense() bool {
 	return hasLicense
 }
 
+//nolint:all
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
@@ -1245,6 +1246,8 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 		return err
 	}
 	defer engine.Close()
+
+	time.Sleep(10 * time.Minute)
 
 	switch direction {
 	case migrationsDirectionDown:
