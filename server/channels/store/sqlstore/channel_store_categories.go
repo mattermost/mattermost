@@ -335,7 +335,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Id:          newCategoryId,
 		UserId:      userId,
 		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortDefault,
+		Sorting:     newCategory.Sorting,
 		SortOrder:   int64(model.MinimalSidebarSortDistance * len(newOrder)), // first we place it at the end of the list
 		Type:        model.SidebarCategoryCustom,
 		Muted:       newCategory.Muted,
