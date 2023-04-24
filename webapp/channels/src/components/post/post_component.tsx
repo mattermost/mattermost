@@ -10,7 +10,7 @@ import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
-import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
+import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, AppEvents, Locations} from 'utils/constants';
 
 import * as PostUtils from 'utils/post_utils';
 
@@ -117,7 +117,7 @@ export type Props = {
 };
 
 const PostComponent = (props: Props): JSX.Element => {
-    const {post, togglePostMenu} = props;
+    const {post, shouldHighlight, togglePostMenu} = props;
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
@@ -130,23 +130,42 @@ const PostComponent = (props: Props): JSX.Element => {
     const [fileDropdownOpened, setFileDropdownOpened] = useState(false);
     const [fadeOutHighlight, setFadeOutHighlight] = useState(false);
     const [alt, setAlt] = useState(false);
+    const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
 
     useEffect(() => {
-        if (props.shouldHighlight) {
+        if (shouldHighlight) {
             const timer = setTimeout(() => setFadeOutHighlight(true), Constants.PERMALINK_FADEOUT);
             return () => {
                 clearTimeout(timer);
             };
         }
         return undefined;
-    }, [props.shouldHighlight]);
+    }, [shouldHighlight]);
 
     const handleA11yActivateEvent = () => setA11y(true);
     const handleA11yDeactivateEvent = () => setA11y(false);
     const handleAlt = (e: KeyboardEvent) => setAlt(e.altKey);
+
+    const handleA11yKeyboardFocus = useCallback((e: KeyboardEvent) => {
+        if (e.key === Constants.KeyCodes.TAB[0] && e.shiftKey && shouldHighlight && !hasReceivedA11yFocus) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            setHasReceivedA11yFocus(true);
+
+            document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
+                A11yCustomEventTypes.FOCUS, {
+                    detail: {
+                        target: postRef.current,
+                        keyboardOnly: true,
+                    },
+                },
+            ));
+        }
+    }, [hasReceivedA11yFocus, shouldHighlight]);
 
     useEffect(() => {
         if (a11yActive) {
@@ -182,6 +201,14 @@ const PostComponent = (props: Props): JSX.Element => {
             document.removeEventListener('keyup', handleAlt);
         };
     }, [hover]);
+
+    useEffect(() => {
+        document.addEventListener('keyup', handleA11yKeyboardFocus);
+
+        return () => {
+            document.removeEventListener('keyup', handleA11yKeyboardFocus);
+        };
+    }, [handleA11yKeyboardFocus]);
 
     const hasSameRoot = (props: Props) => {
         if (props.isFirstReply) {
@@ -252,7 +279,7 @@ const PostComponent = (props: Props): JSX.Element => {
         const hovered =
             hover || fileDropdownOpened || dropdownOpened || a11yActive || props.isPostBeingEdited;
         return classNames('a11y__section post', {
-            'post--highlight': props.shouldHighlight && !fadeOutHighlight,
+            'post--highlight': shouldHighlight && !fadeOutHighlight,
             'same--root': hasSameRoot(props),
             'other--root': !hasSameRoot(props) && !isSystemMessage,
             'post--bot': PostUtils.isFromBot(post),
