@@ -9979,5 +9979,71 @@
   {
     "id": "app.user.run.add_to_timeline.submit_label",
     "translation": "Toevoegen aan de uitvoeringstijdlijn"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Herinnering voor de volgende update"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "one": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanaal.",
+      "other": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanalen."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Markeer ook de uitvoering als beëindigd"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Uitvoering beëindigen"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Wijziging sinds laatste update"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here - @{{.Name}} vroeg een statusupdate aan voor [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} is een deelnemer aan de uitvoering en wil lid worden van dit kanaal. Elk lid van het kanaal kan hen uitnodigen.\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Bevestig beëindigen uitvoering"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Uitvoering beëindigen"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "one": "Er is **{.Count}} openstaande taak**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemers wilt beëindigen?",
+      "other": "Er is **{.Count}} openstaande taken**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemer wilt beëindigen?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Toevoegen aan de uitvoeringstijdlijn"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Korte samenvatting weergeven in de tijdlijn"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Maximaal 64 tekens"
   }
 ]
