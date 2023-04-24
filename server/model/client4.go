@@ -5956,7 +5956,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 // DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
 func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Response, error) {
 	requestData := map[string]string{"client_id": appId}
-	r, err := c.DoAPIPost(ctx, c.URL+"/oauth/deauthorize", MapToJSON(requestData))
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", MapToJSON(requestData), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
