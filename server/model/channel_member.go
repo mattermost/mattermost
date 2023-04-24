@@ -19,6 +19,8 @@ const (
 	IgnoreChannelMentionsOff        = "off"
 	IgnoreChannelMentionsOn         = "on"
 	IgnoreChannelMentionsNotifyProp = "ignore_channel_mentions"
+	ChannelAutoFollowThreadsOff     = "off"
+	ChannelAutoFollowThreadsOn      = "on"
 	ChannelAutoFollowThreads        = "channel_auto_follow_threads"
 )
 
@@ -173,6 +175,12 @@ func (o *ChannelMember) IsValid() *AppError {
 		}
 	}
 
+	if channelAutoFollowThreads, ok := o.NotifyProps[ChannelAutoFollowThreads]; ok {
+		if len(channelAutoFollowThreads) > 3 || !IsChannelAutoFollowThreadsValid(channelAutoFollowThreads) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error", nil, "channel_auto_follow_threads="+channelAutoFollowThreads, http.StatusBadRequest)
+		}
+	}
+
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
 			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
@@ -224,6 +232,10 @@ func IsIgnoreChannelMentionsValid(ignoreChannelMentions string) bool {
 	return ignoreChannelMentions == IgnoreChannelMentionsOn || ignoreChannelMentions == IgnoreChannelMentionsOff || ignoreChannelMentions == IgnoreChannelMentionsDefault
 }
 
+func IsChannelAutoFollowThreadsValid(channelAutoFollowThreads string) bool {
+	return channelAutoFollowThreads == ChannelAutoFollowThreadsOn || channelAutoFollowThreads == ChannelAutoFollowThreadsOff
+}
+
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
 		DesktopNotifyProp:               ChannelNotifyDefault,
@@ -231,5 +243,6 @@ func GetDefaultChannelNotifyProps() StringMap {
 		PushNotifyProp:                  ChannelNotifyDefault,
 		EmailNotifyProp:                 ChannelNotifyDefault,
 		IgnoreChannelMentionsNotifyProp: IgnoreChannelMentionsDefault,
+		ChannelAutoFollowThreads:        ChannelAutoFollowThreadsOff,
 	}
 }

@@ -2834,9 +2834,9 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 	th.AddUserToChannel(u3, c1)
 
 	// Set auto-follow for user 2
-	member, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: "true"}, c1.Id, u2.Id)
+	member, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOn}, c1.Id, u2.Id)
 	require.Nil(t, appErr)
-	require.Equal(t, "true", member.NotifyProps[model.ChannelAutoFollowThreads])
+	require.Equal(t, model.ChannelAutoFollowThreadsOn, member.NotifyProps[model.ChannelAutoFollowThreads])
 
 	rootPost := &model.Post{
 		ChannelId: c1.Id,

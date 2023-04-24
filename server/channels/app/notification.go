@@ -108,7 +108,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			return nil, result.NErr
 		}
 		for _, v := range result.Data.([]string) {
-			followers[v] = struct{}{}
+			followers.Add(v)
 		}
 	}
 
@@ -239,7 +239,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 		if channel.Type != model.ChannelTypeDirect {
 			for id, propsMap := range channelMemberNotifyPropsMap {
-				if _, ok := followers[id]; !ok && propsMap[model.ChannelAutoFollowThreads] == "true" {
+				if ok := followers.Has(id); !ok && propsMap[model.ChannelAutoFollowThreads] == model.ChannelAutoFollowThreadsOn {
 					threadParticipants[id] = true
 				}
 			}
@@ -296,8 +296,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 				followersMutex.Lock()
 				// add new followers to existing followers
-				if _, ok := followers[userID]; !ok && threadMembership.Following {
-					followers[userID] = struct{}{}
+				if ok := followers.Has(userID); !ok && threadMembership.Following {
+					followers.Add(userID)
 					newParticipants[userID] = true
 				}
 				followersMutex.Unlock()

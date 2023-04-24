@@ -1009,8 +1009,14 @@ export const IgnoreChannelMentions = {
     DEFAULT: 'default',
 } as const;
 
+export const ChannelAutoFollowThreads = {
+    ON: 'on',
+    OFF: 'off',
+} as const;
+
 export const NotificationSections = {
     IGNORE_CHANNEL_MENTIONS: 'ignoreChannelMentions',
+    CHANNEL_AUTO_FOLLOW_THREADS: 'channelAutoFollowThreads',
     MARK_UNREAD: 'markUnread',
     DESKTOP: 'desktop',
     PUSH: 'push',

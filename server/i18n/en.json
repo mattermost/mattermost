@@ -8472,6 +8472,10 @@
     "translation": "Invalid ignore channel mentions status."
   },
   {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Invalid channel-auto-follow-threads value."
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level."
   },

@@ -44,6 +44,23 @@ type StringInterface map[string]any
 type StringSet map[string]struct{}
 type StringArray []string
 
+func (ss StringSet) Has(val string) bool {
+	_, ok := ss[val]
+	return ok
+}
+
+func (ss StringSet) Add(val string) {
+	ss[val] = struct{}{}
+}
+
+func (ss StringSet) Val() []string {
+	keys := make([]string, 0, len(ss))
+	for k := range ss {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 func (sa StringArray) Remove(input string) StringArray {
 	for index := range sa {
 		if sa[index] == input {
