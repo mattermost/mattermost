@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState, useMemo, useCallback} from 'react'
-import {IntlProvider, useIntl, FormattedMessage} from 'react-intl'
+import {useIntl, FormattedMessage} from 'react-intl'
 import debounce from 'lodash/debounce'
 
 import {SuiteWindow} from 'src/types/index'
-
-import {getMessages} from 'src/i18n'
-import {getLanguage} from 'src/store/language'
 
 import {useWebsockets} from 'src/hooks/websockets'
 
@@ -217,17 +214,4 @@ const BoardSelector = () => {
     )
 }
 
-const IntlBoardSelector = () => {
-    const language = useAppSelector<string>(getLanguage)
-
-    return (
-        <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
-        >
-            <BoardSelector/>
-        </IntlProvider>
-    )
-}
-
-export default IntlBoardSelector
+export default BoardSelector

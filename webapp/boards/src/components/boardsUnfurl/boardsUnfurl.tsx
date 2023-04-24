@@ -1,19 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState, useEffect} from 'react'
-import {IntlProvider, FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import WithWebSockets from 'src/components/withWebSockets'
 import {useWebsockets} from 'src/hooks/websockets'
 
-import {getLanguage} from 'src/store/language'
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentTeamId} from 'src/store/teams'
 
 import {WSClient, MMWebSocketClient} from 'src/wsclient'
 import manifest from 'src/manifest'
 
-import {getMessages} from 'src/i18n'
 import {Utils} from 'src/utils'
 import {Block} from 'src/blocks/block'
 import {Card} from 'src/blocks/card'
@@ -275,17 +273,4 @@ export const BoardsUnfurl = (props: Props): JSX.Element => {
     )
 }
 
-const IntlBoardsUnfurl = (props: Props) => {
-    const language = useAppSelector<string>(getLanguage)
-
-    return (
-        <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
-        >
-            <BoardsUnfurl {...props}/>
-        </IntlProvider>
-    )
-}
-
-export default IntlBoardsUnfurl
+export default BoardsUnfurl
