@@ -44,12 +44,11 @@ export const useExpandOverageUsersCheck = ({
                 id: 'licensingPage.overageUsersBanner.ctaUpdateSeats',
                 defaultMessage: 'Update seat count',
             });
-        } else {
-            return formatMessage({
-                id: 'licensingPage.overageUsersBanner.cta',
-                defaultMessage: 'Contact Sales',
-            });
         }
+        return formatMessage({
+            id: 'licensingPage.overageUsersBanner.cta',
+            defaultMessage: 'Contact Sales',
+        });
     }, [isExpandable]);
 
     const trackEventFn = (cta: 'Contact Sales' | 'Self Serve') => {

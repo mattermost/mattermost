@@ -122,7 +122,7 @@ const OverageUsersBanner = () => {
                 seats: overageByUsers,
             }}
         />);
-    
+
     if (canSelfHostedExpand) {
         message = (
             <FormattedMessage

@@ -74,6 +74,7 @@ const OverageUsersBannerNotice = () => {
         licenseId: license.Id,
         isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
         banner: 'invite modal',
+        canSelfHostedExpand: canSelfHostedExpand || false,
     });
 
     if (!hasPermission || adminHasDismissed({overagePreferences, preferenceName})) {
