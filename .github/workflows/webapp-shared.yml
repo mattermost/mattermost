@@ -1,0 +1,53 @@
+name: Shared Web App
+
+on:
+  workflow_call:
+    inputs:
+      workspace-argument:
+        required: true
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ci:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: ci/setup-node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: 'webapp/package-lock.json'
+      - name: ci/get-node-modules
+        run: |
+          make node_modules
+      - name: ci/check-lint
+        id: check-lint
+        run: |
+          npm run check ${{ inputs.workspace-argument }}
+        continue-on-error: true
+      - name: ci/check-types
+        id: check-types
+        run: |
+          npm run check-types ${{ inputs.workspace-argument }}
+        continue-on-error: true
+      - name: ci/test
+        id: test
+        run: |
+          npm test ${{ inputs.workspace-argument }}
+        continue-on-error: true
+      - name: ci/check-for-failures
+        if: steps.check-lint.outcome != 'success' || steps.check-types.outcome != 'success' || steps.test.outcome != 'success'
+        run: exit 1
+      - name: ci/build
+        run: |
+          npm run build ${{ inputs.workspace-argument }}

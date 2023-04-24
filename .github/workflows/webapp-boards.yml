@@ -1,0 +1,22 @@
+name: Boards
+
+on:
+  pull_request:
+    paths:
+      - 'webapp/boards/**/*'
+      - 'webapp/platform/**/*'
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
+
+jobs:
+  web-app:
+    uses: ./.github/workflows/webapp-shared.yml
+    with:
+      workspace-argument: --workspace=boards

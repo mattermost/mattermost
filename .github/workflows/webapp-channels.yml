@@ -1,0 +1,22 @@
+name: Channels
+
+on:
+  pull_request:
+    paths:
+      - 'webapp/channels/**/*'
+      - 'webapp/platform/**/*'
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
+
+jobs:
+  web-app:
+    uses: ./.github/workflows/webapp-shared.yml
+    with:
+      workspace-argument: --workspace=channels --workspace=platform/client --workspace=platform/components --workspace=platform/types --if-present
