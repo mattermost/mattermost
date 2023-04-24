@@ -19,6 +19,7 @@ interface Props {
     searchProfiles: (term: string) => ActionFunc;
     getProfiles: () => ActionFunc;
     userIds: string[];
+    groupIds?: string[];
     preAssignedUserIds: string[];
     onAddUser: (userId: string) => void;
     onRemoveUser: (userId: string) => void;
@@ -70,6 +71,7 @@ export const InviteUsers = (props: Props) => {
                         onAddUser={props.onAddUser}
                         onRemoveUser={handleRemoveUser}
                         userIds={props.userIds}
+                        groupIds={props.groupIds}
                         searchProfiles={props.searchProfiles}
                         getProfiles={props.getProfiles}
                     />

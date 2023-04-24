@@ -17,6 +17,7 @@ import MenuList from 'src/components/backstage/playbook_edit/automation/menu_lis
 
 interface Props {
     userIds: string[];
+    groupIds?: string[];
     onAddUser: (userid: string) => void;
     onRemoveUser: (userid: string, username: string) => void;
     searchProfiles: (term: string) => ActionFunc;

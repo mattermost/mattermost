@@ -8,6 +8,7 @@ query Playbook($id: String!) {
 		delete_at: deleteAt
 		default_playbook_member_role: defaultPlaybookMemberRole
 		invited_user_ids: invitedUserIDs
+		invited_group_ids: invitedGroupIDs
 		broadcast_channel_ids: broadcastChannelIDs
 		webhook_on_creation_urls: webhookOnCreationURLs
 		reminder_timer_default_seconds: reminderTimerDefaultSeconds
