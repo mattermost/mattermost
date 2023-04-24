@@ -245,6 +245,14 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableCustomGroups === 'true';
 }
 
+export function getUseCaseOnboarding(state: GlobalState): boolean {
+    const isCloud = getLicense(state)?.Cloud === 'true';
+    if (isCloud) {
+        return true;
+    }
+    return getFeatureFlagValue(state, 'UseCaseOnboarding') === 'true';
+}
+
 export function insightsAreEnabled(state: GlobalState): boolean {
     const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
     const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';

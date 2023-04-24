@@ -13,7 +13,7 @@ import {logout, loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
-import {getBool, isCollapsedThreadsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, getUseCaseOnboarding, isCollapsedThreadsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -352,7 +352,7 @@ export async function redirectUserToDefaultTeam() {
     // Assume we need to load the user if they don't have any team memberships loaded or the user loaded
     let user = getCurrentUser(state);
     const shouldLoadUser = Utils.isEmptyObject(getTeamMemberships(state)) || !user;
-
+    const useCaseOnboarding = getUseCaseOnboarding(state);
     if (shouldLoadUser) {
         if (isGraphQLEnabled(state)) {
             await dispatch(loadMe());
@@ -375,7 +375,7 @@ export async function redirectUserToDefaultTeam() {
 
     let myTeams = getMyTeams(state);
     if (myTeams.length === 0) {
-        if (isUserFirstAdmin) {
+        if (isUserFirstAdmin && useCaseOnboarding) {
             getHistory().push('/preparing-workspace');
             return;
         }

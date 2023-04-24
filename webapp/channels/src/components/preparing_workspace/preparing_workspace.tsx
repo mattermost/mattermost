@@ -11,6 +11,7 @@ import {General} from 'mattermost-redux/constants';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Team} from '@mattermost/types/teams';
+import {getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -108,6 +109,7 @@ const PreparingWorkspace = (props: Props) => {
         defaultMessage: 'Something went wrong. Please try again.',
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
+    const useCaseOnboarding = useSelector(getUseCaseOnboarding);
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
@@ -288,7 +290,7 @@ const PreparingWorkspace = (props: Props) => {
     }, [submissionState]);
 
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
-    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage;
+    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !useCaseOnboarding;
 
     useEffect(() => {
         if (shouldRedirect) {
