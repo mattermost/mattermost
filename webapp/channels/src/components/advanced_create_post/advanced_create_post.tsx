@@ -1234,7 +1234,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                     selectionEnd,
                     message: value,
                 });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Utils.isKeyPressed(e, KeyCodes.K)) {
+            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
                 this.applyMarkdown({
@@ -1411,7 +1411,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
             this.handleDraftChange(draft);
         });
-    }
+    };
 
     reactToLastMessage = (e: KeyboardEvent) => {
         e.preventDefault();
