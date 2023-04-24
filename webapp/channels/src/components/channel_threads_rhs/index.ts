@@ -28,7 +28,7 @@ function setChannelThreadsTab(tab: Tabs) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const teamId = getCurrentTeamId(getState());
         const key = StoragePrefixes.CHANNEL_THREADS_TAB + teamId;
-        return setGlobalItem(key, tab);
+        return dispatch(setGlobalItem(key, tab));
     };
 }
 

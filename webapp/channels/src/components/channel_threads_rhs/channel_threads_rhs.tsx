@@ -146,8 +146,10 @@ function ChannelThreads({
     }, [currentTeamName]);
 
     const makeHandleTab = useCallback((tab: Tabs) => () => {
-        actions.setSelected(tab);
-    }, []);
+        if (tab !== selected) {
+            actions.setSelected(tab);
+        }
+    }, [selected]);
 
     const routing = useMemo(() => {
         return {
