@@ -9,7 +9,7 @@ import {ActionResult} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import WorkTemplatesModal from 'components/work_templates';
 import SearchableChannelList from 'components/searchable_channel_list.jsx';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
@@ -92,8 +92,8 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.handleExit();
         this.closeEditRHS();
         this.props.actions.openModal({
-            modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
-            dialogType: NewChannelModal,
+            modalId: ModalIdentifiers.WORK_TEMPLATE,
+            dialogType: WorkTemplatesModal,
         });
     };
 

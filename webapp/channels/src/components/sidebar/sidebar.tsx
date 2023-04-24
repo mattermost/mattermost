@@ -9,7 +9,7 @@ import EditCategoryModal from 'components/edit_category_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 import DataPrefetch from 'components/data_prefetch';
 import MoreChannels from 'components/more_channels';
-import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import WorkTemplatesModal from 'components/work_templates';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
 
@@ -171,8 +171,8 @@ export default class Sidebar extends React.PureComponent<Props, State> {
 
     showNewChannelModal = () => {
         this.props.actions.openModal({
-            modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
-            dialogType: NewChannelModal,
+            modalId: ModalIdentifiers.WORK_TEMPLATE,
+            dialogType: WorkTemplatesModal,
         });
         this.closeEditRHS();
         trackEvent('ui', 'ui_channels_create_channel_v2');

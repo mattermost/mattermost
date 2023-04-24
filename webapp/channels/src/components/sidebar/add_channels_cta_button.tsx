@@ -10,7 +10,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
 import MoreChannels from 'components/more_channels';
-import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
+import WorkTemplatesModal from 'components/work_templates';
 
 import {isAddChannelCtaDropdownOpen} from 'selectors/views/add_channel_dropdown';
 
@@ -67,8 +67,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
 
     const showNewChannelModal = () => {
         dispatch(openModal({
-            modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
-            dialogType: NewChannelModal,
+            modalId: ModalIdentifiers.WORK_TEMPLATE,
+            dialogType: WorkTemplatesModal,
         }));
         trackEvent('ui', 'create_new_channel_button_is_clicked');
     };
