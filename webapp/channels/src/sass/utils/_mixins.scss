@@ -1,0 +1,409 @@
+@charset "utf-8";
+
+@mixin file-icon($path) {
+    background-image: url($path);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 32px 40px;
+}
+
+@mixin alpha-property($property, $color, $opacity) {
+    #{$property}: rgba($color, $opacity);
+}
+
+@mixin font-smoothing($value: antialiased) {
+    @if $value == antialiased {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    @else {
+        -webkit-font-smoothing: subpixel-antialiased;
+        -moz-osx-font-smoothing: auto;
+    }
+}
+
+@mixin cursor($value) {
+    cursor: -webkit-$value;
+    cursor: zoom-$value;
+}
+
+// From https://gist.github.com/kaelig/7528069
+@mixin text-clamp($lines: 2, $line-height: false) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: $lines;
+
+    // Fallback for non-Webkit browsers
+    // (won't show `…` at the end of the block)
+    @if $line-height {
+        max-height: $line-height * $lines * 1px;
+    }
+}
+
+@mixin button-style--none {
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    &:focus {
+        outline: 0;
+        text-decoration: none;
+    }
+
+    &.btn {
+        padding: 6px 12px;
+    }
+
+    &.btn--block {
+        width: 100%;
+        text-align: left;
+    }
+
+    &:hover,
+    &:active {
+        text-decoration: none;
+    }
+}
+
+@mixin fit-content {
+    width: fit-content;
+    width: -moz-fit-content;
+}
+
+@mixin clearfix {
+    overflow: hidden;
+    *zoom: 1;
+}
+
+@mixin pie-clearfix {
+    &::after {
+        display: table;
+        clear: both;
+        content: "";
+    }
+
+    *zoom: 1;
+}
+
+@mixin tertiary-button {
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    background: rgba(var(--button-bg-rgb), 0.08);
+    border-radius: 4px;
+    color: var(--button-bg);
+    font-weight: 600;
+    transition: all 0.15s ease-out;
+
+    &:disabled {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+
+    &:hover:enabled {
+        background: rgba(var(--button-bg-rgb), 0.12);
+    }
+
+    &:active:enabled {
+        background: rgba(var(--button-bg-rgb), 0.16);
+    }
+
+    i {
+        display: flex;
+        font-size: 18px;
+
+        &:first-child::before {
+            margin: 0 7px 0 0;
+        }
+
+        &:last-child::before {
+            margin: 0 0 0 7px;
+        }
+    }
+}
+
+@mixin primary-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: var(--button-bg);
+    border-radius: 4px;
+    color: var(--button-color);
+    font-weight: 600;
+    transition: all 0.15s ease-out;
+
+    &:hover {
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
+    }
+
+    &:active {
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
+    }
+
+    &:focus {
+        box-sizing: border-box;
+        border: 2px solid var(--sidebar-text-active-border);
+        outline: none;
+    }
+
+    &:disabled:not(.always-show-enabled) {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        cursor: not-allowed;
+    }
+
+    i {
+        display: flex;
+        font-size: 18px;
+    }
+}
+
+@mixin secondary-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--denim-button-bg);
+    background: var(--center-channel-bg);
+    border-radius: 4px;
+    color: var(--button-bg);
+    font-weight: 600;
+    transition: all 0.15s ease-out;
+
+    &:hover {
+        background: rgba(var(--denim-button-bg-rgb), 0.08);
+    }
+
+    &:active {
+        background: rgba(var(--denim-button-bg-rgb), 0.16);
+    }
+
+    &:focus {
+        box-sizing: border-box;
+        border: 2px solid var(--sidebar-text-active-border);
+        outline: none;
+    }
+
+    &:disabled {
+        border: rgba(var(--center-channel-color-rgb), 0.32);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        cursor: not-allowed;
+    }
+
+    i {
+        display: flex;
+        font-size: 18px;
+    }
+}
+
+@mixin button-focus {
+    &:focus {
+        border-width: 0;
+        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+    }
+
+    &:focus:not(:focus-visible) {
+        border-width: 0;
+        box-shadow: none;
+    }
+
+    &:focus-visible {
+        border-width: 0;
+        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+    }
+}
+
+@mixin button-xsmall {
+    height: 24px;
+    padding: 4px 6px;
+    font-size: 11px;
+    line-height: 16px;
+}
+
+@mixin button-small {
+    height: 32px;
+    padding: 0 16px;
+    font-size: 12px;
+    line-height: 10px;
+}
+
+@mixin button-medium {
+    height: 40px;
+    padding: 0 20px;
+    font-size: 14px;
+    line-height: 14px;
+}
+
+@mixin button-large {
+    height: 48px;
+    padding: 0 24px;
+    font-size: 16px;
+    line-height: 18px;
+}
+
+@mixin link {
+    border: none;
+    box-shadow: none;
+    color: var(--link-color);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+
+    &:hover,
+    &:active,
+    &:focus {
+        text-decoration-line: underline;
+    }
+
+    &:disabled {
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        cursor: not-allowed;
+        text-decoration: none;
+    }
+}
+
+@mixin icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: none;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    &:focus,
+    &:focus-within {
+        box-sizing: border-box;
+        border: 2px solid rgba(var(--denim-button-bg-rgb), 0.32);
+        box-shadow: none;
+        outline: none;
+    }
+
+    &:hover {
+        border: 0;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active {
+        border: 0;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+
+    &:disabled {
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        cursor: not-allowed;
+    }
+}
+
+@mixin icon-button-small-compact {
+    width: 28px;
+    height: 28px;
+    padding: 6px;
+    font-size: 16px;
+}
+
+@mixin simple-in-and-out-after($classPrefix, $transition_time: 300ms) {
+    .#{$classPrefix}--enter-from-after {
+        &-enter {
+            transform: translateY(-100vh);
+        }
+
+        &-enter-active {
+            transform: translateY(0);
+            transition: transform $transition_time ease-in-out;
+        }
+
+        &-enter-done {
+            transform: translateY(0);
+        }
+    }
+
+    .#{$classPrefix}--exit-to-after {
+        &-exit {
+            transform: translateY(0);
+        }
+
+        &-exit-active {
+            transform: translateY(-100vh);
+            transition: transform $transition_time ease-in-out;
+        }
+
+        &-exit-done {
+            transform: translateY(-100vh);
+        }
+    }
+}
+
+@mixin simple-in-and-out-before($classPrefix, $transition_time: 300ms) {
+    .#{$classPrefix}--enter-from-before {
+        &-enter {
+            transform: translateY(100vh);
+        }
+
+        &-enter-active {
+            transform: translateY(0);
+            transition: transform $transition_time ease-in-out;
+        }
+
+        &-enter-done {
+            transform: translateY(0);
+        }
+    }
+
+    .#{$classPrefix}--exit-to-before {
+        &-exit {
+            transform: translateY(0);
+        }
+
+        &-exit-active {
+            transform: translateY(100vh);
+            transition: transform $transition_time ease-in-out;
+        }
+
+        &-exit-done {
+            transform: translateY(100vh);
+        }
+    }
+}
+
+@mixin simple-in-and-out($classPrefix, $transition_time: 300ms) {
+    @include simple-in-and-out-before($classPrefix, $transition_time);
+    @include simple-in-and-out-after($classPrefix, $transition_time);
+}
+
+@mixin shake-horizontally {
+    animation: shake-horizontally 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake-horizontally {
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}

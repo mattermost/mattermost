@@ -1,0 +1,150 @@
+@import 'utils/variables';
+@import 'utils/mixins';
+
+.StarterEditionRightPannel {
+    .svg-image {
+        text-align: center;
+
+        svg {
+            margin: 0 auto;
+        }
+    }
+
+    .upgrade-title {
+        margin: 10px 0;
+        color: #3f4350;
+        font-family: Metropolis;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 24px;
+    }
+
+    .advantages-list {
+        margin: 7px 0;
+        font-size: 12px;
+        line-height: 16px;
+
+        .item {
+            margin: 10px 0;
+
+            i {
+                margin-right: 5px;
+            }
+        }
+
+        :last-child {
+            color: rgba(63, 69, 80, 0.72);
+        }
+    }
+
+    .purchase_buttons {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 20px;
+
+        button {
+            width: 120px;
+            padding: 14px 12px !important;
+            border-radius: 4px;
+
+            span {
+                font-size: 16px !important;
+            }
+
+            &.contact-us {
+                width: 130px;
+                margin-left: 15px;
+            }
+        }
+
+        @media screen and (max-width: 1130px) {
+            flex-direction: column;
+
+            button {
+                width: 100% !important;
+
+                &.contact-us {
+                    margin-top: 10px;
+                    margin-left: 0 !important;
+                }
+            }
+        }
+    }
+
+    .upgrade-error {
+        margin-top: 10px;
+    }
+}
+
+.StarterLeftPanel {
+    position: relative;
+
+    .PlanDetails__viewPlansButton {
+        position: absolute;
+        right: 10px;
+        display: block;
+        margin-left: auto;
+
+        &.btn {
+            @include tertiary-button;
+        }
+    }
+
+    .pre-title {
+        margin-bottom: 10px;
+        color: rgba(63, 67, 80, 0.56) !important;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    .title {
+        color: #3f4350;
+        font-family: Metropolis;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 24px;
+    }
+
+    .subtitle {
+        color: #3d3c40;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: normal;
+        line-height: 16px;
+    }
+
+    .content {
+        margin: 25px 0;
+        font-size: 12px;
+    }
+
+    .licenseInformation {
+        border-radius: 4px;
+
+        .licenseKeyTitle {
+            font-family: Metropolis;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 24px;
+        }
+
+        .uploadButtons {
+            margin-top: 10px;
+
+            input {
+                display: hidden;
+            }
+
+            button {
+                height: 48px;
+                border-radius: 4px;
+            }
+
+            .help-text {
+                font-size: 12px;
+            }
+        }
+    }
+}

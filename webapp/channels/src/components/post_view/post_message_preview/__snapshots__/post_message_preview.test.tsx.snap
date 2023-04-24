@@ -1,0 +1,670 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PostMessagePreview direct and group messages should render preview for D message 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_1/image?_=0"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+        }
+      }
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview direct and group messages should render preview for G message 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_1/image?_=0"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+        }
+      }
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview nested previews should render file preview 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="/team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_1/image?_=0"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "file_ids": Array [
+            "file_1",
+            "file_2",
+          ],
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+        }
+      }
+    />
+    <Connect(FileAttachmentList)
+      compactDisplay={false}
+      handleFileDropdownOpened={[MockFunction]}
+      isInPermalink={true}
+      post={
+        Object {
+          "file_ids": Array [
+            "file_1",
+            "file_2",
+          ],
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+        }
+      }
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview nested previews should render opengraph preview 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="/team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_1/image?_=0"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {
+            "embeds": Array [
+              Object {
+                "type": "opengraph",
+                "url": "https://example.com",
+              },
+            ],
+          },
+        }
+      }
+    />
+    <Connect(PostAttachmentOpenGraph)
+      isEmbedVisible={true}
+      isInPermalink={true}
+      link="https://example.com"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {
+            "embeds": Array [
+              Object {
+                "type": "opengraph",
+                "url": "https://example.com",
+              },
+            ],
+          },
+        }
+      }
+      postId="post_id"
+      toggleEmbedVisibility={[Function]}
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview should not render bot icon 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="/team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_1/image?_=0"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+          "props": Object {
+            "from_webhook": "false",
+            "override_icon_url": "https://fakeicon.com/image.jpg",
+            "use_user_icon": "false",
+          },
+        }
+      }
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview should render bot icon 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="/team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="https://fakeicon.com/image.jpg"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+          "props": Object {
+            "from_webhook": "true",
+            "override_icon_url": "https://fakeicon.com/image.jpg",
+            "use_user_icon": false,
+          },
+        }
+      }
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview should render correctly 1`] = `
+<PostAttachmentContainer
+  className="permalink"
+  link="/team1/pl/post_id"
+>
+  <div
+    className="post-preview"
+  >
+    <div
+      className="post-preview__header"
+    >
+      <div
+        className="col col__name"
+      >
+        <div
+          className="post__img"
+        >
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_1/image?_=0"
+              username="username1"
+            />
+          </span>
+        </div>
+      </div>
+      <div
+        className="col col__name permalink--username"
+      >
+        <Connect(UserProfile)
+          disablePopover={true}
+          hasMention={true}
+          overwriteName=""
+          userId="user_1"
+        />
+      </div>
+      <div
+        className="col d-flex align-items-center"
+      >
+        <Connect(injectIntl(Timestamp))
+          className="post-preview__time"
+          day="numeric"
+          units={
+            Array [
+              "now",
+              "minute",
+              "hour",
+              "day",
+            ]
+          }
+          useTime={false}
+        />
+      </div>
+    </div>
+    <Connect(PostMessageView)
+      maxHeight={105}
+      overflowType="ellipsis"
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "metadata": Object {},
+        }
+      }
+    />
+    <div
+      className="post__preview-footer"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Only visible to users in ~{channel}"
+          id="post_message_preview.channel"
+          values={
+            Object {
+              "channel": "channel name",
+            }
+          }
+        />
+      </p>
+    </div>
+  </div>
+</PostAttachmentContainer>
+`;
+
+exports[`PostMessagePreview should render without preview 1`] = `""`;

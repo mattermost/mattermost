@@ -1,0 +1,26 @@
+*.swp
+.idea
+*.tar.gz
+tests/reports
+.DS_Store
+mattermost-webapp.iml
+.vscode/
+coverage
+*.tsbuildinfo
+
+# Environment variables
+.env*
+*.crt
+*.key
+
+mattermost-license.txt
+
+# Vim temporary files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+.eslintcache
+.stylelintcache

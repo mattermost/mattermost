@@ -1,0 +1,256 @@
+@import 'sass/utils/_mixins';
+@import './mixins';
+
+.BillingSubscriptions {
+    .BillingSubscriptions__topWrapper {
+        display: flex;
+    }
+
+    .AlertBanner {
+        margin-bottom: 20px;
+    }
+}
+
+#BillingSubscriptions__seatOverageTooltip {
+    margin-left: -5px;
+}
+
+.BillingSubscriptions__tooltip.tooltip {
+    font-family: 'Open Sans', sans-serif;
+
+    &.bottom {
+        padding: 10px 0;
+    }
+
+    &.in {
+        opacity: 1;
+    }
+
+    &.BillingSubscriptions__tooltip-left .tooltip-inner {
+        left: 40%;
+    }
+
+    &.BillingSubscriptions__tooltip-right .tooltip-inner {
+        right: 90%;
+    }
+
+    .tooltip-inner {
+        position: relative;
+        min-width: 337px;
+        max-width: none;
+        padding: 24px;
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        background-color: var(--sys-center-channel-bg);
+        border-radius: 4px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        color: var(--sys-center-channel-color);
+        opacity: 1;
+        text-align: left;
+    }
+
+    .tooltip-arrow {
+        z-index: 2;
+        border-width: 0 11px 11px;
+        border-bottom-color: rgba(var(--sys-center-channel-color-rgb), 0.08);
+
+        &::before {
+            position: relative;
+            top: -10px;
+            left: -11px;
+            display: block;
+            width: 0;
+            height: 0;
+            border: 11px solid transparent;
+            border-bottom-color: var(--sys-center-channel-bg);
+            content: '';
+        }
+    }
+}
+
+.BillingSubscriptions__tooltipTitle {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+}
+
+.BillingSubscriptions__tooltipMessage {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.UpgradeMattermostCloud {
+    text-align: center;
+}
+
+.UpgradeMattermostCloud__image {
+    flex: 0 0 auto;
+}
+
+.UpgradeMattermostCloud__title {
+    align-self: flex-start;
+    margin-top: 16px;
+    color: var(--sys-center-channel-color);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    text-align: left;
+}
+
+.UpgradeMattermostCloud__description {
+    margin-top: 12px;
+    color: var(--sys-center-channel-color);
+    font-size: 14px;
+    line-height: 20px;
+    text-align: left;
+}
+
+.UpgradeMattermostCloud__upgradeButton {
+    width: 100%;
+    padding: 13px 0;
+    border: none;
+    margin-top: 16px;
+    background: var(--button-bg);
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px var(--sys-button-bg);
+    color: var(--button-color);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 14px;
+
+    &:hover:not(.disabled) {
+        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.16), rgba(var(--center-channel-color-rgb), 0.16)), var(--button-bg);
+    }
+
+    &:active {
+        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.32), rgba(var(--center-channel-color-rgb), 0.32)), var(--button-bg);
+    }
+
+    &:focus {
+        box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+    }
+
+    &.disabled {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+}
+
+.PrivateCloudCard {
+    @include cloud-card;
+
+    display: flex;
+
+    .UpgradeMattermostCloud__upgradeButton {
+        max-width: 200px;
+    }
+}
+
+.PrivateCloudCard__text {
+    max-width: 563px;
+    flex-grow: 1;
+    color: var(--sys-center-channel-color);
+}
+
+.PrivateCloudCard__text-title {
+    @include cloud-card-title;
+}
+
+.PrivateCloudCard__text-description {
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.PrivateCloudCard__image {
+    flex: 0 0 173px;
+    margin-left: 85px;
+}
+
+.PrivateCloudCard__actionButton {
+    display: block;
+
+    @include fit-content;
+
+    padding: 13px 20px;
+    border: none;
+    margin-top: 16px;
+    background: var(--sys-center-channel-bg);
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px var(--sys-button-bg);
+    color: var(--sys-button-bg);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 14px;
+
+    &:hover:not(.disabled) {
+        background: rgba(var(--sys-button-bg-rgb), 0.04);
+        text-decoration: none;
+    }
+
+    &:active {
+        background: rgba(var(--sys-button-bg-rgb), 0.08);
+        text-decoration: none;
+    }
+
+    &:focus {
+        box-shadow: inset 0 0 0 2px var(--sys-button-bg);
+        text-decoration: none;
+    }
+}
+
+.cancelSubscriptionSection {
+    display: flex;
+    padding: 12px 54px 18px 32px;
+    margin-top: 20px;
+}
+
+.cancelSubscriptionSection__text {
+    flex-grow: 1;
+    color: var(--sys-center-channel-color);
+}
+
+.cancelSubscriptionSection__text-title {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.cancelSubscriptionSection__text-description {
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+}
+
+.cancelSubscriptionSection__contactUs {
+    display: block;
+
+    @include fit-content;
+
+    padding: 13px 20px;
+    margin-top: 16px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px var(--sys-dnd-indicator);
+    color: var(--sys-dnd-indicator);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 9.5px;
+
+    &:hover:not(.disabled) {
+        background: rgba(var(--sys-dnd-indicator-rgb), 0.04);
+        color: var(--sys-dnd-indicator);
+        text-decoration: none;
+    }
+
+    &:active {
+        background: rgba(var(--sys-dnd-indicator-rgb), 0.08);
+        text-decoration: none;
+    }
+
+    &:focus {
+        box-shadow: inset 0 0 0 2px var(--sys-dnd-indicator);
+        color: var(--sys-dnd-indicator);
+        text-decoration: none;
+    }
+}

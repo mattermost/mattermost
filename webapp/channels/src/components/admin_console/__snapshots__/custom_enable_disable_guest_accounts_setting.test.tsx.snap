@@ -1,0 +1,123 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial state with false 1`] = `
+<Fragment>
+  <BooleanSetting
+    disabled={false}
+    falseText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="false"
+        id="admin.false"
+      />
+    }
+    helpText={
+      <FormattedMarkdownMessage
+        defaultMessage="When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests."
+        id="admin.guest_access.enableDescription"
+      />
+    }
+    id="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Enable Guest Access: "
+        id="admin.guest_access.enableTitle"
+      />
+    }
+    onChange={[Function]}
+    setByEnv={false}
+    trueText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="true"
+        id="admin.true"
+      />
+    }
+    value={false}
+  />
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Save and Disable Guest Access"
+        id="admin.guest_access.disableConfirmButton"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?"
+        id="admin.guest_access.disableConfirmMessage"
+      />
+    }
+    modalClass=""
+    onCancel={[MockFunction]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Save and Disable Guest Access?"
+        id="admin.guest_access.disableConfirmTitle"
+      />
+    }
+  />
+</Fragment>
+`;
+
+exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting initial state with true 1`] = `
+<Fragment>
+  <BooleanSetting
+    disabled={false}
+    falseText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="false"
+        id="admin.false"
+      />
+    }
+    helpText={
+      <FormattedMarkdownMessage
+        defaultMessage="When true, external guest can be invited to channels within teams. Please see [Permissions Schemes](../user_management/permissions/system_scheme) for which roles can invite guests."
+        id="admin.guest_access.enableDescription"
+      />
+    }
+    id="MySetting"
+    label={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Enable Guest Access: "
+        id="admin.guest_access.enableTitle"
+      />
+    }
+    onChange={[Function]}
+    setByEnv={false}
+    trueText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="true"
+        id="admin.true"
+      />
+    }
+    value={true}
+  />
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Save and Disable Guest Access"
+        id="admin.guest_access.disableConfirmButton"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?"
+        id="admin.guest_access.disableConfirmMessage"
+      />
+    }
+    modalClass=""
+    onCancel={[MockFunction]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Save and Disable Guest Access?"
+        id="admin.guest_access.disableConfirmTitle"
+      />
+    }
+  />
+</Fragment>
+`;

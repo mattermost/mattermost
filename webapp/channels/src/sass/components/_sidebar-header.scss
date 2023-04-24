@@ -1,0 +1,24 @@
+.SidebarHeader {
+    display: flex;
+    padding: 0;
+    cursor: pointer;
+
+    .MenuWrapper {
+        height: 100%;
+    }
+
+    .MenuWrapper:first-child {
+        width: 100%;
+        height: 100%;
+    }
+
+    .status-selector {
+        margin: 3px 8px 0 6px;
+    }
+
+    .sidebar-header-dropdown__icon {
+        svg {
+            fill: var(--sidebar-header-text-color);
+        }
+    }
+}

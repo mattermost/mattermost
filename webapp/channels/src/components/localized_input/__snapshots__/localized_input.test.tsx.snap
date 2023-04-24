@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/localized_input/localized_input should match snapshot 1`] = `
+<LocalizedInput
+  className="test-class"
+  onChange={[MockFunction]}
+  placeholder={
+    Object {
+      "defaultMessage": "placeholder to test",
+      "id": "test.placeholder",
+    }
+  }
+  value="test value"
+>
+  <input
+    className="test-class"
+    onChange={[MockFunction]}
+    placeholder="placeholder to test"
+    value="test value"
+  />
+</LocalizedInput>
+`;

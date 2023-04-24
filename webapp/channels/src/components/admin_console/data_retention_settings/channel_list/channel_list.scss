@@ -1,0 +1,20 @@
+
+.PolicyChannelsList {
+    .ChannelList__nameColumn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        span.channel-icon {
+            margin: 3px 8px 0 0;
+        }
+    }
+
+    .Filter_content.Filter__show {
+        width: 256px;
+    }
+
+    .FilterList.FilterList__full {
+        width: auto;
+    }
+}

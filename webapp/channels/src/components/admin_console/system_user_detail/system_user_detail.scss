@@ -1,0 +1,51 @@
+@import 'utils/variables';
+
+.SystemUserDetail__field-label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.SystemUserDetail__input {
+    display: inline-block;
+    max-width: 320px;
+    height: 40px;
+}
+
+.SystemUserDetail .add-team-button {
+    position: relative;
+    margin-left: 10px;
+}
+
+.SystemUserDetail .team-btn__content {
+    opacity: 1;
+}
+
+.SystemUserDetail__field-text {
+    vertical-align: middle;
+}
+
+.SystemUserDetail__field-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin: 0 8px 0 0;
+    fill: rgba(61, 60, 64, 0.6);
+    vertical-align: middle;
+}
+
+.SystemUserDetail__error {
+    padding-top: 8px;
+    padding-left: 15px;
+}
+
+.SystemUserDetail__actions-menu-icon svg {
+    width: 18px;
+    color: #333;
+}
+
+.SystemUserDetail .MenuItem .SystemUserDetail__action-remove-team {
+    color: #8b0008;
+}
