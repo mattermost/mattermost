@@ -4201,6 +4201,7 @@
   "more_channels.show_public_channels": "Channel Type: Public",
   "more_channels.title": "More Channels",
   "more_channels.view": "View",
+  "more_direct_bot_channels_modal.title": "Apps",
   "more_direct_channels.directchannel.deactivated": "{displayname} - Deactivated",
   "more_direct_channels.directchannel.you": "{displayname} (you)",
   "more_direct_channels.new_convo_note": "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead.",
