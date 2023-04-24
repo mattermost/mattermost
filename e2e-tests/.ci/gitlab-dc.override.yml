@@ -27,6 +27,8 @@ services:
       MM_LICENSE: "${MM_LICENSE}"
     env_file:
       - "../../e2e-tests/.ci/.env.server"
+    # TODO keep?
+    command: bash -c "sed -E -i 's|\"General\"|\"Town Square\"|g' i18n/en.json || :; exec mattermost"
     ports:
       - "8065:8065"
     depends_on:

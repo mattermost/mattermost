@@ -33,7 +33,7 @@ mme2e_wait_command_success () {
   RETRIES_INTERVAL=${4:-10}
   MME2E_PREVIOUS_PIPEFAIL=$(mme2e_get_current_shopt_arg pipefail)
   set -o pipefail
-  until ${COMMAND}; do
+  until bash -c "${COMMAND}"; do
     RETRIES_LEFT=$((RETRIES_LEFT - 1))
     [ "$RETRIES_LEFT" -le "0" ] && break
     mme2e_log "${RETRY_MESSAGE} ($RETRIES_LEFT retries left, sleeping $RETRIES_INTERVAL seconds)"

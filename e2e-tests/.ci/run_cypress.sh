@@ -28,3 +28,5 @@ EOF
 # TODO change this to run run_test_cycle.js instead, after testing
 ${MME2E_DOCKER_COMPOSE} exec -T -u 1000 cypress ./node_modules/.bin/cypress run --spec tests/integration/channels/accessibility/accessibility_dropdowns_spec.js \
 	2> >(tee ../cypress/logs/cypress.stderr) | tee ../cypress/logs/cypress.stdout
+CYPRESS_EXIT_CODE=$?
+echo "Cypress exited with code $CYPRESS_EXIT_CODE"
