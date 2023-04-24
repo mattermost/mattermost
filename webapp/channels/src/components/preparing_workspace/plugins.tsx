@@ -30,6 +30,7 @@ type Props = PreparingWorkspacePageProps & {
     setOption: (option: keyof Form['plugins']) => void;
     className?: string;
     isSelfHosted: boolean;
+    handleVisitMarketPlaceClick: () => void;
 }
 const Plugins = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -154,6 +155,7 @@ const Plugins = (props: Props) => {
                                             <ExternalLink
                                                 href='https://mattermost.com/marketplace/'
                                                 location='preparing_workspace_plugins'
+                                                onClick={props.handleVisitMarketPlaceClick}
                                             >
                                                 {chunks}
                                             </ExternalLink>

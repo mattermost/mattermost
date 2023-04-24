@@ -268,6 +268,7 @@ const PreparingWorkspace = (props: Props) => {
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
             props.history.push(`/${team.name}/channels${Constants.DEFAULT_CHANNEL}`);
+            trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
         const sendFormEnd = Date.now();
@@ -455,6 +456,9 @@ const PreparingWorkspace = (props: Props) => {
                     show={shouldShowPage(WizardSteps.Plugins)}
                     transitionDirection={getTransitionDirection(WizardSteps.Plugins)}
                     className='child-page'
+                    handleVisitMarketPlaceClick={() => {
+                        trackEvent('first_admin_setup', 'click_visit_marketplace_link');
+                    }}
                 />
                 <InviteMembers
                     onPageView={onPageViews[WizardSteps.InviteMembers]}
