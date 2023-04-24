@@ -18,30 +18,31 @@ describe('Insights', () => {
             teamA = team;
         });
     });
-    it('Check boards and playbooks load when plugins are disabled', () => {
+    it('Check all the cards exist', () => {
         cy.apiAdminLogin();
-
-        // # Ensure plugins for boards and playbooks are disabled
-        cy.apiUpdateConfig({
-            PluginSettings: {
-                PluginStates: {
-                    focalboard: {
-                        Enable: false,
-                    },
-                    playbooks: {
-                        Enable: false,
-                    },
-                },
-            },
-        });
 
         // # Go to the Insights view
         cy.visit(`/${teamA.name}/activity-and-insights`);
 
-        // * Check boards exists because product mode is enabled
+        // * Check top channels exists
+        cy.get('.top-channels-card').should('exist');
+
+        // * Check top threads exists
+        cy.get('.top-threads-card').should('exist');
+
+        // * Check top boards exists because product mode is enabled
         cy.get('.top-boards-card').should('exist');
 
-        // * Check playbooks exists because product mode is enabled
+        // * Check top reactions exists
+        cy.get('.top-reactions-card').should('exist');
+
+        // * Check top dms exists
+        cy.get('.top-dms-card').should('exist');
+
+        // * Check least active channels exists
+        cy.get('.least-active-channels-card').should('exist');
+
+        // * Check top playbooks exists because product mode is enabled
         cy.get('.top-playbooks-card').should('exist');
     });
 });
