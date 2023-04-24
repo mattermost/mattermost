@@ -11,12 +11,12 @@ import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurch
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
-import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getSubscriptionProduct as selectSubscriptionProduct, getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
-import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals} from 'utils/constants';
+import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences, RecurringIntervals, CloudBillingTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import {GlobalState} from '@mattermost/types/store';
@@ -53,6 +53,7 @@ const ToYearlyNudgeBannerDismissable = () => {
     const show = snoozeInfo.show;
 
     const currentUser = useSelector(getCurrentUser);
+    const subscription = useSelector(selectCloudSubscription);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
@@ -139,6 +140,10 @@ const ToYearlyNudgeBannerDismissable = () => {
         return null;
     }
 
+    if (subscription?.billing_type === CloudBillingTypes.INTERNAL || subscription?.billing_type === CloudBillingTypes.LICENSED) {
+        return null;
+    }
+
     const message = (
         <FormattedMessage
             id='cloud_billing.nudge_to_yearly.announcement_bar'
@@ -159,7 +164,7 @@ const ToYearlyNudgeBannerDismissable = () => {
             showCloseButton={daysToProMonthlyEnd > 10}
             onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
             modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
-            modalButtonDefaultText='Learn more'
+            modalButtonDefaultText='Update billing'
             message={message}
             showLinkAsButton={true}
             handleClose={showBanner}
@@ -173,12 +178,17 @@ const ToYearlyNudgeBanner = () => {
     const [openSalesLink] = useOpenSalesLink();
     const openPurchaseModal = useOpenCloudPurchaseModal({});
 
+    const subscription = useSelector(selectCloudSubscription);
     const product = useSelector(selectSubscriptionProduct);
     const currentProductProfessional = product?.sku === CloudProducts.PROFESSIONAL;
     const currentProductIsMonthly = product?.recurring_interval === RecurringIntervals.MONTH;
     const currentProductProMonthly = currentProductProfessional && currentProductIsMonthly;
 
     if (!currentProductProMonthly) {
+        return null;
+    }
+
+    if (subscription?.billing_type === CloudBillingTypes.INTERNAL || subscription?.billing_type === CloudBillingTypes.LICENSED) {
         return null;
     }
 

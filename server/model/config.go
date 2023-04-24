@@ -390,7 +390,6 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
-	SelfHostedExpansion                               *bool   `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -863,10 +862,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
 	}
-
-	if s.SelfHostedExpansion == nil {
-		s.SelfHostedExpansion = NewBool(false)
-	}
 }
 
 type ClusterSettings struct {
@@ -1173,6 +1168,7 @@ type SqlSettings struct {
 	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	ReplicaMonitorIntervalSeconds     *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1236,6 +1232,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ReplicaLagSettings == nil {
 		s.ReplicaLagSettings = []*ReplicaLagSettings{}
+	}
+
+	if s.ReplicaMonitorIntervalSeconds == nil {
+		s.ReplicaMonitorIntervalSeconds = NewInt(5)
 	}
 }
 
