@@ -267,11 +267,6 @@ func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block, a
 		}
 		destinationFilePath := getDestinationFilePath(asTemplate, destBoard.TeamID, destBoard.ID, destFilename)
 
-		// Global Templates are handled via Import, if user-defined templates
-		// are to be stored by team. Won't be deleted by Data Retention
-		if asTemplate {
-			destinationFilePath = filepath.Join(destBoard.TeamID, destBoard.ID, destFilename)
-		}
 		if fileInfo == nil {
 			fileInfo = model.NewFileInfo(destFilename)
 		}
