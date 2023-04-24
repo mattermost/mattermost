@@ -26,7 +26,6 @@ import SearchForBoardsTourStep from 'src/components/onboardingTour/searchForBoar
 
 type Props = {
     onBoardTemplateSelectorOpen: () => void
-    userIsGuest?: boolean
 }
 
 const BoardsSwitcher = (props: Props): JSX.Element => {
