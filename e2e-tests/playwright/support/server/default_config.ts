@@ -170,7 +170,6 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
-        SelfHostedExpansion: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -665,7 +664,6 @@ const defaultServerConfig: AdminConfig = {
         BoardsFeatureFlags: '',
         BoardsDataRetention: false,
         NormalizeLdapDNs: false,
-        UseCaseOnboarding: true,
         GraphQL: false,
         InsightsEnabled: true,
         CommandPalette: false,

@@ -476,7 +476,6 @@ func (ts *TelemetryService) trackConfig() {
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
-		"self_hosted_expansion":                                   *cfg.ServiceSettings.SelfHostedExpansion,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -522,6 +521,7 @@ func (ts *TelemetryService) trackConfig() {
 		"query_timeout":                        *cfg.SqlSettings.QueryTimeout,
 		"disable_database_search":              *cfg.SqlSettings.DisableDatabaseSearch,
 		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
+		"replica_monitor_interval_seconds":     *cfg.SqlSettings.ReplicaMonitorIntervalSeconds,
 	})
 
 	ts.SendTelemetry(TrackConfigLog, map[string]any{
