@@ -18,14 +18,15 @@ type WorkTemplateCategory struct {
 }
 
 type WorkTemplate struct {
-	ID           string       `yaml:"id"`
-	Category     string       `yaml:"category"`
-	UseCase      string       `yaml:"useCase"`
-	Illustration string       `yaml:"illustration"`
-	Visibility   string       `yaml:"visibility"`
-	FeatureFlag  *FeatureFlag `yaml:"featureFlag,omitempty"`
-	Description  Description  `yaml:"description"`
-	Content      []Content    `yaml:"content"`
+	ID             string       `yaml:"id"`
+	Category       string       `yaml:"category"`
+	UseCase        string       `yaml:"useCase"`
+	Illustration   string       `yaml:"illustration"`
+	Visibility     string       `yaml:"visibility"`
+	OnboardingOnly bool         `yaml:"onboardingOnly"`
+	FeatureFlag    *FeatureFlag `yaml:"featureFlag,omitempty"`
+	Description    Description  `yaml:"description"`
+	Content        []Content    `yaml:"content"`
 }
 
 func (wt WorkTemplate) ToModelWorkTemplate(t i18n.TranslateFunc) *model.WorkTemplate {

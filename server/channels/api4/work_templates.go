@@ -62,7 +62,14 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	t := c.AppContext.GetT()
 
-	workTemplates, appErr := c.App.GetWorkTemplates(c.Params.Category, c.App.Config().FeatureFlags.ToMap(), t)
+	// get query string "context" params
+	context := r.URL.Query().Get("context")
+	isOnboarding := false
+	if context == "onboarding" {
+		isOnboarding = true
+	}
+
+	workTemplates, appErr := c.App.GetWorkTemplates(c.Params.Category, c.App.Config().FeatureFlags.ToMap(), isOnboarding, t)
 	if appErr != nil {
 		c.Err = appErr
 		return
