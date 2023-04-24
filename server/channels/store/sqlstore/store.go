@@ -1185,6 +1185,7 @@ func (ss *SqlStore) hasLicense() bool {
 	return hasLicense
 }
 
+//nolint:all
 func (ss *SqlStore) migrate(direction migrationDirection) error {
 	assets := db.Assets()
 
