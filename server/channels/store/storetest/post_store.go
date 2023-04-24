@@ -122,6 +122,11 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		o3.RootId = model.NewId()
 		o3.Message = NewTestId()
 
+		o4 := model.Post{}
+		o4.ChannelId = channel3.Id
+		o4.Type = model.PostTypeAddToChannel
+		o4.UserId = model.NewId()
+
 		p1, err := ss.Post().Save(&o1)
 		require.NoError(t, err, "couldn't save item")
 		assert.Equal(t, int64(1), p1.ReplyCount)
@@ -133,6 +138,10 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		p3, err := ss.Post().Save(&o3)
 		require.NoError(t, err, "couldn't save item")
 		assert.Equal(t, int64(1), p3.ReplyCount)
+
+		p4, err := ss.Post().Save(&o4)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, int64(0), p4.ReplyCount)
 	})
 
 	t.Run("Try to save existing post", func(t *testing.T) {
@@ -356,10 +365,15 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestId()
 
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		o5 := model.Post{}
+		o5.ChannelId = channel4.Id
+		o5.UserId = model.NewId()
+		o5.Type = model.PostTypeAddToChannel
+
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4, &o5})
 		require.NoError(t, err, "couldn't save item")
 		require.Equal(t, -1, errIdx)
-		assert.Len(t, newPosts, 4)
+		assert.Len(t, newPosts, 5)
 		assert.Equal(t, int64(2), newPosts[0].ReplyCount)
 		assert.Equal(t, int64(2), newPosts[1].ReplyCount)
 		assert.Equal(t, int64(1), newPosts[2].ReplyCount)
