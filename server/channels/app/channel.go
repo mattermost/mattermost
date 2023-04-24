@@ -422,19 +422,21 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 		return channel, nil
 	}
 
+	users, nErr := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
+	if nErr != nil {
+		return nil, nErr
+	}
+
+	var isBot bool
+	for _, user := range users {
+		if user.IsBot {
+			isBot = true
+			break
+		}
+	}
+
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
-		if err != nil {
-			return nil, err
-		}
-		var isBot bool
-		for _, user := range users {
-			if user.IsBot {
-				isBot = true
-				break
-			}
-		}
 		// if one of the users is a bot, don't restrict to team members
 		if !isBot {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
@@ -453,6 +455,10 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 			return channel, nil
 		}
 		return nil, err
+	}
+
+	if isBot {
+		channel.AddProp("dm_bot", true)
 	}
 
 	a.handleCreationEvent(c, userID, otherUserID, channel)

@@ -467,6 +467,7 @@ export const ModalIdentifiers = {
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
+    MORE_DIRECT_BOT_CHANNELS: 'more_direct_bot_channels',
 };
 
 export const UserStatuses = {

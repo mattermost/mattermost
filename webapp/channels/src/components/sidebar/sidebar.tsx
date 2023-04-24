@@ -6,6 +6,7 @@ import classNames from 'classnames';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import EditCategoryModal from 'components/edit_category_modal';
+import MoreDirectBotChannelsModal from 'components/more_direct_bot_channels';
 import MoreDirectChannels from 'components/more_direct_channels';
 import DataPrefetch from 'components/data_prefetch';
 import MoreChannels from 'components/more_channels';
@@ -212,9 +213,8 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             });
         } else {
             this.props.actions.openModal({
-                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
-                dialogType: MarketplaceModal,
-                dialogProps: {openedFrom: 'apps_category_plus'},
+                modalId: ModalIdentifiers.MORE_DIRECT_BOT_CHANNELS,
+                dialogType: MoreDirectBotChannelsModal,
             });
         }
     };

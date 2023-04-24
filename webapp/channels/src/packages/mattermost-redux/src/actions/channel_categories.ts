@@ -178,7 +178,9 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
         const categories = Object.values(getAllCategoriesByIds(state));
 
         if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
-            const allDmCategories = categories.filter((category) => category.type === CategoryTypes.DIRECT_MESSAGES);
+            const dmBot: boolean = channel.props?.dm_bot;
+            const categoryType = dmBot ? CategoryTypes.APPS : CategoryTypes.DIRECT_MESSAGES;
+            const allDmCategories = categories.filter((category) => category.type === categoryType);
 
             // Get all the categories in which channel exists
             const channelInCategories = categories.filter((category) => {
