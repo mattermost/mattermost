@@ -29,7 +29,7 @@ import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import ProductMenuList from './product_menu_list';
-import { getIsMobileView } from 'selectors/views/browser';
+import {getIsMobileView} from 'selectors/views/browser';
 
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
