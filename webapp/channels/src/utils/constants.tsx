@@ -769,7 +769,6 @@ export const TELEMETRY_CATEGORIES = {
     REQUEST_BUSINESS_EMAIL: 'request_business_email',
     TRUE_UP_REVIEW: 'true_up_review',
     WORK_TEMPLATES: 'work_templates',
-    SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
 };
 
 export const TELEMETRY_LABELS = {
