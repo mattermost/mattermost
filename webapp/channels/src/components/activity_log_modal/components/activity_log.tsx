@@ -56,11 +56,11 @@ export default class ActivityLog extends React.PureComponent<Props, State> {
 
     handleMoreInfo = (): void => {
         this.setState({moreInfo: true});
-    }
+    };
 
     submitRevoke = (e: React.MouseEvent): void => {
         this.props.submitRevoke(this.props.currentSession.id, e);
-    }
+    };
 
     isMobileSession = (session: Session): boolean => {
         return Boolean(session.device_id && (session.device_id.includes('apple') || session.device_id.includes('android')));

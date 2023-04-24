@@ -628,7 +628,7 @@ func MergeInlineText(inlines []Inline) []Inline {
 }
 
 func Unescape(markdown string) string {
-	ret := ""
+	var ret strings.Builder
 
 	position := 0
 	for position < len(markdown) {
@@ -637,27 +637,27 @@ func Unescape(markdown string) string {
 		switch c {
 		case '\\':
 			if position+1 < len(markdown) && isEscapableByte(markdown[position+1]) {
-				ret += string(markdown[position+1])
+				ret.WriteByte(markdown[position+1])
 				position += 2
 			} else {
-				ret += `\`
+				ret.WriteString(`\`)
 				position++
 			}
 		case '&':
 			position++
 			if semicolon := strings.IndexByte(markdown[position:], ';'); semicolon == -1 {
-				ret += "&"
+				ret.WriteString("&")
 			} else if s := CharacterReference(markdown[position : position+semicolon]); s != "" {
 				position += semicolon + 1
-				ret += s
+				ret.WriteString(s)
 			} else {
-				ret += "&"
+				ret.WriteString("&")
 			}
 		default:
-			ret += string(c)
+			ret.WriteRune(c)
 			position += cSize
 		}
 	}
 
-	return ret
+	return ret.String()
 }

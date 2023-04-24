@@ -8,7 +8,7 @@ import {getOptionValue} from 'react-select/src/builtins';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
-import {cmdOrCtrlPressed} from 'utils/utils';
+import {cmdOrCtrlPressed} from 'utils/keyboard';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -46,9 +46,9 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
         onAction: () => null,
     };
 
-    private toSelect = -1
-    private listRef = React.createRef<HTMLDivElement>()
-    private selectedItemRef = React.createRef<HTMLDivElement>()
+    private toSelect = -1;
+    private listRef = React.createRef<HTMLDivElement>();
+    private selectedItemRef = React.createRef<HTMLDivElement>();
 
     public constructor(props: Props<T>) {
         super(props);
@@ -94,7 +94,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
     // externally by the MultiSelect component.
     public setSelected = (selected: number) => {
         this.setState({selected});
-    }
+    };
 
     private handleArrowPress = (e: KeyboardEvent) => {
         if (cmdOrCtrlPressed(e) && e.shiftKey) {
@@ -129,7 +129,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
         e.preventDefault();
         this.setState({selected});
         this.props.onSelect(options[selected]);
-    }
+    };
 
     private defaultOptionRenderer = (
         option: T,
@@ -153,7 +153,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                 {option.label}
             </div>
         );
-    }
+    };
 
     private select = (option: T) => {
         const i = this.props.options.indexOf(option);
@@ -162,7 +162,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                 this.setSelected(i);
             }
         }
-    }
+    };
 
     public render() {
         const {options, customNoOptionsMessage} = this.props;

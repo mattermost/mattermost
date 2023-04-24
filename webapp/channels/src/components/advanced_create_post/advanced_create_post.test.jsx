@@ -115,6 +115,7 @@ function advancedCreatePost({
             fullWidthTextBox={fullWidthTextBox}
             currentChannelMembersCount={currentChannelMembersCount}
             draft={draft}
+            isRemoteDraft={false}
             recentPostIdInChannel={recentPostIdInChannel}
             latestReplyablePostId={latestReplyablePostId}
             locale={locale}

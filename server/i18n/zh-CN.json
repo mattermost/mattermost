@@ -3132,10 +3132,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "ElasticSearch 已启动。"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "创建 Elasticsearch 批量处理器失败。"
   },

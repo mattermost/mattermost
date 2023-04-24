@@ -6,7 +6,7 @@ import React from 'react';
 import {injectIntl, WrappedComponentProps} from 'react-intl';
 
 import {Feedback} from '@mattermost/types/cloud';
-import FeedbackModal from 'components/feedback_modal/feedback';
+import FeedbackModal, {FeedbackOption} from 'components/feedback_modal/feedback';
 
 type Props = {
     onSubmit: (deleteFeedback: Feedback) => void;
@@ -28,23 +28,35 @@ const DeleteFeedbackModal = (props: Props) => {
         defaultMessage: 'Delete Workspace',
     });
 
-    const deleteFeedbackOptions = [
-        props.intl.formatMessage({
-            id: 'feedback.deleteWorkspace.feedbackNoValue',
-            defaultMessage: 'No longer found value',
-        }),
-        props.intl.formatMessage({
-            id: 'feedback.deleteWorkspace.feedbackMoving',
-            defaultMessage: 'Moving to a different solution',
-        }),
-        props.intl.formatMessage({
-            id: 'feedback.deleteWorkspace.feedbackMistake',
-            defaultMessage: 'Created a workspace by mistake',
-        }),
-        props.intl.formatMessage({
-            id: 'feedback.deleteWorkspace.feedbackHosting',
-            defaultMessage: 'Moving to hosting my own Mattermost instance (self-hosted)',
-        }),
+    const deleteFeedbackOptions: FeedbackOption[] = [
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.deleteWorkspace.feedbackNoValue',
+                defaultMessage: 'No longer found value',
+            }),
+            submissionValue: 'No longer found value',
+        },
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.deleteWorkspace.feedbackMoving',
+                defaultMessage: 'Moving to a different solution',
+            }),
+            submissionValue: 'Moving to a different solution',
+        },
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.deleteWorkspace.feedbackMistake',
+                defaultMessage: 'Created a workspace by mistake',
+            }),
+            submissionValue: 'Created a workspace by mistake',
+        },
+        {
+            translatedMessage: props.intl.formatMessage({
+                id: 'feedback.deleteWorkspace.feedbackHosting',
+                defaultMessage: 'Moving to hosting my own Mattermost instance (self-hosted)',
+            }),
+            submissionValue: 'Moving to hosting my own Mattermost instance (self-hosted)',
+        },
     ];
 
     return (

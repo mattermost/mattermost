@@ -36,7 +36,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
     public onHide = (): void => {
         this.setState({copiedLink: false});
         this.props.onHide();
-    }
+    };
 
     public copyLink = (): void => {
         const textarea = this.textAreaRef.current;
@@ -51,7 +51,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 this.setState({copiedLink: false});
             }
         }
-    }
+    };
 
     public render(): JSX.Element {
         let helpText = null;

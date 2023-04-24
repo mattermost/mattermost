@@ -6,7 +6,7 @@ import {defineConfig, devices} from '@playwright/test';
 import {duration} from '@e2e-support/util';
 import testConfig from '@e2e-test.config';
 
-const defaultOutputFolder = 'playwright-report';
+const defaultOutputFolder = './playwright-report';
 
 export default defineConfig({
     globalSetup: require.resolve('./global_setup'),

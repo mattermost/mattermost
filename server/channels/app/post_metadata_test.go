@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -27,11 +27,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/imageproxy"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
@@ -2585,6 +2585,18 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("image", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		assert.NoError(t, err)
+
+		assert.Nil(t, og)
+		assert.Equal(t, &model.PostImage{
+			Format: "png",
+			Width:  408,
+			Height: 336,
+		}, dimensions)
+	})
+
+	t.Run("image with no content-type given", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
