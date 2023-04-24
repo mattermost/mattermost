@@ -22,8 +22,6 @@ export interface FeedbackOption {
 
 type Props = {
     onSubmit: (deleteFeedback: Feedback) => void;
-    title: string;
-    submitText: string;
     feedbackOptions: FeedbackOption[];
     freeformTextPlaceholder: string;
 } & WrappedComponentProps

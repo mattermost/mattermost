@@ -66,4 +66,8 @@ describe('components/GetPublicLinkModal', () => {
         wrapper.find(GetLinkModal).first().props().onHide();
         expect(wrapper.state('show')).toBe(false);
     });
+
+    test('this test should fail', () => {
+        expect(1).toBe(2);
+    });
 });
