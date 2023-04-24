@@ -1246,6 +1246,8 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	}
 	defer engine.Close()
 
+	panic("manual panic running migrations")
+
 	switch direction {
 	case migrationsDirectionDown:
 		_, err = engine.ApplyDown(-1)
