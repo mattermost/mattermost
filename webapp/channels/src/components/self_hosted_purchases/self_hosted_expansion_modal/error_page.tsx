@@ -78,7 +78,7 @@ export default function SelfHostedExpansionErrorPage(props: Props) {
                     props.tryAgain();
                 }}
                 formattedTertiaryButonText={tertiaryButtonText}
-                tertiaryButtonHandler={() =>  {
+                tertiaryButtonHandler={() => {
                     trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'self_hosted_expansion_failure_contact_support_clicked');
                     window.open(contactSupportLink, '_blank', 'noreferrer');
                 }}
