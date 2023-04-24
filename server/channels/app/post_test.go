@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -2066,6 +2067,63 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
+	})
+
+	t.Run("should not include comments made before the given post when rootPost is inaccessible", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+
+		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
+
+		post1, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test1",
+		}, channel, false, true)
+		require.Nil(t, err)
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user2.Id,
+			ChannelId: channel.Id,
+			RootId:    post1.Id,
+			Message:   "test2",
+		}, channel, false, true)
+		require.Nil(t, err)
+		post3, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test3",
+		}, channel, false, true)
+		require.Nil(t, err)
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			RootId:    post1.Id,
+			Message:   "test4",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// Make posts created before post3 inaccessible
+		e := th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+			Name:  model.SystemLastAccessiblePostTime,
+			Value: strconv.FormatInt(post3.CreateAt, 10),
+		})
+		require.NoError(t, e)
+
+		// post4 should mention the user, but since post2 is inaccessible due to the cloud plan's limit,
+		// post4 does not notify the user.
+
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post3)
+
+		assert.Nil(t, err)
+		assert.Zero(t, count)
 	})
 
 	t.Run("should count mentions from the user's webhook posts", func(t *testing.T) {
