@@ -245,12 +245,12 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableCustomGroups === 'true';
 }
 
-export function getUseCaseOnboarding(state: GlobalState): boolean {
+export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
     const isCloud = getLicense(state)?.Cloud === 'true';
     if (isCloud) {
         return true;
     }
-    return getFeatureFlagValue(state, 'UseCaseOnboarding') === 'true';
+    return getConfig(state).EnableOnboardingFlow === 'true';
 }
 
 export function insightsAreEnabled(state: GlobalState): boolean {

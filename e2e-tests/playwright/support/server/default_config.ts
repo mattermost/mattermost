@@ -664,7 +664,6 @@ const defaultServerConfig: AdminConfig = {
         BoardsFeatureFlags: '',
         BoardsDataRetention: false,
         NormalizeLdapDNs: false,
-        UseCaseOnboarding: false,
         GraphQL: false,
         InsightsEnabled: true,
         CommandPalette: false,
