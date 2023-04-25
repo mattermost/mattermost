@@ -357,6 +357,7 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 		testChannel := ""
 		if patch.ChannelID != nil && *patch.ChannelID == "" {
 			var err error
+			a.logger.Debug("PatchBoard")
 			oldMembers, err = a.GetMembersForBoard(boardID)
 			if err != nil {
 				a.logger.Error("Unable to get the board members", mlog.Err(err))
@@ -419,6 +420,7 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 
 		if patch.ChannelID != nil {
 			if *patch.ChannelID != "" {
+				a.logger.Debug("PatchBoard2")
 				members, err := a.GetMembersForBoard(updatedBoard.ID)
 				if err != nil {
 					a.logger.Error("Unable to get the board members", mlog.Err(err))
@@ -438,6 +440,7 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 		}
 
 		if patch.Type != nil && isTemplate {
+			a.logger.Debug("PatchBoard3")
 			members, err := a.GetMembersForBoard(updatedBoard.ID)
 			if err != nil {
 				a.logger.Error("Unable to get the board members", mlog.Err(err))
@@ -513,6 +516,7 @@ func (a *App) DeleteBoard(boardID, userID string) error {
 }
 
 func (a *App) GetMembersForBoard(boardID string) ([]*model.BoardMember, error) {
+	a.logger.Debug("GetMembersForBoard")
 	members, err := a.store.GetMembersForBoard(boardID)
 	if err != nil {
 		return nil, err

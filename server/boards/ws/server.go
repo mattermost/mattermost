@@ -477,6 +477,7 @@ func (ws *Server) getListenersForTeam(teamID string) []*websocketSession {
 // getListenersForTeamAndBoard returns the listeners subscribed to a
 // team changes and members of a given board.
 func (ws *Server) getListenersForTeamAndBoard(teamID, boardID string, ensureUsers ...string) []*websocketSession {
+	ws.logger.Debug("getListenersForTeamAndBoard" + teamID + boardID)
 	members, err := ws.store.GetMembersForBoard(boardID)
 	if err != nil {
 		ws.logger.Error("error getting members for board",
