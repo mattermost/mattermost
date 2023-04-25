@@ -9830,5 +9830,61 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Невозможно удалить данные oauth."
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "few": "У вас есть **{{.Count}} назначенных задачи, которые необходимо выполнить после сегодняшнего дня**.",
+      "many": "У вас есть **{{.Count}} назначенных задач, которые необходимо выполнить после сегодняшнего дня**.",
+      "one": "У вас есть **{{.Count}} назначенная задача, которую необходимо выполнить после сегодняшнего дня**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Пожалуйста, используйте `/playbook todo`, чтобы увидеть все свои задачи."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "В настоящее время у вас нет запусков."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "few": "У вас запущено {{.Count}}:",
+      "many": "У вас запущены {{.Count}}:",
+      "one": "У вас запущен {{.Count}}:"
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Выполняется"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "У вас просрочено 0 запусков."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "few": "У вас есть {{.Count}} просроченных запуска для обновления статуса:",
+      "many": "У вас есть {{.Count}} просроченных запусков для обновления статуса:",
+      "one": "У вас есть {{.Count}} просроченный запуск для обновления статуса:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Просроченные обновления статуса"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Невозможно выполнить команду."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Недействительный рабочий адрес электронной почты для пробной версии"
   }
 ]
