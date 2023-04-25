@@ -315,13 +315,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		return nil, rejectionError
 	}
 
-	// run message will be consumed hook
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		postReplacement, _ := hooks.MessageWillBeConsumed(post.ForPlugin())
-		post = postReplacement
-		return true
-	}, plugin.MessageWillBeConsumedID)
-
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
 	if post.CreateAt == 0 {
 		post.CreateAt = model.GetMillis()
@@ -380,6 +373,8 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
+
+	a.applyPostWillBeConsumedHook(rpost)
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -510,15 +505,6 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 	a.invalidateCacheForChannelPosts(channel.Id)
-
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		postReplacement, err := hooks.MessageWillBeConsumed(post.ForPlugin())
-		if err != "" {
-			fmt.Println(err)
-		}
-		post = postReplacement
-		return true
-	}, plugin.MessageWillBeConsumedID)
 
 	if _, err := a.SendNotifications(c, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
@@ -868,13 +854,7 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 		return nil, appErr
 	}
 
-	for index, post := range postList.Posts {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			updatedPost, _ := hooks.MessageWillBeConsumed(post.ForPlugin())
-			postList.Posts[index] = updatedPost
-			return true
-		}, plugin.MessageWillBeConsumedID)
-	}
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 	return postList, nil
 }
 
@@ -894,6 +874,7 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 	return postList, nil
 }
 
@@ -910,6 +891,8 @@ func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 	return postList, nil
 }
 
@@ -933,14 +916,8 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		postReplacement, err := hooks.MessageWillBeConsumed(post.ForPlugin())
-		if err != "" {
-			fmt.Println(err)
-		}
-		post = postReplacement
-		return true
-	}, plugin.MessageWillBeConsumedID)
+	a.applyPostWillBeConsumedHook(post)
+
 	return post, nil
 }
 
@@ -971,6 +948,7 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(posts.Posts)
 	return posts, nil
 }
 
@@ -984,6 +962,7 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 	return postList, nil
 }
 
@@ -997,6 +976,7 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 	return postList, nil
 }
 
@@ -1010,6 +990,7 @@ func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, li
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 	return postList, nil
 }
 
@@ -1046,6 +1027,8 @@ func (a *App) GetPermalinkPost(c request.CTX, postID string, userID string) (*mo
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(list.Posts)
+
 	return list, nil
 }
 
@@ -1074,6 +1057,8 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -1101,6 +1086,8 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
+
+	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
 }
@@ -1138,6 +1125,8 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 		return nil, appErr
 	}
 
+	a.applyPostsWillBeConsumedHook(postList.Posts)
+
 	return postList, nil
 }
 
@@ -1147,6 +1136,7 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.applyPostWillBeConsumedHook(post)
 	return post, nil
 }
 
@@ -2304,4 +2294,22 @@ func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThrea
 
 func (a *App) isPostPriorityEnabled() bool {
 	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
+}
+
+func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
+	for index, post := range posts {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			updatedPost, _ := hooks.MessageWillBeConsumed(post.ForPlugin())
+			posts[index] = updatedPost
+			return true
+		}, plugin.MessageWillBeConsumedID)
+	}
+}
+
+func (a *App) applyPostWillBeConsumedHook(post *model.Post) {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		updatedPost, _ := hooks.MessageWillBeConsumed(post.ForPlugin())
+		post = updatedPost
+		return true
+	}, plugin.MessageWillBeConsumedID)
 }
