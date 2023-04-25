@@ -11,19 +11,22 @@
     }
 }
 
-@mixin sideIllustrationKeyframe($name, $rightPx){
-    @keyframes #{$name}SlideInRight{
+@mixin sideIllustrationKeyframe($name, $rightPx) {
+    @keyframes #{$name}SlideInRight {
         from {
             right: -#{$rightPx}px;
         }
+
         to {
             right: 0;
         }
     }
+
     @keyframes #{$name}SlideOutRight {
         from {
             right: 0;
         }
+
         to {
             right: -#{$rightPx}px;
         }

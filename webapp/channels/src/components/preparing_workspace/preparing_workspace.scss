@@ -94,7 +94,9 @@
         animation-duration: 0.3s;
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
+
         @include sideIllustrationKeyframe(invitation, 651);
+
         &.enter {
             animation-name: invitationSlideInRight;
         }
@@ -106,12 +108,14 @@
 
     &__roles-illustration {
         position: absolute;
-        bottom: 0;
         right: -295px;
+        bottom: 0;
         animation-duration: 0.3s;
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
+
         @include sideIllustrationKeyframe(roles, 295);
+
         &.enter {
             animation-name: rolesSlideInRight;
         }
@@ -121,7 +125,6 @@
         }
     }
 }
-
 
 .PreparingWorkspacePageContainer {
 
