@@ -34,7 +34,8 @@ func TestOnboardingFirstAdminRole(t *testing.T) {
 	defer th.TearDown()
 
 	err := th.App.CompleteOnboarding(&request.Context{}, &mm_model.CompleteOnboardingRequest{
-		Role: "engineering",
+		Organization: "myorg",
+		Role:         "engineering",
 	})
 	require.Nil(t, err)
 	defer func() {
