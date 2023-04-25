@@ -2079,7 +2079,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	var posts []*model.Post
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
-		mlog.Warn("Query error searching posts.", mlog.Err(err))
+		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {

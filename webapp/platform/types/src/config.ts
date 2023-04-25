@@ -379,7 +379,6 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
-    SelfHostedExpansion: boolean;
 };
 
 export type TeamSettings = {

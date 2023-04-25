@@ -254,21 +254,24 @@ export function fetchChannelsAndMembers(teamId: Team['id'] = ''): ActionFunc<{ch
                 teamId,
                 data: channels,
             });
+            actions.push({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+                data: channelMembers,
+            });
+            actions.push({
+                type: RoleTypes.RECEIVED_ROLES,
+                data: roles,
+            });
         } else {
             actions.push({
                 type: ChannelTypes.RECEIVED_ALL_CHANNELS,
                 data: channels,
             });
+            actions.push({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+                data: channelMembers,
+            });
         }
-
-        actions.push({
-            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-            data: channelMembers,
-        });
-        actions.push({
-            type: RoleTypes.RECEIVED_ROLES,
-            data: roles,
-        });
 
         await dispatch(batchActions(actions));
 

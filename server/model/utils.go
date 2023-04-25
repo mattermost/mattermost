@@ -269,6 +269,8 @@ type AppError struct {
 	wrapped       error
 }
 
+const maxErrorLength = 1024
+
 func (er *AppError) Error() string {
 	var sb strings.Builder
 
@@ -294,7 +296,11 @@ func (er *AppError) Error() string {
 		sb.WriteString(err.Error())
 	}
 
-	return sb.String()
+	res := sb.String()
+	if len(res) > maxErrorLength {
+		res = res[:maxErrorLength] + "..."
+	}
+	return res
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {
