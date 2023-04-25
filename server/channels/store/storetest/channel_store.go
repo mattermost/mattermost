@@ -5944,7 +5944,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		{"ChannelA", teamID, m1.UserId, "ChannelA", false, model.ChannelList{&o1, &o3}},
 		{"ChannelA, include deleted", teamID, m1.UserId, "ChannelA", true, model.ChannelList{&o1, &o3, &o13}},
 		{"ChannelA, other team", otherTeamID, m3.UserId, "ChannelA", false, model.ChannelList{&o2}},
-		// {"empty string", teamID, m1.UserId, "", false, model.ChannelList{&o1, &o3, &o12, &o11, &o7, &o6, &o10, &o9}},
+		{"empty string", teamID, m1.UserId, "", false, model.ChannelList{&o1, &o3, &o12, &o9, &o11, &o7, &o6, &o10}},
 		{"no matches", teamID, m1.UserId, "blargh", false, model.ChannelList{}},
 		{"prefix", teamID, m1.UserId, "off-", false, model.ChannelList{&o7, &o6}},
 		{"full match with dash", teamID, m1.UserId, "off-topic", false, model.ChannelList{&o6}},
