@@ -26,6 +26,8 @@ import {GlobalState} from 'types/store';
 import {isModalOpen} from 'selectors/views/modals';
 import {isDevModeEnabled} from 'selectors/general';
 
+import {inferNames} from 'utils/hosted_customer';
+
 import {
     ModalIdentifiers,
     StatTypes,
@@ -46,29 +48,28 @@ import useFetchStandardAnalytics from 'components/common/hooks/useFetchStandardA
 import ChooseDifferentShipping from 'components/choose_different_shipping';
 
 import {ValueOf} from '@mattermost/types/utilities';
-import {UserProfile} from '@mattermost/types/users';
 import {
     SelfHostedSignupProgress,
     SelfHostedSignupCustomerResponse,
 } from '@mattermost/types/hosted_customer';
 
-import {Seats, errorInvalidNumber} from '../seats_calculator';
+import {Seats, errorInvalidNumber} from '../../seats_calculator';
 
-import ContactSalesLink from './contact_sales_link';
+import ContactSalesLink from '../contact_sales_link';
 import Submitting, {convertProgressToBar} from './submitting';
 import ErrorPage from './error';
 import SuccessPage from './success_page';
 import SelfHostedCard from './self_hosted_card';
-import StripeProvider from './stripe_provider';
+import StripeProvider from '../stripe_provider';
 import Terms from './terms';
-import Address from './address';
+import Address from '../address';
 import useNoEscape from './useNoEscape';
 
 import {SetPrefix, UnionSetActions} from './types';
 
 import './self_hosted_purchase_modal.scss';
 
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from './constants';
+import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from '../constants';
 
 export interface State {
 
@@ -307,17 +308,6 @@ interface Props {
 
 interface FakeProgress {
     intervalId?: NodeJS.Timeout;
-}
-
-function inferNames(user: UserProfile, cardName: string): [string, string] {
-    if (user.first_name) {
-        return [user.first_name, user.last_name];
-    }
-    const names = cardName.split(' ');
-    if (cardName.length === 2) {
-        return [names[0], names[1]];
-    }
-    return [names[0], names.slice(1).join(' ')];
 }
 
 export default function SelfHostedPurchaseModal(props: Props) {
