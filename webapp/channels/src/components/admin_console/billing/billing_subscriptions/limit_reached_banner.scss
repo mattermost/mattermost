@@ -1,0 +1,28 @@
+@import 'utils/mixins';
+
+.LimitReachedBanner {
+    &__actions {
+        padding-top: 12px;
+    }
+
+    &__primary {
+        font-size: 12px;
+
+        @include primary-button;
+
+        &:hover {
+            color: var(--button-color);
+        }
+    }
+
+    &__contact-sales {
+        margin-left: 4px;
+        font-size: 12px;
+
+        @include tertiary-button;
+
+        &:hover {
+            color: var(--button-bg);
+        }
+    }
+}

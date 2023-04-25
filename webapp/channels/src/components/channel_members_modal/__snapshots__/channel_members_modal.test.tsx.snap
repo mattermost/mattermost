@@ -1,0 +1,178 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelMembersModal should match snapshot 1`] = `
+<div>
+  <Modal
+    animation={true}
+    aria-labelledby="channelMembersModalLabel"
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    dialogClassName="a11y__modal more-modal more-modal--action"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    id="channelMembersModal"
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onExited={[MockFunction]}
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    role="dialog"
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="channelMembersModalLabel"
+      >
+        <span
+          className="name"
+        >
+          channel_display_name
+        </span>
+        <MemoizedFormattedMessage
+          defaultMessage=" Members"
+          id="channel_members_modal.members"
+        />
+      </ModalTitle>
+      <a
+        className="btn btn-md btn-primary"
+        href="#"
+        id="showInviteModal"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage=" Add Members"
+          id="channel_members_modal.addNew"
+        />
+      </a>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <Connect(MemberListChannel)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "",
+            "delete_at": 0,
+            "display_name": "channel_display_name",
+            "group_constrained": false,
+            "header": "",
+            "id": "channel_id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "",
+            "purpose": "",
+            "scheme_id": "",
+            "team_id": "",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      />
+    </ModalBody>
+  </Modal>
+</div>
+`;
+
+exports[`components/ChannelMembersModal should match snapshot with archived channel 1`] = `
+<div>
+  <Modal
+    animation={true}
+    aria-labelledby="channelMembersModalLabel"
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    dialogClassName="a11y__modal more-modal more-modal--action"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    id="channelMembersModal"
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onExited={[MockFunction]}
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    role="dialog"
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="channelMembersModalLabel"
+      >
+        <span
+          className="name"
+        >
+          channel_display_name
+        </span>
+        <MemoizedFormattedMessage
+          defaultMessage=" Members"
+          id="channel_members_modal.members"
+        />
+      </ModalTitle>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <Connect(MemberListChannel)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "",
+            "delete_at": 1234,
+            "display_name": "channel_display_name",
+            "group_constrained": false,
+            "header": "",
+            "id": "channel_id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "",
+            "purpose": "",
+            "scheme_id": "",
+            "team_id": "",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      />
+    </ModalBody>
+  </Modal>
+</div>
+`;

@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/FormattedMarkdownMessage should allow to disable links 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={
+    Object {
+      "test.bar": "<b>hello</b> <script>var malicious = true;</script> world!",
+      "test.foo": "**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)",
+      "test.vals": "*Hi* {petName}!",
+    }
+  }
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <FormattedMarkdownMessage
+    defaultMessage="*Hi* {petName}!"
+    disableLinks={true}
+    id="test.vals"
+    values={
+      Object {
+        "petName": "http://www.mattermost.com",
+      }
+    }
+  >
+    <span
+      dangerouslySetInnerHTML={
+        Object {
+          "__html": "<em>Hi</em> http://www.mattermost.com!",
+        }
+      }
+    />
+  </FormattedMarkdownMessage>
+</IntlProvider>
+`;
+
+exports[`components/FormattedMarkdownMessage should backup to default 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={
+    Object {
+      "test.bar": "<b>hello</b> <script>var malicious = true;</script> world!",
+      "test.foo": "**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)",
+      "test.vals": "*Hi* {petName}!",
+    }
+  }
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <FormattedMarkdownMessage
+    defaultMessage="testing default message"
+    id="xxx"
+  >
+    <span
+      dangerouslySetInnerHTML={
+        Object {
+          "__html": "testing default message",
+        }
+      }
+    />
+  </FormattedMarkdownMessage>
+</IntlProvider>
+`;
+
+exports[`components/FormattedMarkdownMessage should escape non-BR 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={
+    Object {
+      "test.bar": "<b>hello</b> <script>var malicious = true;</script> world!",
+      "test.foo": "**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)",
+      "test.vals": "*Hi* {petName}!",
+    }
+  }
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <FormattedMarkdownMessage
+    defaultMessage=""
+    id="test.bar"
+    values={
+      Object {
+        "b": [Function],
+        "script": [Function],
+      }
+    }
+  >
+    <span
+      dangerouslySetInnerHTML={
+        Object {
+          "__html": "&lt;b&gt;hello&lt;/b&gt; &lt;script&gt;var malicious = true;&lt;/script&gt; world!",
+        }
+      }
+    />
+  </FormattedMarkdownMessage>
+</IntlProvider>
+`;
+
+exports[`components/FormattedMarkdownMessage should render message 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={
+    Object {
+      "test.bar": "<b>hello</b> <script>var malicious = true;</script> world!",
+      "test.foo": "**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)",
+      "test.vals": "*Hi* {petName}!",
+    }
+  }
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <FormattedMarkdownMessage
+    defaultMessage="**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)"
+    id="test.foo"
+  >
+    <span
+      dangerouslySetInnerHTML={
+        Object {
+          "__html": "<strong>bold</strong> <em>italic</em> <a href=\\"https://mattermost.com/\\" rel=\\"noopener noreferrer\\" target=\\"_blank\\">link</a> &lt;br/&gt; <a href=\\"https://mattermost.com/\\" rel=\\"noopener noreferrer\\" target=\\"_blank\\">link target blank</a>",
+        }
+      }
+    />
+  </FormattedMarkdownMessage>
+</IntlProvider>
+`;
+
+exports[`components/FormattedMarkdownMessage values should work 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={
+    Object {
+      "test.bar": "<b>hello</b> <script>var malicious = true;</script> world!",
+      "test.foo": "**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)",
+      "test.vals": "*Hi* {petName}!",
+    }
+  }
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <FormattedMarkdownMessage
+    defaultMessage="*Hi* {petName}!"
+    id="test.vals"
+    values={
+      Object {
+        "petName": "sweetie",
+      }
+    }
+  >
+    <span
+      dangerouslySetInnerHTML={
+        Object {
+          "__html": "<em>Hi</em> sweetie!",
+        }
+      }
+    />
+  </FormattedMarkdownMessage>
+</IntlProvider>
+`;

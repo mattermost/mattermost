@@ -1,0 +1,50 @@
+<div class="post-code"><span class="post-code__language">PostgreSQL</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7</div><code><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">OR REPLACE</span> <span class="hljs-keyword">FUNCTION</span> snitch() <span class="hljs-keyword">RETURNS</span> <span class="hljs-type">event_trigger</span> <span class="hljs-keyword">AS</span> $$<span class="pgsql">
+<span class="hljs-keyword">BEGIN</span>
+<span class="hljs-keyword">RAISE</span> <span class="hljs-keyword">NOTICE</span> <span class="hljs-string">'snitch: % %'</span>, <span class="hljs-built_in">tg_event</span>, <span class="hljs-built_in">tg_tag</span>;
+<span class="hljs-keyword">END</span>;
+$$</span> <span class="hljs-keyword">LANGUAGE</span> plpgsql;
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">EVENT TRIGGER</span> snitch <span class="hljs-keyword">ON</span> ddl_command_start <span class="hljs-keyword">EXECUTE</span> <span class="hljs-keyword">PROCEDURE</span> snitch();</code></div></div><p>and</p>
+<div class="post-code"><span class="post-code__language">PostgreSQL</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7</div><code><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">OR REPLACE</span> <span class="hljs-keyword">FUNCTION</span> snitch() <span class="hljs-keyword">RETURNS</span> <span class="hljs-type">event_trigger</span> <span class="hljs-keyword">AS</span> $$<span class="pgsql">
+<span class="hljs-keyword">BEGIN</span>
+<span class="hljs-keyword">RAISE</span> <span class="hljs-keyword">NOTICE</span> <span class="hljs-string">'snitch: % %'</span>, <span class="hljs-built_in">tg_event</span>, <span class="hljs-built_in">tg_tag</span>;
+<span class="hljs-keyword">END</span>;
+$$</span> <span class="hljs-keyword">LANGUAGE</span> plpgsql;
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">EVENT TRIGGER</span> snitch <span class="hljs-keyword">ON</span> ddl_command_start <span class="hljs-keyword">EXECUTE</span> <span class="hljs-keyword">PROCEDURE</span> snitch();</code></div></div><p>and</p>
+<div class="post-code"><span class="post-code__language">PostgreSQL</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6
+7</div><code><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">OR REPLACE</span> <span class="hljs-keyword">FUNCTION</span> snitch() <span class="hljs-keyword">RETURNS</span> <span class="hljs-type">event_trigger</span> <span class="hljs-keyword">AS</span> $$<span class="pgsql">
+<span class="hljs-keyword">BEGIN</span>
+<span class="hljs-keyword">RAISE</span> <span class="hljs-keyword">NOTICE</span> <span class="hljs-string">'snitch: % %'</span>, <span class="hljs-built_in">tg_event</span>, <span class="hljs-built_in">tg_tag</span>;
+<span class="hljs-keyword">END</span>;
+$$</span> <span class="hljs-keyword">LANGUAGE</span> plpgsql;
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">EVENT TRIGGER</span> snitch <span class="hljs-keyword">ON</span> ddl_command_start <span class="hljs-keyword">EXECUTE</span> <span class="hljs-keyword">PROCEDURE</span> snitch();</code></div></div><p>or</p>
+<div class="post-code"><span class="post-code__language">PostgreSQL</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4
+5
+6</div><code>CREATE OR REPLACE FUNCTION add(x int, y int)
+RETURNS int
+LANGUAGE SQL
+AS $myfunc$
+SELECT x + y
+$myfunc$</code></div></div>

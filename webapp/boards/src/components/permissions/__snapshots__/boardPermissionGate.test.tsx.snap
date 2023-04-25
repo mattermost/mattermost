@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/permission/boardPermissionGate match snapshot when the user doesnt have the permissions 1`] = `<div />`;
+
+exports[`components/permission/boardPermissionGate match snapshot when the user doesnt have the permissions with invert 1`] = `
+<div>
+  Content
+</div>
+`;
+
+exports[`components/permission/boardPermissionGate match snapshot when the user has the permissions 1`] = `
+<div>
+  Content
+</div>
+`;
+
+exports[`components/permission/boardPermissionGate match snapshot when the user has the permissions with invert 1`] = `<div />`;

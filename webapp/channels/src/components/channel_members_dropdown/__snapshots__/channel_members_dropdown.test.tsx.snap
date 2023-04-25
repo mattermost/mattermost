@@ -1,0 +1,247 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_members_dropdown should match snapshot for channel_members_dropdown 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    className="dropdown-toggle theme color--link style--none"
+    type="button"
+  >
+    <span
+      className="sr-only"
+    />
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Channel Admin"
+        id="channel_members_dropdown.channel_admin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <Menu
+    ariaLabel="Change the role of channel member"
+    openLeft={true}
+    openUp={false}
+  >
+    <MenuItemAction
+      data-testid="removeFromChannel"
+      isDangerous={true}
+      onClick={[Function]}
+      show={true}
+      text="Remove from Channel"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot for dropdown with guest user 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    className="dropdown-toggle theme color--link style--none"
+    type="button"
+  >
+    <span
+      className="sr-only"
+    />
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Channel Admin"
+        id="channel_members_dropdown.channel_admin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <Menu
+    ariaLabel="Change the role of channel member"
+    openLeft={true}
+    openUp={false}
+  >
+    <MenuItemAction
+      id="undefined-make-channel-member"
+      onClick={[Function]}
+      show={true}
+      text="Make Channel Member"
+    />
+    <MenuItemAction
+      data-testid="removeFromChannel"
+      isDangerous={true}
+      onClick={[Function]}
+      show={true}
+      text="Remove from Channel"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot for dropdown with shared user 1`] = `
+<div
+  className="more-modal__shared-actions"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        id="sharedTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="From trusted organizations"
+          id="shared_user_indicator.tooltip"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Shared Member"
+        id="channel_members_dropdown.shared_member"
+      />
+      <i
+        className="shared-user-icon icon-circle-multiple-outline"
+      />
+    </span>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot for group_constrained channel 1`] = `
+<div>
+  <MemoizedFormattedMessage
+    defaultMessage="Channel Admin"
+    id="channel_members_dropdown.channel_admin"
+  />
+</div>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot for not dropdown with guest user 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    className="dropdown-toggle theme color--link style--none"
+    type="button"
+  >
+    <span
+      className="sr-only"
+    />
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Channel Admin"
+        id="channel_members_dropdown.channel_admin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <Menu
+    ariaLabel="Change the role of channel member"
+    openLeft={true}
+    openUp={false}
+  >
+    <MenuItemAction
+      data-testid="removeFromChannel"
+      isDangerous={true}
+      onClick={[Function]}
+      show={true}
+      text="Remove from Channel"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot opening dropdown upwards 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    className="dropdown-toggle theme color--link style--none"
+    type="button"
+  >
+    <span
+      className="sr-only"
+    />
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Channel Admin"
+        id="channel_members_dropdown.channel_admin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <Menu
+    ariaLabel="Change the role of channel member"
+    openLeft={true}
+    openUp={true}
+  >
+    <MenuItemAction
+      data-testid="removeFromChannel"
+      isDangerous={true}
+      onClick={[Function]}
+      show={true}
+      text="Remove from Channel"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot when user is current user 1`] = `
+<div>
+  <MemoizedFormattedMessage
+    defaultMessage="Channel Admin"
+    id="channel_members_dropdown.channel_admin"
+  />
+</div>
+`;
+
+exports[`components/channel_members_dropdown should match snapshot with role change possible 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    className="dropdown-toggle theme color--link style--none"
+    type="button"
+  >
+    <span
+      className="sr-only"
+    />
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Channel Admin"
+        id="channel_members_dropdown.channel_admin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <Menu
+    ariaLabel="Change the role of channel member"
+    openLeft={true}
+    openUp={false}
+  >
+    <MenuItemAction
+      id="undefined-make-channel-member"
+      onClick={[Function]}
+      show={true}
+      text="Make Channel Member"
+    />
+  </Menu>
+</MenuWrapper>
+`;

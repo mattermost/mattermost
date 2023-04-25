@@ -1,0 +1,69 @@
+stages:
+  - test
+  - build
+  - s3
+  - trigger
+
+variables:
+  IMAGE_BUILD_WEBAPP: $CI_REGISTRY/mattermost/ci/devops-images/mattermost-build-webapp:20220802_node-16.10.0@sha256:3272aa759f10c2ef1719ed08cc82ddb07224bec5be86f09800c72f5e2a623c3d
+  BUILD: "yes"
+  TEST: "yes"
+
+include:
+  - project: mattermost/ci/mattermost-webapp
+    ref: master
+    file: private.yml
+
+empty:
+  stage: test
+  script:
+    - echo "empty"
+
+test: #todo check on how to create junit.xml, there currently is none
+  stage: test
+  image: ${IMAGE_BUILD_WEBAPP}
+  cache:
+    key:
+      files:
+        - package.json
+      prefix: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .npm/
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_GITHUB" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - npm ci --cache .npm --prefer-offline
+
+    # For Playwright type check
+    - (cd e2e/playwright && npm ci --cache .npm --prefer-offline)
+
+    # i18n
+    - cp i18n/en.json /tmp/en.json
+    - mkdir -p /tmp/fake-mobile-dir/assets/base/i18n/
+    - echo '{}' > /tmp/fake-mobile-dir/assets/base/i18n/en.json
+
+    - npm run mmjstool -- i18n extract-webapp --webapp-dir . --mobile-dir /tmp/fake-mobile-dir
+    - diff /tmp/en.json i18n/en.json
+    # Address weblate behavior which does not remove whole translation item when translation string is set to empty
+    - npm run mmjstool -- i18n clean-empty --webapp-dir . --mobile-dir /tmp/fake-mobile-dir --check
+    - npm run mmjstool -- i18n check-empty-src --webapp-dir . --mobile-dir /tmp/fake-mobile-dir
+
+    - rm -rf tmp
+
+    # typescript
+    - npm run check-types
+
+    # lint
+    - npm run check
+
+    # unit tests
+    - npm run test-ci
+  timeout: 3 hours
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master" && $TEST == "yes"'

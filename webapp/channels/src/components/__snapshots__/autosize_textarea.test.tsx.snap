@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
+<div>
+  <div
+    data-testid="autosize_textarea_placeholder"
+    id="autosize_textarea_placeholder"
+    style={
+      Object {
+        "background": "none",
+        "borderColor": "transparent",
+        "opacity": 0.5,
+        "overflow": "hidden",
+        "pointerEvents": "none",
+        "position": "absolute",
+        "textOverflow": "ellipsis",
+        "whiteSpace": "nowrap",
+      }
+    }
+  />
+  <textarea
+    aria-label=""
+    data-testid="autosize_textarea"
+    dir="auto"
+    height={0}
+    id="autosize_textarea"
+    role="textbox"
+    rows={1}
+  />
+  <div
+    style={
+      Object {
+        "height": 0,
+        "overflow": "hidden",
+      }
+    }
+  >
+    <textarea
+      aria-hidden={true}
+      dir="auto"
+      disabled={true}
+      id="autosize_textarea-reference"
+      rows={1}
+      style={
+        Object {
+          "height": "auto",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      id="autosize_textarea-measuring"
+      style={
+        Object {
+          "display": "inline-block",
+          "width": "auto",
+        }
+      }
+    />
+  </div>
+</div>
+`;
