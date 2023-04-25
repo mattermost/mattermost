@@ -96,7 +96,6 @@ func init() {
 	_ = T("worktemplate.product_teams.sprint_planning.channel")
 	_ = T("worktemplate.product_teams.sprint_planning.board")
 	_ = T("worktemplate.product_teams.sprint_planning.integration")
-	_ = T("worktemplate.product_teams.quick_start.channel")
 	_ = T("worktemplate.devops.incident_resolution.description.channel")
 	_ = T("worktemplate.devops.incident_resolution.description.board")
 	_ = T("worktemplate.devops.incident_resolution.description.playbook")
@@ -112,7 +111,6 @@ func init() {
 	_ = T("worktemplate.devops.bug_bash.channel")
 	_ = T("worktemplate.devops.bug_bash.playbook")
 	_ = T("worktemplate.devops.bug_bash.integration")
-	_ = T("worktemplate.devops.quick_start.channel")
 	_ = T("worktemplate.leadership.goals_and_okrs.channel")
 	_ = T("worktemplate.leadership.goals_and_okrs.board")
 	_ = T("worktemplate.leadership.goals_and_okrs.integration")
@@ -124,7 +122,6 @@ func init() {
 	_ = T("worktemplate.leadership.incident_resolution.description.playbook")
 	_ = T("worktemplate.leadership.content_calendar.channel")
 	_ = T("worktemplate.leadership.content_calendar.board")
-	_ = T("worktemplate.leadership.quick_start.channel")
 	_ = T("worktemplate.engineering.feature_release.description.channel")
 	_ = T("worktemplate.engineering.feature_release.description.board")
 	_ = T("worktemplate.engineering.feature_release.description.playbook")
@@ -141,7 +138,6 @@ func init() {
 	_ = T("worktemplate.engineering.create_project.channel")
 	_ = T("worktemplate.engineering.create_project.board")
 	_ = T("worktemplate.engineering.create_project.integration")
-	_ = T("worktemplate.engineering.quick_start.channel")
 	_ = T("worktemplate.project_management.create_project.channel")
 	_ = T("worktemplate.project_management.create_project.board")
 	_ = T("worktemplate.project_management.create_project.integration")
@@ -157,7 +153,6 @@ func init() {
 	_ = T("worktemplate.project_management.feature_release.description.board")
 	_ = T("worktemplate.project_management.feature_release.description.playbook")
 	_ = T("worktemplate.project_management.feature_release.description.integration")
-	_ = T("worktemplate.project_management.quick_start.channel")
 	_ = T("worktemplate.marketing.content_calendar.channel")
 	_ = T("worktemplate.marketing.content_calendar.board")
 	_ = T("worktemplate.marketing.create_project.channel")
@@ -169,7 +164,6 @@ func init() {
 	_ = T("worktemplate.marketing.goals_and_okrs.channel")
 	_ = T("worktemplate.marketing.goals_and_okrs.board")
 	_ = T("worktemplate.marketing.goals_and_okrs.integration")
-	_ = T("worktemplate.marketing.quick_start.channel")
 	_ = T("worktemplate.design.create_project.channel")
 	_ = T("worktemplate.design.create_project.board")
 	_ = T("worktemplate.design.create_project.integration")
@@ -185,7 +179,6 @@ func init() {
 	_ = T("worktemplate.design.product_release.playbook")
 	_ = T("worktemplate.design.content_calendar.channel")
 	_ = T("worktemplate.design.content_calendar.board")
-	_ = T("worktemplate.design.quick_start.channel")
 	_ = T("worktemplate.qa.bug_bash.channel")
 	_ = T("worktemplate.qa.bug_bash.playbook")
 	_ = T("worktemplate.qa.bug_bash.integration")
@@ -201,7 +194,6 @@ func init() {
 	_ = T("worktemplate.qa.product_release.channel")
 	_ = T("worktemplate.qa.product_release.board")
 	_ = T("worktemplate.qa.product_release.playbook")
-	_ = T("worktemplate.qa.quick_start.channel")
 	_ = T("worktemplate.other.create_project.channel")
 	_ = T("worktemplate.other.create_project.board")
 	_ = T("worktemplate.other.create_project.integration")
@@ -218,7 +210,6 @@ func init() {
 	_ = T("worktemplate.other.feature_release.description.board")
 	_ = T("worktemplate.other.feature_release.description.playbook")
 	_ = T("worktemplate.other.feature_release.description.integration")
-	_ = T("worktemplate.other.quick_start.channel")
 }
 
 var wtc846b565cd80043537945134a54812e07 = &WorkTemplateCategory{
@@ -567,13 +558,7 @@ var wt6a2796d0bafa17826a5982b6e1f2c3e5 = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.product_teams.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -878,13 +863,7 @@ var wt0a0486861b3ec59155474d5a8341c931 = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.devops.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -1123,13 +1102,7 @@ var wt21fad6341be3aebcece3dda0c8fdbdff = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.leadership.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -1459,13 +1432,7 @@ var wtc4676e7909b1806418b6e3c93aa724ed = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.engineering.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -1785,13 +1752,7 @@ var wt9e34533e2e82fed10e76e32bea997095 = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.project_management.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -2030,13 +1991,7 @@ var wtfb1ba76e567988deaab0b09a3ee1f792 = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.marketing.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -2356,13 +2311,7 @@ var wt08fbcdaab0b2963cc1d4b0c108a6a74f = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.design.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -2667,13 +2616,7 @@ var wt5ad4932546ef1606b05734e8b358d6e5 = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.qa.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{
@@ -3015,13 +2958,7 @@ var wt957799ea4ad9c1ff69ae2cb5283f75ce = &WorkTemplate{
 	Visibility:     "public",
 	OnboardingOnly: true,
 
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.other.quick_start.channel",
-			DefaultMessage: "Chat with your team in a channel that connects easily with your boards and integrations.",
-			Illustration:   "",
-		},
-	},
+	Description: Description{},
 	Content: []Content{
 		{
 			Channel: &Channel{

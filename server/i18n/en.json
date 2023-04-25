@@ -10136,10 +10136,6 @@
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
   },
   {
-    "id": "worktemplate.design.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
     "id": "worktemplate.design.sprint_planning.board",
     "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
   },
@@ -10198,10 +10194,6 @@
   {
     "id": "worktemplate.devops.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.devops.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
   },
   {
     "id": "worktemplate.devops.sprint_planning.board",
@@ -10268,10 +10260,6 @@
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
   },
   {
-    "id": "worktemplate.engineering.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
     "id": "worktemplate.engineering.sprint_planning.board",
     "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
   },
@@ -10328,10 +10316,6 @@
     "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
   },
   {
-    "id": "worktemplate.leadership.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
     "id": "worktemplate.marketing.content_calendar.board",
     "translation": "TODO BOARD"
   },
@@ -10374,10 +10358,6 @@
   {
     "id": "worktemplate.marketing.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.marketing.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
   },
   {
     "id": "worktemplate.other.create_project.board",
@@ -10444,10 +10424,6 @@
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
   },
   {
-    "id": "worktemplate.other.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
     "id": "worktemplate.product_teams.bug_bash.channel",
     "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
   },
@@ -10494,10 +10470,6 @@
   {
     "id": "worktemplate.product_teams.product_roadmap.channel",
     "translation": "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together."
-  },
-  {
-    "id": "worktemplate.product_teams.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.board",
@@ -10572,10 +10544,6 @@
     "translation": "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together."
   },
   {
-    "id": "worktemplate.project_management.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
-  },
-  {
     "id": "worktemplate.qa.bug_bash.channel",
     "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
   },
@@ -10622,10 +10590,6 @@
   {
     "id": "worktemplate.qa.product_release.playbook",
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
-  },
-  {
-    "id": "worktemplate.qa.quick_start.channel",
-    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
   },
   {
     "id": "worktemplate.qa.sprint_planning.board",

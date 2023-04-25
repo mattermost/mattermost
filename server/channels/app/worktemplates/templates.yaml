@@ -188,11 +188,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/product_teams/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.product_teams.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -383,11 +378,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/devops/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.devops.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -537,11 +527,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/leadership/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.leadership.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -749,11 +734,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/engineering/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.engineering.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -950,11 +930,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/project_management/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.project_management.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -1104,11 +1079,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/marketing/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.marketing.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -1307,11 +1277,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/design/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.design.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -1502,11 +1467,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/qa/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.qa.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs
@@ -1718,11 +1678,6 @@ useCase: Quick Start FIXME
 illustration: /static/worktemplates/other/quick_start/quick_start.png
 visibility: public
 onboardingOnly: true
-description:
-  channel:
-    id: worktemplate.other.quick_start.channel
-    defaultMessage: >-
-      Chat with your team in a channel that connects easily with your boards and integrations.
 content:
   - channel:
       id: channel-qs

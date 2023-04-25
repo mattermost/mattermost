@@ -202,17 +202,19 @@ func (wt WorkTemplate) Validate(categoryIds map[string]struct{}) error {
 		}
 	}
 
-	if hasChannel && wt.Description.Channel == nil {
-		return errors.New("description.channel is required")
-	}
-	if hasBoard && wt.Description.Board == nil {
-		return errors.New("description.board is required")
-	}
-	if hasPlaybook && wt.Description.Playbook == nil {
-		return errors.New("description.playbook is required")
-	}
-	if hasIntegration && wt.Description.Integration == nil {
-		return errors.New("description.integration is required")
+	if !wt.OnboardingOnly {
+		if hasChannel && wt.Description.Channel == nil {
+			return errors.New("description.channel is required")
+		}
+		if hasBoard && wt.Description.Board == nil {
+			return errors.New("description.board is required")
+		}
+		if hasPlaybook && wt.Description.Playbook == nil {
+			return errors.New("description.playbook is required")
+		}
+		if hasIntegration && wt.Description.Integration == nil {
+			return errors.New("description.integration is required")
+		}
 	}
 
 	for _, channel := range mustHaveChannels {
