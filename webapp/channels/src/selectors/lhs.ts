@@ -10,9 +10,14 @@ import {
     isCollapsedThreadsEnabled,
     localDraftsAreEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {SidebarSize} from 'utils/constants';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
     return state.views.lhs.isOpen;
+}
+
+export function getLhsSize(state: GlobalState): SidebarSize {
+    return state.views.lhs.size;
 }
 
 export function getCurrentStaticPageId(state: GlobalState): string {

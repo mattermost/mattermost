@@ -95,6 +95,7 @@ import {applyLuxonDefaults} from './effects';
 
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
+import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -644,6 +645,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                 transitionDirection={Animations.Reasons.EnterFromBefore}
                             />
                         )}
+                        <WindowSizeObserver/>
                         <ModalController/>
                         <AnnouncementBarController/>
                         <SystemNotice/>

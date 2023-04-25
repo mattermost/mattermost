@@ -177,7 +177,7 @@
         }
 
         &.sidebar--right--expanded {
-            width: min(60vw, 75rem);
+            width: min(60vw, 75rem) !important;
 
             .search-bar__container {
                 padding-left: 10px;

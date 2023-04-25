@@ -1,8 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {SidebarSize} from 'utils/constants';
+
 export type LhsViewState = {
     isOpen: boolean;
+
+    size: SidebarSize;
 
     // Static pages (e.g. Threads, Insights, etc.)
     currentStaticPageId: string;

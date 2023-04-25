@@ -219,6 +219,8 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
 
+    SET_RHS_SIZE: null,
+
     RHS_GO_BACK: null,
 
     SET_RHS_EXPANDED: null,
@@ -275,6 +277,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_LHS: null,
     OPEN_LHS: null,
     CLOSE_LHS: null,
+    SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
 
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
@@ -1468,6 +1471,10 @@ export const Constants = {
     TABLET_SCREEN_WIDTH: 1020,
     MOBILE_SCREEN_WIDTH: 768,
 
+    SMALL_SIDEBAR_BREAKPOINT: 900,
+    MEDIUM_SIDEBAR_BREAKPOINT: 1200,
+    LARGE_SIDEBAR_BREAKPOINT: 1680,
+
     POST_MODAL_PADDING: 170,
     SCROLL_DELAY: 2000,
     SCROLL_PAGE_FRACTION: 3,
@@ -2030,6 +2037,65 @@ export const WindowSizes = {
     TABLET_VIEW: 'tabletView',
     SMALL_DESKTOP_VIEW: 'smallDesktopView',
     DESKTOP_VIEW: 'desktopView',
+};
+
+export enum SidebarSize {
+    SMALL='small',
+    MEDIUM= 'medium',
+    LARGE= 'large',
+    XLARGE= 'xLarge',
+}
+
+export enum ResizeDirection {
+    LEFT = 'left',
+    RIGHT = 'right',
+}
+
+export const SIDEBAR_SNAP_SIZE = 16;
+export const SIDEBAR_SNAP_SPEED_LIMIT = 5;
+
+export const DEFAULT_LHS_WIDTH = 240;
+
+export const LHS_MIN_MAX_WIDTH: { [size in SidebarSize]: { min: number; max: number}} = {
+    [SidebarSize.SMALL]: {
+        min: 240,
+        max: 240,
+    },
+    [SidebarSize.MEDIUM]: {
+        min: 200,
+        max: 264,
+    },
+    [SidebarSize.LARGE]: {
+        min: 200,
+        max: 304,
+    },
+    [SidebarSize.XLARGE]: {
+        min: 200,
+        max: 440,
+    },
+};
+
+export const RHS_MIN_MAX_WIDTH: { [size in SidebarSize]: { min: number; max: number; default: number}} = {
+    [SidebarSize.SMALL]: {
+        min: 400,
+        max: 400,
+        default: 400,
+    },
+    [SidebarSize.MEDIUM]: {
+        min: 304,
+        max: 400,
+        default: 400,
+    },
+    [SidebarSize.LARGE]: {
+        min: 304,
+        max: 464,
+        default: 400,
+    },
+    [SidebarSize.XLARGE]: {
+        min: 304,
+        max: 776,
+        default: 500,
+    },
 };
 
 export const AcceptedProfileImageTypes = ['image/jpeg', 'image/png', 'image/bmp'];

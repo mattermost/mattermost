@@ -141,7 +141,7 @@
 @media (min-width: 1280px) {
     .sidebar--right {
         &.sidebar--right--expanded {
-            width: min(60vw, 96rem);
+            width: min(60vw, 96rem) !important;
         }
     }
 }
