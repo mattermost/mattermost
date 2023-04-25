@@ -30,15 +30,12 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: Gene
         }
 
         return threads.reduce((nextState: IDMappedObjects<UserThread>, thread: UserThread) => {
-            if (isEqual(thread, state[thread.id])) {
+            if (isEqual(thread, nextState[thread.id])) {
                 return nextState;
             }
-
-            return {
-                ...nextState,
-                [thread.id]: thread,
-            };
-        }, state);
+            nextState[thread.id] = thread;
+            return nextState;
+        }, {...state});
     }
     case PostTypes.POST_REMOVED: {
         const post = action.data;
