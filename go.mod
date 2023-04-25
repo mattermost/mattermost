@@ -43,7 +43,7 @@ require (
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
 	github.com/mattermost/mattermost-plugin-playbooks/client v0.7.0
-	github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e
+	github.com/mattermost/morph v1.0.5-0.20230425103940-64ce90286295
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
 	github.com/mgdelacroix/foundation v0.0.0-20220812143423-0bfc18f73538
