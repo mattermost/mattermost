@@ -47,7 +47,18 @@ jobs:
         continue-on-error: true
       - name: ci/check-for-failures
         if: steps.check-lint.outcome != 'success' || steps.check-types.outcome != 'success' || steps.test.outcome != 'success'
-        run: exit 1
+        run: |
+          if [[ ${{ steps.check-lint.outcome }} != "success" ]]; then
+            echo "Linting failed. Check the output of the ci/check-lint step, run 'make check-style' or go to the Files changed tab in the pull request for more details."
+          fi
+          if [[ ${{ steps.check-types.outcome }} != "success" ]]; then
+            echo "Type checking failed. Check the output of the ci/check-types step or run 'make check-types' for more details."
+          fi
+          if [[ ${{ steps.test.outcome }} != "success" ]]; then
+            echo "Unit tests failed. Check the output of the ci/tests step or run 'make tests' for more details."
+          fi
+
+          exit 1
       - name: ci/build
         run: |
           npm run build ${{ inputs.workspace-argument }}
