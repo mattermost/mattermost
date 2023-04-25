@@ -186,7 +186,9 @@ const BoardPage = (props: Props): JSX.Element => {
     const joinBoard = async (myUser: IUser, boardTeamId: string, boardId: string, allowAdmin: boolean) => {
         const member = await octoClient.joinBoard(boardId, allowAdmin)
         if (!member) {
-            if (myUser.permissions?.find((s) => s === 'manage_system' || s === 'manage_team')) {
+            // if allowAdmin is true, then we failed to join the board
+            // as an admin, normally, this is deleted/missing board
+            if (!allowAdmin && myUser.permissions?.find((s) => s === 'manage_system' || s === 'manage_team')) {
                 setShowJoinBoardDialog(true)
                 return
             }
