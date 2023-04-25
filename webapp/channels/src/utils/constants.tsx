@@ -157,7 +157,8 @@ export const Preferences = {
     CONFIGURATION_BANNERS: 'configuration_banners',
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
     OVERAGE_USERS_BANNER: 'overage_users_banner',
-    CLOUD_YEARLY_NUDGE_BANNER: 'cloud_yearly_nudge_banner',
+    TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
+    TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -461,13 +462,10 @@ export const ModalIdentifiers = {
     DELETE_WORKSPACE_RESULT: 'delete_workspace_result',
     SCREENING_IN_PROGRESS: 'screening_in_progress',
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
-<<<<<<< HEAD
-=======
     EXPANSION_IN_PROGRESS: 'expansion_in_progress',
     SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
->>>>>>> 3795f5a470 (Merge pull request #22658 from mattermost/MM-50966-in-product-expansion)
 };
 
 export const UserStatuses = {
@@ -735,7 +733,7 @@ export const CloudBanners = {
     TRIAL: 'trial',
     UPGRADE_FROM_TRIAL: 'upgrade_from_trial',
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
-    NUDGE_TO_YEARLY_BANNER_DISMISSED: 'nudge_to_yearly_banner_dismissed',
+    NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
 };
 
 export const ConfigurationBanners = {
