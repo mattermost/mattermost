@@ -14,6 +14,7 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
@@ -43,6 +44,7 @@ export type Props = {
 export default function InviteAs(props: Props) {
     const {formatMessage} = useIntl();
     const license = useSelector(getLicense);
+    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const dispatch = useDispatch<DispatchFunc>();
 
     useEffect(() => {
@@ -193,7 +195,7 @@ export default function InviteAs(props: Props) {
                         },
                     ]}
                     isDisabled={guestDisabled}
-                    badge={badges}
+                    badge={cloudFreeDeprecated ? null : badges}
                 />
             </div>
         </div>

@@ -14,6 +14,7 @@ import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import {openModal} from 'actions/views/modals';
 
@@ -32,6 +33,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const subscription = useSelector(getCloudSubscription);
     const subscriptionProduct = useSelector(getSubscriptionProduct);
     const license = useSelector(getLicense);
+    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const dispatch = useDispatch<DispatchFunc>();
 
     const isCloud = license?.Cloud === 'true';
@@ -109,7 +111,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     );
 
     // menu option displayed when the workspace is not running any trial
-    const noFreeTrialContent = noPriorTrial ? (
+    let noFreeTrialContent = noPriorTrial ? (
         <FormattedMessage
             id='menu.cloudFree.priorTrial.tryEnterprise'
             defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>Try Enterprise free for 30 days</openModalLink>'
@@ -144,6 +146,27 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
             }
         />
     );
+
+    if (cloudFreeDeprecated) {
+        noFreeTrialContent = (
+            <FormattedMessage
+                id='menu.cloudFree.postTrial.tryEnterprise'
+                defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>'
+                values={
+                    {
+                        openModalLink: (msg: string) => (
+                            <a
+                                className='open-see-plans-modal style-link'
+                                onClick={() => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                            >
+                                {msg}
+                            </a>
+                        ),
+                    }
+                }
+            />
+        );
+    }
 
     return (
         <li
