@@ -53,7 +53,11 @@ export default function ExternalLink(props: Props) {
             // If the href already has query params, remove them before adding them back with the addition of the new ones
             href = href?.split('?')[0];
         }
-        href = `${href}?${queryString}${props.anchor ?? ''}`;
+        let anchor = '';
+        if (props.anchor) {
+            anchor = props.anchor.startsWith('#') ? props.anchor : `#${props.anchor}`;
+        }
+        href = `${href}?${queryString}${anchor}`;
     }
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
