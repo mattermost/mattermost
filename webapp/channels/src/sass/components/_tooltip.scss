@@ -48,9 +48,27 @@
     transition: opacity 0.15s linear;
     word-break: break-word;
 
+    &.floating-ui-tooltip--absolute {
+        width: max-content;
+    } 
+
+    &.floating-ui-tooltip--absolute {
+        pointer-events: auto;
+    } 
+
     &.floating-ui-tooltip--visible {
         opacity: 0.9;
         transition: opacity 0.15s linear;
+    }
+
+    &.floating-ui-tooltip--primary-action-style {
+        padding: 22px 24px 24px;
+        max-width: 352px;
+        background: var(--button-bg);
+        color: var(--button-color);
+        &.floating-ui-tooltip--visible {
+            opacity: 1;
+        }
     }
 }
 
@@ -60,4 +78,10 @@
     height: 8px;
     background: #000;
     transform: rotate(45deg);
+
+    &.floating-ui-tooltip-arrow--primary-action-style {
+        width: 24px;
+        height: 24px;
+        background: var(--button-bg);
+    }
 }

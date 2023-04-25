@@ -1,58 +1,76 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef} from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 import {useIntl} from 'react-intl';
 
 import {Preferences, Touched} from 'utils/constants';
 
 import usePreference from 'components/common/hooks/usePreference';
+import useTooltip from 'components/common/hooks/useTooltip';
 import Tabs from 'components/modal_tabs';
-import SingleTip from 'components/common/single_tip';
+import {CloseIcon} from '@mattermost/compass-icons/components';
 
 import {ModalState} from '../types';
 import Badge from './badge';
-
-interface TourtipProps {
-    children: React.ReactNode | React.ReactNode[];
-    show: boolean;
-    dismiss: (e?: React.MouseEvent) => void;
-    contentRef: React.MutableRefObject<HTMLElement | null>;
-}
-function Tourtip(props: TourtipProps) {
-    return (
-        <SingleTip
-            placement={'bottom'}
-            offset={[0,0]}
-            tippyBlueStyle={true}
-            hideBackdrop={true}
-            show={props.show}
-            handleDismiss={props.dismiss}
-            contentRef={props.contentRef}
-        >
-            {props.children}
-        </SingleTip>
-    );
-}
+import ClickShield from './click_shield';
 
 interface Props {
     mode: ModalState;
     setMode: (mode: ModalState) => void;
 }
+
+const INDEX_ABOVE_OTHER_TEMPLATE_MODAL_CONTENT = 4;
 function Mode(props: Props) {
     const [originalMode] = useState(props.mode === ModalState.ChannelOnly ? ModalState.ChannelOnly : ModalState.Menu);
     const currentMode = props.mode === ModalState.ChannelOnly ? ModalState.ChannelOnly : ModalState.Menu;
     const intl = useIntl();
     const templatesNew = usePreference(Preferences.TOUCHED, Touched.ADD_CHANNEL_TEMPLATE_MODE)[0] !== 'true';
     const [knowsTemplatesExistString, setKnowsTemplatesExist] = usePreference(Preferences.TOUCHED, Touched.KNOWS_TEMPLATES_EXIST);
-    const knowsTemplatesExist = knowsTemplatesExistString === 'true'
-    const templatesTabRef = useRef(null);
+    const knowsTemplatesExist = knowsTemplatesExistString === 'true';
+    const {
+        reference,
+        getReferenceProps,
+        tooltip,
+    } = useTooltip({
+        open: !knowsTemplatesExist,
+        message: (
+            <TipBody>
+                <TipHeader>
+                    <div>
+                        {intl.formatMessage({id: 'work_templates.mode.tourtip_title', defaultMessage: 'Try one of our templates'})}
+                    </div>
+                    <TipDismiss
+                        onClick={(e) => {
+                            e?.stopPropagation();
+                            setKnowsTemplatesExist('true');
+                        }}
+                    >
+                        <CloseIcon
+                            size={18}
+                            color='rgba(var(--button-color-rgb), 0.9)'
+                        />
+                    </TipDismiss>
+                </TipHeader>
+                <div>
+                    {intl.formatMessage({id: 'work_templates.mode.tourtip_what', defaultMessage: 'Our templates cover a variety of use cases and include critical tools.'})}
+                </div>
+            </TipBody>
+        ),
+        offset: {mainAxis: 18, crossAxis: templatesNew ? -20 : 10},
+        zIndex: INDEX_ABOVE_OTHER_TEMPLATE_MODAL_CONTENT,
+        placement: 'bottom-start',
+        allowedPlacements: ['bottom-start'],
+        strategy: 'absolute',
+        primaryActionStyle: true,
+    });
 
     if (props.mode !== ModalState.ChannelOnly && props.mode !== ModalState.Menu) {
         return null;
     }
-    return (<div>
+
+    return (
         <div>
             <Tabs
                 tabs={[
@@ -67,11 +85,17 @@ function Mode(props: Props) {
                     },
                     {
                         content: (
-                            <div ref={templatesTabRef}>
-                                {intl.formatMessage({
-                                    id: 'work_templates.mode.templates',
-                                    defaultMessage: 'Templates',
-                                })}
+                            <div >
+                                <span
+                                    style={{position: 'relative'}}
+                                    ref={knowsTemplatesExist ? undefined : reference}
+                                    {...(knowsTemplatesExist ? {} : getReferenceProps())}
+                                >
+                                    {intl.formatMessage({
+                                        id: 'work_templates.mode.templates',
+                                        defaultMessage: 'Templates',
+                                    })}
+                                </span>
                                 {templatesNew && (
                                     <>
                                         <BadgeSpacer/>
@@ -85,18 +109,15 @@ function Mode(props: Props) {
                                 )
                                 }
                                 {!knowsTemplatesExist && (
-                                    <Tourtip
-                                        contentRef={templatesTabRef}
-                                        show={!knowsTemplatesExist}
-                                        dismiss={(e) => {
-                                            e?.stopPropagation();
+                                    <ClickShield
+                                        onClick={() => {
                                             setKnowsTemplatesExist('true');
                                         }}
-                                    >
-                                        {intl.formatMessage({id: 'work_templates.mode.tourtip_title', defaultMessage: 'Try one of our templates'})}
-                                        {intl.formatMessage({id: 'work_templates.mode.tourtip_what', defaultMessage: 'Our templates cover a variety of use cases and include critical tools.'})}
-                                    </Tourtip>
+                                        inRoot={true}
+                                   />
                                 )}
+                                {!knowsTemplatesExist && tooltip}
+
                             </div>
                         ),
                         onClick: () => props.setMode(ModalState.Menu),
@@ -108,12 +129,29 @@ function Mode(props: Props) {
                 selected={currentMode}
             />
         </div>
-    </div>);
+    );
 }
+
+const TipBody = styled.div`
+    font-weight: 400;
+    text-align: left;
+    line-height: 20px;
+`;
+const TipHeader = styled.div`
+    display: flex;
+    font-weight: 600;
+    font-size: 14px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+`;
 
 const StyledMode = styled(Mode)`
 `;
 const BadgeSpacer = styled.span`
   padding-left: 6px;
+`;
+const TipDismiss = styled.span`
+    cursor: pointer;
 `;
 export default StyledMode;

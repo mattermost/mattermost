@@ -4953,8 +4953,6 @@
   "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Add Channel Dropdown",
   "sidebar_left.add_channel_dropdown.invitePeople": "Invite people",
   "sidebar_left.add_channel_dropdown.invitePeopleExtraText": "Add people to the team",
-  "sidebar_left.add_channel_dropdown.work_template": "Create from a template",
-  "sidebar_left.add_channel_dropdown.work_template_extra": "Link channels, boards, and playbooks together",
   "sidebar_left.addChannelsCta": "Add channels",
   "sidebar_left.channel_filter.filterByUnread": "Filter by unread",
   "sidebar_left.channel_filter.filterUnreadAria": "unreads filter",

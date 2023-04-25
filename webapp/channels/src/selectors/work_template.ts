@@ -23,3 +23,6 @@ export const areWorkTemplatesEnabled = createSelector(
     },
 );
 
+export const getWorkTemplateCategories = (state: GlobalState) => state.entities.worktemplates.categories;
+export const getWorkTemplatesInCategory = (state: GlobalState) => state.entities.worktemplates.templatesInCategory;
+export const getPlaybookTemplates = (state: GlobalState) => state.entities.worktemplates.playbookTemplates;

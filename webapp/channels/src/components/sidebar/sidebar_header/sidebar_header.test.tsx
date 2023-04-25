@@ -37,7 +37,6 @@ describe('Components/SidebarHeader', () => {
             showCreateUserGroupModal: jest.fn(),
             userGroupsEnabled: false,
             canCreateCustomGroups: true,
-            showWorkTemplateButton: true,
         };
 
         mockState = {

@@ -16,6 +16,11 @@ interface TooltipOptions {
     hoverDelay?: Exclude<Parameters<typeof useHover>[1], undefined>['delay'];
     zIndex?: number;
     mountPoint?: string | Element;
+    open?: boolean;
+    setOpen?: (open: boolean) => void;
+    primaryActionStyle?: boolean;
+    offset?: Parameters<typeof offset>[0];
+    allowPointer?: boolean;
 }
 
 const defaultOptions: Required<Pick<TooltipOptions, 'strategy' | 'hoverDelay' | 'zIndex' | 'mountPoint'>> = {
@@ -30,9 +35,35 @@ const defaultOptions: Required<Pick<TooltipOptions, 'strategy' | 'hoverDelay' | 
 
 const transitionTime = 150;
 
+function placeArrow(placement: Placement, strategy: Strategy, arrowX: number, arrowY: number, primaryActionStyle: boolean): {top: number | string; left: number | string} {
+    const halfArrowWidth = primaryActionStyle ? 12 : 4;
+    if (strategy === 'fixed') {
+        switch (placement) {
+        case 'top':
+            return {left: arrowX, top: arrowY};
+        case 'right':
+            return {left: `-${halfArrowWidth}px`, top: arrowY};
+        default:
+            return {left: arrowX, top: arrowY};
+        }
+    }
+
+    switch (placement) {
+    case 'bottom':
+        return {left: arrowX, top: `-${halfArrowWidth}px`};
+    case 'bottom-end':
+        return {left: arrowX, top: `-${halfArrowWidth}px`};
+    case 'bottom-start':
+        return {left: arrowX, top: `-${halfArrowWidth}px`};
+    default:
+        return {left: arrowX, top: arrowY};
+    }
+}
+
 export default function useTooltip(options: TooltipOptions) {
-    const [open, setOpen] = useState(false);
-    const [visible, setVisible] = useState(false);
+    const openControlledExternally = options.open !== undefined;
+    const [open, setOpen] = useState(options.open ?? false);
+    const [visible, setVisible] = useState(options.open ?? false);
     const transition = useRef<NodeJS.Timeout>(null);
     const arrowRef = useRef(null);
     const effectiveStrategy = options.strategy || defaultOptions.strategy;
@@ -55,6 +86,9 @@ export default function useTooltip(options: TooltipOptions) {
     } = useFloating({
         open,
         onOpenChange: (nowOpen) => {
+            if (openControlledExternally) {
+                return;
+            }
             if (transition.current) {
                 clearTimeout(transition.current);
             }
@@ -63,7 +97,7 @@ export default function useTooltip(options: TooltipOptions) {
                 setVisible(true);
             } else {
                 setVisible(false);
-                setTimeout(() => {
+                (transition.current as any) = setTimeout(() => {
                     setOpen(nowOpen);
                 }, transitionTime);
             }
@@ -73,7 +107,7 @@ export default function useTooltip(options: TooltipOptions) {
                 allowedPlacements: effectiveAllowedPlacements,
                 autoAlignment: false,
             }),
-            offset(10),
+            offset(options.offset ?? 10),
             arrow({
                 element: arrowRef,
                 padding: 4,
@@ -100,6 +134,9 @@ export default function useTooltip(options: TooltipOptions) {
                     'floating-ui-tooltip',
                     {
                         'floating-ui-tooltip--visible': visible,
+                        'floating-ui-tooltip--absolute': strategy === 'absolute',
+                        'floating-ui-tooltip--primary-action-style': options.primaryActionStyle,
+                        'floating-ui-tooltip--allow-pointer': options.allowPointer,
                     },
                 ),
                 style: {
@@ -113,8 +150,8 @@ export default function useTooltip(options: TooltipOptions) {
             {options.message}
             <div
                 ref={arrowRef}
-                className='floating-ui-tooltip-arrow'
-                style={placement === 'top' ? {left: arrowX, top: arrowY} : {left: '-4px', top: arrowY}}
+                className={classNames('floating-ui-tooltip-arrow', {'floating-ui-tooltip-arrow--primary-action-style': options.primaryActionStyle})}
+                style={placeArrow(placement, strategy, arrowX || 0, arrowY || 0, Boolean(options.primaryActionStyle))}
             />
         </div>
     );
@@ -127,6 +164,8 @@ export default function useTooltip(options: TooltipOptions) {
                 content,
                 typeof effectiveMountpoint === 'string' ? document.getElementById(effectiveMountpoint) as Element : effectiveMountpoint,
             );
+        } else {
+            tooltip = content;
         }
     }
 

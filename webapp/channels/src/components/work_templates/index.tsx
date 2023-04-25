@@ -15,6 +15,7 @@ import {closeModal as closeModalAction} from 'actions/views/modals';
 import {trackEvent} from 'actions/telemetry_actions';
 import {showRHSPlugin} from 'actions/views/rhs';
 import {fetchRemoteListing} from 'actions/marketplace';
+import {areWorkTemplatesEnabled, getWorkTemplateCategories as selectWorkTemplateCategories, getWorkTemplatesInCategory, getPlaybookTemplates} from 'selectors/work_template';
 import {loadIfNecessaryAndSwitchToChannelById} from 'actions/views/channel';
 
 import {
@@ -38,8 +39,6 @@ import {
     Visibility,
     WorkTemplate,
 } from '@mattermost/types/work_templates';
-
-import {GlobalState} from 'types/store';
 
 import {ModalIdentifiers, suitePluginIds, TELEMETRY_CATEGORIES, Preferences, Touched} from 'utils/constants';
 
@@ -94,6 +93,7 @@ interface Props {
 const WorkTemplateModal = (props: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch<DispatchFunc>();
+    const workTemplatesEnabled = useSelector(areWorkTemplatesEnabled);
 
     const [modalState, setModalState] = useState(props.initialMode || ModalState.ChannelOnly);
     const [selectedTemplate, setSelectedTemplate] = useState<WorkTemplate | null>(null);
@@ -105,12 +105,12 @@ const WorkTemplateModal = (props: Props) => {
     const viewedTemplatesRef = useRef(false);
     const [viewedTemplates, setViewedTemplates] = usePreference(Preferences.TOUCHED, Touched.ADD_CHANNEL_TEMPLATE_MODE);
 
-    const categories = useSelector((state: GlobalState) => state.entities.worktemplates.categories);
-    const workTemplates = useSelector((state: GlobalState) => state.entities.worktemplates.templatesInCategory);
+    const categories = useSelector(selectWorkTemplateCategories);
+    const workTemplates = useSelector(getWorkTemplatesInCategory);
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true' && config.EnableMarketplace === 'true' && config.IsDefaultMarketplace === 'true';
     const teamId = useSelector(getCurrentTeamId);
-    const playbookTemplates = useSelector((state: GlobalState) => state.entities.worktemplates.playbookTemplates);
+    const playbookTemplates = useSelector(getPlaybookTemplates);
     const {rhsPluggableIds} = useGetRHSPluggablesIds();
     const currentUserId = useSelector(getCurrentUserId);
 
@@ -128,6 +128,14 @@ const WorkTemplateModal = (props: Props) => {
             }
         };
     }, []);
+
+    useEffect(() => {
+        // This state shouldn't be reachable to begin with, but if it is somehow it does happen,
+        // we should move them back to the channels view which they can interact with.
+        if (!workTemplatesEnabled && modalState !== ModalState.ChannelOnly) {
+            setModalState(ModalState.ChannelOnly);
+        }
+    }, [workTemplatesEnabled, modalState]);
 
     // load the categories if they are not found, or load the work templates for those categories.
     useEffect(() => {
@@ -369,7 +377,7 @@ const WorkTemplateModal = (props: Props) => {
             autoCloseOnConfirmButton={false}
             errorText={errorText}
         >
-            {(modalState === ModalState.ChannelOnly || modalState === ModalState.Menu) && (
+            {(workTemplatesEnabled && (modalState === ModalState.ChannelOnly || modalState === ModalState.Menu)) && (
                 <Mode
                     mode={modalState}
                     setMode={setModalState}
@@ -377,7 +385,10 @@ const WorkTemplateModal = (props: Props) => {
             )}
             {modalState === ModalState.ChannelOnly && (
                 <ChannelOnly
-                    tryTemplates={() => {}}
+                    tryTemplates={() => {
+                        setModalState(ModalState.Menu);
+                    }}
+                    workTemplatesEnabled={workTemplatesEnabled}
                     manager={channelOnlyManager}
                 />
             )}

@@ -77,6 +77,7 @@ interface Props {
 
     // component does not need any of the external actions
     manager: Omit<ReturnType<typeof useChannelOnlyManager>, 'actions'>;
+    workTemplatesEnabled: boolean;
 }
 
 export function useChannelOnlyManager() {
@@ -347,7 +348,7 @@ const ChannelOnly = (props: Props) => {
     return (
         <ChannelOnlyBody className='channel-only-body'>
             <GlobalStyle/>
-            {'fill in here for if work templates would typically even be showable' && (
+            {props.workTemplatesEnabled && (
                 <Aside>
                     <div>
                         <TeamConversationSvg/>
