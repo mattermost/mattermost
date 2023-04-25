@@ -13,8 +13,8 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/pkg/errors"
 )
 
@@ -11547,6 +11547,27 @@ func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 	tries := 0
 	for {
 		err := s.ThreadStore.DeleteMembershipForUser(userId, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.DeleteMembershipsForChannel(userID, channelID)
 		if err == nil {
 			return nil
 		}
