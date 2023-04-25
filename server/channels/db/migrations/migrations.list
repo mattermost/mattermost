@@ -424,3 +424,7 @@ channels/db/migrations/postgres/000105_remove_tokens.down.sql
 channels/db/migrations/postgres/000105_remove_tokens.up.sql
 channels/db/migrations/postgres/000106_fileinfo_channelid.down.sql
 channels/db/migrations/postgres/000106_fileinfo_channelid.up.sql
+channels/db/migrations/postgres/000107_fileinfo_channelid.down.sql
+channels/db/migrations/postgres/000107_fileinfo_channelid.up.sql
+channels/db/migrations/postgres/000108_fileinfo_channelid.down.sql
+channels/db/migrations/postgres/000108_fileinfo_channelid.up.sql
