@@ -1,5 +1,6 @@
 @import 'utils/variables';
 @import 'utils/mixins';
+@import 'mixins';
 
 .PreparingWorkspace {
     width: 100vw;
@@ -93,36 +94,34 @@
         animation-duration: 0.3s;
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
+        @include sideIllustrationKeyframe(invitation, 651);
+        &.enter {
+            animation-name: invitationSlideInRight;
+        }
+
+        &.exit {
+            animation-name: invitationSlideOutRight;
+        }
+    }
+
+    &__roles-illustration {
+        position: absolute;
+        bottom: 0;
+        right: -295px;
+        animation-duration: 0.3s;
+        animation-fill-mode: forwards;
+        animation-timing-function: ease-in-out;
+        @include sideIllustrationKeyframe(roles, 295);
+        &.enter {
+            animation-name: rolesSlideInRight;
+        }
+
+        &.exit {
+            animation-name: rolesSlideOutRight;
+        }
     }
 }
 
-.enter {
-    animation-name: slideInRight;
-}
-
-.exit {
-    animation-name: slideOutRight;
-}
-
-@keyframes slideInRight {
-    from {
-        right: -651px;
-    }
-
-    to {
-        right: 0;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        right: 0;
-    }
-
-    to {
-        right: -651px;
-    }
-}
 
 .PreparingWorkspacePageContainer {
 

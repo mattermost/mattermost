@@ -1,0 +1,32 @@
+@import 'utils/mixins';
+
+.plugins-skip-btn {
+    margin-left: 8px;
+}
+
+.Roles-body {
+    .PreparingWorkspacePageBody {
+        max-width: 600px;
+    }
+
+    .Roles-list {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .role-button {
+        @include secondary-button;
+        @include button-large;
+
+        border-color: rgba(63, 67, 80, 0.16);
+        margin-right: 24px;
+        margin-bottom: 24px;
+        color: #3f4350;
+
+        &.active {
+            background: rgba(var(--denim-button-bg-rgb), 0.16);
+        }
+    }
+}
+
+@include simple-in-and-out("Roles");
