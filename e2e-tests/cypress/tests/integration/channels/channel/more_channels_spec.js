@@ -15,9 +15,9 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
 
 const channelType = {
-    public : 'Channel Type: Public',
-    archived : 'Channel Type: Archived',
-}
+    public: 'Channel Type: Public',
+    archived: 'Channel Type: Archived',
+};
 
 describe('Channels', () => {
     let testUser;

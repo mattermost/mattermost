@@ -16,9 +16,9 @@ describe('Leave an archived channel', () => {
     let testTeam;
     let offTopicUrl;
     const channelType = {
-        public : 'Channel Type: Public',
-        archived : 'Channel Type: Archived',
-    }
+        public: 'Channel Type: Public',
+        archived: 'Channel Type: Archived',
+    };
     before(() => {
         cy.apiUpdateConfig({
             TeamSettings: {
