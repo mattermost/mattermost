@@ -752,6 +752,14 @@ func TestFillInChannelProps(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	systemRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	require.Nil(t, err)
+
+	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
+	require.Nil(t, err)
+
+	th.Context.SetSession(session)
+
 	channelPublic1, err := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Public 1", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(th.Context, channelPublic1)
