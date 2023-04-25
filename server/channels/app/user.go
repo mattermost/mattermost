@@ -1463,6 +1463,12 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 
 	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
 
+	if err := a.Srv().Store().Token().RemoveUserTokensByType(TokenTypePasswordRecovery, userID); err != nil {
+		mlog.Warn(
+			"Error while deleting additional user tokens.",
+			mlog.Err(err),
+		)
+	}
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError
 		switch {

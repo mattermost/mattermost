@@ -13,6 +13,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
+const (
+	TokenTypePasswordRecovery = "password_recovery"
+)
+
 func TestTokensStore(t *testing.T, ss store.Store) {
 	t.Run("TokensCleanup", func(t *testing.T) { testTokensCleanup(t, ss) })
 }
@@ -37,6 +41,28 @@ func testTokensCleanup(t *testing.T, ss store.Store) {
 	ss.Token().Cleanup(now + int64(1))
 
 	tokens, err = ss.Token().GetAllTokensByType(model.TokenTypeOAuth)
+	require.NoError(t, err)
+	assert.Len(t, tokens, 0)
+}
+
+func testRemoveUserTokensByType(t *testing.T, ss store.Store) {
+	now := model.GetMillis()
+	userID := "testUser"
+
+	for i := 0; i < 2; i++ {
+		err := ss.Token().Save(&model.Token{
+			Token:    model.NewRandomString(model.TokenSize),
+			CreateAt: now - int64(i),
+			Type:     TokenTypePasswordRecovery,
+			Extra:    "{\"UserId\":\"" + userID + "\",\"Email\":\"user-17@sample.mattermost.com\"}",
+		})
+		require.NoError(t, err)
+	}
+
+	err := ss.Token().RemoveUserTokensByType(TokenTypePasswordRecovery, userID)
+	require.NoError(t, err)
+
+	tokens, err := ss.Token().GetAllTokensByType(TokenTypePasswordRecovery)
 	require.NoError(t, err)
 	assert.Len(t, tokens, 0)
 }

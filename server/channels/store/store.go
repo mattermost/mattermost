@@ -663,6 +663,7 @@ type TokenStore interface {
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
+	RemoveUserTokensByType(tokenType, userID string) error
 }
 
 type EmojiStore interface {

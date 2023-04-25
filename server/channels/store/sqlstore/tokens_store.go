@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -66,6 +67,32 @@ func (s SqlTokenStore) Cleanup(expiryTime int64) {
 	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
+}
+
+func (s SqlTokenStore) RemoveUserTokensByType(tokenType, userID string) error {
+	tokens, err := s.GetAllTokensByType(tokenType)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to get Tokens of type %s", tokenType)
+	}
+
+	for _, token := range tokens {
+		tokenExtra := struct {
+			UserId string
+			Email  string
+		}{}
+		if err := json.Unmarshal([]byte(token.Extra), &tokenExtra); err != nil {
+			return errors.Wrapf(err, "Failed to parse token.Extra from token for user %s", userID)
+		}
+
+		if tokenExtra.UserId != userID {
+			continue
+		}
+
+		if err := s.Delete(token.Token); err != nil {
+			return errors.Wrapf(err, "Failed to delete token for user %s", userID)
+		}
+	}
+	return nil
 }
 
 func (s SqlTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {

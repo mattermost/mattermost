@@ -9575,6 +9575,22 @@ func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	return err
 }
 
+func (s *TimerLayerTokenStore) RemoveUserTokensByType(tokenType string, userID string) error {
+	start := time.Now()
+
+	err := s.TokenStore.RemoveUserTokensByType(tokenType, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.RemoveUserTokensByType", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerTokenStore) Save(recovery *model.Token) error {
 	start := time.Now()
 

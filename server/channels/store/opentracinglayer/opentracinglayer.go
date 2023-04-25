@@ -10640,6 +10640,24 @@ func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) err
 	return err
 }
 
+func (s *OpenTracingLayerTokenStore) RemoveUserTokensByType(tokenType string, userID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.RemoveUserTokensByType")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.TokenStore.RemoveUserTokensByType(tokenType, userID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Save")
