@@ -11,6 +11,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
+const WorkTemplateContextOnboarding = "onboarding"
+
 func (api *API) InitWorkTemplate() {
 	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(getWorkTemplateCategories)).Methods("GET")
 	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(getWorkTemplates)).Methods("GET")
@@ -62,10 +64,9 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	t := c.AppContext.GetT()
 
-	// get query string "context" params
 	context := r.URL.Query().Get("context")
 	isOnboarding := false
-	if context == "onboarding" {
+	if context == WorkTemplateContextOnboarding {
 		isOnboarding = true
 	}
 
