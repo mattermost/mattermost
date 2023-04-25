@@ -29,13 +29,17 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: Gene
             return state;
         }
 
+        let isSame = true;
         return threads.reduce((nextState: IDMappedObjects<UserThread>, thread: UserThread) => {
-            if (isEqual(thread, nextState[thread.id])) {
+            if (isSame && nextState[thread.id] && isEqual(thread, nextState[thread.id])) {
                 return nextState;
             }
-            nextState[thread.id] = thread;
-            return nextState;
-        }, {...state});
+            isSame = false;
+            return {
+                ...nextState,
+                [thread.id]: thread,
+            };
+        }, state);
     }
     case PostTypes.POST_REMOVED: {
         const post = action.data;
