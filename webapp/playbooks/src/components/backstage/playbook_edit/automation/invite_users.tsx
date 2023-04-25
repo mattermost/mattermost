@@ -18,11 +18,15 @@ interface Props {
     onToggle: () => void;
     searchProfiles: (term: string) => ActionFunc;
     getProfiles: () => ActionFunc;
+    searchGroups: (term: string) => ActionFunc;
+    getGroups: () => ActionFunc;
     userIds: string[];
-    groupIds?: string[];
+    groupIds: string[];
     preAssignedUserIds: string[];
     onAddUser: (userId: string) => void;
+    onAddGroup: (groupid: string) => void;
     onRemoveUser: (userId: string) => void;
+    onRemoveGroup: (groupid: string) => void;
     onRemovePreAssignedUser: (userId: string) => void;
     onRemovePreAssignedUsers: () => void;
 }
@@ -74,6 +78,10 @@ export const InviteUsers = (props: Props) => {
                         groupIds={props.groupIds}
                         searchProfiles={props.searchProfiles}
                         getProfiles={props.getProfiles}
+                        searchGroups={props.searchGroups}
+                        getGroups={props.getGroups}
+                        onAddGroup={props.onAddGroup}
+                        onRemoveGroup={props.onRemoveGroup}
                     />
                 </SelectorWrapper>
             </AutomationHeader>

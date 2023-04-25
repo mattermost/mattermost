@@ -1,12 +1,16 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 import ReactSelect, {ControlProps, GroupType, OptionsType} from 'react-select';
 
 import styled from 'styled-components';
 import {ActionFunc} from 'mattermost-redux/types/actions';
 import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
 import {GlobalState} from '@mattermost/types/store';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {getGroup} from 'mattermost-redux/selectors/entities/groups';
+
+import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -17,11 +21,15 @@ import MenuList from 'src/components/backstage/playbook_edit/automation/menu_lis
 
 interface Props {
     userIds: string[];
-    groupIds?: string[];
+    groupIds: string[];
     onAddUser: (userid: string) => void;
+    onAddGroup: (groupid: string) => void;
     onRemoveUser: (userid: string, username: string) => void;
+    onRemoveGroup: (groupid: string) => void;
     searchProfiles: (term: string) => ActionFunc;
     getProfiles: () => ActionFunc;
+    searchGroups: (term: string) => ActionFunc;
+    getGroups: () => ActionFunc;
     isDisabled: boolean;
 }
 
@@ -29,22 +37,37 @@ const InviteUsersSelector = (props: Props) => {
     const {formatMessage} = useIntl();
     const [searchTerm, setSearchTerm] = useState('');
     const invitedUsers = useSelector<GlobalState, UserProfile[]>((state: GlobalState) => props.userIds.map((id) => getUser(state, id)));
+    const invitedUserGroups = useSelector<GlobalState, Group[]>((state: GlobalState) => props.groupIds.map((id) => getGroup(state, id)));
+
     const [searchedUsers, setSearchedUsers] = useState<UserProfile[]>([]);
+    const [searchedGroups, setSearchedGroups] = useState<Group[]>([]);
     useEnsureProfiles(props.userIds);
+
+    const isUser = (option: UserProfile | Group): option is UserProfile => {
+        return (option as UserProfile).username !== undefined;
+    };
 
     // Update the options when the search term is updated
     useEffect(() => {
         const updateOptions = async (term: string) => {
             let profiles;
+            let groups;
             if (term.trim().length === 0) {
                 profiles = props.getProfiles();
+                groups = props.getGroups();
             } else {
                 profiles = props.searchProfiles(term);
+                groups = props.searchGroups(term);
             }
 
             //@ts-ignore
             profiles.then(({data}: { data: UserProfile[] }) => {
                 setSearchedUsers(data || []);
+            });
+
+            //@ts-ignore
+            groups.then(({data}: { data: Group[] }) => {
+                setSearchedGroups(data || []);
             });
         };
 
@@ -53,12 +76,19 @@ const InviteUsersSelector = (props: Props) => {
 
     let invitedProfiles: UserProfile[] = [];
     let nonInvitedProfiles: UserProfile[] = [];
+    let invitedGroups: Group[] = [];
+    let nonInvitedGroups: Group[] = [];
 
     if (searchTerm.trim().length === 0) {
         // Filter out all the undefined users, which will cast to false in the filter predicate
         invitedProfiles = invitedUsers.filter((user) => user);
         nonInvitedProfiles = searchedUsers.filter(
             (profile: UserProfile) => !props.userIds.includes(profile.id),
+        );
+
+        invitedGroups = invitedUserGroups.filter((group) => group);
+        nonInvitedGroups = searchedGroups.filter(
+            (group: Group) => !props.groupIds.includes(group.id),
         );
     } else {
         searchedUsers.forEach((profile: UserProfile) => {
@@ -68,24 +98,54 @@ const InviteUsersSelector = (props: Props) => {
                 nonInvitedProfiles.push(profile);
             }
         });
+        searchedGroups.forEach((group: Group) => {
+            if (props.groupIds.includes(group.id)) {
+                invitedGroups.push(group);
+            } else {
+                nonInvitedGroups.push(group);
+            }
+        });
     }
 
-    let options: UserProfile[] | GroupType<UserProfile>[] = nonInvitedProfiles;
+    const sortOptions = useCallback((profilesAndGroups: (UserProfile | Group)[]) => {
+        return profilesAndGroups.sort((a: UserProfile | Group, b: UserProfile | Group) => {
+            let aSortString = '';
+            let bSortString = '';
+
+            if (isUser(a)) {
+                aSortString = a.username;
+            } else {
+                aSortString = a.name;
+            }
+            if (isUser(b)) {
+                bSortString = b.username;
+            } else {
+                bSortString = b.name;
+            }
+
+            return aSortString.localeCompare(bSortString);
+        });
+    }, []);
+
+    const sortedNonInvitedOptions = sortOptions([...nonInvitedProfiles, ...nonInvitedGroups]);
+
+    let options: (UserProfile | Group)[] | GroupType<(UserProfile | Group)>[] = sortedNonInvitedOptions;
     if (invitedProfiles.length !== 0) {
+        const sortedInvitedOptions = sortOptions([...invitedProfiles, ...invitedGroups]);
         options = [
-            {label: 'SELECTED', options: invitedProfiles},
-            {label: 'ALL', options: nonInvitedProfiles},
+            {label: 'SELECTED', options: sortedInvitedOptions},
+            {label: 'ALL', options: sortedNonInvitedOptions},
         ];
     }
 
     let badgeContent = '';
-    const numInvitedMembers = props.userIds.length;
+    const numInvitedMembers = props.userIds.length + props.groupIds.length;
     if (numInvitedMembers > 0) {
         badgeContent = `${numInvitedMembers} SELECTED`;
     }
 
     // Type guard to check whether the current options is a group or a plain list
-    const isGroup = (option: UserProfile | GroupType<UserProfile>): option is GroupType<UserProfile> => (
+    const isGroupType = (option: UserProfile | Group | GroupType<UserProfile | Group>): option is GroupType<UserProfile> => (
         (option as GroupType<UserProfile>).label
     );
 
@@ -99,16 +159,27 @@ const InviteUsersSelector = (props: Props) => {
             isDisabled={props.isDisabled}
             isMulti={false}
             controlShouldRenderValue={false}
-            onChange={(userAdded: UserProfile) => props.onAddUser(userAdded.id)}
-            getOptionValue={(user: UserProfile) => user.id}
-            formatOptionLabel={(option: UserProfile) => (
-                <UserLabel
-                    onRemove={() => props.onRemoveUser(option.id, option.username)}
-                    id={option.id}
-                    invitedUsers={(options.length > 0 && isGroup(options[0])) ? options[0].options : []}
-                />
-            )}
-            defaultMenuIsOpen={false}
+            onChange={(optionAdded: UserProfile | Group) => (isUser(optionAdded) ? props.onAddUser(optionAdded.id) : props.onAddGroup(optionAdded.id))}
+            getOptionValue={(optionAdded: UserProfile | Group) => optionAdded.id}
+            formatOptionLabel={(option: UserProfile | Group) => {
+                if (isUser(option)) {
+                    return (
+                        <UserLabel
+                            onRemove={() => props.onRemoveUser(option.id, option.username)}
+                            id={option.id}
+                            invitedUsers={(options.length > 0 && isGroupType(options[0])) ? invitedProfiles : []}
+                        />
+                    );
+                }
+                return (
+                    <GroupLabel
+                        onRemove={() => props.onRemoveGroup(option.id)}
+                        group={option}
+                        invitedGroups={(options.length > 0 && isGroupType(options[0])) ? invitedGroups : []}
+                    />
+                );
+            }}
+            defaultMenuIsOpen={true}
             openMenuOnClick={true}
             isClearable={false}
             placeholder={formatMessage({defaultMessage: 'Search for people'})}
@@ -146,6 +217,63 @@ const UserLabel = (props: UserLabelProps) => {
         </>
     );
 };
+
+interface GroupLabelProps {
+    onRemove: () => void;
+    group: Group;
+    invitedGroups: OptionsType<Group>;
+}
+
+const GroupLabel = (props: GroupLabelProps) => {
+    let icon = <PlusIcon/>;
+    if (props.invitedGroups.find((group: Group) => group.id === props.group.id)) {
+        icon = <Remove onClick={props.onRemove}><FormattedMessage defaultMessage='Remove'/></Remove>;
+    }
+    const groupName = `@${props.group.name}`;
+    return (
+        <>
+            <GroupOption>
+                <GroupImage>
+                    <AccountMultipleOutlineIcon
+                        size={12}
+                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                    />
+                </GroupImage>
+                <span>
+                    {props.group.display_name}
+                </span>
+                <GroupName className='ml-2 light'>
+                    {groupName}
+                </GroupName>
+            </GroupOption>
+            {icon}
+        </>
+    );
+};
+
+const GroupName = styled.span`
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 18px;
+`;
+
+const GroupImage = styled.div`
+    display: flex;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    margin-right: 8px;
+`;
+
+const GroupOption = styled.div`
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+`;
 
 const Remove = styled.span`
     display: inline-block;

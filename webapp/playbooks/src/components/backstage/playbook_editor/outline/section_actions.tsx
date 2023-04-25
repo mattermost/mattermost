@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {getProfilesInTeam, searchProfiles} from 'mattermost-redux/actions/users';
+import {getGroups as fetchGroups, searchGroups as searchUserGroups} from 'mattermost-redux/actions/groups';
 
 import styled from 'styled-components';
 import {AccountMinusOutlineIcon, AccountPlusOutlineIcon, PlayIcon} from '@mattermost/compass-icons/components';
@@ -56,8 +57,23 @@ const LegacyActionsEdit = ({playbook}: Props) => {
         return dispatch(searchProfiles(term, {team_id: playbook.team_id}));
     };
 
+    const searchGroups = (term: string) => {
+        const groupParams = {
+            q: term,
+            filter_allow_reference: true,
+            page: 0,
+            per_page: 100,
+            include_member_count: true,
+        };
+        return dispatch(searchUserGroups(groupParams));
+    };
+
     const getUsers = () => {
         return dispatch(getProfilesInTeam(playbook.team_id, 0, PROFILE_CHUNK_SIZE, '', {active: true}));
+    };
+
+    const getGroups = () => {
+        return dispatch(fetchGroups(true, 0, 60, true));
     };
 
     const handleAddUserInvited = (userId: string) => {
@@ -72,6 +88,21 @@ const LegacyActionsEdit = ({playbook}: Props) => {
         const idx = playbook.invited_user_ids.indexOf(userId);
         updatePlaybook({
             invitedUserIDs: [...playbook.invited_user_ids.slice(0, idx), ...playbook.invited_user_ids.slice(idx + 1)],
+        });
+    };
+
+    const handleAddGroupInvited = (groupId: string) => {
+        if (!playbook.invited_group_ids.includes(groupId)) {
+            updatePlaybook({
+                invitedGroupIDs: [...playbook.invited_group_ids, groupId],
+            });
+        }
+    };
+
+    const handleRemoveGroupInvited = (groupId: string) => {
+        const idx = playbook.invited_group_ids.indexOf(groupId);
+        updatePlaybook({
+            invitedGroupIDs: [...playbook.invited_group_ids.slice(0, idx), ...playbook.invited_group_ids.slice(idx + 1)],
         });
     };
 
@@ -188,10 +219,15 @@ const LegacyActionsEdit = ({playbook}: Props) => {
                         onToggle={handleToggleInviteUsers}
                         searchProfiles={searchUsers}
                         getProfiles={getUsers}
+                        searchGroups={searchGroups}
+                        getGroups={getGroups}
                         userIds={playbook.invited_user_ids}
+                        groupIds={playbook.invited_group_ids}
                         preAssignedUserIds={preAssignees}
                         onAddUser={handleAddUserInvited}
                         onRemoveUser={handleRemoveUserInvited}
+                        onAddGroup={handleAddGroupInvited}
+                        onRemoveGroup={handleRemoveGroupInvited}
                         onRemovePreAssignedUser={handleRemovePreAssignedUserInvited}
                         onRemovePreAssignedUsers={handleRemovePreAssignedUsers}
                     />

@@ -412,7 +412,7 @@ export function searchGroups(params: GroupSearachParams): ActionFunc {
         }
         dispatch(batchActions(dispatches));
 
-        return {data: true};
+        return {data};
     };
 }
 
