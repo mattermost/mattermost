@@ -22,6 +22,7 @@ describe('components/sidebar', () => {
         userGroupsEnabled: false,
         canCreateCustomGroups: true,
         showWorkTemplateButton: true,
+        canOpenMarketplace: true,
         actions: {
             createCategory: jest.fn(),
             fetchMyCategories: jest.fn(),

@@ -7,5 +7,6 @@ export const CategoryTypes: {[name: string]: ChannelCategoryType} = {
     FAVORITES: 'favorites',
     CHANNELS: 'channels',
     DIRECT_MESSAGES: 'direct_messages',
+    APPS: 'apps',
     CUSTOM: 'custom',
 };

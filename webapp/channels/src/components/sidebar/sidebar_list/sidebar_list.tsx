@@ -13,6 +13,7 @@ import debounce from 'lodash/debounce';
 import * as ChannelUtils from 'utils/channel_utils';
 
 import {General} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {DraggingState} from 'types/store';
@@ -89,6 +90,7 @@ type Props = {
     staticPages: StaticPage[];
 
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
+    handleOpenAppsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
     onDragEnd: (result: DropResult) => void;
 
@@ -336,8 +338,12 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             if (nextIndex >= staticPageIds.length) {
                 this.scrollToChannel(nextId);
             }
-        } else if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.K)) {
-            this.props.handleOpenMoreDirectChannelsModal(e);
+        } else if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.K)) {
+                this.props.handleOpenMoreDirectChannelsModal(e);
+            } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.J)) {
+                this.props.handleOpenAppsModal(e);
+            }
         }
     };
 
@@ -379,13 +385,19 @@ export default class SidebarList extends React.PureComponent<Props, State> {
     };
 
     renderCategory = (category: ChannelCategory, index: number) => {
+        const handleCtaOnClick = category.type === CategoryTypes.APPS ? (
+            this.props.handleOpenAppsModal
+        ) : (
+            this.props.handleOpenMoreDirectChannelsModal
+        );
+
         return (
             <SidebarCategory
                 key={category.id}
                 category={category}
                 categoryIndex={index}
                 setChannelRef={this.setChannelRef}
-                handleOpenMoreDirectChannelsModal={this.props.handleOpenMoreDirectChannelsModal}
+                handleCtaOnClick={handleCtaOnClick}
                 isNewCategory={this.props.newCategoryIds.includes(category.id)}
             />
         );
@@ -420,7 +432,9 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             draggingState.type = DraggingStateTypes.CATEGORY;
         } else {
             const draggingChannels = this.props.displayedChannels.filter((channel) => this.props.multiSelectedChannelIds.indexOf(channel.id) !== -1 || channel.id === before.draggableId);
-            if (draggingChannels.every((channel) => channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL)) {
+            if (draggingChannels.every((channel) => channel.type === General.DM_CHANNEL && channel.props?.dm_bot)) {
+                draggingState.type = DraggingStateTypes.APPS;
+            } else if (draggingChannels.every((channel) => channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL)) {
                 draggingState.type = DraggingStateTypes.DM;
             } else if (draggingChannels.every((channel) => channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL)) {
                 draggingState.type = DraggingStateTypes.CHANNEL;

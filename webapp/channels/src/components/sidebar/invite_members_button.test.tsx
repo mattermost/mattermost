@@ -110,7 +110,7 @@ describe('components/sidebar/invite_members_button', () => {
                 <InviteMembersButton {...{...props, touchedInviteMembersButton: true}}/>
             </Provider>,
         );
-        expect(wrapper.find('li').prop('className')).not.toContain('untouched');
+        expect(wrapper.find('button').prop('className')).not.toContain('untouched');
     });
 
     test('should be highlighted when component has not been touched/clicked and has less than 10 users', () => {
@@ -127,7 +127,7 @@ describe('components/sidebar/invite_members_button', () => {
                 <InviteMembersButton {...props}/>
             </Provider>,
         );
-        expect(wrapper.find('li').prop('className')).toContain('untouched');
+        expect(wrapper.find('button').prop('className')).toContain('untouched');
     });
 
     test('should not be highlighted when component has not been touched/clicked but the workspace has more than 10 users', () => {
@@ -144,6 +144,6 @@ describe('components/sidebar/invite_members_button', () => {
                 <InviteMembersButton {...props}/>
             </Provider>,
         );
-        expect(wrapper.find('li').prop('className')).not.toContain('untouched');
+        expect(wrapper.find('button').prop('className')).not.toContain('untouched');
     });
 });

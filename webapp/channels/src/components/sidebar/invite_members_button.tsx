@@ -68,15 +68,12 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
             <ToggleModalButton
                 ariaLabel={intl.formatMessage({id: 'sidebar_left.inviteUsers', defaultMessage: 'Invite Users'})}
                 id='introTextInvite'
-                className={`intro-links color--link cursor--pointer${props.className ? ` ${props.className}` : ''}`}
+                className={`intro-links color--link cursor--pointer${props.className ? ` ${props.className}` : ''} ${buttonClass}`}
                 modalId={ModalIdentifiers.INVITATION}
                 dialogType={InvitationModal}
                 onClick={handleButtonClick}
             >
-                <li
-                    className={buttonClass}
-                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}
-                >
+                <li aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}>
                     <i className='icon-plus-box'/>
                     <FormattedMessage
                         id={'sidebar_left.inviteMembers'}

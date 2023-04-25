@@ -165,6 +165,7 @@ export const Preferences = {
 export const Touched = {
     INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
+    ADD_APPS: 'add_apps',
 };
 
 // Category for actions/interactions that will happen just once
@@ -466,6 +467,7 @@ export const ModalIdentifiers = {
     CONFIRM_SWITCH_TO_YEARLY: 'confirm_switch_to_yearly',
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
+    MORE_DIRECT_BOT_CHANNELS: 'more_direct_bot_channels',
 };
 
 export const UserStatuses = {
@@ -1057,6 +1059,7 @@ export const DraggingStateTypes = {
     CATEGORY: 'category',
     CHANNEL: 'channel',
     DM: 'DM',
+    APPS: 'apps',
     MIXED_CHANNELS: 'mixed_channels',
 };
 

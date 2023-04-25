@@ -422,19 +422,21 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 		return channel, nil
 	}
 
+	users, nErr := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
+	if nErr != nil {
+		return nil, nErr
+	}
+
+	var isBot bool
+	for _, user := range users {
+		if user.IsBot {
+			isBot = true
+			break
+		}
+	}
+
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
-		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
-		if err != nil {
-			return nil, err
-		}
-		var isBot bool
-		for _, user := range users {
-			if user.IsBot {
-				isBot = true
-				break
-			}
-		}
 		// if one of the users is a bot, don't restrict to team members
 		if !isBot {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
@@ -453,6 +455,10 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 			return channel, nil
 		}
 		return nil, err
+	}
+
+	if isBot {
+		channel.AddProp("dm_bot", true)
 	}
 
 	a.handleCreationEvent(c, userID, otherUserID, channel)
@@ -3379,9 +3385,30 @@ func (a *App) FillInChannelProps(c request.CTX, channel *model.Channel) *model.A
 }
 
 func (a *App) FillInChannelsProps(c request.CTX, channelList model.ChannelList) *model.AppError {
+	currentUser, err := a.GetUser(c.Session().UserId)
+	if err != nil {
+		return err
+	}
+
+	botChannels, appErr := a.Srv().Store().Channel().GetBotChannelsByUser(currentUser.Id, store.ChannelSearchOpts{})
+	if appErr != nil {
+		return model.NewAppError("FillInChannelsProps", "app.channel.get_bot_channels_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	botChannelsIDs := make(map[string]struct{})
+	for _, botChannel := range botChannels {
+		botChannelsIDs[botChannel.Id] = struct{}{}
+	}
+
 	// Group the channels by team and call GetChannelsByNames just once per team.
 	channelsByTeam := make(map[string]model.ChannelList)
 	for _, channel := range channelList {
+		if _, ok := botChannelsIDs[channel.Id]; ok {
+			channel.AddProp("dm_bot", true)
+		} else {
+			delete(channel.Props, "dm_bot")
+		}
+
 		channelsByTeam[channel.TeamId] = append(channelsByTeam[channel.TeamId], channel)
 	}
 

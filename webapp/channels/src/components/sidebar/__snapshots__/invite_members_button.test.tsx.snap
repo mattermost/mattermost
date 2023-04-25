@@ -41,7 +41,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
       >
         <Connect(ToggleModalButton)
           ariaLabel="Invite Users"
-          className="intro-links color--link cursor--pointer"
+          className="intro-links color--link cursor--pointer SidebarChannelNavigator__inviteMembersLhsButton SidebarChannelNavigator__inviteMembersLhsButton--untouched"
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),
@@ -61,7 +61,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
               }
             }
             ariaLabel="Invite Users"
-            className="intro-links color--link cursor--pointer"
+            className="intro-links color--link cursor--pointer SidebarChannelNavigator__inviteMembersLhsButton SidebarChannelNavigator__inviteMembersLhsButton--untouched"
             dialogType={
               Object {
                 "$$typeof": Symbol(react.memo),
@@ -76,13 +76,12 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
           >
             <button
               aria-label="Invite Users dialog"
-              className="style--none intro-links color--link cursor--pointer"
+              className="style--none intro-links color--link cursor--pointer SidebarChannelNavigator__inviteMembersLhsButton SidebarChannelNavigator__inviteMembersLhsButton--untouched"
               id="introTextInvite"
               onClick={[Function]}
             >
               <li
                 aria-label="Invite Members"
-                className="SidebarChannelNavigator__inviteMembersLhsButton SidebarChannelNavigator__inviteMembersLhsButton--untouched"
               >
                 <i
                   className="icon-plus-box"

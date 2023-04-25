@@ -12,11 +12,13 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    ViewGridPlusOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
 
 import {Preferences} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import Constants from 'utils/constants';
 
@@ -28,7 +30,7 @@ import type {PropsFromRedux} from './index';
 
 type OwnProps = {
     category: ChannelCategory;
-    handleOpenDirectMessagesModal: (e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    handleCtaMenuItemOnClick?: (e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 };
 
 type Props = OwnProps & PropsFromRedux;
@@ -37,10 +39,12 @@ const SidebarCategorySortingMenu = (props: Props) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const {formatMessage} = useIntl();
 
+    const {id: categoryId, type: categoryType} = props.category;
+
     function handleSortDirectMessages(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, sorting: CategorySorting) {
         event.preventDefault();
 
-        props.setCategorySorting(props.category.id, sorting);
+        props.setCategorySorting(categoryId, sorting);
         trackEvent('ui', `ui_sidebar_sort_dm_${sorting}`);
     }
 
@@ -63,7 +67,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
 
     const sortDirectMessagesMenuItem = (
         <Menu.SubMenu
-            id={`sortDirectMessages-${props.category.id}`}
+            id={`sortDirectMessages-${categoryId}`}
             leadingElement={sortDirectMessagesIcon}
             labels={(
                 <FormattedMessage
@@ -77,10 +81,10 @@ const SidebarCategorySortingMenu = (props: Props) => {
                     <ChevronRightIcon size={16}/>
                 </>
             }
-            menuId={`sortDirectMessages-${props.category.id}-menu`}
+            menuId={`sortDirectMessages-${categoryId}-menu`}
         >
             <Menu.Item
-                id={`sortAlphabetical-${props.category.id}`}
+                id={`sortAlphabetical-${categoryId}`}
                 labels={(
                     <FormattedMessage
                         id='user.settings.sidebar.sortAlpha'
@@ -90,7 +94,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
                 onClick={(event) => handleSortDirectMessages(event, CategorySorting.Alphabetical)}
             />
             <Menu.Item
-                id={`sortByMostRecent-${props.category.id}`}
+                id={`sortByMostRecent-${categoryId}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
@@ -125,7 +129,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
 
     const showMessagesCountMenuItem = (
         <Menu.SubMenu
-            id={`showMessagesCount-${props.category.id}`}
+            id={`showMessagesCount-${categoryId}`}
             leadingElement={<AccountMultipleOutlineIcon size={18}/>}
             labels={(
                 <FormattedMessage
@@ -142,7 +146,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
             menuId={`showMessagesCount-${props.category.id}-menu`}
         >
             <Menu.Item
-                id={`showAllDms-${props.category.id}`}
+                id={`showAllDms-${categoryId}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.allDirectMessages'
@@ -154,8 +158,8 @@ const SidebarCategorySortingMenu = (props: Props) => {
             <Menu.Separator/>
             {Constants.DM_AND_GM_SHOW_COUNTS.map((dmGmShowCount) => (
                 <Menu.Item
-                    id={`showDmCount-${props.category.id}-${dmGmShowCount}`}
-                    key={`showDmCount-${props.category.id}-${dmGmShowCount}`}
+                    id={`showDmCount-${categoryId}-${dmGmShowCount}`}
+                    key={`showDmCount-${categoryId}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={(event) => handlelimitVisibleDMsGMs(event, dmGmShowCount)}
                 />
@@ -164,19 +168,43 @@ const SidebarCategorySortingMenu = (props: Props) => {
 
     );
 
-    const openDirectMessageMenuItem = (
-        <Menu.Item
-            id={`openDirectMessage-${props.category.id}`}
-            onClick={props.handleOpenDirectMessagesModal}
-            leadingElement={<AccountPlusOutlineIcon size={18}/>}
-            labels={(
+    const ctaMenuItem = () => {
+        if (!props.handleCtaMenuItemOnClick || (categoryType !== CategoryTypes.DIRECT_MESSAGES && categoryType !== CategoryTypes.APPS)) {
+            return null;
+        }
+
+        let leadingElement = null;
+        let label = null;
+
+        if (categoryType === CategoryTypes.DIRECT_MESSAGES) {
+            leadingElement = <AccountPlusOutlineIcon size={18}/>;
+            label = (
                 <FormattedMessage
                     id='sidebar.openDirectMessage'
                     defaultMessage='Open a direct message'
                 />
-            )}
-        />
-    );
+            );
+        } else {
+            leadingElement = <ViewGridPlusOutlineIcon size={18}/>;
+            label = (
+                <FormattedMessage
+                    id='sidebar.openAppMarketplace'
+                    defaultMessage='App Marketplace'
+                />
+            );
+        }
+
+        return [
+            <Menu.Separator key='SidebarCategorySortingMenu_separator'/>,
+            <Menu.Item
+                key={`ctaMenuItem-${categoryId}`}
+                id={`ctaMenuItem-${categoryId}`}
+                onClick={props.handleCtaMenuItemOnClick}
+                leadingElement={leadingElement}
+                labels={label}
+            />,
+        ];
+    };
 
     function handleMenuToggle(isOpen: boolean) {
         setIsMenuOpen(isOpen);
@@ -193,26 +221,25 @@ const SidebarCategorySortingMenu = (props: Props) => {
         >
             <Menu.Container
                 menuButton={{
-                    id: `SidebarCategorySortingMenu-Button-${props.category.id}`,
+                    id: `SidebarCategorySortingMenu-Button-${categoryId}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
                     class: 'SidebarMenu_menuButton sortingMenu',
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategorySortingMenu-ButtonTooltip-${props.category.id}`,
+                    id: `SidebarCategorySortingMenu-ButtonTooltip-${categoryId}`,
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
                     class: 'hidden-xs',
                 }}
                 menu={{
-                    id: `SidebarCategorySortingMenu-MenuList-${props.category.id}`,
+                    id: `SidebarCategorySortingMenu-MenuList-${categoryId}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.dropdownAriaLabel', defaultMessage: 'Edit category menu'}),
                     onToggle: handleMenuToggle,
                 }}
             >
                 {sortDirectMessagesMenuItem}
-                {showMessagesCountMenuItem}
-                <Menu.Separator/>
-                {openDirectMessageMenuItem}
+                {categoryType === CategoryTypes.DIRECT_MESSAGES && showMessagesCountMenuItem}
+                {ctaMenuItem()}
             </Menu.Container>
         </div>
     );

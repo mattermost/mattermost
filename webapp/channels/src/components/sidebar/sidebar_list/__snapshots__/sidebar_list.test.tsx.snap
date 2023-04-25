@@ -108,7 +108,7 @@ exports[`SidebarList should match snapshot 2`] = `
       }
     }
     categoryIndex={0}
-    handleOpenMoreDirectChannelsModal={[MockFunction]}
+    handleCtaOnClick={[MockFunction]}
     isNewCategory={false}
     key="category1"
     setChannelRef={[Function]}
