@@ -21,10 +21,6 @@ type Permission struct {
 
 var PermissionInviteUser *Permission
 var PermissionAddUserToTeam *Permission
-
-// Deprecated: PermissionCreatePost should be used to determine if a slash command can be executed.
-// TODO: Remove in 8.0: https://mattermost.atlassian.net/browse/MM-51274
-var PermissionUseSlashCommands *Permission
 var PermissionManageSlashCommands *Permission
 var PermissionManageOthersSlashCommands *Permission
 var PermissionCreatePublicChannel *Permission
@@ -392,12 +388,6 @@ func initializePermissions() {
 		"authentication.permissions.add_user_to_team.name",
 		"authentication.permissions.add_user_to_team.description",
 		PermissionScopeTeam,
-	}
-	PermissionUseSlashCommands = &Permission{
-		"use_slash_commands",
-		"authentication.permissions.team_use_slash_commands.name",
-		"authentication.permissions.team_use_slash_commands.description",
-		PermissionScopeChannel,
 	}
 	PermissionManageSlashCommands = &Permission{
 		"manage_slash_commands",
@@ -2318,7 +2308,6 @@ func initializePermissions() {
 	}
 
 	ChannelScopedPermissions := []*Permission{
-		PermissionUseSlashCommands,
 		PermissionManagePublicChannelMembers,
 		PermissionManagePrivateChannelMembers,
 		PermissionManageChannelRoles,
