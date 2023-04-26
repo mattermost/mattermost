@@ -347,7 +347,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         if (!emptyInvites) {
             return 'static';
         } else if (this.state.invite.inviteType === InviteType.GUEST) {
-            if (this.state.invite.inviteChannels.channels.length !== 0 ||
+            if (this.state.invite.inviteChannels.channels?.length !== 0 ||
                 this.state.invite.inviteChannels.search !== ''
             ) {
                 return 'static';
