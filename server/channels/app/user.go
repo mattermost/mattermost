@@ -1503,7 +1503,7 @@ func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppE
 		}
 
 		if err := a.Srv().Store().Token().Delete(token.Token); err != nil {
-			appErr = model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens_delete.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			appErr = model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens_delete.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return appErr
