@@ -390,6 +390,7 @@ const WorkTemplateModal = (props: Props) => {
             autoCloseOnCancelButton={false}
             autoCloseOnConfirmButton={false}
             errorText={errorText}
+            workTemplatesEnabled={workTemplatesEnabled}
         >
             {(workTemplatesEnabled && (modalState === ModalState.ChannelOnly || modalState === ModalState.Menu)) && (
                 <Mode

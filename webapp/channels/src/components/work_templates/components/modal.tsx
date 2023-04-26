@@ -5,8 +5,12 @@ import styled from 'styled-components';
 
 import GenericModal from 'components/generic_modal';
 
-const Modal = styled(GenericModal)`
-    width: 960px;
+interface Props {
+    workTemplatesEnabled?: boolean;
+}
+
+const Modal = styled(GenericModal)<Props>`
+    width: ${(props) => props.workTemplatesEnabled ? '960px' : '600px'};
 
     .modal-body {
         min-height: 450px;

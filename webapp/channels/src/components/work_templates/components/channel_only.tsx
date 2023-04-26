@@ -138,7 +138,7 @@ export function useChannelOnlyManager() {
                 return;
             }
 
-            handleOnModalCancel();
+            dispatch(closeModal(ModalIdentifiers.WORK_TEMPLATE));
 
             // If template selected, create a new board from this template
             if (canCreateFromPluggable && createBoardFromChannelPlugin) {
@@ -177,10 +177,6 @@ export function useChannelOnlyManager() {
             dispatch(setNewChannelWithBoardPreference({[Preferences.NEW_CHANNEL_WITH_BOARD_TOUR_SHOWED]: false}));
         }
         return true;
-    };
-
-    const handleOnModalCancel = () => {
-        dispatch(closeModal(ModalIdentifiers.NEW_CHANNEL_MODAL));
     };
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
