@@ -9902,5 +9902,117 @@
   {
     "id": "app.plugin.blocked.app_error",
     "translation": "Плагин {{.Id}} находится в списке блокировки. Некоторые плагины заблокированы, потому что они встроены в данную версию Mattermost."
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Подтвердить завершение запуска"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Завершить запуск"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "few": "Есть **{{.Count}} невыполненные задачи**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?",
+      "many": "Есть **{{.Count}} невыполненных задач**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?",
+      "one": "Есть **{{.Count}} невыполненная задача**. Вы уверены, что хотите завершить запуск *{{.RunName}}* для всех участников?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Добавить на временную шкалу"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Сводка"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Краткая сводка, отображаемая на временной шкале"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Максимум 64 символа"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Добавить на временную шкалу"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Запуск сценария"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Добавить новую задачу"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Добавить задачу"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Имя"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Описание"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Запустить сценарий"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Запустить"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Название запуска"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Сценарий"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Владелец** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "few": "Вам поручено {{.Count}} задачи:",
+      "many": "Вам поручено {{.Count}} задач:",
+      "one": "Вам поручена {{.Count}} задача:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "few": "Вы получили {{.Count}} задачи, срок выполнения которых:",
+      "many": "Вы получили {{.Count}} задач, срок выполнения которых:",
+      "one": "Вы получили {{.Count}} задачу, срок выполнения которой:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "У вас нет назначенных задач."
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Ваши назначенные задачи"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Вчера"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Срок исполнения {{.Count}} дн. назад"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Сегодня"
   }
 ]
