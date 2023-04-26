@@ -502,6 +502,11 @@ export const CloudProducts = {
     LEGACY: 'cloud-legacy',
 };
 
+export const CloudBillingTypes = {
+    INTERNAL: 'internal',
+    LICENSED: 'licensed',
+};
+
 export const SelfHostedProducts = {
     STARTER: 'starter',
     PROFESSIONAL: 'professional',
