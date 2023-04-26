@@ -311,7 +311,7 @@
             }
 
             &:not(.post--thread) {
-                padding: 0 0.5em 0 77px; // .post-row__padding.bottom needs to be changed accordingly if this is changed
+                padding: 0 0.5em 0 1rem; // .post-row__padding.bottom needs to be changed accordingly if this is changed
 
                 .post__link {
                     margin: 3px 0 7px;
