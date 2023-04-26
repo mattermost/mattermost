@@ -102,7 +102,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         TermsOfServiceLink,
         PrivacyPolicyLink,
     } = config;
-    const {IsLicensed, Cloud} = useSelector(getLicense);
+    const {IsLicensed} = useSelector(getLicense);
     const loggedIn = Boolean(useSelector(getCurrentUserId));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const usedBefore = useSelector((state: GlobalState) => (!inviteId && !loggedIn && token ? getGlobalItem(state, token, null) : undefined));
@@ -113,7 +113,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     const isLicensed = IsLicensed === 'true';
-    const isCloud = Cloud === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const noAccounts = NoAccounts === 'true';
     const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
@@ -591,10 +590,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const handleReturnButtonOnClick = () => history.replace('/');
 
     const getNewsletterCheck = () => {
-        if (isCloud) {
-            return null;
-        }
-
         if (canReachCWS) {
             return (
                 <CheckInput

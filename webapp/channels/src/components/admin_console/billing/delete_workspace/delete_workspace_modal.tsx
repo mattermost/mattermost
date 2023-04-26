@@ -186,8 +186,8 @@ export default function DeleteWorkspaceModal(props: Props) {
             className='DeleteWorkspaceModal'
             onExited={handleClickCancel}
         >
-            <div>
-                <LaptopAlertSVG/>
+            <div className='DeleteWorkspaceModal__Icon'>
+                <LaptopAlertSVG height={156}/>
             </div>
             <div className='DeleteWorkspaceModal__Title'>
                 <FormattedMessage
