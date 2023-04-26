@@ -231,7 +231,6 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		NewDriverImpl(ch.srv),
 		pluginDir,
 		webappPluginDir,
-		*ch.cfgSvc.Config().ExperimentalSettings.PatchPluginsReactDOM,
 		ch.srv.Log(),
 		ch.srv.GetMetrics(),
 	)

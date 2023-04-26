@@ -951,8 +951,6 @@
   "admin.experimental.linkMetadataTimeoutMilliseconds.desc": "The number of milliseconds to wait for metadata from a third-party link. Used with Post Metadata.",
   "admin.experimental.linkMetadataTimeoutMilliseconds.example": "E.g.: \"5000\"",
   "admin.experimental.linkMetadataTimeoutMilliseconds.title": "Link Metadata Timeout:",
-  "admin.experimental.patchPluginsReactDOM.desc": "When true, client-side plugins will be patched to use the version of React DOM provided by the web app. This should only be enabled if plugins break after upgrading to Mattermost 7.6. The server must be restarted for this setting to take effect. See the <link>Important Upgrade Notes</link> for more information.",
-  "admin.experimental.patchPluginsReactDOM.title": "Patch React DOM used by plugins:",
   "admin.experimental.samlSettingsLoginButtonBorderColor.desc": "Specify the color of the SAML login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
   "admin.experimental.samlSettingsLoginButtonBorderColor.title": "SAML login Button Border Color:",
   "admin.experimental.samlSettingsLoginButtonColor.desc": "Specify the color of the SAML login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.",
