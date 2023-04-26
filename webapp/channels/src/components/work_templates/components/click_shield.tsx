@@ -58,6 +58,7 @@ export default function ClickShield(props: Props) {
     const clipPath = clipPathFromPunchout(props.punchout);
     const shield = (
         <Shield
+            data-testid='work-templates-new-tip-shield'
             onClick={props.onClick}
             zIndex={props.zIndex}
             clipPath={clipPath}

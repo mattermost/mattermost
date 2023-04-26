@@ -56,7 +56,7 @@ describe('Channel routing', () => {
         cy.uiBrowseOrCreateChannel('Create new channel').click();
 
         // * Verify that the new channel modal is visible
-        cy.get('#new-channel-modal').should('be.visible').within(() => {
+        cy.get('#work-template-modal').should('be.visible').within(() => {
             // # Add the new channel name with invalid name and press Create Channel
             cy.get('#input_new-channel-modal-name').type('uzsfmtmniifsjgesce4u7yznyh__uzsfmtmniifsjgesce5u7yznyh', {force: true}).wait(TIMEOUTS.HALF_SEC);
             cy.findByText('Create channel').should('be.visible').click();

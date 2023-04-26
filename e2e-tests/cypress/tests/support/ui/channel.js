@@ -4,6 +4,21 @@
 import {getRandomId} from '../../utils';
 import * as TIMEOUTS from '../../fixtures/timeouts';
 
+Cypress.Commands.add('dismissWorkTemplateTip', () => {
+    const CLOSE_MODAL_ATTEMPTS = 5;
+    const CLOSE_MODAL_WAIT_INTERVAL = 50;
+    const SEL_DISMISS_TIP_ELEMENT = '[data-testid=work-templates-new-tip-shield]';
+    for (let i = 0; i < CLOSE_MODAL_ATTEMPTS; i = i + 1) {
+        const found = Cypress.$(SEL_DISMISS_TIP_ELEMENT).length  > 0;
+        if (found) {
+            cy.get(SEL_DISMISS_TIP_ELEMENT).should('be.visible').click();
+            break;
+        }
+        cy.wait(CLOSE_MODAL_WAIT_INTERVAL);
+    }
+})
+
+
 Cypress.Commands.add('uiCreateChannel', ({
     prefix = 'channel-',
     isPrivate = false,
@@ -12,8 +27,9 @@ Cypress.Commands.add('uiCreateChannel', ({
     createBoard = false,
 }) => {
     cy.uiBrowseOrCreateChannel('Create new channel').click();
+    cy.dismissWorkTemplateTip();
 
-    cy.get('#new-channel-modal').should('be.visible');
+    cy.get('#work-template-modal').should('be.visible');
     if (isPrivate) {
         cy.get('#public-private-selector-button-P').click().wait(TIMEOUTS.HALF_SEC);
     } else {
@@ -36,7 +52,7 @@ Cypress.Commands.add('uiCreateChannel', ({
         });
     }
     cy.findByText('Create channel').click();
-    cy.get('#new-channel-modal').should('not.exist');
+    cy.get('#work-template-modal').should('not.exist');
     cy.get('#channelIntro').should('be.visible');
     return cy.wrap({name: channelName});
 });
