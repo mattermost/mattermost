@@ -255,7 +255,12 @@ const WorkTemplateModal = (props: Props) => {
 
     const execute = async (template: WorkTemplate, name = '', visibility: Visibility) => {
         const pbTemplates = [];
-        for (const item of template.content) {
+        for (const ctt in template.content) {
+            if (!Object.hasOwn(template.content, ctt)) {
+                continue;
+            }
+
+            const item = template.content[ctt];
             if (item.playbook) {
                 const pbTemplate = playbookTemplates.find((pb) => pb.title === item.playbook.template);
                 if (pbTemplate) {
@@ -264,11 +269,20 @@ const WorkTemplateModal = (props: Props) => {
             }
         }
 
+        // remove non recommended integrations
+        const filteredTemplate = {...template};
+        filteredTemplate.content = template.content.filter((item) => {
+            if (!item.integration) {
+                return true;
+            }
+            return item.integration.recommended;
+        });
+
         const req: ExecuteWorkTemplateRequest = {
             team_id: teamId,
             name,
             visibility,
-            work_template: template,
+            work_template: filteredTemplate,
             playbook_templates: pbTemplates,
         };
 
