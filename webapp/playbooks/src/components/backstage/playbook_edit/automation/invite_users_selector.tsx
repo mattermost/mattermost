@@ -233,12 +233,12 @@ const GroupLabel = (props: GroupLabelProps) => {
     return (
         <>
             <GroupOption>
-                <GroupImage>
+                <GroupIcon>
                     <AccountMultipleOutlineIcon
                         size={12}
                         color={'rgba(var(--center-channel-color-rgb), 0.56)'}
                     />
-                </GroupImage>
+                </GroupIcon>
                 <span>
                     {props.group.display_name}
                 </span>
@@ -257,7 +257,7 @@ const GroupName = styled.span`
     line-height: 18px;
 `;
 
-const GroupImage = styled.div`
+const GroupIcon = styled.div`
     display: flex;
     background: rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 50%;
