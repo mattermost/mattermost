@@ -10178,5 +10178,17 @@
   {
     "id": "app.user.run.update_status.change_since_last_update",
     "translation": "Изменения с последнего обновления"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Повысьте производительность вашего канала за счет интеграции наиболее часто используемых инструментов, таких как Zoom. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Общайтесь со своей командой в канале, который легко подключается к вашим доскам и интеграциям."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении еженедельных целей с помощью разбивки спринтов, определения приоритетов, назначения владельцев и комментариев."
   }
 ]
