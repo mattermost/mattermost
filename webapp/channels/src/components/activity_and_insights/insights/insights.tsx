@@ -16,7 +16,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
-import {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import {CardSizes, InsightsWidgetTypes, TimeFrame, TimeFrames} from '@mattermost/types/insights';
