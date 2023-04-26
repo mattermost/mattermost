@@ -1,0 +1,51 @@
+.InviteMembersLink {
+    display: flex;
+
+    &__input {
+        height: 48px;
+        flex-grow: 1;
+        padding: 12px 14px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
+        border-right: 0;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
+        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border-radius: 4px 0 0 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
+    }
+
+    &__button {
+        display: flex;
+        width: 180px;
+        max-width: 382px;
+        height: 48px;
+        flex-grow: 0;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--button-bg);
+        background: var(--center-channel-bg);
+        border-radius: 0 4px 4px 0;
+        color: var(--button-bg);
+        font-size: 16px;
+        font-weight: 600;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        span {
+            display: inline-block;
+            height: 24px;
+            margin-right: 9px;
+        }
+
+        svg {
+            fill: var(--button-bg);
+        }
+    }
+}

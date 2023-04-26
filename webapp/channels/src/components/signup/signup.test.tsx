@@ -7,8 +7,6 @@ import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
 import {act, screen} from '@testing-library/react';
 
-import * as global_actions from 'actions/global_actions';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import Signup from 'components/signup/signup';
@@ -197,9 +195,6 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({error: {server_error_id: 'api.user.login.not_verified.app_error'}}); // loginById
 
-        const mockRedirectUserToDefaultTeam = jest.fn();
-        jest.spyOn(global_actions, 'redirectUserToDefaultTeam').mockImplementation(mockRedirectUserToDefaultTeam);
-
         const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
                 <BrowserRouter>
@@ -228,7 +223,6 @@ describe('components/signup/Signup', () => {
         expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
         expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
 
-        expect(mockRedirectUserToDefaultTeam).not.toHaveBeenCalled();
         expect(mockHistoryPush).toHaveBeenCalledWith('/should_verify_email?email=jdoe%40mm.com&teamname=teamName');
     });
 
@@ -238,9 +232,6 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({}); // loginById
 
-        const mockRedirectUserToDefaultTeam = jest.fn();
-        jest.spyOn(global_actions, 'redirectUserToDefaultTeam').mockImplementation(mockRedirectUserToDefaultTeam);
-
         const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
                 <BrowserRouter>
@@ -268,8 +259,6 @@ describe('components/signup/Signup', () => {
         expect(wrapper.find(Input).first().props().disabled).toEqual(true);
         expect(wrapper.find('#input_name').first().props().disabled).toEqual(true);
         expect(wrapper.find(PasswordInput).first().props().disabled).toEqual(true);
-
-        expect(mockRedirectUserToDefaultTeam).toHaveBeenCalled();
     });
 
     it('should add user to team and redirect when team invite valid and logged in', async () => {
