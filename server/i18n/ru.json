@@ -10030,5 +10030,153 @@
   {
     "id": "app.user.run.request_join_channel",
     "translation": "@{{.Name}} является участником запуска и хочет присоединиться к этому каналу. Любой участник канала может пригласить его.\n"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Обсудите со своей командой отзывы клиентов, расставьте приоритеты и вместе согласуйте прогресс и планы."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Используйте доску \"Дорожная карта продукта\" (Product Roadmap) для управления отзывами пользователей, назначения ресурсов, просмотра результатов в календарном режиме и определения приоритетности проблем."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Усильте межфункциональное сотрудничество команды с помощью контрольных списков задач и автоматизации, которые поддерживают процесс разработки функций. После завершения работы проведите ретроспективу и внесите улучшения в следующий релиз."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты для поддержки выпуска функций, например GitHub. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Общайтесь со своей командой о любых блокировках релиза и изменениях в канале, который легко подключается к вашим доскам, плейбукам и другим интеграциям."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Ведите совещания по плану с помощью доски \"Повестка совещания\" (Meeting Agenda). Управляйте своей рабочей нагрузкой с помощью доски \"Задачи проекта\" (Project Tasks)."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Используйте контрольные списки для распределения областей тестирования и автоматизации задач для проведения комплексного процесса устранения ошибок. Используйте ретроспективу, чтобы проанализировать свой процесс и улучшить его для следующего раза."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Повысьте продуктивность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Jira, для отслеживания хода работы над ошибками. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Планируйте и управляйте сообщениями об ошибках и решениями в едином канале, который легко доступен для вашей команды и организации."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\" (OKR board). Следите за ходом совещаний с помощью доски \"Повестка совещания\" (Meeting Agenda)."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Создайте повторяющиеся рабочие процессы, которые легко соблюдать и внедрять, чтобы выпуск продукции был надежным и своевременным."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Легко и быстро общайтесь со своей командой по поводу ежедневных этапов, любых блокирующих факторов и изменений в результатах работы."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Используйте доску релиза продукта (Product Release) для поддержки сроков и процесса выпуска, чтобы каждый знал, какие задачи подлежат выполнению."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Используйте контрольные списки и автоматизацию, чтобы привлечь ключевых членов команды, и расскажите, как продвигается процесс разрешения инцидента."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Общайтесь со своей командой о приоритетах, добавляйте заинтересованные стороны, предоставляйте обновления и работайте над решением в едином канале."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Используйте доску по разрешению инцидентов для поддержки повторяющихся процессов и назначения определенных задач для всей команды."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты, такие как Zoom, для облегчения совместной работы. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Общайтесь о своих целях и прогрессе работ с командой в режиме асинхронного или реального времени и будьте в курсе всех изменений в едином канале."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Отслеживайте прогресс вашей команды в достижении организационных целей с помощью доски \"Цели и ОКР\". Следите за ходом совещаний с помощью доски \"Повестка совещания\"."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Повысьте производительность вашего канала, интегрировав наиболее часто используемые инструменты. Они будут загружены для вас."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Обсудите со своей командой новый проект и решите, как вы собираетесь его структурировать, в канале совместной работы."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Используйте доску Kanban для определения и отслеживания задач и хода выполнения проекта."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Недопустимое значение для байтов при загрузке лицензии."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Статус обновлен"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Обновить статус"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Напоминание для следующего обновления"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "few": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канала.",
+      "many": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} каналов.",
+      "one": "Предоставьте заинтересованным сторонам обновленную информацию. Этот пост будет транслироваться на {{.Count}} канал."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Отметьте запуск как завершенный"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Завершить запуск"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Изменения с последнего обновления"
   }
 ]
