@@ -246,10 +246,6 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
 }
 
 export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
-    const isCloud = getLicense(state)?.Cloud === 'true';
-    if (isCloud) {
-        return true;
-    }
     return getConfig(state).EnableOnboardingFlow === 'true';
 }
 

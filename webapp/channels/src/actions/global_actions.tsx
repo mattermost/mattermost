@@ -375,7 +375,7 @@ export async function redirectUserToDefaultTeam() {
 
     let myTeams = getMyTeams(state);
     const teams = getActiveTeamsList(state);
-    if (myTeams.length === 0 || teams.length === 0) {
+    if (teams.length === 0) {
         if (isUserFirstAdmin && onboardingFlowEnabled) {
             getHistory().push('/preparing-workspace');
             return;
