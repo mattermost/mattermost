@@ -368,7 +368,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfo, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 				CreatorId: th.BasicUser.Id,
 				PostId:    th.BasicPost.Id,
-				ChannelId: th.BasicPost.ChannelId,
 				Name:      searchTerm,
 				Path:      searchTerm,
 				Extension: "jpg",
