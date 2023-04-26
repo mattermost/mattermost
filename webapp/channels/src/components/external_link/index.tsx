@@ -26,7 +26,6 @@ type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     queryParams?: ExternalLinkQueryParams;
     location?: string;
     children: React.ReactNode;
-    anchor?: string;
 };
 
 export default function ExternalLink(props: Props) {
@@ -53,11 +52,11 @@ export default function ExternalLink(props: Props) {
             // If the href already has query params, remove them before adding them back with the addition of the new ones
             href = href?.split('?')[0];
         }
-        let anchor = '';
-        if (props.anchor) {
-            anchor = props.anchor.startsWith('#') ? props.anchor : `#${props.anchor}`;
+        const anchor = new URL(href).hash;
+        if (anchor) {
+            href = href.replace(anchor, '');
         }
-        href = `${href}?${queryString}${anchor}`;
+        href = `${href}?${queryString}${anchor ?? ''}`;
     }
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
