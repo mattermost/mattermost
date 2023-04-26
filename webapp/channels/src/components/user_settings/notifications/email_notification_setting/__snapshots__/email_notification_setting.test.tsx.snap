@@ -378,7 +378,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                   type="radio"
                 />
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Every {count} minutes"
+                  defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
                   id="user.settings.notifications.email.everyXMinutes"
                   values={
                     Object {
@@ -523,7 +523,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       type="radio"
                     />
                     <FormattedMessage
-                      defaultMessage="Every {count} minutes"
+                      defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
                       id="user.settings.notifications.email.everyXMinutes"
                       values={
                         Object {

@@ -14,7 +14,7 @@ import {Group} from '@mattermost/types/groups';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {shouldFocusMainTextbox} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
+import * as Keyboard from 'utils/keyboard';
 import Constants, {A11yClassNames, A11yCustomEventTypes, A11yFocusEventDetail, ModalIdentifiers} from 'utils/constants';
 
 import {QuickInput} from 'components/quick_input/quick_input';
@@ -169,7 +169,7 @@ const UserGroupPopover = (props: Props) => {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (shouldFocusMainTextbox(e, document.activeElement)) {
             hide();
-        } else if (Utils.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+        } else if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             returnFocus();
         }
     };
