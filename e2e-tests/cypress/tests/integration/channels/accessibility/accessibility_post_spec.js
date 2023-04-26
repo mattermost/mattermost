@@ -18,7 +18,6 @@ describe('Verify Accessibility Support in Post', () => {
     let otherUser;
     let testTeam;
     let testChannel;
-    let emojiPickerEnabled;
 
     before(() => {
         cy.apiInitSetup().then(({team, channel, user}) => {
@@ -32,10 +31,6 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.apiAddUserToTeam(testTeam.id, otherUser.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, otherUser.id);
                 });
-            });
-
-            cy.apiGetConfig().then(({config}) => {
-                emojiPickerEnabled = config.ServiceSettings.EnableEmojiPicker;
             });
         });
     });
@@ -179,17 +174,10 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#CENTER_time_${postId}`).should('be.focused');
                 cy.focused().tab();
 
-                // eslint-disable-next-line no-negated-condition
-                if (!emojiPickerEnabled) {
-                    // * Verify focus is on the actions button
-                    cy.get(`#CENTER_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
+                for (let i = 0; i < 3; i++) {
+                    // * Verify focus is on the reactions button
+                    cy.get(`#recent_reaction_${i}`).should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
                     cy.focused().tab();
-                } else {
-                    for (let i = 0; i < 3; i++) {
-                        // * Verify focus is on the reactions button
-                        cy.get(`#recent_reaction_${i}`).should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
-                        cy.focused().tab();
-                    }
                 }
 
                 // * Verify focus is on the reactions button
@@ -200,15 +188,17 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save');
                 cy.focused().tab();
 
+                // * Verify focus is on message actions button
+                cy.get(`#CENTER_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
+                cy.focused().tab();
+
                 // * Verify focus is on the comment button
                 cy.get(`#CENTER_commentIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'reply');
                 cy.focused().tab();
 
-                if (emojiPickerEnabled) {
-                    // * Verify focus is on the more button
-                    cy.get(`#CENTER_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'More');
-                    cy.focused().tab();
-                }
+                // * Verify focus is on the more button
+                cy.get(`#CENTER_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
+                cy.focused().tab();
 
                 // * Verify focus is on the post text
                 cy.get(`#postMessageText_${postId}`).should('be.focused').and('have.attr', 'aria-readonly', 'true');
@@ -244,11 +234,13 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#rhsPostMessageText_${postId}`).should('be.focused').and('have.attr', 'aria-readonly', 'true');
                 cy.focused().tab({shift: true});
 
-                if (emojiPickerEnabled) {
-                    // * Verify focus is on the actions button
-                    cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'More');
-                    cy.focused().tab({shift: true});
-                }
+                // * Verify focus is on the more button
+                cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
+                cy.focused().tab({shift: true});
+
+                // * Verify focus is on message actions button
+                cy.get(`#RHS_COMMENT_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
+                cy.focused().tab({shift: true});
 
                 // * Verify focus is on the save icon
                 cy.get(`#RHS_COMMENT_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save');
@@ -258,15 +250,9 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#RHS_COMMENT_reaction_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'add reaction');
                 cy.focused().tab({shift: true});
 
-                // eslint-disable-next-line no-negated-condition
-                if (!emojiPickerEnabled) {
-                    // * Verify focus is on the actions button
-                    cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
-                    cy.focused().tab({shift: true});
-                } else {
-                    cy.get('#recent_reaction_0').should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
-                    cy.focused().tab({shift: true});
-                }
+                // * Verify focus is on most recent action
+                cy.get('#recent_reaction_0').should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
+                cy.focused().tab({shift: true});
 
                 // * Verify focus is on the time
                 cy.get(`#RHS_COMMENT_time_${postId}`).should('be.focused');
