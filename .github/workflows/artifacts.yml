@@ -107,7 +107,8 @@ jobs:
 
   sentry:
     name: Send build info to sentry
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    if: >
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-22.04
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
