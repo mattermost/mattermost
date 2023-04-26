@@ -9,6 +9,7 @@ import {Preferences, Touched} from 'utils/constants';
 
 import usePreference from 'components/common/hooks/usePreference';
 import useTooltip from 'components/common/hooks/useTooltip';
+import {useMeasurePunchouts} from '@mattermost/components';
 import Tabs from 'components/modal_tabs';
 import {CloseIcon} from '@mattermost/compass-icons/components';
 
@@ -29,6 +30,7 @@ function Mode(props: Props) {
     const templatesNew = usePreference(Preferences.TOUCHED, Touched.ADD_CHANNEL_TEMPLATE_MODE)[0] !== 'true';
     const [knowsTemplatesExistString, setKnowsTemplatesExist] = usePreference(Preferences.TOUCHED, Touched.KNOWS_TEMPLATES_EXIST);
     const knowsTemplatesExist = knowsTemplatesExistString === 'true';
+    const punchout = useMeasurePunchouts(['work-templates-mode-tip-body'], []);
     const {
         reference,
         getReferenceProps,
@@ -36,13 +38,17 @@ function Mode(props: Props) {
     } = useTooltip({
         open: !knowsTemplatesExist,
         message: (
-            <TipBody>
+            <TipBody id='work-templates-mode-tip-body'>
                 <TipHeader>
                     <div>
                         {intl.formatMessage({id: 'work_templates.mode.tourtip_title', defaultMessage: 'Try one of our templates'})}
                     </div>
                     <TipDismiss
                         onClick={(e) => {
+                            // otherwise, even if its in a portal,
+                            // the click will be propagated
+                            // up to the templates tab and change view
+                            // but we do not want that
                             e?.stopPropagation();
                             setKnowsTemplatesExist('true');
                         }}
@@ -110,11 +116,17 @@ function Mode(props: Props) {
                                 }
                                 {!knowsTemplatesExist && (
                                     <ClickShield
-                                        onClick={() => {
+                                        punchout={punchout}
+                                        onClick={(e: React.MouseEvent) => {
+                                            // otherwise, even if its in a portal,
+                                            // the click will be propagated
+                                            // up to the templates tab and change view
+                                            // but we do not want that
+                                            e.stopPropagation();
                                             setKnowsTemplatesExist('true');
                                         }}
                                         inRoot={true}
-                                   />
+                                    />
                                 )}
                                 {!knowsTemplatesExist && tooltip}
 
