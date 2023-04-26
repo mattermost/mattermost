@@ -9886,5 +9886,21 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Недействительный рабочий адрес электронной почты для пробной версии"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "few": "Срок исполнения - {{.Count}} дня",
+      "many": "Срок исполнения - {{.Count}} дней",
+      "one": "Срок исполнения - {{.Count}} день"
+    }
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Пропуск установки плагина {{.Id}}, поскольку существующая версия плагина идентична текущей или более новая."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Плагин {{.Id}} находится в списке блокировки. Некоторые плагины заблокированы, потому что они встроены в данную версию Mattermost."
   }
 ]
