@@ -22,7 +22,7 @@ import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
 
-import ChannelThreads, {Props, Tabs} from './channel_threads_rhs';
+import ChannelThreads, {Tabs} from './channel_threads_rhs';
 
 function setChannelThreadsTab(tab: Tabs) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -67,15 +67,6 @@ function makeMapStateToProps() {
         const team = getCurrentTeam(state);
         const currentUserId = getCurrentUserId(state);
         const prevRhsState = getPreviousRhsState(state);
-
-        if (!channel || !team) {
-            return {
-                channel: {} as Channel,
-                canGoBack: false,
-                threads: [],
-                total: 0,
-            } as unknown as Props;
-        }
 
         const counts = getThreadCountInChannelView(state, channel.id);
 

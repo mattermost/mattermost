@@ -2,15 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import Constants from 'utils/constants';
 import {Channel} from '@mattermost/types/channels';
 import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import {t} from 'utils/i18n';
+import SimpleTooltip from 'components/widgets/simple_tooltip';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 type Props = {
@@ -40,17 +37,11 @@ const Header = ({
     onClose,
     toggleRhsExpanded,
 }: Props) => {
-    const closeSidebarTooltip = (
-        <Tooltip id='closeSidebarTooltip'>
-            <FormattedMessage
-                id='rhs_header.closeSidebarTooltip'
-                defaultMessage='Close'
-            />
-        </Tooltip>
-    );
+    const {formatMessage} = useIntl();
 
-    const expandSidebarTooltip = (
-        <Tooltip id='expandSidebarTooltip'>
+    let expandAriaLabel = formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+    let expandSidebarTooltip = (
+        <>
             <FormattedMessage
                 id='rhs_header.expandSidebarTooltip'
                 defaultMessage='Expand the right sidebar'
@@ -60,22 +51,25 @@ const Header = ({
                 hideDescription={true}
                 isInsideTooltip={true}
             />
-        </Tooltip>
+        </>
     );
 
-    const shrinkSidebarTooltip = (
-        <Tooltip id='shrinkSidebarTooltip'>
-            <FormattedMessage
-                id='rhs_header.collapseSidebarTooltip'
-                defaultMessage='Collapse the right sidebar'
-            />
-            <KeyboardShortcutSequence
-                shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
-                hideDescription={true}
-                isInsideTooltip={true}
-            />
-        </Tooltip>
-    );
+    if (isExpanded) {
+        expandAriaLabel = formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'});
+        expandSidebarTooltip = (
+            <>
+                <FormattedMessage
+                    id='rhs_header.collapseSidebarTooltip'
+                    defaultMessage='Collapse the right sidebar'
+                />
+                <KeyboardShortcutSequence
+                    shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
+                    hideDescription={true}
+                    isInsideTooltip={true}
+                />
+            </>
+        );
+    }
 
     return (
         <div className='sidebar--right__header'>
@@ -85,11 +79,9 @@ const Header = ({
                     <BackButton
                         className='sidebar--right__back'
                         onClick={goBack}
+                        aria-label={formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
                     >
-                        <i
-                            className='icon icon-arrow-back-ios'
-                            aria-label='Back Icon'
-                        />
+                        <i className='icon icon-arrow-back-ios'/>
                     </BackButton>
                 )}
 
@@ -101,53 +93,49 @@ const Header = ({
                 </HeaderTitle>
 
                 {channel.display_name &&
-                    <span
-                        className='style--none sidebar--right__title__subtitle'
-                    >
+                    <span className='style--none sidebar--right__title__subtitle'>
                         {channel.display_name}
                     </span>
                 }
             </span>
-
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
+            <SimpleTooltip
+                id='channelThreadsExpandIcon'
+                content={expandSidebarTooltip}
                 placement='bottom'
-                overlay={isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
             >
                 <button
                     type='button'
                     className='sidebar--right__expand btn-icon'
                     onClick={toggleRhsExpanded}
+                    aria-label={expandAriaLabel}
                 >
-                    <LocalizedIcon
-                        className='icon icon-arrow-expand'
-                        ariaLabel={{id: t('rhs_header.expandSidebarTooltip.icon'), defaultMessage: 'Expand Sidebar Icon'}}
-                    />
-                    <LocalizedIcon
-                        className='icon icon-arrow-collapse'
-                        ariaLabel={{id: t('rhs_header.collapseSidebarTooltip.icon'), defaultMessage: 'Collapse Sidebar Icon'}}
-                    />
+                    <LocalizedIcon className='icon icon-arrow-expand'/>
+                    <LocalizedIcon className='icon icon-arrow-collapse'/>
                 </button>
-            </OverlayTrigger>
+            </SimpleTooltip>
 
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='top'
-                overlay={closeSidebarTooltip}
+            <SimpleTooltip
+                id='channelThreadsCloseIcon'
+                content={(
+                    <FormattedMessage
+                        id='rhs_header.closeSidebarTooltip'
+                        defaultMessage='Close'
+                    />
+                )}
+                placement='bottom'
             >
                 <button
                     id='rhsCloseButton'
                     type='button'
                     className='sidebar--right__close btn-icon'
-                    aria-label='Close'
                     onClick={onClose}
+                    aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                 >
                     <LocalizedIcon
                         className='icon icon-close'
-                        ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
                     />
                 </button>
-            </OverlayTrigger>
+            </SimpleTooltip>
         </div>
     );
 };

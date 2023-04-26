@@ -28,7 +28,7 @@ export enum Tabs {
     USER,
 }
 
-export type Props = {
+type Props = {
     all: Array<UserThread['id']>;
     canGoBack: boolean;
     channel: Channel;

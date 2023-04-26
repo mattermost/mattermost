@@ -451,7 +451,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                 >
                     <span
                         className='fa fa-2x fa-angle-left'
-                        title={intl.formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
+                        title={intl.formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     />
                 </div>
             </div>
