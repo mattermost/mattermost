@@ -1157,14 +1157,14 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 			require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		}
 		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 5, len(tokens))
 
 		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
 		assert.Nil(t, appErr)
 
 		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 0, len(tokens))
 	})
 
@@ -1176,7 +1176,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 		assert.Nil(t, appErr)
 
 		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 1, len(tokens))
 		assert.Equal(t, token.Token, tokens[0].Token)
 	})

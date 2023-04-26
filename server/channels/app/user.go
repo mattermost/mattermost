@@ -1462,8 +1462,8 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 	}
 
 	// remove any previously created tokens for user
-	err = a.InvalidatePasswordRecoveryTokensForUser(userID)
-	if err != nil {
+	appErr := a.InvalidatePasswordRecoveryTokensForUser(userID)
+	if appErr != nil {
 		mlog.Warn("Error while deleting additional user tokens.", mlog.Err(err))
 	}
 
