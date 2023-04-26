@@ -3,7 +3,7 @@
 import {Block, createBlock} from './block'
 
 type AttachmentBlockFields = {
-    attachmentId: string
+    fileId: string
 }
 
 type AttachmentBlock = Block & {
@@ -18,7 +18,7 @@ function createAttachmentBlock(block?: Block): AttachmentBlock {
         ...createBlock(block),
         type: 'attachment',
         fields: {
-            attachmentId: block?.fields.attachmentId || '',
+            fileId: block?.fields.attachmentId || block?.fields.fileId || '',
         },
         isUploading: false,
         uploadingPercent: 0,
