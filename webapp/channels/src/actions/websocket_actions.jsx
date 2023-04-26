@@ -260,7 +260,7 @@ export function reconnect() {
     });
 
     if (state.websocket.lastDisconnectAt) {
-        dispatch(checkForModifiedUsers(true));
+        dispatch(checkForModifiedUsers());
     }
 
     dispatch(resetWsErrorCount());
