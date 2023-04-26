@@ -304,6 +304,10 @@ export function deprecateCloudFree(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'DeprecateCloudFree') === 'true';
 }
 
+export function cloudReverseTrial(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
+}
+
 export function appsSidebarCategoryEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'AppsSidebarCategory') === 'true';
 }
