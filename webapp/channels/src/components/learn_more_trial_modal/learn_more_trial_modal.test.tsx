@@ -33,6 +33,12 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         entities: {
             users: {
                 currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {
+                        id: 'current_user_id',
+                        roles: '',
+                    },
+                },
             },
             admin: {
                 analytics: {

@@ -198,7 +198,7 @@ export default function DeleteWorkspaceModal(props: Props) {
             <div className='DeleteWorkspaceModal__Usage'>
                 <FormattedMessage
                     id='admin.billing.subscription.deleteWorkspaceModal.usage'
-                    defaultMessage='As part of your paid subscription to Mattermost {product_name} you have created '
+                    defaultMessage='As part of your subscription to Mattermost {sku} you have created '
                     values={{
                         sku: product?.name,
                     }}
