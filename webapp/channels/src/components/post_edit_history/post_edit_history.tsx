@@ -125,8 +125,6 @@ const PostEditHistory = ({
                 renderThumbHorizontal={renderThumbHorizontal}
                 renderThumbVertical={renderThumbVertical}
                 renderView={renderView}
-                style={{display: 'flex', flexDirection: 'column'}}
-                
             >
                 <SearchResultsHeader>
                     {title}
