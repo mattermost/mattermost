@@ -12,6 +12,8 @@ import LoadingScreen from 'components/loading_screen';
 import EditedPostItem from './edited_post_item';
 
 import {PropsFromRedux} from '.';
+import AlertIcon from 'components/common/svg_images_components/alert_svg';
+
 import './post_edit_history.scss';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
@@ -64,10 +66,9 @@ const PostEditHistory = ({
     const errorContainer: JSX.Element = (
         <div className='edit-post-history__error_container'>
             <div className='edit-post-history__error_item'>
-                <img
-                    className='edit-post-history__icon'
-                    alt=''
-                    src={alertIcon}
+                <AlertIcon
+                    width={127}
+                    height={127}
                 />
                 <p className='edit-post-history__error_heading'>
                     {retrieveErrorHeading}
@@ -124,6 +125,8 @@ const PostEditHistory = ({
                 renderThumbHorizontal={renderThumbHorizontal}
                 renderThumbVertical={renderThumbVertical}
                 renderView={renderView}
+                style={{display: 'flex', flexDirection: 'column'}}
+                
             >
                 <SearchResultsHeader>
                     {title}
