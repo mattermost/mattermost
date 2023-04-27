@@ -10,9 +10,10 @@ import classNames from 'classnames';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {Theme, getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 
@@ -88,8 +89,6 @@ import {UserProfile} from '@mattermost/types/users';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import WelcomePostRenderer from 'components/welcome_post_renderer';
-
-import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {applyLuxonDefaults} from './effects';
 
@@ -361,8 +360,11 @@ export default class Root extends React.PureComponent<Props, State> {
             return;
         }
 
-        const myTeams = getMyTeams(storeState);
-        if (myTeams.length > 0) {
+        const teams = getActiveTeamsList(storeState);
+
+        const onboardingFlowEnabled = getIsOnboardingFlowEnabled(storeState);
+
+        if (teams.length > 0 || !onboardingFlowEnabled) {
             GlobalActions.redirectUserToDefaultTeam();
             return;
         }
