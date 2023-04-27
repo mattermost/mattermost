@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {alpha} from '@mui/material';
-import createPalette from '@mui/material/styles/createPalette';
+import {createTheme} from '@mui/material/styles';
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -20,8 +20,8 @@ declare module '@mui/material/styles' {
     }
 }
 
-export const lightTheme = {
-    palette: createPalette({
+export const lightTheme = createTheme({
+    palette:{
         primary: {main: '#e59538'},
         secondary: {main: '#0043ad'},
         error: {main: '#d24b4e'},
@@ -40,11 +40,11 @@ export const lightTheme = {
             disabledBackground: alpha('#3d3c40', 0.08),
         },
         tonalOffset: 0.05,
-    }),
-};
+    },
+});
 
-export const darkTheme = {
-    palette: createPalette({
+export const darkTheme = createTheme({
+    palette: {
         primary: {main: '#aebbe3'},
         secondary: {main: '#15B7B7'},
         error: {main: '#D24B4E'},
@@ -63,11 +63,11 @@ export const darkTheme = {
             disabledBackground: alpha('#DDDFE4', 0.08),
         },
         tonalOffset: 0.05,
-    }),
-};
+    },
+});
 
-export const createPaletteFromLegacyTheme = (theme: any) => ({
-    palette: createPalette({
+export const createPaletteFromLegacyTheme = (theme: any) =>  createTheme({
+    palette: {
         primary: {main: theme.buttonBg},
         secondary: {main: theme.linkColor},
         error: {main: theme.dndIndicator},
@@ -85,5 +85,5 @@ export const createPaletteFromLegacyTheme = (theme: any) => ({
             disabledBackground: alpha(theme.centerChannelColor, 0.08),
         },
         tonalOffset: 0.05,
-    }),
+    },
 });

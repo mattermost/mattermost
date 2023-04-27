@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {createTheme} from '@mui/material/styles';
-import MUIThemeProvider, {ThemeProviderProps} from '@mui/material/styles/ThemeProvider';
+import {createTheme, ThemeProvider as MUIThemeProvider} from '@mui/material/styles';
 
 import {lightTheme} from './themes';
 import overrides from './overrides';
 
-const ThemeProvider = ({theme = lightTheme, ...rest}: ThemeProviderProps) => {
+const ThemeProvider = ({theme = lightTheme, ...rest}) => {
     const combinedTheme = createTheme({
         ...theme,
         ...overrides,
