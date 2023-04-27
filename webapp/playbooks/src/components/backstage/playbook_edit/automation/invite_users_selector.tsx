@@ -130,7 +130,7 @@ const InviteUsersSelector = (props: Props) => {
     const sortedNonInvitedOptions = sortOptions([...nonInvitedProfiles, ...nonInvitedGroups]);
 
     let options: (UserProfile | Group)[] | GroupType<(UserProfile | Group)>[] = sortedNonInvitedOptions;
-    if (invitedProfiles.length !== 0) {
+    if (invitedProfiles.length !== 0 || invitedGroups.length !== 0) {
         const sortedInvitedOptions = sortOptions([...invitedProfiles, ...invitedGroups]);
         options = [
             {label: 'SELECTED', options: sortedInvitedOptions},
@@ -179,7 +179,7 @@ const InviteUsersSelector = (props: Props) => {
                     />
                 );
             }}
-            defaultMenuIsOpen={true}
+            defaultMenuIsOpen={false}
             openMenuOnClick={true}
             isClearable={false}
             placeholder={formatMessage({defaultMessage: 'Search for people'})}

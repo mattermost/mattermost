@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import styled from 'styled-components';
 
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
@@ -85,6 +86,17 @@ export const InviteUsers = (props: Props) => {
                     />
                 </SelectorWrapper>
             </AutomationHeader>
+            {
+                ((props.groupIds.length > 0) && !(props.disabled || !props.enabled)) &&
+                <GroupInfo>
+                    <FormattedMessage
+                        defaultMessage='<b>Note:</b> People who are members of the selected user groups at the time when the run starts will be added to the run.'
+                        values={{
+                            b: (inner: React.ReactNode) => <b>{inner}</b>,
+                        }}
+                    />
+                </GroupInfo>
+            }
             <ConfirmModal
                 show={showRemovePreAssigneeModal}
                 title={formatMessage({defaultMessage: 'Confirm remove pre-assigned members'})}
@@ -118,3 +130,14 @@ export const InviteUsers = (props: Props) => {
         </>
     );
 };
+
+const GroupInfo = styled.span`
+    display: flex;
+    max-width: 300px;
+    margin-left: auto;
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+`;
