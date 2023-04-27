@@ -38,11 +38,12 @@ describe('New Channel modal with Boards enabled', () => {
             cy.url().should('include', `/${testTeam.name}/channels/test-channel`);
             cy.get('#channelHeaderTitle').should('contain', channelName);
             cy.get(`.SidebarChannel.active:contains(${channelName})`).should('be.visible');
+            cy.dismissTourTip();
 
             // * Verify the board is created - check the message sent
             cy.waitUntil(() => cy.getLastPost().then((el) => {
                 const postedMessageEl = el.find('.post-message__text > p')[0];
-                return Boolean(postedMessageEl && postedMessageEl.textContent.includes('created the board'));
+                return Boolean(postedMessageEl && postedMessageEl.textContent.includes('linked the board'));
             }));
         });
     });

@@ -389,7 +389,7 @@ const WorkTemplateModal = (props: Props) => {
             handleEnterKeyPress={handleEnterKeyPress}
             autoCloseOnCancelButton={false}
             autoCloseOnConfirmButton={false}
-            errorText={errorText}
+            errorText={errorText || channelOnlyManager.state.serverError}
             workTemplatesEnabled={workTemplatesEnabled}
         >
             {(workTemplatesEnabled && (modalState === ModalState.ChannelOnly || modalState === ModalState.Menu)) && (
