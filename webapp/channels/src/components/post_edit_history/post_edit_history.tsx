@@ -12,7 +12,7 @@ import LoadingScreen from 'components/loading_screen';
 import EditedPostItem from './edited_post_item';
 
 import {PropsFromRedux} from '.';
-import alertIcon from 'images/icons/alert-icon.svg';
+import './post_edit_history.scss';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div

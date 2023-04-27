@@ -61,8 +61,6 @@ body {
 }
 
 .scrollbar--view {
-    display: flex;
-    flex-direction: column;
 
     .browser--ie & {
         margin: 0 !important;
