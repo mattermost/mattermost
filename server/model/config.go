@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -3749,6 +3750,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// we check if file has a valid parent, the server will try to create the socket
+	// file if it doesn't exist, but we need to be sure if the directory exist or not
+	if *s.EnableLocalMode {
+		parent := filepath.Dir(*s.LocalModeSocketLocation)
+		_, err := os.Stat(parent)
+		if err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return nil
