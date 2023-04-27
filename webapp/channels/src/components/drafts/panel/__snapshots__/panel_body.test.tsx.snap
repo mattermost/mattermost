@@ -786,7 +786,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 <Memo(Tag)
                   icon="alert-circle-outline"
                   size="xs"
-                  text="IMPORTANT"
+                  text="Important"
                   uppercase={true}
                   variant="info"
                 >
@@ -818,7 +818,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         <span
                           className="TagText-bWgUzx kzWPbz"
                         >
-                          IMPORTANT
+                          Important
                         </span>
                       </TagText>
                     </div>

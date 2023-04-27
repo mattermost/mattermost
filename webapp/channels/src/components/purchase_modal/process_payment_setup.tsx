@@ -370,9 +370,6 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
                     title={t(
                         'admin.billing.subscription.complianceScreenFailed.title',
                     )}
-                    subtitle={t(
-                        'admin.billing.subscription.complianceScreenFailed.subtitle',
-                    )}
                     icon={
                         <ComplianceScreenFailedSvg
                             width={444}
