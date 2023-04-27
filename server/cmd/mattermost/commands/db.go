@@ -117,7 +117,7 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 	sqlStore := sqlstore.New(configStore.Get().SqlSettings, nil)
 	defer sqlStore.Close()
 
-	fmt.Println("Database store correctly initialised")
+	CommandPrettyPrintln("Database store correctly initialised")
 
 	return nil
 }
@@ -210,7 +210,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 
 	err = migrator.MigrateWithPlan(plan, dryRun)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return errors.Wrap(err, "failed to migrate with the plan")
 	}
 
 	CommandPrettyPrintln("Database successfully migrated")
@@ -271,10 +271,11 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 
 	err = migrator.MigrateWithPlan(&plan, dryRun)
 	if err != nil {
-		return errors.Wrap(err, "failed to migrate")
+		return errors.Wrap(err, "failed to migrate with the plan")
 	}
 
 	CommandPrettyPrintln("Database successfully downgraded")
+
 	return nil
 }
 
@@ -305,6 +306,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get schema version")
 	}
+
 	CommandPrettyPrintln("Current database schema version is: " + strconv.Itoa(v))
 
 	return nil
