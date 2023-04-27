@@ -2299,8 +2299,10 @@ func (a *App) isPostPriorityEnabled() bool {
 func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 	for index, post := range posts {
 		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			updatedPost, _ := hooks.MessageWillBeConsumed(post.ForPlugin())
-			posts[index] = updatedPost
+			rp := hooks.MessageWillBeConsumed(post.ForPlugin())
+			if rp != nil {
+				posts[index] = rp
+			}
 			return true
 		}, plugin.MessageWillBeConsumedID)
 	}
@@ -2308,8 +2310,10 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 
 func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		updatedPost, _ := hooks.MessageWillBeConsumed((*post).ForPlugin())
-		(*post) = updatedPost
+		rp := hooks.MessageWillBeConsumed((*post).ForPlugin())
+		if rp != nil {
+			(*post) = rp
+		}
 		return true
 	}, plugin.MessageWillBeConsumedID)
 }

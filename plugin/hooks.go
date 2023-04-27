@@ -174,7 +174,7 @@ type Hooks interface {
 	// created the post.
 	//
 	// Minimum server version: 5.2
-	MessageWillBeConsumed(post *model.Post) (*model.Post, string)
+	MessageWillBeConsumed(post *model.Post) *model.Post
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
 	//

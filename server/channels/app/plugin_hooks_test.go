@@ -1354,9 +1354,9 @@ func TestHookMessageWillBeConsumed(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) MessageWillBeConsumed(post *model.Post)(*model.Post, string) {
+		func (p *MyPlugin) MessageWillBeConsumed(post *model.Post)(*model.Post) {
 			post.Message = "mwbc_plugin:" + post.Message
-			return post, ""
+			return post
 		}
 
 		func main() {

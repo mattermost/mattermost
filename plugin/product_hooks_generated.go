@@ -51,7 +51,7 @@ type MessageHasBeenUpdatedIFace interface {
 }
 
 type MessageWillBeConsumedIFace interface {
-	MessageWillBeConsumed(post *model.Post) (*model.Post, string)
+	MessageWillBeConsumed(post *model.Post) (*model.Post)
 }
 
 type ChannelHasBeenCreatedIFace interface {
@@ -527,12 +527,12 @@ func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 
 }
 
-func (a *HooksAdapter) MessageWillBeConsumed(post *model.Post) (*model.Post, string) {
+func (a *HooksAdapter) MessageWillBeConsumed(post *model.Post) (*model.Post) {
 	if _, ok := a.implemented[MessageWillBeConsumedID]; !ok {
 		panic("product hooks must implement MessageWillBeConsumed")
 	}
-	p, err := a.productHooks.(MessageWillBeConsumedIFace).MessageWillBeConsumed(post)
-	return p, err
+	p := a.productHooks.(MessageWillBeConsumedIFace).MessageWillBeConsumed(post)
+	return p
 }
 
 func (a *HooksAdapter) ChannelHasBeenCreated(c *Context, channel *model.Channel) {

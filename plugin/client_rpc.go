@@ -713,10 +713,9 @@ type Z_MessageWillBeConsumedArgs struct {
 
 type Z_MessageWillBeConsumedReturns struct {
 	A *model.Post
-	B string
 }
 
-func (g *hooksRPCClient) MessageWillBeConsumed(post *model.Post) (*model.Post, string) {
+func (g *hooksRPCClient) MessageWillBeConsumed(post *model.Post) *model.Post {
 	_args := &Z_MessageWillBeConsumedArgs{post}
 	_returns := &Z_MessageWillBeConsumedReturns{}
 	if g.implemented[MessageWillBeConsumedID] {
@@ -724,14 +723,14 @@ func (g *hooksRPCClient) MessageWillBeConsumed(post *model.Post) (*model.Post, s
 			g.log.Error("RPC call MessageWillBeConsumed to plugin failed.", mlog.Err(err))
 		}
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
 func (s *hooksRPCServer) MessageWillBeConsumed(args *Z_MessageWillBeConsumedArgs, returns *Z_MessageWillBeConsumedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBeConsumed(post *model.Post) (*model.Post, string)
+		MessageWillBeConsumed(post *model.Post) *model.Post
 	}); ok {
-		returns.A, returns.B = hook.MessageWillBeConsumed(args.A)
+		returns.A = hook.MessageWillBeConsumed(args.A)
 
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBeConsumed called but not implemented"))
