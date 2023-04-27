@@ -111,7 +111,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     );
 
     // menu option displayed when the workspace is not running any trial
-    let noFreeTrialContent = noPriorTrial ? (
+    const noFreeTrialContent = (noPriorTrial && !cloudFreeDeprecated) ? (
         <FormattedMessage
             id='menu.cloudFree.priorTrial.tryEnterprise'
             defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>Try Enterprise free for 30 days</openModalLink>'
@@ -146,27 +146,6 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
             }
         />
     );
-
-    if (cloudFreeDeprecated) {
-        noFreeTrialContent = (
-            <FormattedMessage
-                id='menu.cloudFree.postTrial.tryEnterprise'
-                defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>'
-                values={
-                    {
-                        openModalLink: (msg: string) => (
-                            <a
-                                className='open-see-plans-modal style-link'
-                                onClick={() => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
-                            >
-                                {msg}
-                            </a>
-                        ),
-                    }
-                }
-            />
-        );
-    }
 
     return (
         <li

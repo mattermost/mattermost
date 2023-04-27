@@ -17,6 +17,7 @@ import SystemRolesSVG from 'components/admin_console/feature_discovery/features/
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import {BtnStyle} from 'components/common/carousel/carousel_button';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ExternalLink from 'components/external_link';
 
 import {closeModal} from 'actions/views/modals';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
@@ -45,7 +46,7 @@ const LearnMoreTrialModal = (
     const [embargoed, setEmbargoed] = useState(false);
     const dispatch = useDispatch<DispatchFunc>();
 
-    const [openSalesLink] = useOpenSalesLink();
+    const [, salesLink] = useOpenSalesLink();
 
     // Cloud conditions
     const license = useSelector(getLicense);
@@ -85,15 +86,16 @@ const LearnMoreTrialModal = (
         );
         if (cloudFreeDeprecated) {
             startTrialBtn = (
-                <button
-                    onClick={openSalesLink}
+                <ExternalLink
+                    location='learn_more_trial_modal'
+                    href={salesLink}
                     className='btn btn-primary start-cloud-trial-btn'
                 >
                     <FormattedMessage
                         id='learn_more_trial_modal.contact_sales'
                         defaultMessage='Contact sales'
                     />
-                </button>
+                </ExternalLink>
             );
         }
     }
