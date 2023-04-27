@@ -70,7 +70,7 @@ function ThreadFooter({
         trackEvent('crt', 'replied_using_footer');
         e.stopPropagation();
         dispatch(selectPost({id: threadId, channel_id: channelId} as Post));
-    }, [dispatch, replyClick, threadId, channelId]);
+    }, [replyClick, threadId, channelId]);
 
     const handleFollowing = useCallback((e) => {
         e.stopPropagation();

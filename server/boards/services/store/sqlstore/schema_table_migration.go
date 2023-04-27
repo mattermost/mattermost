@@ -126,7 +126,7 @@ func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
 	case model.MysqlDBType:
 		query = query.Where(sq.Eq{"TABLE_SCHEMA": s.schemaName})
 	case model.PostgresDBType:
-		query = query.Where(sq.Eq{"TABLE_SCHEMA": "current_schema()"})
+		query = query.Where("table_schema = current_schema()")
 	}
 
 	rows, err := query.Query()
