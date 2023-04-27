@@ -167,7 +167,7 @@ export default function InviteView(props: Props) {
 
     const isInviteValid = useMemo(() => {
         if (props.inviteType === InviteType.GUEST) {
-            return props.inviteChannels.channels?.length > 0 && props.usersEmails.length > 0;
+            return props.inviteChannels.channels.length > 0 && props.usersEmails.length > 0;
         }
         return props.usersEmails.length > 0;
     }, [props.inviteType, props.inviteChannels.channels, props.usersEmails]);
