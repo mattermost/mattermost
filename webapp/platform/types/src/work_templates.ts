@@ -64,6 +64,7 @@ export interface Playbook {
 }
 export interface Integration {
     id: string;
+    recommended: boolean;
     name?: string;
     icon?: string;
     installed?: boolean;

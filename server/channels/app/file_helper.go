@@ -6,7 +6,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // removeInaccessibleContentFromFilesSlice removes content from the files beyond the cloud plan's limit

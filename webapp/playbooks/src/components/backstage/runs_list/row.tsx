@@ -94,7 +94,12 @@ const Row = (props: Props) => {
 
     let infoLine: React.ReactNode = null;
     if (!props.fixedTeam) {
-        infoLine = <InfoLine>{playbookName ? teamName + ' • ' + playbookName : teamName}</InfoLine>;
+        infoLine = (
+            <InfoLine>
+                {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
+                {playbookName ? teamName + ' • ' + playbookName : teamName}
+            </InfoLine>
+        );
     }
 
     function openPlaybookRunDetails(playbookRun: PlaybookRun) {

@@ -52,7 +52,6 @@ function makeMapStateToProps() {
             directTeammate,
             lastPost,
             replyListIds,
-            teamId: channel.team_id,
         };
     };
 }
