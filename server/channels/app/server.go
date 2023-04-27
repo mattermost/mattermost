@@ -27,50 +27,50 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/email"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/teams"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/active_users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/expirynotify"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/export_delete"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/export_process"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/hosted_purchase_screening"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/import_delete"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/import_process"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/last_accessible_file"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/last_accessible_post"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/migrations"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/notify_admin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/product_notices"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs/resend_invitation_email"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/awsmeter"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine/bleveengine/indexer"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/telemetry"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/templates"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/expirynotify"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_delete"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/hosted_purchase_screening"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_delete"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_process"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_file"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_post"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/awsmeter"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine/indexer"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
+	"github.com/mattermost/mattermost-server/server/v8/plugin/scheduler"
 )
 
 // declaring this as var to allow overriding in tests
@@ -136,6 +136,8 @@ type Server struct {
 	Cloud einterfaces.CloudInterface
 
 	tracer *tracing.Tracer
+
+	skipProductsInit bool
 
 	products map[string]product.Product
 	services map[product.ServiceKey]any
@@ -260,8 +262,17 @@ func NewServer(options ...Option) (*Server, error) {
 		product.CommandKey:       app,
 	}
 
-	// Step 4: Initialize products.
-	// Depends on s.httpService.
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	// Step 4: Start platform
+	s.platform.Start()
+
+	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
+	// otherwise it will throw a panic.
+
+	// Step 5: Initialize products.
+	// Depends on s.httpService, and depends on the hub to be initialized.
+	// Otherwise we run into race conditions.
 	err = s.initializeProducts(product.GetProducts(), serviceMap)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize products")
@@ -274,11 +285,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "channels product is not initialized")
 	}
 	app.ch = channelsWrapper.app.ch
-
-	// It is important to initialize the hub only after the global logger is set
-	// to avoid race conditions while logging from inside the hub.
-	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
-	s.platform.Start()
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.

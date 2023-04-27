@@ -73,9 +73,11 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -102,6 +104,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -351,9 +354,11 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -380,6 +385,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -635,9 +641,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -664,6 +672,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -777,7 +786,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 <Memo(Tag)
                   icon="alert-circle-outline"
                   size="xs"
-                  text="IMPORTANT"
+                  text="Important"
                   uppercase={true}
                   variant="info"
                 >
@@ -809,7 +818,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         <span
                           className="TagText-bWgUzx kzWPbz"
                         >
-                          IMPORTANT
+                          Important
                         </span>
                       </TagText>
                     </div>
@@ -989,9 +998,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -1018,6 +1029,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,

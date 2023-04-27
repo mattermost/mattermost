@@ -1778,6 +1778,10 @@
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
   },
   {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error no organization name provided for self hosted onboarding."
+  },
+  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "Error trying to save first admin complete setup in the store."
   },
@@ -2088,6 +2092,10 @@
   {
     "id": "api.license.true_up_review.create_error",
     "translation": "Could not create true up status record"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Failed to submit true up review profile to CWS."
   },
   {
     "id": "api.license.true_up_review.get_status_error",
@@ -5932,6 +5940,10 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -6062,6 +6074,10 @@
   {
     "id": "app.plugin.signature_decode.app_error",
     "translation": "Unable to decode base64 signature."
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Skipping installation of plugin {{.Id}} since existing version is equal or newer."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
@@ -7788,6 +7804,10 @@
     "translation": "Trying to index a new batch when all the entities are completed"
   },
   {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
@@ -7854,10 +7874,6 @@
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Failed to decode search results"
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
