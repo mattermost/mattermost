@@ -53,6 +53,12 @@ export default class PostReaction extends React.PureComponent<Props, State> {
         this.props.toggleEmojiPicker();
     };
 
+    toggleEmojiPicker = (e?: React.ChangeEvent<HTMLInputElement>): void => {
+        if(!e?.target.getElementsByClassName('close emoji-picker__header-close-button').length) {
+            this.props.toggleEmojiPicker();
+        }
+    };
+
     render() {
         const {
             channelId,
@@ -79,7 +85,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                     <EmojiPickerOverlay
                         show={showEmojiPicker}
                         target={this.props.getDotMenuRef}
-                        onHide={this.props.toggleEmojiPicker}
+                        onHide={this.toggleEmojiPicker}
                         onEmojiClick={this.handleAddEmoji}
                         topOffset={TOP_OFFSET}
                         spaceRequiredAbove={spaceRequiredAbove}
