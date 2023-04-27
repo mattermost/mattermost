@@ -38,7 +38,12 @@ function Mode(props: Props) {
     } = useTooltip({
         open: !knowsTemplatesExist,
         message: (
-            <TipBody id="work-templates-mode-tip-body" onClick={(e: React.MouseEvent) => {e.stopPropagation();}}>
+            <TipBody
+                id='work-templates-mode-tip-body'
+                onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                }}
+            >
                 <TipHeader>
                     <div>
                         {intl.formatMessage({id: 'work_templates.mode.tourtip_title', defaultMessage: 'Try one of our templates'})}
@@ -116,7 +121,7 @@ function Mode(props: Props) {
                                 }
                                 {!knowsTemplatesExist && (
                                     <ClickShield
-                                        punchout={punchout} 
+                                        punchout={punchout}
                                         onClick={(e: React.MouseEvent) => {
                                             // otherwise, even if its in a portal,
                                             // the click will be propagated
@@ -126,7 +131,7 @@ function Mode(props: Props) {
                                             setKnowsTemplatesExist('true');
                                         }}
                                         inRoot={true}
-                                   />
+                                    />
                                 )}
                                 {!knowsTemplatesExist && tooltip}
 

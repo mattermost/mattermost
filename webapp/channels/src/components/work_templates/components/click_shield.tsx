@@ -79,7 +79,7 @@ interface ShieldProps {
 const workTemplateModalIndex = 1050;
 
 const Shield = styled.div<ShieldProps>`
-  z-index: ${(props) => ((props.zIndex !== undefined) ? props.zIndex : workTemplateModalIndex + 1)};
+  z-index: ${(props) => ((props.zIndex || props.zIndex === 0) ? props.zIndex : workTemplateModalIndex + 1)};
   position: fixed;
   width: 100vw;
   height: 100vh;

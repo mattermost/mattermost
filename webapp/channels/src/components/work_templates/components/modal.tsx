@@ -10,7 +10,7 @@ interface Props {
 }
 
 const Modal = styled(GenericModal)<Props>`
-    width: ${(props) => props.workTemplatesEnabled ? '960px' : '600px'};
+    width: ${(props) => (props.workTemplatesEnabled ? '960px' : '600px')};
 
     .modal-body {
         min-height: 450px;

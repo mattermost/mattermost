@@ -50,11 +50,8 @@
 
     &.floating-ui-tooltip--absolute {
         width: max-content;
-    } 
-
-    &.floating-ui-tooltip--absolute {
         pointer-events: auto;
-    } 
+    }
 
     &.floating-ui-tooltip--visible {
         opacity: 0.9;
@@ -62,10 +59,11 @@
     }
 
     &.floating-ui-tooltip--primary-action-style {
-        padding: 22px 24px 24px;
         max-width: 352px;
+        padding: 22px 24px 24px;
         background: var(--button-bg);
         color: var(--button-color);
+
         &.floating-ui-tooltip--visible {
             opacity: 1;
         }
