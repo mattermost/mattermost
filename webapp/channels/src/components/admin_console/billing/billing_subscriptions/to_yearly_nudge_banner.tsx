@@ -163,7 +163,7 @@ const ToYearlyNudgeBannerDismissable = () => {
             type={announcementType}
             showCloseButton={daysToProMonthlyEnd > 10}
             onButtonClick={() => openPurchaseModal({trackingLocation: 'to_yearly_nudge_annoucement_bar'})}
-            modalButtonText={t('cloud_billing.nudge_to_yearly.learn_more')}
+            modalButtonText={t('cloud_billing.nudge_to_yearly.update_billing')}
             modalButtonDefaultText='Update billing'
             message={message}
             showLinkAsButton={true}
