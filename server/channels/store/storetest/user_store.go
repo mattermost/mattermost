@@ -5911,7 +5911,6 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	assert.GreaterOrEqual(t, user.LastPictureUpdate, startTime)
-	assert.GreaterOrEqual(t, user.LastPictureUpdate, startTime)
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond)
