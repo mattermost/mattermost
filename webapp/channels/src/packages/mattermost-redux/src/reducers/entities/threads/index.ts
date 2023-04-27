@@ -29,12 +29,10 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: Gene
             return state;
         }
 
-        let isSame = true;
         return threads.reduce((nextState: IDMappedObjects<UserThread>, thread: UserThread) => {
-            if (isSame && nextState[thread.id] && isEqual(thread, nextState[thread.id])) {
+            if (nextState[thread.id] && isEqual(thread, nextState[thread.id])) {
                 return nextState;
             }
-            isSame = false;
             return {
                 ...nextState,
                 [thread.id]: thread,
