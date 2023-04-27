@@ -230,6 +230,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
             Error connecting to the marketplace server. Please check your settings in the 
             <Link
               key=".1"
+              onClick={[Function]}
               to="/admin_console/plugins/plugin_management"
             >
               System Console

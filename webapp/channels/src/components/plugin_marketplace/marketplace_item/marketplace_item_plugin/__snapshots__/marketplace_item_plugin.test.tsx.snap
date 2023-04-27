@@ -75,6 +75,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
     }
     button={
       <Link
+        onClick={[Function]}
         to="/admin_console/plugins/plugin_id"
       >
         <button
@@ -683,6 +684,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     }
     button={
       <Link
+        onClick={[Function]}
         to="/admin_console/plugins/plugin_id"
       >
         <button
@@ -748,6 +750,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     }
     button={
       <Link
+        onClick={[Function]}
         to="/admin_console/plugins/plugin_id"
       >
         <button
