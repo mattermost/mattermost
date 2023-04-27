@@ -1,0 +1,301 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/PostMarkdown plugin hooks can build upon other hook message updates 1`] = `
+<Connect(Markdown)
+  channelNamesMap={
+    Object {
+      "test": Object {
+        "display_name": "Test",
+      },
+    }
+  }
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="hello world!"
+  options={
+    Object {
+      "disableGroupHighlight": false,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="id"
+  proxyImages={true}
+/>
+`;
+
+exports[`components/PostMarkdown plugin hooks can overwrite other hooks messages 1`] = `
+<Connect(Markdown)
+  channelNamesMap={
+    Object {
+      "test": Object {
+        "display_name": "Test",
+      },
+    }
+  }
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="world!"
+  options={
+    Object {
+      "disableGroupHighlight": false,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="id"
+  proxyImages={true}
+/>
+`;
+
+exports[`components/PostMarkdown should correctly pass postId down 1`] = `
+<Connect(Markdown)
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="message"
+  options={
+    Object {
+      "disableGroupHighlight": false,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="post_id"
+  proxyImages={true}
+/>
+`;
+
+exports[`components/PostMarkdown should render header change properly 1`] = `
+<div>
+  <MemoizedFormattedMessage
+    defaultMessage="{username} updated the channel header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}"
+    id="api.channel.post_update_channel_header_message_and_forget.updated_from"
+    values={
+      Object {
+        "br": [Function],
+        "new": <Memo(Connect(Markdown))
+          message="now ~test"
+          options={
+            Object {
+              "channelNamesMap": Object {
+                "test": Object {
+                  "display_name": "Test",
+                },
+              },
+              "mentionHighlight": true,
+              "singleline": true,
+            }
+          }
+          postId="post_id"
+          postType="system_header_change"
+        />,
+        "old": <Memo(Connect(Markdown))
+          message="see ~test"
+          options={
+            Object {
+              "channelNamesMap": Object {
+                "test": Object {
+                  "display_name": "Test",
+                },
+              },
+              "mentionHighlight": true,
+              "singleline": true,
+            }
+          }
+          postId="post_id"
+          postType="system_header_change"
+        />,
+        "strong": [Function],
+        "username": <Memo(Connect(Markdown))
+          message="@user"
+          options={
+            Object {
+              "markdown": false,
+            }
+          }
+        />,
+      }
+    }
+  />
+</div>
+`;
+
+exports[`components/PostMarkdown should render properly with a post 1`] = `
+<Connect(Markdown)
+  channelNamesMap={
+    Object {
+      "test": Object {
+        "display_name": "Test",
+      },
+    }
+  }
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="See ~test"
+  options={
+    Object {
+      "disableGroupHighlight": false,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="id"
+  proxyImages={true}
+/>
+`;
+
+exports[`components/PostMarkdown should render properly with an empty post 1`] = `
+<Connect(Markdown)
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="message"
+  options={
+    Object {
+      "disableGroupHighlight": false,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="id"
+  proxyImages={true}
+/>
+`;
+
+exports[`components/PostMarkdown should render properly without group highlight on a post 1`] = `
+<Connect(Markdown)
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="No @group highlight"
+  options={
+    Object {
+      "disableGroupHighlight": true,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="id"
+  proxyImages={true}
+/>
+`;
+
+exports[`components/PostMarkdown should render properly without highlight a post 1`] = `
+<Connect(Markdown)
+  editedAt={0}
+  imageProps={Object {}}
+  imagesMetadata={Object {}}
+  isRHS={false}
+  mentionKeys={
+    Array [
+      Object {
+        "key": "a",
+      },
+      Object {
+        "key": "b",
+      },
+      Object {
+        "key": "c",
+      },
+    ]
+  }
+  message="No highlight"
+  options={
+    Object {
+      "disableGroupHighlight": false,
+      "editedAt": 0,
+      "mentionHighlight": true,
+    }
+  }
+  postId="id"
+  proxyImages={true}
+/>
+`;

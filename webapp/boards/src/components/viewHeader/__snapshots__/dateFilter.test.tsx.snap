@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/viewHeader/dateFilter handle clear 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter handles \`Today\` button click event 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter handles calendar click event 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter return dateFilter default value 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter return dateFilter invalid value 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Invalid Date
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter return dateFilter valid value 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        June 15
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter returns local correctly - es local 1`] = `
+<div>
+  <div
+    class="DateFilter  "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        15 de junio
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/dateFilter set via text input 1`] = `
+<div>
+  <div
+    class="DateFilter empty "
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Empty
+      </span>
+    </button>
+  </div>
+</div>
+`;

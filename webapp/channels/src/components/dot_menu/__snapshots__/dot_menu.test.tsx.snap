@@ -1,0 +1,378 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/dot_menu/DotMenu should match snapshot, canDelete 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <button
+        aria-controls="CENTER_dropdown_post_id_1"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="more"
+        class="post-menu__item"
+        data-testid="PostDotMenu-Button-post_id_1"
+        id="CENTER_button_post_id_1"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </body>,
+  "container": <div>
+    <button
+      aria-controls="CENTER_dropdown_post_id_1"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-label="more"
+      class="post-menu__item"
+      data-testid="PostDotMenu-Button-post_id_1"
+      id="CENTER_button_post_id_1"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+        />
+      </svg>
+    </button>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
+exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
+<Menu
+  menu={
+    Object {
+      "aria-label": "Post extra options",
+      "closeMenuManually": false,
+      "id": "CENTER_dropdown_post_id_1",
+      "onKeyDown": [Function],
+      "onToggle": [Function],
+      "width": "264px",
+    }
+  }
+  menuButton={
+    Object {
+      "aria-label": "more",
+      "children": <DotsHorizontalIcon
+        size={16}
+      />,
+      "class": "post-menu__item",
+      "dateTestId": "PostDotMenu-Button-post_id_1",
+      "id": "CENTER_button_post_id_1",
+    }
+  }
+  menuButtonTooltip={
+    Object {
+      "class": "hidden-xs",
+      "id": "PostDotMenu-ButtonTooltip-post_id_1",
+      "text": "More",
+    }
+  }
+>
+  <MenuItem
+    data-testid="reply_to_post_post_id_1"
+    id="reply_to_post_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Reply"
+        id="post_info.reply"
+      />
+    }
+    leadingElement={
+      <ReplyOutlineIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="R"
+      />
+    }
+  />
+  <MenuItem
+    data-testid="forward_post_post_id_1"
+    id="forward_post_post_id_1"
+    isLabelsRowLayout={true}
+    labels={
+      <span
+        className="dot-menu__item-new-badge"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Forward"
+          id="forward_post_button.label"
+        />
+      </span>
+    }
+    leadingElement={
+      <ArrowRightBoldOutlineIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="Shift + F"
+      />
+    }
+  />
+  <Connect(ChannelPermissionGate)
+    channelId=""
+    permissions={
+      Array [
+        "add_reaction",
+      ]
+    }
+    teamId="team_id_1"
+  />
+  <MenuItem
+    data-testid="follow_post_thread_post_id_1"
+    id="follow_post_thread_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Follow message"
+        id="threading.threadMenu.followMessage"
+      />
+    }
+    leadingElement={
+      <MessageCheckOutlineIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="F"
+      />
+    }
+  />
+  <MenuItem
+    data-testid="unread_post_post_id_1"
+    id="unread_post_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Mark as Unread"
+        id="post_info.unread"
+      />
+    }
+    leadingElement={
+      <MarkAsUnreadIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="U"
+      />
+    }
+  />
+  <PostReminderSubmenu
+    isMilitaryTime={false}
+    post={
+      Object {
+        "channel_id": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "edit_at": 0,
+        "hashtags": "",
+        "id": "post_id_1",
+        "is_pinned": false,
+        "message": "post message",
+        "metadata": Object {
+          "embeds": Array [],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {},
+          "reactions": Array [],
+        },
+        "original_id": "",
+        "pending_post_id": "",
+        "props": Object {},
+        "reply_count": 0,
+        "root_id": "",
+        "type": "",
+        "update_at": 0,
+        "user_id": "user_id",
+      }
+    }
+    userId="user_id_1"
+  />
+  <MenuItem
+    data-testid="save_post_post_id_1"
+    id="save_post_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Save"
+        id="rhs_root.mobile.flag"
+      />
+    }
+    leadingElement={
+      <BookmarkOutlineIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="S"
+      />
+    }
+  />
+  <MenuItem
+    data-testid="pin_post_post_id_1"
+    id="pin_post_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Pin"
+        id="post_info.pin"
+      />
+    }
+    leadingElement={
+      <PinOutlineIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="P"
+      />
+    }
+  />
+  <MenuItemSeparator />
+  <MenuItem
+    data-testid="permalink_post_id_1"
+    id="permalink_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Copy Link"
+        id="post_info.permalink"
+      />
+    }
+    leadingElement={
+      <LinkVariantIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="K"
+      />
+    }
+  />
+  <MenuItemSeparator />
+  <MenuItem
+    data-testid="edit_post_post_id_1"
+    id="edit_post_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Edit"
+        id="post_info.edit"
+      />
+    }
+    leadingElement={
+      <PencilOutlineIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="E"
+      />
+    }
+  />
+  <MenuItem
+    data-testid="copy_post_id_1"
+    id="copy_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Copy Text"
+        id="post_info.copy"
+      />
+    }
+    leadingElement={
+      <ContentCopyIcon
+        size={18}
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="C"
+      />
+    }
+  />
+</Menu>
+`;

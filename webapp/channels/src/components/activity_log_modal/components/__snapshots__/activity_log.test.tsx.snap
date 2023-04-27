@@ -1,0 +1,175 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/activity_log_modal/ActivityLog should match snapshot 1`] = `
+<div
+  className="activity-log__table"
+  key="activityLogEntryKey0"
+>
+  <div
+    className="activity-log__report"
+  >
+    <div
+      className="report__platform"
+    >
+      <i
+        className="fa fa-linux"
+        title="Linux Icon"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Native Desktop App"
+        id="activity_log_modal.desktop"
+      />
+    </div>
+    <div
+      className="report__info"
+    >
+      <div>
+        <MemoizedFormattedMessage
+          defaultMessage="Last activity: {date}, {time}"
+          id="activity_log.lastActivity"
+          values={
+            Object {
+              "date": <FormattedDate
+                day="2-digit"
+                month="long"
+                value={2018-08-22T06:00:43.890Z}
+                year="numeric"
+              />,
+              "time": <FormattedTime
+                hour="2-digit"
+                minute="2-digit"
+                value={2018-08-22T06:00:43.890Z}
+              />,
+            }
+          }
+        />
+      </div>
+      <MoreInfo
+        currentSession={
+          Object {
+            "create_at": 1534917291042,
+            "device_id": "device_id",
+            "expires_at": 0,
+            "id": "sessionId",
+            "is_oauth": false,
+            "last_activity_at": 1534917643890,
+            "local": false,
+            "props": Object {
+              "browser": "Desktop App",
+              "os": "Linux",
+              "platform": "Linux",
+            },
+            "roles": "",
+            "team_members": Array [],
+            "token": "session_token",
+            "user_id": "user_id",
+          }
+        }
+        handleMoreInfo={[Function]}
+        locale="en"
+        moreInfo={false}
+      />
+    </div>
+  </div>
+  <div
+    className="activity-log__action"
+  >
+    <button
+      className="btn btn-primary"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Log Out"
+        id="activity_log.logout"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/activity_log_modal/ActivityLog should match snapshot with mobile props 1`] = `
+<div
+  className="activity-log__table"
+  key="activityLogEntryKey0"
+>
+  <div
+    className="activity-log__report"
+  >
+    <div
+      className="report__platform"
+    >
+      <i
+        className="fa fa-apple"
+        title="Apple Icon"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="iPhone Native Classic App"
+        id="activity_log_modal.iphoneNativeClassicApp"
+      />
+    </div>
+    <div
+      className="report__info"
+    >
+      <div>
+        <MemoizedFormattedMessage
+          defaultMessage="Last activity: {date}, {time}"
+          id="activity_log.lastActivity"
+          values={
+            Object {
+              "date": <FormattedDate
+                day="2-digit"
+                month="long"
+                value={2018-08-22T06:00:43.890Z}
+                year="numeric"
+              />,
+              "time": <FormattedTime
+                hour="2-digit"
+                minute="2-digit"
+                value={2018-08-22T06:00:43.890Z}
+              />,
+            }
+          }
+        />
+      </div>
+      <MoreInfo
+        currentSession={
+          Object {
+            "create_at": 1534917291042,
+            "device_id": "apple",
+            "expires_at": 0,
+            "id": "sessionId",
+            "is_oauth": false,
+            "last_activity_at": 1534917643890,
+            "local": false,
+            "props": Object {
+              "browser": "Desktop App",
+              "os": "Linux",
+              "platform": "Linux",
+            },
+            "roles": "",
+            "team_members": Array [],
+            "token": "session_token",
+            "user_id": "user_id",
+          }
+        }
+        handleMoreInfo={[Function]}
+        locale="en"
+        moreInfo={false}
+      />
+    </div>
+  </div>
+  <div
+    className="activity-log__action"
+  >
+    <button
+      className="btn btn-primary"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Log Out"
+        id="activity_log.logout"
+      />
+    </button>
+  </div>
+</div>
+`;

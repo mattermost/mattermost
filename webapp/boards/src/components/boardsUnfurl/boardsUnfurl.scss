@@ -1,0 +1,162 @@
+.FocalboardUnfurl {
+    display: table;
+    width: 100%;
+    max-width: 425px;
+    margin: 0;
+    table-layout: fixed;
+    padding: 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.24) !important;
+    border-radius: 4px;
+    box-sizing: border-box;
+    text-decoration: none !important;
+    color: inherit !important;
+    background: rgb(var(--center-channel-bg-rgb));
+    box-shadow: var(--elevation-1);
+    margin-top: 8px;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+
+        .icon {
+            font-size: 36px;
+            height: 36px;
+        }
+
+        .information {
+            display: flex;
+            flex-direction: column;
+            margin-left: 12px;
+            overflow: hidden;
+
+            .card_title {
+                color: var(--center-channel-color);
+                font-weight: 600;
+                font-size: 14px;
+                max-width: 100%;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+
+            .board_title {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 12px;
+                line-height: 16px;
+            }
+        }
+    }
+
+    .body {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin-top: 16px;
+        height: 145px;
+        overflow: hidden;
+        padding: 16px;
+        white-space: nowrap;
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+    }
+
+    .limited {
+        font-size: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.6);
+        margin-top: 12px;
+    }
+
+    .footer {
+        display: flex;
+        align-items: center;
+        height: 40px;
+        margin-top: 16px;
+
+        .timestamp_properties {
+            margin-left: 12px;
+            max-width: 90%;
+
+            .properties {
+                display: flex;
+                align-items: center;
+                white-space: nowrap;
+
+                .remainder {
+                    color: rgba(var(--center-channel-color-rgb), 0.48);
+                    font-weight: bold;
+                    font-size: 12px;
+                }
+
+                .post-preview__time {
+                    font-size: 12px;
+                }
+
+                .property {
+                    display: flex;
+                    align-items: center;
+                    border-radius: 4px;
+                    padding: 0 4px;
+                    margin-right: 8px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    overflow-wrap: normal;
+                    height: 20px;
+                    font-weight: 600;
+                    font-size: 12px;
+
+
+                    &.propColorDefault {
+                        background-color: var(--prop-default);
+                    }
+
+                    &.propColorGray {
+                        background-color: var(--prop-gray);
+                    }
+
+                    &.propColorBrown {
+                        background-color: var(--prop-brown);
+                    }
+
+                     &.propColorOrange {
+                        background-color: var(--prop-orange);
+                    }
+
+                    &.propColorYellow {
+                        background-color: var(--prop-yellow);
+                    }
+
+                    &.propColorGreen {
+                        background-color: var(--prop-green);
+                    }
+
+                    &.propColorBlue {
+                        background-color: var(--prop-blue);
+                    }
+
+                    &.propColorPurple {
+                        background-color: var(--prop-purple);
+                    }
+
+                    &.propColorPink {
+                        background-color: var(--prop-pink);
+                    }
+
+                     &.propColorRed {
+                        background-color: var(--prop-red);
+                    }
+                }
+            }
+        }
+    }
+}

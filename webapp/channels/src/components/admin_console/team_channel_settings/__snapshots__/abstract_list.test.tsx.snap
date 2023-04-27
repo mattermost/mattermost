@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/AbstractList should match snapshot, no headers 1`] = `
+<div
+  className="groups-list groups-list-no-padding"
+>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <div
+      className="groups-list-empty"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="test"
+        id="test"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/AbstractList should match snapshot, with data 1`] = `
+<div
+  className="groups-list groups-list-no-padding"
+>
+  <div
+    className="groups-list--header"
+  >
+    <div
+      className="group-name adjusted"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Name"
+        id="admin.channel_settings.channel_list.nameHeader"
+      />
+    </div>
+    <div
+      className="group-content"
+    >
+      <div
+        className="group-description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Team"
+          id="admin.channel_settings.channel_list.teamHeader"
+        />
+      </div>
+      <div
+        className="group-description adjusted"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Management"
+          id="admin.channel_settings.channel_list.managementHeader"
+        />
+      </div>
+      <div
+        className="group-actions"
+      />
+    </div>
+  </div>
+  <div
+    className="groups-list--body"
+    id="groups-list--body"
+  >
+    <GroupRow
+      group={
+        Object {
+          "allow_open_invite": false,
+          "allowed_domains": "",
+          "company_name": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "description": "",
+          "display_name": "DN",
+          "email": "",
+          "group_constrained": false,
+          "id": "123",
+          "invite_id": "",
+          "name": "DN",
+          "scheme_id": "id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      key="123"
+      removeGroup={[MockFunction]}
+      setNewGroupRole={[MockFunction]}
+      type="channel"
+    />
+  </div>
+  <div
+    className="groups-list--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.team_channel_settings.list.paginatorCount"
+        values={
+          Object {
+            "endCount": 1,
+            "startCount": 1,
+            "total": 1,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-link prev disabled"
+      disabled={true}
+      type="button"
+    >
+      <PreviousIcon
+        additionalClassName={null}
+      />
+    </button>
+    <button
+      className="btn btn-link next disabled"
+      data-testid="page-link-next"
+      disabled={true}
+      type="button"
+    >
+      <NextIcon
+        additionalClassName={null}
+      />
+    </button>
+  </div>
+</div>
+`;

@@ -1,0 +1,130 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_profile"
+  subtitleDefault="Summary of the channel, including the channel name."
+  subtitleId="admin.channel_settings.channel_detail.profileDescription"
+  titleDefault="Channel Profile"
+  titleId="admin.channel_settings.channel_detail.profileTitle"
+>
+  <div
+    className="group-teams-and-channels AdminChannelDetails"
+  >
+    <div
+      className="group-teams-and-channels--body channel-desc-col"
+    >
+      <div
+        className="channel-name"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="**Name**"
+          id="admin.channel_settings.channel_detail.channelName"
+        />
+        <br />
+        test
+      </div>
+      <div
+        className="channel-team"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="**Team**"
+          id="admin.channel_settings.channel_detail.channelTeam"
+        />
+        <br />
+        test
+      </div>
+      <div
+        className="AdminChannelDetails_archiveContainer"
+      >
+        <button
+          className="btn btn-secondary ArchiveButton ArchiveButton___unarchived"
+          type="button"
+        >
+          <ArchiveIcon
+            className="channel-icon channel-icon__archive"
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Archive Channel"
+            id="admin.channel_settings.channel_details.archiveChannel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot for a shared channel 1`] = `
+<AdminPanel
+  className=""
+  id="channel_profile"
+  subtitleDefault="Summary of the channel, including the channel name."
+  subtitleId="admin.channel_settings.channel_detail.profileDescription"
+  titleDefault="Channel Profile"
+  titleId="admin.channel_settings.channel_detail.profileTitle"
+>
+  <div
+    className="group-teams-and-channels AdminChannelDetails"
+  >
+    <div
+      className="group-teams-and-channels--body channel-desc-col"
+    >
+      <div
+        className="channel-name"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="**Name**"
+          id="admin.channel_settings.channel_detail.channelName"
+        />
+        <br />
+        test
+      </div>
+      <div
+        className="channel-team"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="**Team**"
+          id="admin.channel_settings.channel_detail.channelTeam"
+        />
+        <br />
+        test
+      </div>
+      <div
+        className="channel-organizations"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="**Organizations**"
+          id="admin.channel_settings.channel_detail.channelOrganizations"
+        />
+        <br />
+        <SharedChannelIndicator
+          channelType="O"
+          className="shared-channel-icon"
+        />
+        <MemoizedFormattedMessage
+          defaultMessage="Shared with trusted organizations"
+          id="admin.channel_settings.channel_detail.channelOrganizationsMessage"
+        />
+      </div>
+      <div
+        className="AdminChannelDetails_archiveContainer"
+      >
+        <button
+          className="btn btn-secondary ArchiveButton ArchiveButton___unarchived"
+          type="button"
+        >
+          <ArchiveIcon
+            className="channel-icon channel-icon__archive"
+          />
+          <MemoizedFormattedMessage
+            defaultMessage="Archive Channel"
+            id="admin.channel_settings.channel_details.archiveChannel"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</AdminPanel>
+`;

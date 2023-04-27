@@ -1,0 +1,285 @@
+@import 'utils/variables';
+@import 'utils/mixins';
+
+.marketplace-modal {
+    width: 800px;
+
+    div.navigation-row {
+        overflow: unset;
+        margin-top: 10px;
+
+        div {
+            font-size: 14px;
+            text-align: center;
+
+            button {
+                font-size: 14px;
+                font-weight: bold;
+            }
+        }
+
+        div.count {
+            padding: 9px 15px;
+        }
+    }
+
+    .input-clear {
+        top: 32px;
+        right: 36px;
+        display: flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .nav-tabs {
+        padding: 0 32px;
+        margin: 0 0 8px;
+
+        li {
+            margin-right: 0;
+
+            a {
+                padding: 13px 12px;
+                border: none;
+                background: transparent;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+                transition: all 0.15s ease;
+
+                &:hover,
+                &:active,
+                &:focus,
+                &:focus-within {
+                    border: none;
+                    background: transparent;
+                    border-radius: none;
+                    color: var(--center-channel-color);
+                }
+            }
+
+            &.active {
+                border-bottom: 2px solid var(--denim-button-bg);
+
+                a {
+                    color: var(--denim-button-bg);
+                }
+            }
+
+            &:not(:first-child) {
+                margin-left: 8px;
+            }
+        }
+    }
+
+    h2 {
+        font-weight: 300;
+
+        strong {
+            font-weight: 400;
+        }
+    }
+
+    .more-modal__list {
+        height: 390px;
+        margin: 0 6px 8px 12px;
+        overflow-y: scroll;
+
+        .more-modal__row {
+            overflow: hidden;
+            min-height: 80px;
+            padding: 16px 20px;
+            border-bottom: none;
+
+            .marketplace__tag {
+                margin-left: 6px;
+            }
+
+            .update {
+                font-size: 0.9em;
+
+                a {
+                    text-decoration: none;
+                }
+            }
+
+            .more-modal__details {
+                padding-left: 16px;
+
+                .more-modal__row--link {
+                    color: var(--center-channel-color);
+                    font-size: 16px;
+                    font-weight: 600;
+                    line-height: 24px;
+                }
+
+                .more-modal__description {
+                    margin: 2px 0 0;
+                    color: var(--center-channel-color-rgb);
+                    font-size: 14px;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+            }
+
+            .more-modal__actions {
+                padding-left: 16px;
+                margin: 0;
+
+                .plugin-configure,
+                .app-installed {
+                    @include secondary-button;
+                    @include button-medium;
+                }
+
+                .plugin-install,
+                .app-install {
+                    @include primary-button;
+                    @include button-medium;
+                }
+
+                a {
+                    &:hover,
+                    &:focus {
+                        text-decoration: none;
+                    }
+                }
+            }
+
+            &:hover,
+            &:focus,
+            &:focus-within {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
+
+        .icon__plugin {
+            display: flex;
+            height: 48px;
+            flex: 0 0 48px;
+            align-items: center;
+            justify-content: center;
+            background-color: $white;
+            border-radius: 50%;
+
+            svg,
+            img {
+                width: 48px;
+                height: 48px;
+            }
+
+            svg {
+                fill: var(--button-bg);
+            }
+
+            img {
+                border-radius: 4px;
+            }
+        }
+    }
+
+    .marketplace-modal-search {
+        padding: 24px 0 0;
+
+        .search_input {
+            width: 100%;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none;
+        }
+    }
+
+    .btn {
+        min-width: 8rem;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .btn-outline {
+        border: 1px solid var(--button-bg);
+        background: transparent;
+    }
+
+    .tabs {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        margin-top: 12px;
+    }
+
+    .subtitle {
+        margin-left: 5px;
+    }
+
+    .plugin__list {
+        display: flex;
+        flex-direction: column;
+
+        .plugin__row {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid $light-gray;
+
+            &.clickable {
+                cursor: pointer;
+            }
+
+            &:hover {
+                .plugin__actions--round {
+                    opacity: 0.5;
+                }
+            }
+        }
+    }
+
+    .no_plugins {
+        display: flex;
+        height: 390px;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+
+        &__message {
+            margin-top: 20px;
+            color: var(--center-channel-color);
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+
+        &__action {
+            @include primary-button;
+            @include button-medium;
+
+            margin-top: 30px;
+        }
+
+        .icon__plugin {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+
+    .item_error {
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
+    }
+
+    .loading {
+        height: 390px;
+    }
+}
+
+.more-modal__description-tooltip {
+    .tooltip-inner {
+        text-align: left;
+    }
+}
