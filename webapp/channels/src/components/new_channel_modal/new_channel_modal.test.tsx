@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
-import {shallow} from 'enzyme';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {shallow} from 'enzyme';
 
 import GenericModal from 'components/generic_modal';
 import Input from 'components/widgets/inputs/input/input';
@@ -16,7 +14,6 @@ import Constants, {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
 import {GlobalState} from 'types/store';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {createChannel} from 'mattermost-redux/actions/channels';
 
 import {ChannelType} from '@mattermost/types/channels';
 
