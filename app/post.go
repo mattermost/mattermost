@@ -547,6 +547,16 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = post.Clone()
+		sanitizedPost.Metadata = nil
+	}
+	post = sanitizedPost
+
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
