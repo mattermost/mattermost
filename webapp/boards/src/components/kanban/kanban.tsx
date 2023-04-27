@@ -212,7 +212,7 @@ const Kanban = (props: Props) => {
             await Promise.all(awaits)
             await mutator.changeViewCardOrder(props.board.id, activeView.id, activeView.fields.cardOrder, cardOrder, description)
         })
-    }, [cards.map((o) => o.id).join(','), activeView.id, activeView.fields.cardOrder, groupByProperty, props.selectedCardIds])
+    }, [cards, activeView.id, activeView.fields.cardOrder, groupByProperty, props.selectedCardIds])
 
     const [showCalculationsMenu, setShowCalculationsMenu] = useState<Map<string, boolean>>(new Map<string, boolean>())
     const toggleOptions = (templateId: string, show: boolean) => {
