@@ -374,7 +374,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 
-	a.applyPostWillBeConsumedHook(rpost)
+	a.applyPostWillBeConsumedHook(&rpost)
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -916,7 +916,7 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
-	a.applyPostWillBeConsumedHook(post)
+	a.applyPostWillBeConsumedHook(&post)
 
 	return post, nil
 }
@@ -1136,7 +1136,7 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.applyPostWillBeConsumedHook(post)
+	a.applyPostWillBeConsumedHook(&post)
 	return post, nil
 }
 
@@ -2306,10 +2306,10 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 	}
 }
 
-func (a *App) applyPostWillBeConsumedHook(post *model.Post) {
+func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-		updatedPost, _ := hooks.MessageWillBeConsumed(post.ForPlugin())
-		post = updatedPost
+		updatedPost, _ := hooks.MessageWillBeConsumed((*post).ForPlugin())
+		(*post) = updatedPost
 		return true
 	}, plugin.MessageWillBeConsumedID)
 }
