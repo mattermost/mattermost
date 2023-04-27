@@ -36,11 +36,13 @@ import {
 import {Reaction} from '@mattermost/types/reactions';
 import {GlobalState} from '@mattermost/types/store';
 import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
 import {
     IDMappedObjects,
     RelationOneToOne,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
+import {getChannel} from './channels';
 
 export function getAllPosts(state: GlobalState) {
     return state.entities.posts.posts;
@@ -799,4 +801,11 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
             }).sort((a, b) => b.acknowledgedAt - a.acknowledgedAt);
         },
     );
+}
+
+export function getTeamIdFromPost(state: GlobalState, postId: Post['id']): Team['id']|undefined {
+    const post = getPost(state, postId);
+    const channel = getChannel(state, post.channel_id);
+
+    return channel?.team_id;
 }
