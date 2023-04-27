@@ -1500,7 +1500,3 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
 	})
 }
-
-func TestLocalModeSocketFile(t *testing.T) {
-
-}
