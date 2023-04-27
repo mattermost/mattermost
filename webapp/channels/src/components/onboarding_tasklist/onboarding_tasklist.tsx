@@ -28,7 +28,7 @@ import {
 import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {useHandleOnBoardingTaskTrigger} from 'components/onboarding_tasks/onboarding_tasks_manager';
 import OnBoardingVideoModal from 'components/onboarding_tasks/onboarding_video_modal/onboarding_video_modal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassUIThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {openModal} from 'actions/views/modals';
 import {GlobalState} from 'types/store';
@@ -314,7 +314,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <CompassUIThemeProvider theme={theme}>
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
@@ -389,7 +389,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                         )}
                 </TaskItems>
             </TaskListPopover>
-        </CompassThemeProvider>
+        </CompassUIThemeProvider>
     );
 };
 

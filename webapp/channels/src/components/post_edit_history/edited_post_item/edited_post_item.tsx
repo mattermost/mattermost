@@ -17,7 +17,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 import {t} from 'utils/i18n';
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassUIThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import OverlayTrigger from 'components/overlay_trigger';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -206,7 +206,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
     const timeStampValue = post.edit_at === 0 ? post.create_at : post.edit_at;
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <CompassUIThemeProvider theme={theme}>
             <div
                 className={postContainerClass}
                 onClick={togglePost}
@@ -241,7 +241,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                     {open && messageContainer}
                 </PostAriaLabelDiv>
             </div>
-        </CompassThemeProvider>
+        </CompassUIThemeProvider>
     );
 };
 

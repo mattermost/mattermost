@@ -12,7 +12,7 @@ import LeftControls from './left_controls/left_controls';
 import RightControls from './right_controls/right_controls';
 
 import {useIsLoggedIn} from './hooks';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassUIThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {useSelector} from 'react-redux';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -48,13 +48,13 @@ const GlobalHeader = (): JSX.Element | null => {
     }
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <CompassUIThemeProvider theme={theme}>
             <GlobalHeaderContainer id='global-header'>
                 <LeftControls/>
                 <CenterControls productId={currentProductID}/>
                 <RightControls productId={currentProductID}/>
             </GlobalHeaderContainer>
-        </CompassThemeProvider>
+        </CompassUIThemeProvider>
     );
 };
 

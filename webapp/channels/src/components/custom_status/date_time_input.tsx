@@ -16,7 +16,7 @@ import Input from 'components/widgets/inputs/input/input';
 import DatePicker from 'components/date_picker';
 import Menu from 'components/widgets/menu/menu';
 import Timestamp from 'components/timestamp';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassUIThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {getCurrentLocale} from 'selectors/i18n';
 import {isKeyPressed} from 'utils/keyboard';
@@ -154,7 +154,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     };
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <CompassUIThemeProvider theme={theme}>
             <div className='dateTime'>
                 <div className='dateTime__date'>
                     <DatePicker
@@ -220,7 +220,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                     </MenuWrapper>
                 </div>
             </div>
-        </CompassThemeProvider>
+        </CompassUIThemeProvider>
     );
 };
 

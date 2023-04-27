@@ -15,7 +15,7 @@ import {ActionFunc} from 'mattermost-redux/types/actions';
 import {UserStatus} from '@mattermost/types/users';
 
 import GenericModal from 'components/generic_modal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassUIThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, UserStatuses} from 'utils/constants';
 import Menu from 'components/widgets/menu/menu';
@@ -236,7 +236,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
         };
 
         return (
-            <CompassThemeProvider theme={this.props.theme}>
+            <CompassUIThemeProvider theme={this.props.theme}>
                 <GenericModal
                     ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
                     onExited={this.props.onExited}
@@ -294,7 +294,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
                         </MenuWrapper>
                     </div>
                 </GenericModal>
-            </CompassThemeProvider>
+            </CompassUIThemeProvider>
         );
     }
 }
