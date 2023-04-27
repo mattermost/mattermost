@@ -4,11 +4,11 @@
 import React, {memo} from 'react';
 import {styled} from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import MUIPaper, {PaperProps} from '@mui/material/Paper';
 import DialogActions from '@mui/material/DialogActions';
 import Slide from '@mui/material/Slide';
 import {TransitionProps} from '@mui/material/transitions';
+import BaseModal from "../base_modal/base_modal";
 
 const Transition = React.forwardRef((
     {children, ...props}: TransitionProps & {
@@ -45,7 +45,7 @@ type ModalProps = {
     onCancel?: () => void;
 }
 
-const Modal = ({children, isOpen, onClose, onConfirm, onCancel, dialogClassName = '', dialogId = ''}: ModalProps) => {
+const GenericModal = ({children, isOpen, onClose, onConfirm, onCancel, dialogClassName = '', dialogId = ''}: ModalProps) => {
     const hasActions = Boolean(onConfirm || onCancel);
 
     const handleConfirmAction = () => {
@@ -59,16 +59,12 @@ const Modal = ({children, isOpen, onClose, onConfirm, onCancel, dialogClassName 
     };
 
     return (
-            <Dialog
-                open={isOpen}
-                TransitionComponent={Transition}
-                PaperComponent={Paper}
-                keepMounted={true}
+            <BaseModal
+                isOpen={isOpen}
                 onClose={onClose}
                 aria-describedby='alert-dialog-slide-description'
-                role='dialog'
-                className={dialogClassName}
-                id={dialogId}
+                dialogClassName={dialogClassName}
+                dialogId={dialogId}
             >
                 {children}
                 {hasActions && (
@@ -77,8 +73,8 @@ const Modal = ({children, isOpen, onClose, onConfirm, onCancel, dialogClassName 
                         {onConfirm && <Button onClick={handleConfirmAction}>{'Confirm'}</Button>}
                     </DialogActions>
                 )}
-            </Dialog>
+            </BaseModal>
     );
 };
 
-export default memo(Modal);
+export default memo(GenericModal);

@@ -3,10 +3,8 @@
 
 import React, {memo} from 'react';
 import {styled} from '@mui/material/styles';
-import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import MUIPaper, {PaperProps} from '@mui/material/Paper';
-import DialogActions from '@mui/material/DialogActions';
 import Slide from '@mui/material/Slide';
 import {TransitionProps} from '@mui/material/transitions';
 
@@ -41,22 +39,10 @@ type ModalProps = {
     dialogClassName?: string;
     dialogId?: string;
     onClose?: () => void;
-    onConfirm?: () => void;
-    onCancel?: () => void;
 }
 
-const Modal = ({children, isOpen, onClose, onConfirm, onCancel, dialogClassName = '', dialogId = ''}: ModalProps) => {
-    const hasActions = Boolean(onConfirm || onCancel);
+const BaseModal = ({children, isOpen, onClose, dialogClassName = '', dialogId = ''}: ModalProps) => {
 
-    const handleConfirmAction = () => {
-        onConfirm?.();
-        onClose?.();
-    };
-
-    const handleCancelAction = () => {
-        onCancel?.();
-        onClose?.();
-    };
 
     return (
             <Dialog
@@ -71,14 +57,8 @@ const Modal = ({children, isOpen, onClose, onConfirm, onCancel, dialogClassName 
                 id={dialogId}
             >
                 {children}
-                {hasActions && (
-                    <DialogActions>
-                        {onCancel && <Button onClick={handleCancelAction}>{'Cancel'}</Button>}
-                        {onConfirm && <Button onClick={handleConfirmAction}>{'Confirm'}</Button>}
-                    </DialogActions>
-                )}
             </Dialog>
     );
 };
 
-export default memo(Modal);
+export default memo(BaseModal);

@@ -4,7 +4,7 @@
 import {ThemeOptions} from '@mui/material/styles/createTheme';
 
 import MuiButton from '../components/button/button.overrides';
-import MuiIconButton from '../components/icon-button/icon-button.overrides';
+import MuiIconButton from '../components/icon_button/icon-button.overrides';
 import typographyOverrides from '../components/typography/typography.overrides';
 
 const components: ThemeOptions['components'] = {

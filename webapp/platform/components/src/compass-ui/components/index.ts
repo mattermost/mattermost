@@ -3,7 +3,7 @@
 
 import Typography from './typography/typography';
 import Button, {ButtonProps} from './button/button';
-import IconButton from './icon-button/icon-button';
+import IconButton from './icon_button/icon_button';
 
 export {
     IconButton,
