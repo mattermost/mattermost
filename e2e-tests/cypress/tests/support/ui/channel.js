@@ -8,23 +8,23 @@ Cypress.Commands.add('dismissWorkTemplateTip', () => {
     const CLOSE_MODAL_ATTEMPTS = 5;
     const CLOSE_MODAL_WAIT_INTERVAL = 50;
     const SEL_DISMISS_TIP_ELEMENT = '[data-testid=work-templates-new-tip-shield]';
-    for (let i = 0; i < CLOSE_MODAL_ATTEMPTS; i = i + 1) {
-        const found = Cypress.$(SEL_DISMISS_TIP_ELEMENT).length  > 0;
+    for (let i = 0; i < CLOSE_MODAL_ATTEMPTS; i += 1) {
+        const found = Cypress.$(SEL_DISMISS_TIP_ELEMENT).length > 0;
         if (found) {
             cy.get(SEL_DISMISS_TIP_ELEMENT).should('be.visible').click();
             break;
         }
         cy.wait(CLOSE_MODAL_WAIT_INTERVAL);
     }
-})
+});
 
 Cypress.Commands.add('dismissTourTip', () => {
     const CLOSE_MODAL_ATTEMPTS = 5;
     const CLOSE_MODAL_WAIT_INTERVAL = 50;
     const SEL_DISMISS_TIP_ELEMENT = '[data-testid=tour-tip-backdrop]';
     cy.wait(CLOSE_MODAL_WAIT_INTERVAL);
-    for (let i = 0; i < CLOSE_MODAL_ATTEMPTS; i = i + 1) {
-        const found = Cypress.$(SEL_DISMISS_TIP_ELEMENT).length  > 0;
+    for (let i = 0; i < CLOSE_MODAL_ATTEMPTS; i += 1) {
+        const found = Cypress.$(SEL_DISMISS_TIP_ELEMENT).length > 0;
         if (found) {
             cy.get(SEL_DISMISS_TIP_ELEMENT).should('be.visible').click();
             break;
@@ -61,6 +61,7 @@ Cypress.Commands.add('uiCreateChannel', ({
             if (el && !el.hasClass('checked')) {
                 el.click();
                 cy.findByText('Select a template').should('be.visible').click();
+
                 // Cypess sees this as animating, maybe because it is an item in react-select 2
                 // so force the click even though it considers it animating
                 cy.findByText('Company Goals & OKRs').should('be.visible').click({force: true});
