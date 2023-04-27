@@ -13,7 +13,7 @@ import MoreChannels from 'components/more_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import MarketplaceModal, {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -204,7 +204,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
 
         if (this.props.canOpenMarketplace) {
             const target = e.target as HTMLElement;
-            const openedFrom = target.className.includes('_addButton') ? 'apps_category_plus' : 'apps_category_menu';
+            const openedFrom: OpenedFromType = target?.className.includes('_addButton') ? 'apps_category_plus' : 'apps_category_menu';
 
             this.props.actions.openModal({
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,

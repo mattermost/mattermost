@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/more_direct_bot_channels should match snapshot 1`] = `
+<GenericModal
+  ariaLabel="Apps"
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={true}
+  bodyPadding={false}
+  className="MoreDirectBotChannels-modal"
+  compassDesign={true}
+  enforceFocus={true}
+  id="MoreDirectBotChannels-modal"
+  keyboardEscape={true}
+  modalHeaderText="Apps"
+  onExited={[Function]}
+  show={true}
+>
+  <div
+    style={
+      Object {
+        "height": 200,
+      }
+    }
+  />
+</GenericModal>
+`;

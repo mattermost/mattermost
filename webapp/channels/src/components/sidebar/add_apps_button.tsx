@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import classNames from 'classnames';
@@ -30,17 +30,19 @@ const AddAppsButton = (): JSX.Element | null => {
     const marketplaceEnabled = useSelector(isMarketplaceEnabled);
     const touched = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_APPS));
 
-    const handleButtonClick = () => {
-        dispatch(savePreferences(
-            currentUserId,
-            [{
-                category: Preferences.TOUCHED,
-                user_id: currentUserId,
-                name: Touched.ADD_APPS,
-                value: 'true',
-            }],
-        ));
-    };
+    const handleButtonClick = useCallback(() => {
+        if (!touched) {
+            dispatch(savePreferences(
+                currentUserId,
+                [{
+                    category: Preferences.TOUCHED,
+                    user_id: currentUserId,
+                    name: Touched.ADD_APPS,
+                    value: 'true',
+                }],
+            ));
+        }
+    }, [touched, currentUserId]);
 
     const message = formatMessage({id: 'sidebar_left.addApps', defaultMessage: 'Add Apps'});
 

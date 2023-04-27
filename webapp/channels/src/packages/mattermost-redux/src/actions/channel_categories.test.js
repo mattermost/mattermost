@@ -353,6 +353,29 @@ describe('addChannelToInitialCategory', () => {
         expect(categoriesById.channelsCategory1.channel_ids).not.toContain('newDmChannel');
     });
 
+    test('should add new DM Bot channel to Apps categories on all teams', () => {
+        const store = configureStore({
+            entities: {
+                channelCategories: {
+                    byId: {
+                        appCategory1: {id: 'appCategory1', team_id: 'team1', type: CategoryTypes.APPS, channel_ids: ['appChannel1', 'appChannel2']},
+                        appCategory2: {id: 'appCategory2', team_id: 'team2', type: CategoryTypes.APPS, channel_ids: ['appChannel1', 'appChannel2']},
+                        channelsCategory1: {id: 'channelsCategory1', team_id: 'team1', type: CategoryTypes.CHANNELS, channel_ids: ['publicChannel1', 'privateChannel1']},
+                    },
+                },
+            },
+        });
+
+        const newAppChannel = {id: 'newAppChannel', type: General.DM_CHANNEL, props: {dm_bot: true}};
+
+        store.dispatch(Actions.addChannelToInitialCategory(newAppChannel));
+
+        const categoriesById = getAllCategoriesByIds(store.getState());
+        expect(categoriesById.appCategory1.channel_ids).toEqual(['newAppChannel', 'appChannel1', 'appChannel2']);
+        expect(categoriesById.appCategory2.channel_ids).toEqual(['newAppChannel', 'appChannel1', 'appChannel2']);
+        expect(categoriesById.channelsCategory1.channel_ids).not.toContain('newAppChannel');
+    });
+
     test('should do nothing if categories have not been loaded yet for the given team', () => {
         const store = configureStore({
             entities: {

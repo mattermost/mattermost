@@ -104,6 +104,56 @@ describe('components/sidebar', () => {
         expect(instance.hideMoreDirectChannelsModal).toHaveBeenCalled();
     });
 
+    test('should open marketplace modal correctly', () => {
+        const wrapper = shallow<Sidebar>(
+            <Sidebar {...baseProps}/>,
+        );
+        const instance = wrapper.instance();
+
+        const mockEvent1: Partial<Event> = {preventDefault: jest.fn()};
+        instance.handleOpenAppsModal(mockEvent1 as any);
+
+        expect(baseProps.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogProps: {openedFrom: 'apps_category_menu'},
+            }),
+        );
+
+        const mockEvent2: Partial<Event> = {
+            preventDefault: jest.fn(),
+            target: {
+                className: '..._addButton',
+            } as HTMLElement,
+        };
+        instance.handleOpenAppsModal(mockEvent2 as any);
+
+        expect(baseProps.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
+                dialogProps: {openedFrom: 'apps_category_plus'},
+            }),
+        );
+    });
+
+    test('should open apps modal correctly', () => {
+        const wrapper = shallow<Sidebar>(
+            <Sidebar
+                {...baseProps}
+                canOpenMarketplace={false}
+            />,
+        );
+        const instance = wrapper.instance();
+        const mockEvent: Partial<Event> = {preventDefault: jest.fn()};
+
+        instance.handleOpenAppsModal(mockEvent as any);
+        expect(baseProps.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.MORE_DIRECT_BOT_CHANNELS,
+            }),
+        );
+    });
+
     test('should match empty div snapshot when teamId is missing', () => {
         const props = {
             ...baseProps,
