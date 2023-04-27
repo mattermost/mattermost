@@ -6,7 +6,7 @@ import React, {useState} from 'react';
 import {injectIntl, WrappedComponentProps} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
+import {LegacyGenericModal} from '@mattermost/components';
 import {Feedback} from '@mattermost/types/cloud';
 import {closeModal} from 'actions/views/modals';
 import RadioButtonGroup from 'components/common/radio_group';
@@ -59,7 +59,7 @@ function FeedbackModal(props: Props) {
     };
 
     return (
-        <GenericModal
+        <LegacyGenericModal
             compassDesign={true}
             onExited={handleCancel}
             className='FeedbackModal__Container'
@@ -102,7 +102,7 @@ function FeedbackModal(props: Props) {
                     </span>
                 </>
             }
-        </GenericModal>
+        </LegacyGenericModal>
     );
 }
 

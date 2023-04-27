@@ -7,7 +7,7 @@ import MUIDialogTitle, {DialogTitleProps as MUIDialogTitleProps} from '@mui/mate
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 
-import IconButton from '../icon-button/icon-button';
+import Icon_button from '../icon_button/icon_button';
 
 type DialogTitleProps = MUIDialogTitleProps & { hasCloseButton: boolean };
 
@@ -51,7 +51,7 @@ const ModalTitle = ({title, onClose, children, rightSection = null}: ModalTitleP
                 {title}
                 {rightSection}
                 {hasCloseButton && (
-                    <IconButton
+                    <Icon_button
                         compact={true}
                         type='button'
                         onClick={onClose}
