@@ -14,7 +14,10 @@ jobs:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate mocks
-        run: make mocks
+        uses: actions/setup-go@v4
+        with:
+          go-version: '^1.18.10'
+        run: go version && make mocks
       - name: Check mocks
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
