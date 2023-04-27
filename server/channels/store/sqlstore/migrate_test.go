@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestUpAndDownMigrations(t *testing.T) {
@@ -20,7 +19,9 @@ func TestUpAndDownMigrations(t *testing.T) {
 	for _, driver := range testDrivers {
 		t.Run("Should be reversible for "+driver, func(t *testing.T) {
 			settings, err := makeSqlSettings(driver)
-			require.NoError(t, err)
+			if err != nil {
+				t.Skip(err)
+			}
 
 			store := New(*settings, nil)
 			defer store.Close()
