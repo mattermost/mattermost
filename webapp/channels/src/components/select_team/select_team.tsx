@@ -14,7 +14,7 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import * as UserAgent from 'utils/user_agent';
-import Constants from 'utils/constants';
+import Constants, {TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 
 import logoImage from 'images/logo.png';
 
@@ -330,7 +330,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         <Link
                             to='/admin_console'
                             className='signup-team-login'
-                            onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'select_team'})}
+                            onClick={() => trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'select_team'})}
                         >
                             <FormattedMessage
                                 id='signup_team_system_console'

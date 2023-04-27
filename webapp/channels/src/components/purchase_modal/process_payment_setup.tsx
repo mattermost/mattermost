@@ -13,7 +13,7 @@ import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {BillingDetails} from 'types/cloud/sku';
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
-import {RecurringIntervals, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {RecurringIntervals, TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 import {Team} from '@mattermost/types/teams';
 
 import {t} from 'utils/i18n';
@@ -264,7 +264,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
                         tertiaryButtonHandler={() => {
                             this.props.onClose();
                             this.props.history.push('/admin_console/billing/subscription');
-                            trackEvent('system_admin', 'system_console_visit', {location: 'switch_to_annual > purchase_modal > success'});
+                            trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'switch_to_annual > purchase_modal > success'});
                         }}
                         className={'success'}
                     />
@@ -328,7 +328,7 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
                 tertiaryButtonHandler={() => {
                     this.props.onClose();
                     this.props.history.push('/admin_console/billing/subscription');
-                    trackEvent('system_admin', 'system_console_visit', {location: 'purchase_modal > success'});
+                    trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'purchase_modal > success'});
                 }}
             />
         );

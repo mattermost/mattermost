@@ -23,7 +23,7 @@ import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_i
 import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
 import UserGroupsModal from 'components/user_groups_modal';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
+import {LicenseSkus, ModalIdentifiers, MattermostFeatures, TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import {ModalData} from 'types/actions';
@@ -123,7 +123,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         show={!isMobile}
                         to='/admin_console'
                         onLinkClick={
-                            trackEvent('system_admin', 'system_console_visit', {location: 'product_menu_list'})
+                            trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'product_menu_list'})
                         }
                         text={(
                             <>

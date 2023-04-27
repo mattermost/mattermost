@@ -16,6 +16,7 @@ import AnnouncementBarController from 'components/announcement_bar';
 import SystemNotice from 'components/system_notice';
 import {LhsItemType} from 'types/store/lhs';
 import {applyTheme, resetTheme} from 'utils/utils';
+import {TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 
 import {Role} from '@mattermost/types/roles';
 import {CloudState, Product} from '@mattermost/types/cloud';
@@ -100,7 +101,7 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
         const trackingParamName = 'trackingLocation';
 
         if (params.get(trackingParamName)) {
-            trackEvent('cloud_admin', 'system_console_visit', {location: params.get(trackingParamName)});
+            trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: params.get(trackingParamName)});
             params.delete(trackingParamName);
             url.search = params.toString();
             window.history.replaceState(null, '', url.href);

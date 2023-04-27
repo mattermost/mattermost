@@ -21,6 +21,8 @@ import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {AnnouncementBarTypes, CloudProducts, ConsolePages} from 'utils/constants';
 import {t} from 'utils/i18n';
 
+import {trackEvent} from 'actions/telemetry_actions';
+
 import AnnouncementBar from '../default_announcement_bar';
 
 export default function PaymentAnnouncementBar() {
@@ -56,6 +58,7 @@ export default function PaymentAnnouncementBar() {
 
     const updatePaymentInfo = () => {
         getHistory().push(ConsolePages.PAYMENT_INFO);
+        trackEvent('system_admin', 'system_console_visit', {location: 'payment_announcement_bar'});
     };
 
     let message = (

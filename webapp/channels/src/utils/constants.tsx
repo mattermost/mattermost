@@ -769,6 +769,11 @@ export const TELEMETRY_CATEGORIES = {
     REQUEST_BUSINESS_EMAIL: 'request_business_email',
     TRUE_UP_REVIEW: 'true_up_review',
     WORK_TEMPLATES: 'work_templates',
+    SYSTEM_ADMIN: 'system_admin',
+};
+
+export const TELEMETRY_EVENT = {
+    SYSTEM_CONSOLE_VISIT: 'system_console_visit',
 };
 
 export const TELEMETRY_LABELS = {

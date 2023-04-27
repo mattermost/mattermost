@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {RouteComponentProps, withRouter} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 import {GlobalState} from 'types/store';
 import {subscribeCloudSubscription} from 'actions/cloud';
 import {closeModal} from 'actions/views/modals';
@@ -161,7 +161,7 @@ function CloudSubscribeWithLoad(props: Props) {
                 tertiaryButtonHandler={() => {
                     handleClose();
                     props.history.push('/admin_console/billing/subscription');
-                    trackEvent('system_admin', 'system_console_visit', {location: 'cloud_subscribe_with_loading_modal'});
+                    trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'cloud_subscribe_with_loading_modal'});
                 }}
             />
         );

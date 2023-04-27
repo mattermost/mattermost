@@ -16,7 +16,7 @@ import Markdown from 'components/markdown';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -80,7 +80,7 @@ const ConfigureLink = (props: {pluginId: string; pluginName: string}) => {
             <Link
                 to={'/admin_console/plugins/plugin_' + props.pluginId}
                 style={{color: 'var(--denim-button-bg)', fontWeight: '600'}}
-                onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'custom_open_plugin_install_post_renderer'})}
+                onClick={() => trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'custom_open_plugin_install_post_renderer'})}
             >
                 <FormattedMessage
                     id='marketplace_modal.list.configure.plugin'

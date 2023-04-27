@@ -27,7 +27,7 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import {getListing, getInstalledListing} from 'selectors/views/marketplace';
 import {isModalOpen} from 'selectors/views/modals';
 import {GlobalState} from 'types/store';
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 
 import './marketplace_modal.scss';
 
@@ -43,7 +43,7 @@ const SEARCH_TIMEOUT_MILLISECONDS = 200;
 const linkConsole = (msg: string): ReactNode => (
     <Link
         to='/admin_console/plugins/plugin_management'
-        onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'marketplace_modal'})}
+        onClick={() => trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'marketplace_modal'})}
     >
         {msg}
     </Link>

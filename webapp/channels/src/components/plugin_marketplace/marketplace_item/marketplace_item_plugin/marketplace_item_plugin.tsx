@@ -22,6 +22,7 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {localizeMessage} from 'utils/utils';
 import ExternalLink from 'components/external_link';
+import {TELEMETRY_CATEGORIES, TELEMETRY_EVENT} from 'utils/constants';
 
 type UpdateVersionProps = {
     version: string;
@@ -293,7 +294,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
             return (
                 <Link
                     to={'/admin_console/plugins/plugin_' + this.props.id}
-                    onClick={() => trackEvent('system_admin', 'system_console_visit', {location: 'plugin_market_place'})}
+                    onClick={() => trackEvent(TELEMETRY_CATEGORIES.SYSTEM_ADMIN, TELEMETRY_EVENT.SYSTEM_CONSOLE_VISIT, {location: 'plugin_market_place'})}
                 >
                     <button
                         onClick={this.onConfigure}
