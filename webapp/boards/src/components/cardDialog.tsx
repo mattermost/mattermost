@@ -151,7 +151,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 Utils.selectLocalFile(async (attachment) => {
                     const uploadingBlock = createBlock()
                     uploadingBlock.title = attachment.name
-                    uploadingBlock.fields.attachmentId = attachment.name
+                    uploadingBlock.fields.fileId = attachment.name
                     uploadingBlock.boardId = boardId
                     if (card) {
                         uploadingBlock.parentId = card.id
@@ -177,11 +177,11 @@ const CardDialog = (props: Props): JSX.Element => {
                             xhr.onload = () => {
                                 if (xhr.status === 200 && xhr.readyState === 4) {
                                     const json = JSON.parse(xhr.response)
-                                    const attachmentId = json.fileId
-                                    if (attachmentId) {
+                                    const fileId = json.fileId
+                                    if (fileId) {
                                         removeUploadingAttachment(uploadingBlock)
                                         const block = createAttachmentBlock()
-                                        block.fields.attachmentId = attachmentId || ''
+                                        block.fields.fileId = fileId || ''
                                         block.title = attachment.name
                                         sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.uploadSuccess', defaultMessage: 'Attachment uploaded.'}), severity: 'normal'})
                                         resolve(block)
