@@ -62,9 +62,10 @@ var MigrateCmd = &cobra.Command{
 var DowngradeCmd = &cobra.Command{
 	Use:   "downgrade",
 	Short: "Downgrade the database with the given plan or migration numbers",
-	Long:  "Downgrade the database with the given plan or migration numbers.",
-	RunE:  downgradeCmdF,
-	Args:  cobra.ExactArgs(1),
+	Long: "Downgrade the database with the given plan or migration numbers. " +
+		"The plan will be read from filestore hence the path should be relative to file store root.",
+	RunE: downgradeCmdF,
+	Args: cobra.ExactArgs(1),
 }
 
 var DBVersionCmd = &cobra.Command{
@@ -77,7 +78,7 @@ func init() {
 	ResetCmd.Flags().Bool("confirm", false, "Confirm you really want to delete everything and a DB backup has been performed.")
 	DBVersionCmd.Flags().Bool("all", false, "Returns all applied migrations")
 	MigrateCmd.Flags().Bool("auto-recover", false, "Recover the database to it's existing state after a failed migration.")
-	MigrateCmd.Flags().Bool("save-plan", false, "Saves the migration plan to be able to be used in the future.")
+	MigrateCmd.Flags().Bool("save-plan", false, "Saves the migration plan into file store so that it can be used in the future.")
 	MigrateCmd.Flags().Bool("dry-run", false, "Runs the migration plan without applying it.")
 
 	DowngradeCmd.Flags().Bool("auto-recover", false, "Recover the database to it's existing state after a failed migration.")
@@ -201,7 +202,10 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to write migration plan: %w", err)
 		}
 
-		CommandPrettyPrintln("The migration plan has been saved.")
+		CommandPrettyPrintln(
+			fmt.Sprintf("%s\nThe migration plan has been saved. File: %q.\nNote that "+
+				" migration plan is saved into file store, so the filepath will be relative to root of file store\n%s",
+				strings.Repeat("*", 80), fileName+".json", strings.Repeat("*", 80)))
 	}
 
 	err = migrator.MigrateWithPlan(plan, dryRun)

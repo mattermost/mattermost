@@ -10,6 +10,7 @@ import (
 	"path"
 	"sort"
 	"strconv"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/db"
 	"github.com/mattermost/mattermost-server/server/v8/model"
@@ -29,9 +30,11 @@ type Migrator struct {
 
 func NewMigrator(settings model.SqlSettings, dryRun bool) (*Migrator, error) {
 	ss := &SqlStore{
-		rrCounter: 0,
-		srCounter: 0,
-		settings:  &settings,
+		rrCounter:   0,
+		srCounter:   0,
+		settings:    &settings,
+		quitMonitor: make(chan struct{}),
+		wgMonitor:   &sync.WaitGroup{},
 	}
 
 	ss.initConnection()
