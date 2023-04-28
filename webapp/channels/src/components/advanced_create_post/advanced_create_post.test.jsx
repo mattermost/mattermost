@@ -152,6 +152,7 @@ describe('components/advanced_create_post', () => {
 
     beforeEach(() => {
         jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => setTimeout(cb, 16));
+        jest.spyOn(document, 'execCommand');
     });
 
     afterEach(() => {
@@ -1288,7 +1289,7 @@ describe('components/advanced_create_post', () => {
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(markdownTable);
+        expect(document.execCommand).toBeCalledWith('insertText', false, markdownTable);
     });
 
     it('should be able to format a pasted markdown table without headers', () => {
@@ -1318,7 +1319,7 @@ describe('components/advanced_create_post', () => {
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(markdownTable);
+        expect(document.execCommand).toBeCalledWith('insertText', false, markdownTable);
     });
 
     it('should be able to format a pasted hyperlink', () => {
@@ -1348,7 +1349,7 @@ describe('components/advanced_create_post', () => {
         const markdownLink = '[link text](https://test.domain)';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(markdownLink);
+        expect(document.execCommand).toBeCalledWith('insertText', false, markdownLink);
     });
 
     it('should preserve the original message after pasting a markdown table', () => {
@@ -1392,7 +1393,7 @@ describe('components/advanced_create_post', () => {
         wrapper.instance().textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('message')).toBe(expectedMessage);
+        expect(document.execCommand).toBeCalledWith('insertText', false, expectedMessage);
     });
 
     it('should be able to format a github codeblock (pasted as a table)', () => {
@@ -1465,7 +1466,7 @@ describe('components/advanced_create_post', () => {
         expect(wrapper.state('message')).toBe(codeBlockMarkdown);
     });
 
-    it('should call handlePostPasteDraft to update the draft after pasting', () => {
+    it('should call document.execCommand when markdown is pasted', () => {
         const wrapper = shallow(advancedCreatePost());
         const mockImpl = () => {
             return {
@@ -1491,29 +1492,7 @@ describe('components/advanced_create_post', () => {
         };
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.instance().handlePostPasteDraft).toHaveBeenCalledTimes(1);
-    });
-
-    it('should update draft when handlePostPasteDraft is called', () => {
-        const setDraft = jest.fn();
-
-        const wrapper = shallow(
-            advancedCreatePost({
-                actions: {
-                    ...actionsProp,
-                    setDraft,
-                },
-            }),
-        );
-
-        const testMessage = 'test';
-        const expectedDraft = {
-            ...draftProp,
-            message: testMessage,
-        };
-
-        wrapper.instance().handlePostPasteDraft(testMessage);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, expectedDraft, currentChannelProp.id);
+        expect(document.execCommand).toHaveBeenCalledTimes(1);
     });
 
     /**

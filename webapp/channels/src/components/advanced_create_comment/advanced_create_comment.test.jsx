@@ -16,6 +16,7 @@ describe('components/AdvancedCreateComment', () => {
     jest.useFakeTimers();
     beforeEach(() => {
         jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => setTimeout(cb, 16));
+        jest.spyOn(document, 'execCommand');
     });
 
     afterEach(() => {
@@ -1355,7 +1356,7 @@ describe('components/AdvancedCreateComment', () => {
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('draft').message).toBe(markdownTable);
+        expect(document.execCommand).toBeCalledWith('insertText', false, markdownTable);
     });
 
     it('should be able to format a pasted markdown table without headers', () => {
@@ -1398,7 +1399,7 @@ describe('components/AdvancedCreateComment', () => {
         const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('draft').message).toBe(markdownTable);
+        expect(document.execCommand).toBeCalledWith('insertText', false, markdownTable);
     });
 
     it('should be able to format a pasted hyperlink', () => {
@@ -1441,7 +1442,7 @@ describe('components/AdvancedCreateComment', () => {
         const markdownLink = '[link text](https://test.domain)';
 
         wrapper.instance().pasteHandler(event);
-        expect(wrapper.state('draft').message).toBe(markdownLink);
+        expect(document.execCommand).toBeCalledWith('insertText', false, markdownLink);
     });
 
     it('should be able to format a github codeblock (pasted as a table)', () => {
