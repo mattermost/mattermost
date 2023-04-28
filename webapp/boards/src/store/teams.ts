@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit'
+import {PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 
 import octoClient from 'src/octoClient'
 
@@ -54,6 +54,7 @@ const teamSlice = createSlice({
             const team = state.allTeams.find((t) => t.id === teamID)
             if (!team) {
                 Utils.log(`Unable to find team in store. TeamID: ${teamID}`)
+
                 return
             }
 

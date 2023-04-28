@@ -3,13 +3,13 @@
 
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, act} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 
 import {
     mockDOM,
-    wrapDNDIntl,
     mockStateStore,
-    setup
+    setup,
+    wrapDNDIntl,
 } from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
