@@ -356,6 +356,11 @@ describe('addChannelToInitialCategory', () => {
     test('should add new DM Bot channel to Apps categories on all teams', () => {
         const store = configureStore({
             entities: {
+                general: {
+                    config: {
+                        FeatureFlagAppsSidebarCategory: 'true',
+                    },
+                },
                 channelCategories: {
                     byId: {
                         appCategory1: {id: 'appCategory1', team_id: 'team1', type: CategoryTypes.APPS, channel_ids: ['appChannel1', 'appChannel2']},

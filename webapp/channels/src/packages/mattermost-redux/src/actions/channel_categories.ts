@@ -20,6 +20,7 @@ import {
     getCategoryInTeamByType,
     getCategoryInTeamWithChannel,
 } from 'mattermost-redux/selectors/entities/channel_categories';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {
@@ -178,8 +179,9 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
         const categories = Object.values(getAllCategoriesByIds(state));
 
         if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+            const appsCategoryEnabled = getFeatureFlagValue(state, 'AppsSidebarCategory') === 'true';
             const dmBot: boolean = channel.props?.dm_bot;
-            const categoryType = dmBot ? CategoryTypes.APPS : CategoryTypes.DIRECT_MESSAGES;
+            const categoryType = appsCategoryEnabled && dmBot ? CategoryTypes.APPS : CategoryTypes.DIRECT_MESSAGES;
             const allDmCategories = categories.filter((category) => category.type === categoryType);
 
             // Get all the categories in which channel exists
