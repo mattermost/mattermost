@@ -3,9 +3,9 @@
 DASHBOARD_REF ?= origin/main
 
 run-cypress:
-	./.ci/start_server.sh
-	./.ci/inject_test_data.sh
-	./.ci/run_cypress.sh
+	./.ci/server.start.sh
+	./.ci/server.inject_test_data.sh
+	./.ci/server.run_cypress.sh
 
 # TODO create also the docker-compose alias for the dashboard?
 start-dashboard:
@@ -15,3 +15,6 @@ start-dashboard:
 	UID=$$UID docker-compose -p dashboard -f .ci/dashboard/docker/docker-compose.yml -f .ci/dashboard.override.yml up -d db dashboard
 stop-dashboard:
 	UID=$$UID docker-compose -p dashboard -f .ci/dashboard/docker/docker-compose.yml -f .ci/dashboard.override.yml down
+reset-env-placeholders:
+	git reset .ci/.env.*
+	git checkout .ci/.env.*

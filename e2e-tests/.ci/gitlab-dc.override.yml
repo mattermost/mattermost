@@ -5,7 +5,7 @@ version: '2.4'
 services:
 
   server:
-    image: "${MM_SERVER_IMAGE}"
+    image: "${SERVER_IMAGE}"
     restart: always
     environment:
       MM_SERVICESETTINGS_SITEURL: "http://server:8065"
@@ -80,11 +80,13 @@ services:
       - "../../e2e-tests/.ci/.env.dashboard"
     environment:
       REPO: "mattermost-server"
-      BRANCH: "${MM_BRANCH}"
-      BUILD_ID: "${MM_BUILD_ID}"
+      ### Variables to pass
+      # BRANCH: "..."
+      # BUILD_ID: "..."
+      # AUTOMATION_DASHBOARD_URL: "..." # NB, OPTIONAL: if this is unset, it will default to http://${docker_network_gateway_ip}:4000/api
+      # AUTOMATION_DASHBOARD_TOKEN: "..."
+      ### Variables to pass, end
       CI_BASE_URL: "localhost-${MM_NODE_INDEX}"
-      AUTOMATION_DASHBOARD_URL: "${MM_AUTOMATION_DASHBOARD_URL}" #NB: if this is unset, it will default to http://${docker_network_gateway_ip}:4000/api
-      AUTOMATION_DASHBOARD_TOKEN: "${MM_AUTOMATION_DASHBOARD_TOKEN}"
       # Cypress configuration
       BROWSER: "chrome"
       HEADLESS: "true"
