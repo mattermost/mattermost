@@ -3,12 +3,14 @@
 
 import {createSelector} from 'reselect';
 
-import {Posts, Preferences} from 'mattermost-redux/constants';
+import {General, Posts, Preferences} from 'mattermost-redux/constants';
 
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
@@ -42,7 +44,6 @@ import {
     RelationOneToOne,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
-import {getChannel} from './channels';
 
 export function getAllPosts(state: GlobalState) {
     return state.entities.posts.posts;
@@ -803,9 +804,17 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
     );
 }
 
-export function getTeamIdFromPost(state: GlobalState, postId: Post['id']): Team['id']|undefined {
+export function getTeamIdFromPost(state: GlobalState, postId: Post['id']): Team['id'] {
     const post = getPost(state, postId);
     const channel = getChannel(state, post.channel_id);
 
-    return channel?.team_id;
+    if (!channel) {
+        return '';
+    }
+
+    if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+        return getCurrentTeamId(state);
+    }
+
+    return channel.team_id;
 }

@@ -770,10 +770,7 @@ async function handlePostDeleteEvent(msg) {
         const thread = getThread(state, post.root_id);
         if (thread) {
             const userId = getCurrentUserId(state);
-            let teamId = getTeamIdFromPost(state, post.id);
-            if (teamId === '') {
-                teamId = getCurrentTeamId(state);
-            }
+            const teamId = getTeamIdFromPost(state, post.id);
             if (teamId) {
                 dispatch(fetchThread(userId, teamId, post.root_id, true));
             }
