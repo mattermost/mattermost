@@ -10161,5 +10161,25 @@
   {
     "id": "worktemplate.companywide.create_project.board",
     "translation": "Verwend eine Kanban-Board, um deine Projektaufgaben und -fortschritte zu definieren und zu verfolgen."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Ungültiger Wert für Bytes beim Hochladen einer Lizenz."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch Version {{.Version}} ist höher als die maximal unterstützte Version von {{.MaxVersion}}"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Überspringe die Installation des Plugins {{.Id}}, da die vorhandene Version gleich oder neuer ist."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Das Plugin {{.Id}} steht auf der Blockierliste. Einige Plugins sind blockiert, weil sie in diese Version von Mattermost eingebaut sind."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server kann den Newsletter nicht abonnieren."
   }
 ]
