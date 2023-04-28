@@ -13,7 +13,7 @@ import {ClientLicense} from '@mattermost/types/config';
 import {Client4} from 'mattermost-redux/client';
 
 import {getRemainingDaysFromFutureTimestamp, toTitleCase} from 'utils/utils';
-import {FileTypes} from 'utils/constants';
+import {FileTypes, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {getSkuDisplayName} from 'utils/subscription';
 import {calculateOverageUserActivated} from 'utils/overage_team';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
@@ -24,6 +24,7 @@ import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpa
 import {getExpandSeatsLink} from 'selectors/cloud';
 import useControlSelfHostedExpansionModal from 'components/common/hooks/useControlSelfHostedExpansionModal';
 import {useQuery} from 'utils/http_utils';
+import {trackEvent} from 'actions/telemetry_actions';
 
 const DAYS_UNTIL_EXPIRY_WARNING_DISPLAY_THRESHOLD = 30;
 const DAYS_UNTIL_EXPIRY_DANGER_DISPLAY_THRESHOLD = 5;
@@ -100,6 +101,7 @@ const EnterpriseEditionLeftPanel = ({
     );
 
     const handleClickAddSeats = () => {
+        trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'add_seats_clicked');
         if (!isSelfHostedPurchaseEnabled || !canExpand) {
             window.open(expandableLink(unsanitizedLicense.Id), '_blank');
         } else {
