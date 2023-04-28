@@ -54,7 +54,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
     };
 
     toggleEmojiPicker = (e?: React.ChangeEvent<HTMLInputElement>): void => {
-        if(!e?.target.getElementsByClassName('close emoji-picker__header-close-button').length) {
+        if (!e?.target.getElementsByClassName('close emoji-picker__header-close-button').length) {
             this.props.toggleEmojiPicker();
         }
     };
