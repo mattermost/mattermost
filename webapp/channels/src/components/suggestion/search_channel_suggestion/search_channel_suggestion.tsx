@@ -12,6 +12,7 @@ import Avatar from 'components/widgets/users/avatar';
 import Suggestion from '../suggestion';
 
 import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
 
 function itemToName(item: Channel, currentUser: string): {icon: React.ReactElement; name: string; description: string} | null {
     if (item.type === Constants.DM_CHANNEL) {
@@ -68,7 +69,12 @@ function itemToName(item: Channel, currentUser: string): {icon: React.ReactEleme
     return null;
 }
 
-export default class SearchChannelSuggestion extends Suggestion {
+type Props = {
+    teammate?: UserProfile | undefined;
+    currentUser: string;
+}
+
+export default class SearchChannelSuggestion extends Suggestion<Props, Channel> {
     render(): JSX.Element {
         const {item, isSelection, teammate, currentUser} = this.props;
 

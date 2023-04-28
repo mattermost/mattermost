@@ -19,6 +19,8 @@ describe('components/suggestion/search_channel_suggestion', () => {
         currentUser: 'userid1',
         term: '',
         matchedPretext: '',
+        onClick: () => jest.fn(),
+        onMouseMove: () => jest.fn(),
     };
 
     test('should match snapshot', () => {

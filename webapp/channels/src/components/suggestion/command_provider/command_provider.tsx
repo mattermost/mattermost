@@ -28,10 +28,10 @@ const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_C
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 
-export class CommandSuggestion extends Suggestion {
+export class CommandSuggestion extends Suggestion<unknown, AutocompleteSuggestion> {
     render() {
         const {isSelection} = this.props;
-        const item = this.props.item as AutocompleteSuggestion;
+        const item = this.props.item;
 
         let className = 'slash-command';
         if (isSelection) {

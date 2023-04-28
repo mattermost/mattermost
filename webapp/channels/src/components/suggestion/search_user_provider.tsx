@@ -13,7 +13,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {UserAutocomplete} from '@mattermost/types/autocomplete';
 
 import Provider from './provider';
-import Suggestion from './suggestion.jsx';
+import Suggestion from 'components/suggestion/suggestion';
 import {ProviderResults} from './generic_user_provider';
 
 class SearchUserSuggestion extends Suggestion {
