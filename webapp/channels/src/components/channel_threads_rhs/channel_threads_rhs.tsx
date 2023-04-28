@@ -11,14 +11,12 @@ import Button from 'components/threading/common/button';
 import VirtualizedThreadList from 'components/threading/global_threads/thread_list/virtualized_thread_list';
 import Constants from 'utils/constants';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
-import type {UserProfile} from '@mattermost/types/users';
-import type {FetchChannelThreadOptions} from '@mattermost/types/client4';
 
 import Header from './header';
 import ThreadsIllustration from './threads_illustration';
+
+import type {PropsFromRedux} from './index';
 
 import './channel_threads_rhs.scss';
 
@@ -28,31 +26,7 @@ export enum Tabs {
     USER,
 }
 
-type Props = {
-    all: Array<UserThread['id']>;
-    canGoBack: boolean;
-    channel: Channel;
-    created: Array<UserThread['id']>;
-    currentTeamId: Team['id'];
-    currentTeamName: Team['name'];
-    currentUserId: UserProfile['id'];
-    following: Array<UserThread['id']>;
-    isCollapsedThreadsEnabled: boolean;
-    isSideBarExpanded: boolean;
-    selected: Tabs;
-    total: number;
-    totalFollowing: number;
-    totalUser: number;
-
-    actions: {
-        closeRightHandSide: () => void;
-        getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => void;
-        goBack: () => void;
-        selectPostFromRightHandSideSearchByPostId: (id: string) => void;
-        setSelected: (tab: Tabs) => void;
-        toggleRhsExpanded: () => void;
-    };
-}
+type Props = PropsFromRedux
 
 const loadingStyle = {
     display: 'grid',

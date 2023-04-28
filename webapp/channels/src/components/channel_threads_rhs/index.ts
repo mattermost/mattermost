@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {connect, type ConnectedProps} from 'react-redux';
+import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
 import {getThreadsForChannel} from 'mattermost-redux/actions/threads';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -17,12 +17,21 @@ import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
 import {StoragePrefixes} from 'utils/constants';
 
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, Action, GetStateFunc} from 'mattermost-redux/types/actions';
 import {FetchChannelThreadOptions, FetchChannelThreadFilters} from '@mattermost/types/client4';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
 
 import ChannelThreads, {Tabs} from './channel_threads_rhs';
+
+type Actions = {
+    closeRightHandSide: () => void;
+    getThreadsForChannel: (id: Channel['id'], filter: Tabs, options?: FetchChannelThreadOptions) => Promise<void>;
+    goBack: () => void;
+    selectPostFromRightHandSideSearchByPostId: (id: string) => void;
+    setSelected: (tab: Tabs) => void;
+    toggleRhsExpanded: () => void;
+}
 
 function setChannelThreadsTab(tab: Tabs) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -93,9 +102,9 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators({
+        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
             closeRightHandSide,
             getThreadsForChannel: getThreadsForChannelWithFilter,
             goBack,
@@ -106,4 +115,8 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(ChannelThreads);
+const connector = connect(makeMapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(ChannelThreads);
