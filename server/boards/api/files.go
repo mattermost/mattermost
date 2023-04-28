@@ -312,7 +312,7 @@ func (a *API) handleUploadFile(w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("teamID", board.TeamID)
 	auditRec.AddMeta("filename", handle.Filename)
 
-	fileID, err := a.app.SaveFile(file, board.TeamID, boardID, handle.Filename)
+	fileID, err := a.app.SaveFile(file, board.TeamID, boardID, handle.Filename, board.IsTemplate)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
