@@ -137,10 +137,6 @@
         ]
       }
     ],
-    "import-newlines/enforce": [
-        2,
-        3
-    ],
     "indent": 0, // ts handles this
     "jsx-quotes": [
       2,
@@ -179,12 +175,6 @@
         "max": 800,
         "skipBlankLines": true,
         "skipComments": true
-      }
-    ],
-    "max-nested-callbacks": [
-      2,
-      {
-        "max": 8
       }
     ],
     "max-statements-per-line": [
@@ -325,7 +315,6 @@
     ],
     "no-self-compare": 2,
     "no-sequences": 2,
-    "no-shadow": 0,
     "no-shadow-restricted-names": 2,
     "no-spaced-func": 2,
     "no-tabs": 0,
@@ -572,10 +561,6 @@
     "import-newlines/enforce": [
       2,
       3
-    ],
-    "object-curly-spacing": [
-      2,
-      "never"
     ],
     "formatjs/no-multiple-whitespaces": 2,
     "require-yield": 2,
