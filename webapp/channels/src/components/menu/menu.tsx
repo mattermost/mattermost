@@ -100,7 +100,8 @@ export function Menu(props: Props) {
         setAnchorElement(null);
     }
 
-    function handleMenuClick() {
+    function handleMenuClick(event: MouseEvent<HTMLLIElement>) {
+        event.stopPropagation();
         setAnchorElement(null);
     }
 
