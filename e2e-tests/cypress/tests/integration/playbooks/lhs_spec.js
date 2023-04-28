@@ -153,7 +153,7 @@ describe('lhs', {testIsolation: true}, () => {
             cy.findByTestId('dropdownmenu').should('be.visible');
         });
 
-        it.skip('can copy link', () => {
+        it('can copy link', () => {
             // # Visit the playbook run
             cy.visit(`/playbooks/runs/${playbookRun.id}`);
             stubClipboard().as('clipboard');
@@ -295,7 +295,7 @@ describe('lhs', {testIsolation: true}, () => {
             });
         });
 
-        it.skip('leave run, when on rdp of the same run', () => {
+        it('leave run, when on rdp of the same run', () => {
             // # Click on leave menu item
             getRunDropdownItemByText('Runs', playbookRun.name, 'Leave and unfollow run').click();
 
