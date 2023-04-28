@@ -294,7 +294,6 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 	query := s.getQueryBuilder().
 		Select("RootId, COUNT(Id) AS Count").
 		From("Posts").
-		Where(sq.NotLike{"Posts.Type": model.PostSystemMessagePrefix + "%"}).
 		Where(sq.Eq{"RootId": rootIds}).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		GroupBy("RootId")
@@ -576,7 +575,6 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		LeftJoin("Threads ON Threads.PostId = Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
-		Where(sq.NotLike{"Posts.Type": model.PostSystemMessagePrefix + "%"}).
 		Where(sq.Eq{"Posts.Id": id}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_ToSql2")
@@ -598,8 +596,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		Where(sq.Eq{
 			"Posts.RootId":   id,
 			"Posts.DeleteAt": 0,
-		}).
-		Where(sq.NotLike{"Posts.Type": model.PostSystemMessagePrefix + "%"})
+		})
 
 	var sort string
 	if opts.Direction != "" {
