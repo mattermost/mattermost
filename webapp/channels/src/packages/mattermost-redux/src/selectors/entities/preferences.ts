@@ -245,6 +245,10 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableCustomGroups === 'true';
 }
 
+export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
+    return getConfig(state).EnableOnboardingFlow === 'true';
+}
+
 export function insightsAreEnabled(state: GlobalState): boolean {
     const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
     const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';
