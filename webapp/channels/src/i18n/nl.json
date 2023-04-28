@@ -1014,7 +1014,7 @@
   "admin.filter.reset_teams": "Terugzetten naar alle teams",
   "admin.filter.showing_all_teams": "Toon alle teams",
   "admin.filter.title": "Filter op",
-  "admin.general.localization.availableLocalesDescription": "Stel in welke talen beschikbaar zijn voor gebruikers in <strong>Instellingen > Weergave > Taal</strong> Laat dit veld leeg om alle ondersteunde talen beschikbaar te stellen. Als je handmatig nieuwe talen toevoegt, moet de <strong>standaardtaal voor gebruikers </strong>toegevoegd worden voor je deze instellingen bewaard.\n\n Wil je helpen met vertalen? Word lid van de <link>Mattermost Vertaalserver</link> om mee te werken.",
+  "admin.general.localization.availableLocalesDescription": "Stel in welke talen beschikbaar zijn voor gebruikers in <strong>Instellingen > Weergave > Taal</strong> Laat dit veld leeg om alle ondersteunde talen beschikbaar te stellen. Als je handmatig nieuwe talen toevoegt, moet de <strong>standaardtaal voor gebruikers </strong>toegevoegd worden voor je deze instellingen bewaart.\n\n Wil je helpen met vertalen? Word lid van de <link>Mattermost Vertaalserver</link> om mee te werken.",
   "admin.general.localization.availableLocalesNoResults": "Geen resultaten gevonden",
   "admin.general.localization.availableLocalesNotPresent": "De standaardtaal van de cliënt moet worden opgenomen in de lijst van beschikbare talen",
   "admin.general.localization.availableLocalesTitle": "Beschikbare talen:",
