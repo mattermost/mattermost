@@ -18,8 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -31,6 +29,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
