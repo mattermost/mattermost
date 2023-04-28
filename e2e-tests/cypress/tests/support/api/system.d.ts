@@ -199,5 +199,13 @@ declare namespace Cypress {
          *   cy.shouldHaveEmailEnabled();
          */
         shouldHaveEmailEnabled(): Chainable;
+
+        /**
+         * Allow test for server with Elastic search disabled.
+         * Otherwise, fail fast.
+         * @example
+         *   cy.shouldHaveElasticsearchDisabled();
+         */
+        shouldHaveElasticsearchDisabled(): Chainable;
     }
 }
