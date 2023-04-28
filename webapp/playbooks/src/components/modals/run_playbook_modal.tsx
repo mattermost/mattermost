@@ -3,6 +3,7 @@ import React, {ComponentProps, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
+import {UserProfile} from '@mattermost/types/users';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ArrowLeftIcon} from '@mattermost/compass-icons/components';
 import {ApolloProvider} from '@apollo/client';
@@ -18,6 +19,7 @@ import {ButtonLabel, StyledChannelSelector, VerticalSplit} from 'src/components/
 import ClearIndicator from 'src/components/backstage/playbook_edit/automation/clear_indicator';
 import MenuList from 'src/components/backstage/playbook_edit/automation/menu_list';
 import {HorizontalSpacer, RadioInput} from 'src/components/backstage/styles';
+import ProfileAutocomplete from 'src/components/backstage/profile_autocomplete';
 import {displayPlaybookCreateModal} from 'src/actions';
 import PlaybooksSelector from 'src/components/playbooks_selector';
 import {SecondaryButton} from 'src/components/assets/buttons';
@@ -66,6 +68,7 @@ const RunPlaybookModal = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [showsearch, setShowsearch] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [profiles, setProfiles] = useState<UserProfile[]>([]);
     const canCreatePlaybooks = useCanCreatePlaybooksInTeam(teamId || '');
 
     const currentChannelId = useSelector(getCurrentChannelId);
@@ -199,6 +202,14 @@ const RunPlaybookModal = ({
                         rows={5}
                         value={runSummary}
                         onChange={(e) => setRunSummary(e.target.value)}
+                    />
+                    <ProfileAutocomplete
+                        searchProfiles={(term) => {}}
+                        userIds={[]}
+                        isDisabled={false}
+                        isMultiMode={true}
+                        setValues={setProfiles}
+                        placeholder={formatMessage({defaultMessage: 'Search for people'})}
                     />
                     <ConfigChannelSection
                         teamId={teamId}
