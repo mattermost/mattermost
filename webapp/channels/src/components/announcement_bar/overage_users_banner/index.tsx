@@ -16,9 +16,12 @@ import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {PreferenceType} from '@mattermost/types/preferences';
 import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import {StatTypes, Preferences, AnnouncementBarTypes} from 'utils/constants';
+import {StatTypes, Preferences, AnnouncementBarTypes, ConsolePages} from 'utils/constants';
 
 import './overage_users_banner.scss';
+import {getSiteURL} from 'utils/url';
+import useCanSelfHostedExpand from 'components/common/hooks/useCanSelfHostedExpand';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 type AdminHasDismissedItArgs = {
     preferenceName: string;
@@ -53,6 +56,9 @@ const OverageUsersBanner = () => {
         activeUsers,
         seatsPurchased,
     });
+    const isSelfHostedExpansionEnabled = useSelector(getConfig)?.ServiceSettings?.SelfHostedPurchase;
+    const canSelfHostedExpand = useCanSelfHostedExpand() && isSelfHostedExpansionEnabled;
+    const siteURL = getSiteURL();
     const prefixPreferences = isOver10PercerntPurchasedSeats ? 'error' : 'warn';
     const prefixLicenseId = (license.Id || '').substring(0, 8);
     const preferenceName = `${prefixPreferences}_overage_seats_${prefixLicenseId}`;
@@ -72,6 +78,7 @@ const OverageUsersBanner = () => {
         licenseId: license.Id,
         isWarningState: isBetween5PercerntAnd10PercentPurchasedSeats,
         banner: 'global banner',
+        canSelfHostedExpand: canSelfHostedExpand || false,
     });
 
     const handleClose = () => {
@@ -86,6 +93,12 @@ const OverageUsersBanner = () => {
     const handleUpdateSeatsSelfServeClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         trackEventFn('Self Serve');
+
+        if (canSelfHostedExpand) {
+            window.open(`${siteURL}/${ConsolePages.LICENSE}?action=show_expansion_modal`);
+            return;
+        }
+
         window.open(expandableLink(license.Id), '_blank');
     };
 
@@ -101,7 +114,7 @@ const OverageUsersBanner = () => {
         return null;
     }
 
-    const message = (
+    let message = (
         <FormattedMessage
             id='licensingPage.overageUsersBanner.text'
             defaultMessage='Your workspace user count has exceeded your paid license seat count by {seats, number} {seats, plural, one {seat} other {seats}}. Purchase additional seats to remain compliant.'
@@ -109,6 +122,17 @@ const OverageUsersBanner = () => {
                 seats: overageByUsers,
             }}
         />);
+
+    if (canSelfHostedExpand) {
+        message = (
+            <FormattedMessage
+                id='licensingPage.overageUsersBanner.textSelfHostedExpand'
+                defaultMessage='Your workspace user count has exceeded your paid license seat count. Update your seat count to stay compliant.'
+                values={{
+                    seats: overageByUsers,
+                }}
+            />);
+    }
 
     return (
         <AnnouncementBar
