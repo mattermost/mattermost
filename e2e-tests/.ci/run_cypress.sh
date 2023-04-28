@@ -13,7 +13,8 @@ mkdir -p ../cypress/{results,logs}
 mkdir -p ../cypress/results/junit
 touch ../cypress/results/junit/dummy.xml
 
-${MME2E_DOCKER_COMPOSE} exec -T -u $UID cypress npm ci
+#${MME2E_DOCKER_COMPOSE} exec -T -u $UID cypress npm ci
+${MME2E_DOCKER_COMPOSE} exec -T -u $UID cypress npm i
 ${MME2E_DOCKER_COMPOSE} exec -T -u $UID cypress node -p 'module.paths'
 ${MME2E_DOCKER_COMPOSE} exec -T -u $UID cypress bash <<"EOF"
 cat <<INNEREOF
@@ -25,8 +26,9 @@ chrome:          $(google-chrome --version || true)
 firefox:         $(firefox --version || true)
 INNEREOF
 EOF
-# TODO change this to run run_test_cycle.js instead, after testing
-${MME2E_DOCKER_COMPOSE} exec -T -u 1000 cypress ./node_modules/.bin/cypress run --spec tests/integration/channels/accessibility/accessibility_dropdowns_spec.js \
+${MME2E_DOCKER_COMPOSE} exec -T -u 1000 cypress node run_test_cycle.js \
 	2> >(tee ../cypress/logs/cypress.stderr) | tee ../cypress/logs/cypress.stdout
+#${MME2E_DOCKER_COMPOSE} exec -T -u 1000 cypress ./node_modules/.bin/cypress run --spec tests/integration/channels/accessibility/accessibility_dropdowns_spec.js \
+#	2> >(tee ../cypress/logs/cypress.stderr) | tee ../cypress/logs/cypress.stdout
 CYPRESS_EXIT_CODE=$?
 echo "Cypress exited with code $CYPRESS_EXIT_CODE"

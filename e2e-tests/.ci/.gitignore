@@ -1,2 +1,4 @@
+dashboard
 !.env.cypress
 !.env.server
+!.env.dashboard

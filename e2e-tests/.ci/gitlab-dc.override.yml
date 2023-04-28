@@ -27,8 +27,6 @@ services:
       MM_LICENSE: "${MM_LICENSE}"
     env_file:
       - "../../e2e-tests/.ci/.env.server"
-    # TODO keep?
-    command: bash -c "sed -E -i 's|\"General\"|\"Town Square\"|g' i18n/en.json || :; exec mattermost"
     ports:
       - "8065:8065"
     depends_on:
@@ -79,12 +77,13 @@ services:
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     env_file:
       - "../../e2e-tests/.ci/.env.cypress"
+      - "../../e2e-tests/.ci/.env.dashboard"
     environment:
       REPO: "mattermost-server"
       BRANCH: "${MM_BRANCH}"
       BUILD_ID: "${MM_BUILD_ID}"
       CI_BASE_URL: "localhost-${MM_NODE_INDEX}"
-      AUTOMATION_DASHBOARD_URL: "https://automation-dashboard.vercel.app/api"
+      AUTOMATION_DASHBOARD_URL: "${MM_AUTOMATION_DASHBOARD_URL}" #NB: if this is unset, it will default to http://${docker_network_gateway_ip}:4000/api
       AUTOMATION_DASHBOARD_TOKEN: "${MM_AUTOMATION_DASHBOARD_TOKEN}"
       # Cypress configuration
       BROWSER: "chrome"
