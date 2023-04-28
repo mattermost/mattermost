@@ -176,9 +176,9 @@
     "max-lines": [
       2,
       {
-        "max": 450,
+        "max": 800,
         "skipBlankLines": true,
-        "skipComments": false
+        "skipComments": true
       }
     ],
     "max-nested-callbacks": [
@@ -762,7 +762,8 @@
         "new-cap": 0,
         "prefer-arrow-callback": 0,
         "no-import-assign": 0,
-        "no-console": 0
+        "no-console": 0,
+        "max-lines": 0
       }
     }
   ]
