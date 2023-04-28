@@ -1037,6 +1037,14 @@
         margin: 5px 0;
         text-overflow: ellipsis;
     }
+
+    .more-modal_loading {
+        padding: 30px;
+
+        .loading__content p {
+            display: none;
+        }
+    }
 }
 
 .member-select__container {
