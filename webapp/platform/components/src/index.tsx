@@ -7,7 +7,7 @@ export type {CircleSkeletonLoaderProps, RectangleSkeletonLoaderProps} from './sk
 export type {Props as FocusTrapProps} from './focus_trap';
 
 // components
-export * from './compass-ui';
+export * from './compass';
 export * from './legacy_generic_modal/footer_content';
 export {LegacyGenericModal} from './legacy_generic_modal/legacy_generic_modal';
 export {CircleSkeletonLoader, RectangleSkeletonLoader} from './skeleton_loader';
