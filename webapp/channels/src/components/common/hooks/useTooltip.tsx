@@ -22,6 +22,7 @@ interface TooltipOptions {
     offset?: Parameters<typeof offset>[0];
     allowPointer?: boolean;
     onClickOther: () => void;
+    defaultCursor?: boolean;
     tooltipId?: string;
     stopPropagation?: boolean;
 }
@@ -157,6 +158,7 @@ export default function useTooltip(options: TooltipOptions) {
                     {
                         'floating-ui-tooltip--visible': visible,
                         'floating-ui-tooltip--absolute': strategy === 'absolute',
+                        'floating-ui-tooltip--default-cursor': options.defaultCursor,
                         'floating-ui-tooltip--primary-action-style': options.primaryActionStyle,
                         'floating-ui-tooltip--allow-pointer': options.allowPointer,
                     },

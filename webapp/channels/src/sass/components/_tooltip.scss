@@ -53,6 +53,10 @@
         pointer-events: auto;
     }
 
+    &.floating-ui-tooltip--default-cursor {
+        cursor: default;
+    }
+
     &.floating-ui-tooltip--visible {
         opacity: 0.9;
         transition: opacity 0.15s linear;

@@ -78,6 +78,7 @@ function Mode(props: Props) {
         primaryActionStyle: true,
         onClickOther,
         stopPropagation: true,
+        defaultCursor: true,
         tooltipId: 'new-work-templates-tip',
     });
 
@@ -148,6 +149,7 @@ const TipBody = styled.div`
     font-weight: 400;
     text-align: left;
     line-height: 20px;
+    cursor: default;
 `;
 const TipHeader = styled.div`
     display: flex;
@@ -167,18 +169,3 @@ const TipDismiss = styled.span`
     cursor: pointer;
 `;
 export default StyledMode;
-
-// {!knowsTemplatesExist && (
-//     <ClickShield
-//         punchout={punchout}
-//         onClick={(e: React.MouseEvent) => {
-//             // otherwise, even if its in a portal,
-//             // the click will be propagated
-//             // up to the templates tab and change view
-//             // but we do not want that
-//             e.stopPropagation();
-//             setKnowsTemplatesExist('true');
-//         }}
-//         inRoot={true}
-//     />
-// )}
