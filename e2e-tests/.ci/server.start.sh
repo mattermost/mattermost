@@ -7,14 +7,14 @@ cd $(dirname $0)
 
 # Cleanup old containers, if any
 mme2e_log "Stopping leftover E2E containers, if any are running"
-${MME2E_DOCKER_COMPOSE} down -v
+${MME2E_DC_SERVER} down -v
 
 # Initialize docker-compose resources
 mme2e_log "Creating docker-compose network + containers"
 mme2e_wait_image ${SERVER_IMAGE} 30 60
-${MME2E_DOCKER_COMPOSE} up --no-start
+${MME2E_DC_SERVER} up --no-start
 mme2e_log "Obtaining docker-compose network gateway IP, for accessing services on the host"
-MME2E_DOCKER_NETWORK=$(${MME2E_DOCKER_COMPOSE} ps -q server | xargs -l docker inspect | jq -r '.[0].NetworkSettings.Networks | (keys|.[0])')
+MME2E_DOCKER_NETWORK=$(${MME2E_DC_SERVER} ps -q server | xargs -l docker inspect | jq -r '.[0].NetworkSettings.Networks | (keys|.[0])')
 MME2E_DOCKER_GATEWAY=$(docker network inspect $MME2E_DOCKER_NETWORK | jq -r '.[0].IPAM.Config[0].Gateway')
 
 # Generate .env.server
@@ -39,7 +39,7 @@ EOF
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"
-${MME2E_DOCKER_COMPOSE} up -d
+${MME2E_DC_SERVER} up -d
 if ! mme2e_wait_service_healthy server 60 10; then
   mme2e_log "Mattermost container not healthy, retry attempts exhausted. Giving up." >&2
   exit 1
