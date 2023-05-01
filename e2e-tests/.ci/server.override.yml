@@ -7,7 +7,12 @@ services:
   server:
     image: "${SERVER_IMAGE}"
     restart: always
+    env_file:
+      - "../../e2e-tests/.ci/.env.server"
     environment:
+      ### Required variables - start
+      # MM_LICENSE: "..."   # NB, OPTIONAL
+      ### Required variables - end
       MM_SERVICESETTINGS_SITEURL: "http://server:8065"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_PLUGINSETTINGS_ENABLED: "true"
@@ -21,12 +26,10 @@ services:
       MM_EMAILSETTINGS_SMTPSERVER: "inbucket"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_FEATUREFLAGS_USECASEONBOARDING: "false"
-      # Added by me
+      # TODO added by me, check before merging the PR
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_LICENSE: "${MM_LICENSE}"
-    env_file:
-      - "../../e2e-tests/.ci/.env.server"
     ports:
       - "8065:8065"
     depends_on:
@@ -79,13 +82,13 @@ services:
       - "../../e2e-tests/.ci/.env.cypress"
       - "../../e2e-tests/.ci/.env.dashboard"
     environment:
-      REPO: "mattermost-server"
-      ### Variables to pass
+      ### Required variables - start
       # BRANCH: "..."
       # BUILD_ID: "..."
       # AUTOMATION_DASHBOARD_URL: "..." # NB, OPTIONAL: if this is unset, it will default to http://${docker_network_gateway_ip}:4000/api
       # AUTOMATION_DASHBOARD_TOKEN: "..."
-      ### Variables to pass, end
+      ### Required variables - end
+      REPO: "mattermost-server"
       CI_BASE_URL: "localhost-${MM_NODE_INDEX}"
       # Cypress configuration
       BROWSER: "chrome"

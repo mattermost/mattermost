@@ -15,7 +15,7 @@ services:
           ALLOWED_ROLE: integration
           #UPLOAD_REQUEST_URL: "http:..." #TODO change after adding minio?
           #BASE_IMAGE_URL: "" # TODO remove?
-        user: "$UID"
+        user: "${MME2E_UID}"
         volumes:
           - "../:/app"
           - "../../dashboard.entrypoint.sh:/usr/local/bin/dashboard.entrypoint.sh:ro"

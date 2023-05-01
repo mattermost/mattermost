@@ -1,8 +1,9 @@
 # Utility variables
-# NB: these assume you source them from the directory this file is in
-MME2E_DOCKER_COMPOSE_BASEFILE=$(readlink -e ../../server/build/gitlab-dc.postgres.yml)
-MME2E_DOCKER_COMPOSE_OVERRIDEFILE=$(readlink -e ./gitlab-dc.override.yml)
-MME2E_DOCKER_COMPOSE="docker-compose -f ${MME2E_DOCKER_COMPOSE_BASEFILE:?} -f ${MME2E_DOCKER_COMPOSE_OVERRIDEFILE:?}"
+# NB: these assume you `source` them from the directory this file is in
+export MME2E_DOCKER_COMPOSE_BASEFILE=$(readlink -e ../../server/build/gitlab-dc.postgres.yml)
+export MME2E_DOCKER_COMPOSE_OVERRIDEFILE=$(readlink -e ./server.override.yml)
+export MME2E_DOCKER_COMPOSE="docker-compose -f ${MME2E_DOCKER_COMPOSE_BASEFILE:?} -f ${MME2E_DOCKER_COMPOSE_OVERRIDEFILE:?}"
+export MME2E_UID=$(id -u)
 
 # Function definitions
 mme2e_log () { echo "[$(date -Is)]" "$@"; }
@@ -16,14 +17,13 @@ mme2e_get_current_shopt_arg () {
     *) exit 1;;
   esac
 }
-mme2e_load_env_files () {
-  # This loads all .env* files. Variables are automatically exported
+mme2e_load_env_file () {
+  # This loads the ./env file. Variables are automatically exported
+  [ -f ./env ] || return
   MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
   set -o allexport
-  for envfile in .env*; do
-    mme2e_log "Loading env file: $envfile"
-    . $envfile
-  done
+  mme2e_log "Loading env file"
+  . ./env
   set ${MME2E_PREVIOUS_ALLEXPORT}
 }
 mme2e_wait_command_success () {
@@ -59,7 +59,8 @@ mme2e_wait_image () {
 
 # Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
 # NB: this won't work in the script
-alias docker-compose="${MME2E_DOCKER_COMPOSE}"
+alias docker-compose-e2e="${MME2E_DOCKER_COMPOSE}"
+alias docker-compose-dashboard="${MME2E_DOCKER_COMPOSE}" #TODO complete this
 
 # Call prerequisite utility functions
-mme2e_load_env_files
+mme2e_load_env_file
