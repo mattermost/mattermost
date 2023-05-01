@@ -195,7 +195,7 @@ func NewTestServerPluginMode(t *testing.T) *server.Server {
 	if err := logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
 		panic(err)
 	}
-	innerStore, err := server.NewStore(cfg, false, logger)
+	innerStore, err := server.NewStore(cfg, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -227,7 +227,7 @@ func newTestServerLocalMode(t *testing.T) *server.Server {
 	err := logger.Configure("", cfg.LoggingCfgJSON, nil)
 	require.NoError(t, err)
 
-	db, err := server.NewStore(cfg, false, logger)
+	db, err := server.NewStore(cfg, logger)
 	require.NoError(t, err)
 
 	permissionsService := localpermissions.New(db, logger)
@@ -259,7 +259,7 @@ func SetupTestHelperWithToken(t *testing.T) *TestHelper {
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = newTestServer(t, sessionToken)
+	th.Server = newTestServer(t)
 	th.Client = client.NewClient(th.Server.Config().ServerRoot, sessionToken)
 	th.Client2 = client.NewClient(th.Server.Config().ServerRoot, sessionToken)
 	return th
@@ -306,7 +306,7 @@ func SetupTestHelperWithLicense(t *testing.T, licenseType LicenseType) *TestHelp
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = newTestServerWithLicense(t, "", licenseType)
+	th.Server = newTestServerWithLicense(t, licenseType)
 	th.Client = client.NewClient(th.Server.Config().ServerRoot, "")
 	th.Client2 = client.NewClient(th.Server.Config().ServerRoot, "")
 	return th

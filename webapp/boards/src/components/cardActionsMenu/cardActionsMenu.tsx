@@ -12,9 +12,6 @@ import LinkIcon from 'src/widgets/icons/Link'
 import {Utils} from 'src/utils'
 import {Permission} from 'src/constants'
 import {sendFlashMessage} from 'src/components/flashMessages'
-import {IUser} from 'src/user'
-import {getMe} from 'src/store/users'
-import {useAppSelector} from 'src/store/hooks'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 type Props = {
@@ -27,8 +24,6 @@ type Props = {
 
 export const CardActionsMenu = (props: Props): JSX.Element => {
     const {cardId} = props
-
-    const me = useAppSelector<IUser|null>(getMe)
     const intl = useIntl()
 
     const handleDeleteCard = () => {

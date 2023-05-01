@@ -36,8 +36,7 @@ func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
 	filesBackend := &mocks.FileBackend{}
 	auth := auth.New(&cfg, store, nil)
 	logger := mlog.CreateConsoleTestLogger(false, mlog.LvlDebug)
-	sessionToken := "TESTTOKEN"
-	wsserver := ws.NewServer(auth, sessionToken, false, logger, store)
+	wsserver := ws.NewServer(auth, false, logger, store)
 	webhook := webhook.NewClient(&cfg, logger)
 	metricsService := metrics.NewMetrics(metrics.InstanceInfo{})
 
