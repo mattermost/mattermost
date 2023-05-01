@@ -157,9 +157,6 @@ func (a *App) ImportBoardJSONL(r io.Reader, opt model.ImportArchiveOptions) (*mo
 	lineReader := bufio.NewReader(r)
 
 	userID := opt.ModifiedBy
-	if userID == model.SingleUser {
-		userID = ""
-	}
 	now := utils.GetMillis()
 	var boardID string
 	var boardMembers []*model.BoardMember

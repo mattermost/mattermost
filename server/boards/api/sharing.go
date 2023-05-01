@@ -151,14 +151,7 @@ func (a *API) handlePostSharing(w http.ResponseWriter, r *http.Request) {
 
 	// Stamp ModifiedBy
 	modifiedBy := userID
-	if userID == model.SingleUser {
-		modifiedBy = ""
-	}
 	sharing.ModifiedBy = modifiedBy
-
-	if userID == model.SingleUser {
-		userID = ""
-	}
 
 	if !a.app.GetClientConfig().EnablePublicSharedBoards {
 		a.logger.Warn(

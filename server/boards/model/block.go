@@ -211,10 +211,6 @@ type QueryBlockHistoryChildOptions struct {
 }
 
 func StampModificationMetadata(userID string, blocks []*Block, auditRec *audit.Record) {
-	if userID == SingleUser {
-		userID = ""
-	}
-
 	now := GetMillis()
 	for i := range blocks {
 		blocks[i].ModifiedBy = userID

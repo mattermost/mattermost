@@ -31,7 +31,7 @@ func TestSidebar(t *testing.T) {
 	category := th.CreateCategory(model.Category{
 		Name:   "Category 2",
 		TeamID: "team-id",
-		UserID: "single-user",
+		UserID: "user-id",
 	})
 	th.UpdateCategoryBoard("team-id", category.ID, board2.ID)
 

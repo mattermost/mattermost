@@ -38,19 +38,17 @@ var (
 // REST APIs
 
 type API struct {
-	app             *app.App
-	authService     string
-	permissions     permissions.PermissionsService
-	singleUserToken string
-	MattermostAuth  bool
-	logger          mlog.LoggerIFace
-	audit           *audit.Audit
-	isPlugin        bool
+	app            *app.App
+	authService    string
+	permissions    permissions.PermissionsService
+	MattermostAuth bool
+	logger         mlog.LoggerIFace
+	audit          *audit.Audit
+	isPlugin       bool
 }
 
 func NewAPI(
 	app *app.App,
-	singleUserToken string,
 	authService string,
 	permissions permissions.PermissionsService,
 	logger mlog.LoggerIFace,
@@ -58,13 +56,12 @@ func NewAPI(
 	isPlugin bool,
 ) *API {
 	return &API{
-		app:             app,
-		singleUserToken: singleUserToken,
-		authService:     authService,
-		permissions:     permissions,
-		logger:          logger,
-		audit:           audit,
-		isPlugin:        isPlugin,
+		app:         app,
+		authService: authService,
+		permissions: permissions,
+		logger:      logger,
+		audit:       audit,
+		isPlugin:    isPlugin,
 	}
 }
 
@@ -175,9 +172,6 @@ func (a *API) hasValidReadTokenForBoard(r *http.Request, boardID string) bool {
 }
 
 func (a *API) userIsGuest(userID string) (bool, error) {
-	if a.singleUserToken != "" {
-		return false, nil
-	}
 	return a.app.UserIsGuest(userID)
 }
 

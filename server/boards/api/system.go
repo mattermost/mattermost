@@ -43,10 +43,6 @@ func (a *API) handlePing(w http.ResponseWriter, r *http.Request) {
 	//     description: success
 	serverMetadata := a.app.GetServerMetadata()
 
-	if a.singleUserToken != "" {
-		serverMetadata.SKU = "personal_desktop"
-	}
-
 	if serverMetadata.Edition == "plugin" {
 		serverMetadata.SKU = "suite"
 	}

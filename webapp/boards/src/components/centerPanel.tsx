@@ -378,8 +378,8 @@ const CenterPanel = (props: Props) => {
         setShowHiddenCardCountNotification(show)
     }, [showHiddenCardCountNotification])
 
-    const showShareButton = !props.readonly && me?.id !== 'single-user'
-    const showShareLoginButton = props.readonly && me?.id !== 'single-user'
+    const showShareButton = !props.readonly
+    const showShareLoginButton = props.readonly
 
     const {groupByProperty, activeView, board, views, cards} = props
 

@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	SingleUser                    = "single-user"
 	GlobalTeamID                  = "0"
 	SystemUserID                  = "system"
 	PreferencesCategoryFocalboard = "focalboard"

@@ -82,7 +82,7 @@ func New(params Params) (*Server, error) {
 	// if no ws adapter is provided, we spin up a websocket server
 	wsAdapter := params.WSAdapter
 	if wsAdapter == nil {
-		wsAdapter = ws.NewServer(authenticator, params.SingleUserToken, params.Cfg.AuthMode == MattermostAuthMod, params.Logger, params.DBStore)
+		wsAdapter = ws.NewServer(authenticator, params.Cfg.AuthMode == MattermostAuthMod, params.Logger, params.DBStore)
 	}
 
 	filesBackendSettings := filestore.FileBackendSettings{}
@@ -147,7 +147,7 @@ func New(params Params) (*Server, error) {
 	}
 	app := app.New(params.Cfg, wsAdapter, appServices)
 
-	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService, params.IsPlugin)
+	focalboardAPI := api.NewAPI(app, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService, params.IsPlugin)
 
 	// Local router for admin APIs
 	localRouter := mux.NewRouter()
@@ -186,7 +186,6 @@ func New(params Params) (*Server, error) {
 		telemetryID: telemetryID,
 		serverID:    params.ServerID,
 		logger:      params.Logger,
-		singleUser:  params.SingleUserToken != "",
 	}
 	telemetryService := initTelemetry(telemetryOpts)
 
@@ -212,7 +211,7 @@ func New(params Params) (*Server, error) {
 	return &server, nil
 }
 
-func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.LoggerIFace) (store.Store, error) {
+func NewStore(config *config.Configuration, logger mlog.LoggerIFace) (store.Store, error) {
 	sqlDB, err := sql.Open(config.DBType, config.DBConfigString)
 	if err != nil {
 		logger.Error("connectDatabase failed", mlog.Err(err))
@@ -232,7 +231,6 @@ func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.Logge
 		Logger:           logger,
 		DB:               sqlDB,
 		IsPlugin:         false,
-		IsSingleUser:     isSingleUser,
 	}
 
 	var db store.Store
@@ -431,7 +429,6 @@ type telemetryOptions struct {
 	telemetryID string
 	serverID    string
 	logger      mlog.LoggerIFace
-	singleUser  bool
 }
 
 func initTelemetry(opts telemetryOptions) *telemetry.Service {
@@ -453,7 +450,6 @@ func initTelemetry(opts telemetryOptions) *telemetry.Service {
 			"port":                       opts.cfg.Port == config.DefaultPort,
 			"useSSL":                     opts.cfg.UseSSL,
 			"dbType":                     opts.cfg.DBType,
-			"single_user":                opts.singleUser,
 			"allow_public_shared_boards": opts.cfg.EnablePublicSharedBoards,
 		}, nil
 	})

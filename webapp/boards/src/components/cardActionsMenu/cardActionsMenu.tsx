@@ -60,23 +60,21 @@ export const CardActionsMenu = (props: Props): JSX.Element => {
                     onClick={handleDuplicateCard}
                 />}
             </BoardPermissionGate>
-            {me?.id !== 'single-user' &&
-                <Menu.Text
-                    icon={<LinkIcon/>}
-                    id='copy'
-                    name={intl.formatMessage({id: 'CardActionsMenu.copyLink', defaultMessage: 'Copy link'})}
-                    onClick={() => {
-                        let cardLink = window.location.href
+            <Menu.Text
+                icon={<LinkIcon/>}
+                id='copy'
+                name={intl.formatMessage({id: 'CardActionsMenu.copyLink', defaultMessage: 'Copy link'})}
+                onClick={() => {
+                    let cardLink = window.location.href
 
-                        if (!cardLink.includes(cardId)) {
-                            cardLink += `/${cardId}`
-                        }
+                    if (!cardLink.includes(cardId)) {
+                        cardLink += `/${cardId}`
+                    }
 
-                        Utils.copyTextToClipboard(cardLink)
-                        sendFlashMessage({content: intl.formatMessage({id: 'CardActionsMenu.copiedLink', defaultMessage: 'Copied!'}), severity: 'high'})
-                    }}
-                />
-            }
+                    Utils.copyTextToClipboard(cardLink)
+                    sendFlashMessage({content: intl.formatMessage({id: 'CardActionsMenu.copiedLink', defaultMessage: 'Copied!'}), severity: 'high'})
+                }}
+            />
             {props.children}
         </Menu>
     )

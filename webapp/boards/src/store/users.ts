@@ -173,9 +173,6 @@ export const getVersionMessageCanceled = createSelector(
     getMyConfig,
     (me, myConfig): boolean => {
         if (versionProperty && me) {
-            if (me.id === 'single-user') {
-                return true
-            }
             return Boolean(myConfig[versionProperty]?.value)
         }
         return true

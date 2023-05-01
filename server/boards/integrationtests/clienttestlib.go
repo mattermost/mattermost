@@ -143,19 +143,18 @@ func GetTestConfig(t *testing.T) *config.Configuration {
 	}
 }
 
-func newTestServer(t *testing.T, singleUserToken string) *server.Server {
-	return newTestServerWithLicense(t, singleUserToken, LicenseNone)
+func newTestServer(t *testing.T) *server.Server {
+	return newTestServerWithLicense(t, LicenseNone)
 }
 
-func newTestServerWithLicense(t *testing.T, singleUserToken string, licenseType LicenseType) *server.Server {
+func newTestServerWithLicense(t *testing.T, licenseType LicenseType) *server.Server {
 	cfg := GetTestConfig(t)
 
 	logger, _ := mlog.NewLogger()
 	err := logger.Configure("", cfg.LoggingCfgJSON, nil)
 	require.NoError(t, err)
 
-	singleUser := singleUserToken != ""
-	innerStore, err := server.NewStore(cfg, singleUser, logger)
+	innerStore, err := server.NewStore(cfg, logger)
 	require.NoError(t, err)
 
 	var db store.Store
@@ -175,7 +174,6 @@ func newTestServerWithLicense(t *testing.T, singleUserToken string, licenseType 
 
 	params := server.Params{
 		Cfg:                cfg,
-		SingleUserToken:    singleUserToken,
 		DBStore:            db,
 		Logger:             logger,
 		PermissionsService: permissionsService,

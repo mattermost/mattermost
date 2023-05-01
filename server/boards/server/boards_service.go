@@ -135,7 +135,6 @@ func NewBoardsService(api model.ServicesAPI) (*BoardsService, error) {
 
 	params := Params{
 		Cfg:                cfg,
-		SingleUserToken:    "",
 		DBStore:            db,
 		Logger:             logger,
 		ServerID:           serverID,

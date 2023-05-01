@@ -25,7 +25,6 @@ type SQLStore struct {
 	tablePrefix      string
 	connectionString string
 	isPlugin         bool
-	isSingleUser     bool
 	logger           mlog.LoggerIFace
 	servicesAPI      servicesAPI
 	isBinaryParam    bool
@@ -48,7 +47,6 @@ func New(params Params) (*SQLStore, error) {
 		connectionString: params.ConnectionString,
 		logger:           params.Logger,
 		isPlugin:         params.IsPlugin,
-		isSingleUser:     params.IsSingleUser,
 		servicesAPI:      params.ServicesAPI,
 		configFn:         params.ConfigFn,
 	}

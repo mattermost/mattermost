@@ -28,7 +28,6 @@ function Route({children, ...props}: RouteProps) {
     const disableTour = me?.is_guest || clientConfig?.featureFlags?.disableTour || false
 
     const showWelcomePage = !disableTour &&
-        (me?.id !== 'single-user') &&
         props.path !== '/welcome' &&
         loggedIn === true &&
         !myConfig[UserSettingKey.WelcomePageViewed]

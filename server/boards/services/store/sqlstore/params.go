@@ -25,7 +25,6 @@ type Params struct {
 	Logger           mlog.LoggerIFace
 	DB               *sql.DB
 	IsPlugin         bool
-	IsSingleUser     bool
 	ServicesAPI      servicesAPI
 	SkipMigrations   bool
 	ConfigFn         func() *mm_model.Config

@@ -119,11 +119,10 @@ func (bm *BoardsMigrator) getMorphConnection() (*morph.Morph, drivers.Driver, er
 	}
 
 	params := map[string]interface{}{
-		"prefix":     tablePrefix,
-		"postgres":   bm.driverName == model.PostgresDBType,
-		"mysql":      bm.driverName == model.MysqlDBType,
-		"plugin":     true, // TODO: to be removed
-		"singleUser": false,
+		"prefix":   tablePrefix,
+		"postgres": bm.driverName == model.PostgresDBType,
+		"mysql":    bm.driverName == model.MysqlDBType,
+		"plugin":   true, // TODO: to be removed
 	}
 
 	migrationAssets := &embedded.AssetSource{

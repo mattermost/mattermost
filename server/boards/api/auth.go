@@ -65,12 +65,6 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if a.singleUserToken != "" {
-		// Not permitted in single-user mode
-		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
-		return
-	}
-
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -131,12 +125,6 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if a.singleUserToken != "" {
-		// Not permitted in single-user mode
-		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
-		return
-	}
-
 	ctx := r.Context()
 
 	session := ctx.Value(sessionContextKey).(*model.Session)
@@ -182,12 +170,6 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 	if a.MattermostAuth {
 		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in plugin mode"))
-		return
-	}
-
-	if a.singleUserToken != "" {
-		// Not permitted in single-user mode
-		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
 		return
 	}
 
@@ -288,12 +270,6 @@ func (a *API) handleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if a.singleUserToken != "" {
-		// Not permitted in single-user mode
-		a.errorResponse(w, r, model.NewErrUnauthorized("not permitted in single-user mode"))
-		return
-	}
-
 	vars := mux.Vars(r)
 	userID := vars["userID"]
 
@@ -333,28 +309,6 @@ func (a *API) sessionRequired(handler func(w http.ResponseWriter, r *http.Reques
 func (a *API) attachSession(handler func(w http.ResponseWriter, r *http.Request), required bool) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, _ := auth.ParseAuthTokenFromRequest(r)
-
-		a.logger.Debug(`attachSession`, mlog.Bool("single_user", a.singleUserToken != ""))
-		if a.singleUserToken != "" {
-			if required && (token != a.singleUserToken) {
-				a.errorResponse(w, r, model.NewErrUnauthorized("invalid single user token"))
-				return
-			}
-
-			now := utils.GetMillis()
-			session := &model.Session{
-				ID:          model.SingleUser,
-				Token:       token,
-				UserID:      model.SingleUser,
-				AuthService: a.authService,
-				Props:       map[string]interface{}{},
-				CreateAt:    now,
-				UpdateAt:    now,
-			}
-			ctx := context.WithValue(r.Context(), sessionContextKey, session)
-			handler(w, r.WithContext(ctx))
-			return
-		}
 
 		if a.MattermostAuth && r.Header.Get("Mattermost-User-Id") != "" {
 			userID := r.Header.Get("Mattermost-User-Id")

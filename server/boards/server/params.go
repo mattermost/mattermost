@@ -18,7 +18,6 @@ import (
 
 type Params struct {
 	Cfg                *config.Configuration
-	SingleUserToken    string
 	DBStore            store.Store
 	Logger             mlog.LoggerIFace
 	ServerID           string

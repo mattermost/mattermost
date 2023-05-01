@@ -31,38 +31,6 @@ describe('components/messages/VersionMessage', () => {
     const mockStore = configureStore([])
 
     if (versionProperty) {
-        test('single user mode, no display', () => {
-            const me: IUser = {
-                id: 'single-user',
-                username: 'username_1',
-                email: '',
-                nickname: '',
-                firstname: '',
-                lastname: '',
-                props: {},
-                create_at: 0,
-                update_at: 0,
-                is_bot: false,
-                is_guest: false,
-                roles: 'system_user',
-            }
-            const state = {
-                users: {
-                    me,
-                },
-            }
-
-            const store = mockStore(state)
-
-            const component = wrapIntl(
-                <ReduxProvider store={store}>
-                    <VersionMessage/>
-                </ReduxProvider>,
-            )
-            const {container} = render(component)
-            expect(container.firstChild).toBeNull()
-        })
-
         test('property set, no message', () => {
             const me: IUser = {
                 id: 'user-id-1',

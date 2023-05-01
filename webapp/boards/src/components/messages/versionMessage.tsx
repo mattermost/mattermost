@@ -31,7 +31,7 @@ const VersionMessage = () => {
     const me = useAppSelector<IUser|null>(getMe)
     const versionMessageCanceled = useAppSelector(getVersionMessageCanceled)
 
-    if (!me || me.id === 'single-user' || versionMessageCanceled) {
+    if (!me || versionMessageCanceled) {
         return null
     }
 
