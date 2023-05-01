@@ -5,6 +5,26 @@ exports[`components/preparing-workspace/invite_members_link should match snapsho
   <div
     class="InviteMembersLink"
   >
+    <button
+      class="InviteMembersLink__button--single"
+      data-testid="shareLinkInputButton"
+    >
+      <i
+        class="icon icon-content-copy"
+      />
+      <span>
+        Copy Link
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/preparing-workspace/invite_members_link should match snapshot when displayed including the input field 1`] = `
+<div>
+  <div
+    class="InviteMembersLink"
+  >
     <input
       aria-label="team invite link"
       class="InviteMembersLink__input"
