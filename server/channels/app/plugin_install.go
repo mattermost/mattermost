@@ -42,6 +42,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/blang/semver"
 
@@ -177,10 +178,10 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		if _, ok := cfg.PluginSettings.Plugins[manifest.Id]; !ok {
 			cfg.PluginSettings.Plugins[manifest.Id] = make(map[string]any)
-		}
 
-		for _, pluginSetting := range manifest.SettingsSchema.Settings {
-			cfg.PluginSettings.Plugins[manifest.Id][pluginSetting.Key] = pluginSetting.Default
+			for _, pluginSetting := range manifest.SettingsSchema.Settings {
+				cfg.PluginSettings.Plugins[manifest.Id][strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
+			}
 		}
 	})
 
