@@ -203,8 +203,8 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         e.preventDefault();
 
         if (this.props.canOpenMarketplace) {
-            const target = e.target as HTMLElement;
-            const openedFrom: OpenedFromType = target?.className.includes('_addButton') ? 'apps_category_plus' : 'apps_category_menu';
+            const {parentElement: plusButton} = e.target as HTMLElement;
+            const openedFrom: OpenedFromType = plusButton?.className.includes('_addButton') ? 'apps_category_plus' : 'apps_category_menu';
 
             this.props.actions.openModal({
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,

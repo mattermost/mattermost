@@ -110,7 +110,14 @@ describe('components/sidebar', () => {
         );
         const instance = wrapper.instance();
 
-        const mockEvent1: Partial<Event> = {preventDefault: jest.fn()};
+        const mockEvent1: Partial<Event> = {
+            preventDefault: jest.fn(),
+            target: {
+                parentElement: {
+                    className: '...',
+                },
+            } as HTMLElement,
+        };
         instance.handleOpenAppsModal(mockEvent1 as any);
 
         expect(baseProps.actions.openModal).toHaveBeenCalledWith(
@@ -123,7 +130,9 @@ describe('components/sidebar', () => {
         const mockEvent2: Partial<Event> = {
             preventDefault: jest.fn(),
             target: {
-                className: '..._addButton',
+                parentElement: {
+                    className: '..._addButton',
+                },
             } as HTMLElement,
         };
         instance.handleOpenAppsModal(mockEvent2 as any);

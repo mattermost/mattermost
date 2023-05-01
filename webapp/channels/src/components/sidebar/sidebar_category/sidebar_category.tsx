@@ -147,7 +147,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         event.preventDefault();
 
         this.props.handleCtaOnClick(event.nativeEvent);
-        trackEvent('ui', 'ui_sidebar_create_direct_message');
+
+        if (this.props.category.type === CategoryTypes.DIRECT_MESSAGES) {
+            trackEvent('ui', 'ui_sidebar_create_direct_message');
+        }
     };
 
     isDropDisabled = () => {
