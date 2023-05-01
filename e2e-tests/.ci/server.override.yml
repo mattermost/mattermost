@@ -85,7 +85,7 @@ services:
       ### Required variables - start
       # BRANCH: "..."
       # BUILD_ID: "..."
-      # AUTOMATION_DASHBOARD_URL: "..." # NB, OPTIONAL: if this is unset, it will default to http://${docker_network_gateway_ip}:4000/api
+      # AUTOMATION_DASHBOARD_URL: "..."
       # AUTOMATION_DASHBOARD_TOKEN: "..."
       ### Required variables - end
       REPO: "mattermost-server"

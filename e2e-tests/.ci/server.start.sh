@@ -13,9 +13,6 @@ ${MME2E_DC_SERVER} down -v
 mme2e_log "Creating docker-compose network + containers"
 mme2e_wait_image ${SERVER_IMAGE} 30 60
 ${MME2E_DC_SERVER} up --no-start
-mme2e_log "Obtaining docker-compose network gateway IP, for accessing services on the host"
-MME2E_DOCKER_NETWORK=$(${MME2E_DC_SERVER} ps -q server | xargs -l docker inspect | jq -r '.[0].NetworkSettings.Networks | (keys|.[0])')
-MME2E_DOCKER_GATEWAY=$(docker network inspect $MME2E_DOCKER_NETWORK | jq -r '.[0].IPAM.Config[0].Gateway')
 
 # Generate .env.server
 mme2e_log "Generating .env.server"
@@ -34,8 +31,6 @@ cat >.env.cypress <<EOF
 BRANCH=$BRANCH
 BUILD_ID=$BUILD_ID
 EOF
-# Generate default value for AUTOMATION_DASHBOARD_URL, pointing to the hosts' IP
-[ -n "${AUTOMATION_DASHBOARD_URL:-}" ] || echo "AUTOMATION_DASHBOARD_URL=http://${MME2E_DOCKER_GATEWAY}:4000/api" >>.env.cypress
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"

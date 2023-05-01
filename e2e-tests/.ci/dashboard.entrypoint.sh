@@ -3,12 +3,6 @@ set -e -u -o pipefail
 
 npm install
 
-# Get signed token, and feed it to the .env.dashboard file, for consumption by cypress
-export JWT_SIGNED_TOKEN=$(node script/sign.js | awk '{ print $2; }')
-cat >/var/local/.env.dashboard <<EOF
-AUTOMATION_DASHBOARD_TOKEN=$JWT_SIGNED_TOKEN
-EOF
-
 # Run migrations. This is also a way to wait for the database to be up
 MIGRATION_ATTEMPTS_LEFT=10
 MIGRATION_ATTEMPTS_INTERVAL=10
