@@ -891,6 +891,7 @@ type GroupStore interface {
 	CountGroupsByTeam(teamID string, opts model.GroupSearchOpts) (int64, error)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
+	GetGroupsByIds(groupIds []string, opts *GroupGetByIdsOpts) ([]*model.Group, error)
 
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error)
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error)
@@ -1101,6 +1102,17 @@ var _ product.StoreService = (*StoreServiceAdapter)(nil)
 // StoreServiceAdapter provides a simple Store wrapper for use with products.
 type StoreServiceAdapter struct {
 	store Store
+}
+
+type GroupGetByIdsOpts struct {
+	// Including the total member count for each group
+	IncludeMemberCount bool
+
+	// Including the member ids for each group
+	IncludeMemberIDs bool
+
+	// Restrict to search in a list of teams and channels. Does nothing when provided by a client.
+	ViewRestrictions *model.ViewUsersRestrictions
 }
 
 func NewStoreServiceAdapter(store Store) *StoreServiceAdapter {

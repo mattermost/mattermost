@@ -1639,6 +1639,55 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	return groupsVar.ToModel(), nil
 }
 
+func (s *SqlGroupStore) GetGroupsByIds(groupIds []string, opts *store.GroupGetByIdsOpts) ([]*model.Group, error) {
+	groupsVar := groups{}
+
+	selectQuery := []string{"g.*"}
+
+	if opts.IncludeMemberCount {
+		selectQuery = append(selectQuery, "coalesce(Members.MemberCount, 0) AS MemberCount")
+	}
+
+	groupsQuery := s.getQueryBuilder().Select(strings.Join(selectQuery, ", "))
+
+	if opts.IncludeMemberCount {
+		countQuery := s.getQueryBuilder().
+			Select("GroupMembers.GroupId, COUNT(DISTINCT u.Id) AS MemberCount").
+			From("GroupMembers").
+			LeftJoin("Users u ON u.Id = GroupMembers.UserId").
+			Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
+			Where(sq.Eq{"u.DeleteAt": 0}).
+			GroupBy("GroupId")
+
+		countQuery = applyViewRestrictionsFilter(countQuery, opts.ViewRestrictions, false)
+
+		countString, params, err := countQuery.PlaceholderFormat(sq.Question).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "get_groups_tosql")
+		}
+		groupsQuery = groupsQuery.
+			LeftJoin("("+countString+") AS Members ON Members.GroupId = g.Id", params...)
+	}
+
+	groupsQuery = groupsQuery.
+		From("UserGroups g").
+		Where(map[string]any{
+			"g.Id": groupIds,
+		}).
+		OrderBy("g.DisplayName")
+
+	queryString, args, err := groupsQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_groups_tosql")
+	}
+
+	if err = s.GetReplicaX().Select(&groupsVar, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Groups")
+	}
+
+	return groupsVar.ToModel(), nil
+}
+
 func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupIDs []string, isCount bool) sq.SelectBuilder {
 	var selectStr string
 

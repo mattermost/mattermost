@@ -172,6 +172,21 @@ export function getGroups(filterAllowReference = false, page = 0, perPage = 10, 
     });
 }
 
+export function getGroupsByIds(userIds: string[], includeMemberCount = false, includeMemberIds = false): ActionFunc {
+    return bindClientFunc({
+        clientFunc: async (param1, param2, param3) => {
+            const result = await Client4.getGroupsByIds(param1, param2, param3);
+            return result;
+        },
+        onSuccess: [GroupTypes.RECEIVED_GROUPS],
+        params: [
+            userIds,
+            includeMemberCount,
+            includeMemberIds,
+        ],
+    });
+}
+
 export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, source = GroupSource.Ldap): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getGroupsNotAssociatedToTeam,

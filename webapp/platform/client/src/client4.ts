@@ -3607,6 +3607,17 @@ export default class Client4 {
         );
     };
 
+    getGroupsByIds = (groupIDs: string[], includeMemberCount = false, includeMemberIds = false) => {
+        const qs = {
+            include_member_count: includeMemberCount,
+            include_member_ids: includeMemberIds,
+        };
+        return this.doFetch<Group[]>(
+            `${this.getGroupsRoute()}/ids${buildQueryString(qs)}`,
+            {method: 'post', body: JSON.stringify(groupIDs)},
+        );
+    };
+
     getGroupsByUserId = (userID: string) => {
         return this.doFetch<Group[]>(
             `${this.getUsersRoute()}/${userID}/groups`,

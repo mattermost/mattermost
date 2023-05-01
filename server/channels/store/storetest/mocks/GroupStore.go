@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	store "github.com/mattermost/mattermost-server/server/v8/channels/store"
 	model "github.com/mattermost/mattermost-server/server/v8/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -723,6 +724,32 @@ func (_m *GroupStore) GetGroupsByChannel(channelID string, opts model.GroupSearc
 
 	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) error); ok {
 		r1 = rf(channelID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetGroupsByIds provides a mock function with given fields: groupIds, opts
+func (_m *GroupStore) GetGroupsByIds(groupIds []string, opts *store.GroupGetByIdsOpts) ([]*model.Group, error) {
+	ret := _m.Called(groupIds, opts)
+
+	var r0 []*model.Group
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, *store.GroupGetByIdsOpts) ([]*model.Group, error)); ok {
+		return rf(groupIds, opts)
+	}
+	if rf, ok := ret.Get(0).(func([]string, *store.GroupGetByIdsOpts) []*model.Group); ok {
+		r0 = rf(groupIds, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, *store.GroupGetByIdsOpts) error); ok {
+		r1 = rf(groupIds, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

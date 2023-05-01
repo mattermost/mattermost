@@ -631,6 +631,28 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestr
 	return groups, nil
 }
 
+func (a *App) GetGroupsByIds(groupIds []string, options *store.GroupGetByIdsOpts) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store().Group().GetGroupsByIds(groupIds, options)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsByIds", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if options.IncludeMemberIDs {
+		for _, group := range groups {
+			users, err := a.Srv().Store().Group().GetMemberUsers(group.Id)
+			if err != nil {
+				return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			for _, user := range users {
+				group.MemberIDs = append(group.MemberIDs, user.Id)
+			}
+		}
+	}
+
+	return groups, nil
+}
+
 // TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 // groups.
 //

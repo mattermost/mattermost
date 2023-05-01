@@ -45,7 +45,7 @@ type Group struct {
 	AllowReference              bool        `json:"allow_reference"`
 	ChannelMemberCount          *int        `db:"-" json:"channel_member_count,omitempty"`
 	ChannelMemberTimezonesCount *int        `db:"-" json:"channel_member_timezones_count,omitempty"`
-	MemberIDs                   []string    `db:"-" json:"member_ids"`
+	MemberIDs                   []string    `db:"-" json:"member_ids,omitempty"`
 }
 
 func (group *Group) Auditable() map[string]interface{} {

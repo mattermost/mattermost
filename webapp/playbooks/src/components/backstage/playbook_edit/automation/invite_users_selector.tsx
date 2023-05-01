@@ -15,7 +15,7 @@ import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import Profile from 'src/components/profile/profile';
-import {useEnsureProfiles} from 'src/hooks';
+import {useEnsureProfiles, useEnsureGroupsAndMemberIds} from 'src/hooks';
 
 import MenuList from 'src/components/backstage/playbook_edit/automation/menu_list';
 
@@ -42,6 +42,7 @@ const InviteUsersSelector = (props: Props) => {
     const [searchedUsers, setSearchedUsers] = useState<UserProfile[]>([]);
     const [searchedGroups, setSearchedGroups] = useState<Group[]>([]);
     useEnsureProfiles(props.userIds);
+    useEnsureGroupsAndMemberIds(props.groupIds || []); 
 
     const isUser = (option: UserProfile | Group): option is UserProfile => {
         return (option as UserProfile).username !== undefined;

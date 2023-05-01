@@ -24,7 +24,7 @@ import {displayPlaybookCreateModal} from 'src/actions';
 import PlaybooksSelector from 'src/components/playbooks_selector';
 import {SecondaryButton} from 'src/components/assets/buttons';
 import SearchInput from 'src/components/backstage/search_input';
-import {useCanCreatePlaybooksInTeam} from 'src/hooks';
+import {useCanCreatePlaybooksInTeam, useEnsureGroupsAndMemberIds} from 'src/hooks';
 import {RUN_NAME_MAX_LENGTH} from 'src/constants';
 
 const ID = 'playbooks_run_playbook_dialog';
@@ -70,6 +70,7 @@ const RunPlaybookModal = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [profiles, setProfiles] = useState<UserProfile[]>([]);
     const canCreatePlaybooks = useCanCreatePlaybooksInTeam(teamId || '');
+    useEnsureGroupsAndMemberIds(playbook?.invited_group_ids || []); 
 
     const currentChannelId = useSelector(getCurrentChannelId);
     let userId = useSelector(getCurrentUserId);

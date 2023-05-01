@@ -664,6 +664,7 @@ type AppIface interface {
 	GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError)
 	GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
+	GetGroupsByIds(groupIds []string, options *store.GroupGetByIdsOpts) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
 	GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError)
 	GetHubForUserId(userID string) *platform.Hub

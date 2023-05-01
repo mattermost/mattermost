@@ -13,12 +13,16 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func (api *API) InitGroup() {
 	// GET /api/v4/groups
 	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups)).Methods("GET")
+
+	// POST /api/v4/groups/ids
+	api.BaseRoutes.Groups.Handle("/ids", api.APISessionRequired(getGroupsByIds)).Methods("POST")
 
 	// POST /api/v4/groups
 	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(createGroup)).Methods("POST")
@@ -1101,6 +1105,48 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		b, err = json.Marshal(groups)
 	}
+
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	var groupIds []string
+	err := json.NewDecoder(r.Body).Decode(&groupIds)
+	if err != nil || len(groupIds) == 0 {
+		c.SetInvalidParamWithErr("group_ids", err)
+		return
+	}
+
+	options := &store.GroupGetByIdsOpts{
+		ViewRestrictions:   restrictions,
+		IncludeMemberCount: c.Params.IncludeMemberCount,
+		IncludeMemberIDs:   c.Params.IncludeMemberIDs,
+	}
+
+	groups, appErr := c.App.GetGroupsByIds(groupIds, options)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	b, err := json.Marshal(groups)
 
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

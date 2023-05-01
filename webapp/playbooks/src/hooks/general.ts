@@ -17,10 +17,13 @@ import {GlobalState} from '@mattermost/types/store';
 import {getCurrentUserId, getProfilesInCurrentTeam, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getChannel as getChannelFromState} from 'mattermost-redux/selectors/entities/channels';
 import {getProfilesByIds, getProfilesInTeam} from 'mattermost-redux/actions/users';
+import {getGroupsByIds} from 'mattermost-redux/actions/groups';
 import {Client4} from 'mattermost-redux/client';
 import {getPost as getPostFromState} from 'mattermost-redux/selectors/entities/posts';
 import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import {ClientError} from '@mattermost/client';
 import {useHistory, useLocation} from 'react-router-dom';
@@ -681,3 +684,27 @@ export const useReservedCategoryTitleMapper = () => {
         }
     };
 };
+
+type StringToGroupFn = (id: string) => Group;
+
+export function useEnsureGroupsAndMemberIds(groupIds: string[]) {
+    const dispatch = useDispatch();
+    const getGroupFromStore = useSelector<GlobalState, StringToGroupFn>(
+        (state) => (id: string) => getGroup(state, id),
+    );
+
+    useEffect(() => {
+        const unknownIds = groupIds.filter((groupId) => {
+            const group = getGroupFromStore(groupId);
+            console.log(group);
+            if (group && group.member_ids) {
+                return false;
+            }
+            return true;
+        });
+        console.log(unknownIds);
+        if (unknownIds.length > 0) {
+            dispatch(getGroupsByIds(unknownIds, true, true));
+        }
+    }, [groupIds]);
+}
