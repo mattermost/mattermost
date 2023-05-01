@@ -3,19 +3,26 @@
 
 import React from 'react';
 import {createTheme, ThemeProvider as MUIThemeProvider} from '@mui/material/styles';
+import {Theme} from "@mattermost/types/theme";
 
-import {lightTheme} from './themes';
+import {createMUIThemeFromMMTheme} from './themes';
+
+import {THEMES} from '../../common/constants/theme';
 import overrides from './overrides';
 
-const ThemeProvider = ({theme = lightTheme, ...rest}) => {
+type Props = {
+    theme: Theme;
+}
+
+const ThemeProvider = ({theme = THEMES.onyx}: Props) => {
+    const MUITheme = createMUIThemeFromMMTheme(theme);
     const combinedTheme = createTheme({
-        ...theme,
+        ...MUITheme,
         ...overrides,
     });
 
     return (
         <MUIThemeProvider
-            {...rest}
             theme={combinedTheme}
         />
     );

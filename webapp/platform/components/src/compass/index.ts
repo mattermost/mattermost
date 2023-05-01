@@ -3,10 +3,8 @@
 
 export * from './components';
 
-// import ThemeProvider from './themeprovider/themeprovider';
-import {createPaletteFromLegacyTheme} from './themeprovider/themes';
+import ThemeProvider from './themeprovider/themeprovider';
 
 export {
-    // ThemeProvider,
-    createPaletteFromLegacyTheme,
+    ThemeProvider,
 };
