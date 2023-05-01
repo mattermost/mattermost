@@ -3067,7 +3067,8 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
 		}).
-		OrderBy("c.DisplayName")
+		OrderBy("c.DisplayName").
+		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
 		query = query.Where(sq.And{
@@ -3105,7 +3106,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 	channels := model.ChannelListWithTeamData{}
 	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not find channel with term=%s", term)
+		return nil, errors.Wrapf(err, "could not find channel with term=%s", trimInput(term))
 	}
 	return channels, nil
 }
@@ -3218,7 +3219,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	// query the database
 	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", trimInput(term))
 	}
 
 	directChannels, err := s.autocompleteInTeamForSearchDirectMessages(userID, term)
@@ -3274,7 +3275,7 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userID string
 	// query the channel list from the database using SQLX
 	channels := model.ChannelList{}
 	if err := s.GetReplicaX().Select(&channels, sql, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' (%s %% %v)", term, sql, args)
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", trimInput(term))
 	}
 
 	return channels, nil
@@ -3493,7 +3494,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	}
 	channels := model.ChannelListWithTeamData{}
 	if err2 := s.GetReplicaX().Select(&channels, queryString, args...); err2 != nil {
-		return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", term)
+		return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", trimInput(term))
 	}
 
 	var totalCount int64
@@ -3506,7 +3507,7 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 			return nil, 0, errors.Wrap(err, "channel_tosql")
 		}
 		if err2 := s.GetReplicaX().Get(&totalCount, queryString, args...); err2 != nil {
-			return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", term)
+			return nil, 0, errors.Wrapf(err2, "failed to find Channels with term='%s'", trimInput(term))
 		}
 	} else {
 		totalCount = int64(len(channels))
@@ -3683,7 +3684,7 @@ func (s SqlChannelStore) performSearch(searchQuery sq.SelectBuilder, term string
 	channels := model.ChannelList{}
 	err = s.GetReplicaX().Select(&channels, sql, args...)
 	if err != nil {
-		return channels, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
+		return channels, errors.Wrapf(err, "failed to find Channels with term='%s'", trimInput(term))
 	}
 
 	return channels, nil
@@ -3776,7 +3777,7 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (model.Channel
 
 	groupChannels := model.ChannelList{}
 	if err := s.GetReplicaX().Select(&groupChannels, sql, params...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' and userId=%s", term, userId)
+		return nil, errors.Wrapf(err, "failed to find Channels with term='%s' and userId=%s", trimInput(term), userId)
 	}
 	return groupChannels, nil
 }
