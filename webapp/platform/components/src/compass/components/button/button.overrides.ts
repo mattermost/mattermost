@@ -4,7 +4,7 @@
 import {alpha, ComponentsProps, ComponentsVariants, emphasize, Theme} from '@mui/material';
 import {ComponentsOverrides} from '@mui/material/styles/overrides';
 
-import {blend} from '../../utils/color-utils';
+import {blend} from '../../utils/color';
 
 const componentName = 'MuiButton';
 

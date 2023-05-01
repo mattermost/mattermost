@@ -3,7 +3,7 @@
 
 import {TypographyOptions} from '@mui/material/styles/createTypography';
 
-import {getFontMargin} from '../../utils/font-utils';
+import {getFontMargin} from '../../utils/font';
 
 declare module '@mui/material/styles' {
     interface TypographyVariants {
