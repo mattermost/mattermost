@@ -23,20 +23,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      - name: ci/get-node-modules
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/lint
         run: |
           npm run check
+
   check-i18n:
     runs-on: ubuntu-22.04
     defaults:
@@ -45,17 +37,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      - name: ci/get-node-modules
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/lint
         working-directory: webapp/channels
         run: |
@@ -78,6 +61,7 @@ jobs:
         run: |
           npm run i18n-extract
           git --no-pager diff --exit-code i18n/en.json || (echo "Please run \"cd webapp/playbooks && npm run i18n-extract\" and commit the changes in webapp/playbooks/i18n/en.json." && exit 1)
+
   check-types:
     runs-on: ubuntu-22.04
     defaults:
@@ -86,20 +70,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      - name: ci/get-node-modules
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/lint
         run: |
           npm run check-types
+
   test:
     runs-on: ubuntu-22.04
     permissions:
@@ -111,17 +87,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      - name: ci/get-node-modules
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/test
         env:
           NODE_OPTIONS: --max_old_space_size=5120
@@ -130,6 +97,7 @@ jobs:
           npm run test-ci --workspace=channels
           npm run test-ci --workspace=platform/client
           npm run test-ci --workspace=playbooks
+
   build:
     runs-on: ubuntu-22.04
     defaults:
@@ -138,20 +106,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
-      - name: ci/get-node-modules
-        run: |
-          make node_modules
-          # make channels/e2e-tests/playwright/node_modules
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/build
         run: |
           npm run build
+
   # run-performance-bechmarks:
   #   uses: ./.github/workflows/performance-benchmarks.yml
   #   needs: build
