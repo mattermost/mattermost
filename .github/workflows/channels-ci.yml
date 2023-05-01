@@ -129,7 +129,6 @@ jobs:
           npm run check-types
   test:
     runs-on: ubuntu-22.04
-    needs: [check-types, check-i18n, check-lint]
     permissions:
       checks: write
       pull-requests: write
