@@ -5,7 +5,7 @@
   "keywords": [
     "mattermost"
   ],
-  "homepage": "https://github.com/mattermost/mattermost-webapp/tree/master/webapp/platform/types#readme",
+  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/types#readme",
   "license": "MIT",
   "files": [
     "lib"
