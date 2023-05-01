@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 
 	"github.com/stretchr/testify/assert"
 
@@ -144,6 +145,7 @@ func TestPatchBoard(t *testing.T) {
 	defer tearDown()
 
 	t.Run("base case, title patch", func(t *testing.T) {
+		mlog.Debug("test1")
 		const boardID = "board_id_1"
 		const userID = "user_id_1"
 		const teamID = "team_id_1"
@@ -170,6 +172,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type open, no users", func(t *testing.T) {
+		mlog.Debug("test2")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -209,6 +212,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type private, no users", func(t *testing.T) {
+		mlog.Debug("test3")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -247,6 +251,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type open, single user", func(t *testing.T) {
+		mlog.Debug("test4")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -285,6 +290,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type private, single user", func(t *testing.T) {
+		mlog.Debug("test5")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -323,6 +329,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type open, user with member", func(t *testing.T) {
+		mlog.Debug("test6")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -364,6 +371,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type private, user with member", func(t *testing.T) {
+		mlog.Debug("test7")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -405,6 +413,7 @@ func TestPatchBoard(t *testing.T) {
 		require.Equal(t, boardID, patchedBoard.ID)
 	})
 	t.Run("patch type channel, user without post permissions", func(t *testing.T) {
+		mlog.Debug("test8")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
@@ -430,6 +439,7 @@ func TestPatchBoard(t *testing.T) {
 	})
 
 	t.Run("patch type channel, user with post permissions", func(t *testing.T) {
+		mlog.Debug("test9")
 		const boardID = "board_id_1"
 		const userID = "user_id_2"
 		const teamID = "team_id_1"
