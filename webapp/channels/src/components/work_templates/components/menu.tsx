@@ -50,6 +50,8 @@ const UseCases = styled.div`
     flex-wrap: wrap;
     justify-content: flex-start;
     width: 692px;
+    max-height: 60vh;
+    overflow-y: auto;
 `;
 
 interface MenuProps {
