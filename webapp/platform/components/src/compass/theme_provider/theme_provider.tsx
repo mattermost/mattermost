@@ -14,7 +14,7 @@ type Props = {
     theme: Theme;
 }
 
-const ThemeProvider = ({theme = THEMES.onyx}: Props) => {
+const Theme_provider = ({theme = THEMES.onyx}: Props) => {
     const MUITheme = createMUIThemeFromMMTheme(theme);
     const combinedTheme = createTheme({
         ...MUITheme,
@@ -28,4 +28,4 @@ const ThemeProvider = ({theme = THEMES.onyx}: Props) => {
     );
 };
 
-export default ThemeProvider;
+export default Theme_provider;

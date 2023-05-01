@@ -41,24 +41,19 @@ type ModalProps = {
     onClose?: () => void;
 }
 
-const BaseModal = ({children, isOpen, onClose, dialogClassName = '', dialogId = ''}: ModalProps) => {
+const BaseModal = ({children, isOpen, onClose, dialogClassName = '', dialogId = ''}: ModalProps) => (
+    <Dialog
+        open={isOpen}
+        TransitionComponent={Transition}
+        PaperComponent={Paper}
+        keepMounted={true}
+        onClose={onClose}
+        aria-describedby='alert-dialog-slide-description'
+        role='dialog'
+        className={dialogClassName}
+        id={dialogId}
+    >{children}
+    </Dialog>
+);
 
-
-    return (
-            <Dialog
-                open={isOpen}
-                TransitionComponent={Transition}
-                PaperComponent={Paper}
-                keepMounted={true}
-                onClose={onClose}
-                aria-describedby='alert-dialog-slide-description'
-                role='dialog'
-                className={dialogClassName}
-                id={dialogId}
-            >
-                {children}
-            </Dialog>
-    );
-};
-
-export default memo(BaseModal);
+export default BaseModal;

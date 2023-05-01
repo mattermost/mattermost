@@ -3,8 +3,8 @@
 
 export * from './components';
 
-import ThemeProvider from './themeprovider/themeprovider';
+import Theme_provider from './theme_provider/theme_provider';
 
 export {
-    ThemeProvider,
+    Theme_provider,
 };
