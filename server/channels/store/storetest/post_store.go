@@ -1367,6 +1367,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 			CreatorId: replyPost2.UserId,
 			Path:      "file1.txt",
 		})
+		require.NoError(t, err)
 
 		// Delete the first root post
 		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
