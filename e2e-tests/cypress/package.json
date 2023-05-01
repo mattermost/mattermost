@@ -3,7 +3,6 @@
     "@babel/eslint-parser": "7.19.1",
     "@babel/eslint-plugin": "7.19.1",
     "@cypress/request": "2.88.11",
-    "@cypress/skip-test": "2.6.1",
     "@mattermost/types": "7.4.0",
     "@testing-library/cypress": "9.0.0",
     "@types/async": "3.2.16",
