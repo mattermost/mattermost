@@ -93,10 +93,7 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci --workspace=boards
-          npm run test-ci --workspace=channels
-          npm run test-ci --workspace=platform/client
-          npm run test-ci --workspace=playbooks
+          npm run test-ci
 
   build:
     runs-on: ubuntu-22.04
