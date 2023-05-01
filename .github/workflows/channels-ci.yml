@@ -30,16 +30,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
           # make channels/e2e-tests/playwright/node_modules
@@ -61,16 +52,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
           # make channels/e2e-tests/playwright/node_modules
@@ -111,16 +93,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
           # make channels/e2e-tests/playwright/node_modules
@@ -145,16 +118,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
           # make channels/e2e-tests/playwright/node_modules
@@ -181,16 +145,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: 'webapp/package-lock.json'
-      # - uses: actions/cache@2b8105bdae4b746666ee225970c4a281bbd9d51f # v3.2.4
-      #   id: npm-cache
-      #   with:
-      #     path: |
-      #       '**/node_modules'
-      #       'e2e-tests/playwright/node_modules'
-      #       'e2e-tests/cypress/node_modules'
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
       - name: ci/get-node-modules
-        # if: steps.npm-cache.outputs.cache-hit != 'true'
         run: |
           make node_modules
           # make channels/e2e-tests/playwright/node_modules
