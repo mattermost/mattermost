@@ -49,6 +49,7 @@ function Mode(props: Props) {
                         {intl.formatMessage({id: 'work_templates.mode.tourtip_title', defaultMessage: 'Try one of our templates'})}
                     </div>
                     <TipDismiss
+                        data-testid='work-templates-new-dismiss'
                         onClick={(e) => {
                             // otherwise, even if its in a portal,
                             // the click will be propagated

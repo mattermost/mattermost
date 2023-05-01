@@ -6,6 +6,7 @@ import styled, {createGlobalStyle} from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
+import classnames from 'classnames';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Input from 'components/widgets/inputs/input/input';
@@ -470,6 +471,7 @@ const ChannelOnly = (props: Props) => {
                         confirm={true}
                         onClick={confirmButtonAction}
                         disabled={isConfirmDisabled}
+                        className={classnames({disabled: isConfirmDisabled})}
                     >
                         {confirmButtonText}
                     </FooterButton>

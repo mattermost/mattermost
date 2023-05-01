@@ -7,7 +7,7 @@ import * as TIMEOUTS from '../../fixtures/timeouts';
 Cypress.Commands.add('dismissWorkTemplateTip', () => {
     const CLOSE_MODAL_ATTEMPTS = 5;
     const CLOSE_MODAL_WAIT_INTERVAL = 50;
-    const SEL_DISMISS_TIP_ELEMENT = '[data-testid=work-templates-new-tip-shield]';
+    const SEL_DISMISS_TIP_ELEMENT = '[data-testid=work-templates-new-dismiss]';
     for (let i = 0; i < CLOSE_MODAL_ATTEMPTS; i += 1) {
         const found = Cypress.$(SEL_DISMISS_TIP_ELEMENT).length > 0;
         if (found) {
