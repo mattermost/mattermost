@@ -514,7 +514,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
-	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(post, userID)
 	if appErr != nil {
 		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 
