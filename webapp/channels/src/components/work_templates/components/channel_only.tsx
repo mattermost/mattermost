@@ -384,79 +384,81 @@ const ChannelOnly = (props: Props) => {
                 </Aside>
             )}
             <Main>
-                <Input
-                    type='text'
-                    autoComplete='off'
-                    autoFocus={Boolean(knowsTemplatesExist)}
-                    required={true}
-                    name='new-channel-modal-name'
-                    inputClassName='channel-name'
-                    label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
-                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
-                    limit={Constants.MAX_CHANNELNAME_LENGTH}
-                    value={state.displayName}
-                    customMessage={state.displayNameModified ? {type: ItemStatus.ERROR, value: state.displayNameError} : null}
-                    onChange={set.name}
-                    onBlur={set.handleNameBlur}
-                />
-                <URLInput
-                    className='channel-url'
-                    base={getSiteURL()}
-                    path={`${currentTeamName}/channels`}
-                    pathInfo={state.url}
-                    limit={Constants.MAX_CHANNELNAME_LENGTH}
-                    shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
-                    error={state.urlError}
-                    onChange={set.url}
-                />
-                <PublicPrivateSelector
-                    className='channel-type-selector'
-                    selected={state.type}
-                    publicButtonProps={{
-                        title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
-                        description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
-                        disabled: !state.canCreatePublicChannel,
-                    }}
-                    privateButtonProps={{
-                        title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
-                        description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
-                        disabled: !state.canCreatePrivateChannel,
-                    }}
-                    onChange={set.type}
-                />
-                <PurposeContainer>
-                    <Purpose
-                        id='new-channel-modal-purpose'
-                        error={state.purposeError !== ''}
-                        placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
-                        rows={4}
-                        maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
+                <ChannelOnlyMainBody>
+                    <Input
+                        type='text'
                         autoComplete='off'
-                        value={state.purpose}
-                        onChange={set.purpose}
-                        onKeyDown={handleOnPurposeKeyDown}
+                        autoFocus={Boolean(knowsTemplatesExist)}
+                        required={true}
+                        name='new-channel-modal-name'
+                        inputClassName='channel-name'
+                        label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
+                        placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
+                        limit={Constants.MAX_CHANNELNAME_LENGTH}
+                        value={state.displayName}
+                        customMessage={state.displayNameModified ? {type: ItemStatus.ERROR, value: state.displayNameError} : null}
+                        onChange={set.name}
+                        onBlur={set.handleNameBlur}
                     />
-                    {state.purposeError ? (
-                        <PurposeError>
-                            <i className='icon icon-alert-outline'/>
-                            <span>{state.purposeError}</span>
-                        </PurposeError>
-                    ) : (
-                        <PurposeInfo>
-                            <span>
-                                {formatMessage({id: 'channel_modal.purpose.info', defaultMessage: 'This will be displayed when browsing for channels.'})}
-                            </span>
-                        </PurposeInfo>
-                    )}
-                    {state.createBoardFromChannelPlugin &&
-                        <Pluggable
-                            pluggableName='CreateBoardFromTemplate'
-                            setCanCreate={set.canCreateFromPluggable}
-                            setAction={set.actionFromPluggable}
-                            newBoardInfoIcon={newBoardInfoIcon}
+                    <URLInput
+                        className='channel-url'
+                        base={getSiteURL()}
+                        path={`${currentTeamName}/channels`}
+                        pathInfo={state.url}
+                        limit={Constants.MAX_CHANNELNAME_LENGTH}
+                        shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
+                        error={state.urlError}
+                        onChange={set.url}
+                    />
+                    <PublicPrivateSelector
+                        className='channel-type-selector'
+                        selected={state.type}
+                        publicButtonProps={{
+                            title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
+                            description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
+                            disabled: !state.canCreatePublicChannel,
+                        }}
+                        privateButtonProps={{
+                            title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
+                            description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
+                            disabled: !state.canCreatePrivateChannel,
+                        }}
+                        onChange={set.type}
+                    />
+                    <PurposeContainer>
+                        <Purpose
+                            id='new-channel-modal-purpose'
+                            error={state.purposeError !== ''}
+                            placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
+                            rows={4}
+                            maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
+                            autoComplete='off'
+                            value={state.purpose}
+                            onChange={set.purpose}
+                            onKeyDown={handleOnPurposeKeyDown}
                         />
-                    }
-                </PurposeContainer>
+                        {state.purposeError ? (
+                            <PurposeError>
+                                <i className='icon icon-alert-outline'/>
+                                <span>{state.purposeError}</span>
+                            </PurposeError>
+                        ) : (
+                            <PurposeInfo>
+                                <span>
+                                    {formatMessage({id: 'channel_modal.purpose.info', defaultMessage: 'This will be displayed when browsing for channels.'})}
+                                </span>
+                            </PurposeInfo>
+                        )}
+                        {state.createBoardFromChannelPlugin &&
+                            <Pluggable
+                                pluggableName='CreateBoardFromTemplate'
+                                setCanCreate={set.canCreateFromPluggable}
+                                setAction={set.actionFromPluggable}
+                                newBoardInfoIcon={newBoardInfoIcon}
+                            />
+                        }
+                    </PurposeContainer>
+                </ChannelOnlyMainBody>
                 <Footer>
                     <FooterButton
                         cancel={true}
@@ -659,7 +661,7 @@ const Aside = styled.div`
 const Main = styled.div`
     flex-grow: 1;
     flex-shrink 1;
-    padding: ${genericModalSidePadding} ${genericModalSidePadding} 0;
+    padding: calc(${genericModalSidePadding} - 10px) ${genericModalSidePadding} 0;
 `;
 
 const GlobalStyle = createGlobalStyle`
@@ -710,4 +712,13 @@ const ChannelsUse = styled.div`
   padding: 20px 0;
 `;
 
+// all work-templates screens should be 610px.
+// But they use different layouts.
+// So we need to set different values on different containers to get that effect.
+const ENSURE_610_HEIGHT = '395px';
+const ChannelOnlyMainBody = styled.div`
+    height: ${ENSURE_610_HEIGHT};
+    padding-top: 10px;
+    overflow-y: auto;
+`;
 export default ChannelOnly;

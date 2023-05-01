@@ -113,6 +113,7 @@ const StyledUseCaseMenuItem = styled(UseCase)`
     cursor: pointer;
     margin-bottom: 16px;
     margin-right: 10px;
+    height: 176px;
 
     .illustration {
         height: 130px;

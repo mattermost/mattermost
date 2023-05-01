@@ -297,8 +297,14 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
     );
 };
 
+// all work-templates screens should be 610px.
+// But they use different layouts.
+// So we need to set different values on different containers to get that effect.
+const ENSURE_610_HEIGHT = '444px';
+
 const StyledPreview = styled(Preview)`
     display: flex;
+    height: ${ENSURE_610_HEIGHT};
 
     .content-side {
         min-width: 387px;

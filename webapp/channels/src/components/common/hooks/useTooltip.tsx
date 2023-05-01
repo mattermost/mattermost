@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import {useHover, useInteractions, useFloating, arrow, offset, autoPlacement, Strategy, Placement} from '@floating-ui/react-dom-interactions';
@@ -21,6 +21,9 @@ interface TooltipOptions {
     primaryActionStyle?: boolean;
     offset?: Parameters<typeof offset>[0];
     allowPointer?: boolean;
+    onClickOther: () => void;
+    tooltipId?: string;
+    stopPropagation?: boolean;
 }
 
 const defaultOptions: Required<Pick<TooltipOptions, 'strategy' | 'hoverDelay' | 'zIndex' | 'mountPoint'>> = {
@@ -117,6 +120,25 @@ export default function useTooltip(options: TooltipOptions) {
         strategy: effectiveStrategy,
     });
 
+    useEffect(() => {
+        let listener: (e: MouseEvent) => void;
+        if (options.onClickOther && options.tooltipId) {
+            let count = 0;
+            listener = (e: MouseEvent) => {
+                if (count > 0 && !(e.target as any)?.closest(options.tooltipId)) {
+                    options.onClickOther();
+                }
+                count++;
+            };
+            document.addEventListener('click', listener);
+        }
+        return () => {
+            if (listener) {
+                document.removeEventListener('click', listener);
+            }
+        };
+    }, [options.onClickOther, options.tooltipId]);
+
     const {getReferenceProps, getFloatingProps} = useInteractions([
         useHover(
             context,
@@ -146,6 +168,10 @@ export default function useTooltip(options: TooltipOptions) {
                     zIndex: typeof options.zIndex === 'number' ? options.zIndex : defaultOptions.zIndex,
                 },
             })}
+            id={options.tooltipId}
+            onClick={options.stopPropagation ? (e) => {
+                e.stopPropagation();
+            } : undefined}
         >
             {options.message}
             <div

@@ -45,12 +45,16 @@ const CategoryButton = styled.button`
     }
 `;
 
+// all work-templates screens should be 610px.
+// But they use different layouts.
+// So we need to set different values on different containers to get that effect.
+const ENSURE_610_HEIGHT = '477px';
 const UseCases = styled.div`
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     width: 692px;
-    max-height: 60vh;
+    height: ${ENSURE_610_HEIGHT};
     overflow-y: auto;
 `;
 

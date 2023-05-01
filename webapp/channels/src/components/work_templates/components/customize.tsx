@@ -141,11 +141,17 @@ const Customize = ({
     );
 };
 
+// all work-templates screens should be 610px.
+// But they use different layouts.
+// So we need to set different values on different containers to get that effect.
+const ENSURE_610_HEIGHT = '444px';
+
 const StyledCustomized = styled(Customize)`
     display: flex;
     flex-direction: column;
     width: 509px;
     margin: 0 auto;
+    height: ${ENSURE_610_HEIGHT};
 
     .public-private-selector .public-private-selector-button.locked {
         opacity: 1;
