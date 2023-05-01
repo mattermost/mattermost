@@ -6,41 +6,39 @@ import styled, {createGlobalStyle} from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
-import classnames from 'classnames';
-
-import OverlayTrigger from 'components/overlay_trigger';
-import Input from 'components/widgets/inputs/input/input';
-import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import URLInput from 'components/widgets/inputs/url_input/url_input';
-import TeamConversationSvg from 'components/common/svg_images_components/team_conversation_svg';
 
 import Pluggable from 'plugins/pluggable';
 
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import ReduxPreferences from 'mattermost-redux/constants/preferences';
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
-
-import {switchToChannel} from 'actions/views/channel';
-import {trackEvent} from 'actions/telemetry_actions';
-import {closeModal} from 'actions/views/modals';
-
-import {GlobalState} from 'types/store';
-
-import Constants, {ItemStatus, ModalIdentifiers, TELEMETRY_CATEGORIES, Preferences, Touched} from 'utils/constants';
-
-import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
-import {localizeMessage} from 'utils/utils';
-
-import usePreference from 'components/common/hooks/usePreference';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {Board} from '@mattermost/types/boards';
 import {ChannelType, Channel} from '@mattermost/types/channels';
 import {ServerError} from '@mattermost/types/errors';
+
+import {switchToChannel} from 'actions/views/channel';
+import {closeModal} from 'actions/views/modals';
+
+import {GlobalState} from 'types/store';
+
+import Constants, {ItemStatus, ModalIdentifiers, Preferences, Touched} from 'utils/constants';
+import {cleanUpUrlable, validateChannelUrl, getSiteURL} from 'utils/url';
+import {localizeMessage} from 'utils/utils';
+
+import usePreference from 'components/common/hooks/usePreference';
+import OverlayTrigger from 'components/overlay_trigger';
+import Input from 'components/widgets/inputs/input/input';
+import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
+import URLInput from 'components/widgets/inputs/url_input/url_input';
+
+import Aside from './aside';
+import ChannelOnlyFooter from './channel_only_footer';
 
 export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, canCreatePrivateChannel: boolean) {
     let channelType = Constants.OPEN_CHANNEL;
@@ -314,25 +312,12 @@ const handleOnPurposeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => 
 
 const ChannelOnly = (props: Props) => {
     const intl = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
     const {formatMessage} = intl;
     const currentTeamName = useSelector(getCurrentTeam).name;
     const [knowsTemplatesExistString] = usePreference(Preferences.TOUCHED, Touched.KNOWS_TEMPLATES_EXIST);
     const knowsTemplatesExist = knowsTemplatesExistString === 'true';
     const {set, state, actions} = props.manager;
-    const trackAction = (action: string, actionFn: () => void) => () => {
-        trackEvent(TELEMETRY_CATEGORIES.WORK_TEMPLATES, action, props);
-        actionFn();
-    };
 
-    const createChannelOnly = trackAction('btn_go_to_customize', actions.handleOnModalConfirm);
-    const cancelButtonText = formatMessage({id: 'work_templates.channel_only.cancel', defaultMessage: 'Cancel'});
-
-    const cancelButtonAction = trackAction('close_channel_only', () => {
-        dispatch(closeModal(ModalIdentifiers.WORK_TEMPLATE));
-    });
-    const confirmButtonText = formatMessage({id: 'work_templates.channel_only.confirm', defaultMessage: 'Create channel'});
-    const confirmButtonAction = createChannelOnly;
     const isConfirmDisabled = !state.canCreate;
 
     const newBoardInfoIcon = (
@@ -365,25 +350,7 @@ const ChannelOnly = (props: Props) => {
     return (
         <ChannelOnlyBody className='channel-only-body'>
             <GlobalStyle/>
-            {props.workTemplatesEnabled && (
-                <Aside>
-                    <div>
-                        <TeamConversationSvg/>
-                    </div>
-                    <ChannelsUse>
-                        {intl.formatMessage({
-                            id: 'work_templates.channel_only.what',
-                            defaultMessage: 'Channels allow you to organize conversations, tasks and content in one convenient place.',
-                        })}
-                    </ChannelsUse>
-                    <TryTemplate onClick={props.tryTemplates}>
-                        {intl.formatMessage({
-                            id: 'work_templates.channel_only.try_template',
-                            defaultMessage: 'Try a template',
-                        })}
-                    </TryTemplate>
-                </Aside>
-            )}
+            {props.workTemplatesEnabled && (<Aside tryTemplates={props.tryTemplates}/>)}
             <Main>
                 <ChannelOnlyMainBody>
                     <Input
@@ -460,126 +427,16 @@ const ChannelOnly = (props: Props) => {
                         }
                     </PurposeContainer>
                 </ChannelOnlyMainBody>
-                <Footer>
-                    <FooterButton
-                        cancel={true}
-                        onClick={cancelButtonAction}
-                    >
-                        {cancelButtonText}
-                    </FooterButton>
-                    <FooterButton
-                        confirm={true}
-                        onClick={confirmButtonAction}
-                        disabled={isConfirmDisabled}
-                        className={classnames({disabled: isConfirmDisabled})}
-                    >
-                        {confirmButtonText}
-                    </FooterButton>
-                </Footer>
+                <ChannelOnlyFooter
+                    isConfirmDisabled={isConfirmDisabled}
+                    createChannel={actions.handleOnModalConfirm}
+                />
             </Main>
         </ChannelOnlyBody>
     );
 };
 
 const genericModalSidePadding = '32px';
-
-const Footer = styled.div`
-    position: relative;
-    &:after {
-        content: '';
-        position: absolute;
-        width: calc(100% + ${genericModalSidePadding} * 2);
-        left: -${genericModalSidePadding};
-        top: 0;
-        height: 1px;
-        background-color: rgba(var(--center-channel-text-rgb), 0.08);
-    }
-    padding: 24px 0;
-    text-align: right;
-`;
-
-interface FooterButtonProps {
-    cancel?: boolean;
-    confirm?: boolean;
-}
-const primaryButton = `
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    background: var(--button-bg);
-    border-radius: 4px;
-    color: var(--button-color);
-    font-weight: 600;
-    transition: all 0.15s ease-out;
-
-    &:hover {
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
-    }
-
-    &:active {
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
-    }
-
-    &:focus {
-        box-sizing: border-box;
-        border: 2px solid var(--sidebar-text-active-border);
-        outline: none;
-    }
-
-    &:disabled:not(.always-show-enabled) {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-        cursor: not-allowed;
-    }
-
-    i {
-        display: flex;
-        font-size: 18px;
-    }
-`;
-const buttonMedium = `
-    height: 40px;
-    padding: 0 20px;
-    font-size: 14px;
-    line-height: 14px;
-`;
-const FooterButton = styled.button<FooterButtonProps>`
-    padding: 13px 20px;
-    border: none;
-    border-radius: 4px;
-    box-shadow: none;
-    ${buttonMedium};
-
-    ${(props) => (props.cancel ? `
-        margin-right: 8px;
-        background: var(--center-channel-bg);
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-
-        &:hover {
-            background: rgba(var(--button-bg-rgb), 0.12);
-        }
-
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.16);
-        }
-
-        &:focus {
-            box-sizing: border-box;
-            padding: 11px 18px;
-            border: 2px solid var(--sidebar-text-active-border);
-        }
-    ` : '')}
-
-    ${(props) => (props.confirm ? `
-        ${primaryButton}
-        &:focus {
-            padding: 11px 18px;
-        }
-    ` : '')}
-`;
 
 const PurposeContainer = styled.div`
     margin-top: 28px;
@@ -641,25 +498,6 @@ const PurposeError = styled.div`
 const ChannelOnlyBody = styled.div`
   display: flex;
 `;
-const asideWidth = '260px';
-const asideBackgroundColor = 'rgba(var(--center-channel-text-rgb), 0.04)';
-const Aside = styled.div`
-    text-align: center;
-    flex-shrink: 0;
-    flex-grow: 0;
-    width: ${asideWidth};
-    padding: ${genericModalSidePadding};
-    background-color: ${asideBackgroundColor};
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-
-    @media (max-width: 800px) {
-      display: none;
-    }
-`;
 const Main = styled.div`
     flex-grow: 1;
     flex-shrink 1;
@@ -697,21 +535,6 @@ const BoardTooltipTitle = styled.div`
 const BoardTooltipDescription = styled.div`
     font-weight: 500;
     ${boardTooltipTextStyle}
-`;
-
-const TryTemplate = styled.a`
-  color: var(--button-bg);
-  font-weight: 600;
-  font-size 12px;
-  background-color: unset;
-  &:hover, &:focus {
-    text-decoration: none;
-  }
-`;
-
-const ChannelsUse = styled.div`
-  color: var(--center-channel-text);
-  padding: 20px 0;
 `;
 
 // all work-templates screens should be 610px.
