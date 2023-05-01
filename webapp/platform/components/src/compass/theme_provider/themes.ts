@@ -45,6 +45,3 @@ export const createMUIThemeFromMMTheme = (theme: Theme) =>  createTheme({
     },
 });
 
-export const lightMUITheme = createMUIThemeFromMMTheme(THEMES.onyx)
-
-export const darkMUITheme = createMUIThemeFromMMTheme(THEMES.denim);
