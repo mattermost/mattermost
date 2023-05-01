@@ -115,6 +115,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             placeholder,
             disabled,
             onInput,
+            onWidthChange,
 
             // TODO: The provided `id` is sometimes hard-coded and used to interface with the
             // component, e.g. `post_textbox`, so it can't be changed. This would ideally be
