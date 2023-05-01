@@ -774,10 +774,10 @@ func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, o
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
+	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -978,6 +978,22 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllDirectChannelsForExportAfter", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetBotChannelsByUser(userID string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetBotChannelsByUser(userID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetBotChannelsByUser", success, elapsed)
 	}
 	return result, err
 }
@@ -1606,10 +1622,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, opts *store
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
+	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1622,10 +1638,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID strin
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategory(categoryID)
+	result, err := s.ChannelStore.GetSidebarCategory(categoryID, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2399,10 +2415,10 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
+	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
