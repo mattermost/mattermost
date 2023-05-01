@@ -84,6 +84,11 @@ function Mode(props: Props) {
     return (
         <div>
             <Tabs
+                underline={true}
+                padding={props.mode === ModalState.ChannelOnly ? '0 32px' : undefined}
+                underlineLeft={props.mode === ModalState.ChannelOnly ? undefined : '-32px'}
+                underlineWidth={props.mode === ModalState.ChannelOnly ? undefined : 'calc(100% + 64px)'}
+                extraSpacing={props.mode === ModalState.ChannelOnly ? undefined : '28px'}
                 tabs={[
                     {
                         content: intl.formatMessage({

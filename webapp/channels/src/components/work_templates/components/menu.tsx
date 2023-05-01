@@ -85,7 +85,7 @@ const Menu = ({className, disableQuickUse, categories, workTemplates, currentCat
         <div className={className}>
             <Categories>
                 <h2>
-                    {formatMessage({id: 'work_templates.menu.template_title', defaultMessage: 'TEMPLATE'})}
+                    {formatMessage({id: 'work_templates.menu.template_title', defaultMessage: 'CATEGORIES'})}
                 </h2>
                 <ul>
                     {categories.map((category) => (

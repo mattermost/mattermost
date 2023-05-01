@@ -5,7 +5,7 @@ import React, {useEffect, useState, useRef} from 'react';
 import classnames from 'classnames';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import styled from 'styled-components';
+import styled, {createGlobalStyle} from 'styled-components';
 
 import LocalizedIcon from 'components/localized_icon';
 import {TTNameMapToATStatusKey, TutorialTourName} from 'components/tours/constant';
@@ -81,7 +81,7 @@ const ModalTitle = (props: ModalTitleProps) => {
                     onClick={props.backArrowAction}
                 />
             }
-            <span style={{marginLeft: 18}}>{props.text}</span>
+            <span style={{marginLeft: props.backArrowAction ? 18 : 8}}>{props.text}</span>
         </div>
     );
 };
@@ -327,7 +327,6 @@ const WorkTemplateModal = (props: Props) => {
         };
     };
 
-    let title = '';
     let cancelButtonText;
     let cancelButtonAction;
     let backArrowAction;
@@ -338,20 +337,11 @@ const WorkTemplateModal = (props: Props) => {
     switch (modalState) {
     case ModalState.ChannelOnly: {
         const createChannelOnly = trackAction('btn_go_to_customize', channelOnlyManager.actions.handleOnModalConfirm);
-        title = formatMessage({id: 'work_templates.channel_only.title', defaultMessage: 'Create a new channel'});
-        cancelButtonText = formatMessage({id: 'work_templates.channel_only.cancel', defaultMessage: 'Cancel'});
-        cancelButtonAction = trackAction('close_channel_only', closeModal);
-        confirmButtonText = formatMessage({id: 'work_templates.channel_only.confirm', defaultMessage: 'Create channel'});
-        confirmButtonAction = createChannelOnly;
         isConfirmDisabled = !channelOnlyManager.state.canCreate;
         handleEnterKeyPress = createChannelOnly;
         break;
     }
-    case ModalState.Menu:
-        title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Create from a template'});
-        break;
     case ModalState.Preview:
-        title = formatMessage({id: 'work_templates.preview.modal_title', defaultMessage: 'Preview {useCase}'}, {useCase: selectedTemplate?.useCase});
         cancelButtonText = formatMessage({id: 'work_templates.preview.modal_cancel_button', defaultMessage: 'Back'});
         cancelButtonAction = trackAction('btn_back_to_menu', goToMenu);
         backArrowAction = trackAction('arrow_back_to_menu', goToMenu);
@@ -359,7 +349,6 @@ const WorkTemplateModal = (props: Props) => {
         confirmButtonAction = trackAction('btn_go_to_customize', () => setModalState(ModalState.Customize));
         break;
     case ModalState.Customize:
-        title = formatMessage({id: 'work_templates.customize.modal_title', defaultMessage: 'Name your {useCase}'}, {useCase: selectedTemplate?.useCase});
         cancelButtonText = formatMessage({id: 'work_templates.customize.modal_cancel_button', defaultMessage: 'Back'});
         cancelButtonAction = trackAction('btn_back_to_preview', () => setModalState(ModalState.Preview));
         backArrowAction = trackAction('arrow_back_to_preview', () => setModalState(ModalState.Preview));
@@ -368,6 +357,7 @@ const WorkTemplateModal = (props: Props) => {
         isConfirmDisabled = errorText !== '';
         break;
     }
+    const hasTabs = (workTemplatesEnabled && (modalState === ModalState.ChannelOnly || modalState === ModalState.Menu));
 
     return (
         <GenericModal
@@ -375,7 +365,7 @@ const WorkTemplateModal = (props: Props) => {
             className={classnames('work-template-modal', `work-template-modal--${modalState}`)}
             modalHeaderText={
                 <ModalTitle
-                    text={title}
+                    text={formatMessage({id: 'work_templates.channel_only.title', defaultMessage: 'Create a new channel'})}
                     backArrowAction={backArrowAction}
                 />
             }
@@ -392,7 +382,7 @@ const WorkTemplateModal = (props: Props) => {
             errorText={errorText || channelOnlyManager.state.serverError}
             workTemplatesEnabled={workTemplatesEnabled}
         >
-            {(workTemplatesEnabled && (modalState === ModalState.ChannelOnly || modalState === ModalState.Menu)) && (
+            {hasTabs && (
                 <Mode
                     mode={modalState}
                     setMode={setModalState}
@@ -432,8 +422,28 @@ const WorkTemplateModal = (props: Props) => {
                     template={selectedTemplate}
                 />
             )}
+            <GlobalStyle hasTabs={hasTabs}/>
         </GenericModal>
     );
 };
+
+interface GlobalStyleProps {
+    hasTabs?: boolean;
+}
+
+const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
+.work-template-modal--channel-only {
+    .modal-body .padding {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+.work-template-modal {
+    .modal-body .padding {
+        ${(props) => (props.hasTabs ? 'padding-top: 0 !important;' : '')}
+    }
+}
+`;
 
 export default WorkTemplateModal;

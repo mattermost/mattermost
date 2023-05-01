@@ -5804,7 +5804,7 @@
   "work_templates.customize.visibility_title": "Who should have access to this?",
   "work_templates.menu.modal_title": "Create from a template",
   "work_templates.menu.quick_use": "Quick use",
-  "work_templates.menu.template_title": "TEMPLATE",
+  "work_templates.menu.template_title": "CATEGORIES",
   "work_templates.menu.usecase_boards_count": "{boardsCount, plural, =1 {# board} other {# boards}}",
   "work_templates.menu.usecase_channels_count": "{channelsCount, plural, =1 {# channel} other {# channels}}",
   "work_templates.menu.usecase_playbooks_count": "{playbooksCount, plural, =1 {# playbook} other {# playbooks}}",
