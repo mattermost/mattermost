@@ -163,7 +163,7 @@ export type GetGroupsForUserParams = GetGroupsParams & {
     filter_has_member: string;
 }
 
-export type GroupSearachParams = GetGroupsParams & {
+export type GroupSearchParams = GetGroupsParams & {
     q: string;
     filter_has_member?: string;
     include_timezones?: string;

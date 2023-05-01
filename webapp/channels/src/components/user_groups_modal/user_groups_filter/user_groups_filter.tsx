@@ -9,32 +9,28 @@ import Menu from 'components/widgets/menu/menu';
 
 type Props = {
     selectedFilter: string;
-    getGroups: (page: number) => void;
-    getMyGroups: (page: number) => void;
-    getArchivedGroups: (page: number) => void;
+    getGroups: (page: number, groupType: string) => void;
 }
 
 const UserGroupsFilter = (props: Props) => {
     const {
         selectedFilter,
         getGroups,
-        getMyGroups,
-        getArchivedGroups,
     } = props;
 
     const intl = useIntl();
 
     const allGroupsOnClick = useCallback(() => {
-        getGroups(0);
+        getGroups(0, 'all');
     }, [getGroups]);
 
     const myGroupsOnClick = useCallback(() => {
-        getMyGroups(0);
-    }, [getMyGroups]);
+        getGroups(0, 'my');
+    }, [getGroups]);
 
     const archivedGroupsOnClick = useCallback(() => {
-        getArchivedGroups(0);
-    }, [getArchivedGroups]);
+        getGroups(0, 'archived');
+    }, [getGroups]);
 
     const filterLabel = useCallback(() => {
         if (selectedFilter === 'all') {
