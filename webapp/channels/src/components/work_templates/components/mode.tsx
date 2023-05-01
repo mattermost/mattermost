@@ -136,6 +136,7 @@ function Mode(props: Props) {
                         onClick: () => props.setMode(ModalState.Menu),
                         testId: 'mode-work-template',
                         key: ModalState.Menu,
+                        id: 'work-templates-template-mode-tab',
                     },
                 ]}
                 startKey={originalMode}

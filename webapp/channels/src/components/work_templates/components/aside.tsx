@@ -58,7 +58,10 @@ export default function Aside(props: Props) {
                     defaultMessage: 'Channels allow you to organize conversations, tasks and content in one convenient place.',
                 })}
             </ChannelsUse>
-            <TryTemplate onClick={props.tryTemplates}>
+            <TryTemplate
+                onClick={props.tryTemplates}
+                id='work-templates-try-templates-aside'
+            >
                 {intl.formatMessage({
                     id: 'work_templates.channel_only.try_template',
                     defaultMessage: 'Try a template',

@@ -234,10 +234,18 @@ export function useChannelOnlyManager() {
         }
     };
 
-    const handleNameBlur = () => {
-        if (!displayNameModified) {
+    const handleNameBlur = (e: React.FocusEvent): boolean => {
+        if (
+            !displayNameModified &&
+            !(
+                (e.nativeEvent as any)?.rangeParent?.parentNode?.closest('#work-templates-try-templates-aside') ||
+                (e.nativeEvent as any)?.rangeParent?.parentNode?.closest('#work-templates-template-mode-tab')
+            )
+        ) {
             setDisplayNameModified(true);
+            return true;
         }
+        return false;
     };
 
     const handleOnURLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,6 +355,13 @@ const ChannelOnly = (props: Props) => {
         </OverlayTrigger>
     );
 
+    const shouldValidateOnBlur = (e: React.FocusEvent): boolean => {
+        return !(
+            (e.nativeEvent as any)?.rangeParent?.parentNode?.closest('#work-templates-try-templates-aside') ||
+            (e.nativeEvent as any)?.rangeParent?.parentNode?.closest('#work-templates-template-mode-tab')
+        );
+    };
+
     return (
         <ChannelOnlyBody className='channel-only-body'>
             <GlobalStyle/>
@@ -367,6 +382,7 @@ const ChannelOnly = (props: Props) => {
                         customMessage={state.displayNameModified ? {type: ItemStatus.ERROR, value: state.displayNameError} : null}
                         onChange={set.name}
                         onBlur={set.handleNameBlur}
+                        shouldValidateOnBlur={shouldValidateOnBlur}
                     />
                     <URLInput
                         className='channel-url'

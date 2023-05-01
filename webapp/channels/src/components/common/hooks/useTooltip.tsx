@@ -124,12 +124,17 @@ export default function useTooltip(options: TooltipOptions) {
     useEffect(() => {
         let listener: (e: MouseEvent) => void;
         if (options.onClickOther && options.tooltipId) {
-            let count = 0;
+            const attachTime = Date.now();
             listener = (e: MouseEvent) => {
-                if (count > 0 && !(e.target as any)?.closest(options.tooltipId)) {
+                const now = Date.now();
+
+                // this is a workaround for an issue for usage of this in a modal,
+                // where the click of the UI that opens the modal is also
+                // immediately reused for this click listener.
+                const clickedAfterModalOpen = (now - attachTime > 100);
+                if (clickedAfterModalOpen && !(e.target as any)?.closest(options.tooltipId)) {
                     options.onClickOther();
                 }
-                count++;
             };
             document.addEventListener('click', listener);
         }

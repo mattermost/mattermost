@@ -39,6 +39,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     clearable?: boolean;
     clearableTooltipText?: string;
     onClear?: () => void;
+    shouldValidateOnBlur?: (e: React.FocusEvent<HTMLInputElement>) => boolean;
 }
 
 const Input = React.forwardRef((
@@ -104,7 +105,9 @@ const Input = React.forwardRef((
 
     const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>) => {
         setFocused(false);
-        validateInput();
+        if (!otherProps.shouldValidateOnBlur || otherProps.shouldValidateOnBlur(event)) {
+            validateInput();
+        }
 
         if (onBlur) {
             onBlur(event);

@@ -9,6 +9,7 @@ interface Tab {
     content: React.ReactNode | React.ReactNodeArray;
     onClick: () => void;
     testId?: string;
+    id?: string;
 }
 interface Props {
     tabs: Tab[];
@@ -36,6 +37,7 @@ export default function ModalTabs(props: Props) {
                         onClick={tab.onClick}
                         data-testid={tab.testId}
                         selected={tab.key === props.selected}
+                        id={tab.id}
                     >
                         {tab.content}
                     </Tab>
