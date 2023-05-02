@@ -210,6 +210,8 @@ db/migrations/mysql/000104_upgrade_notifyadmin.down.sql
 db/migrations/mysql/000104_upgrade_notifyadmin.up.sql
 db/migrations/mysql/000105_remove_tokens.down.sql
 db/migrations/mysql/000105_remove_tokens.up.sql
+db/migrations/mysql/000108_remove_orphaned_oauth_preferences.down.sql
+db/migrations/mysql/000108_remove_orphaned_oauth_preferences.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -420,3 +422,5 @@ db/migrations/postgres/000104_upgrade_notifyadmin.down.sql
 db/migrations/postgres/000104_upgrade_notifyadmin.up.sql
 db/migrations/postgres/000105_remove_tokens.down.sql
 db/migrations/postgres/000105_remove_tokens.up.sql
+db/migrations/postgres/000108_remove_orphaned_oauth_preferences.down.sql
+db/migrations/postgres/000108_remove_orphaned_oauth_preferences.up.sql
