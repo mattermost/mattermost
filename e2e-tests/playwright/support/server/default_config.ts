@@ -170,7 +170,6 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
-        SelfHostedExpansion: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -533,6 +532,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAppBar: false,
         PatchPluginsReactDOM: false,
         DisableRefetchingOnBrowserFocus: false,
+        DelayChannelAutocomplete: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
