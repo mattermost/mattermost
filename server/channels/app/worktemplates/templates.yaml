@@ -504,11 +504,11 @@ description:
   channel:
     id: worktemplate.leadership.content_calendar.channel
     defaultMessage: >-
-      TODO CHANNEL
+      Share content ideas, trending posts, blog links, and mentions in a dedicated channel.
   board:
     id: worktemplate.leadership.content_calendar.board
     defaultMessage: >-
-      TODO BOARD
+      Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.
 content:
   - channel:
       id: channel-ct
@@ -948,11 +948,11 @@ description:
   channel:
     id: worktemplate.marketing.content_calendar.channel
     defaultMessage: >-
-      TODO CHANNEL
+      Share content ideas, trending posts, blog links, and mentions in a dedicated channel.
   board:
     id: worktemplate.marketing.content_calendar.board
     defaultMessage: >-
-      TODO BOARD
+      Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.
 content:
   - channel:
       id: channel-ct
@@ -1254,11 +1254,11 @@ description:
   channel:
     id: worktemplate.design.content_calendar.channel
     defaultMessage: >-
-      TODO CHANNEL
+      Share content ideas, trending posts, blog links, and mentions in a dedicated channel.
   board:
     id: worktemplate.design.content_calendar.board
     defaultMessage: >-
-      TODO BOARD
+      Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.
 content:
   - channel:
       id: channel-ct

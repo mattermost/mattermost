@@ -10089,11 +10089,11 @@
   },
   {
     "id": "worktemplate.design.content_calendar.board",
-    "translation": "TODO BOARD"
+    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
   },
   {
     "id": "worktemplate.design.content_calendar.channel",
-    "translation": "TODO CHANNEL"
+    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
   },
   {
     "id": "worktemplate.design.create_project.board",
@@ -10273,11 +10273,11 @@
   },
   {
     "id": "worktemplate.leadership.content_calendar.board",
-    "translation": "TODO BOARD"
+    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
   },
   {
     "id": "worktemplate.leadership.content_calendar.channel",
-    "translation": "TODO CHANNEL"
+    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
   },
   {
     "id": "worktemplate.leadership.create_project.board",
@@ -10317,11 +10317,11 @@
   },
   {
     "id": "worktemplate.marketing.content_calendar.board",
-    "translation": "TODO BOARD"
+    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
   },
   {
     "id": "worktemplate.marketing.content_calendar.channel",
-    "translation": "TODO CHANNEL"
+    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
   },
   {
     "id": "worktemplate.marketing.create_project.board",

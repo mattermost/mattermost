@@ -1063,12 +1063,12 @@ var wtf1f79af5441269e36297a45a693c7d10 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.leadership.content_calendar.channel",
-			DefaultMessage: "TODO CHANNEL",
+			DefaultMessage: "Share content ideas, trending posts, blog links, and mentions in a dedicated channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.leadership.content_calendar.board",
-			DefaultMessage: "TODO BOARD",
+			DefaultMessage: "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.",
 			Illustration:   "",
 		},
 	},
@@ -1777,12 +1777,12 @@ var wt72e52cfc59b7124b371185424c416cff = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.marketing.content_calendar.channel",
-			DefaultMessage: "TODO CHANNEL",
+			DefaultMessage: "Share content ideas, trending posts, blog links, and mentions in a dedicated channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.marketing.content_calendar.board",
-			DefaultMessage: "TODO BOARD",
+			DefaultMessage: "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.",
 			Illustration:   "",
 		},
 	},
@@ -2272,12 +2272,12 @@ var wt25b6a591d2ea27c72f336f431cd1b703 = &WorkTemplate{
 	Description: Description{
 		Channel: &TranslatableString{
 			ID:             "worktemplate.design.content_calendar.channel",
-			DefaultMessage: "TODO CHANNEL",
+			DefaultMessage: "Share content ideas, trending posts, blog links, and mentions in a dedicated channel.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.design.content_calendar.board",
-			DefaultMessage: "TODO BOARD",
+			DefaultMessage: "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.",
 			Illustration:   "",
 		},
 	},
