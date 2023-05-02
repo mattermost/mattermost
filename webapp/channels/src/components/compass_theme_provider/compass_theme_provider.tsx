@@ -9,7 +9,7 @@ import {ThemeProvider} from '@mattermost/components';
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 type Props = {
-    isNewUI: boolean;
+    isNewUI?: boolean;
     theme: Theme;
     children?: React.ReactNode;
 }

@@ -167,6 +167,7 @@ type Props = {
     rhsIsExpanded: boolean;
     rhsIsOpen: boolean;
     shouldShowAppBar: boolean;
+    isNewUI: boolean;
 } & RouteComponentProps
 
 interface State {
@@ -634,7 +635,10 @@ export default class Root extends React.PureComponent<Props, State> {
                         from={'/_redirect/pl/:postid'}
                         to={`/${this.props.permalinkRedirectTeamName}/pl/:postid`}
                     />
-                    <CompassThemeProvider theme={this.props.theme}>
+                    <CompassThemeProvider
+                        theme={this.props.theme}
+                        isNewUI={this.props.isNewUI}
+                    >
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&
                             <LaunchingWorkspace
                                 fullscreen={true}
