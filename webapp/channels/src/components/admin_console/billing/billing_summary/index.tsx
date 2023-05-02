@@ -44,7 +44,7 @@ const BillingSummary = ({isFreeTrial, daysLeftOnTrial, onUpgradeMattermostCloud}
     } else if (isStarterPostTrial) {
         body = <UpgradeToProfessionalCard/>;
     } else if (isFreeTrial) {
-        body = freeTrial(onUpgradeMattermostCloud, daysLeftOnTrial);
+        body = freeTrial(onUpgradeMattermostCloud, daysLeftOnTrial, reverseTrial);
     } else if (subscription?.last_invoice && !subscription?.upcoming_invoice) {
         const invoice = subscription.last_invoice;
         const fullCharges = invoice.line_items.filter((item) => item.type === 'full');
