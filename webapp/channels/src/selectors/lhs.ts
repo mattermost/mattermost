@@ -10,7 +10,7 @@ import {
     isCollapsedThreadsEnabled,
     localDraftsAreEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
-import {SidebarSize} from 'utils/constants';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export function getIsLhsOpen(state: GlobalState): boolean {
     return state.views.lhs.isOpen;

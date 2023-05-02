@@ -3,8 +3,7 @@
 
 import classNames from 'classnames';
 import React, {HTMLAttributes, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-
-import {ResizeDirection} from 'utils/constants';
+import {ResizeDirection} from '../constants';
 
 import {requestAnimationFrameForMouseMove, isOverLimit, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk, setWidth, toggleColResizeCursor, resetStyle, isSizeLessThanSnapSize, isSnapableSpeed} from '../utils';
 

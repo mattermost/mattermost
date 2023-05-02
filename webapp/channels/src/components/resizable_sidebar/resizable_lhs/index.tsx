@@ -8,9 +8,10 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import {getLhsSize} from 'selectors/lhs';
 import LocalStorageStore from 'stores/local_storage_store';
-import {DEFAULT_LHS_WIDTH, LHS_MIN_MAX_WIDTH} from 'utils/constants';
+
 import {isResizableSize} from '../utils';
 import Resizable from '../resizable';
+import {LHS_MIN_MAX_WIDTH, DEFAULT_LHS_WIDTH} from '../constants';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;

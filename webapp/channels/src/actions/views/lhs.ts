@@ -7,8 +7,9 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 
 import {GlobalState} from 'types/store';
 import {LhsItemType} from 'types/store/lhs';
-import Constants, {ActionTypes, SidebarSize} from 'utils/constants';
+import Constants, {ActionTypes} from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export const setLhsSize = (sidebarSize?: SidebarSize) => {
     let newSidebarSize = sidebarSize;

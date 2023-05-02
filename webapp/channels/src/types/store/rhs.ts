@@ -5,7 +5,8 @@ import {Post, PostType} from '@mattermost/types/posts';
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 
-import {RHSStates, SidebarSize} from 'utils/constants';
+import {RHSStates} from 'utils/constants';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export type SearchType = '' | 'files' | 'messages';
 

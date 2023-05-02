@@ -10,7 +10,8 @@ import throttle from 'lodash/throttle';
 import {setLhsSize} from 'actions/views/lhs';
 import {setRhsSize} from 'actions/views/rhs';
 
-import Constants, {SidebarSize} from 'utils/constants';
+import Constants from 'utils/constants';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 const smallSidebarMediaQuery = window.matchMedia(`(max-width: ${Constants.SMALL_SIDEBAR_BREAKPOINT}px)`);
 const mediumSidebarMediaQuery = window.matchMedia(`(min-width: ${Constants.SMALL_SIDEBAR_BREAKPOINT + 1}px) and (max-width: ${Constants.MEDIUM_SIDEBAR_BREAKPOINT}px)`);

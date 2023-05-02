@@ -9,11 +9,12 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {Channel} from '@mattermost/types/channels';
 
 import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
-import {PostTypes, SidebarSize, StoragePrefixes} from 'utils/constants';
+import {PostTypes, StoragePrefixes} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 import {GlobalState} from 'types/store';
 import {RhsState, FakePost, SearchType} from 'types/store/rhs';
 import {PostDraft} from 'types/store/draft';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;

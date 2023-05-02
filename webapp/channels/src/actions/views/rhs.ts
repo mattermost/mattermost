@@ -25,7 +25,7 @@ import {Post} from '@mattermost/types/posts';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
-import {ActionTypes, RHSStates, Constants, SidebarSize} from 'utils/constants';
+import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import {RhsState} from 'types/store/rhs';
@@ -33,6 +33,7 @@ import {GlobalState} from 'types/store';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 
 import {getChannel} from 'mattermost-redux/actions/channels';
+import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
