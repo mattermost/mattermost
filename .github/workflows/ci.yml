@@ -83,6 +83,8 @@ jobs:
         run: make plugin-checker
       - name: Run mattermost-vet
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+      - name: Run golangci
+        run: make golangci-lint
   check-migrations:
     name: Check migration files
     runs-on: ubuntu-22.04

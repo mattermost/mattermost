@@ -403,8 +403,7 @@ setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
-check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
-
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
