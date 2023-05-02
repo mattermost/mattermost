@@ -3,16 +3,18 @@
 
 import React, {useState, useEffect} from 'react';
 
-import ThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
+import CompassComponentsThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
+import {ThemeProvider} from '@mattermost/components';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 type Props = {
+    isNewUI: boolean;
     theme: Theme;
     children?: React.ReactNode;
 }
 
-const CompassThemeProvider = ({theme, children}: Props): JSX.Element | null => {
+const CompassThemeProvider = ({theme, isNewUI, children}: Props): JSX.Element | null => {
     const [compassTheme, setCompassTheme] = useState({
         ...lightTheme,
         noStyleReset: true,
@@ -53,10 +55,18 @@ const CompassThemeProvider = ({theme, children}: Props): JSX.Element | null => {
         });
     }, [theme]);
 
+    if (isNewUI) {
+        return (
+            <ThemeProvider theme={theme}>
+                {children}
+            </ThemeProvider>
+        );
+    }
+
     return (
-        <ThemeProvider theme={compassTheme}>
+        <CompassComponentsThemeProvider theme={compassTheme}>
             {children}
-        </ThemeProvider>
+        </CompassComponentsThemeProvider>
     );
 };
 

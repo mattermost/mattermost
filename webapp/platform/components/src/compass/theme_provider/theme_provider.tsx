@@ -12,9 +12,10 @@ import overrides from './overrides';
 
 type Props = {
     theme: Theme;
+    [p:string]: any;
 }
 
-const ThemeProvider = ({theme = THEMES.onyx}: Props) => {
+const ThemeProvider = ({theme = THEMES.onyx, ...rest}: Props) => {
     const MUITheme = createMUIThemeFromMMTheme(theme);
     const combinedTheme = createTheme({
         ...MUITheme,
@@ -23,6 +24,7 @@ const ThemeProvider = ({theme = THEMES.onyx}: Props) => {
 
     return (
         <MUIThemeProvider
+            {...rest}
             theme={combinedTheme}
         />
     );

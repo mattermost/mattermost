@@ -303,3 +303,7 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 export function appsSidebarCategoryEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'AppsSidebarCategory') === 'true';
 }
+
+export function getNewUIEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'NewUI') === 'false';
+}
