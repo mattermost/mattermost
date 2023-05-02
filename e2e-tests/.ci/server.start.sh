@@ -9,11 +9,6 @@ cd $(dirname $0)
 mme2e_log "Stopping leftover E2E containers, if any are running"
 ${MME2E_DC_SERVER} down -v
 
-# Initialize docker-compose resources
-mme2e_log "Creating docker-compose network + containers"
-mme2e_wait_image ${SERVER_IMAGE} 30 60
-${MME2E_DC_SERVER} up --no-start
-
 # Generate .env.server
 mme2e_log "Generating .env.server"
 cat >.env.server <<EOF
@@ -28,13 +23,16 @@ for env in $envarr; do
 done
 
 # Generate .env.cypress
+### TODO remove dependency on uuidgen?
 mme2e_log "Generating .env.cypress"
 cat >.env.cypress <<EOF
 BRANCH=$BRANCH
-BUILD_ID=$BUILD_ID
+BUILD_ID=${BUILD_ID:-$(uuidgen)}
 EOF
 
 # Launch mattermost-server, and wait for it to be healthy
+mme2e_log "Waiting for server image to be available"
+mme2e_wait_image ${SERVER_IMAGE} 30 60
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} up -d
 if ! mme2e_wait_service_healthy server 60 10; then
