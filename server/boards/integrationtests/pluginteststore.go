@@ -214,6 +214,29 @@ func (s *PluginTestStore) SearchUsersByTeam(teamID string, searchQuery string, a
 	return users, nil
 }
 
+func (s *PluginTestStore) ForEachMemberForUser(userID string, fn func(*model.BoardMember) error) error {
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		members, err := s.GetMembersForUser(userID, model.QueryPageOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for _, member := range members {
+			if err = fn(member); err != nil {
+				return err
+			}
+		}
+		if len(members) < perPage {
+			break
+		}
+	}
+	return nil
+}
+
 func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error) {
 	user, err := s.GetUserByID(seerID)
 	if err != nil {
@@ -223,32 +246,30 @@ func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error)
 		return true, nil
 	}
 
-	page := 0
-	const perPage = 50
-	for ; true; page++ {
-		seerMembers, err := s.GetMembersForUser(seerID, model.QueryPageOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return false, err
-		}
-		seenMembers, err := s.GetMembersForUser(seenID, model.QueryPageOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return false, err
-		}
-		for _, seerMember := range seerMembers {
-			for _, seenMember := range seenMembers {
-				if seerMember.BoardID == seenMember.BoardID {
-					return true, nil
-				}
+	seerIDs := []string{}
+	seenIDs := []string{}
+
+	err = s.ForEachMemberForUser(seerID, func(member *model.BoardMember) error {
+		seerIDs = append(seerIDs, member.UserID)
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	err = s.ForEachMemberForUser(seenID, func(member *model.BoardMember) error {
+		seenIDs = append(seenIDs, member.UserID)
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	for _, seerMemberID := range seerIDs {
+		for _, seenMemberID := range seenIDs {
+			if seerMemberID == seenMemberID {
+				return true, nil
 			}
-		}
-		if len(seerMembers) < perPage && len(seenMembers) < perPage {
-			break
 		}
 	}
 	return false, nil

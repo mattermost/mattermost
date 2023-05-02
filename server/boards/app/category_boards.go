@@ -89,11 +89,12 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 	// get user's current team's boards
 	userTeamBoardIDs := []string{}
 	page := 0
+	const perPage = 100
 	for ; true; page++ {
 		userTeamBoards, err := a.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
 			IncludePublicBoards: false,
 			Page:                page,
-			PerPage:             100,
+			PerPage:             perPage,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("createBoardsCategory error fetching user's team's boards: %w", err)
@@ -101,7 +102,7 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 		for _, board := range userTeamBoards {
 			userTeamBoardIDs = append(userTeamBoardIDs, board.ID)
 		}
-		if len(userTeamBoards) == 0 || len(userTeamBoards) < 100 {
+		if len(userTeamBoards) < perPage {
 			break
 		}
 	}

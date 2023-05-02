@@ -204,7 +204,7 @@ func TestApp_ImportArchive(t *testing.T) {
 		th.Store.EXPECT().GetBlocksByIDs(blockIDs).Return([]*model.Block{imageBlock, attachmentBlock}, nil)
 		th.Store.EXPECT().GetBlock(blockIDs[0]).Return(imageBlock, nil)
 		th.Store.EXPECT().GetBlock(blockIDs[1]).Return(attachmentBlock, nil)
-		th.Store.EXPECT().GetMembersForBoard("board-id").AnyTimes().Return([]*model.BoardMember{}, nil)
+		th.Store.EXPECT().GetMembersForBoard("board-id", mockPageOptions).AnyTimes().Return([]*model.BoardMember{}, nil)
 
 		th.Store.EXPECT().PatchBlocks(&blockPatchesBatch, "my-userid")
 		th.App.fixImagesAttachments(boardMap, fileMap, "test-team", "my-userid")

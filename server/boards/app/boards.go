@@ -273,9 +273,9 @@ func (a *App) CreateBoard(board *model.Board, userID string, addMember bool) (*m
 	a.blockChangeNotifier.Enqueue(func() error {
 		a.wsAdapter.BroadcastBoardChange(newBoard.TeamID, newBoard)
 		if newBoard.ChannelID != "" {
-			err = a.ForEachMemberOfBoard(board.ID, func(member *model.BoardMember) error {
+			err = a.ForEachBoardMember(board.ID, func(member *model.BoardMember) (bool, error) {
 				a.wsAdapter.BroadcastMemberChange(newBoard.TeamID, member.BoardID, member)
-				return nil
+				return false, nil
 			})
 			if err != nil {
 				a.logger.Error("Unable to get the board members", mlog.Err(err))
@@ -345,11 +345,11 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 	if patch.Type != nil || patch.ChannelID != nil {
 		testChannel := ""
 		if patch.ChannelID != nil && *patch.ChannelID == "" {
-			err := a.ForEachMemberOfBoard(boardID, func(member *model.BoardMember) error {
+			err := a.ForEachBoardMember(boardID, func(member *model.BoardMember) (bool, error) {
 				if member.Synthetic {
 					oldMemberIDs = append(oldMemberIDs, member.UserID)
 				}
-				return nil
+				return false, nil
 			})
 			if err != nil {
 				a.logger.Error("Unable to get the board members", mlog.Err(err))
@@ -412,11 +412,11 @@ func (a *App) PatchBoard(patch *model.BoardPatch, boardID, userID string) (*mode
 
 		if patch.ChannelID != nil {
 			if *patch.ChannelID != "" {
-				err = a.ForEachMemberOfBoard(updatedBoard.ID, func(member *model.BoardMember) error {
+				err = a.ForEachBoardMember(updatedBoard.ID, func(member *model.BoardMember) (bool, error) {
 					if member.Synthetic {
 						a.wsAdapter.BroadcastMemberChange(updatedBoard.TeamID, member.BoardID, member)
 					}
-					return nil
+					return false, nil
 				})
 				if err != nil {
 					a.logger.Error("Unable to get the board members", mlog.Err(err))
@@ -536,7 +536,7 @@ func (a *App) GetMembersForBoard(boardID string, opts model.QueryPageOptions) ([
 	return members, nil
 }
 
-func (a *App) ForEachMemberOfBoard(boardID string, fn func(*model.BoardMember) error) error {
+func (a *App) ForEachBoardMember(boardID string, fn func(*model.BoardMember) (bool, error)) error {
 	page := 0
 	const perPage = 50
 	for ; true; page++ {
@@ -548,7 +548,7 @@ func (a *App) ForEachMemberOfBoard(boardID string, fn func(*model.BoardMember) e
 			return err
 		}
 		for _, member := range members {
-			if err = fn(member); err != nil {
+			if done, err := fn(member); err != nil || done {
 				return err
 			}
 		}
@@ -674,29 +674,15 @@ func (a *App) UpdateBoardMember(member *model.BoardMember) (*model.BoardMember, 
 }
 
 func (a *App) isLastAdmin(userID, boardID string) (bool, error) {
-	page := 0
-	const perPage = 50
-
-	for ; true; page++ {
-		members, err := a.store.GetMembersForBoard(boardID, model.QueryPageOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return false, err
+	isLastAdmin := true
+	err := a.ForEachBoardMember(boardID, func(member *model.BoardMember) (bool, error) {
+		if member.SchemeAdmin && member.UserID != userID {
+			isLastAdmin = false
+			return true, nil
 		}
-
-		for _, m := range members {
-			if m.SchemeAdmin && m.UserID != userID {
-				return false, nil
-			}
-		}
-
-		if len(members) < perPage {
-			break
-		}
-	}
-	return true, nil
+		return false, nil
+	})
+	return isLastAdmin, err
 }
 
 func (a *App) DeleteBoardMember(boardID, userID string) error {

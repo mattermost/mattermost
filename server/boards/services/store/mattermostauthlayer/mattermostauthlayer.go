@@ -346,11 +346,12 @@ func (s *MattermostAuthLayer) GetUsersByTeam(teamID string, asGuestID string, sh
 	} else {
 		boardsIDs := []string{}
 		page := 0
+		const perPage = 100
 		for ; true; page++ {
 			boards, err := s.GetBoardsForUserAndTeam(asGuestID, teamID, model.QueryBoardOptions{
 				IncludePublicBoards: false,
 				Page:                page,
-				PerPage:             100,
+				PerPage:             perPage,
 			})
 			if err != nil {
 				return nil, err
@@ -358,7 +359,7 @@ func (s *MattermostAuthLayer) GetUsersByTeam(teamID string, asGuestID string, sh
 			for _, board := range boards {
 				boardsIDs = append(boardsIDs, board.ID)
 			}
-			if len(boards) == 0 || len(boards) < 100 {
+			if len(boards) < perPage {
 				break
 			}
 		}
