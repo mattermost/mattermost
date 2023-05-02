@@ -14,7 +14,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost-webapp",
+    "url": "github:mattermost/mattermost-server",
     "directory": "webapp/platform/client"
   },
   "dependencies": {

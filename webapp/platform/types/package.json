@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost-webapp",
+    "url": "github:mattermost/mattermost-server",
     "directory": "webapp/platform/types"
   },
   "peerDependencies": {
