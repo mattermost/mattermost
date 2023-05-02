@@ -196,6 +196,7 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    DelayChannelAutocomplete: 'true' | 'false';
 };
 
 export type License = {
@@ -730,6 +731,7 @@ export type ExperimentalSettings = {
     EnableAppBar: boolean;
     PatchPluginsReactDOM: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
+    DelayChannelAutocomplete: boolean;
 };
 
 export type AnalyticsSettings = {

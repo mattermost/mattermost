@@ -746,6 +746,8 @@
   "admin.database.migrations_table.name": "Nazwa",
   "admin.database.migrations_table.title": "Zastosowane Schematy Migracji",
   "admin.database.migrations_table.version": "Wersja",
+  "admin.database.search_backend.help_text": "Pokazuje aktualnie aktywny backend używany do wyszukiwania. Wartościami mogą być none, database, elasticsearch, bleve itp.",
+  "admin.database.search_backend.title": "Active Search Backend",
   "admin.database.title": "Baza danych",
   "admin.developer.title": "Ustawienia deweloperów",
   "admin.elasticsearch.bulkIndexingTitle": "Indeksowanie zbiorcze:",

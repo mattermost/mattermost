@@ -136,6 +136,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["InsightsEnabled"] = strconv.FormatBool(c.FeatureFlags.InsightsEnabled)
 	props["PostPriority"] = strconv.FormatBool(*c.ServiceSettings.PostPriority)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
+	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
