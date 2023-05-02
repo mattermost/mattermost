@@ -3626,7 +3626,6 @@
   "group_member_list.searchError": "There was a problem getting results. Clear your search term and try again.",
   "group_member_list.sendMessageButton": "Send message to {user}",
   "group_member_list.sendMessageTooltip": "Send message",
-  "groups": "{team} Groups",
   "incoming_webhooks.header": "Incoming Webhooks",
   "inProduct_notices.adminOnlyMessage": "Visible to Admins only",
   "input.clear": "Clear",
