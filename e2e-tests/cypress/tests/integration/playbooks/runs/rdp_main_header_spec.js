@@ -13,7 +13,7 @@
 
 import {stubClipboard} from '../../../utils';
 
-describe('runs > run details page > header', () => {
+describe('runs > run details page > header', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testViewerUser;
@@ -692,7 +692,7 @@ describe('runs > run details page > header', () => {
                     });
                 });
 
-                describe.skip('Join action disabled', () => {
+                describe('Join action disabled', () => {
                     beforeEach(() => {
                         cy.apiLogin(testUser);
 

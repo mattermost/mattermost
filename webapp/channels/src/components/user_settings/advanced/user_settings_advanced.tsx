@@ -10,7 +10,8 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {a11yFocus, isMac, localizeMessage} from 'utils/utils';
+import {isMac} from 'utils/user_agent';
+import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import SettingItemMax from 'components/setting_item_max';
 import ConfirmModal from 'components/confirm_modal';
@@ -123,7 +124,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             showDeactivateAccountModal,
             serverError: '',
         };
-    }
+    };
 
     updateSetting = (setting: string, value: string, e?: React.ChangeEvent): void => {
         const settings = this.state.settings;
@@ -131,7 +132,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         this.setState((prevState) => ({...prevState, ...settings}));
         a11yFocus(e?.currentTarget as HTMLElement);
-    }
+    };
 
     toggleFeature = (feature: string, checked: boolean): void => {
         const {settings} = this.state;
@@ -145,7 +146,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         });
 
         this.setState({settings, enabledFeatures});
-    }
+    };
 
     saveEnabledFeatures = (): void => {
         const features: string[] = [];
@@ -156,7 +157,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         });
 
         this.handleSubmit(features);
-    }
+    };
 
     handleSubmit = async (settings: string[]): Promise<void> => {
         const preferences: PreferenceType[] = [];
@@ -177,7 +178,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         await actions.savePreferences(userId, preferences);
 
         this.handleUpdateSection('');
-    }
+    };
 
     handleDeactivateAccountSubmit = async (): Promise<void> => {
         const userId = this.props.currentUser.id;
@@ -197,19 +198,19 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         } else if (error) {
             this.setState({serverError: error.message});
         }
-    }
+    };
 
     handleShowDeactivateAccountModal = (): void => {
         this.setState({
             showDeactivateAccountModal: true,
         });
-    }
+    };
 
     handleHideDeactivateAccountModal = (): void => {
         this.setState({
             showDeactivateAccountModal: false,
         });
-    }
+    };
 
     handleUpdateSection = (section?: string): void => {
         if (!section) {
@@ -217,7 +218,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         }
         this.setState({isSaving: false});
         this.props.updateSection(section);
-    }
+    };
 
     // This function changes ctrl to cmd when OS is mac
     getCtrlSendText = () => {
@@ -251,7 +252,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             ctrlSendTitle: title.default,
             ctrlSendDesc: description.default,
         };
-    }
+    };
 
     renderOnOffLabel(enabled: string): JSX.Element {
         if (enabled === 'false') {
@@ -399,7 +400,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 max={max}
             />
         );
-    }
+    };
 
     renderUnreadScrollPositionSection = () => {
         const active = this.props.activeSection === Preferences.UNREAD_SCROLL_POSITION;
@@ -485,7 +486,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 max={max}
             />
         );
-    }
+    };
 
     renderSyncDraftsSection = () => {
         const active = this.props.activeSection === AdvancedSections.SYNC_DRAFTS;
@@ -572,7 +573,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 max={max}
             />
         );
-    }
+    };
 
     renderFeatureLabel(feature: string): ReactNode {
         switch (feature) {
@@ -697,7 +698,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 max={max}
             />
         );
-    }
+    };
 
     renderPreviewFeaturesSection = () => {
         const serverError = this.state.serverError || null;
@@ -770,7 +771,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 max={max}
             />
         );
-    }
+    };
 
     render() {
         const ctrlSendSection = this.renderCtrlSendSection();

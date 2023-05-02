@@ -50,10 +50,12 @@ import {Emoji} from '@mattermost/types/emojis';
 
 import PostUserProfile from './user_profile';
 import PostOptions from './post_options';
+import {Team} from '@mattermost/types/teams';
 
 export type Props = {
     post: Post;
-    teamId: string;
+    currentTeam: Team;
+    team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
     colorizeUsernames?: boolean;
@@ -123,6 +125,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
+    const teamId = props.team?.id || props.currentTeam.id;
 
     const [hover, setHover] = useState(false);
     const [a11yActive, setA11y] = useState(false);
@@ -146,6 +149,7 @@ const PostComponent = (props: Props): JSX.Element => {
 
     const handleA11yActivateEvent = () => setA11y(true);
     const handleA11yDeactivateEvent = () => setA11y(false);
+    const handleAlt = (e: KeyboardEvent) => setAlt(e.altKey);
 
     useEffect(() => {
         if (a11yActive) {
@@ -154,13 +158,8 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [a11yActive]);
 
     useEffect(() => {
-        const handleAlt = (e: KeyboardEvent) => {
-            setAlt(e.altKey);
-        };
         let removeEventListener: (type: string, listener: EventListener) => void;
 
-        document.addEventListener('keydown', handleAlt);
-        document.addEventListener('keyup', handleAlt);
         if (postRef.current) {
             postRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
             postRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
@@ -168,14 +167,24 @@ const PostComponent = (props: Props): JSX.Element => {
         }
 
         return () => {
-            document.removeEventListener('keydown', handleAlt);
-            document.removeEventListener('keyup', handleAlt);
             if (removeEventListener) {
                 removeEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
                 removeEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (hover) {
+            document.addEventListener('keydown', handleAlt);
+            document.addEventListener('keyup', handleAlt);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleAlt);
+            document.removeEventListener('keyup', handleAlt);
+        };
+    }, [hover]);
 
     const hasSameRoot = (props: Props) => {
         if (props.isFirstReply) {
@@ -349,7 +358,15 @@ const PostComponent = (props: Props): JSX.Element => {
             return;
         }
         props.actions.selectPostFromRightHandSideSearch(post);
-    }, [post, props.actions]);
+    }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
+
+    const handleThreadClick = useCallback((e: React.MouseEvent) => {
+        if (props.currentTeam.id === props.team?.id) {
+            handleCommentClick(e);
+        } else {
+            handleJumpClick(e);
+        }
+    }, [handleCommentClick, handleJumpClick]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -429,7 +446,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
         <ThreadFooter
             threadId={post.id}
-            replyClick={handleCommentClick}
+            replyClick={handleThreadClick}
         />
     ) : null;
     const currentPostDay = getDateForUnixTicks(post.create_at);
@@ -532,6 +549,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
+                                        teamName={props.team?.name}
                                         eventTime={post.create_at}
                                         postId={post.id}
                                         location={props.location}
@@ -571,6 +589,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             {!props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
+                                teamId={teamId}
                                 setActionsMenuInitialisationState={props.actions.setActionsMenuInitialisationState}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}

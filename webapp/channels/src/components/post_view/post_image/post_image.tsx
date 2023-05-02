@@ -40,7 +40,7 @@ export default class PostImage extends React.PureComponent<Props> {
                 }],
             },
         });
-    }
+    };
 
     render() {
         return (

@@ -59,6 +59,7 @@ type Props = {
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
+    cloudFreeDeprecated: boolean;
 }
 
 type State = {
@@ -97,7 +98,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 callerCTA: 'feature_discovery_subscribe_button',
             },
         });
-    }
+    };
 
     contactSalesFunc = () => {
         const {customer, isCloud} = this.props;
@@ -107,7 +108,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         const companyName = customer?.name || '';
         const utmMedium = isCloud ? 'in-product-cloud' : 'in-product';
         goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, 'mattermost', utmMedium);
-    }
+    };
 
     renderPostTrialCta = () => {
         const {
@@ -164,7 +165,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
             </div>
         );
-    }
+    };
 
     renderStartTrial = (learnMoreURL: string, gettingTrialError: React.ReactNode) => {
         const {
@@ -205,6 +206,23 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         extraClass='btn btn-primary'
                     />
                 );
+                if (this.props.cloudFreeDeprecated) {
+                    ctaPrimaryButton = (
+                        <button
+                            className='btn btn-primary'
+                            data-testid='featureDiscovery_primaryCallToAction'
+                            onClick={() => {
+                                trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
+                                this.contactSalesFunc();
+                            }}
+                        >
+                            <FormattedMessage
+                                id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
+                                defaultMessage='Contact sales'
+                            />
+                        </button>
+                    );
+                }
             } else if (hadPrevCloudTrial) {
                 // if it is cloud, but this account already had a free trial, then the cta button must be Upgrade now
                 ctaPrimaryButton = (
@@ -259,7 +277,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                     />
                 </ExternalLink>
                 {gettingTrialError}
-                {(!this.props.isCloud || canRequestCloudFreeTrial) && <p className='trial-legal-terms'>
+                {((!this.props.isCloud || canRequestCloudFreeTrial) && !this.props.cloudFreeDeprecated) && <p className='trial-legal-terms'>
                     {canRequestCloudFreeTrial ? (
                         <FormattedMessage
                             id='admin.feature_discovery.trial-request.accept-terms.cloudFree'
@@ -317,7 +335,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 </p>}
             </>
         );
-    }
+    };
 
     render() {
         const {

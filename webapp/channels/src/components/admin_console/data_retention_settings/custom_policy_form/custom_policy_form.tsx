@@ -93,19 +93,19 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
 
     openAddChannel = () => {
         this.setState({addChannelOpen: true});
-    }
+    };
 
     closeAddChannel = () => {
         this.setState({addChannelOpen: false});
-    }
+    };
 
     openAddTeam = () => {
         this.setState({addTeamOpen: true});
-    }
+    };
 
     closeAddTeam = () => {
         this.setState({addTeamOpen: false});
-    }
+    };
     getMessageRetentionDefaultInputValue = (): string => {
         if (!this.props.policy || Object.keys(this.props.policy).length === 0 || (this.props.policy && this.props.policy.post_duration === -1)) {
             return '';
@@ -114,7 +114,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             return (this.props.policy.post_duration / 365).toString();
         }
         return this.props.policy.post_duration.toString();
-    }
+    };
     getMessageRetentionDefaultDropdownValue = () => {
         if (!this.props.policyId || (this.props.policy && this.props.policy.post_duration === -1)) {
             return keepForeverOption();
@@ -123,11 +123,11 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             return yearsOption();
         }
         return daysOption();
-    }
+    };
 
     componentDidMount = async () => {
         this.loadPage();
-    }
+    };
     private loadPage = async () => {
         if (this.props.policyId) {
             await this.props.actions.fetchPolicy(this.props.policyId);
@@ -137,7 +137,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 messageRetentionDropdownValue: this.getMessageRetentionDefaultDropdownValue(),
             });
         }
-    }
+    };
 
     addToNewTeams = (teams: Team[]) => {
         let {removedTeamsCount} = this.state;
@@ -152,7 +152,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         });
         this.setState({newTeams: {...newTeams}, removedTeams: {...removedTeams}, removedTeamsCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     addToRemovedTeams = (team: Team) => {
         let {removedTeamsCount} = this.state;
@@ -165,7 +165,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         }
         this.setState({removedTeams: {...removedTeams}, newTeams: {...newTeams}, removedTeamsCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     addToNewChannels = (channels: ChannelWithTeamData[]) => {
         let {removedChannelsCount} = this.state;
@@ -180,7 +180,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         });
         this.setState({newChannels: {...newChannels}, removedChannels: {...removedChannels}, removedChannelsCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     addToRemovedChannels = (channel: ChannelWithTeamData) => {
         let {removedChannelsCount} = this.state;
@@ -193,7 +193,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         }
         this.setState({removedChannels: {...removedChannels}, newChannels: {...newChannels}, removedChannelsCount, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     getTeamsToExclude = () => {
         const {teams} = this.props;
@@ -210,7 +210,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             teamsToDisplay = [...includeTeamsList, ...teamsToDisplay];
         }
         return teamsToDisplay;
-    }
+    };
     handleSubmit = async () => {
         const {policyName, messageRetentionInputValue, messageRetentionDropdownValue, newTeams, removedTeams, newChannels, removedChannels} = this.state;
         const {policyId, policy} = this.props;
@@ -302,7 +302,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             this.props.actions.setNavigationBlocked(false);
             getHistory().push('/admin_console/compliance/data_retention_settings');
         }
-    }
+    };
 
     render = () => {
         const {serverError, formErrorText} = this.state;
@@ -531,5 +531,5 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 </div>
             </div>
         );
-    }
+    };
 }

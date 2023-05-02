@@ -6,7 +6,7 @@ import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getTermsOfService, updateMyTermsOfServiceStatus} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {GlobalState} from '@mattermost/types/store';
 import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
@@ -26,9 +26,9 @@ type Actions = {
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
-    const useCaseOnboarding = getUseCaseOnboarding(state);
+    const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
     return {
-        useCaseOnboarding,
+        onboardingFlowEnabled,
         termsEnabled: config.EnableCustomTermsOfService === 'true',
         emojiMap: getEmojiMap(state),
     };

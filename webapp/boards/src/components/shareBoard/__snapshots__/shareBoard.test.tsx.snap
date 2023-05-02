@@ -983,11 +983,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
             >
               <a
                 class="shareUrl"
-                href="http://localhost:8065/team/team-id/shared/1/1?r=anotherToken"
+                href="http://localhost:8065/boards/public/team/team-id/shared/1/1?r=anotherToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost:8065/team/team-id/shared/1/1?r=anotherToken
+                http://localhost:8065/boards/public/team/team-id/shared/1/1?r=anotherToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -3188,11 +3188,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard, and click switc
             >
               <a
                 class="shareUrl"
-                href="http://localhost:8065/team/team-id/shared/1/1?r=oneToken"
+                href="http://localhost:8065/boards/public/team/team-id/shared/1/1?r=oneToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost:8065/team/team-id/shared/1/1?r=oneToken
+                http://localhost:8065/boards/public/team/team-id/shared/1/1?r=oneToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
@@ -3461,11 +3461,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoardComponent and cli
             >
               <a
                 class="shareUrl"
-                href="http://localhost:8065/team/team-id/shared/1/1?r=aToken"
+                href="http://localhost:8065/boards/public/team/team-id/shared/1/1?r=aToken"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost:8065/team/team-id/shared/1/1?r=aToken
+                http://localhost:8065/boards/public/team/team-id/shared/1/1?r=aToken
               </a>
               <div
                 class="octo-tooltip tooltip-top"
