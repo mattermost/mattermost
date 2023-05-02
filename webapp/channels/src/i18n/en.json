@@ -4232,7 +4232,7 @@
   "onboarding_wizard.plugins.zoom.tooltip": "Start Zoom audio and video conferencing calls in Mattermost with a single click",
   "onboarding_wizard.previous": "Previous",
   "onboarding_wizard.roles.description": "We’ll use this to suggest templates to help get you started.",
-  "onboarding_wizard.roles.other_input_placeholder": "Please share your primary function.",
+  "onboarding_wizard.roles.other_input_placeholder": "Please share your primary function",
   "onboarding_wizard.roles.title": "What is your primary function?",
   "onboarding_wizard.self_hosted_plugins.description": "Choose the tools you work with, and we'll add them to your workspace. Additional set up may be needed later.",
   "onboarding_wizard.self_hosted_plugins.title": "What tools do you use?",
