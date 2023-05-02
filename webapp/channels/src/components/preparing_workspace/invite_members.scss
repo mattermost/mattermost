@@ -1,0 +1,98 @@
+@import 'utils/mixins';
+
+// UX decision to show no more than about 5 1/4 lines of users/emails at a time.
+$less-than-6-user-lines-height: 227px;
+
+.InviteMembers-body {
+    display: flex;
+    // page width - channels preview width - progress dots width - people overlap width
+    max-width: calc(100vw - 600px - 120px - 30px);
+
+    .PreparingWorkspaceDescription span {
+        display: inline-block;
+        max-width: 530px;
+    }
+
+    .UsersEmailsInput {
+        max-width: 540px;
+
+        &.no-selections {
+            // placeholder and input position is difficult to change.
+            // This overrides the default positioning of the input & placeholders
+            // to make the taller than normal input look ok when nothing has yet been selected
+            .users-emails-input__value-container {
+                margin-top: 6px;
+            }
+        }
+
+        .users-emails-input__control {
+            overflow: auto;
+            min-height: 108px;
+            max-height: $less-than-6-user-lines-height;
+            align-items: flex-start;
+        }
+    }
+}
+
+.InviteMembers {
+    &__submit {
+        display: flex;
+        width: 400px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+}
+
+.InviteMembersLink__button--single {
+    width: fit-content;
+    min-width: 148px;
+    margin-right: 8px;
+    margin-left: 12px;
+}
+
+.fade-in-skip-button {
+    animation: fade-in 2s forwards;
+    opacity: 0;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@include simple-in-and-out-before("InviteMembers");
+
+.ChannelsPreview--enter-from-after {
+    &-enter {
+        transform: translateX(-100vw);
+    }
+
+    &-enter-active {
+        transform: translateX(0);
+        transition: transform 300ms ease-in-out;
+    }
+
+    &-enter-done {
+        transform: translateX(0);
+    }
+}
+
+.ChannelsPreview--exit-to-after {
+    &-exit {
+        transform: translateX(0);
+    }
+
+    &-exit-active {
+        transform: translateX(-100vw);
+        transition: transform 300ms ease-in-out;
+    }
+
+    &-exit-done {
+        transform: translateX(-100vw);
+    }
+}

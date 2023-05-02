@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rollup -c",
     "run": "rollup -c --watch",
-    "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo"
+    "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.6",
@@ -53,7 +53,7 @@
     "react": "^17.0.2",
     "react-bootstrap": "github:mattermost/react-bootstrap#d821e2b1db1059bd36112d7587fd1b0912b27626",
     "react-dom": "^17.0.2",
-    "react-intl": "^5.20.0",
+    "react-intl": "^6.3.2",
     "shallow-equals": "^1.0.0",
     "styled-components": "^5.3.5",
     "tippy.js": "^6.3.7"

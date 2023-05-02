@@ -3140,10 +3140,6 @@
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch já está iniciado."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Erro ao criar o bulk processor do Elastisearch."
   },

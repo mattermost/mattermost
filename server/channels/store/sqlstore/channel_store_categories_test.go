@@ -6,9 +6,10 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 )
 
 func TestChannelStoreCategories(t *testing.T) {
 	StoreTestWithSqlStore(t, storetest.TestChannelStoreCategories)
+	StoreTestWithSqlStore(t, storetest.TestChannelStoreCategoriesWithAppsCategory)
 }

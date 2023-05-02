@@ -692,7 +692,7 @@ describe('runs > run details page > header', {testIsolation: true}, () => {
                     });
                 });
 
-                describe.skip('Join action disabled', () => {
+                describe('Join action disabled', () => {
                     beforeEach(() => {
                         cy.apiLogin(testUser);
 

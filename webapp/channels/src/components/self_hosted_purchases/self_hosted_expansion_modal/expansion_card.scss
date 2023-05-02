@@ -1,0 +1,131 @@
+.SelfHostedExpansionRHSCard {
+    display: flex;
+    width: 280px;
+    flex-direction: column;
+
+    &__Content {
+        padding: 24px;
+        border: 1px solid;
+        border-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
+        border-radius: 4px;
+    }
+
+    &__RHSCardTitle {
+        display: block;
+        margin-bottom: 12px;
+        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        text-transform: capitalize;
+    }
+
+    .seatsInput {
+        width: 73px;
+        margin-left: auto;
+        font-size: 14px;
+        font-weight: 400;
+
+        input[type="number"] {
+            text-align: right;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            margin: 0;
+            -webkit-appearance: none;
+        }
+    }
+
+    &__PlanDetails {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+
+        .planName {
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+            font-size: 20px;
+            font-weight: 400;
+            text-transform: capitalize;
+        }
+
+        .usage {
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.56);
+            font-size: 12px;
+            font-weight: 600;
+
+            :first-child {
+                text-transform: uppercase;
+            }
+        }
+    }
+
+    hr {
+        width: 90%;
+        height: 2px;
+        background-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
+    }
+
+    &__seatInput,
+    &__cost_breakdown {
+        display: grid;
+        font-weight: 400;
+        gap: 10px;
+        grid-template-columns: repeat(2, 1fr);
+
+        .costPerUser > span:first-child {
+            font-size: 14px;
+        }
+
+        .costPerUser > span:last-child {
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+            font-size: 12px;
+        }
+
+        .totalCostWarning {
+            width: 141px;
+        }
+
+        .totalCostWarning > span:first-child {
+            color: var(--sys-denim-center-channel-text);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .totalCostWarning > span:last-child {
+            color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+            font-size: 12px;
+        }
+
+        .costAmount {
+            width: 100%;
+            margin-right: 0;
+            margin-left: auto;
+            font-weight: 700;
+        }
+    }
+
+    &__AddSeatsWarning {
+        display: block;
+        width: 100%;
+        height: 35px;
+        margin-bottom: 15px;
+        color: var(--dnd-indicator);
+        font-size: 12px;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    &__CompletePurchaseButton {
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    &__ChargedTodayDisclaimer {
+        color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 400;
+    }
+}
