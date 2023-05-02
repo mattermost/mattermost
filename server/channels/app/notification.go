@@ -1264,6 +1264,14 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 
 	m.addGroupMention(word, groups)
 
+	// Check if the word contains a keyword.
+	for id, words := range keywords {
+		if strings.Contains(word, id) {
+			m.addMentions(words, mentionType)
+			return true
+		}
+	}
+
 	if ids, match := keywords[strings.ToLower(word)]; match {
 		m.addMentions(ids, mentionType)
 		return true
@@ -1305,7 +1313,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsSpace(c) || unicode.IsNumber(c))
 	}) {
 		// skip word with format ':word:' with an assumption that it is an emoji format only
 		if word[0] == ':' && word[len(word)-1] == ':' {
