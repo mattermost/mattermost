@@ -9,14 +9,11 @@
 // Stage: @prod
 // Group: @playbooks
 
-import {onlyOn} from '@cypress/skip-test';
-
 describe('channels > channel header', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;
     let testPlaybookRun;
-    let appBarEnabled;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
@@ -44,24 +41,16 @@ describe('channels > channel header', {testIsolation: true}, () => {
                     testPlaybookRun = run;
                 });
             });
-
-            cy.apiGetConfig(true).then(({config}) => {
-                appBarEnabled = config.EnableAppBar === 'true';
-            });
         });
-    });
-
-    beforeEach(() => {
-        // # Size the viewport to show the RHS without covering posts.
-        cy.viewport('macbook-13');
-
-        // # Login as testUser
-        cy.apiLogin(testUser);
     });
 
     describe('App Bar enabled', () => {
         it('webapp should hide the Playbook channel header button', () => {
-            onlyOn(appBarEnabled);
+            cy.apiAdminLogin();
+            cy.apiUpdateConfig({ExperimentalSettings: {EnableAppBar: true}});
+
+            // # Login as testUser
+            cy.apiLogin(testUser);
 
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
@@ -74,9 +63,15 @@ describe('channels > channel header', {testIsolation: true}, () => {
     });
 
     describe('App Bar disabled', () => {
-        it('webapp should show the Playbook channel header button', () => {
-            onlyOn(!appBarEnabled);
+        beforeEach(() => {
+            cy.apiAdminLogin();
+            cy.apiUpdateConfig({ExperimentalSettings: {EnableAppBar: false}});
 
+            // # Login as testUser
+            cy.apiLogin(testUser);
+        });
+
+        it('webapp should show the Playbook channel header button', () => {
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
@@ -87,8 +82,6 @@ describe('channels > channel header', {testIsolation: true}, () => {
         });
 
         it('tooltip text should show "Playbooks" for Playbook channel header button', () => {
-            onlyOn(!appBarEnabled);
-
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
@@ -103,6 +96,11 @@ describe('channels > channel header', {testIsolation: true}, () => {
     });
 
     describe('description text', () => {
+        beforeEach(() => {
+            // # Login as testUser
+            cy.apiLogin(testUser);
+        });
+
         it('should contain a link to the playbook', () => {
             // # Navigate directly to a playbook run channel
             cy.visit(`/${testTeam.name}/channels/playbook-run`);
@@ -112,6 +110,7 @@ describe('channels > channel header', {testIsolation: true}, () => {
                 expect(href).to.equals(`/playbooks/playbooks/${testPlaybook.id}`);
             });
         });
+
         it('should contain a link to the overview page', () => {
             // # Navigate directly to a playbook run channel
             cy.visit(`/${testTeam.name}/channels/playbook-run`);
