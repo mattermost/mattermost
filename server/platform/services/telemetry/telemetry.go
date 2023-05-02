@@ -760,6 +760,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
 		"patch_plugins_react_dom":             *cfg.ExperimentalSettings.PatchPluginsReactDOM,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
+		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{

@@ -11,30 +11,36 @@ import './invite_members_link.scss';
 
 type Props = {
     inviteURL: string;
+    inputAndButtonStyle?: boolean;
 }
 
-const InviteMembersLink = (props: Props) => {
+const InviteMembersLink = ({
+    inviteURL,
+    inputAndButtonStyle = false,
+}: Props) => {
     const copyText = useCopyText({
         trackCallback: () => trackEvent('first_admin_setup', 'admin_setup_click_copy_invite_link'),
-        text: props.inviteURL,
+        text: inviteURL,
     });
     const intl = useIntl();
 
     return (
         <div className='InviteMembersLink'>
-            <input
-                className='InviteMembersLink__input'
-                type='text'
-                readOnly={true}
-                value={props.inviteURL}
-                aria-label={intl.formatMessage({
-                    id: 'onboarding_wizard.invite_members.copy_link_input',
-                    defaultMessage: 'team invite link',
-                })}
-                data-testid='shareLinkInput'
-            />
+            {inputAndButtonStyle &&
+                <input
+                    className='InviteMembersLink__input'
+                    type='text'
+                    readOnly={true}
+                    value={inviteURL}
+                    aria-label={intl.formatMessage({
+                        id: 'onboarding_wizard.invite_members.copy_link_input',
+                        defaultMessage: 'team invite link',
+                    })}
+                    data-testid='shareLinkInput'
+                />
+            }
             <button
-                className='InviteMembersLink__button'
+                className={`InviteMembersLink__button${inputAndButtonStyle ? '' : '--single'}`}
                 onClick={copyText.onClick}
                 data-testid='shareLinkInputButton'
             >
@@ -48,7 +54,7 @@ const InviteMembersLink = (props: Props) => {
                     </>
                 ) : (
                     <>
-                        <i className='icon icon-link-variant'/>
+                        {inputAndButtonStyle ? <i className='icon icon-link-variant'/> : <i className='icon icon-content-copy'/>}
                         <FormattedMessage
                             id='onboarding_wizard.invite_members.copy_link'
                             defaultMessage='Copy Link'

@@ -746,6 +746,8 @@
   "admin.database.migrations_table.name": "Name",
   "admin.database.migrations_table.title": "Angewendete Schema-Migrationen",
   "admin.database.migrations_table.version": "Version",
+  "admin.database.search_backend.help_text": "Zeigt das derzeit aktive Backend an, das für die Suche verwendet wird. Die Werte können Kein, Database, Elasticsearch, Bleve usw. sein.",
+  "admin.database.search_backend.title": "Aktives Backend für die Suche",
   "admin.database.title": "Datenbank",
   "admin.developer.title": "Entwickler Einstellungen",
   "admin.elasticsearch.bulkIndexingTitle": "Bulk-Indizierung:",
