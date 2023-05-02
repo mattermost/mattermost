@@ -115,7 +115,6 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             placeholder,
             disabled,
             onInput,
-            onWidthChange,
 
             // TODO: The provided `id` is sometimes hard-coded and used to interface with the
             // component, e.g. `post_textbox`, so it can't be changed. This would ideally be
@@ -129,6 +128,8 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             rows: 0,
             height: 0,
         };
+
+        Reflect.deleteProperty(otherProps, 'onWidthChange');
 
         if (this.height <= 0) {
             // Set an initial number of rows so that the textarea doesn't appear too large when its first rendered
