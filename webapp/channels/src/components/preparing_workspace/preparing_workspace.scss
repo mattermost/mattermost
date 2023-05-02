@@ -147,3 +147,10 @@
         overflow-y: visible;
     }
 }
+
+@media screen and (max-width: 1199px) {
+    .PreparingWorkspace__roles-illustration,
+    .PreparingWorkspace__invite-members-illustration {
+        display: none;
+    }
+}

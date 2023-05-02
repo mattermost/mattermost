@@ -37,7 +37,7 @@ const Roles = ({role, next, ...props}: Props) => {
 
     useEffect(() => {
         dispatch(fetchCategories());
-    }, [dispatch]);
+    }, []);
 
     useEffect(() => {
         if (props.show) {
@@ -70,7 +70,7 @@ const Roles = ({role, next, ...props}: Props) => {
     };
 
     const roleIsSet = Boolean(role);
-    const roleOtherIsSet = Boolean(props.roleOther) && props.roleOther !== '';
+    const roleOtherIsSet = Boolean(props.roleOther);
     const canContinue = (roleIsSet && role !== CategoryOther) || (role === CategoryOther && roleOtherIsSet);
 
     return (
@@ -114,7 +114,7 @@ const Roles = ({role, next, ...props}: Props) => {
                                 onChange={(e) => props.setRole(CategoryOther, e.target.value)}
                                 placeholder={formatMessage({
                                     id: 'onboarding_wizard.roles.other_input_placeholder',
-                                    defaultMessage: 'Please share your primary function.',
+                                    defaultMessage: 'Please share your primary function',
                                 })}
                             />
                         )}
