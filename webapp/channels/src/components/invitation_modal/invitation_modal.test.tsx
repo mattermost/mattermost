@@ -17,6 +17,8 @@ import ResultView from './result_view';
 import InviteView from './invite_view';
 import NoPermissionsView from './no_permissions_view';
 import InvitationModal, {Props, View, InvitationModal as BaseInvitationModal} from './invitation_modal';
+import {SelfHostedProducts} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 const defaultProps: Props = deepFreeze({
     actions: {
@@ -86,6 +88,19 @@ describe('InvitationModal', () => {
             },
             preferences: {
                 myPreferences: {},
+            },
+            hostedCustomer: {
+                products: {
+                    productsLoaded: true,
+                    products: {
+                        prod_professional: TestHelper.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
+                },
             },
         },
     };

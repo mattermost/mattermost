@@ -161,4 +161,33 @@ describe('components/external_link', () => {
             expect.stringMatching('test'),
         );
     });
+
+    it('renders href correctly when url contains anchor by setting anchor at the end', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState?.entities?.general,
+                    config: {
+                        DiagnosticsEnabled: 'true',
+                    },
+                },
+            },
+        };
+        const store: GlobalState = JSON.parse(JSON.stringify(state));
+        renderWithIntlAndStore(
+            <ExternalLink
+                href='https://mattermost.com#desktop'
+            >
+                {'Click Me'}
+            </ExternalLink>,
+            store,
+        );
+
+        expect(screen.queryByText('Click Me')).toHaveAttribute(
+            'href',
+            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid=#desktop',
+        );
+    });
 });
