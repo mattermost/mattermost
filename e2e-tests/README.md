@@ -7,3 +7,4 @@
 
 Notes:
 - If you restart the dashboard, you must also restart the server to have it point to the new dashboard IP
+- If you started the dashboard locally in the past, but want to point to another dasbhoard later, you can run `make clean-env-placeholders` to remove references to the local dasbhoard (you'll likely need to restart the server)

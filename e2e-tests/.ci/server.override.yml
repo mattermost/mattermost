@@ -75,7 +75,7 @@ services:
   # TODO use gitlab actions' matrix directive to parallelize the jobs
   # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
   cypress:
-    image: "public.ecr.aws/mattermostqa/cypress-browsers-public:node16.14.2-slim-chrome100-ff99-edge"
+    image: "public.ecr.aws/mattermostqa/mattermost-build-webapp:20220802_node-16.10.0"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     env_file:
@@ -115,6 +115,8 @@ services:
       # avoid too many progress messages
       # https://github.com/cypress-io/cypress/issues/1243
       CI: "1"
+      # TODO possibly a node image upgrade could fix this
+      PATH: /app/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     working_dir: /app
     volumes:
       - "../../e2e-tests/cypress/:/app"

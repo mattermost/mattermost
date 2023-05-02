@@ -19,6 +19,8 @@ mme2e_log "Generating .env.server"
 cat >.env.server <<EOF
 MM_LICENSE=$MM_LICENSE
 EOF
+[ -z "${AUTOMATION_DASHBOARD_URL:-}" ]   || echo "AUTOMATION_DASHBOARD_URL=$AUTOMATION_DASHBOARD_URL"     >>.env.server
+[ -z "${AUTOMATION_DASHBOARD_TOKEN:-}" ] || echo "AUTOMATION_DASHBOARD_TOKEN=$AUTOMATION_DASHBOARD_TOKEN" >>.env.server
 envarr=$(echo ${MM_ENV:-} | tr "," "\n")
 for env in $envarr; do
   echo "> [$env]"
