@@ -299,8 +299,8 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         if (checked) {
             const text = this.customMentionsRef.current?.value || '';
 
-            // remove all spaces and split string into individual keys
-            this.setState({customKeys: text.replace(/ /g, ''), customKeysChecked: true});
+            // split string into individual keys
+            this.setState({customKeys: text, customKeysChecked: true});
         } else {
             this.setState({customKeys: '', customKeysChecked: false});
         }
