@@ -103,8 +103,8 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 		return err
 	}
 
-	err = a.ForEachBoardMember(board.ID, func(member *model.BoardMember) error {
-		return a.writeArchiveBoardMemberLine(w, member)
+	err = a.ForEachBoardMember(board.ID, func(member *model.BoardMember) (bool, error) {
+		return false, a.writeArchiveBoardMemberLine(w, member)
 	})
 	if err != nil {
 		return err
