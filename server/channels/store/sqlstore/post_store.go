@@ -2900,27 +2900,22 @@ func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, d
 }
 
 func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID string, deleteAtTime int64) error {
-	var err error
+	var query sq.UpdateBuilder
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		queryString, args, err1 := s.getQueryBuilder().
-			Update("FileInfo").
+		query = s.getQueryBuilder().Update("FileInfo").
 			Set("DeleteAt", deleteAtTime).
-			From("Posts").
-			Where(sq.Expr("FileInfo.PostId = Posts.Id AND Posts.RootId = ?", postID)).
-			ToSql()
-		if err1 != nil {
-			return errors.Wrapf(err1, "failed to create SQL query to mark files of thread post %s as deleted", postID)
-		}
-
-		_, err = transaction.Exec(queryString, args...)
+			From("Posts")
 	} else {
-		_, err = transaction.NamedExec(`
-			UPDATE FileInfo
-			JOIN Posts ON FileInfo.PostId = Posts.Id
-			SET FileInfo.DeleteAt = :deleteat
-			WHERE Posts.RootId = :postid
-		`, map[string]any{"deleteat": deleteAtTime, "postid": postID})
+		query = s.getQueryBuilder().Update("FileInfo", "Posts").
+			Set("FileInfo.DeleteAt", deleteAtTime)
 	}
+
+	query = query.Where(sq.And{
+		sq.Expr("FileInfo.PostId = Posts.Id"),
+		sq.Eq{"Posts.RootId": postID},
+	})
+
+	_, err := transaction.ExecBuilder(query)
 	if err != nil {
 		return errors.Wrapf(err, "failed to mark files of thread post %s as deleted", postID)
 	}
