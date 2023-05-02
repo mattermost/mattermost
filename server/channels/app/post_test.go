@@ -2096,6 +2096,9 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   "test2",
 		}, channel, false, true)
 		require.Nil(t, err)
+
+		time.Sleep(time.Millisecond * 2)
+
 		post3, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: channel.Id,
