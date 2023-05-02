@@ -32,7 +32,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
       <MenuItemAction
         icon={
           <i
-            className='icon-plus'
+            className="icon-plus"
           />
         }
         id="showNewChannel"
@@ -43,7 +43,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
       <MenuItemAction
         icon={
           <i
-            className='icon-globe'
+            className="icon-globe"
           />
         }
         id="showMoreChannels"
