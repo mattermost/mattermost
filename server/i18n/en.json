@@ -1778,6 +1778,10 @@
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
   },
   {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error no organization name provided for self hosted onboarding."
+  },
+  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "Error trying to save first admin complete setup in the store."
   },
@@ -2088,6 +2092,10 @@
   {
     "id": "api.license.true_up_review.create_error",
     "translation": "Could not create true up status record"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Failed to submit true up review profile to CWS."
   },
   {
     "id": "api.license.true_up_review.get_status_error",

@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestRestrictedViewMembers(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 
 	user1 := th.CreateUser()

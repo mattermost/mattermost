@@ -14,15 +14,15 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 const (
@@ -476,7 +476,6 @@ func (ts *TelemetryService) trackConfig() {
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
-		"self_hosted_expansion":                                   *cfg.ServiceSettings.SelfHostedExpansion,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -522,6 +521,7 @@ func (ts *TelemetryService) trackConfig() {
 		"query_timeout":                        *cfg.SqlSettings.QueryTimeout,
 		"disable_database_search":              *cfg.SqlSettings.DisableDatabaseSearch,
 		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
+		"replica_monitor_interval_seconds":     *cfg.SqlSettings.ReplicaMonitorIntervalSeconds,
 	})
 
 	ts.SendTelemetry(TrackConfigLog, map[string]any{
@@ -750,15 +750,16 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigExperimental, map[string]any{
-		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
-		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
-		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
-		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
-		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"client_side_cert_enable":             *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
+		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
+		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
+		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
+		"patch_plugins_react_dom":             *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
