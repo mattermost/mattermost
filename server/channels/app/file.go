@@ -66,7 +66,7 @@ func (a *App) FileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := settings.ToFileBackendSettings(false, false)
+	fileBackendSettings := filestore.NewFileBackendSettingsFromConfig(settings, false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
@@ -96,7 +96,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
