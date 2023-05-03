@@ -17,7 +17,6 @@ import defaultMessages from 'i18n/en.json'
 
 import {Block} from './blocks/block'
 
-
 type SetupOpts = {user?: Parameters<typeof userEvent.setup>[0], render?: Parameters<typeof render>[1]}
 export function setup(element: Parameters<typeof render>[0], opts: SetupOpts = {}) {
     return {
@@ -78,6 +77,7 @@ export function mockDOM(): void {
                 [Symbol.iterator]: jest.fn(),
             }
         }
+
         return range
     }
 }
@@ -99,6 +99,7 @@ export function mockMatchMedia(result: {matches: boolean}): void {
 
 export function mockStateStore(middleware: Middleware[], state: unknown): MockStoreEnhanced<unknown, unknown> {
     const mockStore = configureStore(middleware)
+
     return mockStore(state)
 }
 
@@ -107,6 +108,7 @@ export type BlocksById<BlockType> = {[key: string]: BlockType}
 export function blocksById<BlockType extends Block>(blocks: BlockType[]): BlocksById<BlockType> {
     return blocks.reduce((res, block) => {
         res[block.id] = block
+
         return res
     }, {} as BlocksById<BlockType>)
 }

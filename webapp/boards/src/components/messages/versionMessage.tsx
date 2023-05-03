@@ -2,25 +2,25 @@
 // See LICENSE.txt for license information.
 import React from 'react'
 
-import {useIntl, FormattedMessage} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import IconButton from 'src/widgets/buttons/iconButton'
 import Button from 'src/widgets/buttons/button'
 
 import CloseIcon from 'src/widgets/icons/close'
 
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import octoClient from 'src/octoClient'
 import {IUser, UserConfigPatch} from 'src/user'
 import {
     getMe,
-    patchProps,
     getVersionMessageCanceled,
-    versionProperty
+    patchProps,
+    versionProperty,
 } from 'src/store/users'
 
 import CompassIcon from 'src/widgets/icons/compassIcon'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 import './versionMessage.scss'
 const helpURL = 'https://mattermost.com/pl/whats-new-boards/'
