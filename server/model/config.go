@@ -971,8 +971,8 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
-	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1008,12 +1008,12 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableAppBar = NewBool(false)
 	}
 
-	if s.PatchPluginsReactDOM == nil {
-		s.PatchPluginsReactDOM = NewBool(false)
-	}
-
 	if s.DisableRefetchingOnBrowserFocus == nil {
 		s.DisableRefetchingOnBrowserFocus = NewBool(false)
+	}
+
+	if s.DelayChannelAutocomplete == nil {
+		s.DelayChannelAutocomplete = NewBool(false)
 	}
 }
 

@@ -5,7 +5,7 @@ import {
     fireEvent,
     render,
     screen,
-    waitFor
+    waitFor,
 } from '@testing-library/react'
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
@@ -447,7 +447,7 @@ describe('src/component/kanban/kanban', () => {
     })
 
     // TODO: fix this test: Mutator spyOn issue
-    // eslint-disable-next-line no-only-tests/no-only-tests
+
     test.skip('return kanban and change title on KanbanColumnHeader', async () => {
         const user = userEvent.setup()
         const {container} = render(wrapDNDIntl(
@@ -498,7 +498,7 @@ describe('src/component/kanban/kanban', () => {
     })
 
     // TODO: fix this test: Mutator spyOn issue
-    // eslint-disable-next-line no-only-tests/no-only-tests
+
     test.skip('return kanban and add a group', async () => {
         render(wrapDNDIntl(
             <ReduxProvider store={store}>

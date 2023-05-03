@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect}  from 'react'
+import React, {useEffect} from 'react'
 import {FormattedMessage, IntlProvider, useIntl} from 'react-intl'
 
 import {getMessages} from 'src/i18n'
@@ -11,17 +11,17 @@ import {useWebsockets} from 'src/hooks/websockets'
 import {Board, BoardMember} from 'src/blocks/board'
 import {getCurrentTeamId} from 'src/store/teams'
 import {IUser} from 'src/user'
-import {getMe, fetchMe} from 'src/store/users'
+import {fetchMe, getMe} from 'src/store/users'
 import {loadBoards, loadMyBoardsMemberships} from 'src/store/initialLoad'
 import {getCurrentChannel} from 'src/store/channels'
 import {
+    addMyBoardMemberships,
     getMySortedBoards,
     setLinkToChannel,
     updateBoards,
     updateMembersEnsuringBoardsAndUsers,
-    addMyBoardMemberships,
 } from 'src/store/boards'
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import AddIcon from 'src/widgets/icons/add'
 import Button from 'src/widgets/buttons/button'
 
@@ -125,7 +125,7 @@ const RHSChannelBoards = () => {
                             <FormattedMessage
                                 id='rhs-boards.link-boards-to-channel'
                                 defaultMessage='Link boards to {channelName}'
-                                values={{channelName: channelName}}
+                                values={{channelName}}
                             />
                         </Button>
                     }

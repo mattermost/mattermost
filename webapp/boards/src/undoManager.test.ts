@@ -60,6 +60,7 @@ test('Basic undo/redo response dependant', async () => {
             const responseId = blockIds.pop() // every time we run the action a new ID is obtained
             const block: Record<string, any> = {id: responseId, title: 'Sample'}
             blocks[block.id] = block
+
             return block
         },
         async (block: Record<string, any>) => {
