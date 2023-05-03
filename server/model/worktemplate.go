@@ -69,7 +69,8 @@ type WorkTemplatePlaybook struct {
 }
 
 type WorkTemplateIntegration struct {
-	ID string `json:"id"`
+	ID          string `json:"id"`
+	Recommended bool   `json:"recommended"`
 }
 
 type WorkTemplateContent struct {
