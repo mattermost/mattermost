@@ -24,5 +24,3 @@ echo "Cypress exited with code $CYPRESS_EXIT_CODE"
 
 # Collect server logs
 ${MME2E_DC_SERVER} exec -T -- server cat /mattermost/logs/mattermost.log >../cypress/logs/mattermost.log
-
-# TODO retrieve the run logs

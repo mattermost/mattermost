@@ -10,19 +10,19 @@ ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress cypress install
 
 # Populate cypress fixtures
 mme2e_log "Prepare Cypress: populating fixtures"
-${MME2E_DC_SERVER} exec -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-gitlab/releases/download/v1.3.0/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz | ${MME2E_DC_SERVER} exec -- cypress tee tests/fixtures/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz >/dev/null
-${MME2E_DC_SERVER} exec -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.9.0/com.mattermost.demo-plugin-0.9.0.tar.gz | ${MME2E_DC_SERVER} exec -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.9.0.tar.gz >/dev/null
-${MME2E_DC_SERVER} exec -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
-${MME2E_DC_SERVER} exec -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
-${MME2E_DC_SERVER} exec -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
+${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-gitlab/releases/download/v1.3.0/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz | ${MME2E_DC_SERVER} exec -T -- cypress tee tests/fixtures/com.github.manland.mattermost-plugin-gitlab-1.3.0.tar.gz >/dev/null
+${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.9.0/com.mattermost.demo-plugin-0.9.0.tar.gz | ${MME2E_DC_SERVER} exec -T -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.9.0.tar.gz >/dev/null
+${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -T -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
+${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -T -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
+${MME2E_DC_SERVER} exec -T -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
 
 # Initialize cypress report directory
 mme2e_log "Prepare Cypress: initialize report and logs directory"
-${MME2E_DC_SERVER} exec -- cypress bash <<EOF
+${MME2E_DC_SERVER} exec -T -- cypress bash <<EOF
 mkdir -p logs
 mkdir -p results/junit
 touch results/junit/empty.xml
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > results/junit/empty.xml
+echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
 EOF
 
 # Generate the test mattermosts-server config, and restart its container

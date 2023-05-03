@@ -1,14 +1,17 @@
 DASHBOARD_REF ?= origin/main
 
-.PHONY: run-cypress
-run-cypress:
-	./.ci/server.run_cypress.sh
+.PHONY: all run stop
+all: run
+run: start-server prepare-server run-cypress
+stop: stop-server stop-dashboard clean-env-placeholders
 
-.PHONY: start-server prepare-server stop-server
+.PHONY: start-server prepare-server run-cypress stop-server
 start-server:
 	./.ci/server.start.sh
 prepare-server:
 	./.ci/server.prepare.sh
+run-cypress:
+	./.ci/server.run_cypress.sh
 stop-server:
 	./.ci/server.stop.sh
 
