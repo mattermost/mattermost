@@ -3630,8 +3630,6 @@
   "group_member_list.searchError": "Es gab ein Problem mit den Ergebnissen. Lösche deinen Suchbegriff und versuche es erneut.",
   "group_member_list.sendMessageButton": "Sende Nachricht an {user}",
   "group_member_list.sendMessageTooltip": "Sende Nachricht",
-  "help.formatting.images.description": "Erstelle Inline-Bilder mit einem `!`, gefolgt von dem Alt-Text in eckigen Klammern und dem Link in normalen Klammern. Füge Hover-Text hinzu, indem du ihn nach dem Link in Anführungszeichen setzen. Siehe die <link>Produktdokumentation</link> für mehr Details zum Arbeiten mit Inline-Bildern.",
-  "help.messaging.title": "Messaging-Grundlagen",
   "inProduct_notices.adminOnlyMessage": "Nur für Administratoren sichtbar",
   "incoming_webhooks.header": "Eingehende Webhooks",
   "input.clear": "Leeren",

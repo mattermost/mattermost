@@ -2556,7 +2556,6 @@
   "globalThreads.threadList.noUnreadThreads": "읽지 않은 글타래 없음",
   "group_list_modal.addGroupButton": "그룹 추가하기",
   "group_list_modal.removeGroupButton": "그룹 제거",
-  "help.formatting.tableExample": "| 왼쪽 정렬 | 가운데 정렬 | 오른쪽 정렬 |\n| :------------ |:---------------:| -----:|\n| Left column 1 | 문장이      |  $100 |\n| Left column 2 | 가운데로              |   $10 |\n| Left column 3 | 정렬됩니다        |    $1 |",
   "insights.accessModal.teamDocsLink": "팀 통계",
   "insights.accessModal.titleAdminPostTrial": "업그레이드 하여 팀 통계에 액세스",
   "insights.accessModal.titleAdminPreTrial": "무료 시험판으로 팀 통계 시험해보기",
