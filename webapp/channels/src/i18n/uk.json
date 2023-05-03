@@ -1940,8 +1940,6 @@
   "get_public_link_modal.help": "Посилання нижче дозволяє бачити цей файл будь-кому, не будучи зареєстрованим на цьому сервері.",
   "get_public_link_modal.title": "Отримати публічне посилання",
   "gif_picker.gfycat": "Шукати Gfycat",
-  "help.formatting.checklistExample": "- [ ] Перший пунк\n- [ ] Другий пункт\n- [x] Завершений пункт",
-  "help.formatting.supportedSyntax": "Підтримувані мови:\n`as`,` applescript`, `osacript`,` scpt`, `bash`,` sh`, `zsh` ,` clj`,` boot` ,` cl2`, `cljc` ,` cljs`,` cljs` .hl`, `cljscm`,` cljx`, `hic`,` coffee`, `coffeea`,` cake`, `cjsx`,` cson`, `iced`,` cpp`, `c`,` cc `,` h`, `c ++`, `h ++`, `hpp`,` cs`, `csharp`,` css`, `d` ,` ди`,` dart`, `delphi`,` dpr`, `dfm`,` pas`, `pascal`,` freepascal`, `lazarus`,` lpr` ,` lfm` ,` diff`, `django` ,` jinja`,` dockerfile`, `докер`,` erl `,` f90`, `f95`,` fsharp`, `fs`,` gcode`, `nc`,` go`, `groovy`,` руль `,` hbs`, `html.hbs`,` html .handlebars `,` hs`, `hx`,` java`, `jsp`,` js`, `jsx`,` json`, `jl`,` kt`, `ktm`,` kts`, `менше `,` lisp`, `lua`,` mk`, `mak`,` md`, `mkdown`,` mkd` ,` matlab`, `m`,` mm`, `objc`,` obj-c `,` ml`, `perl`,` pl` ,` php`, `php3`,` php4` ,` php5`, `php6`,` ps` ,` ps1`, `pp` ,` py`, `gyp`,` r`, `ruby`,` rb`, `gemspec`,` podspec`, `thor`,` irb`, `rs`,` scala` ,`scm`, `sld` ,`scss `,` st`, `styl`,` sql`, `swift`,` tex`, `vbnet`,` vb`, `bas`,` vbs` ,` v`, `veo`,` xml`, `html`,` xhtml`, `rss`,` atom`, ` xsl`, `plist`,` yaml`",
   "installed_command.header": "Cлеш-команди",
   "installed_commands.add": "Додати слеш-команду",
   "installed_commands.delete.confirm": "Ця дія назавжди видаляє вхідний веб-хокс і зламає будь-яку інтеграцію, використовуючи її. Ви впевнені, що хочете його видалити?",
