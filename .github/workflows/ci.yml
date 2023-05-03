@@ -11,7 +11,7 @@ env:
   go-version: "1.19.5"
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref_name != 'master' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   check-mocks:
     name: Check mocks
@@ -27,8 +27,8 @@ jobs:
         with:
           go-version: ${{ env.go-version }}
       - name: test
-        run: echo ${{ github.ref_name }}
-        run: echo ${{ github.ref_name != 'master' }}
+        run: echo ${{ github.ref }}
+        run: echo ${{ github.ref != 'refs/heads/master' }}
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
