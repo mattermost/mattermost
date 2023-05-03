@@ -173,6 +173,8 @@ func (ps *PlatformService) regenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License())
 	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
 
+	clientConfig["CWSMock"] = model.MockCWS
+
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ps.Store.TermsOfService().GetLatest(true)
 		if err != nil {

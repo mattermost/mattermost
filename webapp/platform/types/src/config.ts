@@ -30,6 +30,7 @@ export type ClientConfig = {
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;
     CWSURL: string;
+    CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
