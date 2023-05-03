@@ -10,9 +10,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type TimerLayer struct {
@@ -774,10 +774,10 @@ func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userID string, o
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
+	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -978,6 +978,22 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllDirectChannelsForExportAfter", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetBotChannelsByUser(userID string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetBotChannelsByUser(userID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetBotChannelsByUser", success, elapsed)
 	}
 	return result, err
 }
@@ -1606,10 +1622,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategories(userID string, opts *store
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
+	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1622,10 +1638,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID strin
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSidebarCategory(categoryID)
+	result, err := s.ChannelStore.GetSidebarCategory(categoryID, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2399,10 +2415,10 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
+	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories, options...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3038,10 +3054,10 @@ func (s *TimerLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	start := time.Now()
 
-	result, err := s.DraftStore.Save(d)
+	result, err := s.DraftStore.Upsert(d)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3049,23 +3065,7 @@ func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
-	start := time.Now()
-
-	result, err := s.DraftStore.Update(d)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Update", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Upsert", success, elapsed)
 	}
 	return result, err
 }
@@ -3182,10 +3182,10 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
+func (s *TimerLayerFileInfoStore) AttachToPost(fileID string, postID string, channelID string, creatorID string) error {
 	start := time.Now()
 
-	err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
+	err := s.FileInfoStore.AttachToPost(fileID, postID, channelID, creatorID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5052,6 +5052,22 @@ func (s *TimerLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId 
 	return err
 }
 
+func (s *TimerLayerOAuthStore) RemoveAuthDataByUserId(userId string) error {
+	start := time.Now()
+
+	err := s.OAuthStore.RemoveAuthDataByUserId(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthDataByUserId", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := time.Now()
 
@@ -5479,22 +5495,6 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID strin
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetFlaggedPostsForTeam", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPostStore) GetLastPostRowCreateAt() (int64, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetLastPostRowCreateAt()
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetLastPostRowCreateAt", success, elapsed)
 	}
 	return result, err
 }
@@ -7370,22 +7370,6 @@ func (s *TimerLayerSessionStore) Get(ctx context.Context, sessionIDOrToken strin
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetLastSessionRowCreateAt() (int64, error) {
-	start := time.Now()
-
-	result, err := s.SessionStore.GetLastSessionRowCreateAt()
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetLastSessionRowCreateAt", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerSessionStore) GetSessions(userID string) ([]*model.Session, error) {
 	start := time.Now()
 
@@ -9140,6 +9124,22 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postID st
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipForUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) DeleteMembershipsForChannel(userID string, channelID string) error {
+	start := time.Now()
+
+	err := s.ThreadStore.DeleteMembershipsForChannel(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipsForChannel", success, elapsed)
 	}
 	return err
 }

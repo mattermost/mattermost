@@ -3132,10 +3132,6 @@
     "translation": "검색 결과를 디코딩하지 못했습니다"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch가 이미 시작되었습니다."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor"
   },
@@ -7860,10 +7856,6 @@
     "translation": "게시된 파일을 삭제하지 못했습니다."
   },
   {
-    "id": "Boards",
-    "translation": "보드"
-  },
-  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch 설정에 설정되지 않은 값이 있습니다."
   },
@@ -7886,14 +7878,6 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "이미 관리자에게 통지됨"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "플레이북"
-  },
-  {
-    "id": "Channels",
-    "translation": "채널"
   },
   {
     "id": "api.custom_groups.feature_disabled",
@@ -8106,5 +8090,337 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "서버 번역 업데이트가 실패하였습니다."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "토큰의 전자우편 주소가 사용자 데이터의 전자우편 주소와 일치하지 않습니다."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "SAML 응답이 너무 깁니다"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "LDAP 사용자가 아님"
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "멀티파트 데이터를 처리하지 못했습니다."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "멀티파트 업로드에 대한 Content-Type이 잘못되었습니다."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "유효하지 않은 Content-Length입니다."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "업로드에 실패했습니다."
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "파일을 업로드할 수 없습니다. 파일이 너무 큽니다."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "백엔드에서 파일 읽기 오류"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "아래를 클릭하여 전자우편 주소를 인증하세요."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "수신자가 당신이 아닌 경우, 이 전자우편은 무시해도 됩니다."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "아래를 클릭하여 전자우편 주소를 인증하세요."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "참여해 주셔서 감사합니다 "
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "수신자가 당신이 아닌 경우, 이 전자우편은 무시해도 됩니다."
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "비밀번호를 재설정하려면 아래 버튼을 클릭하세요. 요청하지 않은 경우 이 전자우편은 무시해도 됩니다."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "비밀번호 재설정 링크는 24시간 후에 만료됩니다."
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "질문이 있으신가요?"
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "도움이 필요하거나 질문이 있으신가요? 다음 주소로 전자우편을 보내주세요 "
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Mattermost Cloud 청구서 마감일"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Mattermost Cloud 구독에 대한 결제가 완료되었습니다"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "청구서를 검토하고 결제 방법을 추가하려면 지금 결제를 선택합니다."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "가장 최근 청구 기간에 대한 Mattermost Cloud 청구서가 처리되었습니다. 하지만 결제 세부 정보가 등록되어 있지 않습니다."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "지금 결제하기"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "결제가 성공하지 못했습니다"
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "그들은 다음과 같은 이유를 제시했습니다:"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Mattermost 구독이 갱신될 예정입니다"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "갱신하려면 고객 계정으로 로그인하세요"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "라이선스 갱신 기간 만료"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "영업팀에 문의"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "팀과의 공동 작업을 위해 게스트로 초대되었습니다"
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost는 안전한 팀 협업을 지원하는 유연한 오픈소스 메시징 플랫폼입니다."
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "언제든지 다음 주소로 전자우편을 보내주세요 "
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Mattermost 워크스페이스가 다운그레이드되었습니다"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "또한 Cloud Free 제한으로 인해 데이터가 보관 처리되었을 수도 있습니다."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "데이터 보관을 해제하고 유료 기능을 계속 사용하려면 결제 정보를 업데이트하세요."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "중요한 비즈니스 운영에 Cloud Professional 또는 Enterprise 기능을 사용하는 경우 이러한 기능을 더 이상 사용할 수 없으며 성능이 저하됩니다."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Mattermost Cloud 워크스페이스가 다운그레이드되었습니다"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "플랜과 가격 보기"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "지금 결제 정보를 업데이트하거나 Cloud Free로 다운그레이드하세요."
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "워크스페이스가 15일 후에 다운그레이드됩니다"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "결제 갱신"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Mattermost {{.Plan}} 플랜이 15일 후에 다운그레이드됩니다"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Free로 다운그레이드"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "결제 갱신"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "결제가 완료되지 않았습니다"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "가장 최근 결제를 처리하지 못했습니다."
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "결제 갱신"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Mattermost 워크스페이스가 30일 후에 다운그레이드됩니다"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "모든 제한 문서 보기."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "결제 갱신"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "메시지 역사"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "파일"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "성능 향상"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "고급 권한 사용 중"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "엔터프라이즈 체험판이 활성화되었습니다. **시스템 콘솔 > 사용자 관리 > 권한** 에서 고급 권한 설정을 활성화하세요."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "유효하지 않은 로그 필터"
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "요청 본문을 구문 분석할 수 없습니다."
+  },
+  {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "알 수 없는 들여오기 원본입니다."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "게스트 계정이 비활성화되었습니다"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "요청 본문이 유효하지 않거나 누락되었습니다."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "게스트 계정을 지원하지 않는 라이선스입니다"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "전자우편을 보내는 중에 오류가 발생했습니다"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "시스템 콘솔에서 SMTP가 설정되지 않았습니다"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "유효하지 않은 요청 본문입니다."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "본문 데이터를 구문 분석하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "이미지 제한 확인에 실패했습니다. 해상도가 너무 높습니다."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermots 업그레이드 확인"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "업그레이드 되었습니다!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "{{.WorkspaceName}} 워크스페이스가 업그레이드 되었습니다. {{.Data}}에 결제가 됩니다"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "{{.WorkspaceName}} 워크스페이스가 업그레이드 되었습니다."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "워크스페이스에 앱들을 추가합니다"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "앱 마켓플레이스."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "매터모스트 열기"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "평가판을 시작할 수 있는지 확인할 수 없습니다"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "파일 저장소 설정에 설정되지 않은 값이 있습니다."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "스토어에 초기 관리자 마켓플레이스 방문 상태를 저장하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_templates.unsupported.app_error",
+    "translation": "이 장치에서는 템플릿 명령이 지원되지 않습니다."
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "템플릿"
+  },
+  {
+    "id": "api.command_templates.desc",
+    "translation": "템플릿에서 만들기 창을 엽니다"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "보관된 채널에서는 승인할 수 없습니다."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "5분이 경과한 후에는 확인을 삭제할 수 없습니다."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "보관된 채널에서는 승인 내용을 삭제할 수 없습니다."
   }
 ]

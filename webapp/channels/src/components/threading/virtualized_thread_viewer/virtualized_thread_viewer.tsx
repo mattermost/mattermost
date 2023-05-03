@@ -34,7 +34,6 @@ type Props = {
     onCardClick: (post: Post) => void;
     replyListIds: string[];
     selected: Post | FakePost;
-    teamId: string;
     useRelativeTimestamp: boolean;
     isThreadView: boolean;
 }
@@ -163,7 +162,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 isMobile,
             });
         }
-    }
+    };
 
     initScrollToIndex = (): {index: number; position: string; offset?: number} => {
         const {highlightedPostId, replyListIds} = this.props;
@@ -189,7 +188,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             index: 0,
             position: 'end',
         };
-    }
+    };
 
     handleScroll = ({scrollHeight, scrollUpdateWasRequested, scrollOffset, clientHeight}: OnScrollArgs) => {
         if (scrollHeight <= 0) {
@@ -223,7 +222,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
 
         this.setState(updatedState as State);
-    }
+    };
 
     updateFloatingTimestamp = (visibleTopItem: number) => {
         if (!this.props.replyListIds) {
@@ -233,7 +232,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         this.setState({
             topRhsPostId: getLatestPostId(this.props.replyListIds.slice(visibleTopItem)),
         });
-    }
+    };
 
     onItemsRendered = ({
         visibleStartIndex,
@@ -250,7 +249,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             overscanStartIndex,
             overscanStopIndex,
         });
-    }
+    };
 
     getInitialPostIndex = (): number => {
         let postIndex = 0;
@@ -262,7 +261,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
 
         return postIndex === -1 ? 0 : postIndex;
-    }
+    };
 
     handleScrollToFailed = (index: number) => {
         if (index < 0 || index >= this.props.replyListIds.length) {
@@ -277,7 +276,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (overscanStopIndex != null && index > overscanStopIndex) {
             this.scrollToItemCorrection(index, Math.min(overscanStopIndex - 1, this.props.replyListIds.length - 1));
         }
-    }
+    };
 
     scrollToItemCorrection = (index: number, nearIndex: number) => {
         // stop after 10 times so we won't end up in an infinite loop
@@ -294,21 +293,21 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         window.requestAnimationFrame(() => {
             this.scrollToItem(index, 'start');
         });
-    }
+    };
 
     scrollToItem = (index: number, position: string, offset?: number) => {
         if (this.listRef.current) {
             this.listRef.current.scrollToItem(index, position, offset);
         }
-    }
+    };
 
     scrollToBottom = () => {
         this.scrollToItem(0, 'end');
-    }
+    };
 
     handleToastDismiss = () => {
         this.setState({lastViewedBottom: Date.now()});
-    }
+    };
 
     handleToastClick = () => {
         const index = getNewMessageIndex(this.props.replyListIds);
@@ -317,7 +316,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         } else {
             this.scrollToBottom();
         }
-    }
+    };
 
     scrollToHighlightedPost = () => {
         const {highlightedPostId, replyListIds} = this.props;
@@ -327,13 +326,13 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 this.scrollToItem(replyListIds.indexOf(highlightedPostId), 'center');
             });
         }
-    }
+    };
 
     handleScrollStop = () => {
         if (this.mounted) {
             this.setState({isScrolling: false});
         }
-    }
+    };
 
     handleCreateCommentHeightChange = (height: number, maxHeight: number) => {
         let createCommentHeight = height > maxHeight ? maxHeight : height;
@@ -345,7 +344,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 this.scrollToBottom();
             }
         }
-    }
+    };
 
     renderRow = ({data, itemId, style}: {data: any; itemId: any; style: any}) => {
         const index = data.indexOf(itemId);
@@ -401,9 +400,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    teamId={this.props.teamId}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
-                    lastPost={this.props.lastPost}
                 />
             </div>
         );
@@ -415,7 +412,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
 
         return undefined;
-    }
+    };
 
     isNewMessagesVisible = (): boolean => {
         const {visibleStopIndex} = this.state;
@@ -424,7 +421,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             return visibleStopIndex < newMessagesSeparatorIndex;
         }
         return false;
-    }
+    };
 
     renderToast = (width: number) => {
         const {visibleStopIndex, lastViewedBottom, userScrolledToBottom} = this.state;
@@ -443,7 +440,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 onClick={this.handleToastClick}
             />
         );
-    }
+    };
 
     render() {
         const {isMobile, topRhsPostId} = this.state;

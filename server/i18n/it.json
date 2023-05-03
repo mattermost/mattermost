@@ -3140,10 +3140,6 @@
     "translation": "Impossibile decodificare i risultati della ricerca"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch è già in esecuzione."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Impossibile creare il processore massivo Elasticsearch."
   },
@@ -7360,14 +7356,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": " "
-  },
-  {
     "id": "api.templates.email_footer_v2",
     "translation": " "
   },
@@ -7480,10 +7468,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": " "
-  },
-  {
     "id": "api.templates.invite_team_and_channels_body.title",
     "translation": " "
   },
@@ -7525,10 +7509,6 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
     "translation": " "
   },
   {
@@ -7864,10 +7844,6 @@
     "translation": " "
   },
   {
-    "id": "Playbooks",
-    "translation": " "
-  },
-  {
     "id": "api.command_custom_status.hint",
     "translation": " "
   },
@@ -8200,23 +8176,11 @@
     "translation": " "
   },
   {
-    "id": "api.templates.server_inactivity_info",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": " "
   },
   {
     "id": "app.user.get_unread_count.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
     "translation": " "
   },
   {
@@ -8420,15 +8384,7 @@
     "translation": " "
   },
   {
-    "id": "Boards",
-    "translation": " "
-  },
-  {
     "id": "app.notification.footer.info",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
     "translation": " "
   },
   {
@@ -8497,10 +8453,6 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
     "translation": " "
   },
   {
@@ -9229,10 +9181,6 @@
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": " "
-  },
-  {
-    "id": "Channels",
     "translation": " "
   },
   {

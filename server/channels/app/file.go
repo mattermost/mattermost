@@ -24,16 +24,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/imaging"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/docextractor"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/docextractor"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 
 	"github.com/pkg/errors"
 )
@@ -274,6 +274,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 	info.Id = model.NewId()
 	info.CreatorId = post.UserId
 	info.PostId = post.Id
+	info.ChannelId = post.ChannelId
 	info.CreateAt = post.CreateAt
 	info.UpdateAt = post.UpdateAt
 	info.Path = path
@@ -1214,6 +1215,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 		fileInfo.CreateAt = now
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
+		fileInfo.ChannelId = ""
 
 		if _, err := a.Srv().Store().FileInfo().Save(fileInfo); err != nil {
 			var appErr *model.AppError

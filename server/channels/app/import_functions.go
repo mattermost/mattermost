@@ -17,14 +17,14 @@ import (
 
 	"github.com/mattermost/logr/v2"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/imports"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/teams"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 // -- Bulk Import Functions --
@@ -1638,7 +1638,7 @@ func (a *App) uploadAttachments(c request.CTX, attachments *[]imports.Attachment
 
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
 	for _, fileID := range post.FileIds {
-		if err := a.Srv().Store().FileInfo().AttachToPost(fileID, post.Id, post.UserId); err != nil {
+		if err := a.Srv().Store().FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId); err != nil {
 			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}

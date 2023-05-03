@@ -13,10 +13,6 @@ import {IUser, parseUserProps, UserPreference} from 'src/user'
 
 import {Subscription} from 'src/wsclient'
 
-// TODO: change this whene the initial load is complete
-// import {initialLoad} from './initialLoad'
-import {UserSettings} from 'src/userSettings'
-
 import {initialLoad} from './initialLoad'
 
 import {RootState} from './index'
@@ -170,20 +166,6 @@ export const getOnboardingTourStep = createSelector(
 export const getOnboardingTourCategory = createSelector(
     getMyConfig,
     (myConfig): string => (myConfig.tourCategory ? myConfig.tourCategory.value : ''),
-)
-
-export const getCloudMessageCanceled = createSelector(
-    getMe,
-    getMyConfig,
-    (me, myConfig): boolean => {
-        if (!me) {
-            return false
-        }
-        if (me.id === 'single-user') {
-            return UserSettings.hideCloudMessage
-        }
-        return Boolean(myConfig.cloudMessageCanceled?.value)
-    },
 )
 
 export const getVersionMessageCanceled = createSelector(

@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type SearchTestHelper struct {
@@ -371,10 +371,11 @@ func (th *SearchTestHelper) createPost(userID, channelID, message, hashtags, pos
 	return th.Store.Post().Save(postModel)
 }
 
-func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
+func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
 	return &model.FileInfo{
 		CreatorId: creatorID,
 		PostId:    postID,
+		ChannelId: channelID,
 		CreateAt:  createAt,
 		UpdateAt:  createAt,
 		DeleteAt:  0,
@@ -387,12 +388,12 @@ func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, name, content
 	}
 }
 
-func (th *SearchTestHelper) createFileInfo(creatorID, postID, name, content, extension, mimeType string, createAt, size int64) (*model.FileInfo, error) {
+func (th *SearchTestHelper) createFileInfo(creatorID, postID, channelID, name, content, extension, mimeType string, createAt, size int64) (*model.FileInfo, error) {
 	var creationTime int64 = 1000000
 	if createAt > 0 {
 		creationTime = createAt
 	}
-	fileInfoModel := th.createFileInfoModel(creatorID, postID, name, content, extension, mimeType, creationTime, size)
+	fileInfoModel := th.createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType, creationTime, size)
 	return th.Store.FileInfo().Save(fileInfoModel)
 }
 

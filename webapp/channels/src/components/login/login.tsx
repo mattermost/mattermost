@@ -13,7 +13,7 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getUseCaseOnboarding, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -104,7 +104,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const currentUser = useSelector(getCurrentUser);
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
-    const useCaseOnboarding = useSelector(getUseCaseOnboarding);
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const isCloud = useSelector(isCurrentLicenseCloud);
     const graphQLEnabled = useSelector(isGraphQLEnabled);
 
@@ -141,6 +141,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
+
+    const query = new URLSearchParams(search);
+    const redirectTo = query.get('redirect_to');
 
     const getExternalLoginOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
@@ -373,6 +376,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     useEffect(() => {
         if (currentUser) {
+            if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
+                history.push(redirectTo);
+                return;
+            }
             redirectUserToDefaultTeam();
             return;
         }
@@ -616,9 +623,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             dispatch(setNeedsLoggedInLimitReachedCheck(true));
         }
 
-        const query = new URLSearchParams(search);
-        const redirectTo = query.get('redirect_to');
-
         setCSRFFromCookie();
 
         // Record a successful login to local storage. If an unintentional logout occurs, e.g.
@@ -631,7 +635,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         } else if (experimentalPrimaryTeamMember.team_id) {
             // Only set experimental team if user is on that team
             history.push(`/${ExperimentalPrimaryTeam}`);
-        } else if (useCaseOnboarding) {
+        } else if (onboardingFlowEnabled) {
             // need info about whether admin or not,
             // and whether admin has already completed
             // first time onboarding. Instead of fetching and orchestrating that here,

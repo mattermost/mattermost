@@ -16,7 +16,7 @@ import {IUser} from 'src/user'
 import AttachmentElement from './attachmentElement'
 
 jest.mock('src/octoClient')
-const mockedOcto = mocked(octoClient, true)
+const mockedOcto = mocked(octoClient)
 mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.txt'})
 mockedOcto.getFileInfo.mockResolvedValue({
     name: 'test.txt',
@@ -39,7 +39,7 @@ describe('component/content/FileBlock', () => {
         type: 'attachment',
         title: 'test-title',
         fields: {
-            attachmentId: 'test.txt',
+            fileId: 'test.txt',
         },
         createdBy: 'test-user-id',
         createAt: 0,

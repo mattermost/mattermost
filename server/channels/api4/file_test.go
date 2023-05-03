@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -23,10 +22,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 var testDir = ""
@@ -790,6 +789,12 @@ func TestGetFileHeaders(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
+	CheckStartsWith := func(tb testing.TB, value, prefix, message string) {
+		tb.Helper()
+
+		require.True(tb, strings.HasPrefix(value, prefix), fmt.Sprintf("%s: %s", message, value))
+	}
+
 	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool, loadFile bool) func(*testing.T) {
 		return func(t *testing.T) {
 			if loadFile {
@@ -832,11 +837,8 @@ func TestGetFileHeaders(t *testing.T) {
 	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false, false))
 	t.Run("html", testHeaders(data, "test.html", "text/plain", false, false))
 	t.Run("js", testHeaders(data, "test.js", "text/plain", false, false))
-	if os.Getenv("IS_CI") == "true" {
-		t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
-	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-		t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
-	}
+	// *.go are categorized differently by different platforms
+	// t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
 	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
@@ -916,7 +918,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
@@ -1074,7 +1076,7 @@ func TestGetPublicFile(t *testing.T) {
 	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	info, err := th.App.Srv().Store().FileInfo().Get(fileId)
@@ -1139,25 +1141,25 @@ func TestSearchFiles(t *testing.T) {
 	filename := "search for fileInfo1"
 	fileInfo1, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "search for fileInfo2"
 	fileInfo2, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged search for fileInfo3"
 	fileInfo3, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged for fileInfo4"
 	fileInfo4, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	archivedChannel := th.CreatePublicChannel()
@@ -1166,7 +1168,7 @@ func TestSearchFiles(t *testing.T) {
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
 	rpost, _, err := client.CreatePost(post)
 	require.NoError(t, err)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 	th.Client.DeleteChannel(archivedChannel.Id)
 

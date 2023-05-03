@@ -18,12 +18,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type slackChannel struct {
@@ -680,7 +680,7 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 				firstPostId = post.Id
 			}
 			for _, fileId := range post.FileIds {
-				if err := si.store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
+				if err := si.store.FileInfo().AttachToPost(fileId, post.Id, post.ChannelId, post.UserId); err != nil {
 					mlog.Error(
 						"Error attaching files to post.",
 						mlog.String("post_id", post.Id),

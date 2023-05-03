@@ -96,7 +96,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
                     <span className='call-button-label'>{'Call'}</span>
                     <ChevronDownIcon
                         color='inherit'
-                        aria-label={formatMessage({id: 'generic_icons.dropdown', defaultMessage: 'Dropdown icon'}).toLowerCase()}
+                        aria-label={formatMessage({id: 'generic_icons.dropdown', defaultMessage: 'Dropdown Icon'}).toLowerCase()}
                     />
                 </button>
                 <Menu

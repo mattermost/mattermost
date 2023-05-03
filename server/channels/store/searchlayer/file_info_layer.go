@@ -4,10 +4,10 @@
 package searchlayer
 
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type SearchFileInfoStore struct {
@@ -112,8 +112,8 @@ func (s SearchFileInfoStore) SetContent(fileID, content string) error {
 	return err
 }
 
-func (s SearchFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
-	err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
+func (s SearchFileInfoStore) AttachToPost(fileId, postId, channelId, creatorId string) error {
+	err := s.FileInfoStore.AttachToPost(fileId, postId, channelId, creatorId)
 	if err == nil {
 		nFileInfo, err2 := s.FileInfoStore.GetFromMaster(fileId)
 		if err2 == nil {

@@ -6,8 +6,8 @@ package sqlstore
 import (
 	sq "github.com/mattermost/squirrel"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type relationalCheckConfig struct {
@@ -130,6 +130,15 @@ func checkChannelsPostsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 		parentName:   "Channels",
 		parentIdAttr: "ChannelId",
 		childName:    "Posts",
+		childIdAttr:  "Id",
+	})
+}
+
+func checkChannelsFileInfoIntegrity(ss *SqlStore) model.IntegrityCheckResult {
+	return checkParentChildIntegrity(ss, relationalCheckConfig{
+		parentName:   "Channels",
+		parentIdAttr: "ChannelId",
+		childName:    "FileInfo",
 		childIdAttr:  "Id",
 	})
 }
@@ -458,6 +467,7 @@ func checkChannelsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckRes
 	results <- checkChannelsIncomingWebhooksIntegrity(ss)
 	results <- checkChannelsOutgoingWebhooksIntegrity(ss)
 	results <- checkChannelsPostsIntegrity(ss)
+	results <- checkChannelsFileInfoIntegrity(ss)
 }
 
 func checkCommandsIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult) {

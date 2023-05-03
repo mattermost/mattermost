@@ -6,7 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import SaveButton from 'components/save_button';
 import Constants from 'utils/constants';
-import {a11yFocus, isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {a11yFocus} from 'utils/utils';
 type Props = {
 
     // Array of inputs selection
@@ -93,7 +94,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
             this.settingList.current.contains(target)) {
             this.handleSubmit(e);
         }
-    }
+    };
 
     handleSubmit = (e: React.MouseEvent | KeyboardEvent) => {
         e.preventDefault();
@@ -103,14 +104,14 @@ export default class SettingItemMax extends React.PureComponent<Props> {
         } else if (this.props.submit) {
             this.props.submit();
         }
-    }
+    };
 
     handleUpdateSection = (e: React.MouseEvent) => {
         if (this.props.updateSection) {
             this.props.updateSection(this.props.section);
         }
         e.preventDefault();
-    }
+    };
 
     render() {
         let clientError = null;
