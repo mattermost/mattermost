@@ -260,7 +260,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 		return nil
 	}
 
-	info, err := model.GetInfoForBytes(name, bytes.NewReader(data), len(data))
+	info, err := getInfoForBytes(name, bytes.NewReader(data), len(data))
 	if err != nil {
 		mlog.Warn(
 			"Unable to fully decode file info when migrating post to use FileInfos",
@@ -879,7 +879,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	channelID := filepath.Base(rawChannelId)
 	userID := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
+	info, err := getInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, data, err
