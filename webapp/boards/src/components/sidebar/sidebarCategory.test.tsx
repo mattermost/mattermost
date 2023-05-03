@@ -195,7 +195,7 @@ describe('components/sidebarCategory', () => {
 
     // TODO: Remove when fetch is mocked correctly
     // https://mattermost.atlassian.net/browse/MM-52212
-    // eslint-disable-next-line no-only-tests/no-only-tests
+
     test.skip('sidebar template close other', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)

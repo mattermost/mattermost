@@ -10,6 +10,7 @@ import {Constants} from 'src/constants'
 
 const TopBar = (): JSX.Element => {
     const feedbackUrl = 'https://www.focalboard.com/fwlink/feedback-boards.html?v=' + Constants.versionString
+
     return (
         <div
             className='TopBar'
