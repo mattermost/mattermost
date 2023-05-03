@@ -17,7 +17,6 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    contactSalesLink='/sales'
                     titleID='translation.test.title'
                     titleDefault='Foo'
                     copyID='translation.test.copy'
@@ -32,6 +31,7 @@ describe('components/feature_discovery', () => {
                     hadPrevCloudTrial={false}
                     isSubscriptionLoaded={true}
                     isPaidSubscription={false}
+                    cloudFreeDeprecated={false}
                     actions={{
                         getPrevTrialLicense: jest.fn(),
                         getCloudSubscription: jest.fn(),
@@ -46,7 +46,6 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    contactSalesLink='/sales'
                     titleID='translation.test.title'
                     titleDefault='Foo'
                     copyID='translation.test.copy'
@@ -60,6 +59,7 @@ describe('components/feature_discovery', () => {
                     isCloudTrial={false}
                     hadPrevCloudTrial={false}
                     isPaidSubscription={false}
+                    cloudFreeDeprecated={false}
                     isSubscriptionLoaded={true}
                     actions={{
                         getPrevTrialLicense: jest.fn(),
@@ -76,7 +76,6 @@ describe('components/feature_discovery', () => {
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
-                    contactSalesLink='/sales'
                     titleID='translation.test.title'
                     titleDefault='Foo'
                     copyID='translation.test.copy'
@@ -90,6 +89,7 @@ describe('components/feature_discovery', () => {
                     isCloudTrial={false}
                     hadPrevCloudTrial={false}
                     isSubscriptionLoaded={false}
+                    cloudFreeDeprecated={false}
                     isPaidSubscription={false}
                     actions={{
                         getPrevTrialLicense: jest.fn(),

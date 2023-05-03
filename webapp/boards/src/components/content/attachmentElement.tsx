@@ -50,7 +50,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                 })
                 return
             }
-            const attachmentInfo = await octoClient.getFileInfo(block.boardId, block.fields.attachmentId)
+            const attachmentInfo = await octoClient.getFileInfo(block.boardId, block.fields.fileId)
             setFileInfo(attachmentInfo)
         }
         loadFile()
@@ -94,7 +94,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
     }
 
     const confirmDialogProps: ConfirmationDialogBoxProps = {
-        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-attachment', defaultMessage: 'Confirm Attachment delete!'}),
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-attachment', defaultMessage: 'Confirm attachment delete'}),
         confirmButtonText: intl.formatMessage({id: 'AttachmentElement.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
         onConfirm: deleteAttachment,
         onClose: () => {
@@ -113,7 +113,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
     }
 
     const attachmentDownloadHandler = async () => {
-        const attachment = await octoClient.getFileAsDataUrl(block.boardId, block.fields.attachmentId)
+        const attachment = await octoClient.getFileAsDataUrl(block.boardId, block.fields.fileId)
         const anchor = document.createElement('a')
         anchor.href = attachment.url || ''
         anchor.download = fileInfo.name || ''

@@ -5,7 +5,7 @@ import React, {useEffect, useState, useCallback} from 'react';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {trackEvent} from 'actions/telemetry_actions';
 import * as Utils from 'utils/utils';

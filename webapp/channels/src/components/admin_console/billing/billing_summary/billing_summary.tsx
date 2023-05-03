@@ -55,7 +55,7 @@ export const noBillingHistory = (
     </div>
 );
 
-export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void, daysLeftOnTrial: number) => (
+export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void, daysLeftOnTrial: number, reverseTrial: boolean) => (
     <div className='UpgradeMattermostCloud'>
         <div className='UpgradeMattermostCloud__image'>
             <UpgradeSvg
@@ -104,10 +104,21 @@ export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void
             onClick={() => onUpgradeMattermostCloud('billing_summary_free_trial_upgrade_button')}
             className='UpgradeMattermostCloud__upgradeButton'
         >
-            <FormattedMessage
-                id='admin.billing.subscription.cloudTrial.subscribeButton'
-                defaultMessage='Upgrade Now'
-            />
+            {
+                reverseTrial ? (
+                    <FormattedMessage
+                        id='admin.billing.subscription.cloudTrial.purchaseButton'
+                        defaultMessage='Purchase Now'
+                    />
+
+                ) : (
+                    <FormattedMessage
+                        id='admin.billing.subscription.cloudTrial.subscribeButton'
+                        defaultMessage='Upgrade Now'
+                    />
+                )
+
+            }
         </button>
     </div>
 );
@@ -226,9 +237,9 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                                     currency='USD'
                                 />
                                 <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.userCount'
-                                    defaultMessage=' x {users} users'
-                                    values={{users: charge.quantity}}
+                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seatCount'
+                                    defaultMessage=' x {seats} seats'
+                                    values={{seats: charge.quantity}}
                                 />
                             </>
                         )}
@@ -309,9 +320,9 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                         >
                             <div className='BillingSummary__lastInvoice-chargeDescription'>
                                 <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.userCountPartial'
-                                    defaultMessage='{users} users'
-                                    values={{users: charge.quantity}}
+                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seatCountPartial'
+                                    defaultMessage='{seats} seats'
+                                    values={{seats: charge.quantity}}
                                 />
                             </div>
                             <div className='BillingSummary__lastInvoice-chargeAmount'>

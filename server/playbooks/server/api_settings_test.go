@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"context"
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSettings(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("get settings", func(t *testing.T) {

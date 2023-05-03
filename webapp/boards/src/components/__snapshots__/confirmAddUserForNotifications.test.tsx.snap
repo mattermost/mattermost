@@ -54,7 +54,7 @@ exports[`/components/confirmAddUserForNotifications should match snapshot 1`] = 
               class="ConfirmAddUserForNotifications"
             >
               <p>
-                fake-username is not a member of the board, and will not receive any notifications about it.
+                fake-username isn't a member of the board, and won't receive any notifications about it.
               </p>
               <p>
                 Do you want to add fake-username to the board?

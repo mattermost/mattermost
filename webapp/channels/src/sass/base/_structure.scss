@@ -19,7 +19,6 @@ body {
 
     &.admin-onboarding {
         background-image: url('images/admin-onboarding-background.jpg');
-        background-position: 50%;
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -160,7 +159,6 @@ body.app__body #root {
             }
             #SidebarContainer.move--right {
                 position: relative;
-                left: 65px;
             }
         }
     }

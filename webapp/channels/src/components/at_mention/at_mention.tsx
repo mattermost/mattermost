@@ -12,9 +12,10 @@ import {Group} from '@mattermost/types/groups';
 import ProfilePopover from 'components/profile_popover';
 
 import {popOverOverlayPosition} from 'utils/position_utils';
+import {isKeyPressed} from 'utils/keyboard';
 import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 import Constants from 'utils/constants';
-import {getViewportSize, isKeyPressed} from 'utils/utils';
+import {getViewportSize} from 'utils/utils';
 
 import AtMentionGroup from 'components/at_mention/at_mention_group';
 
@@ -46,7 +47,7 @@ export default class AtMention extends React.PureComponent<Props, State> {
         hasMention: false,
         disableHighlight: false,
         disableGroupHighlight: false,
-    }
+    };
 
     constructor(props: Props) {
         super(props);
@@ -65,12 +66,12 @@ export default class AtMention extends React.PureComponent<Props, State> {
             const placement = popOverOverlayPosition(targetBounds, getViewportSize().h, getViewportSize().h - 240);
             this.setState({target, show: !this.state.show, placement});
         }
-    }
+    };
 
     handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         this.showOverlay(e.target as HTMLAnchorElement);
-    }
+    };
 
     handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
@@ -80,11 +81,11 @@ export default class AtMention extends React.PureComponent<Props, State> {
             e.stopPropagation();
             this.showOverlay(e.target as HTMLAnchorElement);
         }
-    }
+    };
 
     hideOverlay = () => {
         this.setState({show: false});
-    }
+    };
 
     render() {
         const user = getUserOrGroupFromMentionName(this.props.usersByUsername, this.props.mentionName) as UserProfile | '';

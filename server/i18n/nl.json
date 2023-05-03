@@ -3136,10 +3136,6 @@
     "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is reeds gestart."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt."
   },
@@ -9027,50 +9023,6 @@
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Verhoog jouw productiviteit met deze geweldige functies"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hey {{.Naam}}, we hebben gemerkt dat jouw Mattermost server een beetje stof aan het verzamelen is. Kijk eens naar enkele functies die kunnen helpen om de werklast van jouw team te verlichten."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Open Mattermost om de productiviteit van je team te verhogen!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Beheer taken met "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Workflowbeheer met "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Gast-toegang tot gespecificeerd(e) "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Kom maar eens kijken!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Mattermost openen"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanalen"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP is niet geconfigureerd in Systeem Console"
   },
@@ -9161,10 +9113,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Je hebt deze eenmalige email ontvangen omdat jouw Mattermost server inactief was voor meer dan {{.Hours}} uur. Deze e-mail werd automatisch aangemaakt door jouw Mattermost server."
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9503,10 +9451,6 @@
     "translation": "groepsnaam bestaat al als een gereserveerde naam"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Plugin {{.Name}} kan niet worden ingeschakeld in de productmodus."
-  },
-  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Fout bij het ophalen van het laatst toegankelijke bestand"
   },
@@ -9553,22 +9497,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Je kan een bevestiging in een gearchiveerd kanaal niet verwijderen."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Creëer transparante workflows tussen ontwikkelingsteams om ervoor te zorgen dat jouw ontwikkelingsproces naadloos verloopt."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Verhoog de productiviteit in je kanaal door een Jira bot en Github bot te integreren. Deze worden voor jou gedownload."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chat met je team in een Feature Release-kanaal dat gemakkelijk verbinding maakt met je boards, playbooks en app bots."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Gebruik ons vergaderagenda-bord voor terugkerende vergaderingen zoals stand-up en ons Projecttakenbord om de voortgang van taken onderweg te beheren."
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9629,10 +9557,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "Kon geen berichtprioriteit ophalen voor bericht"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Kan het concept niet bijwerken."
   },
   {
     "id": "app.draft.save.app_error",
@@ -9775,72 +9699,12 @@
     "translation": "Fout bij het bijwerken van de serververtalingen."
   },
   {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op één lijn te houden."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op één lijn te houden."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Mis geen stap tijdens een productrelease met dit Project. Wijs taken toe uit de Playbook-checklist en bereik mijlpalen met het Board. Gebruik Channels om iedereen op dezelfde lijn te houden."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Plan een Roadmap met behulp van dit Project Board en werk op dit onderwerp samen in het kanaal dat met dit sjabloon is aangemaakt."
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "Leiderschap"
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9907,58 +9771,6 @@
     "translation": "Werksjablonen zijn uitgeschakeld."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Organiseer en versla alle bugs met dit project! Bouw momentum op en meet de voortgang met behulp van het meegeleverde Playbook, Board en Channel."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Wanneer alles fout gaat, is een herhaalbaar proces de sleutel om ervoor te zorgen dat alles zo snel mogelijk in orde komt. Dit project combineert alles wat Mattermost biedt om ervoor te zorgen dat de brandjes worden geblust en de belanghebbenden onderweg worden geïnformeerd."
-  },
-  {
-    "id": "api.server.cws.needs_enterprise_edition",
-    "translation": "Alleen beschikbaar in Mattermost Enterprise editie"
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Gebruik een Project om sprintplanning een makkie te maken. Het kanaal houdt het gesprek en de vragen gefocust. Het sprintplan houdt iedereen op zijn taak voor de week en het Terugblikboard brengt het team samen om voortdurend te verbeteren."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Beschrijving van waarom het kanaal of de kanalen nodig zijn"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Beschrijving van waarom het bord of de borden nodig zijn"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit Project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Duidelijke focus is essentieel voor teamsucces en met dit Project kan je de doelstellingen en OKR's van het team documenteren en updates plaatsen in het toegewezen kanaal."
-  },
-  {
     "id": "api.command_templates.unsupported.app_error",
     "translation": "De sjablonenopdracht wordt niet ondersteund op jouw toestel."
   },
@@ -10013,5 +9825,225 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Contacteer de verkoopsafdeling"
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Vandaag te voldoen"
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Gebruik `/playbook todo` om al je taken te zien."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Je hebt momenteel 0 runs lopen."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Runs in uitvoering"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Je hebt 0 runs achterstand."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Achterstallige statusupdates"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Kan commando niet uitvoeren."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS-server kan zich niet abonneren op nieuwsbrief."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Dienst alleen beschikbaar in Mattermost Enterprise editie"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Playbook Uitvoering"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Nieuwe taak toevoegen"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Taak toevoegen"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Naam"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Omschrijving"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Playbook uitvoeren"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Uitvoering starten"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Naam van de uitvoering"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Eigenaar** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Je hebt 0 toegewezen taken."
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "one": "Je hebt {{.Count}} taak toegewezen gekregen die nu verloopt:",
+      "other": "Je hebt {{.Count}} taken toegewezen gekregen die nu verlopen:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "one": "Je hebt {{.Count}} toegewezen taak:",
+      "other": "Je hebt {{.Count}} toegewezen taken:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Jouw toegewezen taken"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Verliep gisteren"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Verliep {{.Count}} dagen geleden"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "one": "Verloopt binnen {{.Count}} dag",
+      "other": "Verloopt binnen {{.Count}} dagen"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "one": "Je hebt **{.Count}} taak toegewezen gekregen die verloopt na vandaag**.",
+      "other": "Je hebt **{.Count}} taken toegewezen gekregen die verlopen na vandaag**."
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "one": "Je hebt {{.Count}} uitvoering lopen:",
+      "other": "Je hebt {{.Count}} uitvoeringen lopen:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "one": "Je hebt {{.Count}} uitvoering die een statusupdate nodig hebben:",
+      "other": "Je hebt {{.Count}} uitvoeringen die een statusupdate nodig hebben:"
+    }
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "De installatie van plugin {{.Id}} wordt overgeslagen omdat de bestaande versie gelijk is of nieuwer."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Samenvatting"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Toevoegen aan de uitvoeringstijdlijn"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Herinnering voor de volgende update"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "one": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanaal.",
+      "other": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanalen."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Markeer ook de uitvoering als beëindigd"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Uitvoering beëindigen"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Wijziging sinds laatste update"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here - @{{.Name}} vroeg een statusupdate aan voor [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} is een deelnemer aan de uitvoering en wil lid worden van dit kanaal. Elk lid van het kanaal kan hen uitnodigen.\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Bevestig beëindigen uitvoering"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Uitvoering beëindigen"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "one": "Er is **{.Count}} openstaande taak**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemers wilt beëindigen?",
+      "other": "Er is **{.Count}} openstaande taken**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemer wilt beëindigen?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Toevoegen aan de uitvoeringstijdlijn"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Korte samenvatting weergeven in de tijdlijn"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Maximaal 64 tekens"
   }
 ]

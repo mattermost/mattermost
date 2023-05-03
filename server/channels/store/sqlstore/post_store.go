@@ -17,12 +17,12 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type SqlPostStore struct {
@@ -2075,7 +2075,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	var posts []*model.Post
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
-		mlog.Warn("Query error searching posts.", mlog.Err(err))
+		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
@@ -2298,17 +2298,6 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 	}
 
 	return v, nil
-}
-
-func (s *SqlPostStore) GetLastPostRowCreateAt() (int64, error) {
-	query := `SELECT CREATEAT FROM Posts ORDER BY CREATEAT DESC LIMIT 1`
-	var createAt int64
-	err := s.GetReplicaX().Get(&createAt, query)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get last post createat")
-	}
-
-	return createAt, nil
 }
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {

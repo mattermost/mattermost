@@ -13,7 +13,8 @@ import {RhsState} from 'types/store/rhs';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import Constants from 'utils/constants';
-import {isMac, cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
+import {isMac} from 'utils/user_agent';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 
 import FileUploadOverlay from 'components/file_upload_overlay';
 import RhsThread from 'components/rhs_thread';
@@ -92,7 +93,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             selectedPostCardId: this.props.selectedPostCardId,
             previousRhsState: this.props.previousRhsState,
         };
-    }
+    };
 
     handleShortcut = (e: KeyboardEvent) => {
         const channelInfoShortcutMac = isMac() && e.shiftKey;
@@ -126,7 +127,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 }
             }
         }
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
@@ -187,16 +188,16 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         ) {
             this.props.actions.setRhsExpanded(false);
         }
-    }
+    };
 
     handleUpdateSearchTerms = (term: string) => {
         this.props.actions.updateSearchTerms(term);
         this.focusSearchBar?.();
-    }
+    };
 
     getSearchBarFocus = (focusSearchBar: () => void) => {
         this.focusSearchBar = focusSearchBar;
-    }
+    };
 
     render() {
         const {

@@ -130,12 +130,12 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         a11yFocus(e.currentTarget);
 
         this.props.onChange(enableEmail as UserNotifyProps['email']);
-    }
+    };
 
     handleThreadsOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
         this.props.setParentState('emailThreads', value);
-    }
+    };
 
     handleSubmit = async () => {
         const {newInterval} = this.state;
@@ -155,7 +155,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         }
 
         this.props.onSubmit();
-    }
+    };
 
     handleUpdateSection = (section?: string) => {
         if (section) {
@@ -169,7 +169,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
             });
             this.props.onCancel();
         }
-    }
+    };
 
     renderMinSettingView = () => {
         const {
@@ -240,7 +240,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 ref={this.minRef}
             />
         );
-    }
+    };
 
     renderMaxSettingView = () => {
         if (!this.props.sendEmailNotifications) {
@@ -284,7 +284,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyXMinutes'
-                                defaultMessage='Every {count} minutes'
+                                defaultMessage='Every {count, plural, one {minute} other {{count, number} minutes}}'
                                 values={{count: Preferences.INTERVAL_FIFTEEN_MINUTES / SECONDS_PER_MINUTE}}
                             />
                         </label>
@@ -419,7 +419,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 updateSection={this.handleUpdateSection}
             />
         );
-    }
+    };
 
     componentDidUpdate(prevProps: Props) {
         if (prevProps.activeSection === 'email' && this.props.activeSection === '') {
