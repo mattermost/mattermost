@@ -13,8 +13,6 @@ services:
           JWT_EXPIRES_IN: 365d
           ALLOWED_USER: cypress-test
           ALLOWED_ROLE: integration
-          #UPLOAD_REQUEST_URL: "http:..." #TODO change after adding minio?
-          #BASE_IMAGE_URL: "" # TODO remove?
         user: "${MME2E_UID}"
         volumes:
           - "../:/app"
@@ -24,5 +22,3 @@ services:
         entrypoint: /usr/local/bin/dashboard.entrypoint.sh
         ports:
             - 4000:4000
-
-# TODO add minio for report upload

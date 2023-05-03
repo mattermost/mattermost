@@ -3,8 +3,6 @@ set -e -u -o pipefail
 cd $(dirname $0)
 . .e2erc
 
-: ${SERVER_IMAGE:?}
-
 # Cleanup old containers, if any
 mme2e_log "Stopping leftover E2E containers, if any are running"
 ${MME2E_DC_SERVER} down -v
@@ -23,16 +21,17 @@ for env in $envarr; do
 done
 
 # Generate .env.cypress
-### TODO remove dependency on uuidgen?
 mme2e_log "Generating .env.cypress"
+MME2E_BRANCH=${BRANCH:-$(git branch --show-current)}
+MME2E_BUILD_ID=${BUILD_ID:-$(date +%s)}
 cat >.env.cypress <<EOF
-BRANCH=$BRANCH
-BUILD_ID=${BUILD_ID:-$(uuidgen)}
+BRANCH=$MME2E_BRANCH
+BUILD_ID=$MME2E_BUILD_ID
 EOF
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Waiting for server image to be available"
-mme2e_wait_image ${SERVER_IMAGE} 30 60
+mme2e_wait_image ${MME2E_SERVER_IMAGE} 30 60
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} up -d
 if ! mme2e_wait_service_healthy server 60 10; then

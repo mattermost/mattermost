@@ -4,10 +4,11 @@ DASHBOARD_REF ?= origin/main
 run-cypress:
 	./.ci/server.run_cypress.sh
 
-.PHONY: start-server stop-server
+.PHONY: start-server prepare-server stop-server
 start-server:
 	./.ci/server.start.sh
-	./.ci/server.inject_test_data.sh
+prepare-server:
+	./.ci/server.prepare.sh
 stop-server:
 	./.ci/server.stop.sh
 

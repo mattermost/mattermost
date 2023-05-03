@@ -5,7 +5,7 @@ version: '2.4'
 services:
 
   server:
-    image: "${SERVER_IMAGE}"
+    image: "${MME2E_SERVER_IMAGE}"
     restart: always
     env_file:
       - "../../e2e-tests/.ci/.env.server"
@@ -107,6 +107,7 @@ services:
       CYPRESS_runLDAPSync: "true"
       CYPRESS_allowedUntrustedInternalConnections: "localhost webhook-interactions"
       CYPRESS_serverEdition: E20
+      TM4J_ENABLE: "false"
       # disable shared memory X11 affecting Cypress v4 and Chrome
       # https://github.com/cypress-io/cypress-docker-images/issues/270
       QT_X11_NO_MITSHM: "1"
@@ -115,8 +116,20 @@ services:
       # avoid too many progress messages
       # https://github.com/cypress-io/cypress/issues/1243
       CI: "1"
-      # TODO possibly a node image upgrade could fix this
+      # Ensure we're independent from the global node environment
       PATH: /app/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    ulimits:
+      nofile:
+        soft: 8096
+        hard: 1048576
     working_dir: /app
     volumes:
       - "../../e2e-tests/cypress/:/app"
+
+  utils:
+    image: "public.ecr.aws/mattermostqa/mattermost-build-server:20220415_golang-1.18.1"
+    entrypoint: [ "/bin/bash", "-c" ]
+    command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
+    working_dir: "/opt/mattermost-server"
+    volumes:
+    - "../../:/opt/mattermost-server"
