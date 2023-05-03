@@ -2,8 +2,13 @@
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on DESKTOP/PUSH & ALL 1`] = `
 <MemoizedFormattedMessage
-  defaultMessage="For all activity"
+  defaultMessage="For all activity ({isDefault})"
   id="channel_notifications.allActivity"
+  values={
+    Object {
+      "isDefault": <React.Fragment />,
+    }
+  }
 />
 `;
 
@@ -16,15 +21,25 @@ exports[`components/channel_notifications_modal/NotificationSection should match
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on MENTION 1`] = `
 <MemoizedFormattedMessage
-  defaultMessage="Only for mentions"
+  defaultMessage="Only for mentions ({isDefault})"
   id="channel_notifications.onlyMentions"
+  values={
+    Object {
+      "isDefault": <React.Fragment />,
+    }
+  }
 />
 `;
 
 exports[`components/channel_notifications_modal/NotificationSection should match snapshot, on NONE 1`] = `
 <MemoizedFormattedMessage
-  defaultMessage="Never"
+  defaultMessage="Never ({isDefault})"
   id="channel_notifications.never"
+  values={
+    Object {
+      "isDefault": <React.Fragment />,
+    }
+  }
 />
 `;
 

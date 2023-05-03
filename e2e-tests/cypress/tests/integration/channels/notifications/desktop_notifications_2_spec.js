@@ -53,7 +53,7 @@ describe('Desktop notifications', () => {
 
         // # Set channel notifications to show on mention only
         cy.uiOpenChannelMenu('Notification Preferences');
-        cy.findByText('Send desktop notifications').click();
+        cy.findByText('Desktop notifications').click();
         cy.findByRole('radio', {name: 'Only for mentions'}).click();
         cy.uiSaveAndClose();
 

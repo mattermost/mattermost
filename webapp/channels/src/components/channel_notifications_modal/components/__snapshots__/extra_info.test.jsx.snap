@@ -3,7 +3,7 @@
 exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on DESKTOP 1`] = `
 <span>
   <MemoizedFormattedMessage
-    defaultMessage="Selecting an option other than \\"Default\\" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome."
+    defaultMessage="Selecting an option other than the \\"default\\" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome."
     id="channel_notifications.override"
   />
 </span>
@@ -21,7 +21,7 @@ exports[`components/channel_notifications_modal/ExtraInfo should match snapshot,
 exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on PUSH 1`] = `
 <span>
   <MemoizedFormattedMessage
-    defaultMessage="Selecting an option other than \\"Global default\\" will override the global notification settings for mobile push notifications in Settings. Push notifications must be enabled by the System Admin."
+    defaultMessage="Selecting an option other than the \\"default\\" will override the global notification settings for mobile push notifications."
     id="channel_notifications.overridePush"
   />
 </span>

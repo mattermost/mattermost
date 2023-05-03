@@ -8,27 +8,14 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
     Array [
       <div>
         <fieldset>
-          <div
-            className="radio"
+          <legend
+            className="form-legend"
           >
-            <label
-              className=""
-            >
-              <input
-                checked={false}
-                id="channelNotificationGlobalDefault"
-                name="channelDesktopNotifications"
-                onChange={[MockFunction]}
-                type="radio"
-                value="default"
-              />
-              <Describe
-                globalNotifyLevel="default"
-                memberNotifyLevel="default"
-                section="desktop"
-              />
-            </label>
-          </div>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="channel_notifications.sendDesktop"
+            />
+          </legend>
           <div
             className="radio"
           >
@@ -38,12 +25,13 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
               <input
                 checked={true}
                 id="channelNotificationAllActivity"
-                name="channelDesktopNotifications"
+                name="channelNotifications"
                 onChange={[MockFunction]}
                 type="radio"
                 value="all"
               />
               <Describe
+                globalNotifyLevel="default"
                 memberNotifyLevel="all"
                 section="desktop"
               />
@@ -58,12 +46,13 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
               <input
                 checked={false}
                 id="channelNotificationMentions"
-                name="channelDesktopNotifications"
+                name="channelNotifications"
                 onChange={[MockFunction]}
                 type="radio"
                 value="mention"
               />
               <Describe
+                globalNotifyLevel="default"
                 memberNotifyLevel="mention"
                 section="desktop"
               />
@@ -76,12 +65,13 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
               <input
                 checked={false}
                 id="channelNotificationNever"
-                name="channelDesktopNotifications"
+                name="channelNotifications"
                 onChange={[MockFunction]}
                 type="radio"
                 value="none"
               />
               <Describe
+                globalNotifyLevel="default"
                 memberNotifyLevel="none"
                 section="desktop"
               />
@@ -95,6 +85,63 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
             section="desktop"
           />
         </div>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sound"
+                id="channel_notifications.sound"
+              />
+            </legend>
+            <div
+              className="radio"
+            >
+              <label
+                className=""
+              >
+                <input
+                  checked={false}
+                  id="channelDesktopSoundOn"
+                  name="channelDesktopSound"
+                  type="radio"
+                  value="on"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="On"
+                  id="channel_notifications.sound.on.title"
+                />
+              </label>
+            </div>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  id="channelDesktopSoundOff"
+                  name="channelDesktopSound"
+                  type="radio"
+                  value="off"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Off"
+                  id="channel_notifications.sound.off.title"
+                />
+              </label>
+            </div>
+            <div
+              className="mt-5"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+                id="channel_notifications.sound_info"
+              />
+            </div>
+          </fieldset>
+        </React.Fragment>
       </div>,
     ]
   }
@@ -104,6 +151,8 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
   submit={[MockFunction]}
   title={
     <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
       section="desktop"
     />
   }
@@ -176,6 +225,8 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
   submit={[MockFunction]}
   title={
     <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
       section="markUnread"
     />
   }
@@ -191,27 +242,14 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
     Array [
       <div>
         <fieldset>
-          <div
-            className="radio"
+          <legend
+            className="form-legend"
           >
-            <label
-              className=""
-            >
-              <input
-                checked={false}
-                id="channelNotificationGlobalDefault"
-                name="channelDesktopNotifications"
-                onChange={[MockFunction]}
-                type="radio"
-                value="default"
-              />
-              <Describe
-                globalNotifyLevel="default"
-                memberNotifyLevel="default"
-                section="push"
-              />
-            </label>
-          </div>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send mobile push notifications"
+              id="channel_notifications.sendMobilePush"
+            />
+          </legend>
           <div
             className="radio"
           >
@@ -221,12 +259,13 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
               <input
                 checked={true}
                 id="channelNotificationAllActivity"
-                name="channelDesktopNotifications"
+                name="channelNotifications"
                 onChange={[MockFunction]}
                 type="radio"
                 value="all"
               />
               <Describe
+                globalNotifyLevel="default"
                 memberNotifyLevel="all"
                 section="push"
               />
@@ -241,12 +280,13 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
               <input
                 checked={false}
                 id="channelNotificationMentions"
-                name="channelDesktopNotifications"
+                name="channelNotifications"
                 onChange={[MockFunction]}
                 type="radio"
                 value="mention"
               />
               <Describe
+                globalNotifyLevel="default"
                 memberNotifyLevel="mention"
                 section="push"
               />
@@ -259,12 +299,13 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
               <input
                 checked={false}
                 id="channelNotificationNever"
-                name="channelDesktopNotifications"
+                name="channelNotifications"
                 onChange={[MockFunction]}
                 type="radio"
                 value="none"
               />
               <Describe
+                globalNotifyLevel="default"
                 memberNotifyLevel="none"
                 section="push"
               />
@@ -287,6 +328,8 @@ exports[`components/channel_notifications_modal/ExpandView should match snapshot
   submit={[MockFunction]}
   title={
     <SectionTitle
+      isExpanded={true}
+      onClickResetButton={[MockFunction]}
       section="push"
     />
   }
