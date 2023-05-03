@@ -100,6 +100,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.52.2
+          working-directory: server
   check-migrations:
     name: Check migration files
     runs-on: ubuntu-22.04
