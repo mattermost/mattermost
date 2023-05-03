@@ -585,8 +585,8 @@ func IsValidEmail(email string) bool {
 
 	if addr, err := mail.ParseAddress(email); err != nil {
 		return false
-	} else if addr.Name != "" {
-		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" which we don't allow
+	} else if email != addr.Address {
+		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com> (comment)" which we don't allow
 		return false
 	}
 
