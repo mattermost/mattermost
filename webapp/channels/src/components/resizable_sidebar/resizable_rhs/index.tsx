@@ -4,8 +4,6 @@
 import React, {HTMLAttributes, useCallback, useLayoutEffect, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
 import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -26,7 +24,6 @@ function ResizableRhs({
     rightWidthHolderRef,
 }: Props) {
     const rhsSize = useSelector(getRhsSize);
-    const userId = useSelector(getCurrentUserId);
     const isRhsExpanded = useSelector(getIsRhsExpanded);
 
     const minWidth = useMemo(() => RHS_MIN_MAX_WIDTH[rhsSize].min, [rhsSize]);
@@ -80,7 +77,7 @@ function ResizableRhs({
     const handleResize = useCallback((width: number) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
-        LocalStorageStore.setRhsWidth(userId, width);
+        LocalStorageStore.setRhsWidth(width);
 
         if (!rightWidthHolderRefElement) {
             return;
@@ -89,7 +86,7 @@ function ResizableRhs({
         if (!shouldRhsOverlap) {
             setWidth(rightWidthHolderRefElement, width);
         }
-    }, [rightWidthHolderRef, shouldRhsOverlap, userId]);
+    }, [rightWidthHolderRef, shouldRhsOverlap]);
 
     const handleResizeStart = useCallback(() => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
@@ -141,7 +138,7 @@ function ResizableRhs({
             minWidth={minWidth}
             defaultWidth={defaultWidth}
             disabled={isRhsExpanded}
-            initialWidth={Number(LocalStorageStore.getRhsWidth(userId))}
+            initialWidth={Number(LocalStorageStore.getRhsWidth())}
             enabled={{
                 left: false,
                 right: isRhsResizable,

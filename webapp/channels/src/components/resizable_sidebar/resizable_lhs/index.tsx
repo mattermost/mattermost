@@ -4,8 +4,6 @@
 import React, {HTMLAttributes, useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-
 import {getLhsSize} from 'selectors/lhs';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -23,7 +21,6 @@ function ResizableLhs({
     className,
 }: Props) {
     const lhsSize = useSelector(getLhsSize);
-    const userId = useSelector(getCurrentUserId);
 
     const minWidth = useMemo(() => LHS_MIN_MAX_WIDTH[lhsSize].min, [lhsSize]);
     const maxWidth = useMemo(() => LHS_MIN_MAX_WIDTH[lhsSize].max, [lhsSize]);
@@ -31,12 +28,12 @@ function ResizableLhs({
     const isLhsResizable = useMemo(() => isResizableSize(lhsSize), [lhsSize]);
 
     const handleResize = useCallback((width: number) => {
-        LocalStorageStore.setLhsWidth(userId, width);
-    }, [userId]);
+        LocalStorageStore.setLhsWidth(width);
+    }, []);
 
     const handleLineDoubleClick = useCallback(() => {
-        LocalStorageStore.setLhsWidth(userId, DEFAULT_LHS_WIDTH);
-    }, [userId]);
+        LocalStorageStore.setLhsWidth(DEFAULT_LHS_WIDTH);
+    }, []);
 
     return (
         <Resizable
@@ -45,7 +42,7 @@ function ResizableLhs({
             maxWidth={maxWidth}
             minWidth={minWidth}
             defaultWidth={DEFAULT_LHS_WIDTH}
-            initialWidth={Number(LocalStorageStore.getLhsWidth(userId))}
+            initialWidth={Number(LocalStorageStore.getLhsWidth())}
             enabled={{
                 left: isLhsResizable,
                 right: false,
