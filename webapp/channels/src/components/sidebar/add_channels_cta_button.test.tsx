@@ -31,7 +31,7 @@ jest.mock('react-redux', () => ({
     useDispatch: () => mockDispatch,
 }));
 
-describe('components/new_channel_modal', () => {
+describe('components/add_channels_cta_button', () => {
     beforeEach(() => {
         mockState = {
             entities: {

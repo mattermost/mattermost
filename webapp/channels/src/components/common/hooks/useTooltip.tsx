@@ -21,7 +21,7 @@ interface TooltipOptions {
     primaryActionStyle?: boolean;
     offset?: Parameters<typeof offset>[0];
     allowPointer?: boolean;
-    onClickOther: () => void;
+    onClickOther?: () => void;
     defaultCursor?: boolean;
     tooltipId?: string;
     stopPropagation?: boolean;

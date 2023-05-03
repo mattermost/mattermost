@@ -12,6 +12,8 @@ import {closeModal} from 'actions/views/modals';
 import {trackEvent} from 'actions/telemetry_actions';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
+import {overlayScrollbarAllowance} from '../constants';
+
 interface Props {
     createChannel: () => void;
     isConfirmDisabled: boolean;
@@ -56,7 +58,7 @@ const Footer = styled.div`
     &:after {
         content: '';
         position: absolute;
-        width: calc(100% + ${genericModalSidePadding} * 2);
+        width: calc(100% + ${genericModalSidePadding} * 2 - ${overlayScrollbarAllowance});
         left: -${genericModalSidePadding};
         top: 0;
         height: 1px;

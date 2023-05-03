@@ -4,6 +4,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
+import * as Keyboard from 'utils/keyboard';
+import Constants from 'utils/constants';
+
 interface Tab {
     key: string;
     content: React.ReactNode | React.ReactNodeArray;
@@ -35,9 +38,15 @@ export default function ModalTabs(props: Props) {
                     <Tab
                         key={tab.key}
                         onClick={tab.onClick}
+                        onKeyUp={(event: React.KeyboardEvent) => {
+                            if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER)) {
+                                tab.onClick();
+                            }
+                        }}
                         data-testid={tab.testId}
                         selected={tab.key === props.selected}
                         id={tab.id}
+                        tabIndex={0}
                     >
                         {tab.content}
                     </Tab>
@@ -67,6 +76,7 @@ const TabContainer = styled.div<ContainerStyles>`
     left: ${(props) => (props.underlineLeft ? props.underlineLeft : '0')};
   }
 
+  margin-top: 2px;
   ${(props) => (props.extraSpacing ? `margin-bottom: ${props.extraSpacing};` : '')}
   ${(props) => (props.padding ? ('padding: ' + props.padding + ';') : '')}
 `;
@@ -75,7 +85,7 @@ interface TabStyles {
     selected: boolean;
 }
 const Tab = styled.div<TabStyles>`
-  padding: 13px 8px;
+  padding: 12px 8px;
   cursor: pointer;
   position: relative;
   font-weight: 600;

@@ -37,6 +37,7 @@ import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
 
+import {overlayScrollbarAllowance} from '../constants';
 import Aside from './aside';
 import ChannelOnlyFooter from './channel_only_footer';
 
@@ -452,6 +453,9 @@ const ChannelOnly = (props: Props) => {
     );
 };
 
+// sometimes, channel_only content overflows and a scrollbar must be shown.
+// We adjust the padding from what it would otherwise be to make allowance
+// for that to not show the footer over the top.
 const genericModalSidePadding = '32px';
 
 const PurposeContainer = styled.div`
@@ -517,7 +521,7 @@ const ChannelOnlyBody = styled.div`
 const Main = styled.div`
     flex-grow: 1;
     flex-shrink 1;
-    padding: calc(${genericModalSidePadding} - 10px) ${genericModalSidePadding} 0;
+    padding: calc(${genericModalSidePadding} - 10px) calc(${genericModalSidePadding} - ${overlayScrollbarAllowance}) 0  ${genericModalSidePadding};
 `;
 
 const GlobalStyle = createGlobalStyle`
@@ -560,6 +564,7 @@ const ENSURE_610_HEIGHT = '395px';
 const ChannelOnlyMainBody = styled.div`
     height: ${ENSURE_610_HEIGHT};
     padding-top: 10px;
+    padding-right: ${overlayScrollbarAllowance};
     overflow-y: auto;
 `;
 export default ChannelOnly;
