@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event'
 
 import {wrapDNDIntl} from 'src/testUtils'
 import 'isomorphic-fetch'
-import {IPropertyTemplate, IPropertyOption, Board} from 'src/blocks/board'
+import {Board, IPropertyOption, IPropertyTemplate} from 'src/blocks/board'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import {Card} from 'src/blocks/card'
 
@@ -163,7 +163,7 @@ describe('components/propertyValueElement', () => {
         }
 
         const user = userEvent.setup()
-        
+
         const component = wrapDNDIntl(
             <PropertyValueElement
                 board={board}

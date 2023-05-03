@@ -19,5 +19,6 @@ module.exports = function loader(source) {
             newSource.push(line);
         }
     });
+
     return newSource.join('\n');
 };

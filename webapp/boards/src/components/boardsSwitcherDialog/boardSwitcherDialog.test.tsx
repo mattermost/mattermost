@@ -9,7 +9,7 @@ import {Provider as ReduxProvider} from 'react-redux'
 
 import {render} from '@testing-library/react'
 
-import {createMemoryHistory, History} from 'history'
+import {History, createMemoryHistory} from 'history'
 
 import {Router} from 'react-router-dom'
 

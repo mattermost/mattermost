@@ -6,7 +6,7 @@ import React, {
     useEffect,
     useMemo,
     useRef,
-    useState
+    useState,
 } from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
@@ -40,10 +40,10 @@ import {getCurrentCard} from 'src/store/cards'
 import {Utils} from 'src/utils'
 
 import {
-    TOUR_SIDEBAR,
+    FINISHED,
     SidebarTourSteps,
     TOUR_BOARD,
-    FINISHED
+    TOUR_SIDEBAR,
 } from 'src/components/onboardingTour/index'
 import telemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
@@ -205,7 +205,7 @@ const SidebarCategory = (props: Props) => {
                     }, 120)
                 } else {
                     setTimeout(() => {
-                        const newPath = generatePath('/team/:teamId', {teamId: teamID,})
+                        const newPath = generatePath('/team/:teamId', {teamId: teamID})
                         history.push(newPath)
                     }, 120)
                 }
@@ -215,8 +215,8 @@ const SidebarCategory = (props: Props) => {
             },
         )
         if (
-            UserSettings.lastBoardId && 
-            UserSettings.lastBoardId[deleteBoard.teamId] == deleteBoard.id
+            UserSettings.lastBoardId &&
+            UserSettings.lastBoardId[deleteBoard.teamId] === deleteBoard.id
         ) {
             UserSettings.setLastBoardID(deleteBoard.teamId, null)
             UserSettings.setLastViewId(deleteBoard.id, null)
@@ -387,6 +387,7 @@ const SidebarCategory = (props: Props) => {
                                             if (!isBoardVisible(board.id)) {
                                                 return null
                                             }
+
                                             return (
                                                 <SidebarBoardItem
                                                     index={zzz}

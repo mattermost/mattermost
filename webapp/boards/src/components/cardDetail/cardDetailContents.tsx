@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React from 'react'
-import {useIntl, IntlShape} from 'react-intl'
+import {IntlShape, useIntl} from 'react-intl'
 
-import {IContentBlockWithCords, ContentBlock as ContentBlockType} from 'src/blocks/contentBlock'
+import {ContentBlock as ContentBlockType, IContentBlockWithCords} from 'src/blocks/contentBlock'
 import {Card} from 'src/blocks/card'
 import {createTextBlock} from 'src/blocks/textBlock'
 import {Block} from 'src/blocks/block'
@@ -182,6 +182,7 @@ const CardDetailContents = (props: Props) => {
             </div>
         )
     }
+
     return (
         <div className='octo-content CardDetailContents'>
             <div className='octo-block'>

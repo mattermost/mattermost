@@ -3,7 +3,7 @@
 
 import difference from 'lodash/difference'
 
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 
 import {Block, BlockPatch, createPatchesFromBlocks} from './block'
 import {Card} from './card'
@@ -54,7 +54,7 @@ type BoardPatch = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updatedProperties?: Record<string, any>
     deletedProperties?: string[]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     updatedCardProperties?: IPropertyTemplate[]
     deletedCardProperties?: string[]
 }
