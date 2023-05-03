@@ -27,8 +27,7 @@ jobs:
         with:
           go-version: ${{ env.go-version }}
       - name: test
-        run: echo ${{ github.ref }}
-        run: echo ${{ github.ref != 'refs/heads/master' }}
+        run: echo ${{ github.ref }} && echo ${{ github.ref != 'refs/heads/master' }}
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
