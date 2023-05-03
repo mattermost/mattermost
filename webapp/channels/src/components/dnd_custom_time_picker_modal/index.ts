@@ -7,6 +7,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
 import {setStatus} from 'mattermost-redux/actions/users';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -19,10 +20,12 @@ const DndCustomTimePicker = makeAsyncComponent('DndCustomTimePicker', React.lazy
 function mapStateToProps(state: GlobalState) {
     const userId = getCurrentUserId(state);
     const locale = getCurrentLocale(state);
+    const theme = getTheme(state);
 
     return {
         userId,
         locale,
+        theme,
     };
 }
 

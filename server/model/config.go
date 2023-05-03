@@ -239,12 +239,10 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
-	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
-	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
-	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURL        = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsAPIURL     = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURLTest    = "https://portal.test.cloud.mattermost.com"
+	CloudSettingsDefaultCwsAPIURLTest = "https://api.internal.test.cloud.mattermost.com"
 
 	OpenidSettingsDefaultScope = "profile openid email"
 
@@ -973,8 +971,8 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
-	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1010,12 +1008,12 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableAppBar = NewBool(false)
 	}
 
-	if s.PatchPluginsReactDOM == nil {
-		s.PatchPluginsReactDOM = NewBool(false)
-	}
-
 	if s.DisableRefetchingOnBrowserFocus == nil {
 		s.DisableRefetchingOnBrowserFocus = NewBool(false)
+	}
+
+	if s.DelayChannelAutocomplete == nil {
+		s.DelayChannelAutocomplete = NewBool(false)
 	}
 }
 

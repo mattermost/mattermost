@@ -11,6 +11,7 @@ const createULDelimiterStyleStrategy = (): InlineStrategy => {
         findStyleRanges: (block) => {
             const text = block.getText()
             const ulDelimiterRanges = findRangesWithRegex(text, ulDelimiterRegex)
+
             return ulDelimiterRanges
         },
         styles: {

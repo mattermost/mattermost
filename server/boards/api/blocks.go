@@ -304,7 +304,7 @@ func (a *API) handlePostBlocks(w http.ResponseWriter, r *http.Request) {
 	// this query param exists when creating template from board, or board from template
 	sourceBoardID := r.URL.Query().Get("sourceBoardID")
 	if sourceBoardID != "" {
-		if updateFileIDsErr := a.app.CopyCardFiles(sourceBoardID, blocks); updateFileIDsErr != nil {
+		if updateFileIDsErr := a.app.CopyAndUpdateCardFiles(sourceBoardID, userID, blocks, false); updateFileIDsErr != nil {
 			a.errorResponse(w, r, updateFileIDsErr)
 			return
 		}
