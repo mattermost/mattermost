@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useCallback, useMemo} from 'react';
+import React, {HTMLAttributes, useCallback, useLayoutEffect, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {getRhsSize} from 'selectors/rhs';
+import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {isResizableSize, preventAnimation, resetStyle, restoreAnimation, setWidth, shouldRhsOverlapChannelView} from '../utils';
@@ -27,6 +27,7 @@ function ResizableRhs({
 }: Props) {
     const rhsSize = useSelector(getRhsSize);
     const userId = useSelector(getCurrentUserId);
+    const isRhsExpanded = useSelector(getIsRhsExpanded);
 
     const minWidth = useMemo(() => RHS_MIN_MAX_WIDTH[rhsSize].min, [rhsSize]);
     const maxWidth = useMemo(() => RHS_MIN_MAX_WIDTH[rhsSize].max, [rhsSize]);
@@ -120,6 +121,17 @@ function ResizableRhs({
         }
     }, [defaultWidth, rightWidthHolderRef, shouldRhsOverlap]);
 
+    useLayoutEffect(() => {
+        const rightWidthHolderRefElement = rightWidthHolderRef.current;
+
+        if (!rightWidthHolderRefElement) {
+            return;
+        }
+        if (isRhsExpanded) {
+            resetStyle(rightWidthHolderRefElement);
+        }
+    }, [isRhsExpanded, rightWidthHolderRef]);
+
     return (
         <Resizable
             id={id}
@@ -128,6 +140,7 @@ function ResizableRhs({
             maxWidth={maxWidth}
             minWidth={minWidth}
             defaultWidth={defaultWidth}
+            disabled={isRhsExpanded}
             initialWidth={Number(LocalStorageStore.getRhsWidth(userId))}
             enabled={{
                 left: false,

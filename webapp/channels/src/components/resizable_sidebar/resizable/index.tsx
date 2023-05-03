@@ -13,6 +13,7 @@ interface ResizableProps extends HTMLAttributes<'div'> {
     maxWidth: number;
     minWidth: number;
     defaultWidth: number;
+    disabled?: boolean;
     initialWidth?: number;
     enabled: {
         left: boolean;
@@ -37,6 +38,7 @@ function Resizable({
     minWidth,
     maxWidth,
     initialWidth,
+    disabled,
     onResize,
     onResizeStart,
     onResizeEnd,
@@ -184,7 +186,7 @@ function Resizable({
     }, [onResizeEnd]);
 
     useEffect(() => {
-        if (!isResizeLineSelected || !dir) {
+        if (!isResizeLineSelected || !dir || disabled) {
             return () => {};
         }
 
@@ -195,7 +197,7 @@ function Resizable({
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [dir, handleMouseMove, handleMouseUp, isResizeLineSelected]);
+    }, [dir, disabled, handleMouseMove, handleMouseUp, isResizeLineSelected]);
 
     useLayoutEffect(() => {
         const wrapperElem = wrapperRef.current;
@@ -251,6 +253,17 @@ function Resizable({
             onInit(defaultWidth);
         }
     }, []);
+
+    useLayoutEffect(() => {
+        const wrapperElem = wrapperRef.current;
+
+        if (!wrapperElem) {
+            return;
+        }
+        if (disabled) {
+            resetStyle(wrapperElem);
+        }
+    }, [disabled]);
 
     const wrapperClassName = classNames(className, 'resizeWrapper',
         {
