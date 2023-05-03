@@ -44,8 +44,8 @@ function fixTimestampToMinutesAccuracy(timestamp: number) {
 }
 
 function cardsWithValue(cards: readonly Card[], property: IPropertyTemplate): Card[] {
-    return cards.
-        filter((card) => Boolean(getCardProperty(card, property)))
+    return cards
+        .filter((card) => Boolean(getCardProperty(card, property)))
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -66,6 +66,7 @@ function percentEmpty(cards: readonly Card[], property: IPropertyTemplate): stri
     if (cards.length === 0) {
         return ''
     }
+
     return String((((cards.length - cardsWithValue(cards, property).length) / cards.length) * 100).toFixed(0)) + '%'
 }
 
@@ -73,6 +74,7 @@ function percentNotEmpty(cards: readonly Card[], property: IPropertyTemplate): s
     if (cards.length === 0) {
         return ''
     }
+
     return String(((cardsWithValue(cards, property).length / cards.length) * 100).toFixed(0)) + '%'
 }
 
@@ -80,8 +82,8 @@ function countValueHelper(cards: readonly Card[], property: IPropertyTemplate): 
     let values = 0
 
     if (property.type === 'multiSelect') {
-        cardsWithValue(cards, property).
-            forEach((card) => {
+        cardsWithValue(cards, property)
+            .forEach((card) => {
                 values += (getCardProperty(card, property) as string[]).length
             })
     } else {
@@ -140,8 +142,8 @@ function countUniqueValue(cards: readonly Card[], property: IPropertyTemplate): 
 function sum(cards: readonly Card[], property: IPropertyTemplate): string {
     let result = 0
 
-    cardsWithValue(cards, property).
-        forEach((card) => {
+    cardsWithValue(cards, property)
+        .forEach((card) => {
             result += parseFloat(getCardProperty(card, property) as string)
         })
 
@@ -156,12 +158,13 @@ function average(cards: readonly Card[], property: IPropertyTemplate): string {
 
     const result = parseFloat(sum(cards, property))
     const avg = result / numCards
+
     return String(Utils.roundTo(avg, ROUNDED_DECIMAL_PLACES))
 }
 
 function median(cards: readonly Card[], property: IPropertyTemplate): string {
-    const sorted = cardsWithValue(cards, property).
-        sort((a, b) => {
+    const sorted = cardsWithValue(cards, property)
+        .sort((a, b) => {
             if (!getCardProperty(a, property)) {
                 return 1
             }
@@ -231,6 +234,7 @@ function earliest(cards: readonly Card[], property: IPropertyTemplate, intl: Int
         return ''
     }
     const date = new Date(result)
+
     return property.type === 'date' ? Utils.displayDate(date, intl) : Utils.displayDateTime(date, intl)
 }
 
@@ -242,6 +246,7 @@ function earliestEpoch(cards: readonly Card[], property: IPropertyTemplate): num
             result = Math.min(result, timestamp)
         }
     })
+
     return result
 }
 
@@ -251,6 +256,7 @@ function latest(cards: readonly Card[], property: IPropertyTemplate, intl: IntlS
         return ''
     }
     const date = new Date(result)
+
     return property.type === 'date' ? Utils.displayDate(date, intl) : Utils.displayDateTime(date, intl)
 }
 
@@ -262,6 +268,7 @@ function latestEpoch(cards: readonly Card[], property: IPropertyTemplate): numbe
             result = Math.max(result, timestamp)
         }
     })
+
     return result
 }
 
@@ -276,10 +283,12 @@ function getTimestampsFromPropertyValue(value: number | string | string[]): numb
         } catch {
             return []
         }
+
         return [property.from, property.to].flatMap((e) => {
             return e ? [e] : []
         })
     }
+
     return []
 }
 
@@ -292,6 +301,7 @@ function dateRange(cards: readonly Card[], property: IPropertyTemplate, intl: In
     if (resultLatest === Number.NEGATIVE_INFINITY) {
         return ''
     }
+
     return moment.duration(resultLatest - resultEarliest, 'milliseconds').locale(intl.locale.toLowerCase()).humanize()
 }
 

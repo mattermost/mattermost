@@ -476,7 +476,6 @@ func (ts *TelemetryService) trackConfig() {
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
-		"self_hosted_expansion":                                   *cfg.ServiceSettings.SelfHostedExpansion,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -759,8 +758,8 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
-		"patch_plugins_react_dom":             *cfg.ExperimentalSettings.PatchPluginsReactDOM,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
+		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{

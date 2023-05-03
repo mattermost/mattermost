@@ -29,6 +29,7 @@ import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import ProductMenuList from './product_menu_list';
+import {getIsMobileView} from 'selectors/views/browser';
 
 type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
@@ -53,6 +54,7 @@ function mapStateToProps(state: GlobalState) {
     const step = getInt(state, OnboardingTaskCategory, OnboardingTasksName.VISIT_SYSTEM_CONSOLE, 0);
     const showVisitSystemConsoleTour = step === TaskNameMapToSteps[OnboardingTasksName.VISIT_SYSTEM_CONSOLE].STARTED;
     const enableCustomUserGroups = isCustomGroupsEnabled(state);
+    const isMobile = getIsMobileView(state);
 
     const subscription = getCloudSubscription(state);
     const license = getLicense(state);
@@ -70,7 +72,7 @@ function mapStateToProps(state: GlobalState) {
     const isFreeTrial = isCloudFreeTrial || isSelfHostedFreeTrial;
 
     return {
-        isMobile: state.views.channel.mobileView,
+        isMobile,
         appDownloadLink,
         enableCommands,
         canManageIntegrations,

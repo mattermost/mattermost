@@ -1,28 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useCallback, useEffect, useState} from 'react'
-import {generatePath, useRouteMatch, useHistory} from 'react-router-dom'
+import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
 import {FormattedMessage} from 'react-intl'
 
 import {DatePropertyType} from 'src/properties/types'
 
-import {getCurrentBoard, isLoadingBoard, getTemplates} from 'src/store/boards'
+import {getCurrentBoard, getTemplates, isLoadingBoard} from 'src/store/boards'
 import {
-    refreshCards,
     getCardLimitTimestamp,
     getCurrentBoardHiddenCardsCount,
-    setLimitTimestamp,
     getCurrentViewCardsSortedFilteredAndGrouped,
-    setCurrent as setCurrentCard
+    refreshCards,
+    setCurrent as setCurrentCard,
+    setLimitTimestamp,
 } from 'src/store/cards'
 import {
     getCurrentBoardViews,
+    getCurrentView,
+    getCurrentViewDisplayBy,
     getCurrentViewGroupBy,
     getCurrentViewId,
-    getCurrentViewDisplayBy,
-    getCurrentView,
 } from 'src/store/views'
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 
 import {getClientConfig, setClientConfig} from 'src/store/clientConfig'
 
@@ -121,6 +121,7 @@ function CenterContent(props: Props) {
         if (me?.is_guest) {
             return <GuestNoBoards/>
         }
+
         return templateSelector
     }
 

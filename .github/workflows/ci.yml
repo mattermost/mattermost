@@ -11,7 +11,7 @@ env:
   go-version: "1.19.5"
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   check-mocks:
     name: Check mocks
@@ -26,6 +26,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -43,6 +44,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -60,13 +62,14 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: server
@@ -77,6 +80,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Reset config
         run: make config-reset
       - name: Run plugin-checker
@@ -106,6 +110,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -128,6 +133,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate work templates
         run: make generate-worktemplates
       - name: Check generated work templates
@@ -160,6 +166,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -177,6 +184,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -216,6 +224,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Build
         run: |
           make config-reset

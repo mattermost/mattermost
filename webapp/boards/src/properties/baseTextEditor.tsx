@@ -3,9 +3,9 @@
 
 import React, {
     useCallback,
-    useState,
+    useEffect,
     useRef,
-    useEffect
+    useState,
 } from 'react'
 
 import {useIntl} from 'react-intl'
@@ -37,7 +37,7 @@ const BaseTextEditor = (props: PropertyProps & {validator: () => boolean, spellC
 
     useEffect(() => {
         return () => {
-            saveTextPropertyRef.current && saveTextPropertyRef.current()
+            saveTextPropertyRef.current?.()
         }
     }, [])
 
@@ -56,6 +56,7 @@ const BaseTextEditor = (props: PropertyProps & {validator: () => boolean, spellC
             />
         )
     }
+
     return <div className={props.property.valueClassName(true)}>{props.propertyValue}</div>
 }
 
