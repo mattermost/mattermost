@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/components",
-  "version": "7.4.0",
+  "version": "7.11.0",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "styles": "dist/index.esm.css",
