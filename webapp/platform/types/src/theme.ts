@@ -5,7 +5,6 @@ export type LegacyThemeType = 'Mattermost' | 'Organization' | 'Mattermost Dark' 
 export type ThemeType = 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx';
 
 export type Theme = {
-    [key: string]: string | undefined;
     type?: ThemeType | 'custom';
     sidebarBg: string;
     sidebarText: string;
@@ -20,7 +19,6 @@ export type Theme = {
     awayIndicator: string;
     dndIndicator: string;
     mentionBg: string;
-    mentionBj: string;
     mentionColor: string;
     centerChannelBg: string;
     centerChannelColor: string;
