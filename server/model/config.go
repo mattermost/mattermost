@@ -998,6 +998,7 @@ type ExperimentalSettings struct {
 	EnableAppBar                    *bool   `access:"experimental_features"`
 	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1039,6 +1040,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DisableRefetchingOnBrowserFocus == nil {
 		s.DisableRefetchingOnBrowserFocus = NewBool(false)
+	}
+
+	if s.DelayChannelAutocomplete == nil {
+		s.DelayChannelAutocomplete = NewBool(false)
 	}
 }
 
@@ -3776,6 +3781,12 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.PersistentNotificationIntervalMinutes < 2 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxCount <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_count.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxRecipients <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

@@ -537,6 +537,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAppBar: false,
         PatchPluginsReactDOM: false,
         DisableRefetchingOnBrowserFocus: false,
+        DelayChannelAutocomplete: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,

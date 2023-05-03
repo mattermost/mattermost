@@ -8920,8 +8920,16 @@
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
   },
   {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Invalid total number of persistent notification per post. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.persistent_notifications_interval.app_error",
-    "translation": "Invalid persistent notifications interval. Must be at least two minutes."
+    "translation": "Invalid frequency of persistent notifications. Must be at least two minutes."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",

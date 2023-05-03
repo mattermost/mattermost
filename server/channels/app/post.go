@@ -1924,6 +1924,12 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 		return mentioned
 	}
 
+	if _, ok := otherPosts[post.RootId]; !ok {
+		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("rootPostID", post.RootId), mlog.String("commentID", post.Id))
+
+		return false
+	}
+
 	// Whether or not the user was mentioned because they started the thread
 	mentioned := otherPosts[post.RootId].UserId == user.Id
 

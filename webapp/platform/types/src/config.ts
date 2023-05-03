@@ -200,6 +200,7 @@ export type ClientConfig = {
     PersistentNotificationMaxRecipients: string;
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
+    DelayChannelAutocomplete: 'true' | 'false';
 };
 
 export type License = {
@@ -739,6 +740,7 @@ export type ExperimentalSettings = {
     EnableAppBar: boolean;
     PatchPluginsReactDOM: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
+    DelayChannelAutocomplete: boolean;
 };
 
 export type AnalyticsSettings = {
