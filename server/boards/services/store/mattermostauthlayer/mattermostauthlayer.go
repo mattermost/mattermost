@@ -1107,6 +1107,13 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryP
 		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
 		Where(sq.Eq{"BM.user_id": userID})
 
+	queryExplicitSub := s.getQueryBuilder().PlaceholderFormat(sq.Question).
+		Select(
+			"BM.user_id AS user_id",
+		).
+		From(s.tablePrefix + "board_members AS BM").
+		Where(sq.Eq{"BM.user_id": userID})
+
 	queryImplicit := s.getQueryBuilder().PlaceholderFormat(sq.Question).
 		Select(
 			"'' AS minimum_role",
@@ -1121,7 +1128,8 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryP
 		).
 		From(s.tablePrefix + "boards AS B").
 		Join("ChannelMembers AS CM ON B.channel_id=CM.channelId").
-		Where(sq.Eq{"CM.userID": userID})
+		Where(sq.Eq{"CM.userID": userID}).
+		Where(queryExplicitSub.Prefix("NOT EXISTS (").Suffix(")").Where("CM.userID=BM.user_id"))
 
 	explicitSQL, explicitArgs, err := queryExplicit.ToSql()
 	if err != nil {
@@ -1133,7 +1141,7 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryP
 		return nil, err
 	}
 
-	unionSQL := fmt.Sprintf("(%s) UNION DISTINCT (%s) ORDER BY board_id", explicitSQL, implicitSQL)
+	unionSQL := fmt.Sprintf("(%s) UNION ALL (%s) ORDER BY board_id", explicitSQL, implicitSQL)
 	unionArgs := append(explicitArgs, implicitArgs...)
 
 	if opts.Page != 0 {
@@ -1152,7 +1160,7 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryP
 		}
 	}
 
-	s.logger.Trace("getMembersForUser",
+	s.logger.Debug("getMembersForUser",
 		mlog.String("sql", unionSQL),
 		mlog.Any("args", unionArgs),
 	)
@@ -1189,6 +1197,13 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.Quer
 		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
 		Where(sq.Eq{"BM.board_id": boardID})
 
+	queryExplicitSub := s.getQueryBuilder().PlaceholderFormat(sq.Question).
+		Select(
+			"BM.user_id AS user_id",
+		).
+		From(s.tablePrefix + "board_members AS BM").
+		Where(sq.Eq{"BM.board_id": boardID})
+
 	queryImplicit := s.getQueryBuilder().PlaceholderFormat(sq.Question).
 		Select(
 			"'' AS minimum_role",
@@ -1209,7 +1224,8 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.Quer
 		Where(sq.NotEq{"B.channel_id": ""}).
 		// Filter out guests as they don't have synthetic membership
 		Where(sq.NotEq{"U.roles": "system_guest"}).
-		Where(sq.Eq{"bo.UserId IS NOT NULL": false})
+		Where(sq.Eq{"bo.UserId IS NOT NULL": false}).
+		Where(queryExplicitSub.Prefix("NOT EXISTS (").Suffix(")").Where("CM.userID=BM.user_id"))
 
 	explicitSQL, explicitArgs, err := queryExplicit.ToSql()
 	if err != nil {
@@ -1221,7 +1237,7 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.Quer
 		return nil, err
 	}
 
-	unionSQL := fmt.Sprintf("(%s) UNION DISTINCT (%s) ORDER BY user_id", explicitSQL, implicitSQL)
+	unionSQL := fmt.Sprintf("(%s) UNION ALL (%s) ORDER BY user_id", explicitSQL, implicitSQL)
 	unionArgs := append(explicitArgs, implicitArgs...)
 
 	if opts.Page != 0 {
