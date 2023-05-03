@@ -42,7 +42,7 @@ func (s *SqlPostPersistentNotificationStore) GetSingle(postID string) (*model.Po
 	return post, nil
 }
 
-// Get returns only valid posts and then updates the tracking-counters for the returned posts.
+// Get returns only valid posts.
 func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
 	if params.PerPage == 0 {
 		params.PerPage = 1000
@@ -57,8 +57,7 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 			sq.LtOrEq{"LastSentAt": params.MaxTime},
 			sq.Lt{"SentCount": params.MaxSentCount},
 		}).
-		Limit(uint64(params.PerPage)).
-		Suffix("for update")
+		Limit(uint64(params.PerPage))
 
 	var posts []*model.PostPersistentNotifications
 	// Replica may not have the latest changes(done by UpdateLastActivity func)
