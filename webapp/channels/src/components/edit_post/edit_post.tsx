@@ -33,6 +33,7 @@ import EditPostFooter from './edit_post_footer';
 type DialogProps = {
     post?: Post;
     isRHS?: boolean;
+    isNewUI?: boolean;
 };
 
 export type Actions = {
@@ -70,6 +71,7 @@ export type Props = {
     isRHSOpened: boolean;
     isEditHistoryShowing: boolean;
     actions: Actions;
+    isNewUI: boolean;
 };
 
 export type State = {
@@ -263,6 +265,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 dialogProps: {
                     post: editingPost.post,
                     isRHS: editingPost.isRHS,
+                    isNewUI: rest.isNewUI,
                 },
             };
 

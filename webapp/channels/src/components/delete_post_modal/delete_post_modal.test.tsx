@@ -42,6 +42,7 @@ describe('components/delete_post_modal', () => {
         onExited: jest.fn(),
         channelName: 'channel_name',
         teamName: 'team_name',
+        isNewUI: false,
         location: {
             pathname: '',
         },

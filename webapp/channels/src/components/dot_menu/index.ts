@@ -11,7 +11,7 @@ import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/sele
 import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, getNewUIEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {GenericAction} from 'mattermost-redux/types/actions';
@@ -58,6 +58,7 @@ type Props = {
     isReadOnly?: boolean;
     enableEmojiPicker?: boolean;
     location?: ComponentProps<typeof DotMenu>['location'];
+    isNewUI?: boolean;
 };
 
 function makeMapStateToProps() {
@@ -77,6 +78,7 @@ function makeMapStateToProps() {
 
         const systemMessage = isSystemMessage(post);
         const collapsedThreads = isCollapsedThreadsEnabled(state);
+        const isNewUI = getNewUIEnabled(state);
 
         const rootId = post.root_id || post.id;
         let threadId = rootId;
@@ -128,6 +130,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
+            isNewUI,
         };
     };
 }

@@ -11,7 +11,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, getNewUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {unsetEditingPost} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
@@ -32,6 +32,7 @@ function mapStateToProps(state: GlobalState) {
     const channelId = editingPost.post.channel_id;
     const teamId = getCurrentTeamId(state);
     const draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
+    const isNewUI = getNewUIEnabled(state);
 
     const isAuthor = editingPost?.post?.user_id === currentUserId;
     const deletePermission = isAuthor ? Permissions.DELETE_POST : Permissions.DELETE_OTHERS_POSTS;
@@ -55,6 +56,7 @@ function mapStateToProps(state: GlobalState) {
         useChannelMentions,
         isRHSOpened: getIsRhsOpen(state),
         isEditHistoryShowing: getRhsState(state) === RHSStates.EDIT_HISTORY,
+        isNewUI,
     };
 }
 

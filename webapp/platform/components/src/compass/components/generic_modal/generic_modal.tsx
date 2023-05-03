@@ -70,11 +70,11 @@ const GenericModal = ({children, isOpen, onClose, onConfirm, onCancel, dialogCla
                 {hasActions && (
                     <DialogActions>
                         {onCancel && <Button onClick={handleCancelAction}>{'Cancel'}</Button>}
-                        {onConfirm && <Button onClick={handleConfirmAction}>{'Confirm'}</Button>}
+                        {onConfirm && <Button variant='contained' onClick={handleConfirmAction}>{'Confirm'}</Button>}
                     </DialogActions>
                 )}
             </BaseModal>
     );
 };
 
-export default memo(GenericModal);
+export default GenericModal;

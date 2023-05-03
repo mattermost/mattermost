@@ -10,6 +10,8 @@ import {Post} from '@mattermost/types/posts';
 
 import * as UserAgent from 'utils/user_agent';
 import {getHistory} from 'utils/browser_history';
+import {GenericModal} from '@mattermost/components';
+import {Typography} from '@mui/material';
 
 const urlFormatForDMGMPermalink = '/:teamName/messages/:username/:postid';
 const urlFormatForChannelPermalink = '/:teamName/channels/:channelname/:postid';
@@ -27,6 +29,7 @@ type Props = {
     location: {
         pathname: string;
     };
+    isNewUI: boolean;
 }
 
 type State = {
@@ -125,6 +128,38 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                 defaultMessage='Post'
             />
         );
+
+        if (this.props.isNewUI) {
+            return (
+                <GenericModal
+                    isOpen={this.state.show}
+                    dialogClassName='a11y__modal'
+                    dialogId='deletePostModal'
+                    onClose={this.props.onExited}
+                    onConfirm={this.handleDelete}
+                    onCancel={this.onHide}
+                >
+                    <Typography variant='h500'>
+                        <FormattedMessage
+                            id='delete_post.confirm_new'
+                            defaultMessage='Delete {term}'
+                            values={{
+                                term: (postTerm),
+                            }}
+                        />
+                    </Typography>
+                    <Typography variant='b300'>
+                        <FormattedMessage
+                            id='delete_post.question'
+                            defaultMessage='Are you sure you want to delete this {term}?'
+                            values={{
+                                term: (postTerm),
+                            }}
+                        />
+                    </Typography>
+                </GenericModal>
+            );
+        }
 
         return (
             <Modal

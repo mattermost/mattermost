@@ -73,6 +73,7 @@ type Props = {
     isMobileView: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
+    isNewUI?: boolean;
 
     actions: {
 
@@ -258,6 +259,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             dialogProps: {
                 post: this.props.post,
                 isRHS: this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT,
+                isNewUI: this.props.isNewUI,
             },
         };
 
