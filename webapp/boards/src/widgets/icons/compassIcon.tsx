@@ -8,14 +8,14 @@ type Props = {
     className?: string
 }
 
-export default React.forwardRef<HTMLElement, Props>((props, ref) => {
+export default React.forwardRef<HTMLElement, Props>(({icon, className, ...props}, ref) => {
     // All compass icon classes start with icon,
     // so not expecting that prefix in props.
     return (
         <i
             {...props}
             ref={ref}
-            className={`CompassIcon icon-${props.icon}${props.className === undefined ? '' : ` ${props.className}`}`}
+            className={`CompassIcon icon-${icon}${className === undefined ? '' : ` ${className}`}`}
         />
     )
 })
