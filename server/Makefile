@@ -291,7 +291,7 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	@# Keep the version in sync with the command in .circleci/config.yml
+	@# Keep the version in sync with the command in .github/workflows.yml#L99
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 
 	@echo Running golangci-lint
