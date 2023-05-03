@@ -232,9 +232,11 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
 
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
+	connID := wc.GetConnectionID()
+	userID := wc.UserId
+	ps.Go(func() {
+		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.OnWebSocketConnect(connID, userID)
 			return true
 		}, plugin.OnWebSocketConnectID)
 	})
