@@ -4,19 +4,19 @@ import React, {
     useCallback,
     useEffect,
     useRef,
-    useState
+    useState,
 } from 'react'
 
-import {createIntl, createIntlCache, IntlProvider} from 'react-intl'
+import {IntlProvider, createIntl, createIntlCache} from 'react-intl'
 
 import Select from 'react-select/async'
 import {
-    components,
     FormatOptionLabelMeta,
     GroupBase,
-    PlaceholderProps
+    PlaceholderProps,
+    SingleValue,
+    components,
 } from 'react-select'
-import {SingleValue} from 'react-select'
 
 import {CSSObject} from '@emotion/serialize'
 
@@ -49,7 +49,7 @@ const TEMPLATE_DESCRIPTION_LENGTH = 70
 const cache = createIntlCache()
 const intl = createIntl({
     locale: getCurrentLanguage(),
-    messages: getMessages(getCurrentLanguage())
+    messages: getMessages(getCurrentLanguage()),
 }, cache)
 
 const {ValueContainer, Placeholder} = components
@@ -60,7 +60,7 @@ const CustomValueContainer = ({children, ...props}: any) => {
                 {props.selectProps.placeholder}
             </Placeholder>
             {React.Children.map(children, (child) =>
-                child && child.type !== Placeholder ? child : null
+                (child && child.type !== Placeholder ? child : null)
             )}
         </ValueContainer>
     )
@@ -78,7 +78,6 @@ const CreateBoardFromTemplate = (props: Props) => {
     const templateIdRef = useRef('')
     templateIdRef.current = selectedBoardTemplateId
 
-
     const showNewBoardTemplateSelector = async () => {
         setAddBoard((prev: boolean) => !prev)
     }
@@ -86,14 +85,14 @@ const CreateBoardFromTemplate = (props: Props) => {
     // CreateBoardFromTemplate
     const addBoardToChannel = async (channelId: string, teamId: string) => {
         if (!addBoardRef.current || !templateIdRef.current) {
-            return
+            return undefined
         }
 
         const ACTION_DESCRIPTION = 'board created from channel'
         const LINKED_CHANNEL = 'linked channel'
         const asTemplate = false
 
-        let boardsAndBlocks = undefined
+        let boardsAndBlocks
 
         if (templateIdRef.current === EMPTY_BOARD) {
             boardsAndBlocks = await mutator.addEmptyBoard(teamId, intl)
@@ -102,7 +101,8 @@ const CreateBoardFromTemplate = (props: Props) => {
         }
 
         const board = boardsAndBlocks.boards[0]
-        await mutator.updateBoard({...board, channelId: channelId}, board, LINKED_CHANNEL)
+        await mutator.updateBoard({...board, channelId}, board, LINKED_CHANNEL)
+
         return board
     }
 
@@ -127,6 +127,7 @@ const CreateBoardFromTemplate = (props: Props) => {
         if (wordBreakingIndex === -1) {
             return str
         }
+
         return `${str.substring(0, (len + wordBreakingIndex))}…`
     }
 
@@ -143,6 +144,7 @@ const CreateBoardFromTemplate = (props: Props) => {
 
         // do not show the description for the selected option so the input only show the icon and title of the template
         const selectedOption = id === optionLabel.selectValue[0]?.id
+
         return (
             <div key={id}>
                 <span className={`${cssPrefix}__icon`}>
@@ -176,8 +178,9 @@ const CreateBoardFromTemplate = (props: Props) => {
         templates.push(emptyBoard)
 
         if (value !== '') {
-            templates = templates.filter(template => template.title.toLowerCase().includes(value.toLowerCase()))
+            templates = templates.filter((template) => template.title.toLowerCase().includes(value.toLowerCase()))
         }
+
         return templates
     }, [allTemplates])
 
@@ -202,10 +205,11 @@ const CreateBoardFromTemplate = (props: Props) => {
         }),
         valueContainer: (baseStyles: CSSObject): CSSObject => ({
             ...baseStyles,
-            overflow: 'visible'
+            overflow: 'visible',
         }),
         placeholder: (baseStyles: CSSObject, state: PlaceholderProps<ReactSelectItem, false, GroupBase<ReactSelectItem>>): CSSObject => {
             const modifyPlaceholder = state.selectProps.menuIsOpen || (!state.selectProps.menuIsOpen && state.hasValue)
+
             return {
                 ...baseStyles,
                 position: 'absolute',
@@ -257,12 +261,13 @@ const CreateBoardFromTemplate = (props: Props) => {
 
 const IntlCreateBoardFromTemplate = (props: Props) => {
     const language = useAppSelector<string>(getLanguage)
+
     return (
         <IntlProvider
             locale={language.split(/[_]/)[0]}
             messages={getMessages(language)}
         >
-            <CreateBoardFromTemplate  {...props}/>
+            <CreateBoardFromTemplate {...props}/>
         </IntlProvider>
     )
 }

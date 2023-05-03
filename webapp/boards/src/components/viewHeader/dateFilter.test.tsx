@@ -7,12 +7,11 @@ import userEvent from '@testing-library/user-event'
 import {IntlProvider} from 'react-intl'
 import {mocked} from 'jest-mock'
 
-
 import {wrapIntl} from 'src/testUtils'
 import mutator from 'src/mutator'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {createFilterClause, FilterClause} from 'src/blocks/filterClause'
+import {FilterClause, createFilterClause} from 'src/blocks/filterClause'
 import {createFilterGroup} from 'src/blocks/filterGroup'
 
 import DateFilter from './dateFilter'
