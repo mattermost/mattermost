@@ -16,7 +16,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
@@ -477,7 +476,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 		return nil, errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
 	}
 
-	if err = utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
+	if err = model.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
 		return nil, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
 	}
 

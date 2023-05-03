@@ -12,7 +12,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
@@ -150,7 +149,7 @@ func SetupTestResources() (string, error) {
 					return "", err
 				}
 			} else if testResource.resType == resourceTypeFolder {
-				err = utils.CopyDir(testResource.src, resourceDestInTemp)
+				err = model.CopyDir(testResource.src, resourceDestInTemp)
 				if err != nil {
 					return "", errors.Wrapf(err, "failed to copy folder %s to %s", testResource.src, resourceDestInTemp)
 				}
