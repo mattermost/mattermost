@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Board} from 'src/blocks/board'
@@ -67,6 +67,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const makeTemplateClicked = async () => {
         if (!card) {
             Utils.assertFailure('card')
+
             return
         }
 
@@ -89,6 +90,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const handleDeleteCard = async () => {
         if (!card) {
             Utils.assertFailure()
+
             return
         }
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: card.id})
@@ -111,6 +113,7 @@ const CardDialog = (props: Props): JSX.Element => {
         // so adding des
         if (card?.title === '' && card?.fields.contentOrder.length === 0) {
             handleDeleteCard()
+
             return
         }
 
@@ -266,6 +269,7 @@ const CardDialog = (props: Props): JSX.Element => {
         if (!isTemplate && !card?.limited) {
             return (<>{attachBtn()}{following ? unfollowBtn : followBtn}</>)
         }
+
         return (<>{attachBtn()}</>)
     }
 

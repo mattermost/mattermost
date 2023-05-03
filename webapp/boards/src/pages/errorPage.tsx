@@ -9,7 +9,7 @@ import ErrorIllustration from 'src/svg/error-illustration'
 import Button from 'src/widgets/buttons/button'
 import './errorPage.scss'
 
-import {errorDefFromId, ErrorId} from 'src/errors'
+import {ErrorId, errorDefFromId} from 'src/errors'
 
 const ErrorPage = () => {
     const history = useHistory()

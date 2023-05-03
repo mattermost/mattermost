@@ -21,9 +21,11 @@ function createFilterGroup(o?: FilterGroup): FilterGroup {
             if (isAFilterGroupInstance(p)) {
                 return createFilterGroup(p)
             }
+
             return createFilterClause(p)
         })
     }
+
     return {
         operation: o?.operation || 'and',
         filters,
