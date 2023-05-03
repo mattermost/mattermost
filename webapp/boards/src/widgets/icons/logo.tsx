@@ -6,7 +6,7 @@ import React from 'react'
 import './logo.scss'
 import CompassIcon from './compassIcon'
 
-export default React.forwardRef<HTMLElement>(function LogoIcon(_, ref) {
+export default React.forwardRef<HTMLElement>((_, ref) => {
     return (
         <CompassIcon
             ref={ref}

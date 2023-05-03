@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, ElementRef} from 'react'
+import React, {ElementRef, useRef} from 'react'
 
 import {useSelector} from 'react-redux'
 import {GlobalState} from '@mattermost/types/store'
 
 import FocalboardIcon from 'src/widgets/icons/logo'
-
 
 type Props = {
     boardsRhsId: string
@@ -18,8 +17,8 @@ type ViewsState = {views: {rhs: {isSidebarOpen: boolean, pluggableId: string}, r
 const RhsChannelBoardsToggleIcon = ({boardsRhsId}: Props) => {
     const iconRef = useRef<ElementRef<typeof FocalboardIcon>>(null)
     const isOpen = useSelector(({views: {rhs, rhsSuppressed}}: GlobalState & ViewsState) => (
-        rhs.isSidebarOpen && 
-        !rhsSuppressed && 
+        rhs.isSidebarOpen &&
+        !rhsSuppressed &&
         rhs.pluggableId === boardsRhsId
     ))
 
