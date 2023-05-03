@@ -19,8 +19,7 @@ import {GlobalState} from 'types/store';
 import {BillingDetails} from 'types/cloud/sku';
 
 import {isModalOpen} from 'selectors/views/modals';
-import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days} from 'selectors/cloud';
-import {isCwsMockMode} from 'selectors/cloud';
+import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days, isCwsMockMode} from 'selectors/cloud';
 
 import {ModalIdentifiers} from 'utils/constants';
 
