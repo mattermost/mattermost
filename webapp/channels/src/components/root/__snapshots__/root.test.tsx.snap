@@ -92,6 +92,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       to="/myTeam/pl/:postid"
     />
     <CompassThemeProvider
+      isNewUI={false}
       theme={Object {}}
     >
       <Connect(ModalController) />

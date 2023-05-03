@@ -10,8 +10,7 @@ import {Post} from '@mattermost/types/posts';
 
 import * as UserAgent from 'utils/user_agent';
 import {getHistory} from 'utils/browser_history';
-import {GenericModal} from '@mattermost/components';
-import {Typography} from '@mui/material';
+import {GenericModal, Typography} from '@mattermost/components';
 
 const urlFormatForDMGMPermalink = '/:teamName/messages/:username/:postid';
 const urlFormatForChannelPermalink = '/:teamName/channels/:channelname/:postid';
