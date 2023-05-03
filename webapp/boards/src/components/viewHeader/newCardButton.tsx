@@ -62,6 +62,7 @@ const NewCardButton = (props: Props): JSX.Element => {
                     if (cardTemplate.id === currentView.fields.defaultTemplateId) {
                         defaultTemplateID = currentView.fields.defaultTemplateId
                     }
+
                     return (
                         <NewCardButtonTemplateItem
                             key={cardTemplate.id}

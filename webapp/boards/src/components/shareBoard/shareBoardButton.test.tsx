@@ -7,7 +7,7 @@ import {Provider as ReduxProvider} from 'react-redux'
 import {BoardTypeOpen} from 'src/blocks/board'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
-import {wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import ShareBoardButton from './shareBoardButton'
 

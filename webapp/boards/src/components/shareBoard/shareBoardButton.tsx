@@ -27,6 +27,7 @@ const ShareBoardButton = (props: Props) => {
         if (board.type === BoardTypeOpen) {
             return <Globe/>
         }
+
         return <LockOutline/>
     }
 
