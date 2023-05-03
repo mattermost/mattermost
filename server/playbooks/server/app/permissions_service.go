@@ -69,10 +69,13 @@ func (p *PermissionsService) getPlaybookRole(userID string, playbook Playbook) [
 
 	// Public playbooks
 	if playbook.Public {
-		if playbook.DefaultPlaybookMemberRole == "" {
-			return []string{playbook.DefaultPlaybookMemberRole}
+		// Public playbooks are public to those who can list channels on a team. (Not guests)
+		if p.api.HasPermissionToTeam(userID, playbook.TeamID, model.PermissionListTeamChannels) {
+			if playbook.DefaultPlaybookMemberRole == "" {
+				return []string{playbook.DefaultPlaybookMemberRole}
+			}
+			return []string{PlaybookRoleMember}
 		}
-		return []string{PlaybookRoleMember}
 	}
 
 	return []string{}
@@ -103,7 +106,8 @@ func (p *PermissionsService) canViewTeam(userID string, teamID string) bool {
 		return false
 	}
 
-	return p.api.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam)
+	// This is list team channels so that Guests are excluded.
+	return p.api.HasPermissionToTeam(userID, teamID, model.PermissionListTeamChannels)
 }
 
 func (p *PermissionsService) PlaybookCreate(userID string, playbook Playbook) error {
