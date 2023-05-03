@@ -12,10 +12,12 @@
         "show-report": "npx playwright show-report"
     },
     "dependencies": {
+        "@axe-core/playwright": "4.7.0",
         "@percy/cli": "1.23.0",
         "@percy/playwright": "1.0.4",
         "@playwright/test": "1.32.3",
         "async-wait-until": "2.0.12",
+        "axe-core": "4.7.0",
         "chalk": "4.1.2",
         "deepmerge": "4.3.1",
         "dotenv": "16.0.3",

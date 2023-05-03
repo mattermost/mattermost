@@ -41,6 +41,7 @@ e2e-tests/playwright/storage_state
 e2e-tests/playwright/test-results
 e2e-tests/playwright/tests/**/*-darwin.png
 e2e-tests/playwright/tests/**/*-window.png
+e2e-tests/playwright/tests/accessibility/**/*-snapshots
 e2e-tests/playwright/.eslintcache
 
 # Enterprise & products imports files
