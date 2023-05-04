@@ -231,8 +231,14 @@ type AppError struct {
 	params        map[string]interface{}
 }
 
+const maxErrorLength = 1024
+
 func (er *AppError) Error() string {
-	return er.Where + ": " + er.Message + ", " + er.DetailedError
+	res := er.Where + ": " + er.Message + ", " + er.DetailedError
+	if len(res) > maxErrorLength {
+		res = res[:maxErrorLength] + "..."
+	}
+	return res
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {

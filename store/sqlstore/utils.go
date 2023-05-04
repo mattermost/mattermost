@@ -224,3 +224,14 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 		return "", errors.New("invalid drivername. Not postgres or mysql.")
 	}
 }
+
+const maxTokenSize = 50
+
+// trimInput limits the string to a max size to prevent clogging up disk space
+// while logging
+func trimInput(input string) string {
+	if len(input) > maxTokenSize {
+		input = input[:maxTokenSize] + "..."
+	}
+	return input
+}
