@@ -892,7 +892,15 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 {tabCatcher}
                 <div
                     role='dialog'
-                    aria-label={Utils.localizeAndFormatMessage('profile_popover.profileLabel', 'Profile for {name}', {name: displayName})}
+                    aria-label={formatMessage(
+                        {
+                            id: 'profile_popover.profileLabel',
+                            defaultMessage: 'Profile for {name}',
+                        },
+                        {
+                            name: displayName,
+                        },
+                    )}
                     onKeyDown={this.handleKeyDown}
                     className={A11yClassNames.POPUP}
                     aria-modal={true}

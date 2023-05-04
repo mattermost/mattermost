@@ -15,15 +15,15 @@ import {
     IPropertyTemplate,
     PropertyTypeEnum,
     createBoard,
+    createCardPropertiesPatches,
     createPatchesFromBoards,
     createPatchesFromBoardsAndBlocks,
-    createCardPropertiesPatches
 } from './blocks/board'
 import {
     BoardView,
     ISortOption,
+    KanbanCalculationFields,
     createBoardView,
-    KanbanCalculationFields
 } from './blocks/boardView'
 import {Card, createCard} from './blocks/card'
 import {ContentBlock} from './blocks/contentBlock'
@@ -32,9 +32,9 @@ import {AttachmentBlock} from './blocks/attachmentBlock'
 import {FilterGroup} from './blocks/filterGroup'
 import octoClient from './octoClient'
 import undoManager from './undomanager'
-import {Utils, IDType} from './utils'
+import {IDType, Utils} from './utils'
 import {UserSettings} from './userSettings'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from './telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from './telemetry/telemetryClient'
 import {Category} from './store/sidebar'
 
 /* eslint-disable max-lines */
@@ -70,15 +70,18 @@ class Mutator {
     private beginUndoGroup(): string | undefined {
         if (this.undoGroupId) {
             Utils.assertFailure('UndoManager does not support nested groups')
+
             return undefined
         }
         this.undoGroupId = Utils.createGuid(IDType.None)
+
         return this.undoGroupId
     }
 
     private endUndoGroup(groupId: string) {
         if (this.undoGroupId !== groupId) {
             Utils.assertFailure('Mismatched groupId. UndoManager does not support nested groups')
+
             return
         }
         this.undoGroupId = undefined
@@ -140,7 +143,6 @@ class Mutator {
         )
     }
 
-    //eslint-disable-next-line no-shadow
     async insertBlock(boardId: string, block: Block, description = 'add', afterRedo?: (block: Block) => Promise<void>, beforeUndo?: (block: Block) => Promise<void>): Promise<Block> {
         return undoManager.perform(
             async () => {
@@ -148,6 +150,7 @@ class Mutator {
                 const jsonres = await res.json()
                 const newBlock = jsonres[0] as Block
                 await afterRedo?.(newBlock)
+
                 return newBlock
             },
             async (newBlock: Block) => {
@@ -159,7 +162,6 @@ class Mutator {
         )
     }
 
-    //eslint-disable-next-line no-shadow
     async insertBlocks(boardId: string, blocks: Block[], description = 'add', afterRedo?: (blocks: Block[]) => Promise<void>, beforeUndo?: () => Promise<void>, sourceBoardID?: string) {
         return undoManager.perform(
             async () => {
@@ -167,6 +169,7 @@ class Mutator {
                 const newBlocks = (await res.json()) as Block[]
                 updateAllBoardsAndBlocks([], newBlocks)
                 await afterRedo?.(newBlocks)
+
                 return newBlocks
             },
             async (newBlocks: Block[]) => {
@@ -205,6 +208,7 @@ class Mutator {
                 const res = await octoClient.createBoardsAndBlocks(bab)
                 const newBab = (await res.json()) as BoardsAndBlocks
                 await afterRedo?.(newBab)
+
                 return newBab
             },
             async (newBab: BoardsAndBlocks) => {
@@ -421,6 +425,7 @@ class Mutator {
     async insertPropertyTemplate(board: Board, activeView: BoardView, index = -1, template?: IPropertyTemplate): Promise<string> {
         if (!activeView) {
             Utils.assertFailure('insertPropertyTemplate: no activeView')
+
             return ''
         }
 
@@ -488,6 +493,7 @@ class Mutator {
         const index = newBoard.cardProperties.findIndex((o: IPropertyTemplate) => o.id === propertyId)
         if (index === -1) {
             Utils.assertFailure(`Cannot find template with id: ${propertyId}`)
+
             return
         }
         const srcTemplate = newBoard.cardProperties[index]
@@ -1034,6 +1040,7 @@ class Mutator {
                 const newRootBlock = blocks && blocks[0]
                 if (!newRootBlock) {
                     Utils.log('Unable to duplicate card')
+
                     return [[], '']
                 }
                 if (asTemplate === fromTemplate) {
@@ -1063,6 +1070,7 @@ class Mutator {
                     updateAllBoardsAndBlocks([], blocks)
                     await afterRedo?.(newRootBlock.id)
                 }
+
                 return [blocks, newRootBlock.id]
             },
             async (newBlocks: Block[]) => {
@@ -1092,6 +1100,7 @@ class Mutator {
                     updateAllBoardsAndBlocks(boardsAndBlocks.boards, boardsAndBlocks.blocks)
                     await afterRedo?.(boardsAndBlocks.boards[0]?.id)
                 }
+
                 return boardsAndBlocks
             },
             async (boardsAndBlocks: BoardsAndBlocks) => {
@@ -1133,6 +1142,7 @@ class Mutator {
     ): Promise<BoardsAndBlocks> {
         const asTemplate = false
         const actionDescription = intl.formatMessage({id: 'Mutator.new-board-from-template', defaultMessage: 'new board from template'})
+
         return mutator.duplicateBoard(boardTemplateId, actionDescription, asTemplate, afterRedo, beforeUndo, toTeam)
     }
 
@@ -1157,7 +1167,7 @@ class Mutator {
             async (bab: BoardsAndBlocks) => {
                 const newBoard = bab.boards[0]
                 TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoard, {board: newBoard?.id})
-                afterRedo && await afterRedo(newBoard?.id || '')
+                await afterRedo?.(newBoard?.id || '')
             },
             beforeUndo,
         )

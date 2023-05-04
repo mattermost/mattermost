@@ -463,7 +463,7 @@
     "9a9+ww": "제목",
     "ZNNjWw": "숫자를 입력해주세요.",
     "efeNi1": "10-Run 평균값",
-    "NLeFGn": "",
+    "NLeFGn": "(으)로",
     "awG90C": "Run당 목표",
     "lbs7UO": "지난 10개 Run을 기준으로 Run당",
     "zxj2Gh": "최종 갱신됨 {time}",
@@ -615,7 +615,7 @@
     "1GOpgL": "담당자...",
     "FgydNe": "보기",
     "DUU48k": "명시적으로 할당된 작업이 없습니다. 필터를 사용하여 검색을 확장할 수 있습니다.",
-    "DQn9Uj": "사용자 <i>{name}</i> 은(는) 하나 이상의 작업에 사전 할당되어 있습니다. 이 사용자를 자동으로 초대하지 않으면 사전할당이 지워집니다. {br}{br} 정말로 이 사용자에 대한 Run 멤버 초대를 중단하시겠습니까?",
+    "DQn9Uj": "사용자 <i>{name}</i> 은(는) 하나 이상의 작업에 사전 할당되어 있습니다. 이 사용자를 자동으로 초대하지 않으면 사전할당이 지워집니다. {br} 정말로 이 사용자에 대한 Run 멤버 초대를 중단할까요?",
     "Bgt0C8": "<i>{runName}</i> 런에 대한 업데이트가 {hasChannels, select, true {<OverviewLink><ChannelsTooltip>{broadcastChannelCount, plural, =1 {one channel} other {{broadcastChannelCount, number} channels}}</ChannelsTooltip></OverviewLink>} other {}}{hasFollowersAndChannels, select, true { and } other {}}{hasFollowers, select, true {<FollowersTooltip>{followersChannelCount, plural, =1 {one direct message} other {{followersChannelCount, number} direct messages}}</FollowersTooltip>} other {}}에 전파 됩니다.",
     "9X3jwi": "{icon} 비용",
     "NNksk4": "알파벳순",
@@ -761,5 +761,8 @@
     "HvAcYh": "{text}{rest, plural, =0 {} one { 그리고 그외} other { 그리고 그외 {rest}}}",
     "CgAtTJ": "{overdueNum, plural, =0 {} other {시한초과 #개}}",
     "95v+5O": "{actions, plural, =0 {작업 액션} one {#개 액션} other {#개 액션}}",
-    "zscc/+": "{outstanding, plural, =1 {#개의 미완료 작업이} other {#개의 미완료 작업들이}} 있습니다. 전체 참여자를 위해 <i>{runName}</i>을(를) 끝내시겠습니까?"
+    "zscc/+": "{outstanding, plural, =1 {#개의 미완료 작업이} other {#개의 미완료 작업들이}} 있습니다. 전체 참여자를 위해 <i>{runName}</i>을(를) 끝내시겠습니까?",
+    "N7Ln74": "다시 Run",
+    "DoskyC": "모든 팀",
+    "9S+ZiL": "선택한 팀이 없습니다"
 }

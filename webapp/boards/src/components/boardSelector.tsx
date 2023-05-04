@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useMemo, useCallback} from 'react'
-import {IntlProvider, useIntl, FormattedMessage} from 'react-intl'
+import React, {useCallback, useMemo, useState} from 'react'
+import {FormattedMessage, IntlProvider, useIntl} from 'react-intl'
 import debounce from 'lodash/debounce'
 
 import {SuiteWindow} from 'src/types/index'
@@ -13,10 +13,10 @@ import {useWebsockets} from 'src/hooks/websockets'
 
 import octoClient from 'src/octoClient'
 import mutator from 'src/mutator'
-import {getCurrentTeamId, getAllTeams, Team} from 'src/store/teams'
-import {createBoard, Board} from 'src/blocks/board'
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
-import {EmptySearch, EmptyResults} from 'src/components/searchDialog/searchDialog'
+import {Team, getAllTeams, getCurrentTeamId} from 'src/store/teams'
+import {Board, createBoard} from 'src/blocks/board'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
+import {EmptyResults, EmptySearch} from 'src/components/searchDialog/searchDialog'
 import ConfirmationDialog from 'src/components/confirmationDialogBox'
 import Dialog from 'src/components/dialog'
 import SearchIcon from 'src/widgets/icons/search'
@@ -67,7 +67,7 @@ const BoardSelector = () => {
             let updated = false
             results.forEach((board, idx) => {
                 for (const newBoard of boards) {
-                    if (newBoard.id == board.id) {
+                    if (newBoard.id === board.id) {
                         newResults[idx] = newBoard
                         updated = true
                     }
@@ -95,6 +95,7 @@ const BoardSelector = () => {
     const linkBoard = async (board: Board, confirmed?: boolean): Promise<void> => {
         if (!confirmed) {
             setShowLinkBoardConfirmation(board)
+
             return
         }
         const newBoard = createBoard({...board, channelId: currentChannel})
@@ -117,7 +118,7 @@ const BoardSelector = () => {
     }
 
     let confirmationSubText
-    if (showLinkBoardConfirmation?.channelId !== '') {
+    if (showLinkBoardConfirmation?.channelId) {
         confirmationSubText = intl.formatMessage({
             id: 'boardSelector.confirm-link-board-subtext-with-other-channel',
             defaultMessage: 'When you link "{boardName}" to the channel, all members of the channel (existing and new) will be able to edit it. This excludes members who are guests.{lineBreak} This board is currently linked to another channel. It will be unlinked if you choose to link it here.',
@@ -138,7 +139,7 @@ const BoardSelector = () => {
     }
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key == 'Escape') {
+        if (event.key === 'Escape') {
             closeDialog()
         }
     }
@@ -197,13 +198,15 @@ const BoardSelector = () => {
                     <div className='searchResults'>
                         {/*When there are results to show*/}
                         {searchQuery && results.length > 0 &&
-                            results.map((result) => (<BoardSelectorItem
-                                key={result.id}
-                                item={result}
-                                linkBoard={linkBoard}
-                                unlinkBoard={unlinkBoard}
-                                currentChannel={currentChannel}
-                            />))}
+                            results.map((result) => (
+                                <BoardSelectorItem
+                                    key={result.id}
+                                    item={result}
+                                    linkBoard={linkBoard}
+                                    unlinkBoard={unlinkBoard}
+                                    currentChannel={currentChannel}
+                                />
+                            ))}
 
                         {/*when user searched for something and there were no results*/}
                         {emptyResult && <EmptyResults query={searchQuery}/>}

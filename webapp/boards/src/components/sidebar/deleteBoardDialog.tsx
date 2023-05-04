@@ -65,7 +65,9 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                             emphasis={'tertiary'}
                             onClick={(e: React.MouseEvent) => {
                                 e.stopPropagation()
-                                !isSubmitting && props.onClose()
+                                if (!isSubmitting) {
+                                    props.onClose()
+                                }
                             }}
                         >
                             <FormattedMessage
