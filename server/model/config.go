@@ -2800,7 +2800,7 @@ func (s *CloudSettings) SetDefaults() {
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
-	if s.CWSAPIURL == nil {
+	if s.CWSMock == nil {
 		isMockCws := MockCWS == "true"
 		s.CWSMock = &isMockCws
 	}
