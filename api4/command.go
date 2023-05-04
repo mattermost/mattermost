@@ -311,6 +311,8 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("commandargs", commandArgs)
+
 	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
 	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
 		c.SetPermissionError(model.PermissionCreatePost)
