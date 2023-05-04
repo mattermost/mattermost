@@ -144,7 +144,7 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v0.15.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.5
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
@@ -153,7 +153,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -291,8 +291,8 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+	@# Keep the version in sync with the command in .github/workflows/ci.yml#L107
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -403,8 +403,7 @@ setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: ## Sets up your go.work file
 	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
-check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
-
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out

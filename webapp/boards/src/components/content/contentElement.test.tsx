@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 import React, {ReactElement, ReactNode} from 'react'
 
-
 import {render} from '@testing-library/react'
 
 import {wrapIntl} from 'src/testUtils'
@@ -53,7 +52,7 @@ describe('components/content/contentElement', () => {
     })
 
     it('should return null for unknown type', () => {
-        jest.spyOn(console, 'error').mockImplementation()        
+        jest.spyOn(console, 'error').mockImplementation()
 
         const block: ContentBlock = {...contentBlock, type: 'unknown'}
         const {container} = render(wrap(

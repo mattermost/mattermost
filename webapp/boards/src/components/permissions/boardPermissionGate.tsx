@@ -33,6 +33,7 @@ const BoardPermissionGate = (props: Props): React.ReactElement|null => {
     if (allowed) {
         return (<>{props.children}</>)
     }
+
     return null
 }
 

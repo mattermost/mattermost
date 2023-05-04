@@ -16,6 +16,7 @@ const createInlineCodeStyleStrategy = (): InlineStrategy => {
 
             const text = block.getText()
             const codeRanges = findRangesWithRegex(text, codeRegex)
+
             return codeRanges
         },
         styles: {

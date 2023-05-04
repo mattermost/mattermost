@@ -216,7 +216,10 @@ describe('properties/dateRange', () => {
 
     test('set via text input, es locale', async () => {
         const component = (
-            <IntlProvider locale='es' timeZone='Etc/UTC'>
+            <IntlProvider
+                locale='es'
+                timeZone='Etc/UTC'
+            >
                 <DateProp
                     property={new DateProperty()}
                     propertyValue={'{"from": ' + June15.getTime().toString() + ',"to": ' + June20.getTime().toString() + '}'}

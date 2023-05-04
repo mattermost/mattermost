@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {createPatchesFromBlocks, createBlock} from './block'
+import {createBlock, createPatchesFromBlocks} from './block'
 
 describe('block tests', () => {
     const board = TestBlockFactory.createBoard()

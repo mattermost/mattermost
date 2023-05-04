@@ -28,6 +28,7 @@ const KanbanColumn = (props: Props) => {
     if (isOver) {
         className += ' dragover'
     }
+
     return (
         <div
             ref={drop}
