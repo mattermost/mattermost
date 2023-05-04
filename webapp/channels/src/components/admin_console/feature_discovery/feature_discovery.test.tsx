@@ -175,7 +175,7 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByText('Bar')).not.toBeInTheDocument();
             expect(screen.queryByText('Foo')).not.toBeInTheDocument();
 
-            //this option is visible only when it is cloud environment
+            //this option is visible only when subscription is loaded and is cloud environment
             expect(screen.queryByRole('button', {name: 'Try free for 30 days'})).not.toBeInTheDocument();
 
             expect(screen.queryByTestId('featureDiscovery_secondaryCallToAction')).not.toBeInTheDocument();
