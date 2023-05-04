@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import ActionMenu from './action_menu';
+import {screen} from '@testing-library/react';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 describe('components/post_view/message_attachments/ActionMenu', () => {
     const baseProps = {
@@ -30,13 +31,20 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
         selectAttachmentMenuAction: jest.fn(),
     };
 
-    test('should start with nothing selected', () => {
-        const wrapper = shallow(<ActionMenu {...baseProps}/>);
+    test('should start with nothing selected', async () => {
+        renderWithIntlAndStore(<ActionMenu {...baseProps}/>, {});
 
-        expect(wrapper.state()).toMatchObject({
-            selected: undefined,
-            value: '',
-        });
+        const autoCompleteSelector = screen.getByTestId('autoCompleteSelector');
+        const input = screen.getByPlaceholderText('action');
+
+        expect(autoCompleteSelector).toBeInTheDocument();
+        expect(autoCompleteSelector).toHaveClass('form-group');
+
+        //if nothing is selected or selected is undefined, baseProps.selectAttachmentMenuAction should not be called
+        expect(baseProps.selectAttachmentMenuAction).not.toHaveBeenCalled();
+
+        expect(input).toHaveClass('form-control');
+        expect(input).toHaveAttribute('value', '');
     });
 
     test('should set selected based on default option', () => {
@@ -47,14 +55,11 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
                 default_option: '2',
             },
         };
-        const wrapper = shallow(<ActionMenu {...props}/>);
+        renderWithIntlAndStore(<ActionMenu {...props}/>, {});
 
-        expect(wrapper.state()).toMatchObject({
-            selected: {
-                text: 'Two',
-                value: '2',
-            },
-            value: 'Two',
-        });
+        const input = screen.getByPlaceholderText('action');
+
+        //default_option is given in props
+        expect(input).toHaveAttribute('value', 'Two');
     });
 });

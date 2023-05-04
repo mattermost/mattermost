@@ -1409,40 +1409,63 @@ func TestConfigExportSettingsIsValid(t *testing.T) {
 }
 
 func TestConfigServiceSettingsIsValid(t *testing.T) {
-	cfg := Config{}
-	cfg.SetDefaults()
+	t.Run("local socket file should exist if local mode enabled", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
 
-	appErr := cfg.ServiceSettings.isValid()
-	require.Nil(t, appErr)
+		appErr := cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
 
-	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDisabled
-	appErr = cfg.ServiceSettings.isValid()
-	require.Nil(t, appErr)
+		*cfg.ServiceSettings.EnableLocalMode = false
+		// we don't need to check as local mode is not enabled
+		*cfg.ServiceSettings.LocalModeSocketLocation = "an_invalid_path.socket"
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
 
-	*cfg.ServiceSettings.ThreadAutoFollow = false
-	appErr = cfg.ServiceSettings.isValid()
-	require.Nil(t, appErr)
+		// now we can check if the file exist or not
+		*cfg.ServiceSettings.EnableLocalMode = true
+		*cfg.ServiceSettings.LocalModeSocketLocation = "/invalid_directory/mattermost_local.socket"
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.local_mode_socket.app_error", appErr.Id)
+	})
 
-	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOff
-	appErr = cfg.ServiceSettings.isValid()
-	require.NotNil(t, appErr)
-	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+	t.Run("CRT settings should have consistent values", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
 
-	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOn
-	appErr = cfg.ServiceSettings.isValid()
-	require.NotNil(t, appErr)
-	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+		appErr := cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
 
-	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsAlwaysOn
-	appErr = cfg.ServiceSettings.isValid()
-	require.NotNil(t, appErr)
-	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+		*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDisabled
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
 
-	*cfg.ServiceSettings.ThreadAutoFollow = true
-	*cfg.ServiceSettings.CollapsedThreads = "test_status"
-	appErr = cfg.ServiceSettings.isValid()
-	require.NotNil(t, appErr)
-	require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
+		*cfg.ServiceSettings.ThreadAutoFollow = false
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
+		*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOff
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+
+		*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOn
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+
+		*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsAlwaysOn
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = "test_status"
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
+	})
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -971,7 +972,6 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
-	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
@@ -1007,10 +1007,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
-	}
-
-	if s.PatchPluginsReactDOM == nil {
-		s.PatchPluginsReactDOM = NewBool(false)
 	}
 
 	if s.DisableRefetchingOnBrowserFocus == nil {
@@ -3752,6 +3748,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// we check if file has a valid parent, the server will try to create the socket
+	// file if it doesn't exist, but we need to be sure if the directory exist or not
+	if *s.EnableLocalMode {
+		parent := filepath.Dir(*s.LocalModeSocketLocation)
+		_, err := os.Stat(parent)
+		if err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return nil

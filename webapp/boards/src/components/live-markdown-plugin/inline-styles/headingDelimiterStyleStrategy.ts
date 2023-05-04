@@ -19,6 +19,7 @@ const createHeadingDelimiterStyleStrategy = (): InlineStrategy => {
                 text,
                 headingDelimiterRegex,
             )
+
             return headingDelimiterRanges
         },
         styles: {

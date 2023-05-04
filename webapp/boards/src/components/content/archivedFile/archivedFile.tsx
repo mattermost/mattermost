@@ -18,6 +18,7 @@ const ArchivedFile = (props: Props): JSX.Element => {
     const fileExtension = useCallback(() => {
         let extension = props.fileInfo.extension
         extension = extension?.startsWith('.') ? extension?.substring(1) : extension
+
         return extension?.toUpperCase()
     }, [props.fileInfo.extension])
 

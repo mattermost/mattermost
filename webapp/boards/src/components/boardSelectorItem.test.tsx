@@ -14,7 +14,7 @@ import BoardSelectorItem from './boardSelectorItem'
 describe('components/boardSelectorItem', () => {
     it('renders board without title', async () => {
         const board = createBoard()
-        board.title = ""
+        board.title = ''
 
         const {container} = render(wrapIntl(
             <BoardSelectorItem
@@ -29,7 +29,7 @@ describe('components/boardSelectorItem', () => {
 
     it('renders linked board', async () => {
         const board = createBoard()
-        board.title = "Test title"
+        board.title = 'Test title'
 
         const {container} = render(wrapIntl(
             <BoardSelectorItem
@@ -44,7 +44,7 @@ describe('components/boardSelectorItem', () => {
 
     it('renders not linked board', async () => {
         const board = createBoard()
-        board.title = "Test title"
+        board.title = 'Test title'
 
         const {container} = render(wrapIntl(
             <BoardSelectorItem
