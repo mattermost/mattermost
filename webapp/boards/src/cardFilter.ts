@@ -27,6 +27,7 @@ class CardFilter {
                 }
             }
         }
+
         return dateProperty
     }
 
@@ -51,6 +52,7 @@ class CardFilter {
                     return true
                 }
             }
+
             return false
         }
         Utils.assert(filterGroup.operation === 'and')
@@ -63,6 +65,7 @@ class CardFilter {
                 return false
             }
         }
+
         return true
     }
 
@@ -95,12 +98,14 @@ class CardFilter {
             if (filter.values?.length < 1) {
                 break
             }		// No values = ignore clause (always met)
+
             return (filter.values.find((cValue) => (Array.isArray(value) ? value.includes(cValue) : cValue === value)) !== undefined)
         }
         case 'notIncludes': {
             if (filter.values?.length < 1) {
                 break
             }		// No values = ignore clause (always met)
+
             return (filter.values.find((cValue) => (Array.isArray(value) ? value.includes(cValue) : cValue === value)) === undefined)
         }
         case 'isEmpty': {
@@ -128,50 +133,59 @@ class CardFilter {
                     if (dateValue.from) {
                         return dateValue.from > (numericFilter - halfDay) && dateValue.from < (numericFilter + halfDay)
                     }
+
                     return false
                 }
 
                 if (dateValue.from && dateValue.to) {
                     return dateValue.from <= numericFilter && dateValue.to >= numericFilter
                 }
+
                 return dateValue.from === numericFilter
             }
+
             return filter.values[0]?.toLowerCase() === value
         }
         case 'contains': {
             if (filter.values.length === 0) {
                 return true
             }
+
             return (value as string || '').includes(filter.values[0]?.toLowerCase())
         }
         case 'notContains': {
             if (filter.values.length === 0) {
                 return true
             }
+
             return !(value as string || '').includes(filter.values[0]?.toLowerCase())
         }
         case 'startsWith': {
             if (filter.values.length === 0) {
                 return true
             }
+
             return (value as string || '').startsWith(filter.values[0]?.toLowerCase())
         }
         case 'notStartsWith': {
             if (filter.values.length === 0) {
                 return true
             }
+
             return !(value as string || '').startsWith(filter.values[0]?.toLowerCase())
         }
         case 'endsWith': {
             if (filter.values.length === 0) {
                 return true
             }
+
             return (value as string || '').endsWith(filter.values[0]?.toLowerCase())
         }
         case 'notEndsWith': {
             if (filter.values.length === 0) {
                 return true
             }
+
             return !(value as string || '').endsWith(filter.values[0]?.toLowerCase())
         }
         case 'isBefore': {
@@ -187,11 +201,13 @@ class CardFilter {
                     if (dateValue.from) {
                         return dateValue.from < (numericFilter - halfDay)
                     }
+
                     return false
                 }
 
                 return dateValue.from ? dateValue.from < numericFilter : false
             }
+
             return false
         }
         case 'isAfter': {
@@ -207,14 +223,17 @@ class CardFilter {
                     if (dateValue.from) {
                         return dateValue.from > (numericFilter + halfDay)
                     }
+
                     return false
                 }
 
                 if (dateValue.to) {
                     return dateValue.to > numericFilter
                 }
+
                 return dateValue.from ? dateValue.from > numericFilter : false
             }
+
             return false
         }
 
@@ -222,6 +241,7 @@ class CardFilter {
             Utils.assertFailure(`Invalid filter condition ${filter.condition}`)
         }
         }
+
         return true
     }
 
@@ -243,6 +263,7 @@ class CardFilter {
             if (property.value) {
                 result[property.id] = property.value
             }
+
             return result
         }
 
@@ -254,6 +275,7 @@ class CardFilter {
                 result[property.id] = property.value
             }
         })
+
         return result
     }
 
@@ -261,6 +283,7 @@ class CardFilter {
         const template = templates.find((o) => o.id === filterClause.propertyId)
         if (!template) {
             Utils.assertFailure(`propertyThatMeetsFilterClause. Cannot find template: ${filterClause.propertyId}`)
+
             return {id: filterClause.propertyId}
         }
 
@@ -273,6 +296,7 @@ class CardFilter {
             if (filterClause.values.length < 1) {
                 return {id: filterClause.propertyId}
             }
+
             return {id: filterClause.propertyId, value: filterClause.values[0]}
         }
         case 'notIncludes': {
@@ -285,8 +309,10 @@ class CardFilter {
             if (template.type === 'select') {
                 if (template.options.length > 0) {
                     const option = template.options[0]
+
                     return {id: filterClause.propertyId, value: option.id}
                 }
+
                 return {id: filterClause.propertyId}
             }
 

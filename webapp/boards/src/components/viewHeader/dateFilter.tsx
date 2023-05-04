@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {useIntl} from 'react-intl'
 import {DateUtils} from 'react-day-picker'
 import MomentLocaleUtils from 'react-day-picker/moment'
@@ -77,6 +77,7 @@ function DateFilter(props: Props): JSX.Element {
         if (date) {
             displayDate = Utils.displayDate(date, intl)
         }
+
         return displayDate
     }
 
@@ -129,6 +130,7 @@ function DateFilter(props: Props): JSX.Element {
     }
 
     const className = 'DateFilter'
+
     return (
         <div className={`DateFilter ${displayValue ? '' : 'empty'} `}>
             <Button
@@ -154,6 +156,7 @@ function DateFilter(props: Props): JSX.Element {
                                         if (offsetDate) {
                                             return setInput(Utils.inputDate(offsetDate, intl))
                                         }
+
                                         return undefined
                                     }}
                                     onChange={setInput}

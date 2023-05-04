@@ -52,7 +52,7 @@ type State = {
     isFocalTrapActive: boolean;
 }
 
-export class GenericModal extends React.PureComponent<Props, State> {
+export class LegacyGenericModal extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         show: true,
         id: 'genericModal',

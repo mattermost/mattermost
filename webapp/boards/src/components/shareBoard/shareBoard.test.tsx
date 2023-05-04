@@ -129,7 +129,6 @@ describe('src/components/shareBoard/shareBoard', () => {
     let store: ReturnType<typeof mockStateStore>
 
     beforeEach(() => {
-
         state = {
             teams: {
                 current: {id: teamId, title: 'Test Team'},
@@ -187,7 +186,6 @@ describe('src/components/shareBoard/shareBoard', () => {
                 ],
             },
         }
-
 
         store = mockStateStore([thunk], state)
 
@@ -335,7 +333,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         const regenerateTokenElement = screen.getByRole('button', {name: 'Regenerate token'})
         expect(regenerateTokenElement).toBeDefined()
         await act(() => userEvent.click(regenerateTokenElement))
-        
+
         expect(mockedOctoClient.setSharing).toBeCalledTimes(1)
         expect(container).toMatchSnapshot()
     })
@@ -392,8 +390,8 @@ describe('src/components/shareBoard/shareBoard', () => {
                     enableSharedBoards={true}
                 />
             </ReduxProvider>
-        ),{wrapper: MemoryRouter})
-                
+        ), {wrapper: MemoryRouter})
+
         mockedOctoClient.getSharing.mockResolvedValue({
             id: boardId,
             enabled: true,
