@@ -14,9 +14,8 @@ ${MME2E_DC_SERVER} down -v
 
 # Generate .env.server
 mme2e_log "Generating .env.server"
-cat >.env.server <<EOF
-MM_LICENSE=$MM_LICENSE
-EOF
+cat >.env.server <<<""
+[ -z "${MM_LICENSE:-}" ]                 || echo "MM_LICENSE=$MM_LICENSE"                                 >>.env.server
 [ -z "${AUTOMATION_DASHBOARD_URL:-}" ]   || echo "AUTOMATION_DASHBOARD_URL=$AUTOMATION_DASHBOARD_URL"     >>.env.server
 [ -z "${AUTOMATION_DASHBOARD_TOKEN:-}" ] || echo "AUTOMATION_DASHBOARD_TOKEN=$AUTOMATION_DASHBOARD_TOKEN" >>.env.server
 envarr=$(echo ${MM_ENV:-} | tr "," "\n")

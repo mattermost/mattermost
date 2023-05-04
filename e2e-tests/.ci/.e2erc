@@ -20,7 +20,7 @@ mme2e_get_current_shopt_arg () {
 }
 mme2e_load_env_file () {
   # This loads the ./env file. Variables are automatically exported
-  [ -f ./env ] || return
+  [ -f ./env ] || return 0
   MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
   set -o allexport
   mme2e_log "Loading env file"
