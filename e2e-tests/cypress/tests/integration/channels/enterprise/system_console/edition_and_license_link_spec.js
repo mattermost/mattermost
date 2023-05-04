@@ -29,7 +29,8 @@ describe('Edition and License', () => {
             {text: 'Privacy Policy', link: FixedPublicLinks.PrivacyPolicy},
             {text: 'Enterprise Edition Terms of Use', link: FixedPublicLinks.TermsOfService},
         ].forEach(({text, link}) => {
-            cy.findByText(text).
+            cy.get('.terms-and-policy').
+                findByText(text).
                 scrollIntoView().
                 should('be.visible').
                 and('have.attr', 'href').
