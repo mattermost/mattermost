@@ -2,10 +2,16 @@
 
 const path = require('path');
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
+
+const targetIsRun = NPM_TARGET?.startsWith('start');
+
+const DEV = targetIsRun;
+
 const TARGET_IS_PRODUCT = NPM_TARGET?.endsWith(':product');
 const mode = 'production';
 const devtool = 'source-map';
@@ -42,20 +48,19 @@ const config = {
                 },
             },
             {
-                test: /\.scss$/,
+                test: /\.(css|scss)$/,
                 use: [
-                    'style-loader',
+                    DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
-                    },
-                    {
-                        loader: 'sass-loader',
                     },
                 ],
             },
             {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
+                test: /\.scss$/,
+                use: [
+                    'sass-loader',
+                ],
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg|jpeg)$/,

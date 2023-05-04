@@ -90,11 +90,17 @@ var config = {
             },
             {
                 test: /\.(css|scss)$/,
+                exclude: /\/highlight\.js\//,
                 use: [
                     DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                     },
+                ],
+            },
+            {
+                test: /\.scss$/,
+                use: [
                     {
                         loader: 'sass-loader',
                         options: {

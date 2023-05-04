@@ -4,16 +4,22 @@
 const exec = require('child_process').exec;
 const path = require('path');
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = webpack.container;
 const tsTransformer = require('@formatjs/ts-transformer');
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 
+const targetIsRun = NPM_TARGET?.startsWith('start');
+const targetIsDebug = NPM_TARGET?.startsWith('debug');
+
+const DEV = targetIsRun || targetIsDebug;
+
 let mode = 'production';
 let devtool;
 const plugins = [];
-if (NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch' || NPM_TARGET === 'start:product') {
+if (DEV) {
     mode = 'development';
     devtool = 'source-map';
     plugins.push(
@@ -86,19 +92,19 @@ const config = {
                 exclude: [/node_modules/],
             },
             {
-                test: /\.s[ac]ss$/i,
+                test: /\.(css|scss)$/,
                 use: [
-                    'style-loader',
-                    'css-loader',
-                    'sass-loader',
-                    path.resolve(__dirname, 'loaders/globalScssClassLoader'),
+                    DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                    },
                 ],
             },
             {
-                test: /\.css$/i,
+                test: /\.scss$/,
                 use: [
-                    'style-loader',
-                    'css-loader',
+                    'sass-loader',
+                    path.resolve(__dirname, 'loaders/globalScssClassLoader'),
                 ],
             },
             {
