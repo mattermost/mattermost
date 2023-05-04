@@ -43,7 +43,7 @@ function ResizableLhs({
             minWidth={minWidth}
             defaultWidth={DEFAULT_LHS_WIDTH}
             initialWidth={Number(LocalStorageStore.getLhsWidth())}
-            enabled={{
+            enabledDirection={{
                 left: isLhsResizable,
                 right: false,
             }}

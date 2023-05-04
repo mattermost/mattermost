@@ -15,7 +15,7 @@ interface ResizableProps extends HTMLAttributes<'div'> {
     defaultWidth: number;
     disabled?: boolean;
     initialWidth?: number;
-    enabled: {
+    enabledDirection: {
         left: boolean;
         right: boolean;
     };
@@ -34,7 +34,7 @@ function Resizable({
     children,
     id,
     className,
-    enabled,
+    enabledDirection,
     defaultWidth,
     minWidth,
     maxWidth,
@@ -58,7 +58,7 @@ function Resizable({
 
     const previousClientX = useRef(0);
 
-    const resizeEnabled = enabled.left || enabled.right;
+    const resizeEnabled = enabledDirection.left || enabledDirection.right;
 
     const handleDoubleClick = useCallback(() => {
         const wrapperElem = wrapperRef.current;
@@ -288,7 +288,7 @@ function Resizable({
         >
             {children}
 
-            {enabled.right &&
+            {enabledDirection.right &&
             <div
                 ref={rightResizeLineRef}
                 className={classNames('resizeLine right',
@@ -299,7 +299,7 @@ function Resizable({
                 onMouseDown={(e) => handleMouseDown(e, ResizeDirection.RIGHT)}
                 onDoubleClick={handleDoubleClick}
             />}
-            {enabled.left &&
+            {enabledDirection.left &&
             <div
                 ref={leftResizeLineRef}
                 className={classNames('resizeLine left',

@@ -141,7 +141,7 @@ function ResizableRhs({
             defaultWidth={defaultWidth}
             disabled={isRhsExpanded}
             initialWidth={Number(LocalStorageStore.getRhsWidth())}
-            enabled={{
+            enabledDirection={{
                 left: false,
                 right: isRhsResizable,
             }}
