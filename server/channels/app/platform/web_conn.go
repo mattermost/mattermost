@@ -171,10 +171,12 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 
 // NewWebConn returns a new WebConn instance.
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runner HookRunner) *WebConn {
+	userID := cfg.Session.UserId
+	session := cfg.Session
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
-			ps.SetStatusOnline(cfg.Session.UserId, false)
-			ps.UpdateLastActivityAtIfNeeded(cfg.Session)
+			ps.SetStatusOnline(userID, false)
+			ps.UpdateLastActivityAtIfNeeded(session)
 		})
 	}
 
@@ -232,11 +234,9 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
 
-	connID := wc.GetConnectionID()
-	userID := wc.UserId
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.OnWebSocketConnect(connID, userID)
+			hooks.OnWebSocketConnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketConnectID)
 	})
@@ -336,9 +336,10 @@ func (wc *WebConn) Pump() {
 	wc.Platform.HubUnregister(wc)
 	close(wc.pumpFinished)
 
+	userID := wc.UserId
 	wc.Platform.Go(func() {
 		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
+			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketDisconnectID)
 	})
@@ -355,8 +356,9 @@ func (wc *WebConn) readPump() {
 			return err
 		}
 		if wc.IsAuthenticated() {
+			userID := wc.UserId
 			wc.Platform.Go(func() {
-				wc.Platform.SetStatusAwayIfNeeded(wc.UserId, false)
+				wc.Platform.SetStatusAwayIfNeeded(userID, false)
 			})
 		}
 		return nil
