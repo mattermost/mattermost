@@ -261,6 +261,14 @@ func (as SqlOAuthStore) RemoveAuthData(code string) error {
 	return nil
 }
 
+func (as SqlOAuthStore) RemoveAuthDataByUserId(userId string) error {
+	_, err := as.GetMasterX().Exec("DELETE FROM OAuthAuthData WHERE UserId = ?", userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete AuthData with userId=%s", userId)
+	}
+	return nil
+}
+
 func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	_, err := as.GetMasterX().Exec("DELETE FROM OAuthAccessData WHERE UserId = ?", userId)
 	if err != nil {
