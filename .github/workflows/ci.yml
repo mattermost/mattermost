@@ -11,7 +11,7 @@ env:
   go-version: "1.19.5"
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !contains( github.ref , 'heads/ref/master') }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   check-mocks:
     name: Check mocks
@@ -26,6 +26,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -43,6 +44,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -60,6 +62,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -77,12 +80,33 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Reset config
         run: make config-reset
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.52.2
+          working-directory: server
+          args: --new-from-rev=HEAD~ --whole-files # This only checks the latest commit for speed.
   check-migrations:
     name: Check migration files
     runs-on: ubuntu-22.04
@@ -106,6 +130,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -128,6 +153,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate work templates
         run: make generate-worktemplates
       - name: Check generated work templates
@@ -160,6 +186,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -177,6 +204,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -216,6 +244,7 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
       - name: Build
         run: |
           make config-reset

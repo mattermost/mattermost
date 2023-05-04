@@ -23,6 +23,7 @@ const createBoldStyleStrategy = (): InlineStrategy => {
             // e.g. [[0,6], [10,20]]
             const text = block.getText()
             const boldRanges = findRangesWithRegex(text, boldRegex)
+
             return boldRanges
         },
         findDelimiterRanges: (block, styleRanges) => {
@@ -37,6 +38,7 @@ const createBoldStyleStrategy = (): InlineStrategy => {
                 ).map((indices) => indices.map((x) => x + styleRange[0]))
                 boldDelimiterRanges = boldDelimiterRanges.concat(delimiterRange)
             })
+
             return boldDelimiterRanges
         },
         delimiterStyles: {

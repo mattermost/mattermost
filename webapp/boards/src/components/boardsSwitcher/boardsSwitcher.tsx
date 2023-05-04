@@ -19,7 +19,7 @@ import AddIcon from 'src/widgets/icons/add'
 import BoardSwitcherDialog from 'src/components/boardsSwitcherDialog/boardSwitcherDialog'
 import {Utils} from 'src/utils'
 import {Constants} from 'src/constants'
-import {TOUR_SIDEBAR, SidebarTourSteps} from 'src/components/onboardingTour'
+import {SidebarTourSteps, TOUR_SIDEBAR} from 'src/components/onboardingTour'
 
 import IconButton from 'src/widgets/buttons/iconButton'
 import SearchForBoardsTourStep from 'src/components/onboardingTour/searchForBoards/searchForBoards'
