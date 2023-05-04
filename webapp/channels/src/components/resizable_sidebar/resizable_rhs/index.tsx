@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes, useCallback, useLayoutEffect, useMemo} from 'react';
+import React, {HTMLAttributes, useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
@@ -54,7 +54,7 @@ function ResizableRhs({
         });
     }, [rightWidthHolderRef, minWidth, rhsSize, shouldRhsOverlap]);
 
-    const handleLimitChange = useCallback(() => {
+    const handleLimitChange = useCallback((width: number) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
         if (!rightWidthHolderRefElement) {
@@ -71,7 +71,7 @@ function ResizableRhs({
             return;
         }
 
-        setWidth(rightWidthHolderRefElement, defaultWidth);
+        setWidth(rightWidthHolderRefElement, width);
     }, [defaultWidth, rightWidthHolderRef, minWidth, rhsSize]);
 
     const handleResize = useCallback((width: number) => {
@@ -118,16 +118,18 @@ function ResizableRhs({
         }
     }, [defaultWidth, rightWidthHolderRef, shouldRhsOverlap]);
 
-    useLayoutEffect(() => {
+    const handleDisabled = useCallback(() => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
         if (!rightWidthHolderRefElement) {
             return;
         }
-        if (isRhsExpanded) {
+        if (shouldRhsOverlap) {
+            setWidth(rightWidthHolderRefElement, minWidth);
+        } else {
             resetStyle(rightWidthHolderRefElement);
         }
-    }, [isRhsExpanded, rightWidthHolderRef]);
+    }, [minWidth, rightWidthHolderRef, shouldRhsOverlap]);
 
     return (
         <Resizable
@@ -143,6 +145,7 @@ function ResizableRhs({
                 left: false,
                 right: isRhsResizable,
             }}
+            onDisabled={handleDisabled}
             onInit={handleInit}
             onLimitChange={handleLimitChange}
             onResize={handleResize}

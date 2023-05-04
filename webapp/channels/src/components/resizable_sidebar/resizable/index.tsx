@@ -19,6 +19,7 @@ interface ResizableProps extends HTMLAttributes<'div'> {
         left: boolean;
         right: boolean;
     };
+    onDisabled?: () => void;
     onResize?: (width: number) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
@@ -39,6 +40,7 @@ function Resizable({
     maxWidth,
     initialWidth,
     disabled,
+    onDisabled,
     onResize,
     onResizeStart,
     onResizeEnd,
@@ -213,11 +215,12 @@ function Resizable({
             return;
         }
 
+        if (onLimitChange) {
+            onLimitChange(width);
+        }
+
         if (width > maxWidth || width < minWidth) {
             setWidth(wrapperElem, defaultWidth);
-            if (onLimitChange) {
-                onLimitChange(defaultWidth);
-            }
         }
     }, [defaultWidth, maxWidth, minWidth, resizeEnabled]);
 
@@ -261,9 +264,13 @@ function Resizable({
             return;
         }
         if (disabled) {
+            if (onDisabled) {
+                onDisabled();
+            }
+
             resetStyle(wrapperElem);
         }
-    }, [disabled]);
+    }, [disabled, onDisabled]);
 
     const wrapperClassName = classNames(className, 'resizeWrapper',
         {
