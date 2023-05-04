@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -1068,6 +1069,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 func TestExecuteCommandReadOnly(t *testing.T) {
 	th := Setup(t).InitBasic()
+	ctx := request.EmptyContext(th.TestLogger)
 	defer th.TearDown()
 	client := th.Client
 
@@ -1125,6 +1127,7 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
 	_, appErr = th.App.PatchChannelModerationsForChannel(
+		ctx,
 		th.BasicChannel,
 		[]*model.ChannelModerationPatch{{
 			Name: &model.PermissionCreatePost.Id,
