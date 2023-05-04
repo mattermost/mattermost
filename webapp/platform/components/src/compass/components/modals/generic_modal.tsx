@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React from 'react';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import BaseModal from "./base_modal";
-import {Modal} from "react-bootstrap";
-import ModalTitle from "./modal_title";
+import ModalHeader from "./modal_header";
 
 type ModalProps = {
-    title: string;
+    title: string | React.ReactNode;
     children: React.ReactNode | React.ReactNodeArray;
     isOpen: boolean;
     dialogClassName?: string;
@@ -40,7 +39,7 @@ const GenericModal = ({title, children, isOpen, onClose, onConfirm, onCancel, di
                 dialogClassName={dialogClassName}
                 dialogId={dialogId}
             >
-                <ModalTitle
+                <ModalHeader
                     title={title}
                     onClose={onClose}
                 />

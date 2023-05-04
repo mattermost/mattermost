@@ -27,8 +27,10 @@ const variantMap = {
     h1000: 'h1',
 };
 
+export type TVariant = keyof typeof variantMap;
+
 type Props = Omit<MuiTypographyProps, 'variant' | 'variantMapping' | 'paragraph'> & {
-    variant: keyof typeof variantMap;
+    variant: TVariant;
     gutterTop?: boolean;
 }
 

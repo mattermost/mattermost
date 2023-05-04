@@ -129,17 +129,28 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         );
 
         if (this.props.isNewUI) {
+            const title = (
+                <Typography variant='h400'>
+                    <FormattedMessage
+                        id='delete_post.confirm_new'
+                        defaultMessage='Delete {term}'
+                        values={{
+                            term: (postTerm),
+                        }}
+                    />
+                    </Typography>
+            )
             return (
                 <GenericModal
                     isOpen={this.state.show}
-                    title={`Delete ${postTerm}`}
+                    title={title}
                     dialogClassName='a11y__modal'
                     dialogId='deletePostModal'
                     onClose={this.props.onExited}
                     onConfirm={this.handleDelete}
                     onCancel={this.onHide}
                 >
-                    <Typography variant='b300'>
+                    <Typography variant='b200'>
                         <FormattedMessage
                             id='delete_post.question'
                             defaultMessage='Are you sure you want to delete this {term}?'

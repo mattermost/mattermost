@@ -31,7 +31,7 @@ const Paper = styled(MUIPaper)<PaperProps>(() => ({
     backgroundColor: 'var(--center-channel-bg)',
     boxShadow: '0 20px 32px 0 rgba(0, 0, 0, 0.12)',
     minWidth: 600,
-    padding: '20px',
+    padding: '24px 32px',
 }));
 
 type ModalProps = {

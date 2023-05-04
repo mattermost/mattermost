@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {styled} from '@mui/material/styles';
+import {SxProps, Theme, styled} from '@mui/material/styles';
 import MUIDialogTitle, {DialogTitleProps as MUIDialogTitleProps} from '@mui/material/DialogTitle';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 
 import IconButton from '../icon_button/icon_button';
 
-type DialogTitleProps = MUIDialogTitleProps & { hasCloseButton: boolean };
+type DialogTitleProps = MUIDialogTitleProps & { hasCloseButton: boolean};
 
-const StyledModalTitle = styled(MUIDialogTitle, {
+const StyledModalHeader = styled(MUIDialogTitle, {
     shouldForwardProp: (prop) => prop !== 'hasCloseButton',
-})<DialogTitleProps>(({hasCloseButton}) => ({
+})<DialogTitleProps>({
     display: 'grid',
     gridTemplateColumns: '1fr max-content max-content',
     gap: 12,
@@ -24,29 +24,31 @@ const StyledModalTitle = styled(MUIDialogTitle, {
     lineHeight: '28px',
     color: 'var(--center-channel-color)',
     alignItems: 'center',
-    padding: hasCloseButton ? '22px 26px 24px 32px' : '28px 32px 24px',
-}));
+    padding: '0',
+});
 
-const StyledModalTitleSection = styled('div')(() => ({
-    padding: '0 32px 24px 32px',
-    borderBottom: '1px solid rgba(var(--center-channel-text-rgb), 0.12)',
-}));
+const StyledModalTitleSection = styled('div')`
+    padding: '0 32px 24px 32px';
+    borderBottom: '1px solid rgba(var(--center-channel-text-rgb), 0.12)';
+`;
 
-type ModalTitleProps = {
-    title: string;
+type ModalHeaderProps = {
+    title: React.ReactNode | string;
     rightSection?: React.ReactNode | React.ReactNode[];
     children?: React.ReactNode | React.ReactNode[];
     onClose?: React.MouseEventHandler;
+    sx?: SxProps<Theme>;
 }
 
-const ModalTitle = ({title, onClose, children, rightSection = null}: ModalTitleProps) => {
+const ModalHeader = ({title, onClose, children, rightSection = null, sx}: ModalHeaderProps) => {
     const hasCloseButton = Boolean(onClose);
 
     return (
         <>
-            <StyledModalTitle
+            <StyledModalHeader
                 hasCloseButton={hasCloseButton}
                 component={'div'}
+                sx={sx}
             >
                 {title}
                 {rightSection}
@@ -58,7 +60,7 @@ const ModalTitle = ({title, onClose, children, rightSection = null}: ModalTitleP
                         IconComponent={CloseIcon}
                     />
                 )}
-            </StyledModalTitle>
+            </StyledModalHeader>
             {children && (
                 <StyledModalTitleSection>
                     {children}
@@ -68,4 +70,4 @@ const ModalTitle = ({title, onClose, children, rightSection = null}: ModalTitleP
     );
 };
 
-export default ModalTitle;
+export default ModalHeader;
