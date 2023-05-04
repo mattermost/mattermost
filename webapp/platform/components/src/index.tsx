@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 // type
-export type {Props as GenericModalProps} from './generic_modal/generic_modal';
+export type {Props as LegacyGenericModalProps} from './legacy_generic_modal/legacy_generic_modal';
 export type {CircleSkeletonLoaderProps, RectangleSkeletonLoaderProps} from './skeleton_loader';
 export type {Props as FocusTrapProps} from './focus_trap';
 
 // components
-export * from './generic_modal/footer_content';
-export {GenericModal} from './generic_modal/generic_modal';
+export * from './compass';
+export * from './legacy_generic_modal/footer_content';
+export {LegacyGenericModal} from './legacy_generic_modal/legacy_generic_modal';
 export {CircleSkeletonLoader, RectangleSkeletonLoader} from './skeleton_loader';
 export * from './tour_tip';
 export * from './pulsating_dot';

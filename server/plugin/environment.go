@@ -4,12 +4,10 @@
 package plugin
 
 import (
-	"bytes"
 	"fmt"
 	"hash/fnv"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -57,7 +55,6 @@ type Environment struct {
 	dbDriver               Driver
 	pluginDir              string
 	webappPluginDir        string
-	patchReactDOM          bool
 	prepackagedPlugins     []*PrepackagedPlugin
 	prepackagedPluginsLock sync.RWMutex
 }
@@ -67,7 +64,6 @@ func NewEnvironment(
 	dbDriver Driver,
 	pluginDir string,
 	webappPluginDir string,
-	patchReactDOM bool,
 	logger *mlog.Logger,
 	metrics metricsInterface,
 ) (*Environment, error) {
@@ -78,7 +74,6 @@ func NewEnvironment(
 		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
-		patchReactDOM:   patchReactDOM,
 	}, nil
 }
 
@@ -486,17 +481,6 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 	}
 
-	if env.patchReactDOM {
-		newContents, changed := patchReactDOM(sourceBundleFileContents)
-		if changed {
-			sourceBundleFileContents = newContents
-			err = os.WriteFile(sourceBundleFilepath, sourceBundleFileContents, 0644)
-			if err != nil {
-				return nil, errors.Wrapf(err, "unable to overwrite webapp bundle: %v", id)
-			}
-		}
-	}
-
 	hash := fnv.New64a()
 	if _, err = hash.Write(sourceBundleFileContents); err != nil {
 		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
@@ -511,52 +495,6 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	}
 
 	return manifest, nil
-}
-
-func patchReactDOM(initialBytes []byte) ([]byte, bool) {
-	if !bytes.Contains(initialBytes, []byte("react-dom.production.min.js")) {
-		return initialBytes, false
-	}
-
-	initial := string(initialBytes)
-	nameIndex := strings.Index(initial, "react-dom.production.min.js")
-
-	beginning := strings.LastIndex(initial[:nameIndex], "{")
-	var end int
-
-	argDefBeginning := strings.LastIndex(initial[:beginning], "function") + 9
-	argDefEnd := strings.LastIndex(initial[:beginning], ")") - 1
-	argsNames := strings.Split(initial[argDefBeginning:argDefEnd], ",")
-	if len(argsNames) != 3 {
-		return initialBytes, false
-	}
-
-	exportsArgName := strings.TrimSpace(argsNames[1])
-
-	numOpenBraces := 0
-	for i, c := range initial[beginning:] {
-		if end != 0 {
-			break
-		}
-		switch c {
-		case '}':
-			numOpenBraces--
-
-			if numOpenBraces == 0 {
-				end = beginning + i
-			}
-		case '{':
-			numOpenBraces++
-		}
-	}
-
-	beforePatch := initial[:end]
-	afterPatch := initial[end:]
-
-	patch := fmt.Sprintf("; Object.assign(%s, window.ReactDOM)", exportsArgName)
-
-	result := fmt.Sprintf("%s%s%s", beforePatch, patch, afterPatch)
-	return []byte(result), true
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
