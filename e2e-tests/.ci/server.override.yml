@@ -10,9 +10,6 @@ services:
     env_file:
       - "../../e2e-tests/.ci/.env.server"
     environment:
-      ### Required variables - start
-      # MM_LICENSE: "..."   # NB, OPTIONAL
-      ### Required variables - end
       MM_SERVICESETTINGS_SITEURL: "http://server:8065"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_PLUGINSETTINGS_ENABLED: "true"
@@ -82,12 +79,6 @@ services:
       - "../../e2e-tests/.ci/.env.cypress"
       - "../../e2e-tests/.ci/.env.dashboard"
     environment:
-      ### Required variables - start
-      # BRANCH: "..."
-      # BUILD_ID: "..."
-      # AUTOMATION_DASHBOARD_URL: "..."
-      # AUTOMATION_DASHBOARD_TOKEN: "..."
-      ### Required variables - end
       REPO: "mattermost-server"
       CI_BASE_URL: "localhost-${MM_NODE_INDEX}"
       # Cypress configuration

@@ -5,8 +5,8 @@ cd $(dirname $0)
 
 mme2e_log "Cloning the automation-dashboard project"
 [ -d dashboard ] || git clone https://github.com/saturninoabril/automation-dashboard.git dashboard
-# git -C dashboard fetch
-# git -C dashboard checkout $DASHBOARD_REF
+ git -C dashboard fetch
+ git -C dashboard checkout $DASHBOARD_REF
 
 mme2e_log "Starting the dashboard"
 ${MME2E_DC_DASHBOARD} up -d db dashboard

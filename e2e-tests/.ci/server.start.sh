@@ -3,6 +3,11 @@ set -e -u -o pipefail
 cd $(dirname $0)
 . .e2erc
 
+export MME2E_BRANCH_DEFAULT=$(git branch --show-current)
+export MME2E_BRANCH=${MME2E_BRANCH:-$MME2E_BRANCH_DEFAULT}
+export MME2E_BUILD_ID_DEFAULT=$(date +%s)
+export MME2E_BUILD_ID=${MME2E_BUILD_ID:-$MME2E_BUILD_ID_DEFAULT}
+
 # Cleanup old containers, if any
 mme2e_log "Stopping leftover E2E containers, if any are running"
 ${MME2E_DC_SERVER} down -v
@@ -22,8 +27,6 @@ done
 
 # Generate .env.cypress
 mme2e_log "Generating .env.cypress"
-MME2E_BRANCH=${BRANCH:-$(git branch --show-current)}
-MME2E_BUILD_ID=${BUILD_ID:-$(date +%s)}
 cat >.env.cypress <<EOF
 BRANCH=$MME2E_BRANCH
 BUILD_ID=$MME2E_BUILD_ID
