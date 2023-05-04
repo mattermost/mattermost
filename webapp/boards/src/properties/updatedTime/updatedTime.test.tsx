@@ -8,7 +8,7 @@ import {render} from '@testing-library/react'
 import configureStore from 'redux-mock-store'
 
 import {createCard} from 'src/blocks/card'
-import {IPropertyTemplate, Board} from 'src/blocks/board'
+import {Board, IPropertyTemplate} from 'src/blocks/board'
 import {wrapIntl} from 'src/testUtils'
 
 import {createCommentBlock} from 'src/blocks/commentBlock'

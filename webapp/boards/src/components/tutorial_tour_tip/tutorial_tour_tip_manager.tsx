@@ -5,12 +5,12 @@ import React, {useCallback, useEffect, useState} from 'react'
 
 import {useDispatch} from 'react-redux'
 
-import {FINISHED, TourCategoriesMapToSteps, TOUR_ORDER} from 'src/components/onboardingTour'
+import {FINISHED, TOUR_ORDER, TourCategoriesMapToSteps} from 'src/components/onboardingTour'
 import {useAppSelector} from 'src/store/hooks'
 import {getMe, getOnboardingTourStep, patchProps} from 'src/store/users'
 import {UserConfigPatch} from 'src/user'
 import octoClient from 'src/octoClient'
-import {Utils, KeyCodes} from 'src/utils'
+import {KeyCodes, Utils} from 'src/utils'
 import TelemetryClient, {TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 export interface TutorialTourTipManager {
@@ -107,6 +107,7 @@ const useTutorialTourTipManager = ({
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown)
+
         return () =>
             window.removeEventListener('keydown', handleKeyDown)
     }, [])
@@ -194,6 +195,7 @@ const useTutorialTourTipManager = ({
             if (candidateMaxStep > maxStep && candidateMaxStep !== tourSteps.FINISHED) {
                 return candidateMaxStep
             }
+
             return maxStep
         }, Number.MIN_SAFE_INTEGER)
     }
