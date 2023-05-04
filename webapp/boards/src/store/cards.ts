@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {
-    createSlice,
     PayloadAction,
+    createAsyncThunk,
     createSelector,
-    createAsyncThunk
+    createSlice,
 } from '@reduxjs/toolkit'
 
 import {Card} from 'src/blocks/card'
@@ -19,7 +19,7 @@ import {Constants} from 'src/constants'
 import {CardFilter} from 'src/cardFilter'
 import {default as client} from 'src/octoClient'
 
-import {loadBoardData, initialReadOnlyLoad, initialLoad} from './initialLoad'
+import {initialLoad, initialReadOnlyLoad, loadBoardData} from './initialLoad'
 import {getCurrentBoard} from './boards'
 import {getBoardUsers} from './users'
 import {getLastCommentByCard} from './comments'
@@ -60,6 +60,7 @@ const limitCard = (isBoardTemplate: boolean, limitTimestamp: number, card: Card)
     if (card.updateAt >= limitTimestamp) {
         return card
     }
+
     return {
         ...card,
         fields: {
@@ -219,6 +220,7 @@ function manualOrder(activeView: BoardView, cardA: Card, cardB: Card) {
         // If cardA's order is not defined, put it at the end
         return 1
     }
+
     return indexA - indexB
 }
 
@@ -230,6 +232,7 @@ function sortCards(cards: Card[], lastCommentByCard: {[key: string]: CommentBloc
 
     if (sortOptions.length < 1) {
         Utils.log('Manual sort')
+
         return cards.sort((a, b) => manualOrder(activeView, a, b))
     }
 
@@ -239,6 +242,7 @@ function sortCards(cards: Card[], lastCommentByCard: {[key: string]: CommentBloc
             Utils.log('Sort by title')
             sortedCards = sortedCards.sort((a, b) => {
                 const result = titleOrCreatedOrder(a, b)
+
                 return sortOption.reversed ? -result : result
             })
         } else {
@@ -246,6 +250,7 @@ function sortCards(cards: Card[], lastCommentByCard: {[key: string]: CommentBloc
             const template = board.cardProperties.find((o) => o.id === sortPropertyId)
             if (!template) {
                 Utils.logError(`Missing template for property id: ${sortPropertyId}`)
+
                 return sortedCards
             }
             Utils.log(`Sort by property: ${template?.name}`)
@@ -308,6 +313,7 @@ function sortCards(cards: Card[], lastCommentByCard: {[key: string]: CommentBloc
                             if (usersById[id] !== undefined) {
                                 return usersById[id].username
                             }
+
                             return ''
                         }).toString() : aValue
 
@@ -315,6 +321,7 @@ function sortCards(cards: Card[], lastCommentByCard: {[key: string]: CommentBloc
                             if (usersById[id] !== undefined) {
                                 return usersById[id].username
                             }
+
                             return ''
                         }).toString() : bValue
                     }
@@ -393,6 +400,7 @@ export const getCurrentViewCardsSortedFilteredAndGroupedWithoutLimit = createSel
             result = searchFilterCards(result, board, searchText)
         }
         result = sortCards(result, lastCommentByCard, board, view, users)
+
         return result
     },
 )

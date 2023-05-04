@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useLayoutEffect} from 'react'
+import React, {useLayoutEffect, useState} from 'react'
 import ReactDOM from 'react-dom'
 
 type Props = {
@@ -16,6 +16,7 @@ const RootPortal = (props: Props): JSX.Element => {
         if (rootPortal) {
             rootPortal.appendChild(el)
         }
+
         return () => {
             if (rootPortal) {
                 rootPortal.removeChild(el)

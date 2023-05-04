@@ -39,10 +39,6 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       component={[Function]}
       path="/claim"
     />
-    <HFTRoute
-      component={[Function]}
-      path="/help"
-    />
     <LoggedInRoute
       component={[Function]}
       path="/terms_of_service"

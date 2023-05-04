@@ -90,9 +90,8 @@ exports[`components/feature_discovery FeatureDiscovery should match snapshot whe
         id="translation.test.copy"
       />
     </div>
-    <CloudStartTrialButton
+    <FeatureDiscoveryCloudStartTrialButton
       extraClass="btn btn-primary"
-      message="Try free for 30 days"
       telemetryId="start_cloud_trial_from_test"
     />
     <ExternalLink
