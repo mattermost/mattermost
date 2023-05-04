@@ -1,17 +1,10 @@
-name: Server CI
+name: Server CI Template
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - cloud
-      - release-*
-      - mono-repo*
+  workflow_call:
+
 env:
   go-version: "1.19.5"
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   check-mocks:
     name: Check mocks
@@ -190,23 +183,23 @@ jobs:
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
   test-postgres-binary:
-    name: Run tests on postgres with binary parameters
+    name: Postgres with binary parameters
     needs: check-mattermost-vet
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/server-test-template.yml
     with:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
   test-postgres-normal:
-    name: Run tests on postgres
+    name: Postgres
     needs: check-mattermost-vet
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/server-test-template.yml
     with:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
   test-mysql:
-    name: Run tests on mysql
+    name: MySQL
     needs: check-mattermost-vet
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/server-test-template.yml
     with:
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
       drivername: mysql

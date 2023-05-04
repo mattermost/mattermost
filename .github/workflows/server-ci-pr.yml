@@ -1,0 +1,12 @@
+name: Server CI
+on:
+  pull_request:
+
+env:
+  go-version: "1.19.5"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  pr-ci:
+    uses: ./.github/workflows/server-ci-template.yml
