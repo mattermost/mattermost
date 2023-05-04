@@ -14,5 +14,5 @@ BEGIN
         WHERE p.name IS NULL;
     END IF;
 END;
-CALL Remove_Tokens_If_Exist ();
+    CALL Remove_Tokens_If_Exist ();
 	DROP PROCEDURE IF EXISTS Remove_Tokens_If_Exist;
