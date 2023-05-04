@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useCallback} from 'react'
-import {injectIntl, IntlShape} from 'react-intl'
+import {IntlShape, injectIntl} from 'react-intl'
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
 
 import {Board, IPropertyTemplate} from 'src/blocks/board'
-import {BoardView, createBoardView, IViewType} from 'src/blocks/boardView'
+import {BoardView, IViewType, createBoardView} from 'src/blocks/boardView'
 import {Constants, Permission} from 'src/constants'
 import mutator from 'src/mutator'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'

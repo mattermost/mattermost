@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback, useMemo} from 'react'
+import React, {useCallback, useMemo, useState} from 'react'
 import {useRouteMatch} from 'react-router-dom'
 import {useIntl} from 'react-intl'
 
@@ -51,6 +51,7 @@ const KanbanCard = (props: Props) => {
     const handleDeleteCard = useCallback(() => {
         if (!card) {
             Utils.assertFailure()
+
             return
         }
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: board.id, card: card.id})
@@ -74,6 +75,7 @@ const KanbanCard = (props: Props) => {
         // confirmation dialog
         if (card?.title === '' && card?.fields?.contentOrder?.length === 0) {
             handleDeleteCard()
+
             return
         }
         setShowConfirmationDialogBox(true)

@@ -65,18 +65,16 @@ class CsvExporter {
             }
         }
 
-        {
-            // Header row
-            const row: string[] = [intl.formatMessage({id: 'TableComponent.name', defaultMessage: 'Name'})]
-            visibleProperties.forEach((template: IPropertyTemplate) => {
-                row.push(template.name)
-            })
-            rows.push(row)
-        }
+        // Header row
+        const row: string[] = [intl.formatMessage({id: 'TableComponent.name', defaultMessage: 'Name'})]
+        visibleProperties.forEach((template: IPropertyTemplate) => {
+            row.push(template.name)
+        })
+        rows.push(row)
 
         cards.forEach((card) => {
-            const row: string[] = []
-            row.push(`"${this.encodeText(card.title)}"`)
+            const cardRow: string[] = []
+            cardRow.push(`"${this.encodeText(card.title)}"`)
             visibleProperties.forEach((template: IPropertyTemplate) => {
                 let propertyValue = card.fields.properties[template.id]
                 const property = propsRegistry.get(template.type)
@@ -86,9 +84,9 @@ class CsvExporter {
                 if (property.type === 'updatedBy') {
                     propertyValue = card.modifiedBy
                 }
-                row.push(property.exportValue(propertyValue, card, template, intl))
+                cardRow.push(property.exportValue(propertyValue, card, template, intl))
             })
-            rows.push(row)
+            rows.push(cardRow)
         })
 
         return rows

@@ -9,7 +9,7 @@ import {
     ContentState,
     DraftHandleValue,
     EditorState,
-    getDefaultKeyBinding
+    getDefaultKeyBinding,
 } from 'draft-js'
 import React, {
     ReactElement,
@@ -17,7 +17,7 @@ import React, {
     useEffect,
     useMemo,
     useRef,
-    useState
+    useState,
 } from 'react'
 
 import {debounce} from 'lodash'
@@ -86,8 +86,8 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
             const excludeBots = true
             users = await octoClient.searchTeamUsers(term, excludeBots)
         } else {
-            users = boardUsers.
-                filter((user) => {
+            users = boardUsers
+                .filter((user) => {
                     // no search term
                     if (!term) {
                         return true
@@ -95,10 +95,10 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
 
                     // does the search term occur anywhere in the display name?
                     return Utils.getUserDisplayName(user, clientConfig.teammateNameDisplay).includes(term)
-                }).
+                })
 
                 // first 10 results
-                slice(0, 10)
+                .slice(0, 10)
         }
 
         const mentions: MentionUser[] = users.map(
@@ -124,6 +124,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
 
     const generateEditorState = (text?: string) => {
         const state = EditorState.createWithContent(ContentState.createFromText(text || ''))
+
         return EditorState.moveSelectionToEnd(state)
     }
 
@@ -188,6 +189,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
             emojiPlugin,
             markdownPlugin,
         ]
+
         return {plugins, MentionSuggestions, EmojiSuggestions}
     }, [])
 
@@ -195,7 +197,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
         // newEditorState.
         const newText = newEditorState.getCurrentContent().getPlainText()
 
-        onChange && onChange(newText)
+        onChange?.(newText)
         setEditorState(newEditorState)
     }, [onChange])
 
@@ -226,6 +228,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
     const handleKeyCommand = useCallback((command: string, currentState: EditorState): DraftHandleValue => {
         if (command === 'editor-blur') {
             ref.current?.blur()
+
             return 'handled'
         }
 
@@ -246,6 +249,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
         if (command === 'backspace') {
             if (props.onEditorCancel && editorState.getCurrentContent().getPlainText().length === 0) {
                 props.onEditorCancel()
+
                 return 'handled'
             }
         }
@@ -258,7 +262,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
             return
         }
         const text = editorState.getCurrentContent().getPlainText()
-        onBlur && onBlur(text)
+        onBlur?.(text)
     }, [editorState.getCurrentContent().getPlainText(), onBlur, confirmAddUser])
 
     const onMentionPopoverOpenChange = useCallback((open: boolean) => {
@@ -282,9 +286,11 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
     const handleReturn = (e: any, state: EditorState): DraftHandleValue => {
         if (!e.shiftKey) {
             const text = state.getCurrentContent().getPlainText()
-            onBlur && onBlur(text)
+            onBlur?.(text)
+
             return 'handled'
         }
+
         return 'not-handled'
     }
 
