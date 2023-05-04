@@ -6996,26 +6996,6 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.PatchPluginsReactDOM',
-                        label: t('admin.experimental.patchPluginsReactDOM.title'),
-                        label_default: 'Patch React DOM used by plugins:',
-                        help_text: t('admin.experimental.patchPluginsReactDOM.desc'),
-                        help_text_default: 'When true, client-side plugins will be patched to use the version of React DOM provided by the web app. This should only be enabled if plugins break after upgrading to Mattermost 7.6. The server must be restarted for this setting to take effect. See the <link>Important Upgrade Notes</link> for more information.',
-                        help_text_values: {
-                            link: (msg) => (
-                                <ExternalLink
-                                    location='admin_console'
-                                    href='https://docs.mattermost.com/upgrade/important-upgrade-notes.html'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        },
-                        isHidden: it.licensedForFeature('Cloud'),
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                    },
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
                         key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
                         label: t('admin.experimental.disableRefetchingOnBrowserFocus.title'),
                         label_default: 'Disable data refetching on browser refocus:',
