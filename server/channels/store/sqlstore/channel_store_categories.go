@@ -157,7 +157,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		teamIDs = getRequiredTeamIDs(model.SidebarCategoryApps, opts)
 		for _, teamID := range teamIDs {
 			appsCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryApps, userId, teamID)
-			insertBuilder = insertBuilder.Values(appsCategoryId, userId, teamID, model.DefaultSidebarSortOrderApps, model.SidebarCategorySortDefault, model.SidebarCategoryApps, "Apps" /* This will be retranslated by the client into the user's locale */, false, false)
+			insertBuilder = insertBuilder.Values(appsCategoryId, userId, teamID, model.DefaultSidebarSortOrderApps, model.SidebarCategorySortRecent, model.SidebarCategoryApps, "Apps" /* This will be retranslated by the client into the user's locale */, false, false)
 			hasInsert = true
 		}
 	}

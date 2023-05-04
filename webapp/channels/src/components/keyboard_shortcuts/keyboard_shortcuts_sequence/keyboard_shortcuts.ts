@@ -204,11 +204,11 @@ export const KEYBOARD_SHORTCUTS = {
     navAppsMenu: {
         default: {
             id: t('shortcuts.nav.apps_menu'),
-            defaultMessage: 'Direct messages menu:\tCtrl|Shift|J',
+            defaultMessage: 'Apps menu:\tCtrl|Shift|J',
         },
         mac: {
             id: t('shortcuts.nav.apps_menu.mac'),
-            defaultMessage: 'Direct messages menu:\t⌘|Shift|J',
+            defaultMessage: 'Apps menu:\t⌘|Shift|J',
         },
     },
     navSettings: {

@@ -132,12 +132,12 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
     });
 
     it('MM-T1475 Verify Up & Down Arrow support in Channel Sidebar', () => {
-        cy.apiCreateChannel(testTeam.id, 'public', 'Public', 'O');
-        cy.apiCreateChannel(testTeam.id, 'private', 'Private', 'P');
-
         // # Mark few channels as Favorites
         markAsFavorite('off-topic');
         markAsFavorite(testChannel.name);
+
+        cy.apiCreateChannel(testTeam.id, 'public', 'Public', 'O');
+        cy.apiCreateChannel(testTeam.id, 'private', 'Private', 'P');
 
         // # Press tab from the Main Menu button
         cy.uiGetLHSAddChannelButton().focus().tab().tab().tab();
@@ -165,6 +165,22 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
 
         // * Verify if Direct Messages section has focus
         cy.uiGetLhsSection('DIRECT MESSAGES').should('be.focused');
+    });
+
+    it('MM-T1475 Verify Up & Down Arrow support in Channel Sidebar - AppsSidebarCategory enabled', () => {
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
+
+        // # Press tab from the Main Menu button
+        cy.uiGetLHSAddChannelButton().focus().tab().tab().tab();
+
+        // # Press Down Arrow and then Up Arrow
+        cy.get('body').type('{downarrow}{uparrow}');
+
+        // # Press Down Arrow and check the focus
+        cy.get('body').type('{downarrow}{downarrow}{downarrow}{downarrow}');
+
+        // * Verify if Apps section has focus
+        cy.uiGetLhsSection('APPS').should('be.focused');
     });
 });
 

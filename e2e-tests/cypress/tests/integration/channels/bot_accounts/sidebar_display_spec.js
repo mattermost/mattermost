@@ -62,6 +62,8 @@ describe('Bot accounts', () => {
     });
 
     it('MM-T1836 Bot accounts display', () => {
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', false);
+
         // # Login as regular user and visit a channel
         cy.apiLogin(testUser);
         cy.visit(`/${team.name}/messages/@${bots[0].username}`);
@@ -89,6 +91,39 @@ describe('Bot accounts', () => {
         // * Verify Bots and Regular users as siblings in DMs
         cy.get('.SidebarChannelGroup:contains(DIRECT MESSAGES) .SidebarChannel.active').siblings('.SidebarChannel').then(($siblings) => {
             cy.wrap($siblings).contains('.SidebarChannelLinkLabel', bots[0].username);
+        });
+    });
+
+    it('MM-T1836 Bot accounts display - AppsSidebarCategory enabled', () => {
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
+
+        // # Login as regular user and visit a channel
+        cy.apiLogin(testUser);
+        cy.visit(`/${team.name}/messages/@${bots[0].username}`);
+
+        cy.get('.SidebarChannelGroup:contains(APPS) .SidebarChannel.active > .SidebarLink').then(($link) => {
+            // * Verify DM label
+            cy.wrap($link).find('.SidebarChannelLinkLabel').should('have.text', bots[0].username);
+
+            // * Verify bot icon exists
+            cy.wrap($link).find('.Avatar').should('exist').
+                and('have.attr', 'src').
+                then((url) => cy.request({url, encoding: 'binary'})).
+                then(({body}) => {
+                    // * Verify it matches default bot avatar
+                    cy.fixture('bot-default-avatar.png', 'binary').should('deep.equal', body);
+                });
+        });
+
+        cy.postMessage('Bump bot chat recency');
+
+        // # Open a new DM
+        cy.visit(`/${team.name}/messages/@${createdUsers[0].username}`);
+        cy.postMessage('Hello, regular user');
+
+        // * Verify Bots and Regular users as not siblings in DMs
+        cy.get('.SidebarChannelGroup:contains(DIRECT MESSAGES) .SidebarChannel').then(($siblings) => {
+            cy.wrap($siblings).contains('.SidebarChannelLinkLabel', bots[0].username).should('not.exist');
         });
     });
 });

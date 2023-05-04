@@ -141,6 +141,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.teamNavSwitcher}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.navSwitcher}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.navDMMenu}/>
+                                    <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.navAppsMenu}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.navSettings}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.navMentions}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.navFocusCenter}/>

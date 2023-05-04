@@ -212,6 +212,20 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 shortcut={
                   Object {
                     "default": Object {
+                      "defaultMessage": "Apps menu:	Ctrl|Shift|J",
+                      "id": "shortcuts.nav.apps_menu",
+                    },
+                    "mac": Object {
+                      "defaultMessage": "Apps menu:	⌘|Shift|J",
+                      "id": "shortcuts.nav.apps_menu.mac",
+                    },
+                  }
+                }
+              />
+              <Memo(KeyboardShortcutSequence)
+                shortcut={
+                  Object {
+                    "default": Object {
                       "defaultMessage": "Settings:	Ctrl|Shift|A",
                       "id": "shortcuts.nav.settings",
                     },
@@ -846,6 +860,20 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     "mac": Object {
                       "defaultMessage": "Direct messages menu:	⌘|Shift|K",
                       "id": "shortcuts.nav.direct_messages_menu.mac",
+                    },
+                  }
+                }
+              />
+              <Memo(KeyboardShortcutSequence)
+                shortcut={
+                  Object {
+                    "default": Object {
+                      "defaultMessage": "Apps menu:	Ctrl|Shift|J",
+                      "id": "shortcuts.nav.apps_menu",
+                    },
+                    "mac": Object {
+                      "defaultMessage": "Apps menu:	⌘|Shift|J",
+                      "id": "shortcuts.nav.apps_menu.mac",
                     },
                   }
                 }

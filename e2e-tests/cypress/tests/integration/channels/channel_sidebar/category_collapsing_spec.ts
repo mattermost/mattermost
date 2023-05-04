@@ -134,6 +134,9 @@ describe('Channel sidebar', () => {
     });
 
     it('should retain the collapsed state of categories when unread filter is enabled/disabled', () => {
+        cy.apiAdminLogin();
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', false);
+
         cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel Test').then(({channel}) => {
             cy.postMessageAs({sender: sysadmin, message: 'Test', channelId: channel.id});
 
@@ -164,6 +167,46 @@ describe('Channel sidebar', () => {
             // * Verify that DIRECT MESSAGES is not collapsed but CHANNELS still is
             cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('be.visible').should('have.class', 'icon-rotate-minus-90');
             cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+        });
+    });
+
+    it('should retain the collapsed state of categories when unread filter is enabled/disabled - AppsSidebarCategory enabled', () => {
+        cy.apiAdminLogin();
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
+
+        cy.apiCreateChannel(testTeam.id, 'channel-test-1', 'Channel Test 1').then(({channel}) => {
+            cy.postMessageAs({sender: sysadmin, message: 'Test 1', channelId: channel.id});
+
+            // * Verify that CHANNELS starts expanded
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('not.have.class', 'icon-rotate-minus-90');
+
+            // * Verify that all categories are visible
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible');
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES)').should('be.visible');
+            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(APPS)').should('be.visible');
+            cy.get('.SidebarChannelGroupHeader:contains(APPS) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+
+            // # Collapse CHANNELS
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').click();
+
+            // * Verify that CHANNELS is collapsed
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('have.class', 'icon-rotate-minus-90');
+
+            // # Enable the unread filter
+            cy.get('.SidebarFilters_filterButton').click();
+
+            // * Verify that the unread filter is enabled
+            cy.get('.SidebarChannelGroupHeader:contains(UNREADS)').should('be.visible');
+
+            // # Disable the unread filter
+            cy.get('.SidebarFilters_filterButton').click();
+
+            // * Verify that DIRECT MESSAGES is not collapsed but CHANNELS still is
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('be.visible').should('have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(APPS) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
         });
     });
 });

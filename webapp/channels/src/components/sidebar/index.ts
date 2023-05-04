@@ -71,6 +71,8 @@ function mapStateToProps(state: GlobalState) {
             isMarketplaceEnabled(state) &&
             haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
         ),
+        isMarketplaceModalOpen: isModalOpen(state, ModalIdentifiers.PLUGIN_MARKETPLACE),
+        isMoreDirectBotChannelsModalOpen: isModalOpen(state, ModalIdentifiers.MORE_DIRECT_BOT_CHANNELS),
     };
 }
 

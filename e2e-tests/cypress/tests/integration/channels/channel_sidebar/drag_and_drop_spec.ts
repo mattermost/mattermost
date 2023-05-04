@@ -85,6 +85,56 @@ describe('Channel sidebar', () => {
         cy.get('@toChannelGroup').eq(0).should('contain', 'DIRECT MESSAGES');
     });
 
+    it('should move category to correct place - AppsSidebarCategory enabled', () => {
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
+
+        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').should('be.visible').as('fromChannelGroup');
+
+        // * Verify the order is correct to begin with
+        cy.get('@fromChannelGroup').eq(0).should('contain', 'CHANNELS');
+        cy.get('@fromChannelGroup').eq(1).should('contain', 'DIRECT MESSAGES');
+        cy.get('@fromChannelGroup').eq(2).should('contain', 'APPS');
+
+        // # Drag CHANNELS using keyboard
+        cy.get('@fromChannelGroup').eq(0).should('contain', 'CHANNELS').
+            trigger('keydown', {keyCode: SpaceKeyCode}).
+            trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+            trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+            trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
+
+        // * Verify that the elements have been re-ordered
+        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').as('toChannelGroup1');
+        cy.get('@toChannelGroup1').eq(0).should('contain', 'DIRECT MESSAGES');
+        cy.get('@toChannelGroup1').eq(1).should('contain', 'APPS');
+        cy.get('@toChannelGroup1').eq(2).should('contain', 'CHANNELS');
+
+        // # Drag DIRECT MESSAGES using keyboard
+        cy.get('@toChannelGroup1').eq(0).should('contain', 'DIRECT MESSAGES').
+            trigger('keydown', {keyCode: SpaceKeyCode}).
+            trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+            trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+            trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
+
+        // * Verify that the elements have been re-ordered
+        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').as('toChannelGroup2');
+        cy.get('@toChannelGroup2').eq(0).should('contain', 'APPS');
+        cy.get('@toChannelGroup2').eq(1).should('contain', 'CHANNELS');
+        cy.get('@toChannelGroup2').eq(2).should('contain', 'DIRECT MESSAGES');
+
+        // # Drag APPS using keyboard
+        cy.get('@toChannelGroup2').eq(0).should('contain', 'APPS').
+            trigger('keydown', {keyCode: SpaceKeyCode}).
+            trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+            trigger('keydown', {keyCode: DownArrowKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC).
+            trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
+
+        // * Verify that the elements have been re-ordered
+        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').as('toChannelGroup3');
+        cy.get('@toChannelGroup3').eq(0).should('contain', 'CHANNELS');
+        cy.get('@toChannelGroup3').eq(1).should('contain', 'DIRECT MESSAGES');
+        cy.get('@toChannelGroup3').eq(2).should('contain', 'APPS');
+    });
+
     it('should retain focus within the channel sidebar after dragging and dropping with the keyboard', () => {
         // * Verify that we've switched to the new team
         cy.uiGetLHSHeader().findByText(teamName);

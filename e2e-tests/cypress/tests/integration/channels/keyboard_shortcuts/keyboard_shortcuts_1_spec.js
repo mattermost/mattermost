@@ -410,6 +410,33 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#moreDmModal').should('not.exist');
     });
 
+    it('MM-T1278 - CTRL/CMD+SHIFT+J', () => {
+        cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
+
+        // # Type CTRL/CMD+SHIFT+J to open 'App Marketplace' modal
+        cy.uiGetPostTextBox().cmdOrCtrlShortcut('{shift}J');
+        cy.get('#marketplace-modal').should('be.visible').contains('App Marketplace');
+
+        // # Type CTRL/CMD+SHIFT+J to close 'App Marketplace' modal
+        cy.get('body').cmdOrCtrlShortcut('{shift}J');
+        cy.get('#marketplace-modal').should('not.exist');
+
+        // # Logout admin user
+        cy.apiLogout();
+
+        // # Login as test user and visit town-square
+        cy.apiLogin(testUser);
+        cy.visit(`/${testTeam.name}/channels/town-square`);
+
+        // # Type CTRL/CMD+SHIFT+J to open 'Apps' modal
+        cy.uiGetPostTextBox().cmdOrCtrlShortcut('{shift}J');
+        cy.get('#MoreDirectBotChannels-modal').should('be.visible').contains('Apps');
+
+        // # Type CTRL/CMD+SHIFT+J to close 'Apps' modal
+        cy.get('body').cmdOrCtrlShortcut('{shift}J');
+        cy.get('#MoreDirectBotChannels-modal').should('not.exist');
+    });
+
     it('MM-T4452 - CTRL/CMD+SHIFT+. Expand or collapse RHS when RHS is already open', () => {
         // # Post a message in center
         cy.postMessage(messages.TINY);

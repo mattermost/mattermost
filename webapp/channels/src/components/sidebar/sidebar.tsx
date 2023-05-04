@@ -57,6 +57,8 @@ type Props = {
     rhsOpen?: boolean;
     showWorkTemplateButton: boolean;
     canOpenMarketplace: boolean;
+    isMarketplaceModalOpen: boolean;
+    isMoreDirectBotChannelsModalOpen: boolean;
 };
 
 type State = {
@@ -202,17 +204,37 @@ export default class Sidebar extends React.PureComponent<Props, State> {
     handleOpenAppsModal = (e: Event) => {
         e.preventDefault();
 
-        if (this.props.canOpenMarketplace) {
+        const {
+            canOpenMarketplace,
+            isMarketplaceModalOpen,
+            isMoreDirectBotChannelsModalOpen,
+            actions: {
+                openModal,
+                closeModal,
+            },
+        } = this.props;
+
+        if (canOpenMarketplace) {
+            if (isMarketplaceModalOpen) {
+                closeModal(ModalIdentifiers.PLUGIN_MARKETPLACE);
+                return;
+            }
+
             const {parentElement: plusButton} = e.target as HTMLElement;
             const openedFrom: OpenedFromType = plusButton?.className.includes('_addButton') ? 'apps_category_plus' : 'apps_category_menu';
 
-            this.props.actions.openModal({
+            openModal({
                 modalId: ModalIdentifiers.PLUGIN_MARKETPLACE,
                 dialogType: MarketplaceModal,
                 dialogProps: {openedFrom},
             });
         } else {
-            this.props.actions.openModal({
+            if (isMoreDirectBotChannelsModalOpen) {
+                closeModal(ModalIdentifiers.MORE_DIRECT_BOT_CHANNELS);
+                return;
+            }
+
+            openModal({
                 modalId: ModalIdentifiers.MORE_DIRECT_BOT_CHANNELS,
                 dialogType: MoreDirectBotChannelsModal,
             });

@@ -201,7 +201,7 @@ declare global {
 
             /**
              * Get LHS section
-             * @param {string} section - section such as UNREADS, CHANNELS, FAVORITES, DIRECT MESSAGES and other custom category
+             * @param {string} section - section such as UNREADS, CHANNELS, FAVORITES, DIRECT MESSAGES, APPS and other custom category
              *
              * @example
              *   cy.uiGetLhsSection('CHANNELS');
