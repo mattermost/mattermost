@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 import {makeGetUserOrGroupMentionCountFromMessage} from 'utils/post_utils';
 import Constants from 'utils/constants';
 
-import {GenericModal} from '@mattermost/components';
+import GenericModal from 'components/generic_modal';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
 
