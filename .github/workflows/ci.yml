@@ -106,6 +106,7 @@ jobs:
         with:
           version: v1.52.2
           working-directory: server
+          args: --new-from-rev=HEAD~ --whole-files # This only checks the latest commit for speed.
   check-migrations:
     name: Check migration files
     runs-on: ubuntu-22.04
