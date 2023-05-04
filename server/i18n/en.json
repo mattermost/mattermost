@@ -8812,6 +8812,10 @@
     "translation": "Invalid listen address for service settings Must be set."
   },
   {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Unable to locate local socket file directory."
+  },
+  {
     "id": "model.config.is_valid.localization.available_locales.app_error",
     "translation": "Available Languages must contain Default Client Language."
   },
