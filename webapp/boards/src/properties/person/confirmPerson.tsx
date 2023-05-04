@@ -4,7 +4,7 @@
 import React, {useCallback, useState} from 'react'
 import {useIntl} from 'react-intl'
 
-import {ActionMeta, SingleValue, MultiValue} from 'react-select'
+import {ActionMeta, MultiValue, SingleValue} from 'react-select'
 
 import {IUser} from 'src/user'
 import mutator from 'src/mutator'
