@@ -107,16 +107,15 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 			}
 		}
 
-		if address != "" {
+		if address != "" && net.ParseIP(address) != nil {
 			return address
 		}
+
 	}
 
-	if address == "" {
-		address, _, _ = net.SplitHostPort(r.RemoteAddr)
-	}
+	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-	return address
+	return host
 }
 
 func GetHostnameFromSiteURL(siteURL string) string {
