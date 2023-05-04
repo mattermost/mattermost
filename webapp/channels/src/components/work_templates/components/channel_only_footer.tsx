@@ -13,7 +13,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {overlayScrollbarAllowance} from '../constants';
-import {ThemeProvider, Button} from '@mattermost/components'
+import {ThemeProvider, Button} from '@mattermost/components';
 
 interface Props {
     createChannel: () => void;
