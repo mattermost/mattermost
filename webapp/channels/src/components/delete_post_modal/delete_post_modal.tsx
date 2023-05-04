@@ -138,8 +138,8 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                             term: (postTerm),
                         }}
                     />
-                    </Typography>
-            )
+                </Typography>
+            );
             return (
                 <GenericModal
                     isOpen={this.state.show}
