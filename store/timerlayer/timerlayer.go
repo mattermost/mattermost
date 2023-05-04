@@ -5047,7 +5047,6 @@ func (s *TimerLayerOAuthStore) RemoveAuthDataByClientId(clientId string, userId 
 		if err == nil {
 			success = "true"
 		}
-
 		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveAuthDataByClientId", success, elapsed)
 	}
 	return err
