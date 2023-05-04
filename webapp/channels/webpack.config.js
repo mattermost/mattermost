@@ -55,11 +55,12 @@ if (DEV) {
 const buildTimestamp = Date.now();
 
 var config = {
-    entry: ['./src/root.tsx', './src/root.html'],
+    entry: ['./src/root.tsx'],
     output: {
         publicPath,
         filename: '[name].[contenthash].js',
         chunkFilename: '[name].[contenthash].js',
+        assetModuleFilename: 'files/[contenthash][ext]',
         clean: true,
     },
     module: {
@@ -77,17 +78,15 @@ var config = {
                 },
             },
             {
-                type: 'javascript/auto',
                 test: /\.json$/,
                 include: [
                     path.resolve(__dirname, 'src/i18n'),
                 ],
                 exclude: [/en\.json$/],
-                use: [
-                    {
-                        loader: 'file-loader?name=i18n/[name].[contenthash].[ext]',
-                    },
-                ],
+                type: 'asset/resource',
+                generator: {
+                    filename: 'i18n/[name].[contenthash].json',
+                },
             },
             {
                 test: /\.(css|scss)$/,
@@ -108,13 +107,8 @@ var config = {
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
+                type: 'asset/resource',
                 use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
                     {
                         loader: 'image-webpack-loader',
                         options: {},
@@ -123,25 +117,7 @@ var config = {
             },
             {
                 test: /\.apng$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
-                ],
-            },
-            {
-                test: /\.html$/,
-                use: [
-                    {
-                        loader: 'html-loader',
-                        options: {
-                            sources: false,
-                        },
-                    },
-                ],
+                type: 'asset/resource',
             },
         ],
     },
