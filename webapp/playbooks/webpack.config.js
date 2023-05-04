@@ -61,17 +61,6 @@ const config = {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg|jpeg)$/,
                 type: 'asset/inline', // consider 'asset' when URL resource chunks are supported
             },
-            {
-                test: /\.apng$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
-                ],
-            },
         ],
     },
     devtool,

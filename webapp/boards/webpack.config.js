@@ -86,10 +86,6 @@ const config = {
                 exclude: [/node_modules/],
             },
             {
-                test: /\.html$/,
-                type: 'asset/resource',
-            },
-            {
                 test: /\.s[ac]ss$/i,
                 use: [
                     'style-loader',
@@ -106,17 +102,10 @@ const config = {
                 ],
             },
             {
-                test: /\.(tsx?|js|jsx|mjs|html)$/,
-                use: [
-                ],
-                exclude: [/node_modules/],
-            },
-            {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|jpg|gif)$/,
                 type: 'asset/resource',
                 generator: {
                     filename: '[name][ext]',
-                    publicPath: undefined,
                 },
             },
         ],
