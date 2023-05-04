@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    useCallback,
+    useEffect,
     useMemo,
     useState,
-    useCallback,
-    useEffect
 } from 'react'
 import {useIntl} from 'react-intl'
 import {DateUtils} from 'react-day-picker'
@@ -49,6 +49,7 @@ export function createDatePropertyFromString(initialValue: string): DateProperty
             }
         }
     }
+
     return dateProperty
 }
 
@@ -80,6 +81,7 @@ function DateRange(props: PropertyProps): JSX.Element {
         if (date) {
             displayDate = Utils.displayDate(date, intl)
         }
+
         return displayDate
     }
 
@@ -202,6 +204,7 @@ function DateRange(props: PropertyProps): JSX.Element {
                                         if (dateFrom) {
                                             return setFromInput(Utils.inputDate(dateFrom, intl))
                                         }
+
                                         return undefined
                                     }}
                                     onChange={setFromInput}
@@ -230,6 +233,7 @@ function DateRange(props: PropertyProps): JSX.Element {
                                             if (dateTo) {
                                                 return setToInput(Utils.inputDate(dateTo, intl))
                                             }
+
                                             return undefined
                                         }}
                                         onChange={setToInput}

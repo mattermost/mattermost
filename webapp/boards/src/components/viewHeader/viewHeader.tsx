@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import ViewMenu from 'src/components/viewMenu'
@@ -59,9 +59,12 @@ const ViewHeader = (props: Props) => {
     const [showFilter, setShowFilter] = useState(false)
     const [lockFilterOnClose, setLockFilterOnClose] = useState(false)
     const intl = useIntl()
-    const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
 
     const {board, activeView, views, groupByProperty, cards, dateDisplayProperty} = props
+    let readonly = props.readonly
+    if (!readonly) {
+        readonly = !useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
+    }
 
     const withGroupBy = activeView.fields.viewType === 'board' || activeView.fields.viewType === 'table'
     const withDisplayBy = activeView.fields.viewType === 'calendar'
@@ -116,10 +119,12 @@ const ViewHeader = (props: Props) => {
     const allowCreateView = (): boolean => {
         if (limits && (limits.views === LimitUnlimited || views.length < limits.views)) {
             setShowViewLimitDialog(false)
+
             return true
         }
 
         setShowViewLimitDialog(true)
+
         return false
     }
 
@@ -137,7 +142,7 @@ const ViewHeader = (props: Props) => {
                     }}
                     onChange={setViewTitle}
                     saveOnEsc={true}
-                    readonly={props.readonly || !canEditBoardProperties}
+                    readonly={readonly}
                     spellCheck={true}
                     autoExpand={false}
                 />
@@ -148,7 +153,7 @@ const ViewHeader = (props: Props) => {
                             board={board}
                             activeView={activeView}
                             views={views}
-                            readonly={props.readonly || !canEditBoardProperties}
+                            readonly={readonly}
                             allowCreateView={allowCreateView}
                         />
                     </MenuWrapper>
@@ -159,7 +164,7 @@ const ViewHeader = (props: Props) => {
 
             <div className='octo-spacer'/>
 
-            {!props.readonly && canEditBoardProperties &&
+            {!readonly &&
             <>
                 {/* Card properties */}
 

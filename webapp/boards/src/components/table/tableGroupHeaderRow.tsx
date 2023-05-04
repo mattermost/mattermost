@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
-import React, {useState, useEffect} from 'react'
+
+import React, {useEffect, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Constants} from 'src/constants'
 import {
-    IPropertyOption,
     Board,
+    BoardGroup,
+    IPropertyOption,
     IPropertyTemplate,
-    BoardGroup
 } from 'src/blocks/board'
 import {BoardView} from 'src/blocks/boardView'
 import {useSortable} from 'src/hooks/sortable'
@@ -86,7 +86,7 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
                     <Label
                         title={intl.formatMessage({
                             id: 'BoardComponent.no-property-title',
-                            defaultMessage: 'Items with an empty {property} property will go here. This column cannot be removed.',
+                            defaultMessage: "Items with an empty {property} property will go here. This column can't be removed.",
                         }, {property: groupByProperty?.name})}
                     >
                         <FormattedMessage

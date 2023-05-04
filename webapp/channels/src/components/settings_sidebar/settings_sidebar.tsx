@@ -5,7 +5,8 @@ import React, {RefObject} from 'react';
 
 import * as UserAgent from 'utils/user_agent';
 import Constants from 'utils/constants';
-import {a11yFocus, isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {a11yFocus} from 'utils/utils';
 
 export type Tab = {
     icon: string;
@@ -33,7 +34,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         e.preventDefault();
         this.props.updateTab(tab.name);
         (e.target as Element).closest('.settings-modal')?.classList.add('display--content');
-    }
+    };
 
     public handleKeyUp = (index: number, e: React.KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.UP)) {
@@ -47,7 +48,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                 a11yFocus(this.buttonRefs[index + 1].current);
             }
         }
-    }
+    };
 
     public componentDidMount() {
         if (UserAgent.isFirefox()) {

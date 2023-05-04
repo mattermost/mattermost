@@ -193,7 +193,10 @@ describe('components/sidebarCategory', () => {
         expect(mockTemplateClose).toBeCalled()
     })
 
-    test('sidebar template close other', async () => {
+    // TODO: Remove when fetch is mocked correctly
+    // https://mattermost.atlassian.net/browse/MM-52212
+
+    test.skip('sidebar template close other', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 

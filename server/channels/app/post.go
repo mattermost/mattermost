@@ -15,15 +15,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 const (
@@ -546,6 +546,16 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = post.Clone()
+		sanitizedPost.Metadata = nil
+	}
+	post = sanitizedPost
 
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
@@ -1889,6 +1899,12 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	if mentioned, ok := mentionedByThread[post.RootId]; ok {
 		// We've already figured out if the user was mentioned by this thread
 		return mentioned
+	}
+
+	if _, ok := otherPosts[post.RootId]; !ok {
+		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("rootPostID", post.RootId), mlog.String("commentID", post.Id))
+
+		return false
 	}
 
 	// Whether or not the user was mentioned because they started the thread

@@ -13,7 +13,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-describe('playbooks > edit', () => {
+describe('playbooks > edit', {testIsolation: true}, () => {
     let testTeam;
     let testSysadmin;
     let testUser;

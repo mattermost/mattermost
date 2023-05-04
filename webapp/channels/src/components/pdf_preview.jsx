@@ -28,7 +28,7 @@ export default class PDFPreview extends React.PureComponent {
         fileUrl: PropTypes.string.isRequired,
         scale: PropTypes.number.isRequired,
         handleBgClose: PropTypes.func.isRequired,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -100,7 +100,7 @@ export default class PDFPreview extends React.PureComponent {
         const fileDownloadUrl = this.props.fileInfo.link || getFileDownloadUrl(this.props.fileInfo.id);
         e.preventDefault();
         window.location.href = fileDownloadUrl;
-    }
+    };
 
     isInViewport = (page) => {
         const bounding = page.getBoundingClientRect();
@@ -143,7 +143,7 @@ export default class PDFPreview extends React.PureComponent {
 
         await page.render(renderContext).promise;
         this.pdfPagesRendered[pageIndex] = true;
-    }
+    };
 
     getPdfDocument = async () => {
         try {
@@ -160,7 +160,7 @@ export default class PDFPreview extends React.PureComponent {
         } catch (err) {
             this.onDocumentLoadError(err);
         }
-    }
+    };
 
     onDocumentLoad = (pdf) => {
         this.setState({pdf, numPages: pdf.numPages});
@@ -168,12 +168,12 @@ export default class PDFPreview extends React.PureComponent {
             this[`pdfCanvasRef-${i}`] = React.createRef();
         }
         this.setState({loading: false, success: true});
-    }
+    };
 
     onDocumentLoadError = (reason) => {
         console.log('Unable to load PDF preview: ' + reason); //eslint-disable-line no-console
         this.setState({loading: false, success: false});
-    }
+    };
 
     loadPage = async (pdf, pageIndex) => {
         if (this.state.pdfPagesLoaded[pageIndex]) {
@@ -190,7 +190,7 @@ export default class PDFPreview extends React.PureComponent {
         this.setState({pdfPages, pdfPagesLoaded});
 
         return page;
-    }
+    };
 
     handleScroll = debounce(() => {
         if (this.state.success) {

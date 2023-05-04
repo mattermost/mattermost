@@ -1,21 +1,11 @@
 @import 'utils/variables';
+@import 'utils/mixins';
 
-.modal-marketplace {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 50px;
-    color: var(--center-channel-color);
-    font-size: 16px;
-
-    @media (max-width: 768px) {
-        padding-right: 15px;
-        padding-left: 15px;
-    }
+.marketplace-modal {
+    width: 800px;
 
     div.navigation-row {
+        overflow: unset;
         margin-top: 10px;
 
         div {
@@ -29,7 +19,7 @@
         }
 
         div.count {
-            padding-top: 8px;
+            padding: 9px 15px;
         }
     }
 
@@ -45,31 +35,45 @@
     }
 
     .nav-tabs {
-        font-size: 14px;
+        padding: 0 32px;
+        margin: 0 0 8px;
 
-        > li {
-            > a {
-                padding: 10px 16px;
+        li {
+            margin-right: 0;
+
+            a {
+                padding: 13px 12px;
+                border: none;
                 background: transparent;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
                 transition: all 0.15s ease;
 
                 &:hover,
                 &:active,
-                &:focus {
+                &:focus,
+                &:focus-within {
+                    border: none;
                     background: transparent;
+                    border-radius: none;
                     color: var(--center-channel-color);
                 }
             }
 
-            &.active > a {
-                color: var(--center-channel-color);
+            &.active {
+                border-bottom: 2px solid var(--denim-button-bg);
+
+                a {
+                    color: var(--denim-button-bg);
+                }
+            }
+
+            &:not(:first-child) {
+                margin-left: 8px;
             }
         }
-    }
-
-    h1 {
-        margin: 8px 0 24px;
-        font-size: 28px;
     }
 
     h2 {
@@ -81,38 +85,112 @@
     }
 
     .more-modal__list {
+        height: 390px;
+        margin: 0 6px 8px 12px;
+        overflow-y: scroll;
+
         .more-modal__row {
-            align-items: normal;
+            overflow: hidden;
+            min-height: 80px;
+            padding: 16px 20px;
+            border-bottom: none;
 
             .marketplace__tag {
                 margin-left: 6px;
             }
 
             .update {
-                padding: 10px 10px 0 0;
-                border-top: 1px solid rgba(black, 0.1);
-                margin: 10px 10px 0 0;
                 font-size: 0.9em;
+
+                a {
+                    text-decoration: none;
+                }
+            }
+
+            .more-modal__details {
+                padding-left: 16px;
+
+                .more-modal__row--link {
+                    color: var(--center-channel-color);
+                    font-size: 16px;
+                    font-weight: 600;
+                    line-height: 24px;
+                }
+
+                .more-modal__description {
+                    margin: 2px 0 0;
+                    color: var(--center-channel-color-rgb);
+                    font-size: 14px;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+            }
+
+            .more-modal__actions {
+                padding-left: 16px;
+                margin: 0;
+
+                .plugin-configure,
+                .app-installed {
+                    @include secondary-button;
+                    @include button-medium;
+                }
+
+                .plugin-install,
+                .app-install {
+                    @include primary-button;
+                    @include button-medium;
+                }
+
+                a {
+                    &:hover,
+                    &:focus {
+                        text-decoration: none;
+                    }
+                }
+            }
+
+            &:hover,
+            &:focus,
+            &:focus-within {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
             }
         }
 
-        .more-modal__description {
-            margin: 2px 0 0;
-            font-size: 0.9em;
-        }
+        .icon__plugin {
+            display: flex;
+            height: 48px;
+            flex: 0 0 48px;
+            align-items: center;
+            justify-content: center;
+            background-color: $white;
+            border-radius: 50%;
 
-        padding-bottom: 80px;
+            svg,
+            img {
+                width: 48px;
+                height: 48px;
+            }
+
+            svg {
+                fill: var(--button-bg);
+            }
+
+            img {
+                border-radius: 4px;
+            }
+        }
     }
 
-    .search_input {
-        width: 720px;
-        height: 40px;
-        flex: 1;
-        margin-top: 28px;
-        margin-right: 16px;
-        margin-bottom: 20px;
-        margin-left: 16px;
-        box-shadow: none;
+    .marketplace-modal-search {
+        padding: 24px 0 0;
+
+        .search_input {
+            width: 100%;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none;
+        }
     }
 
     .btn {
@@ -130,8 +208,9 @@
 
     .tabs {
         display: flex;
-        width: 720px;
+        width: 100%;
         flex-direction: column;
+        margin-top: 12px;
     }
 
     .subtitle {
@@ -160,67 +239,47 @@
         }
     }
 
-    .icon__plugin {
+    .no_plugins {
         display: flex;
-        height: 42px;
-        flex: 0 0 42px;
+        height: 390px;
+        flex-flow: column;
         align-items: center;
         justify-content: center;
-        margin-right: 4px;
-        border-radius: 50%;
+        margin-bottom: 8px;
 
-        svg {
-            width: 32px;
-            height: 32px;
-            fill: var(--button-bg);
+        &__message {
+            margin-top: 20px;
+            color: var(--center-channel-color);
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
         }
-    }
 
-    .icon__plugin--background {
-        padding: 6px;
-        background-color: $white;
+        &__action {
+            @include primary-button;
+            @include button-medium;
 
-        svg {
-            width: 24px;
-            height: 24px;
+            margin-top: 30px;
         }
-    }
 
-    .no_plugins_div {
-        text-align: center;
+        .icon__plugin {
+            svg {
+                fill: var(--button-bg);
+            }
+        }
     }
 
     .item_error {
-        background-color: rgba(var(--error-text-rgb), 0.08);
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
     }
 
-    .error_text {
-        color: var(--error-text);
-        opacity: 1;
+    .loading {
+        height: 390px;
     }
 }
 
-.error-bar {
-    position: fixed;
-    z-index: 8;
-    top: 0;
-    overflow: hidden;
-    width: 100%;
-    min-height: $announcement-bar-height;
-    max-height: $announcement-bar-height;
-    padding: 5px 30px;
-    background-color: var(--center-channel-bg);
-    color: var(--error-text);
-
-    .error-bar__content {
-        position: absolute;
-        top: 0;
-        left: 0;
-        display: flex;
-        width: 100%;
-        height: 100%;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(var(--error-text-rgb), 0.12);
+.more-modal__description-tooltip {
+    .tooltip-inner {
+        text-align: left;
     }
 }

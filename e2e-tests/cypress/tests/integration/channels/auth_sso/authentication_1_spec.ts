@@ -79,7 +79,7 @@ describe('Authentication', () => {
             cy.visit('/');
 
             // # Open Profile
-            cy.uiOpenProfileModal();
+            cy.uiOpenProfileModal('Profile Settings');
 
             // # Click "Edit" to the right of "Email"
             cy.get('#emailEdit').should('be.visible').click();

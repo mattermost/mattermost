@@ -42,11 +42,13 @@ content:
       template: "Product Release"
       name: "Feature release"
       id: product-release-playbook
-      illustration: "/static/worktemplates/product_teams/feature_release/playbook.png"
+      illustration: "/static/worktemplates/playbooks/product_release.png"
   - integration:
       id: jira
+      recommended: true
   - integration:
       id: github
+      recommended: true
 ---
 id: 'product_teams/goals_and_okrs:v1'
 category: product_teams
@@ -61,7 +63,7 @@ description:
   board:
     id: worktemplate.product_teams.goals_and_okrs.board
     defaultMessage: >-
-      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. 
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.product_teams.goals_and_okrs.integration
     defaultMessage: >-
@@ -86,7 +88,7 @@ content:
       channel: channel-1674845108569
   - integration:
       id: zoom
-
+      recommended: true
 ---
 id: 'product_teams/bug_bash:v1'
 category: product_teams
@@ -120,6 +122,7 @@ content:
       playbook: playbook-1674844017943
   - integration:
       id: jira
+      recommended: true
 ---
 id: 'product_teams/sprint_planning:v1'
 category: product_teams
@@ -134,7 +137,7 @@ description:
   board:
     id: worktemplate.product_teams.sprint_planning.board
     defaultMessage: >-
-      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments. 
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
   integration:
     id: worktemplate.product_teams.sprint_planning.integration
     defaultMessage: >-
@@ -153,6 +156,7 @@ content:
       channel: channel-1674850783500
   - integration:
       id: zoom
+      recommended: true
 ---
 id: 'product_teams/product_roadmap:v1'
 category: product_teams
@@ -263,7 +267,7 @@ description:
   board:
     id: worktemplate.companywide.goals_and_okrs.board
     defaultMessage: >-
-      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. 
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.companywide.goals_and_okrs.integration
     defaultMessage: >-
@@ -282,6 +286,7 @@ content:
       channel: channel-1674845108569
   - integration:
       id: zoom
+      recommended: true
 ---
 id: 'companywide/create_project:v1'
 category: companywide
@@ -316,10 +321,13 @@ content:
       channel: channel-1674851940114
   - integration:
       id: jira
+      recommended: true
   - integration:
       id: github
+      recommended: true
   - integration:
       id: zoom
+      recommended: true
 ---
 ######################
 # Leadership
@@ -337,7 +345,7 @@ description:
   board:
     id: worktemplate.leadership.goals_and_okrs.board
     defaultMessage: >-
-      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. 
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.leadership.goals_and_okrs.integration
     defaultMessage: >-
@@ -356,4 +364,4 @@ content:
       channel: channel-1674845108569
   - integration:
       id: zoom
-
+      recommended: true

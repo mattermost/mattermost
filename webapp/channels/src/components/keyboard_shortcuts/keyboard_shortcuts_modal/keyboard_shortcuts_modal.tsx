@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 import {suitePluginIds} from 'utils/constants';
 
 import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
+import * as UserAgent from 'utils/user_agent';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
@@ -91,7 +91,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
 
     const handleHide = useCallback(() => setShow(false), []);
 
-    const isLinux = Utils.isLinux();
+    const isLinux = UserAgent.isLinux();
 
     const isCallsEnabled = useSelector((state: GlobalState) => {
         return Boolean(state.plugins.plugins[suitePluginIds.calls]);

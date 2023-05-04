@@ -13,7 +13,7 @@ import {
     BaseTourSteps,
     CardTourSteps,
     TOUR_BASE,
-    TOUR_CARD
+    TOUR_CARD,
 } from 'src/components/onboardingTour/index'
 import TourTipRenderer from 'src/components/onboardingTour/tourTipRenderer/tourTipRenderer'
 import {OnboardingBoardTitle, OnboardingCardTitle} from 'src/components/cardDetail/cardDetail'
@@ -40,7 +40,7 @@ const AddPropertiesTourStep = (): JSX.Element | null => {
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddProperties.Body'
-            defaultMessage='Add various properties to cards to make them more powerful!'
+            defaultMessage='Add various properties to cards to make them more powerful.'
         />
     )
 

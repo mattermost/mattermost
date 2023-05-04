@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 
 import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getCurrentUserId, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {GenericAction} from 'mattermost-redux/types/actions';
 
 import {GlobalState} from 'types/store';
@@ -14,8 +14,8 @@ import {GlobalState} from 'types/store';
 import RootRedirect, {Props} from './root_redirect';
 
 function mapStateToProps(state: GlobalState) {
-    const useCaseOnboarding = getUseCaseOnboarding(state);
-    let isElegibleForFirstAdmingOnboarding = useCaseOnboarding;
+    const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
+    let isElegibleForFirstAdmingOnboarding = onboardingFlowEnabled;
     if (isElegibleForFirstAdmingOnboarding) {
         isElegibleForFirstAdmingOnboarding = isCurrentUserSystemAdmin(state);
     }

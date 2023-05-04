@@ -107,6 +107,7 @@ const SidebarBoardItem = (props: Props) => {
             undefined,
             () => {
                 Utils.showBoard(board.id, match, history)
+
                 return Promise.resolve()
             },
         )
@@ -193,6 +194,7 @@ const SidebarBoardItem = (props: Props) => {
     const boardItemRef = useRef<HTMLDivElement>(null)
 
     const title = board.title || intl.formatMessage({id: 'Sidebar.untitled-board', defaultMessage: '(Untitled Board)'})
+
     return (
         <Draggable
             draggableId={props.board.id}
@@ -227,6 +229,7 @@ const SidebarBoardItem = (props: Props) => {
                                     setBoardsMenuOpen((menuState) => {
                                         const newState = {...menuState}
                                         newState[board.id] = open
+
                                         return newState
                                     })
                                 }}

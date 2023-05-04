@@ -20,6 +20,7 @@ describe('components/drafts/drafts', () => {
         displayName: 'display_name',
         status: {} as UserStatus['status'],
         localDraftsAreEnabled: true,
+        draftRemotes: {},
     };
 
     it('should match snapshot', () => {

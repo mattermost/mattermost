@@ -49,6 +49,10 @@ export default class ChannelsPage {
         await this.postCreate.postMessage(message);
     }
 
+    async sendMessage() {
+        await this.postCreate.sendMessage();
+    }
+
     async getFirstPost() {
         await this.page.getByTestId('postView').first().waitFor();
         const post = await this.page.getByTestId('postView').first();

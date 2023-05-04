@@ -5,7 +5,7 @@ import {
     fireEvent,
     render,
     screen,
-    within
+    within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -29,7 +29,14 @@ jest.mock('react-router-dom', () => {
     return {
         ...originalModule,
         useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
+            return {
+                params: {
+                    teamId: 'team1',
+                    boardId: 'boardId1',
+                    viewId: 'viewId1',
+                    cardId: 'cardId1',
+                },
+            }
         }),
     }
 })
@@ -368,7 +375,7 @@ describe('components/centerPanel', () => {
             ))
             const cardElement = screen.getByRole('textbox', {name: 'card1'})
             expect(cardElement).not.toBeNull()
-            fireEvent.click(cardElement, {shiftKey: true})            
+            fireEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //delete

@@ -143,17 +143,19 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "Product Release",
 				Name:         "Feature release",
 				ID:           "product-release-playbook",
-				Illustration: "/static/worktemplates/product_teams/feature_release/playbook.png",
+				Illustration: "/static/worktemplates/playbooks/product_release.png",
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "jira",
+				ID:          "jira",
+				Recommended: true,
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "github",
+				ID:          "github",
+				Recommended: true,
 			},
 		},
 	},
@@ -174,7 +176,7 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.goals_and_okrs.board",
-			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
@@ -214,7 +216,8 @@ var wt5baa68055bf9ea423273662e01ccc575 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -265,7 +268,8 @@ var wtfeb56bc6a8f277c47b503bd1c92d830e = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "jira",
+				ID:          "jira",
+				Recommended: true,
 			},
 		},
 	},
@@ -286,7 +290,7 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.product_teams.sprint_planning.board",
-			DefaultMessage: "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments. ",
+			DefaultMessage: "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.",
 			Illustration:   "",
 		},
 
@@ -317,7 +321,8 @@ var wt8d2ef53deac5517eb349dc5de6150196 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -487,7 +492,7 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.companywide.goals_and_okrs.board",
-			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
@@ -518,7 +523,8 @@ var wtf7b846d35810f8272eeb9a1a562025b5 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -570,17 +576,20 @@ var wtb9ab412890c2410c7b49eec8f12e7edc = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "jira",
+				ID:          "jira",
+				Recommended: true,
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "github",
+				ID:          "github",
+				Recommended: true,
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},
@@ -601,7 +610,7 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 		},
 		Board: &TranslatableString{
 			ID:             "worktemplate.leadership.goals_and_okrs.board",
-			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board. ",
+			DefaultMessage: "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.",
 			Illustration:   "",
 		},
 
@@ -632,7 +641,8 @@ var wt32ab773bfe021e3d4913931041552559 = &WorkTemplate{
 		},
 		{
 			Integration: &Integration{
-				ID: "zoom",
+				ID:          "zoom",
+				Recommended: true,
 			},
 		},
 	},

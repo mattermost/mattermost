@@ -1,7 +1,7 @@
 {
   "AdminBadge.SystemAdmin": "Admin",
   "AdminBadge.TeamAdmin": "Team Admin",
-  "AppBar.Tooltip": "Toggle Linked Boards",
+  "AppBar.Tooltip": "Toggle linked boards",
   "Attachment.Attachment-title": "Attachment",
   "AttachmentBlock.DeleteAction": "delete",
   "AttachmentBlock.addElement": "add {type}",
