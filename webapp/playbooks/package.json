@@ -91,7 +91,6 @@
     "eslint-plugin-react": "7.28.0",
     "eslint-plugin-react-hooks": "4.3.0",
     "eslint-plugin-unused-imports": "2.0.0",
-    "file-loader": "^6.2.0",
     "identity-obj-proxy": "3.0.0",
     "jest": "27.4.7",
     "jest-canvas-mock": "2.3.1",

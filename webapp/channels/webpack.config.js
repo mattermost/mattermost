@@ -119,6 +119,10 @@ var config = {
                 test: /\.apng$/,
                 type: 'asset/resource',
             },
+            {
+                test: /\/highlight\.js\/.*\.css$/,
+                type: 'asset/resource',
+            },
         ],
     },
     resolve: {
