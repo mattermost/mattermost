@@ -2,43 +2,43 @@
 @import 'utils/variables';
 
 .ChannelOnlyFooter {
-  &__cancel,
-  &__confirm {
-    padding: 13px 20px;
-    border: none;
-    border-radius: 4px;
-    box-shadow: none;
-    @include button-medium;
-    
-  } 
+    &__cancel,
+    &__confirm {
+        padding: 13px 20px;
+        border: none;
+        border-radius: 4px;
+        box-shadow: none;
 
-  &__cancel {
-      margin-right: 8px;
-      background: var(--center-channel-bg);
-      background: rgba(var(--button-bg-rgb), 0.08);
-      color: var(--button-bg);
+        @include button-medium;
+    }
 
-      &:hover {
-          background: rgba(var(--button-bg-rgb), 0.12);
-      }
+    &__cancel {
+        margin-right: 8px;
+        background: var(--center-channel-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
 
-      &:active {
-          background: rgba(var(--button-bg-rgb), 0.16);
-      }
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.12);
+        }
 
-      &:focus {
-          box-sizing: border-box;
-          padding: 11px 18px;
-          border: 2px solid var(--sidebar-text-active-border);
-      }
-  }
-  &__confirm {
-      @include primary-button;
-      @include button-medium;
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.16);
+        }
 
-      &:focus {
-          padding: 11px 18px;
-      }
-  }
+        &:focus {
+            box-sizing: border-box;
+            padding: 11px 18px;
+            border: 2px solid var(--sidebar-text-active-border);
+        }
+    }
+
+    &__confirm {
+        @include primary-button;
+        @include button-medium;
+
+        &:focus {
+            padding: 11px 18px;
+        }
+    }
 }
-
