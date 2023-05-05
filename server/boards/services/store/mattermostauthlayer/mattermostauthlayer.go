@@ -1173,11 +1173,6 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryP
 		}
 	}
 
-	s.logger.Debug("getMembersForUser",
-		mlog.String("sql", unionSQL),
-		mlog.Any("args", unionArgs),
-	)
-
 	rows, err := s.mmDB.Query(unionSQL, unionArgs...)
 	if err != nil {
 		s.logger.Error(`getMembersForUser ERROR`, mlog.Err(err))
@@ -1268,11 +1263,6 @@ func (s *MattermostAuthLayer) GetMembersForBoard(boardID string, opts model.Quer
 			return nil, fmt.Errorf("error replacing placeholders: %w", err)
 		}
 	}
-
-	s.logger.Trace("getMembersForBoard",
-		mlog.String("sql", unionSQL),
-		mlog.Any("args", unionArgs),
-	)
 
 	rows, err := s.mmDB.Query(unionSQL, unionArgs...)
 	if err != nil {
