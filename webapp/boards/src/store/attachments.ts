@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import {PayloadAction, createSlice} from '@reduxjs/toolkit'
 
 import {AttachmentBlock} from 'src/blocks/attachmentBlock'
 
-import {loadBoardData, initialReadOnlyLoad} from './initialLoad'
+import {initialReadOnlyLoad, loadBoardData} from './initialLoad'
 
 import {RootState} from './index'
 
@@ -24,6 +24,7 @@ const attachmentSlice = createSlice({
                     state.attachments[attachment.id] = attachment
                     if (!state.attachmentsByCard[attachment.parentId]) {
                         state.attachmentsByCard[attachment.parentId] = [attachment]
+
                         return
                     }
                     if (state.attachmentsByCard[attachment.parentId].findIndex((a) => a.id === attachment.id) === -1) {
@@ -33,6 +34,7 @@ const attachmentSlice = createSlice({
                     const parentId = state.attachments[attachment.id]?.parentId
                     if (!state.attachmentsByCard[parentId]) {
                         delete state.attachments[attachment.id]
+
                         return
                     }
                     for (let i = 0; i < state.attachmentsByCard[parentId].length; i++) {
