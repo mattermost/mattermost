@@ -122,6 +122,20 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             />
           </div>
           <div
+            className="divider-light"
+          />
+          <NotificationSection
+            channelAutoFollowThreads="off"
+            expand={false}
+            ignoreChannelMentions="off"
+            memberNotificationLevel="all"
+            onChange={[Function]}
+            onSubmit={[Function]}
+            onUpdateSection={[Function]}
+            section="channelAutoFollowThreads"
+            serverError={null}
+          />
+          <div
             className="divider-dark"
           />
         </div>

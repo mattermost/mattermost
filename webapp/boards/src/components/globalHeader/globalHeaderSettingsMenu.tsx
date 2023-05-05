@@ -8,15 +8,15 @@ import {Archiver} from 'src/archiver'
 import Menu from 'src/widgets/menu'
 import MenuWrapper from 'src/widgets/menuWrapper'
 import {useAppDispatch, useAppSelector} from 'src/store/hooks'
-import {patchProps, getMe} from 'src/store/users'
-import {getCurrentTeam, Team} from 'src/store/teams'
+import {getMe, patchProps} from 'src/store/users'
+import {Team, getCurrentTeam} from 'src/store/teams'
 import {IUser, UserConfigPatch} from 'src/user'
 import octoClient from 'src/octoClient'
 import {UserSettings} from 'src/userSettings'
 import SettingsIcon from 'src/widgets/icons/settings'
 
 import {Constants} from 'src/constants'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 import './globalHeaderSettingsMenu.scss'
 

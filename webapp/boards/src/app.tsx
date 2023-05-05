@@ -12,7 +12,7 @@ import FlashMessages from './components/flashMessages'
 import NewVersionBanner from './components/newVersionBanner'
 import {Utils} from './utils'
 import {fetchMe, getMe} from './store/users'
-import {useAppSelector, useAppDispatch} from './store/hooks'
+import {useAppDispatch, useAppSelector} from './store/hooks'
 import {fetchClientConfig} from './store/clientConfig'
 import FocalboardRouter from './router'
 

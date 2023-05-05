@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import messages_ca from 'i18n/ca.json'
 import messages_de from 'i18n/de.json'
 import messages_el from 'i18n/el.json'
@@ -26,7 +25,6 @@ import messages_uk from 'i18n/uk.json'
 import messages_zhHans from 'i18n/zh_Hans.json'
 import messages_zhHant from 'i18n/zh_Hant.json'
 
-
 export function getMessages(locale: string): {[key: string]: string} {
     switch (locale) {
     // case 'bg':
@@ -36,7 +34,7 @@ export function getMessages(locale: string): {[key: string]: string} {
     case 'de':
         return messages_de
     case 'el':
-        return messages_el  // TODO missing option in language selector
+        return messages_el // TODO missing option in language selector
     case 'en':
     default:
         return messages_en
@@ -51,21 +49,22 @@ export function getMessages(locale: string): {[key: string]: string} {
     case 'hu':
         return messages_hu
     case 'id':
-        return messages_id  // TODO missing option in language selector
+        return messages_id // TODO missing option in language selector
     case 'it':
         return messages_it
     case 'ja':
         return messages_ja
-    case 'ko': 
+    case 'ko':
         return messages_ko
     case 'nl':
         return messages_nl
     case 'oc':
-        return messages_oc  // TODO missing option in language selector
+        return messages_oc // TODO missing option in language selector
     case 'pl':
         return messages_pl
     case 'pt-BR':
         return messages_ptBr
+
     // case 'ro':
     //     return messages_ro // TODO missing translation sourcefile
     case 'ru':
@@ -74,7 +73,7 @@ export function getMessages(locale: string): {[key: string]: string} {
         return messages_sv
     case 'tr':
         return messages_tr
-    case 'uk': 
+    case 'uk':
         return messages_uk
     case 'zh-Hans':
     case 'zh-CN':

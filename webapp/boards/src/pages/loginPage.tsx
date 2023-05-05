@@ -4,8 +4,8 @@ import React, {useState} from 'react'
 import {
     Link,
     Redirect,
+    useHistory,
     useLocation,
-    useHistory
 } from 'react-router-dom'
 import {FormattedMessage} from 'react-intl'
 

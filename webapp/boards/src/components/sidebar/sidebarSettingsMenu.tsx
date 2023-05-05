@@ -5,6 +5,7 @@ import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Archiver} from 'src/archiver'
 import {
+    Theme,
     darkTheme,
     darkThemeName,
     defaultTheme,
@@ -13,19 +14,18 @@ import {
     lightThemeName,
     setTheme,
     systemThemeName,
-    Theme
 } from 'src/theme'
 import Menu from 'src/widgets/menu'
 import MenuWrapper from 'src/widgets/menuWrapper'
 import {useAppSelector} from 'src/store/hooks'
-import {getCurrentTeam, Team} from 'src/store/teams'
+import {Team, getCurrentTeam} from 'src/store/teams'
 import {UserSettings} from 'src/userSettings'
 
 import './sidebarSettingsMenu.scss'
 import CheckIcon from 'src/widgets/icons/check'
 import {Constants} from 'src/constants'
 
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 type Props = {
     activeTheme: string
