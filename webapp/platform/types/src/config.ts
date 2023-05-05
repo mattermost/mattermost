@@ -9,6 +9,7 @@ export type ClientConfig = {
     AllowCustomThemes: string;
     AllowSyncedDrafts: string;
     AllowedThemes: string;
+    AlwaysShowTeamSidebar: string;
     AndroidAppDownloadLink: string;
     AndroidLatestVersion: string;
     AndroidMinVersion: string;
@@ -372,6 +373,7 @@ export type ServiceSettings = {
     EnableCustomGroups: boolean;
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
+    AlwaysShowTeamSidebar: boolean;
 };
 
 export type TeamSettings = {

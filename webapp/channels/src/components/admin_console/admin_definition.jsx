@@ -6830,6 +6830,16 @@ const AdminDefinition = {
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ServiceSettings.AlwaysShowTeamSidebar',
+                        label: t('admin.experimental.alwaysShowTeamSidebar.title'),
+                        label_default: 'Always show team sidebar:',
+                        help_text: t('admin.experimental.alwaysShowTeamSidebar.desc'),
+                        help_text_default: 'When enabled (default off), team sidebar always appears',
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_NUMBER,
                         key: 'TeamSettings.UserStatusAwayTimeout',
                         label: t('admin.experimental.userStatusAwayTimeout.title'),
