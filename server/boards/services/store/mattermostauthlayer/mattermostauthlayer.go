@@ -1132,15 +1132,15 @@ func (s *MattermostAuthLayer) GetMembersForUser(userID string, opts model.QueryP
 			"false AS scheme_viewer",
 			"true AS synthetic",
 		).
-		From(s.tablePrefix + "boards AS B")
+		From(s.tablePrefix + "boards AS B").
+		Join("ChannelMembers AS CM ON B.channel_id=CM.channelId").
+		Where(sq.Eq{"CM.userID": userID})
 
 	if user.IsGuest {
 		// No synthetic memberships for guests
 		queryImplicit = queryImplicit.Where("1=2")
 	} else {
 		queryImplicit = queryImplicit.
-			Join("ChannelMembers AS CM ON B.channel_id=CM.channelId").
-			Where(sq.Eq{"CM.userID": userID}).
 			Where(queryExplicitSub.Prefix("NOT EXISTS (").Suffix(")").Where("CM.userID=BM.user_id"))
 	}
 
