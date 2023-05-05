@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -20,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
@@ -632,4 +634,46 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	require.NotNil(t, accErr, "Should not get access token")
 	require.Equal(t, http.StatusBadRequest, accErr.StatusCode)
 	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", accErr.Id)
+}
+
+func TestDeauthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "fakeoauthapp" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://nowhere.com"},
+	}
+
+	oapp, err := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, err)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ImplicitResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	}
+
+	redirectUrl, err := th.App.GetOAuthCodeRedirect(th.BasicUser.Id, authRequest)
+	assert.Nil(t, err)
+
+	dErr := th.App.DeauthorizeOAuthAppForUser(th.BasicUser.Id, oapp.Id)
+	assert.Nil(t, dErr)
+
+	uri, uErr := url.Parse(redirectUrl)
+	require.NoError(t, uErr)
+
+	queryParams := uri.Query()
+	code := queryParams.Get("code")
+
+	data, nErr := th.App.Srv().Store().OAuth().GetAuthData(code)
+	require.Equal(t, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code)), nErr)
+	assert.Nil(t, data)
 }
