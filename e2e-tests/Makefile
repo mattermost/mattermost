@@ -1,5 +1,3 @@
-DASHBOARD_REF ?= origin/main
-
 .PHONY: all run stop
 all: run
 run: start-server prepare-server run-cypress

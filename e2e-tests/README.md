@@ -9,11 +9,11 @@ The E2E testing scripts depend on the following tools being installed on your sy
 Instructions:
 1. Create the `.ci/env` file, and populate the following variables:
   * `MM_LICENSE` (optional, only for tests that require an enterprise license)
-  * `MME2E_SERVER_IMAGE` (optional, defaults to this commit's `mm-ee-test` image)
+  * `MME2E_SERVER_IMAGE` (optional, defaults to this commit's `mm-ee-test` image; NB: requires you to have the commit in an open PR, for this default to work)
   * `MME2E_BRANCH` (optional, defaults to currently checked out branch)
   * `MME2E_BUILD_ID` (optional, defaults to current unix timestamp)
   * `MME2E_TEST_FILTER` (optional, defaults to running smoke tests only)
-2. `make start-dashboard` (optional): start the automation-dashboard in the background
+2. (optional) `make start-dashboard`: start the automation-dashboard in the background
   * This also sets the `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN` variables for the cypress container.
 3. `make`: start and prepare the server, then run the cypress tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard

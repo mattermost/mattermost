@@ -36,5 +36,4 @@ CYPRESS_EXIT_CODE=$?
 mme2e_log "Cypress exited with code: $CYPRESS_EXIT_CODE"
 
 # Collect server logs
-mme2e_log "Cypress exited with code: $CYPRESS_EXIT_CODE"
 ${MME2E_DC_SERVER} exec -T -- server cat /mattermost/logs/mattermost.log >../cypress/logs/mattermost.log

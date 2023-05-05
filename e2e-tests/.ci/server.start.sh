@@ -15,9 +15,7 @@ ${MME2E_DC_SERVER} down -v
 # Generate .env.server
 mme2e_log "Generating .env.server"
 cat >.env.server <<<""
-[ -z "${MM_LICENSE:-}" ]                 || echo "MM_LICENSE=$MM_LICENSE"                                 >>.env.server
-[ -z "${AUTOMATION_DASHBOARD_URL:-}" ]   || echo "AUTOMATION_DASHBOARD_URL=$AUTOMATION_DASHBOARD_URL"     >>.env.server
-[ -z "${AUTOMATION_DASHBOARD_TOKEN:-}" ] || echo "AUTOMATION_DASHBOARD_TOKEN=$AUTOMATION_DASHBOARD_TOKEN" >>.env.server
+[ -z "${MM_LICENSE:-}" ] || echo "MM_LICENSE=$MM_LICENSE" >>.env.server
 envarr=$(echo ${MM_ENV:-} | tr "," "\n")
 for env in $envarr; do
   echo "> [$env]"
@@ -30,6 +28,8 @@ cat >.env.cypress <<EOF
 BRANCH=$MME2E_BRANCH
 BUILD_ID=$MME2E_BUILD_ID
 EOF
+[ -z "${AUTOMATION_DASHBOARD_URL:-}" ]   || echo "AUTOMATION_DASHBOARD_URL=$AUTOMATION_DASHBOARD_URL"     >>.env.cypress
+[ -z "${AUTOMATION_DASHBOARD_TOKEN:-}" ] || echo "AUTOMATION_DASHBOARD_TOKEN=$AUTOMATION_DASHBOARD_TOKEN" >>.env.cypress
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Waiting for server image to be available"
