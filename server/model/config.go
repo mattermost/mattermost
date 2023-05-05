@@ -2755,6 +2755,7 @@ func (s *JobSettings) SetDefaults() {
 type CloudSettings struct {
 	CWSURL    *string `access:"write_restrictable"`
 	CWSAPIURL *string `access:"write_restrictable"`
+	CWSMock   *bool   `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -2769,6 +2770,10 @@ func (s *CloudSettings) SetDefaults() {
 		if !isProdLicensePublicKey {
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
+	}
+	if s.CWSMock == nil {
+		isMockCws := MockCWS == "true"
+		s.CWSMock = &isMockCws
 	}
 }
 
