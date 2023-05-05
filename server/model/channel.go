@@ -36,6 +36,8 @@ const (
 
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
+
+	ChannelPropDMBot = "dm_bot"
 )
 
 type Channel struct {

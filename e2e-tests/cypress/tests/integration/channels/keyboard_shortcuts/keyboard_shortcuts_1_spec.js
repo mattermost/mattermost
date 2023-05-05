@@ -410,7 +410,7 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#moreDmModal').should('not.exist');
     });
 
-    it('MM-T1278 - CTRL/CMD+SHIFT+J', () => {
+    it('MM-T5430 - CTRL/CMD+SHIFT+J', () => {
         cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
 
         // # Type CTRL/CMD+SHIFT+J to open 'App Marketplace' modal

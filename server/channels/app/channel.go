@@ -458,7 +458,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 	}
 
 	if isBot {
-		channel.AddProp("dm_bot", true)
+		channel.AddProp(model.ChannelPropDMBot, true)
 	}
 
 	a.handleCreationEvent(c, userID, otherUserID, channel)
@@ -3410,9 +3410,9 @@ func (a *App) FillInChannelsProps(c request.CTX, channelList model.ChannelList) 
 	channelsByTeam := make(map[string]model.ChannelList)
 	for _, channel := range channelList {
 		if _, ok := botChannelsIDs[channel.Id]; ok {
-			channel.AddProp("dm_bot", true)
+			channel.AddProp(model.ChannelPropDMBot, true)
 		} else {
-			delete(channel.Props, "dm_bot")
+			delete(channel.Props, model.ChannelPropDMBot)
 		}
 
 		channelsByTeam[channel.TeamId] = append(channelsByTeam[channel.TeamId], channel)

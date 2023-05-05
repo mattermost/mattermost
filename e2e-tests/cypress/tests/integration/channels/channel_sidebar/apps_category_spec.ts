@@ -15,20 +15,31 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 const SpaceKeyCode = 32;
 const DownArrowKeyCode = 40;
 
-describe('MM-T3156 APP category', () => {
+describe('APPS category', () => {
     let testUser;
+    let otherUser;
+    let testTeam;
     const usernames = [];
 
     before(() => {
         // # Login as test user and visit town-square
         cy.apiInitSetup({loginAfter: true, promoteNewUserAsAdmin: true}).then(({team, user}) => {
             testUser = user;
-            cy.visit(`/${team.name}/channels/town-square`);
+            testTeam = team;
+
+            cy.apiCreateUser({prefix: 'other'}).then(({user: user1}) => {
+                otherUser = user1;
+
+                cy.apiAddUserToTeam(testTeam.id, otherUser.id);
+            });
+
+            cy.visit(`/${testTeam.name}/channels/town-square`);
         });
+
         cy.shouldHaveFeatureFlag('AppsSidebarCategory', true);
     });
 
-    it('MM-T3156_1 Should open Marketplace modal on click of + in category header', () => {
+    it('MM-T5425 Should open Marketplace modal on click of + in category header', () => {
         cy.findByLabelText('APPS').parents('.SidebarChannelGroup').within(() => {
             cy.get('.SidebarChannelGroupHeader_addButton').click();
         });
@@ -36,7 +47,7 @@ describe('MM-T3156 APP category', () => {
         cy.get('#marketplace-modal .close').click();
     });
 
-    it('MM-T3156_2 should order DMs based on recent interactions', () => {
+    it('MM-T5427 should order DMs based on recent interactions', () => {
         const usersPrefixes = ['a', 'c', 'd', 'j', 'p', 'u', 'x', 'z'];
         usersPrefixes.forEach((prefix) => {
             // # Create users with prefixes in alphabetical order
@@ -67,7 +78,7 @@ describe('MM-T3156 APP category', () => {
         });
     });
 
-    it('MM-T3156_3 should order DMs alphabetically ', () => {
+    it('MM-T5428 should order DMs alphabetically ', () => {
         // # Hover over APPS and click channel options
         cy.get('.SidebarChannelGroupHeader:contains(APPS) .SidebarMenu').invoke('show').
             get('.SidebarChannelGroupHeader:contains(APPS) .SidebarMenu_menuButton').should('be.visible').click();
@@ -85,7 +96,7 @@ describe('MM-T3156 APP category', () => {
             });
     });
 
-    it('MM-T3156_4 should not be able to rearrange DMs', () => {
+    it('MM-T5429 should not be able to rearrange DMs', () => {
         cy.get('button[aria-label="APPS"]').parents('.SidebarChannelGroup').within(() => {
             // # Rearrange the first dm to be below second one
             cy.get(`.SidebarChannel:contains(${usernames[0]}) > .SidebarLink`).
@@ -97,6 +108,19 @@ describe('MM-T3156 APP category', () => {
                 // * Verify that the usernames are in alphabetical order
                 cy.wrap($el).find('.SidebarChannelLinkLabel').should('contain', usernames[index]);
             });
+        });
+    });
+
+    it('MM-T5426 Should open Apps modal on click of + in category header', () => {
+        cy.apiLogout();
+        cy.apiLogin(otherUser).then(() => {
+            cy.visit(`/${testTeam.name}/channels/town-square`);
+
+            cy.findByLabelText('APPS').parents('.SidebarChannelGroup').within(() => {
+                cy.get('.SidebarChannelGroupHeader_addButton').click();
+            });
+            cy.get('#MoreDirectBotChannels-modal').should('be.visible');
+            cy.get('#MoreDirectBotChannels-modal .close').click();
         });
     });
 });
