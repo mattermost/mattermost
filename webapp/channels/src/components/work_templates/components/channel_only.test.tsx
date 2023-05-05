@@ -4,7 +4,6 @@
 import React from 'react';
 
 import Constants, {suitePluginIds} from 'utils/constants';
-import {cleanUpUrlable} from 'utils/url';
 import {GlobalState} from 'types/store';
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -143,7 +142,7 @@ describe('components/new_channel_modal', () => {
                 manager={manager}
                 workTemplatesEnabled={false}
             />,
-             mockState,
+            mockState,
         );
 
         // channel name
@@ -183,7 +182,7 @@ describe('components/new_channel_modal', () => {
                 tryTemplates={jest.fn()}
                 manager={manager}
                 workTemplatesEnabled={false}
-             />,
+            />,
             mockState,
         );
         screen.getByDisplayValue(manager.state.displayName);
@@ -208,11 +207,14 @@ describe('components/new_channel_modal', () => {
         const manager = mockChannelOnlyManager({});
         manager.state.purpose = 'Purpose of channel';
 
-        renderWithIntlAndStore(<ChannelOnly
-            tryTemplates={jest.fn()}
-            manager={manager}
-            workTemplatesEnabled={false}
-                               />, mockState);
+        renderWithIntlAndStore(
+            <ChannelOnly
+                tryTemplates={jest.fn()}
+                manager={manager}
+                workTemplatesEnabled={false}
+            />,
+            mockState,
+        );
         screen.getByText(manager.state.purpose);
     });
 
@@ -251,7 +253,7 @@ describe('components/new_channel_modal', () => {
 
     test('when work templates are enabled, shows UI that allows switching to a mode that allows creating a channel from a template', () => {
         const manager = mockChannelOnlyManager({});
-        const tryTemplates=jest.fn();
+        const tryTemplates = jest.fn();
 
         renderWithIntlAndStore(
             <ChannelOnly

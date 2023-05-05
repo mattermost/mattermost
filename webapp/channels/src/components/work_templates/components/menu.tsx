@@ -56,6 +56,7 @@ const UseCases = styled.div`
     width: 692px;
     height: ${ENSURE_610_HEIGHT};
     overflow-y: auto;
+    align-content: start;
 `;
 
 interface MenuProps {
