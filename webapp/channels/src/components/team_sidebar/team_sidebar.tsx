@@ -195,7 +195,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
 
     render() {
         const root: Element | null = document.querySelector('#root');
-        if (this.props.myTeams.length <= 1) {
+        if (!this.props.alwaysShowTeamSidebar && this.props.myTeams.length <= 1) {
             root!.classList.remove('multi-teams');
             return null;
         }
@@ -205,7 +205,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         const sortedTeams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
 
         const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
-        if (currentProduct && !currentProduct.showTeamSidebar) {
+        if (!this.props.alwaysShowTeamSidebar && currentProduct && !currentProduct.showTeamSidebar) {
             return null;
         }
 
