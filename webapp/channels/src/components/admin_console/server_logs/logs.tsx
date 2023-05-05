@@ -99,7 +99,7 @@ export default class Logs extends React.PureComponent<Props, State> {
         this.setState({loadingPlain: true});
         await this.props.actions.getPlainLogs(
             this.state.page,
-            this.state.perPage
+            this.state.perPage,
         );
         this.setState({loadingPlain: false});
     };
@@ -112,9 +112,7 @@ export default class Logs extends React.PureComponent<Props, State> {
         const {search} = this.state;
         const filteredLogs = this.props.logs.filter((log) => {
             // to be improved
-            return `${log.caller}${log.msg}${log.worker}${log.worker}`
-                .toLowerCase()
-                .includes(search.toLowerCase());
+            return `${log.caller}${log.msg}${log.worker}${log.worker}`.toLowerCase().includes(search.toLowerCase());
         });
         this.setState({filteredLogs});
     }, 200);
@@ -126,7 +124,7 @@ export default class Logs extends React.PureComponent<Props, State> {
         serverNames,
     }: LogFilter) => {
         this.setState({dateFrom, dateTo, logLevels, serverNames}, () =>
-            this.reload()
+            this.reload(),
         );
     };
 
@@ -183,11 +181,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                 </div>
                 <LogList
                     loading={this.state.loadingLogs}
-                    logs={
-                        this.state.search
-                            ? this.state.filteredLogs
-                            : this.props.logs
-                    }
+                    logs={this.state.search ? this.state.filteredLogs : this.props.logs}
                     onSearchChange={this.onSearchChange}
                     search={this.state.search}
                     onFiltersChange={this.onFiltersChange}

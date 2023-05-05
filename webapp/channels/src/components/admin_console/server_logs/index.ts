@@ -16,7 +16,7 @@ import Logs from './logs';
 
 function mapStateToProps(state: GlobalState) {
     const config = Selectors.getConfig(state);
-    console.log( config.LogSettings?.FileJson )
+
     return {
         logs: Selectors.getAllLogs(state),
         plainLogs: Selectors.getPlainLogs(state),
