@@ -96,6 +96,7 @@ type User struct {
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
 	RemoteId               *string   `json:"remote_id,omitempty"`
+	ExternalUserId         *string   `json:"external_user_id,omitempty"`
 	LastActivityAt         int64     `json:"last_activity_at,omitempty"`
 	IsBot                  bool      `json:"is_bot,omitempty"`
 	BotDescription         string    `json:"bot_description,omitempty"`
@@ -127,6 +128,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"timezone":                   u.Timezone,
 		"mfa_active":                 u.MfaActive,
 		"remote_id":                  u.RemoteId,
+		"external_user_id":           u.ExternalUserId,
 		"last_activity_at":           u.LastActivityAt,
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
@@ -329,7 +331,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("update_at", u.Id, u.UpdateAt)
 	}
 
-	if u.IsRemote() {
+	if u.IsRemote() || u.IsExternal() {
 		if !IsValidUsernameAllowRemote(u.Username) {
 			return InvalidUserError("username", u.Id, u.Username)
 		}
@@ -875,6 +877,11 @@ func (u *User) GetTimezoneLocation() *time.Location {
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
 	return u.RemoteId != nil && *u.RemoteId != ""
+}
+
+// IsExternal returns true if the user is a synthetic external user (has ExternalUserId).
+func (u *User) IsExternal() bool {
+	return u.ExternalUserId != nil && *u.ExternalUserId != ""
 }
 
 // GetRemoteID returns the remote id for this user or "" if not a remote user.

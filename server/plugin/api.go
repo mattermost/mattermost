@@ -147,6 +147,12 @@ type API interface {
 	// Minimum server version: 5.2
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 
+	// GetUserByExternalUserId gets a user by their external user id.
+	//
+	// @tag User
+	// Minimum server version: 7.12
+	GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError)
+
 	// GetUserByUsername gets a user by their username.
 	//
 	// @tag User

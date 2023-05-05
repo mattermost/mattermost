@@ -3964,14 +3964,14 @@ func testCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 
-	// Remote User
-	remoteId := "remote-id"
-	remoteUser, err := ss.User().Save(&model.User{
-		Email:    MakeEmail(),
-		RemoteId: &remoteId,
+	// External User
+	externalId := "external-id"
+	externalUser, err := ss.User().Save(&model.User{
+		Email:          MakeEmail(),
+		ExternalUserId: &externalId,
 	})
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(remoteUser.Id)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(externalUser.Id)) }()
 
 	// Bot
 	botUser, err := ss.User().Save(&model.User{
@@ -4078,67 +4078,67 @@ func testCount(t *testing.T, ss store.Store) {
 			0,
 		},
 		{
-			"Include remote accounts no deleted accounts and no team id",
+			"Include external accounts no deleted accounts and no team id",
 			model.UserCountOptions{
-				IncludeRemoteUsers: true,
-				IncludeDeleted:     false,
-				TeamId:             "",
+				IncludeExternalUsers: true,
+				IncludeDeleted:       false,
+				TeamId:               "",
 			},
 			5,
 		},
 		{
-			"Include delete accounts no remote accounts and no team id",
+			"Include delete accounts no external accounts and no team id",
 			model.UserCountOptions{
-				IncludeRemoteUsers: false,
-				IncludeDeleted:     true,
-				TeamId:             "",
+				IncludeExternalUsers: false,
+				IncludeDeleted:       true,
+				TeamId:               "",
 			},
 			5,
 		},
 		{
-			"Include remote accounts and deleted accounts and no team id",
+			"Include external accounts and deleted accounts and no team id",
 			model.UserCountOptions{
-				IncludeRemoteUsers: true,
-				IncludeDeleted:     true,
-				TeamId:             "",
+				IncludeExternalUsers: true,
+				IncludeDeleted:       true,
+				TeamId:               "",
 			},
 			6,
 		},
 		{
-			"Include remote accounts and deleted accounts with existing team id",
+			"Include external accounts and deleted accounts with existing team id",
 			model.UserCountOptions{
-				IncludeRemoteUsers: true,
-				IncludeDeleted:     true,
-				TeamId:             teamId,
+				IncludeExternalUsers: true,
+				IncludeDeleted:       true,
+				TeamId:               teamId,
 			},
 			4,
 		},
 		{
-			"Include remote accounts and deleted accounts with fake team id",
+			"Include external accounts and deleted accounts with fake team id",
 			model.UserCountOptions{
-				IncludeRemoteUsers: true,
-				IncludeDeleted:     true,
-				TeamId:             model.NewId(),
+				IncludeExternalUsers: true,
+				IncludeDeleted:       true,
+				TeamId:               model.NewId(),
 			},
 			0,
 		},
 		{
-			"Include remote accounts and deleted accounts with existing team id and view restrictions allowing team",
+			"Include external accounts and deleted accounts with existing team id and view restrictions allowing team",
 			model.UserCountOptions{
-				IncludeRemoteUsers: true,
-				IncludeDeleted:     true,
-				TeamId:             teamId,
-				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
+				IncludeExternalUsers: true,
+				IncludeDeleted:       true,
+				TeamId:               teamId,
+				ViewRestrictions:     &model.ViewUsersRestrictions{Teams: []string{teamId}},
 			},
 			4,
 		},
 		{
-			"Include remote accounts and deleted accounts with existing team id and view restrictions not allowing current team",
+			"Include external accounts and deleted accounts with existing team id and view restrictions not allowing current team",
 			model.UserCountOptions{
-				IncludeRemoteUsers: true,
-				IncludeDeleted:     true,
-				TeamId:             teamId,
-				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
+				IncludeExternalUsers: true,
+				IncludeDeleted:       true,
+				TeamId:               teamId,
+				ViewRestrictions:     &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
 			},
 			0,
 		},

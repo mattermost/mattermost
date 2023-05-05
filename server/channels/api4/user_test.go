@@ -3746,16 +3746,16 @@ func TestLogin(t *testing.T) {
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
 	})
 
-	t.Run("remote user login rejected", func(t *testing.T) {
+	t.Run("external user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, ExternalUserId: model.NewString("external-user-id")}
 		ruser, _, _ := th.Client.CreateUser(&user)
 
 		_, err := th.SystemAdminClient.UpdateUserPassword(ruser.Id, "", "password")
 		require.NoError(t, err)
 
 		_, _, err = th.Client.Login(ruser.Email, "password")
-		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
+		CheckErrorID(t, err, "api.user.login.external_users.login.error")
 	})
 
 	t.Run("login with terms_of_service set", func(t *testing.T) {

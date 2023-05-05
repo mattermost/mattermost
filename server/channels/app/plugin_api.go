@@ -253,6 +253,10 @@ func (api *PluginAPI) GetUserByEmail(email string) (*model.User, *model.AppError
 	return api.app.GetUserByEmail(email)
 }
 
+func (api *PluginAPI) GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError) {
+	return api.app.GetUserByExternalUserId(externalUserId)
+}
+
 func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppError) {
 	return api.app.GetUserByUsername(name)
 }
