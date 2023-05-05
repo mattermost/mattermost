@@ -147,7 +147,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                     onClick={this.reloadPlain}
                 >
                     <FormattedMessage
-                        id='admin.logs.reload'
+                        id='admin.logs.reloadLogs'
                         defaultMessage='Reload'
                     />
                 </button>
