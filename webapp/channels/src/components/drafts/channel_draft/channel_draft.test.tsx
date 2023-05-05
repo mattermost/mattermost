@@ -26,6 +26,7 @@ describe('components/drafts/drafts_row', () => {
         type: 'channel' as 'channel' | 'thread',
         user: {} as UserProfile,
         value: {} as PostDraft,
+        isRemote: false,
     };
 
     it('should match snapshot for channel draft', () => {

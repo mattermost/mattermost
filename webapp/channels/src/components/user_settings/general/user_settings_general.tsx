@@ -1301,7 +1301,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 imgSrc = Utils.imageURLForUser(user.id, user.last_picture_update);
                 helpText = (
                     <FormattedMessage
-                        id={'setting_picture.help.profile'}
+                        id='setting_picture.help.profile'
                         defaultMessage='Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}'
                         values={{max: Utils.fileSizeToString(this.props.maxFileSize)}}
                     />
@@ -1335,7 +1335,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         if (Utils.isMobile()) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }
-        if (user.last_picture_update) {
+        if (user.last_picture_update > 0) {
             minMessage = (
                 <FormattedMessage
                     id='user.settings.general.imageUpdated'

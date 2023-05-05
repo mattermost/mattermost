@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    MutableRefObject,
     ReactNode,
-    useRef,
     createRef,
-    useState,
     useEffect,
-    MutableRefObject
+    useRef,
+    useState,
 } from 'react'
 
 import './boardSwitcherDialog.scss'
@@ -19,7 +19,7 @@ import SearchDialog from 'src/components/searchDialog/searchDialog'
 import Globe from 'src/widgets/icons/globe'
 import LockOutline from 'src/widgets/icons/lockOutline'
 import {useAppSelector} from 'src/store/hooks'
-import {getAllTeams, getCurrentTeam, Team} from 'src/store/teams'
+import {Team, getAllTeams, getCurrentTeam} from 'src/store/teams'
 import {getMe} from 'src/store/users'
 import {Utils} from 'src/utils'
 import {BoardTypeOpen, BoardTypePrivate} from 'src/blocks/board'
@@ -39,7 +39,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
     const team = useAppSelector(getCurrentTeam)
     const me = useAppSelector(getMe)
     const title = intl.formatMessage({id: 'FindBoardsDialog.Title', defaultMessage: 'Find Boards'})
-    const subTitle = intl.formatMessage(
+    const subTitle = intl.formatMessage<ReactNode>(
         {
             id: 'FindBoardsDialog.SubTitle',
             defaultMessage: 'Type to find a board. Use <b>UP/DOWN</b> to browse. <b>ENTER</b> to select, <b>ESC</b> to dismiss',
@@ -75,6 +75,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
         const untitledBoardTitle = intl.formatMessage({id: 'ViewTitle.untitled-board', defaultMessage: 'Untitled board'})
         refs.current = items.map((_, i) => refs.current[i] ?? createRef())
         setRefs(refs)
+
         return items.map((item, i) => {
             const resultTitle = item.title || untitledBoardTitle
             const teamTitle = teamsById[item.teamId].title
@@ -83,6 +84,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
                 ...prevIDs,
                 [i]: [item.teamId, item.id],
             }))
+
             return (
                 <div
                     key={item.id}

@@ -19,12 +19,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest"
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
@@ -33,7 +33,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
-	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
+	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
 	app.ch.SetPluginsEnvironment(env)
@@ -72,8 +72,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -112,8 +112,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -153,8 +153,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -196,8 +196,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -240,8 +240,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -262,8 +262,8 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -308,8 +308,8 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -346,8 +346,8 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -394,8 +394,8 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -486,8 +486,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -531,8 +531,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			import (
 				"fmt"
 				"io"
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -580,8 +580,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 			import (
 				"io"
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -637,8 +637,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 				"io"
 				"fmt"
 				"bytes"
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -705,8 +705,8 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -744,8 +744,8 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -784,8 +784,8 @@ func TestUserHasLoggedIn(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -826,8 +826,8 @@ func TestUserHasBeenCreated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -875,7 +875,7 @@ func TestErrorString(t *testing.T) {
 			import (
 				"errors"
 
-				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
 			)
 
 			type MyPlugin struct {
@@ -904,8 +904,8 @@ func TestErrorString(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
 			)
 
 			type MyPlugin struct {
@@ -957,8 +957,8 @@ func TestHookContext(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -1000,8 +1000,8 @@ func TestActiveHooks(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/model"
-				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/plugin"
 			)
 
 			type MyPlugin struct {
@@ -1074,7 +1074,7 @@ func TestHookMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock)
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
 		th.App.ch.SetPluginsEnvironment(env)
@@ -1086,8 +1086,8 @@ func TestHookMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v6/model"
-		"github.com/mattermost/mattermost-server/v6/plugin"
+		"github.com/mattermost/mattermost-server/server/v8/model"
+		"github.com/mattermost/mattermost-server/server/v8/plugin"
 	)
 
 	type MyPlugin struct {
@@ -1173,8 +1173,8 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -1215,8 +1215,8 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
 		)
 
 		type MyPlugin struct {
@@ -1246,7 +1246,7 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 }
 
 func TestHookRunDataRetention(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t, SkipProductsInitialization()).InitBasic()
 	defer th.TearDown()
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1255,7 +1255,7 @@ func TestHookRunDataRetention(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
 		)
 
 		type MyPlugin struct {
@@ -1299,7 +1299,7 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
 		)
 
 		type MyPlugin struct {
@@ -1342,8 +1342,8 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/model"
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/model"
+			"github.com/mattermost/mattermost-server/server/v8/plugin"
 		)
 
 		type MyPlugin struct {

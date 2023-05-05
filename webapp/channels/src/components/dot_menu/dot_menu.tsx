@@ -28,6 +28,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DeletePostModal from 'components/delete_post_modal';
 import DelayedAction from 'utils/delayed_action';
+import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import * as Menu from 'components/menu';
 import * as Utils from 'utils/utils';
@@ -337,61 +338,61 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isShiftKeyPressed = e.shiftKey;
 
         switch (true) {
-        case Utils.isKeyPressed(e, Constants.KeyCodes.R):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.R):
             this.handleCommentClick(e);
             this.handleDropdownOpened(false);
             break;
 
             // edit post
-        case Utils.isKeyPressed(e, Constants.KeyCodes.E):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.E):
             this.handleEditMenuItemActivated(e);
             this.handleDropdownOpened(false);
             break;
 
             // follow thread
-        case Utils.isKeyPressed(e, Constants.KeyCodes.F) && !isShiftKeyPressed:
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.F) && !isShiftKeyPressed:
             this.handleSetThreadFollow(e);
             this.handleDropdownOpened(false);
             break;
 
             // forward post
-        case Utils.isKeyPressed(e, Constants.KeyCodes.F) && isShiftKeyPressed:
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.F) && isShiftKeyPressed:
             this.handleForwardMenuItemActivated(e);
             this.handleDropdownOpened(false);
             break;
 
             // copy link
-        case Utils.isKeyPressed(e, Constants.KeyCodes.K):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.K):
             this.copyLink(e);
             this.handleDropdownOpened(false);
             break;
 
             // copy text
-        case Utils.isKeyPressed(e, Constants.KeyCodes.C):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.C):
             this.copyText(e);
             this.handleDropdownOpened(false);
             break;
 
             // delete post
-        case Utils.isKeyPressed(e, Constants.KeyCodes.DELETE):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.DELETE):
             this.handleDeleteMenuItemActivated(e);
             this.handleDropdownOpened(false);
             break;
 
             // pin / unpin
-        case Utils.isKeyPressed(e, Constants.KeyCodes.P):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.P):
             this.handlePinMenuItemActivated(e);
             this.handleDropdownOpened(false);
             break;
 
             // save / unsave
-        case Utils.isKeyPressed(e, Constants.KeyCodes.S):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.S):
             this.handleFlagMenuItemActivated(e);
             this.handleDropdownOpened(false);
             break;
 
             // mark as unread
-        case Utils.isKeyPressed(e, Constants.KeyCodes.U):
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.U):
             this.handleMarkPostAsUnread(e);
             this.handleDropdownOpened(false);
             break;
@@ -496,7 +497,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
-                    'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'Actions'}),
+                    'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}).toLowerCase(),
                     children: <DotsHorizontalIcon size={16}/>,
                 }}
                 menu={{
@@ -509,7 +510,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }}
                 menuButtonTooltip={{
                     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
-                    text: formatMessage({id: 'post_info.dot_menu.tooltip.more_actions', defaultMessage: 'More'}),
+                    text: formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}),
                     class: 'hidden-xs',
                 }}
             >

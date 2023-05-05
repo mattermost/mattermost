@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 )
 
 type WorkTemplateCategory struct {
@@ -108,7 +108,8 @@ func (wt WorkTemplate) ToModelWorkTemplate(t i18n.TranslateFunc) *model.WorkTemp
 		if content.Integration != nil {
 			mwt.Content = append(mwt.Content, model.WorkTemplateContent{
 				Integration: &model.WorkTemplateIntegration{
-					ID: content.Integration.ID,
+					ID:          content.Integration.ID,
+					Recommended: content.Integration.Recommended,
 				},
 			})
 		}
@@ -320,7 +321,8 @@ func (p *Playbook) Validate() error {
 }
 
 type Integration struct {
-	ID string `yaml:"id"`
+	ID          string `yaml:"id"`
+	Recommended bool   `yaml:"recommended"`
 }
 
 func (i *Integration) Validate() error {
