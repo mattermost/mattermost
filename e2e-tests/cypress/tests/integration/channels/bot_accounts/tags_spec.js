@@ -11,6 +11,7 @@
 // Group: @channels @bot_accounts
 
 import {createBotPatch} from '../../../support/api/bots';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bot tags', () => {
     let me;
@@ -48,8 +49,8 @@ describe('Bot tags', () => {
                 await client.pinPost(postId);
 
                 cy.visit(`/${team.name}/channels/${channel.name}`);
-                cy.clickPostDotMenu(postId);
-                cy.get(`#CENTER_flagIcon_${postId}`).click();
+                cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
+                cy.wait(TIMEOUTS.HALF_SEC).get(`#CENTER_flagIcon_${postId}`).click();
             });
         });
     });
