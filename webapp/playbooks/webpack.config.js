@@ -73,6 +73,11 @@ const config = {
     plugins,
 };
 
+config.plugins.push(new MiniCssExtractPlugin({
+    filename: '[name].[contenthash].css',
+    chunkFilename: '[name].[contenthash].css',
+}));
+
 // Set up module federation
 function makeSingletonSharedModules(packageNames) {
     const sharedObject = {};

@@ -181,6 +181,11 @@ config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
 }));
 
+config.plugins.push(new MiniCssExtractPlugin({
+    filename: '[name].[contenthash].css',
+    chunkFilename: '[name].[contenthash].css',
+}));
+
 if (NPM_TARGET === 'start:product') {
     const url = new URL(process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006');
 
