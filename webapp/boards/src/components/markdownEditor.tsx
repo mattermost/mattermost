@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, Suspense} from 'react'
+import React, {Suspense, useState} from 'react'
 
 import {Utils} from 'src/utils'
 import './markdownEditor.scss'
@@ -38,6 +38,7 @@ const MarkdownEditor = (props: Props): JSX.Element => {
                 const element = e.target as Element
                 if (element.tagName.toLowerCase() === LINK_TAG_NAME) {
                     e.stopPropagation()
+
                     return
                 }
 
@@ -50,7 +51,7 @@ const MarkdownEditor = (props: Props): JSX.Element => {
 
     const editorOnBlur = (newText: string) => {
         setIsEditing(false)
-        onBlur && onBlur(newText)
+        onBlur?.(newText)
     }
 
     const editorElement = (
