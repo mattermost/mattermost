@@ -9528,7 +9528,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "Produkt-team"
+    "translation": "Produkt"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -10037,5 +10037,69 @@
   {
     "id": "app.command.execute.error",
     "translation": "Kunde inte utföra kommandot."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Chatta med ditt team om prioriteringar, lägg till intressenter, ge uppdateringar och arbeta mot en lösning i en och samma kanal."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Använd Incident Resolution tavlan för att stödja upprepbara processer och fördela definierade uppgifter i hela teamet."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg, exempelvis Zoom, för att underlätta samarbetet. Dessa kommer att laddas ner åt dig."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Chatta om dina mål och framsteg med ditt team, asynkront eller i realtid, och håll dig uppdaterad om förändringar i en och samma kanal."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Håll koll på teamets steg mot de organisatoriska målen med OKR-tavlan. Håll möten på rätt spår med hjälp av Mötesagenda-tavlan."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg. Dessa kommer att laddas ner åt dig."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Chatta med ditt team om ditt nya projekt och bestäm hur ni ska strukturera det i en samarbetskanal."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Använd en Kanban-tavla för att definiera och hålla koll på dina uppgifter och framsteg i projekt."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Felaktigt värde för bytes licensen laddas upp."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch-versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} finns på blocklistan. Vissa plugins är blockerade eftersom de är inbyggda i den här versionen av Mattermost."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server misslyckades med att prenumerera på nyhetsbrev."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Har inte skickat in en korrekt granskningsprofil till CWS."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Felaktig företagsmejl för prova på-period"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fel: inget organisationsnamn har angetts för egen onboarding."
   }
 ]
