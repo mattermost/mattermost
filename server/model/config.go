@@ -1240,19 +1240,19 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleLevel           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleJson            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableColor            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile             *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLevel              *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileJson               *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLocation           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableWebhookDebugging *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleJson            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableColor            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile             *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLevel              *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileJson               *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	AdvancedLoggingConfig  json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1311,19 +1311,19 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+		s.AdvancedLoggingConfig = []byte("{}")
 	}
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB         *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize      *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileEnabled           *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileName              *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
+	FileMaxSizeMB         *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxAgeDays        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1356,20 +1356,20 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	}
 
 	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+		s.AdvancedLoggingConfig = []byte("{}")
 	}
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel          *string `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson           *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableColor           *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile            *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLevel             *string `access:"write_restrictable,cloud_restrictable"`
-	FileJson              *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLocation          *string `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"write_restrictable,cloud_restrictable"`
+	EnableConsole         *bool           `access:"write_restrictable,cloud_restrictable"`
+	ConsoleLevel          *string         `access:"write_restrictable,cloud_restrictable"`
+	ConsoleJson           *bool           `access:"write_restrictable,cloud_restrictable"`
+	EnableColor           *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile            *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLevel             *string         `access:"write_restrictable,cloud_restrictable"`
+	FileJson              *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLocation          *string         `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig json.RawMessage `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1406,7 +1406,7 @@ func (s *NotificationLogSettings) SetDefaults() {
 	}
 
 	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+		s.AdvancedLoggingConfig = []byte("{}")
 	}
 }
 
