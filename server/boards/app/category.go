@@ -209,24 +209,13 @@ func (a *App) ReorderCategories(userID, teamID string, newCategoryOrder []string
 
 func (a *App) verifyNewCategoriesMatchExisting(userID, teamID string, newCategoryOrder []string) error {
 	existingCategoriesMap := map[string]struct{}{}
-	page := 0
-	const perPage = 100
 
-	for ; true; page++ {
-		// TODO: this should be a store API instead of fetching all categories and looping.
-		existingCategories, err := a.store.GetUserCategories(userID, teamID, model.QueryUserCategoriesOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return err
-		}
-		for _, category := range existingCategories {
-			existingCategoriesMap[category.ID] = struct{}{}
-		}
-		if len(existingCategories) < perPage {
-			break
-		}
+	err := a.ForEachUserCategory(userID, teamID, func(category model.Category) (bool, error) {
+		existingCategoriesMap[category.ID] = struct{}{}
+		return false, nil
+	})
+	if err != nil {
+		return fmt.Errorf("error fetching user categories: %w", err)
 	}
 
 	if len(newCategoryOrder) != len(existingCategoriesMap) {
@@ -252,5 +241,28 @@ func (a *App) verifyNewCategoriesMatchExisting(userID, teamID string, newCategor
 		}
 	}
 
+	return nil
+}
+
+func (a *App) ForEachUserCategory(userID, teamID string, fn func(category model.Category) (bool, error)) error {
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		categories, err := a.store.GetUserCategories(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for _, category := range categories {
+			if done, err := fn(category); err != nil || done {
+				return err
+			}
+		}
+		if len(categories) < perPage {
+			break
+		}
+	}
 	return nil
 }
