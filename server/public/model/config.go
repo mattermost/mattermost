@@ -248,6 +248,8 @@ const (
 	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
+
+	AlwaysShowTeamSidebar = ""
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -389,6 +391,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	AlwaysShowTeamSidebar                             *bool   `access:"experimental_features"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -844,6 +847,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
+	}
+
+	if s.AlwaysShowTeamSidebar == nil {
+		s.AlwaysShowTeamSidebar = NewBool(false)
 	}
 
 	if s.EnableCustomGroups == nil {
