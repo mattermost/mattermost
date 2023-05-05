@@ -39,6 +39,13 @@ export default function SectionTitle({section}: Props) {
                 defaultMessage='Ignore mentions for @channel, @here and @all'
             />
         );
+    } else if (section === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS) {
+        return (
+            <FormattedMessage
+                id='channel_notifications.channelAutoFollowThreads'
+                defaultMessage='Auto-follow all new threads in this channel'
+            />
+        );
     }
 
     return null;

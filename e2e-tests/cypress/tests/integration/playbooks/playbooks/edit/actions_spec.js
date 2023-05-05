@@ -11,8 +11,9 @@
 
 /* eslint-disable no-only-tests/no-only-tests */
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
+// assumes that E20 license is uploaded
 describe('playbooks > edit', {testIsolation: true}, () => {
     let testTeam;
     let testSysadmin;
@@ -53,162 +54,6 @@ describe('playbooks > edit', {testIsolation: true}, () => {
     beforeEach(() => {
         // # Login as testUser
         cy.apiLogin(testUser);
-    });
-
-    describe('checklists', () => {
-        describe('pre-assignee', () => {
-            it('user gets pre-assigned, added to invite user list, and invitations become enabled', () => {
-                // # Open Playbooks
-                cy.visit('/playbooks/playbooks');
-
-                // # Start a blank playbook
-                cy.findByText('Blank').click();
-                cy.findByText('Outline').click();
-
-                cy.get('#actions').within(() => {
-                    cy.get('#invite-users').within(() => {
-                        // * Verify invitations are disabled and no invited user exists
-                        cy.get('label input').should('not.be.checked');
-                        cy.get('.invite-users-selector__control').
-                            after('content').
-                            should('eq', '');
-                    });
-                });
-
-                // # Pre-assign the user
-                cy.get('#checklists').within(() => {
-                    // # Trigger assignee select menu
-                    cy.findByText('Untitled task').trigger('mouseover');
-                    cy.findByTestId('hover-menu-edit-button').click();
-                    cy.findByText('Assignee...').click();
-
-                    // * Verify that the assignee input is focused now
-                    cy.focused().
-                        should('have.attr', 'type', 'text').
-                        should('have.attr', 'id');
-
-                    // * Verify that the root of the assignee select menu exists
-                    cy.focused().parents('.playbook-react-select').
-                        should('exist').
-                        within(() => {
-                            // # Select the test user
-                            cy.findByText('@' + testUser.username).click({force: true});
-                        });
-                });
-
-                cy.reload();
-
-                cy.get('#checklists').within(() => {
-                    // # Trigger assignee select menu
-                    cy.findByText('Untitled task').trigger('mouseover');
-                    cy.findByTestId('hover-menu-edit-button').click();
-                    cy.findByText('@' + testUser.username).click();
-
-                    // * Verify that the assignee input is focused now
-                    cy.focused().
-                        should('have.attr', 'type', 'text').
-                        should('have.attr', 'id');
-
-                    // * Verify that the root of the assignee select menu exists
-                    cy.focused().
-                        parents('.playbook-react-select').
-                        should('exist');
-                });
-
-                cy.get('#actions').within(() => {
-                    cy.get('#invite-users').within(() => {
-                        // * Verify invitations are enabled and a single user is invited
-                        cy.get('label input').should('be.checked');
-                        cy.get('.invite-users-selector__control').
-                            after('content').
-                            should('eq', '1 SELECTED');
-                    });
-                });
-            });
-        });
-
-        describe('slash command', () => {
-            it('autocompletes after clicking Command...', () => {
-                // # Open Playbooks
-                cy.visit('/playbooks/playbooks');
-
-                // # Start a blank playbook
-                cy.findByText('Blank').click();
-                cy.findByText('Outline').click();
-
-                cy.get('#checklists').within(() => {
-                    // # Open the slash command input on a step
-                    cy.findByText('Untitled task').trigger('mouseover');
-                    cy.findByTestId('hover-menu-edit-button').click();
-                    cy.findByText('Command...').click();
-
-                    // * Verify the slash command input field now has focus
-                    // * and starts with a slash prefix.
-                    cy.focused().
-                        should('have.attr', 'placeholder', 'Slash Command').
-                        should('have.value', '/');
-                });
-
-                // * Verify the autocomplete prompt is open
-                cy.get('#suggestionList').should('exist');
-            });
-
-            // current regression in BPE
-            // MM-44606
-            it.skip('removes the input prompt when blurring with an empty slash command', () => {
-                // # Open Playbooks
-                cy.visit('/playbooks/playbooks');
-
-                // # Start a blank playbook
-                cy.findByText('Blank').click();
-                cy.findByText('Outline').click();
-
-                cy.get('#checklists').within(() => {
-                    // # Open the slash command input on a step
-                    cy.findByText('Untitled task').trigger('mouseover');
-                    cy.findByTestId('hover-menu-edit-button').click();
-                    cy.findByText('Add slash command').click();
-
-                    // * Verify the slash command input field now has focus
-                    // * and starts with a slash prefix.
-                    cy.findByPlaceholderText('Slash Command').should('have.focus');
-                    cy.findByPlaceholderText('Slash Command').should('have.value', '/');
-
-                    cy.findByPlaceholderText('Slash Command').type('{backspace}');
-                    cy.findByPlaceholderText('Slash Command').blur();
-
-                    cy.findByText('Add slash command').should('be.visible');
-                });
-            });
-
-            // current regression in BPE
-            // MM-44606
-            it.skip('removes the input prompt when blurring with an invalid slash command', () => {
-                // # Open Playbooks
-                cy.visit('/playbooks/playbooks');
-
-                // # Start a blank playbook
-                cy.findByText('Blank').click();
-                cy.findByText('Outline').click();
-
-                cy.get('#checklists').within(() => {
-                    // # Open the slash command input on a step
-                    cy.findByText('Untitled task').trigger('mouseover');
-                    cy.findByTestId('hover-menu-edit-button').click();
-                    cy.findByText('Add slash command').click();
-
-                    // * Verify the slash command input field now has focus
-                    // * and starts with a slash prefix.
-                    cy.findByPlaceholderText('Slash Command').should('have.focus');
-                    cy.findByPlaceholderText('Slash Command').should('have.value', '/');
-
-                    // # Blur the slash command without having typed anything more
-                    cy.findByPlaceholderText('Slash Command').blur();
-
-                    cy.findByText('Add slash command').should('be.visible');
-                });
-            });
-        });
     });
 
     const commonActionTests = () => {
@@ -640,68 +485,6 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                         });
                     });
                 });
-
-                // BPE regression
-                // user is still shown in the selector
-                // with a 1 MEMBER badge
-                // MM-44635
-                it.skip('removes invitation from users that are no longer in the team', () => {
-                    let userToRemove;
-                    let playbookId;
-
-                    // # Create a playbook with a user that is later removed from the team
-                    cy.apiLogin(testSysadmin).
-                        then(() => {
-                            cy.apiCreateUser().then((result) => {
-                                userToRemove = result.user;
-                                cy.apiAddUserToTeam(
-                                    testTeam.id,
-                                    userToRemove.id,
-                                );
-
-                                // # Create a playbook with the user that will be removed from the team.
-                                cy.apiCreatePlaybook({
-                                    teamId: testTeam.id,
-                                    title: 'Playbook (' + Date.now() + ')',
-                                    createPublicPlaybookRun: true,
-                                    memberIDs: [testUser.id, testSysadmin.id],
-                                    invitedUserIds: [userToRemove.id],
-                                    inviteUsersEnabled: true,
-                                }).then((playbook) => {
-                                    playbookId = playbook.id;
-                                });
-
-                                // # Remove user from the team
-                                cy.apiDeleteUserFromTeam(
-                                    testTeam.id,
-                                    userToRemove.id,
-                                );
-                            });
-                        }).
-                        then(() => {
-                            cy.apiLogin(testUser);
-
-                            // # Visit the selected playbook
-                            cy.visit(`/playbooks/playbooks/${playbookId}/outline`);
-
-                            // # select the actions section
-                            cy.contains('run summary template').dblclick();
-                            cy.findByRole('button', {name: /save/i});
-                            cy.reload();
-
-                            cy.get('#actions').within(() => {
-                                // # Open the invited users selector
-                                cy.get('#invite-users').within(() => {
-                                    cy.openSelector();
-
-                                    // * Verify there is no member badge
-                                    cy.get('.invite-users-selector__control').
-                                        after('content').
-                                        should('eq', '');
-                                });
-                            });
-                        });
-                });
             });
 
             describe('assign owner setting', () => {
@@ -830,128 +613,6 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                         });
                     });
                 });
-
-                // BPE regression,
-                // owner assignment does not save
-                // MM-44647
-                it.skip('persists the assigned owner even if the toggle is off', () => {
-                    // # Visit the selected playbook
-                    cy.visit(`/playbooks/playbooks/${testPlaybook.id}/outline`);
-
-                    // # select the actions section
-                    cy.get('#assign-owner').within(() => {
-                        // * Verify that the toggle is unchecked
-                        cy.get('label input').should('not.be.checked');
-
-                        // # Click on the toggle to enable the setting
-                        cy.get('label input').click({force: true});
-
-                        // * Verify that the toggle is checked
-                        cy.get('label input').should('be.checked');
-
-                        // # Open the owner selector
-                        cy.openSelector();
-
-                        // # Select a owner
-                        cy.selectOwner(testUser2.username);
-
-                        // * Verify that the control shows the selected owner
-                        cy.get('.assign-owner-selector__control').contains(
-                            testUser2.username,
-                        );
-
-                        // # Click on the toggle to disable the setting
-                        cy.get('label input').click({force: true});
-
-                        // * Verify that the toggle is unchecked
-                        cy.get('label input').should('not.be.checked');
-                    });
-
-                    // # The toggle click above should have saved,
-                    // # reload to check the outcome.
-                    cy.reload();
-
-                    cy.get('#assign-owner').within(() => {
-                        // * Verify that the toggle is unchecked
-                        cy.get('label input').should('not.be.checked');
-
-                        // # Click on the toggle to enable the setting
-                        cy.get('label input').click({force: true});
-
-                        // * Verify that the toggle is checked
-                        cy.get('label input').should('be.checked');
-
-                        // * Verify that the control shows the selected owner
-                        cy.get('.assign-owner-selector__control').contains(
-                            testUser2.username,
-                        );
-                    });
-                });
-
-                // BPE regression
-                // removed user is not shown in the owner selector
-                // but the toggle remains on
-                // MM-44678
-                it.skip('removes the owner and disables the setting if the user is no longer in the team', () => {
-                    let userToRemove;
-
-                    // # Create a playbook with a user that is later removed from the team
-                    cy.apiLogin(testSysadmin).
-                        then(() => {
-                            // # We need to increase the maximum number of users per team; otherwise,
-                            // adding a new member to the team fails in CI
-                            cy.apiCreateUser().then((result) => {
-                                userToRemove = result.user;
-                                cy.apiAddUserToTeam(
-                                    testTeam.id,
-                                    userToRemove.id,
-                                );
-
-                                // # Create a playbook with the user that will be removed from the team as
-                                // the default owner
-                                cy.apiCreatePlaybook({
-                                    teamId: testTeam.id,
-                                    title: 'Playbook (' + Date.now() + ')',
-                                    createPublicPlaybookRun: true,
-                                    memberIDs: [testUser.id, testSysadmin.id],
-                                    defaultOwnerId: userToRemove.id,
-                                    defaultOwnerEnabled: true,
-                                });
-
-                                // # Remove user from the team
-                                cy.apiDeleteUserFromTeam(
-                                    testTeam.id,
-                                    userToRemove.id,
-                                );
-                            });
-                        }).
-                        then(() => {
-                            cy.apiLogin(testUser);
-
-                            // # Visit the selected playbook
-                            cy.visit(`/playbooks/playbooks/${testPlaybook.id}/outline`);
-
-                            // # select the actions section
-                            cy.contains('run summary template').dblclick();
-                            cy.findByRole('button', {name: /save/i});
-                            cy.reload();
-
-                            cy.get('#assign-owner').within(() => {
-                                // * Verify that the toggle is unchecked
-                                cy.get('label input').should('not.be.checked');
-
-                                // # Click on the toggle to enable the setting
-                                cy.get('label input').click({force: true});
-
-                                // * Verify that the control shows the selected owner
-                                cy.get(
-                                    '.assign-owner-selector__control',
-                                ).within(() => {
-                                    cy.findByText('Search for people');
-                                });
-                            });
-                        });
-                });
             });
         });
     };
@@ -1010,34 +671,6 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                     cy.get('input[type=radio]').eq(0).should('not.be.checked');
                     cy.get('label input[type=radio]').should('be.disabled');
                     cy.get('button').should('be.disabled');
-                });
-            });
-
-            it.skip('can fill a channel and is persisted', () => {
-                cy.get('#actions #link-existing-channel').within(() => {
-                    // # click radio
-                    cy.get('input[type=radio]').click();
-
-                    cy.findByText('Select a channel').click().type('Town{enter}');
-                });
-
-                cy.reload();
-
-                // * wait for page to load
-                cy.get('h1').should('be.visible');
-
-                cy.get('#actions #create-new-channel').within(() => {
-                    // * Verify that the toggle is unchecked and inputs are disabled
-                    cy.get('input[type=radio]').eq(0).should('not.be.checked');
-                    cy.get('label input[type=radio]').should('be.disabled');
-                    cy.get('button').should('be.disabled');
-                });
-
-                cy.get('#actions #link-existing-channel').within(() => {
-                    // * Verify that the toggle is checked and input is enabled
-                    cy.get('input[type=radio]').should('be.checked');
-                    cy.get('input[type=text]').should('not.be.disabled');
-                    cy.findByText('Town Square').should('exist');
                 });
             });
         });
@@ -1183,77 +816,46 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                         });
                 });
 
-                it.skip('shows channel name when private broadcast channel configured and user is a member', () => {
+                it('shows channel name when private broadcast channel configured and user is a member', () => {
                     // # Visit the selected playbook
-                    cy.visit('/playbooks/playbooks/' + testPlaybook.id + '/edit');
+                    cy.visit('/playbooks/playbooks/' + testPlaybook.id + '/outline');
 
-                    // # Switch to Status updates tab
-                    cy.get('#root').findByText('Status updates').click();
+                    // * Verify no channel is selected
+                    cy.findByTestId('status-update-broadcast-channels').should(
+                        'have.text',
+                        'no channels',
+                    );
 
-                    // # Click on the toggle to enable the setting
-                    cy.get('#broadcast-channels').within(() => {
-                        cy.get('label input').click({force: true});
+                    // # Open the broadcast channel widget
+                    cy.findByTestId('status-update-broadcast-channels').click();
+
+                    // # select a private channel
+                    cy.get('#floating-ui-root').within(() => {
+                        cy.get('input').type(`${testPrivateChannel.display_name}{enter}{esc}`);
                     });
 
-                    // # Open the broadcast channel widget and select a public channel
-                    cy.get('#playbook-automation-broadcast').
-                        click().
-                        type(testPrivateChannel.display_name + '{enter}', {delay: 200});
-
-                    // # Save the playbook
-                    cy.findByTestId('save_playbook').click();
+                    // * Verify placeholder text is present
+                    cy.findByTestId('status-update-broadcast-channels').should(
+                        'have.text',
+                        '1 channel',
+                    );
 
                     // # Visit the selected playbook
-                    cy.visit('/playbooks/playbooks/' + testPlaybook.id + '/edit');
-
-                    // # Switch to Status updates tab
-                    cy.get('#root').findByText('Status updates').click();
+                    cy.visit('/playbooks/playbooks/' + testPlaybook.id + '/outline');
 
                     // * Verify placeholder text is present
-                    cy.get('#playbook-automation-broadcast').should(
+                    cy.findByTestId('status-update-broadcast-channels').should(
                         'have.text',
-                        testPrivateChannel.display_name,
+                        '1 channel',
                     );
-                });
 
-                it.skip('shows "Unknown channel" when private broadcast channel configured and user is not a member', () => {
-                    // # Visit the selected playbook
-                    cy.visit('/playbooks/playbooks/' + testPlaybook.id + '/edit');
+                    // # Open the broadcast channel widget
+                    cy.findByTestId('status-update-broadcast-channels').click();
 
-                    // # Switch to Status updates tab
-                    cy.get('#root').findByText('Status updates').click();
-
-                    // # Click on the toggle to enable the setting
-                    cy.get('#broadcast-channels').within(() => {
-                        cy.get('label input').click({force: true});
+                    // * Verify channel name displayed
+                    cy.get('#floating-ui-root').within(() => {
+                        cy.findByText(testPrivateChannel.display_name).should('be.visible');
                     });
-
-                    // # Open the broadcast channel widget and select the private channel
-                    cy.get('#playbook-automation-broadcast').
-                        click().
-                        type(testPrivateChannel.display_name + '{enter}', {delay: 200});
-
-                    // # Save the playbook
-                    cy.findByTestId('save_playbook').click();
-
-                    // # Browse to the private channel
-                    cy.visit(`/${testTeam.name}/channels/${testPrivateChannel.name}`);
-
-                    // # Leave the private channel
-                    cy.uiPostMessageQuickly('/leave');
-                    cy.get('#confirmModalButton').click();
-
-                    // # Visit the selected playbook
-                    cy.visit('/playbooks/playbooks/' + testPlaybook.id + '/edit');
-
-                    // # Switch to Status updates tab
-                    cy.get('#root').findByText('Status updates').click();
-
-                    // * Verify placeholder text is present
-                    cy.get('#playbook-automation-broadcast').should(
-                        'have.text',
-                        'Unknown Channel',
-                    );
                 });
             });
         });
@@ -1291,65 +893,6 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                     cy.findByTestId('user-joins-channel-categorize').within(() => {
                         cy.get('label input').should('not.be.checked');
                         cy.getStyledComponent('StyledCreatable').should('not.exist');
-                    });
-                });
-
-                it.skip('allows selecting a category when enabled', () => {
-                    cy.findByTestId('user-joins-channel-categorize').within(() => {
-                        // * Verify that the toggle is unchecked
-                        cy.get('label input').should('not.be.checked');
-
-                        // # Click on the toggle to enable the setting
-                        cy.get('label input').click({force: true});
-
-                        // * Verify that the toggle is checked
-                        cy.get('label input').should('be.checked');
-
-                        // # Open the category selector
-                        openCategorySelector();
-
-                        // # Select a category
-                        selectCategory('Favorites');
-
-                        // * Verify that the control shows the selected category
-                        cy.get('.channel-selector__control').contains('Favorites');
-                    });
-                });
-
-                it.skip('allows changing the category', () => {
-                    cy.findByTestId('user-joins-channel-categorize').within(() => {
-                        // * Verify that the toggle is unchecked
-                        cy.get('label input').should('not.be.checked');
-
-                        // # Click on the toggle to enable the setting
-                        cy.get('label').eq(1).click();
-
-                        // * Verify that the toggle is checked
-                        cy.get('label input').should('be.checked');
-
-                        // # Open the channel selector
-                        openCategorySelector();
-
-                        // # Select a category
-                        selectCategory('Favorites');
-
-                        // * Verify that the control shows the selected category
-                        cy.get('#playbook-automation-categorize-playbook-run .channel-selector__control').contains(
-                            'Favorites',
-                        );
-
-                        // # Open the channel selector
-                        cy.get('#playbook-automation-categorize-playbook-run .channel-selector__control').click({
-                            force: true,
-                        });
-
-                        // # Select a new channel
-                        selectCategory('Channels');
-
-                        // * Verify that the control shows the selected channel
-                        cy.get('#playbook-automation-categorize-playbook-run .channel-selector__control').contains(
-                            'Channels',
-                        );
                     });
                 });
 
@@ -1470,6 +1013,9 @@ describe('playbooks > edit', {testIsolation: true}, () => {
 
         describe('retrospective enable / disable', () => {
             beforeEach(() => {
+                // # Login as testUser
+                cy.apiLogin(testUser);
+
                 // # Visit the selected playbook
                 cy.visit(`/playbooks/playbooks/${testPlaybook.id}/outline`);
             });
@@ -1508,200 +1054,6 @@ describe('playbooks > edit', {testIsolation: true}, () => {
                     // * Verify that the toggle is unchecked
                     cy.get('label input').should('not.be.checked');
                 });
-            });
-        });
-    });
-
-    describe('Edit playbook name', () => {
-        it('can be updated', () => {
-            // # Open Playbooks
-            cy.visit('/playbooks/playbooks');
-
-            // # Start a blank playbook
-            cy.findByText('Blank').click();
-
-            // # Open the title dropdown and Rename
-            cy.findByTestId('playbook-editor-title').click();
-            cy.findByText('Rename').click();
-
-            // # Change the name and save
-            cy.findByTestId('rendered-editable-text').type('{selectAll}{del}renamed playbook');
-            cy.findByRole('button', {name: /save/i}).click();
-
-            cy.reload();
-
-            // * Verify the modified name persists
-            cy.findByRole('button', {name: /renamed playbook/i}).should('exist');
-        });
-
-        // BPE regression?
-        // no more unsaved changes modal
-        it.skip('update, leave and discard', () => {
-            // # Open Playbooks
-            cy.visit('/playbooks/playbooks');
-
-            // # Start a blank playbook
-            cy.findByText('Blank').click();
-            cy.get('#edit-playbook').click();
-
-            // * edit
-            cy.findByTestId('playbook-title-description').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByTestId('playbook-edit-name-input').clear().type('playbook updated name');
-
-            // * leave without save, show confirm modal and discard
-            cy.findByTestId('modal-cancel-button').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('exist');
-            cy.findByTestId('modal-confirm-button').click();
-
-            // * check modals are hidden and name is not changed
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByText('playbook updated name').should('not.exist');
-        });
-
-        // BPE regression?
-        // no more unsaved changes modal
-        it.skip('update, leave and go back to edit', () => {
-            // # Open Playbooks
-            cy.visit('/playbooks/playbooks');
-
-            // # Start a blank playbook
-            cy.findByText('Blank').click();
-            cy.get('#edit-playbook').click();
-
-            // * edit
-            cy.findByTestId('playbook-title-description').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByTestId('playbook-edit-name-input').clear().type('playbook updated name');
-
-            // * leave without save, show confirm modal and cancel
-            cy.findByTestId('modal-cancel-button').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('exist');
-            cy.findByTestId('modal-cancel-button').click();
-
-            // * check modals are hidden and name is not changed
-            cy.get('#playbook-edit-name-and-description-modal').should('exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByTestId('modal-confirm-button').click();
-
-            // * modals are hidden and text is changed
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByText('playbook updated name').should('exist');
-        });
-    });
-
-    describe('Edit playbook description', () => {
-        it.skip('can be updated', () => {
-            // # Open Playbooks
-            cy.visit('/playbooks/playbooks');
-
-            // # Start a blank playbook
-            cy.findByText('Blank').click();
-            cy.findByText(/customize this playbook's description/i).dblclick();
-            cy.focused().type('{selectAll}{del}some new description{esc}');
-            cy.findByRole('button', {name: /save/i}).click();
-
-            cy.reload();
-
-            cy.findByText('some new description').should('exist');
-        });
-
-        // BPE regression?
-        // no more unsaved changes modal
-        it.skip('update, leave and discard', () => {
-            // # Open Playbooks
-            cy.visit('/playbooks/playbooks');
-
-            // # Start a blank playbook
-            cy.findByText('Blank').click();
-            cy.get('#edit-playbook').click();
-
-            // * edit
-            cy.findByTestId('playbook-title-description').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByTestId('playbook-edit-name-and-description-modal-description-textbox').clear().type('playbook updated desc');
-
-            // * leave without save, show confirm modal and discard
-            cy.findByTestId('modal-cancel-button').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('exist');
-            cy.findByTestId('modal-confirm-button').click();
-
-            // * check modals are hidden and name is not changed
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByText('playbook updated desc').should('not.exist');
-        });
-
-        // BPE regression?
-        // no more unsaved changes modal
-        it.skip('update, leave and go back to edit', () => {
-            // # Open Playbooks
-            cy.visit('/playbooks/playbooks');
-
-            // # Start a blank playbook
-            cy.findByText('Blank').click();
-            cy.get('#edit-playbook').click();
-
-            // * edit
-            cy.findByTestId('playbook-title-description').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByTestId('playbook-edit-name-and-description-modal-description-textbox').clear().type('playbook updated desc');
-
-            // * leave without save, show confirm modal and cancel
-            cy.findByTestId('modal-cancel-button').click();
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('exist');
-            cy.findByTestId('modal-cancel-button').click();
-
-            // * check modals are hidden and name is not changed
-            cy.get('#playbook-edit-name-and-description-modal').should('exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByTestId('modal-confirm-button').click();
-
-            // * modals are hidden and text is changed
-            cy.get('#playbook-edit-name-and-description-modal').should('not.exist');
-            cy.get('#confirm-modal-light').should('not.exist');
-            cy.findByText('playbook updated desc').should('exist');
-        });
-    });
-
-    describe('Duplicate', () => {
-        let testPlaybook;
-        beforeEach(() => {
-            cy.apiCreateTestPlaybook({
-                teamId: testTeam.id,
-                title: 'Playbook (' + Date.now() + ')',
-                userId: testUser.id,
-            }).then((playbook) => {
-                testPlaybook = playbook;
-            });
-        });
-
-        it('can be duplicated', () => {
-            // # Visit the selected playbook
-            cy.visit(`/playbooks/playbooks/${testPlaybook.id}/outline`);
-
-            // # Open the title dropdown and Duplicate
-            cy.findByTestId('playbook-editor-title').click();
-            cy.findByText('Duplicate').click();
-
-            // * Verify that playbook got duplicated
-            cy.findByTestId('playbook-editor-header').within(() => {
-                cy.findByText('Copy of ' + testPlaybook.title).should('exist');
-            });
-
-            // * Verify that the duplicated playbook is shown in the LHS
-            cy.findByTestId('Playbooks').within(() => {
-                cy.findByText('Copy of ' + testPlaybook.title).should('be.visible');
             });
         });
     });
