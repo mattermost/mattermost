@@ -673,7 +673,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	queryParams := uri.Query()
 	code := queryParams.Get("code")
 
-	data, nErr := th.App.Srv().Store().OAuth().GetAuthData(code)
+	data, nErr := th.App.Srv().Store.OAuth().GetAuthData(code)
 	require.Equal(t, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code)), nErr)
 	assert.Nil(t, data)
 }
