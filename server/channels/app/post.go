@@ -2310,7 +2310,7 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 			}
 		}
 		return true
-	}, plugin.MessageWillBeConsumedID)
+	}, plugin.MessagesWillBeConsumedID)
 }
 
 func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
@@ -2321,5 +2321,5 @@ func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 			(*post) = rp[0]
 		}
 		return true
-	}, plugin.MessageWillBeConsumedID)
+	}, plugin.MessagesWillBeConsumedID)
 }

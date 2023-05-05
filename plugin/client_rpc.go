@@ -704,21 +704,21 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.
 func init() {
-	hookNameToId["MessagesWillBeConsumed"] = MessageWillBeConsumedID
+	hookNameToId["MessagesWillBeConsumed"] = MessagesWillBeConsumedID
 }
 
-type Z_MessageWillBeConsumedArgs struct {
+type Z_MessagesWillBeConsumedArgs struct {
 	A []*model.Post
 }
 
-type Z_MessageWillBeConsumedReturns struct {
+type Z_MessagesWillBeConsumedReturns struct {
 	A []*model.Post
 }
 
 func (g *hooksRPCClient) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
-	_args := &Z_MessageWillBeConsumedArgs{posts}
-	_returns := &Z_MessageWillBeConsumedReturns{}
-	if g.implemented[MessageWillBeConsumedID] {
+	_args := &Z_MessagesWillBeConsumedArgs{posts}
+	_returns := &Z_MessagesWillBeConsumedReturns{}
+	if g.implemented[MessagesWillBeConsumedID] {
 		if err := g.client.Call("Plugin.MessagesWillBeConsumed", _args, _returns); err != nil {
 			g.log.Error("RPC call MessagesWillBeConsumed to plugin failed.", mlog.Err(err))
 		}
@@ -726,7 +726,7 @@ func (g *hooksRPCClient) MessagesWillBeConsumed(posts []*model.Post) []*model.Po
 	return _returns.A
 }
 
-func (s *hooksRPCServer) MessagesWillBeConsumed(args *Z_MessageWillBeConsumedArgs, returns *Z_MessageWillBeConsumedReturns) error {
+func (s *hooksRPCServer) MessagesWillBeConsumed(args *Z_MessagesWillBeConsumedArgs, returns *Z_MessagesWillBeConsumedReturns) error {
 	if hook, ok := s.impl.(interface {
 		MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 	}); ok {

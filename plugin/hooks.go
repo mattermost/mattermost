@@ -49,7 +49,7 @@ const (
 	GetTopicRedirectID              = 31
 	GetCollectionMetadataByIdsID    = 32
 	GetTopicMetadataByIdsID         = 33
-	MessageWillBeConsumedID         = 34
+	MessagesWillBeConsumedID        = 34
 	TotalHooksID                    = iota
 )
 
