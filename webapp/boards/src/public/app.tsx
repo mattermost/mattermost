@@ -34,7 +34,6 @@ const PublicRouter = () => {
 }
 
 const PublicApp = (): JSX.Element => {
-
     return (
         <DndProvider backend={Utils.isMobile() ? TouchBackend : HTML5Backend}>
             <FlashMessages milliseconds={2000}/>
