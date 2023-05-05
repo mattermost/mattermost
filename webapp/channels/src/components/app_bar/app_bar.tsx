@@ -12,11 +12,7 @@ import {getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
 import {getAppBarPluginComponents, getChannelHeaderPluginComponents, shouldShowAppBar} from 'selectors/plugins';
 import {suitePluginIds} from 'utils/constants';
 
-import {Permissions} from 'mattermost-redux/constants';
-import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
-import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
-
-import {GlobalState} from '@mattermost/types/store';
+import {canIOpenMarketplace} from 'mattermost-redux/selectors/entities/roles';
 
 import AppBarPluginComponent, {isAppBarPluginComponent} from './app_bar_plugin_component';
 import AppBarBinding, {isAppBinding} from './app_bar_binding';
@@ -31,10 +27,7 @@ export default function AppBar() {
     const currentProduct = useCurrentProduct();
     const currentProductId = useCurrentProductId();
     const enabled = useSelector(shouldShowAppBar);
-    const canOpenMarketplace = useSelector((state: GlobalState) => (
-        isMarketplaceEnabled(state) &&
-        haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
-    ));
+    const canOpenMarketplace = useSelector(canIOpenMarketplace);
 
     if (
         !enabled ||

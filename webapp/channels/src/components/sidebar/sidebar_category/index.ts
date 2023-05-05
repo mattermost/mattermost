@@ -5,13 +5,11 @@ import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
 import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
-import {Permissions} from 'mattermost-redux/constants';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {ChannelCategory} from '@mattermost/types/channel_categories';
-import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {canIOpenMarketplace} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 import {Preferences, Touched} from 'utils/constants';
@@ -35,10 +33,7 @@ function makeMapStateToProps() {
             touchedInviteMembersButton: getBool(state, Preferences.TOUCHED, Touched.INVITE_MEMBERS),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),
-            canOpenMarketplace: (
-                isMarketplaceEnabled(state) &&
-                haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
-            ),
+            canOpenMarketplace: canIOpenMarketplace(state),
         };
     };
 }

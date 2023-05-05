@@ -143,10 +143,12 @@ const ChannelMoveToSubMenu = (props: Props) => {
         if (isDmOrGm) {
             const dmBot: boolean = props.channel.props?.dm_bot;
 
-            return categories.filter((category) => (
-                category.type !== CategoryTypes.CHANNELS &&
-                ((dmBot && category.type !== CategoryTypes.DIRECT_MESSAGES) || (!dmBot && category.type !== CategoryTypes.APPS))
-            ));
+            return categories.filter((category) => {
+                const excludeDM = dmBot && category.type !== CategoryTypes.DIRECT_MESSAGES;
+                const excludeApps = !dmBot && category.type !== CategoryTypes.APPS;
+
+                return category.type !== CategoryTypes.CHANNELS && (excludeDM || excludeApps);
+            });
         }
 
         return categories.filter((category) => category.type !== CategoryTypes.DIRECT_MESSAGES && category.type !== CategoryTypes.APPS);

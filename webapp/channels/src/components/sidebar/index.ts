@@ -7,9 +7,9 @@ import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {Preferences} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getLicense, isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {haveICurrentChannelPermission, haveISystemPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveICurrentChannelPermission, haveISystemPermission, canIOpenMarketplace} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {createCategory, clearChannelSelection} from 'actions/views/channel_sidebar';
@@ -67,10 +67,7 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
         showWorkTemplateButton,
-        canOpenMarketplace: (
-            isMarketplaceEnabled(state) &&
-            haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
-        ),
+        canOpenMarketplace: canIOpenMarketplace(state),
         isMarketplaceModalOpen: isModalOpen(state, ModalIdentifiers.PLUGIN_MARKETPLACE),
         isMoreDirectBotChannelsModalOpen: isModalOpen(state, ModalIdentifiers.MORE_DIRECT_BOT_CHANNELS),
     };

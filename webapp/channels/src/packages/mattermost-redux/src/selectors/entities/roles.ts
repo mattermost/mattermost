@@ -4,6 +4,7 @@
 import {createSelector} from 'reselect';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
+import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
 import {
     getMySystemPermissions,
     getMySystemRoles,
@@ -198,3 +199,12 @@ export function haveICurrentTeamPermission(state: GlobalState, permission: strin
 export function haveICurrentChannelPermission(state: GlobalState, permission: string): boolean {
     return haveIChannelPermission(state, getCurrentTeamId(state), getCurrentChannelId(state), permission);
 }
+
+export const canIOpenMarketplace = createSelector(
+    'canIOpenMarketplace',
+    isMarketplaceEnabled,
+    (state: GlobalState) => haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS),
+    (isMarketplaceEnabled, haveICurrentTeamPermission) => {
+        return isMarketplaceEnabled && haveICurrentTeamPermission;
+    },
+);

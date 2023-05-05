@@ -198,4 +198,6 @@ function markAsFavorite(channelName) {
 
     // # mark it as Favorite
     cy.get('#toggleFavorite').click();
+
+    cy.get('#SidebarContainer .scrollbar--view').scrollTo('top', {ensureScrollable: false});
 }
