@@ -14,6 +14,8 @@ import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {overlayScrollbarAllowance} from '../constants';
 
+import './channel_only_footer.scss';
+
 interface Props {
     createChannel: () => void;
     isConfirmDisabled: boolean;
@@ -33,20 +35,19 @@ export default function ChannelOnlyFooter(props: Props) {
 
     return (
         <Footer>
-            <FooterButton
-                cancel={true}
+            <button
                 onClick={cancelButtonAction}
+                className='ChannelOnlyFooter__cancel'
             >
                 {formatMessage({id: 'work_templates.channel_only.cancel', defaultMessage: 'Cancel'})}
-            </FooterButton>
-            <FooterButton
-                confirm={true}
+            </button>
+            <button
                 onClick={createChannelOnly}
                 disabled={props.isConfirmDisabled}
-                className={classnames({disabled: props.isConfirmDisabled})}
+                className={classnames('ChannelOnlyFooter__confirm', {disabled: props.isConfirmDisabled})}
             >
                 {formatMessage({id: 'work_templates.channel_only.confirm', defaultMessage: 'Create channel'})}
-            </FooterButton>
+            </button>
         </Footer>
     );
 }
@@ -67,87 +68,3 @@ const Footer = styled.div`
     padding: 24px 0;
     text-align: right;
 `;
-
-interface FooterButtonProps {
-    cancel?: boolean;
-    confirm?: boolean;
-}
-const primaryButton = `
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    background: var(--button-bg);
-    border-radius: 4px;
-    color: var(--button-color);
-    font-weight: 600;
-    transition: all 0.15s ease-out;
-
-    &:hover {
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
-    }
-
-    &:active {
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
-    }
-
-    &:focus {
-        box-sizing: border-box;
-        border: 2px solid var(--sidebar-text-active-border);
-        outline: none;
-    }
-
-    &:disabled:not(.always-show-enabled) {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-        cursor: not-allowed;
-    }
-
-    i {
-        display: flex;
-        font-size: 18px;
-    }
-`;
-const buttonMedium = `
-    height: 40px;
-    padding: 0 20px;
-    font-size: 14px;
-    line-height: 14px;
-`;
-const FooterButton = styled.button<FooterButtonProps>`
-    padding: 13px 20px;
-    border: none;
-    border-radius: 4px;
-    box-shadow: none;
-    ${buttonMedium};
-
-    ${(props) => (props.cancel ? `
-        margin-right: 8px;
-        background: var(--center-channel-bg);
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-
-        &:hover {
-            background: rgba(var(--button-bg-rgb), 0.12);
-        }
-
-        &:active {
-            background: rgba(var(--button-bg-rgb), 0.16);
-        }
-
-        &:focus {
-            box-sizing: border-box;
-            padding: 11px 18px;
-            border: 2px solid var(--sidebar-text-active-border);
-        }
-    ` : '')}
-
-    ${(props) => (props.confirm ? `
-        ${primaryButton}
-        &:focus {
-            padding: 11px 18px;
-        }
-    ` : '')}
-`;
-

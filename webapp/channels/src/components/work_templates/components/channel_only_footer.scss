@@ -1,0 +1,44 @@
+@import 'utils/mixins';
+@import 'utils/variables';
+
+.ChannelOnlyFooter {
+  &__cancel,
+  &__confirm {
+    padding: 13px 20px;
+    border: none;
+    border-radius: 4px;
+    box-shadow: none;
+    @include button-medium;
+    
+  } 
+
+  &__cancel {
+      margin-right: 8px;
+      background: var(--center-channel-bg);
+      background: rgba(var(--button-bg-rgb), 0.08);
+      color: var(--button-bg);
+
+      &:hover {
+          background: rgba(var(--button-bg-rgb), 0.12);
+      }
+
+      &:active {
+          background: rgba(var(--button-bg-rgb), 0.16);
+      }
+
+      &:focus {
+          box-sizing: border-box;
+          padding: 11px 18px;
+          border: 2px solid var(--sidebar-text-active-border);
+      }
+  }
+  &__confirm {
+      @include primary-button;
+      @include button-medium;
+
+      &:focus {
+          padding: 11px 18px;
+      }
+  }
+}
+
