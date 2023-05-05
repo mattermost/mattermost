@@ -246,11 +246,11 @@ func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error)
 		return true, nil
 	}
 
-	seerIDs := []string{}
-	seenIDs := []string{}
+	seerBoardIDs := []string{}
+	seenBoardIDs := []string{}
 
 	err = s.ForEachMemberForUser(seerID, func(member *model.BoardMember) error {
-		seerIDs = append(seerIDs, member.UserID)
+		seerBoardIDs = append(seerBoardIDs, member.BoardID)
 		return nil
 	})
 	if err != nil {
@@ -258,16 +258,16 @@ func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error)
 	}
 
 	err = s.ForEachMemberForUser(seenID, func(member *model.BoardMember) error {
-		seenIDs = append(seenIDs, member.UserID)
+		seenBoardIDs = append(seenBoardIDs, member.BoardID)
 		return nil
 	})
 	if err != nil {
 		return false, err
 	}
 
-	for _, seerMemberID := range seerIDs {
-		for _, seenMemberID := range seenIDs {
-			if seerMemberID == seenMemberID {
+	for _, seerBoardID := range seerBoardIDs {
+		for _, seenBoardID := range seenBoardIDs {
+			if seerBoardID == seenBoardID {
 				return true, nil
 			}
 		}
