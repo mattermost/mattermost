@@ -70,6 +70,7 @@ const Input = React.forwardRef((
         onBlur,
         onChange,
         onClear,
+        shouldValidateOnBlur,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement>,
@@ -105,7 +106,7 @@ const Input = React.forwardRef((
 
     const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>) => {
         setFocused(false);
-        if (!otherProps.shouldValidateOnBlur || otherProps.shouldValidateOnBlur(event)) {
+        if (!shouldValidateOnBlur || shouldValidateOnBlur(event)) {
             validateInput();
         }
 
