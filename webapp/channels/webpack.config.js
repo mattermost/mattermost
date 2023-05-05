@@ -3,7 +3,6 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const childProcess = require('child_process');
 const path = require('path');
 
 const url = require('url');
@@ -12,7 +11,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
-const nodeExternals = require('webpack-node-externals');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest');
@@ -25,7 +23,6 @@ const packageJson = require('./package.json');
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
 const targetIsRun = NPM_TARGET?.startsWith('run');
-const targetIsTest = NPM_TARGET === 'test';
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
 const targetIsEslint = NPM_TARGET === 'check' || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
@@ -446,13 +443,6 @@ if (DEV) {
 config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
 }));
-
-// Test mode configuration
-if (targetIsTest) {
-    config.entry = ['.src/root.tsx'];
-    config.target = 'node';
-    config.externals = [nodeExternals()];
-}
 
 if (targetIsDevServer) {
     const proxyToServer = {
