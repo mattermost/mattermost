@@ -24,7 +24,7 @@ import {confirmSelfHostedSignup} from 'actions/hosted_customer';
 import {GlobalState} from 'types/store';
 
 import {isModalOpen} from 'selectors/views/modals';
-import {isDevModeEnabled} from 'selectors/general';
+import {isCwsMockMode} from 'selectors/cloud';
 
 import {inferNames} from 'utils/hosted_customer';
 
@@ -323,7 +323,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
     const desiredProductName = desiredProduct?.name || '';
     const desiredPlanName = getPlanNameFromProductName(desiredProductName);
     const currentUsers = analytics[StatTypes.TOTAL_USERS] as number;
-    const isDevMode = useSelector(isDevModeEnabled);
+    const cwsMockMode = useSelector(isCwsMockMode);
     const hasLicense = Object.keys(useSelector(getLicense) || {}).length > 0;
 
     const intl = useIntl();
@@ -453,7 +453,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
                     id: signupCustomerResult.setup_intent_id,
                     client_secret: signupCustomerResult.setup_intent_secret,
                 },
-                isDevMode,
+                cwsMockMode,
                 {
                     address: state.address,
                     address2: state.address2,
