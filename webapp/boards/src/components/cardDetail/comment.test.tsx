@@ -8,7 +8,7 @@ import moment from 'moment'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -17,7 +17,7 @@ import mutator from 'src/mutator'
 import Comment from './comment'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
@@ -50,7 +50,7 @@ describe('components/cardDetail/comment', () => {
         }
     })
 
-    test('return comment', () => {
+    test('return comment', async () => {
         const {container} = render(wrapIntl(
             <ReduxProvider store={store}>
                 <Comment
@@ -62,7 +62,7 @@ describe('components/cardDetail/comment', () => {
             </ReduxProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
@@ -80,7 +80,7 @@ describe('components/cardDetail/comment', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('return comment and delete comment', () => {
+    test('return comment and delete comment', async () => {
         const {container} = render(wrapIntl(
             <ReduxProvider store={store}>
                 <Comment
@@ -92,15 +92,15 @@ describe('components/cardDetail/comment', () => {
             </ReduxProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonDelete = screen.getByRole('button', {name: 'Delete'})
-        userEvent.click(buttonDelete)
+        await userEvent.click(buttonDelete)
         expect(mockedMutator.deleteBlock).toBeCalledTimes(1)
         expect(mockedMutator.deleteBlock).toBeCalledWith(comment)
     })
 
-    test('return guest comment', () => {
+    test('return guest comment', async () => {
         const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
         const {container} = render(wrapIntl(
             <ReduxProvider store={localStore}>
@@ -113,11 +113,11 @@ describe('components/cardDetail/comment', () => {
             </ReduxProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
-    test('return guest comment readonly', () => {
+    test('return guest comment readonly', async () => {
         const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
         const {container} = render(wrapIntl(
             <ReduxProvider store={localStore}>
@@ -132,7 +132,7 @@ describe('components/cardDetail/comment', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('return guest comment and delete comment', () => {
+    test('return guest comment and delete comment', async () => {
         const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
         const {container} = render(wrapIntl(
             <ReduxProvider store={localStore}>
@@ -145,10 +145,10 @@ describe('components/cardDetail/comment', () => {
             </ReduxProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonDelete = screen.getByRole('button', {name: 'Delete'})
-        userEvent.click(buttonDelete)
+        await userEvent.click(buttonDelete)
         expect(mockedMutator.deleteBlock).toBeCalledTimes(1)
         expect(mockedMutator.deleteBlock).toBeCalledWith(comment)
     })

@@ -4,13 +4,18 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {
+    act,
+    fireEvent,
     render,
     screen,
-    fireEvent,
-    act
 } from '@testing-library/react'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {
+    mockDOM,
+    mockStateStore,
+    setup,
+    wrapDNDIntl,
+} from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
 import {BlockData} from './blocks/types'
@@ -95,28 +100,24 @@ describe('components/blocksEditor/blocksEditor', () => {
 
     test('should call onBlockCreate after introduce text and hit enter', async () => {
         const onBlockCreated = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <BlocksEditor
-                        boardId='test-board'
-                        onBlockCreated={onBlockCreated}
-                        onBlockModified={jest.fn()}
-                        onBlockMoved={jest.fn()}
-                        blocks={[]}
-                    />
-                </ReduxProvider>,
-            ))
-        })
-
-        let input = screen.getByDisplayValue('')
+        const {user} = setup(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <BlocksEditor
+                    boardId='test-board'
+                    onBlockCreated={onBlockCreated}
+                    onBlockModified={jest.fn()}
+                    onBlockMoved={jest.fn()}
+                    blocks={[]}
+                />
+            </ReduxProvider>,
+        ))
         expect(onBlockCreated).not.toBeCalled()
-        fireEvent.change(input, {target: {value: '/title'}})
-        fireEvent.keyDown(input, {key: 'Enter'})
-
-        input = screen.getByDisplayValue('')
-        fireEvent.change(input, {target: {value: 'test'}})
-        fireEvent.keyDown(input, {key: 'Enter'})
+        await act(async () => {
+            await user.type(screen.getByRole('combobox'), '/title')
+            await user.keyboard('{Enter}')
+            await user.type(screen.getByRole('textbox'), 'test')
+            await user.keyboard('{Enter}')
+        })
 
         expect(onBlockCreated).toBeCalledWith(expect.objectContaining({value: 'test'}))
     })
@@ -138,7 +139,7 @@ describe('components/blocksEditor/blocksEditor', () => {
             const input = screen.getByTestId('checkbox-check')
             expect(onBlockModified).not.toBeCalled()
             fireEvent.click(input)
-            expect(onBlockModified).toBeCalledWith(expect.objectContaining({value: {checked: false, value: 'Checkbox'}}))
         })
+        expect(onBlockModified).toBeCalledWith(expect.objectContaining({value: {checked: false, value: 'Checkbox'}}))
     })
 })

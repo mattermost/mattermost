@@ -5,14 +5,13 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import {Archiver} from 'src/archiver'
 
@@ -23,8 +22,8 @@ import ViewHeaderActionsMenu from './viewHeaderActionsMenu'
 jest.mock('src/archiver')
 jest.mock('src/csvExporter')
 jest.mock('src/mutator')
-const mockedArchiver = mocked(Archiver, true)
-const mockedCsvExporter = mocked(CsvExporter, true)
+const mockedArchiver = mocked(Archiver)
+const mockedCsvExporter = mocked(CsvExporter)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -44,7 +43,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         jest.clearAllMocks()
     })
 
-    test('return menu', () => {
+    test('return menu', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -59,11 +58,11 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         const buttonElement = screen.getByRole('button', {
             name: 'View header menu',
         })
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
-    test('return menu and verify call to csv exporter', () => {
+    test('return menu and verify call to csv exporter', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -76,14 +75,14 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'View header menu'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonExportCSV = screen.getByRole('button', {name: 'Export to CSV'})
-        userEvent.click(buttonExportCSV)
+        await userEvent.click(buttonExportCSV)
         expect(mockedCsvExporter.exportTableCsv).toBeCalledTimes(1)
     })
 
-    test('return menu and verify call to board archive', () => {
+    test('return menu and verify call to board archive', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -96,10 +95,10 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'View header menu'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonExportBoardArchive = screen.getByRole('button', {name: 'Export board archive'})
-        userEvent.click(buttonExportBoardArchive)
+        await userEvent.click(buttonExportBoardArchive)
         expect(mockedArchiver.exportBoardArchive).toBeCalledTimes(1)
         expect(mockedArchiver.exportBoardArchive).toBeCalledWith(board)
     })

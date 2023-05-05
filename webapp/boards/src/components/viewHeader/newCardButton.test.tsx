@@ -4,10 +4,9 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -44,7 +43,7 @@ describe('components/viewHeader/newCardButton', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
-    test('return NewCardButton', () => {
+    test('return NewCardButton', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -58,10 +57,10 @@ describe('components/viewHeader/newCardButton', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('return NewCardButton and addCard', () => {
+    test('return NewCardButton and addCard', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -75,13 +74,13 @@ describe('components/viewHeader/newCardButton', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonAdd = screen.getByRole('button', {name: 'Empty card'})
-        userEvent.click(buttonAdd)
+        await userEvent.click(buttonAdd)
         expect(mockFunction).toBeCalledTimes(1)
     })
-    test('return NewCardButton and addCardTemplate', () => {
+    test('return NewCardButton and addCardTemplate', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -95,10 +94,10 @@ describe('components/viewHeader/newCardButton', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonAddTemplate = screen.getByRole('button', {name: 'New template'})
-        userEvent.click(buttonAddTemplate)
+        await userEvent.click(buttonAddTemplate)
         expect(mockFunction).toBeCalledTimes(1)
     })
 })

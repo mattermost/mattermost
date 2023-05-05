@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    Fragment,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
-    Fragment,
-    useMemo
 } from 'react'
-import {FormattedMessage, useIntl, IntlShape} from 'react-intl'
+import {FormattedMessage, IntlShape, useIntl} from 'react-intl'
 
 import {BlockIcons} from 'src/blockIcons'
 import {Card} from 'src/blocks/card'
@@ -30,7 +30,7 @@ import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetr
 import BlockIconSelector from 'src/components/blockIconSelector'
 
 import {useAppDispatch, useAppSelector} from 'src/store/hooks'
-import {updateCards, setCurrent as setCurrentCard} from 'src/store/cards'
+import {setCurrent as setCurrentCard, updateCards} from 'src/store/cards'
 import {updateContents} from 'src/store/contents'
 import {Permission} from 'src/constants'
 import {useHasCurrentBoardPermissions} from 'src/hooks/permissions'
@@ -102,6 +102,7 @@ async function addBlockNewEditor(card: Card, intl: IntlShape, title: string, fie
 
     const newBlock = await mutator.insertBlock(block.boardId, block, description, afterRedo, beforeUndo)
     dispatch(updateContents([newBlock]))
+
     return newBlock
 }
 
@@ -144,7 +145,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
 
     useEffect(() => {
         return () => {
-            saveTitleRef.current && saveTitleRef.current()
+            saveTitleRef.current?.()
         }
     }, [])
 
@@ -255,7 +256,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                     <p className='CardDetail__limited-body'>
                         <FormattedMessage
                             id='CardDetail.limited-body'
-                            defaultMessage='Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.'
+                            defaultMessage='Upgrade to our Professional or Enterprise plan.'
                         />
                         <br/>
                         <a
@@ -339,6 +340,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                             } else {
                                 newBlock = await addBlockNewEditor(card, intl, block.value, {}, block.contentType, afterBlock?.id, dispatch)
                             }
+
                             return {...block, id: newBlock.id}
                         }}
                         onBlockModified={async (block: any): Promise<BlockData<any>|null> => {
@@ -351,6 +353,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                                 const description = intl.formatMessage({id: 'ContentBlock.DeleteAction', defaultMessage: 'delete'})
 
                                 mutator.deleteBlock(originalContentBlock, description)
+
                                 return null
                             }
                             const newBlock = {
@@ -362,7 +365,8 @@ const CardDetail = (props: Props): JSX.Element|null => {
                                 newBlock.title = block.value.value
                                 newBlock.fields = {...newBlock.fields, value: block.value.checked}
                             }
-                            mutator.updateBlock(card.boardId, newBlock, originalContentBlock, intl.formatMessage({id: 'ContentBlock.editCardText', defaultMessage: 'edit card content'}))
+                            mutator.updateBlock(card.boardId, newBlock, originalContentBlock, intl.formatMessage({id: 'ContentBlock.editCardText', defaultMessage: 'edit card text'}))
+
                             return block
                         }}
                         onBlockMoved={async (block: BlockData, beforeBlock: BlockData|null, afterBlock: BlockData|null): Promise<void> => {
@@ -372,6 +376,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                                 let sourceWhere: 'after'|'before'
                                 if (idx === -1) {
                                     Utils.logError('Unable to find the block id in the order of the current block')
+
                                     return
                                 }
                                 if (idx === 0) {
@@ -383,6 +388,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
                                 }
                                 if (afterBlock && afterBlock.id) {
                                     await mutator.moveContentBlock(block.id, afterBlock.id, 'after', sourceBlockId, sourceWhere, intl.formatMessage({id: 'ContentBlock.moveBlock', defaultMessage: 'move card content'}))
+
                                     return
                                 }
                                 if (beforeBlock && beforeBlock.id) {

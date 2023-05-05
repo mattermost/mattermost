@@ -76,7 +76,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             return {top: rect.top, bottom: rect.bottom, width: rect.width};
         }
         return {top: 0, bottom: 0, width: 0};
-    }
+    };
 
     onModalScroll = (e: Event) => {
         const eventTarget = e.target as HTMLElement;
@@ -84,7 +84,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             this.latestHeight !== 0) {
             this.setState({scroll: eventTarget.scrollTop});
         }
-    }
+    };
 
     componentDidMount() {
         if (this.container.current) {
@@ -138,7 +138,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         }
 
         return listElement.getBoundingClientRect().height;
-    }
+    };
 
     updateInputBounds = () => {
         const inputBounds = this.calculateInputRect();
@@ -148,7 +148,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
             this.setState({inputBounds});
         }
         return inputBounds;
-    }
+    };
 
     updatePosition = (newInputBounds: { top: number; bottom: number; width: number}) => {
         let inputBounds = newInputBounds;
@@ -173,7 +173,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         if (this.state.position !== newPosition) {
             this.setState({position: newPosition});
         }
-    }
+    };
 
     updateModalBounds = () => {
         if (!this.container.current) {
@@ -188,7 +188,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
                 this.setState({modalBounds: {top: modalBounds.top, bottom: modalBounds.bottom}});
             }
         }
-    }
+    };
 
     render() {
         const {

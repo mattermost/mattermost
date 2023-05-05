@@ -2,20 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {
-    createSlice,
-    createAsyncThunk,
     PayloadAction,
-    createSelector
+    createAsyncThunk,
+    createSelector,
+    createSlice,
 } from '@reduxjs/toolkit'
 
 import {default as client} from 'src/octoClient'
-import {IUser, parseUserProps, UserPreference} from 'src/user'
+import {IUser, UserPreference, parseUserProps} from 'src/user'
 
 import {Subscription} from 'src/wsclient'
-
-// TODO: change this whene the initial load is complete
-// import {initialLoad} from './initialLoad'
-import {UserSettings} from 'src/userSettings'
 
 import {initialLoad} from './initialLoad'
 
@@ -28,6 +24,7 @@ export const fetchMe = createAsyncThunk(
             client.getMe(),
             client.getMyConfig(),
         ])
+
         return {me, myConfig}
     },
 )
@@ -67,6 +64,7 @@ const usersSlice = createSlice({
         setBoardUsers: (state, action: PayloadAction<IUser[]>) => {
             state.boardUsers = action.payload.reduce((acc: {[key: string]: IUser}, user: IUser) => {
                 acc[user.id] = user
+
                 return acc
             }, {})
         },
@@ -141,6 +139,7 @@ export const getBoardUsersList = createSelector(
 export const getUser = (userId: string): (state: RootState) => IUser|undefined => {
     return (state: RootState): IUser|undefined => {
         const users = getBoardUsers(state)
+
         return users[userId]
     }
 }
@@ -172,20 +171,6 @@ export const getOnboardingTourCategory = createSelector(
     (myConfig): string => (myConfig.tourCategory ? myConfig.tourCategory.value : ''),
 )
 
-export const getCloudMessageCanceled = createSelector(
-    getMe,
-    getMyConfig,
-    (me, myConfig): boolean => {
-        if (!me) {
-            return false
-        }
-        if (me.id === 'single-user') {
-            return UserSettings.hideCloudMessage
-        }
-        return Boolean(myConfig.cloudMessageCanceled?.value)
-    },
-)
-
 export const getVersionMessageCanceled = createSelector(
     getMe,
     getMyConfig,
@@ -194,8 +179,10 @@ export const getVersionMessageCanceled = createSelector(
             if (me.id === 'single-user') {
                 return true
             }
+
             return Boolean(myConfig[versionProperty]?.value)
         }
+
         return true
     },
 )

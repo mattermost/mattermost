@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {
-    render,
-    within,
     act,
-    waitFor
+    render,
+    waitFor,
+    within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 import {MockStoreEnhanced} from 'redux-mock-store'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {Board, MemberRole, IPropertyTemplate} from 'src/blocks/board'
+import {Board, IPropertyTemplate, MemberRole} from 'src/blocks/board'
 import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {IUser} from 'src/user'
@@ -199,7 +199,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
             </ReduxProvider>
             ,
         ))
-        userEvent.click(container.querySelector('.BoardTemplateSelectorItem')!)
+        await userEvent.click(container.querySelector('.BoardTemplateSelectorItem')!)
         expect(onSelect).toBeCalledTimes(1)
         expect(onSelect).toBeCalledWith(template)
         expect(onDelete).not.toBeCalled()
@@ -222,7 +222,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
             </ReduxProvider>
             ,
         ))
-        userEvent.click(container.querySelector('.BoardTemplateSelectorItem .EditIcon')!)
+        await userEvent.click(container.querySelector('.BoardTemplateSelectorItem .EditIcon')!)
         expect(onEdit).toBeCalledTimes(1)
         expect(onEdit).toBeCalledWith(template.id)
         expect(onSelect).not.toBeCalled()
@@ -248,16 +248,12 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
             </ReduxProvider>
             ,
         ), {container: document.body.appendChild(root)})
-        act(() => {
-            userEvent.click(root.querySelector('.BoardTemplateSelectorItem .DeleteIcon')!)
-        })
+        await act(() => userEvent.click(root.querySelector('.BoardTemplateSelectorItem .DeleteIcon')!))
 
         expect(root).toMatchSnapshot()
 
         const {getByText} = within(root)
-        act(() => {
-            userEvent.click(getByText('Delete')!)
-        })
+        await act(() => userEvent.click(getByText('Delete')!))
 
         await waitFor(async () => expect(onDelete).toBeCalledTimes(1))
         await waitFor(async () => expect(onDelete).toBeCalledWith(template))

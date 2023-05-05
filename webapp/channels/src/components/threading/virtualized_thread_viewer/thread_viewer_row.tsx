@@ -25,9 +25,7 @@ type Props = {
     listId: string;
     onCardClick: (post: Post) => void;
     previousPostId: string;
-    teamId: string;
     timestampProps?: Partial<TimestampProps>;
-    lastPost: Post;
 };
 
 function noop() {}
@@ -39,7 +37,6 @@ function ThreadViewerRow({
     listId,
     onCardClick,
     previousPostId,
-    teamId,
     timestampProps,
 }: Props) {
     switch (true) {
@@ -62,7 +59,6 @@ function ThreadViewerRow({
                 postId={listId}
                 isLastPost={isLastPost}
                 handleCardClick={onCardClick}
-                teamId={teamId}
                 timestampProps={timestampProps}
                 location={Locations.RHS_ROOT}
             />
@@ -88,7 +84,6 @@ function ThreadViewerRow({
                 isLastPost={isLastPost}
                 onCardClick={onCardClick}
                 previousPostId={previousPostId}
-                teamId={teamId}
                 timestampProps={timestampProps}
             />
         );

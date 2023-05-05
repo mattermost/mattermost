@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import '@testing-library/jest-dom'
-import {act, render, screen} from '@testing-library/react'
+import {render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import React from 'react'
@@ -23,9 +22,9 @@ jest.mock('src/octoClient')
 jest.mock('src/utils')
 jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
 
-const mockedUtils = mocked(Utils, true)
-const mockedMutator = mocked(mutator, true)
-const mockedOctoClient = mocked(octoClient, true)
+const mockedUtils = mocked(Utils)
+const mockedMutator = mocked(mutator)
+const mockedOctoClient = mocked(octoClient)
 mockedUtils.createGuid.mockReturnValue('test-id')
 
 beforeAll(() => {
@@ -94,135 +93,115 @@ describe('components/cardDialog', () => {
         jest.clearAllMocks()
     })
     test('should match snapshot', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot without permissions', async () => {
-        let container
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={localStore}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={localStore}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
     test('return a cardDialog readonly', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={true}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={true}
+                />
+            </ReduxProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
     test('return cardDialog and do a close action', async () => {
         const closeFn = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={closeFn}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={closeFn}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         const buttonElement = screen.getByRole('button', {name: 'Close dialog'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(closeFn).toBeCalledTimes(1)
     })
     test('return cardDialog menu content', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         const buttonMenu = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         expect(container).toMatchSnapshot()
     })
     test('return cardDialog menu content and verify delete action', async () => {
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         const buttonMenu = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         const buttonDelete = screen.getByRole('button', {name: 'Delete'})
-        userEvent.click(buttonDelete)
+        await userEvent.click(buttonDelete)
 
         const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
         expect(confirmDialog).toBeDefined()
@@ -231,36 +210,32 @@ describe('components/cardDialog', () => {
         expect(confirmButton).toBeDefined()
 
         //click delete button
-        userEvent.click(confirmButton!)
+        await userEvent.click(confirmButton!)
 
         // should be called once on confirming delete
         expect(mockedMutator.deleteBlock).toBeCalledTimes(1)
     })
 
     test('return cardDialog menu content and cancel delete confirmation do nothing', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
 
         const buttonMenu = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         const buttonDelete = screen.getByRole('button', {name: 'Delete'})
-        userEvent.click(buttonDelete)
+        await userEvent.click(buttonDelete)
 
         const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
         expect(confirmDialog).toBeDefined()
@@ -269,57 +244,53 @@ describe('components/cardDialog', () => {
         expect(cancelButton).toBeDefined()
 
         //click delete button
-        userEvent.click(cancelButton!)
+        await userEvent.click(cancelButton!)
 
         // should do nothing  on cancel delete dialog
         expect(container).toMatchSnapshot()
     })
 
     test('return cardDialog menu content and do a New template from card', async () => {
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         const buttonMenu = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         const buttonTemplate = screen.getByRole('button', {name: 'New template from card'})
-        userEvent.click(buttonTemplate)
+        await userEvent.click(buttonTemplate)
         expect(mockedMutator.duplicateCard).toBeCalledTimes(1)
     })
 
     test('return cardDialog menu content and do a copy Link', async () => {
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
         const buttonMenu = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonMenu)
+        await userEvent.click(buttonMenu)
         const buttonCopy = screen.getByRole('button', {name: 'Copy link'})
-        userEvent.click(buttonCopy)
+        await userEvent.click(buttonCopy)
         expect(mockedUtils.copyTextToClipboard).toBeCalledTimes(1)
     })
 
@@ -338,24 +309,21 @@ describe('components/cardDialog', () => {
 
         const newStore = mockStateStore([], newState)
 
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={newStore}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[card]}
-                        cardId={card.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={newStore}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
+
         expect(container).toMatchSnapshot()
     })
 
@@ -373,24 +341,21 @@ describe('components/cardDialog', () => {
 
         const newStore = mockStateStore([], newState)
 
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={newStore}>
-                    <CardDialog
-                        board={board}
-                        activeView={boardView}
-                        views={[boardView]}
-                        cards={[limitedCard]}
-                        cardId={limitedCard.id}
-                        onClose={jest.fn()}
-                        showCard={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(
+            <ReduxProvider store={newStore}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[limitedCard]}
+                    cardId={limitedCard.id}
+                    onClose={jest.fn()}
+                    showCard={jest.fn()}
+                    readonly={false}
+                />
+            </ReduxProvider>,
+        ))
+
         expect(container).toMatchSnapshot()
     })
 })

@@ -4,16 +4,19 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, waitFor} from '@testing-library/react'
+import {
+    act,
+    render,
+    screen,
+    waitFor,
+} from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
 
-import {act} from 'react-dom/test-utils'
-
 import userEvent from '@testing-library/user-event'
 
-import {wrapIntl} from 'src/testUtils'
-import {IPropertyTemplate, Board} from 'src/blocks/board'
+import {setup, wrapIntl} from 'src/testUtils'
+import {Board, IPropertyTemplate} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 
 import MultiPersonProperty from './property'
@@ -88,6 +91,7 @@ describe('properties/multiperson', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -119,6 +123,7 @@ describe('properties/multiperson', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -150,6 +155,7 @@ describe('properties/multiperson', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -157,7 +163,7 @@ describe('properties/multiperson', () => {
 
     test('user dropdown open', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const {container} = setup(wrapIntl(
             <ReduxProvider store={store}>
                 <MultiPerson
                     property={new MultiPersonProperty()}
@@ -174,28 +180,11 @@ describe('properties/multiperson', () => {
                     card={{} as Card}
                 />
             </ReduxProvider>,
-        )
+        ))
 
-        const renderResult = render(component)
-        const container = await waitFor(() => {
-            if (!renderResult.container) {
-                return Promise.reject(new Error('container not found'))
-            }
-            return Promise.resolve(renderResult.container)
-        })
-
-        if (container) {
-            // this is the actual element where the click event triggers
-            // opening of the dropdown
-            const userProperty = container.querySelector('.MultiPerson > div > div:nth-child(1) > div:nth-child(3) > input')
-            expect(userProperty).not.toBeNull()
-
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
-            expect(container).toMatchSnapshot()
-        } else {
-            throw new Error('container should have been initialized')
-        }
+        const userProperty = screen.getByRole('combobox')
+        expect(userProperty).not.toBeNull()
+        await act(() => userEvent.click(userProperty))
+        expect(container).toMatchSnapshot()
     })
 })

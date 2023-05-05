@@ -71,13 +71,13 @@ export function getReactionsForPosts(state: GlobalState): RelationOneToOne<Post,
 
 export function makeGetReactionsForPost(): (state: GlobalState, postId: Post['id']) => {
     [x: string]: Reaction;
-} | undefined | null {
+} | undefined {
     return createSelector('makeGetReactionsForPost', getReactionsForPosts, (state: GlobalState, postId: string) => postId, (reactions, postId) => {
         if (reactions[postId]) {
             return reactions[postId];
         }
 
-        return null;
+        return undefined;
     });
 }
 
@@ -388,7 +388,7 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
     );
 }
 
-// The selector below filters current user if it exists. Excluding currentUser is just for convinience
+// The selector below filters current user if it exists. Excluding currentUser is just for convenience
 export function makeGetProfilesForThread(): (state: GlobalState, rootId: string) => UserProfile[] {
     const getPostsForThread = makeGetPostsForThread();
     return createSelector(
@@ -398,7 +398,7 @@ export function makeGetProfilesForThread(): (state: GlobalState, rootId: string)
         getPostsForThread,
         getUserStatuses,
         (allUsers, currentUserId, posts, userStatuses) => {
-            const profileIds = posts.map((post) => post.user_id);
+            const profileIds = posts.map((post) => post.user_id).filter(Boolean);
             const uniqueIds = [...new Set(profileIds)];
             return uniqueIds.reduce((acc: UserProfile[], id: string) => {
                 const profile: UserProfile = userStatuses ? {...allUsers[id], status: userStatuses[id]} : {...allUsers[id]};

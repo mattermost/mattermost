@@ -4,12 +4,11 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -21,7 +20,7 @@ const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 describe('components/viewHeader/emptyCardButton', () => {
     const state = {
         users: {
@@ -59,7 +58,7 @@ describe('components/viewHeader/emptyCardButton', () => {
         )
         expect(container).toMatchSnapshot()
     })
-    test('return EmptyCardButton and addCard', () => {
+    test('return EmptyCardButton and addCard', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -71,10 +70,10 @@ describe('components/viewHeader/emptyCardButton', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonEmpty = screen.getByRole('button', {name: 'Empty card'})
-        userEvent.click(buttonEmpty)
+        await userEvent.click(buttonEmpty)
         expect(mockFunction).toBeCalledTimes(1)
     })
-    test('return EmptyCardButton and Set Template', () => {
+    test('return EmptyCardButton and Set Template', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -85,10 +84,10 @@ describe('components/viewHeader/emptyCardButton', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonDefault = screen.getByRole('button', {name: 'Set as default'})
-        userEvent.click(buttonDefault)
+        await userEvent.click(buttonDefault)
         expect(mockedMutator.clearDefaultTemplate).toBeCalledTimes(1)
     })
 })

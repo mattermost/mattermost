@@ -5,11 +5,9 @@ import React from 'react'
 import {render} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
-
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import ViewHeader from './viewHeader'
 

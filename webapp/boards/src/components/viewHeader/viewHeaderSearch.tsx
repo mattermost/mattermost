@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
-    useState,
-    useRef,
     useEffect,
-    useMemo
+    useMemo,
+    useRef,
+    useState,
 } from 'react'
 import {useRouteMatch} from 'react-router-dom'
 import {useIntl} from 'react-intl'
@@ -14,7 +14,7 @@ import {debounce} from 'lodash'
 import CompassIcon from 'src/widgets/icons/compassIcon'
 import Editable from 'src/widgets/editable'
 
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import {getSearchText, setSearchText} from 'src/store/searchText'
 
 const ViewHeaderSearch = (): JSX.Element => {

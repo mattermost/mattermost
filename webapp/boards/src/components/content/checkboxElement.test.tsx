@@ -6,9 +6,8 @@ import {
     fireEvent,
     render,
     screen,
-    waitFor
+    waitFor,
 } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
 
@@ -21,7 +20,7 @@ import mutator from 'src/mutator'
 import CheckboxElement from './checkboxElement'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
@@ -84,7 +83,7 @@ describe('components/content/checkboxElement', () => {
         expect(container).toMatchSnapshot()
     })
 
-    it('should change title', () => {
+    it('should change title', async () => {
         const {container} = render(wrap(
             <CheckboxElement
                 block={checkboxBlock}
@@ -93,8 +92,8 @@ describe('components/content/checkboxElement', () => {
         ))
         const newTitle = 'new title'
         const input = screen.getByRole('textbox', {name: /test-title/i})
-        userEvent.clear(input)
-        userEvent.type(input, newTitle)
+        await userEvent.clear(input)
+        await userEvent.type(input, newTitle)
         fireEvent.blur(input)
         expect(container).toMatchSnapshot()
         expect(mockedMutator.changeBlockTitle).toHaveBeenCalledTimes(1)
@@ -106,7 +105,7 @@ describe('components/content/checkboxElement', () => {
             expect.anything())
     })
 
-    it('should toggle value', () => {
+    it('should toggle value', async () => {
         const {container} = render(wrap(
             <CheckboxElement
                 block={checkboxBlock}
@@ -114,7 +113,7 @@ describe('components/content/checkboxElement', () => {
             />,
         ))
         const input = screen.getByRole('checkbox')
-        userEvent.click(input)
+        await userEvent.click(input)
         expect(container).toMatchSnapshot()
         expect(mockedMutator.updateBlock).toHaveBeenCalledTimes(1)
         expect(mockedMutator.updateBlock).toHaveBeenCalledWith(
@@ -149,17 +148,17 @@ describe('components/content/checkboxElement', () => {
         const input = screen.getByRole('textbox', {name: /test-title/i})
 
         // should not add new checkbox when current one has empty title
-        userEvent.clear(input)
-        userEvent.type(input, '{enter}')
+        await userEvent.clear(input)
+        await userEvent.type(input, '{Enter}')
         expect(addElement).toHaveBeenCalledTimes(0)
 
         // should add new checkbox when current one has non-empty title
-        userEvent.clear(input)
-        userEvent.type(input, 'new-title{enter}')
+        await userEvent.clear(input)
+        await userEvent.type(input, 'new-title{Enter}')
         await waitFor(() => expect(addElement).toHaveBeenCalledTimes(1))
     })
 
-    it('should delete automatically added checkbox with empty title on esc/enter pressed', () => {
+    it('should delete automatically added checkbox with empty title on esc/enter pressed', async () => {
         const addedBlock = createContentBlock(checkboxBlock)
         addedBlock.title = ''
         const deleteElement = jest.fn()
@@ -173,15 +172,16 @@ describe('components/content/checkboxElement', () => {
                 />
             </CardDetailContext.Provider>,
         ))
-
         const input = screen.getByRole('textbox')
-        userEvent.type(input, '{esc}')
+
+        // should delete if title is empty
+        await userEvent.type(input, '{Escape}')
         expect(deleteElement).toHaveBeenCalledTimes(1)
-        userEvent.type(input, '{enter}')
+        await userEvent.type(input, '{Enter}')
         expect(deleteElement).toHaveBeenCalledTimes(2)
 
         // should not delete if title is not empty
-        userEvent.type(input, 'new-title{esc}')
+        await userEvent.type(input, 'new-title{Enter}')
         expect(deleteElement).toHaveBeenCalledTimes(2)
     })
 })

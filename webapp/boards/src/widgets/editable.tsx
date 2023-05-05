@@ -4,7 +4,7 @@ import React, {
     forwardRef,
     useImperativeHandle,
     useLayoutEffect,
-    useRef
+    useRef,
 } from 'react'
 
 import './editable.scss'
@@ -91,17 +91,18 @@ export function useEditable(
     if (props.validator) {
         error = !props.validator(value || '')
     }
+
     return {
         className: 'Editable ' + (error ? 'error ' : '') + (readonly ? 'readonly ' : '') + (className || ''),
         placeholder: placeholderText,
         onChange: (e: React.ChangeEvent<ElementType>) => {
             onChange(e.target.value)
         },
-        value,
+        value: value ?? '',
         title: value,
         onBlur: () => save('onBlur'),
         onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement|HTMLInputElement>): void => {
-            if (e.keyCode === 27 && !(e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) { // ESC
+            if (e.key === 'Escape' && !(e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) { // ESC
                 e.preventDefault()
                 if (props.saveOnEsc) {
                     save('onEsc')
@@ -109,7 +110,7 @@ export function useEditable(
                     props.onCancel?.()
                 }
                 blur()
-            } else if (e.keyCode === 13 && !(e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) { // Return
+            } else if (e.key === 'Enter' && !(e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) { // Return
                 e.preventDefault()
                 save('onEnter')
                 blur()

@@ -1,9 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onConfirm 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
+  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, send now"
   enforceFocus={true}
@@ -37,13 +38,14 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
       }
     }
   />
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onExited 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
+  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, send now"
   enforceFocus={true}
@@ -77,7 +79,7 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onE
       }
     }
   />
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`components/drafts/draft_actions/send_draft_modal should match snapshot 1`] = `

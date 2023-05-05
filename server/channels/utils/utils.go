@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -107,16 +107,15 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 			}
 		}
 
-		if address != "" {
+		if address != "" && net.ParseIP(address) != nil {
 			return address
 		}
+
 	}
 
-	if address == "" {
-		address, _, _ = net.SplitHostPort(r.RemoteAddr)
-	}
+	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-	return address
+	return host
 }
 
 func GetHostnameFromSiteURL(siteURL string) string {

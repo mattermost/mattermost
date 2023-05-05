@@ -18,6 +18,7 @@ export interface SelfHostedSignupForm {
     first_name: string;
     last_name: string;
     billing_address: Address;
+    shipping_address: Address;
     organization: string;
 }
 
@@ -73,4 +74,9 @@ export interface TrueUpReviewProfileReducer extends TrueUpReviewProfile {
 
 export interface TrueUpReviewStatusReducer extends TrueUpReviewStatus {
     getRequestState: RequestState;
+}
+
+export type SelfHostedExpansionRequest = {
+    seats: number;
+    license_id: string;
 }

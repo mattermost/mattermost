@@ -41,6 +41,7 @@ export type Subscription = {
     is_free_trial: string;
     delinquent_since?: number;
     compliance_blocked?: string;
+    billing_type?: string;
 }
 
 export type Product = {
@@ -218,6 +219,11 @@ export interface CreateSubscriptionRequest {
     add_ons: string[];
     seats: number;
     internal_purchase_order?: string;
+}
+
+export interface NewsletterRequestBody {
+    email: string;
+    subscribed_content: string;
 }
 
 export const areShippingDetailsValid = (address: Address | null | undefined): boolean => {

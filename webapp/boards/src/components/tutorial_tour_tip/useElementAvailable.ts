@@ -13,9 +13,10 @@ export default function useElementAvailable(
                 clearInterval(checkAvailableInterval.current)
                 checkAvailableInterval.current = null
             }
-            return
+
+            return undefined
         } else if (checkAvailableInterval.current) {
-            return
+            return undefined
         }
         checkAvailableInterval.current = setInterval(() => {
             if (elementIds.every((x) => document.querySelector(x))) {
@@ -26,6 +27,12 @@ export default function useElementAvailable(
                 }
             }
         }, 500)
+
+        return () => {
+            if (checkAvailableInterval.current) {
+                clearInterval(checkAvailableInterval.current)
+            }
+        }
     }, [])
 
     return available

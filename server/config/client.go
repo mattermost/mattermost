@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -93,6 +93,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
 	props["CWSURL"] = *c.CloudSettings.CWSURL
+	props["CWSMock"] = model.MockCWS
+
+	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
 
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
@@ -134,6 +137,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["InsightsEnabled"] = strconv.FormatBool(c.FeatureFlags.InsightsEnabled)
 	props["PostPriority"] = strconv.FormatBool(*c.ServiceSettings.PostPriority)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
+	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
@@ -223,9 +227,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHash"] = model.BuildHash
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
-	props["BuildHashBoards"] = model.BuildHashBoards
-	props["BuildBoards"] = model.BuildBoards
-	props["BuildHashPlaybooks"] = model.BuildHashPlaybooks
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)

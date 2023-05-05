@@ -125,15 +125,15 @@ export default class MemberListChannel extends React.PureComponent<Props, State>
 
     loadComplete = () => {
         this.setState({loading: false});
-    }
+    };
 
     nextPage = (page: number) => {
         this.props.actions.loadProfilesAndTeamMembersAndChannelMembers(page + 1, USERS_PER_PAGE, undefined, undefined, {active: true});
-    }
+    };
 
     handleSearch = (term: string) => {
         this.props.actions.setModalSearchTerm(term);
-    }
+    };
 
     render() {
         if (this.state.loading) {

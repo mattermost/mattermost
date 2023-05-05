@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CSSObject} from '@emotion/serialize'
 import isEqual from 'lodash/isEqual'
 import color from 'color'
 
 let activeThemeName: string
+
+import {StylesConfig} from 'react-select'
 
 import {UserSettings} from './userSettings'
 
@@ -228,6 +229,7 @@ export function loadTheme(): Theme {
             const theme = JSON.parse(themeStr)
             const consolidatedTheme = setTheme(theme)
             setActiveThemeName(consolidatedTheme, theme)
+
             return consolidatedTheme
         } catch (e) {
             return setTheme(null)
@@ -254,36 +256,36 @@ export function initThemes(): void {
     loadTheme()
 }
 
-export function getSelectBaseStyle() {
+export function getSelectBaseStyle<T>(): StylesConfig<T> {
     return {
-        dropdownIndicator: (provided: CSSObject): CSSObject => ({
+        dropdownIndicator: (provided) => ({
             ...provided,
             display: 'none !important',
         }),
-        indicatorSeparator: (provided: CSSObject): CSSObject => ({
+        indicatorSeparator: (provided) => ({
             ...provided,
             display: 'none',
         }),
-        loadingIndicator: (provided: CSSObject): CSSObject => ({
+        loadingIndicator: (provided) => ({
             ...provided,
             display: 'none',
         }),
-        clearIndicator: (provided: CSSObject): CSSObject => ({
+        clearIndicator: (provided) => ({
             ...provided,
             display: 'none',
         }),
-        menu: (provided: CSSObject): CSSObject => ({
+        menu: (provided) => ({
             ...provided,
             width: 'unset',
             background: 'rgb(var(--center-channel-bg-rgb))',
         }),
-        option: (provided: CSSObject, state: { isFocused: boolean }): CSSObject => ({
+        option: (provided, state: { isFocused: boolean }) => ({
             ...provided,
             background: state.isFocused ? 'rgba(var(--center-channel-color-rgb), 0.1)' : 'rgb(var(--center-channel-bg-rgb))',
             color: state.isFocused ? 'rgb(var(--center-channel-color-rgb))' : 'rgb(var(--center-channel-color-rgb))',
             padding: '2px 8px',
         }),
-        control: (): CSSObject => ({
+        control: () => ({
             border: 0,
             width: '100%',
             margin: '4px 0 0 0',
@@ -291,25 +293,25 @@ export function getSelectBaseStyle() {
             // display: 'flex',
             // marginTop: 0,
         }),
-        valueContainer: (provided: CSSObject): CSSObject => ({
+        valueContainer: (provided) => ({
             ...provided,
             padding: '0 5px',
             overflow: 'unset',
         }),
-        singleValue: (provided: CSSObject): CSSObject => ({
+        singleValue: (provided) => ({
             ...provided,
             color: 'rgb(var(--center-channel-color-rgb))',
             overflow: 'unset',
             maxWidth: 'calc(100% - 20px)',
         }),
-        input: (provided: CSSObject): CSSObject => ({
+        input: (provided) => ({
             ...provided,
             paddingBottom: 0,
             paddingTop: 0,
             marginBottom: 0,
             marginTop: 0,
         }),
-        menuList: (provided: CSSObject): CSSObject => ({
+        menuList: (provided) => ({
             ...provided,
             overflowY: 'auto',
             overflowX: 'hidden',

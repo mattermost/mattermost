@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useEffect} from 'react'
-import {IntlProvider, FormattedMessage, useIntl} from 'react-intl'
+import React, {useEffect, useState} from 'react'
+import {FormattedMessage, IntlProvider, useIntl} from 'react-intl'
 
 import WithWebSockets from 'src/components/withWebSockets'
 import {useWebsockets} from 'src/hooks/websockets'
@@ -10,7 +10,7 @@ import {getLanguage} from 'src/store/language'
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentTeamId} from 'src/store/teams'
 
-import {WSClient, MMWebSocketClient} from 'src/wsclient'
+import {MMWebSocketClient, WSClient} from 'src/wsclient'
 import manifest from 'src/manifest'
 
 import {getMessages} from 'src/i18n'
@@ -84,8 +84,9 @@ export const BoardsUnfurl = (props: Props): JSX.Element => {
                 ],
             )
             const [firstCard] = cards as Card[]
-            if (!firstCard || !fetchedBoard) {
+            if (!firstCard || !fetchedBoard || firstCard.type !== 'card') {
                 setLoading(false)
+
                 return null
             }
             setCard(firstCard)
@@ -102,12 +103,14 @@ export const BoardsUnfurl = (props: Props): JSX.Element => {
                 const [firstContentBlock] = contentBlock
                 if (!firstContentBlock) {
                     setLoading(false)
+
                     return null
                 }
                 setContent(firstContentBlock)
             }
 
             setLoading(false)
+
             return null
         }
         fetchData()
@@ -116,7 +119,7 @@ export const BoardsUnfurl = (props: Props): JSX.Element => {
     useWebsockets(currentTeamId, (wsClient: WSClient) => {
         const onChangeHandler = (_: WSClient, blocks: Block[]): void => {
             const cardBlock: Block|undefined = blocks.find((b) => b.id === cardID)
-            if (cardBlock && !cardBlock.deleteAt) {
+            if (cardBlock && !cardBlock.deleteAt && cardBlock.type === 'card') {
                 setCard(cardBlock as Card)
             }
 

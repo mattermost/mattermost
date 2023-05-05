@@ -4,9 +4,8 @@
 import React, {useCallback} from 'react'
 import {useIntl} from 'react-intl'
 import Select from 'react-select/async'
-import {CSSObject} from '@emotion/serialize'
 
-import {ActionMeta} from 'react-select'
+import {ActionMeta, StylesConfig} from 'react-select'
 
 import {getSelectBaseStyle} from 'src/theme'
 import {IUser} from 'src/user'
@@ -37,31 +36,31 @@ type Props = {
     onChange: (items: any, action: ActionMeta<IUser>) => void
 }
 
-const selectStyles = {
+const selectStyles: StylesConfig<IUser> = {
     ...getSelectBaseStyle(),
-    option: (provided: CSSObject, state: {isFocused: boolean}): CSSObject => ({
+    option: (provided, state: {isFocused: boolean}) => ({
         ...provided,
         background: state.isFocused ? 'rgba(var(--center-channel-color-rgb), 0.1)' : 'rgb(var(--center-channel-bg-rgb))',
         color: state.isFocused ? 'rgb(var(--center-channel-color-rgb))' : 'rgb(var(--center-channel-color-rgb))',
         padding: '8px',
     }),
-    control: (): CSSObject => ({
+    control: () => ({
         border: 0,
         width: '100%',
         margin: '0',
     }),
-    valueContainer: (provided: CSSObject): CSSObject => ({
+    valueContainer: (provided) => ({
         ...provided,
         padding: 'unset',
         overflow: 'unset',
     }),
-    singleValue: (provided: CSSObject): CSSObject => ({
+    singleValue: (provided) => ({
         ...provided,
         position: 'static',
         top: 'unset',
         transform: 'unset',
     }),
-    menu: (provided: CSSObject): CSSObject => ({
+    menu: (provided) => ({
         ...provided,
         width: 'unset',
         background: 'rgb(var(--center-channel-bg-rgb))',
@@ -80,7 +79,7 @@ const PersonSelector = (props: Props): JSX.Element => {
     const boardUsersKey = Object.keys(boardUsersById) ? Utils.hashCode(JSON.stringify(Object.keys(boardUsersById))) : 0
     const me = useAppSelector<IUser|null>(getMe)
 
-    const formatOptionLabel = (user: any): JSX.Element => {
+    const formatOptionLabel = (user: IUser): JSX.Element => {
         if (!user) {
             return <div/>
         }
@@ -141,6 +140,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                         u.nickname.toLowerCase().includes(value.toLowerCase())
                 })
             }
+
             return returnUsers
         }
         const excludeBots = true
@@ -154,6 +154,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                 usersOutsideBoard.push(u)
             }
         }
+
         return [
             {label: intl.formatMessage({id: 'PersonProperty.board-members', defaultMessage: 'Board members'}), options: usersInsideBoard},
             {label: intl.formatMessage({id: 'PersonProperty.non-board-members', defaultMessage: 'Not board members'}), options: usersOutsideBoard},

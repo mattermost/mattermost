@@ -11,7 +11,7 @@ import {createCard} from 'src/blocks/card'
 import {IUser} from 'src/user'
 import {wrapIntl} from 'src/testUtils'
 
-import {createBoard, IPropertyTemplate} from 'src/blocks/board'
+import {IPropertyTemplate, createBoard} from 'src/blocks/board'
 
 import {createCommentBlock} from 'src/blocks/commentBlock'
 
@@ -20,6 +20,8 @@ import UpdatedBy from './updatedBy'
 
 describe('properties/updatedBy', () => {
     test('should match snapshot', () => {
+        jest.spyOn(console, 'error').mockImplementation()
+
         const card = createCard()
         card.id = 'card-id-1'
         card.modifiedBy = 'user-id-1'
@@ -67,5 +69,13 @@ describe('properties/updatedBy', () => {
 
         const {container} = render(wrapIntl(component))
         expect(container).toMatchSnapshot()
+
+        // TODO fix test — fix personSelector
+        expect(console.error).toHaveBeenCalledWith(
+            expect.stringContaining('Each child in a list should have a unique "key" prop'),
+            expect.stringContaining('Check the render method of `PersonSelector`'),
+            expect.anything(),
+            expect.anything()
+        )
     })
 })

@@ -2,16 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {
-    fireEvent,
-    render,
-    screen,
-    act
-} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 
 import userEvent from '@testing-library/user-event'
-
-import '@testing-library/jest-dom'
 
 import {mocked} from 'jest-mock'
 
@@ -27,7 +20,7 @@ const card = TestBlockFactory.createCard()
 const icon = '👍'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 describe('components/blockIconSelector', () => {
     beforeEach(() => {
@@ -53,14 +46,14 @@ describe('components/blockIconSelector', () => {
         ))
         expect(container).toMatchSnapshot()
     })
-    test('return menu on click', () => {
+    test('return menu on click', async () => {
         const {container} = render(wrapIntl(
             <BlockIconSelector
                 block={card}
                 size='l'
             />,
         ))
-        userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
+        await userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
         expect(container).toMatchSnapshot()
     })
     test('return no menu in readonly', () => {
@@ -73,54 +66,50 @@ describe('components/blockIconSelector', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('return a new icon after click on random menu', () => {
+    test('return a new icon after click on random menu', async () => {
         render(wrapIntl(
             <BlockIconSelector
                 block={card}
                 size='l'
             />,
         ))
-        userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
+        await userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
         const buttonRandom = screen.queryByRole('button', {name: 'Random'})
         expect(buttonRandom).not.toBeNull()
-        userEvent.click(buttonRandom!)
+        await userEvent.click(buttonRandom!)
         expect(mockedMutator.changeBlockIcon).toBeCalledTimes(1)
     })
 
-    test('return a new icon after click on EmojiPicker', () => {
+    test('return a new icon after click on EmojiPicker', async () => {
         const {container, getByRole, getAllByRole} = render(wrapIntl(
             <BlockIconSelector
                 block={card}
                 size='l'
             />,
         ))
-        act(() => {
-            userEvent.click(getByRole('button', {name: 'menuwrapper'}))
-        })
+        await userEvent.click(getByRole('button', {name: 'menuwrapper'}))
         const menuPicker = container.querySelector('div#pick')
         expect(menuPicker).not.toBeNull()
 
-        act(() => {
-            fireEvent.mouseEnter(menuPicker!)
-        })
+        fireEvent.mouseEnter(menuPicker!)
 
         const allButtonThumbUp = getAllByRole('button', {name: /thumbsup/i})
-        userEvent.click(allButtonThumbUp[0])
+        await userEvent.click(allButtonThumbUp[0])
         expect(mockedMutator.changeBlockIcon).toBeCalledTimes(1)
         expect(mockedMutator.changeBlockIcon).toBeCalledWith(card.boardId, card.id, card.fields.icon, '👍')
     })
 
-    test('return no icon after click on remove menu', () => {
+    test('return no icon after click on remove menu', async () => {
         const {container, rerender} = render(wrapIntl(
             <BlockIconSelector
                 block={card}
                 size='l'
             />,
         ))
-        userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
+        await userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
         const buttonRemove = screen.queryByRole('button', {name: 'Remove icon'})
         expect(buttonRemove).not.toBeNull()
-        userEvent.click(buttonRemove!)
+        await userEvent.click(buttonRemove!)
         expect(mockedMutator.changeBlockIcon).toBeCalledTimes(1)
         expect(mockedMutator.changeBlockIcon).toBeCalledWith(card.boardId, card.id, card.fields.icon, '', 'remove icon')
 

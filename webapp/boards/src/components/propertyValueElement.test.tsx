@@ -2,20 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render} from '@testing-library/react'
-import '@testing-library/jest-dom'
+import {render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import {wrapDNDIntl} from 'src/testUtils'
 import 'isomorphic-fetch'
-import {IPropertyTemplate, IPropertyOption} from 'src/blocks/board'
+import {Board, IPropertyOption, IPropertyTemplate} from 'src/blocks/board'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
+import {Card} from 'src/blocks/card'
 
 import PropertyValueElement from './propertyValueElement'
 
 describe('components/propertyValueElement', () => {
-    const board = TestBlockFactory.createBoard()
-    const card = TestBlockFactory.createCard(board)
+    let board: Board
+    let card: Card
+
+    beforeEach(() => {
+        board = TestBlockFactory.createBoard()
+        card = TestBlockFactory.createCard(board)
+    })
 
     test('should match snapshot, select', async () => {
         const propertyTemplate = board.cardProperties.find((p) => p.id === 'property1')
@@ -127,7 +132,7 @@ describe('components/propertyValueElement', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('should match snapshot, date, array value', () => {
+    test('should match snapshot, date, array value', async () => {
         const propertyTemplate: IPropertyTemplate = {
             id: 'date',
             name: 'Date',
@@ -149,7 +154,7 @@ describe('components/propertyValueElement', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('URL fields should allow cancel', () => {
+    test('URL fields should allow cancel', async () => {
         const propertyTemplate: IPropertyTemplate = {
             id: 'property_url',
             name: 'Property URL',
@@ -157,6 +162,8 @@ describe('components/propertyValueElement', () => {
             options: [],
         }
 
+        const user = userEvent.setup()
+
         const component = wrapDNDIntl(
             <PropertyValueElement
                 board={board}
@@ -168,14 +175,15 @@ describe('components/propertyValueElement', () => {
         )
 
         const {container} = render(component)
-        const editElement = container.querySelector('.Editable')
-        expect(editElement).toBeDefined()
-
-        userEvent.type(editElement!, 'http://test{esc}')
+        const editElement = screen.getByRole('textbox')
+        await user.type(editElement, 'http://test')
+        expect(editElement).toHaveValue('http://test')
+        await user.keyboard('{Escape}')
+        expect(editElement).toHaveValue('')
         expect(container).toMatchSnapshot()
     })
 
-    test('Generic fields should allow cancel', () => {
+    test('Generic fields should allow cancel', async () => {
         const propertyTemplate: IPropertyTemplate = {
             id: 'text',
             name: 'Generic Text',
@@ -183,6 +191,8 @@ describe('components/propertyValueElement', () => {
             options: [],
         }
 
+        const user = userEvent.setup()
+
         const component = wrapDNDIntl(
             <PropertyValueElement
                 board={board}
@@ -194,10 +204,11 @@ describe('components/propertyValueElement', () => {
         )
 
         const {container} = render(component)
-        const editElement = container.querySelector('.Editable')
-        expect(editElement).toBeDefined()
-
-        userEvent.type(editElement!, 'http://test{esc}')
+        const editElement = screen.getByRole('textbox')
+        await user.type(editElement, 'http://test')
+        expect(editElement).toHaveValue('http://test')
+        await user.keyboard('{Escape}')
+        expect(editElement).toHaveValue('')
         expect(container).toMatchSnapshot()
     })
 })

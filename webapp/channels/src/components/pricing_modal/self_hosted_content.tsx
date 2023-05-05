@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CloudLinks, LicenseLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
+import {CloudLinks, ModalIdentifiers, SelfHostedProducts, LicenseSkus, TELEMETRY_CATEGORIES, RecurringIntervals} from 'utils/constants';
 import {findSelfHostedProductBySku} from 'utils/hosted_customer';
 
 import {trackEvent} from 'actions/telemetry_actions';
@@ -27,6 +27,7 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import ExternalLink from 'components/external_link';
 
 import useCanSelfHostedSignup from 'components/common/hooks/useCanSelfHostedSignup';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {
     useControlAirGappedSelfHostedPurchaseModal,
@@ -89,6 +90,7 @@ function SelfHostedContent(props: ContentProps) {
     const isEnterprise = license.SkuShortName === LicenseSkus.Enterprise;
     const isPostSelfHostedEnterpriseTrial = prevSelfHostedTrialLicense.IsLicensed === 'true';
 
+    const [openContactSales] = useOpenSalesLink();
     const controlScreeningInProgressModal = useControlScreeningInProgressModal();
     const controlAirgappedModal = useControlAirGappedSelfHostedPurchaseModal();
 
@@ -184,6 +186,8 @@ function SelfHostedContent(props: ContentProps) {
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                         price='$0'
                         rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isStarter ? (
                                 <PlanLabel
@@ -207,16 +211,20 @@ function SelfHostedContent(props: ContentProps) {
                         id='professional'
                         topColor='var(--denim-button-bg)'
                         plan='Professional'
-                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions for growing teams'})}
+                        planSummary={formatMessage({id: 'pricing_modal.planSummary.professional', defaultMessage: 'Scalable solutions {br} for growing teams'}, {
+                            br: <br/>,
+                        })}
                         price={professionalPrice}
-                        rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                        rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                             br: <br/>,
                             b: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                <span style={{fontSize: '14px'}}>
+                                <span className='billed_annually'>
                                     <b>{chunks}</b>
                                 </span>
                             ),
                         })}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isProfessional ? (
                                 <PlanLabel
@@ -275,6 +283,8 @@ function SelfHostedContent(props: ContentProps) {
                         topColor='#E07315'
                         plan='Enterprise'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.enterprise', defaultMessage: 'Administration, security, and compliance for large teams'})}
+                        isCloud={false}
+                        cloudFreeDeprecated={false}
                         planLabel={
                             isEnterprise ? (
                                 <PlanLabel
@@ -287,7 +297,7 @@ function SelfHostedContent(props: ContentProps) {
                         buttonDetails={(isPostSelfHostedEnterpriseTrial || !isAdmin) ? {
                             action: () => {
                                 trackEvent('self_hosted_pricing', 'click_enterprise_contact_sales');
-                                window.open(LicenseLinks.CONTACT_SALES, '_blank');
+                                openContactSales();
                             },
                             text: formatMessage({id: 'pricing_modal.btn.contactSales', defaultMessage: 'Contact Sales'}),
                             customClass: ButtonCustomiserClasses.active,

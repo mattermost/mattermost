@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useMemo, useState, useCallback} from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import React, {useCallback, useMemo, useState} from 'react'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Board, IPropertyTemplate} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
@@ -51,7 +51,7 @@ const GalleryCard = (props: Props) => {
 
     const confirmDialogProps: ConfirmationDialogBoxProps = useMemo(() => {
         return {
-            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete'}),
             confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
             onConfirm: handleDeleteCard,
             onClose: () => {
@@ -68,6 +68,7 @@ const GalleryCard = (props: Props) => {
                 return contents[i] as ContentBlock
             }
         }
+
         return undefined
     }, [contents])
 

@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, screen} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import {render, screen} from '@testing-library/react'
 import React, {ReactElement, ReactNode} from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import userEvent from '@testing-library/user-event'
+
+import {mockStateStore, setup, wrapIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -36,22 +37,18 @@ describe('components/cardDetail/cardDetailContentsMenu', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
-    test('return cardDetailContentsMenu', () => {
+    test('return cardDetailContentsMenu', async () => {
         const {container} = render(wrap(<CardDetailContentsMenu/>))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
     test('return cardDetailContentsMenu and add Text content', async () => {
-        const {container} = render(wrap(<CardDetailContentsMenu/>))
-        const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        const {user, container} = setup(wrap(<CardDetailContentsMenu/>))
+        await user.click(screen.getByRole('button', {name: 'menuwrapper'}))
         expect(container).toMatchSnapshot()
-        await act(async () => {
-            const buttonAddText = screen.getByRole('button', {name: 'text'})
-            userEvent.click(buttonAddText)
-        })
+        await user.click(screen.getByRole('button', {name: 'text'}))
         expect(container).toMatchSnapshot()
     })
 })

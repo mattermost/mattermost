@@ -3,14 +3,14 @@
 
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {
-    render,
-    screen,
-    fireEvent,
-    act
-} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {
+    mockDOM,
+    mockStateStore,
+    setup,
+    wrapDNDIntl,
+} from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
 import Editor from './editor'
@@ -82,25 +82,20 @@ describe('components/blocksEditor/editor', () => {
 
     test('should call onSave after introduce text and hit enter', async () => {
         const onSave = jest.fn()
+        const {user} = setup(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <Editor
+                    boardId='fake-board-id'
+                    onSave={onSave}
+                />
+            </ReduxProvider>,
+        ))
         await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Editor
-                        boardId='fake-board-id'
-                        onSave={onSave}
-                    />
-                </ReduxProvider>,
-            ))
+            await user.type(screen.getByRole('combobox'), '/title')
+            await user.keyboard('{Enter}')
+            await user.type(screen.getByRole('textbox'), 'test')
+            await user.keyboard('{Enter}')
         })
-        let input = screen.getByDisplayValue('')
-        expect(onSave).not.toBeCalled()
-        fireEvent.change(input, {target: {value: '/title'}})
-        fireEvent.keyDown(input, {key: 'Enter'})
-        expect(onSave).not.toBeCalled()
-
-        input = screen.getByDisplayValue('')
-        fireEvent.change(input, {target: {value: 'test'}})
-        fireEvent.keyDown(input, {key: 'Enter'})
 
         expect(onSave).toBeCalledWith(expect.objectContaining({value: 'test'}))
     })

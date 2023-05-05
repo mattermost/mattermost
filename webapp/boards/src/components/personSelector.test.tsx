@@ -8,8 +8,6 @@ import {render, waitFor} from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
 
-import {act} from 'react-dom/test-utils'
-
 import userEvent from '@testing-library/user-event'
 
 import {wrapIntl} from 'src/testUtils'
@@ -96,6 +94,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -130,6 +129,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -157,6 +157,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -167,9 +168,7 @@ describe('properties/person', () => {
             const userProperty = container.querySelector('.Person > div > div:nth-child(1) > div:nth-child(2) > input')
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            await userEvent.click(userProperty as Element)
 
             const userList = container.querySelector('.Person-item')
             expect(userList).not.toBeNull()
@@ -201,6 +200,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -237,6 +237,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -263,6 +264,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -273,9 +275,8 @@ describe('properties/person', () => {
             const userProperty = container.querySelector('.MultiPerson > div > div:nth-child(1) > div:nth-child(3) > input')
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            await userEvent.click(userProperty as Element)
+
             const userList = container.querySelector('.MultiPerson-item')
             expect(userList).not.toBeNull()
             expect(container).toMatchSnapshot()
@@ -307,6 +308,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
 
@@ -316,13 +318,11 @@ describe('properties/person', () => {
             // opening of the dropdown
             const userProperty = container.querySelector('.Person > div > div:nth-child(1) > div:nth-child(2) > input')
             expect(userProperty).not.toBeNull()
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+
+            await userEvent.click(userProperty as Element)
 
             const userList = container.querySelector('.Person-item')
             expect(userList).not.toBeNull()
-            console.log('Text content ' + userList?.textContent)
             expect(userList?.textContent).toBe('Me')
             expect(container).toMatchSnapshot()
         } else {

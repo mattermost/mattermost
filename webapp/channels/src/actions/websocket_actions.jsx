@@ -68,7 +68,7 @@ import {
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {setGlobalItem} from 'actions/storage';
-import {transformServerDraft} from 'actions/views/drafts';
+import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -89,7 +89,6 @@ import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 
-import {getConnectionId} from 'selectors/general';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 
@@ -1700,20 +1699,12 @@ function handlePostAcknowledgementRemoved(msg) {
 }
 
 function handleUpsertDraftEvent(msg) {
-    return async (doDispatch, doGetState) => {
-        const state = doGetState();
-        const connectionId = getConnectionId(state);
-
+    return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
         const {key, value} = transformServerDraft(draft);
         value.show = true;
-        value.remote = false;
 
-        if (msg.broadcast.omit_connection_id !== connectionId) {
-            value.remote = true;
-        }
-
-        doDispatch(setGlobalItem(key, value));
+        doDispatch(setGlobalDraft(key, value, true));
     };
 }
 
@@ -1722,7 +1713,11 @@ function handleDeleteDraftEvent(msg) {
         const draft = JSON.parse(msg.data.draft);
         const {key} = transformServerDraft(draft);
 
-        doDispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: [], remote: true}));
+        doDispatch(setGlobalItem(key, {
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+        }));
     };
 }
 

@@ -4,12 +4,11 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -18,7 +17,7 @@ import mutator from 'src/mutator'
 import ViewHeaderSortMenu from './viewHeaderSortMenu'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -36,7 +35,7 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
-    test('return sort menu', () => {
+    test('return sort menu', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -49,10 +48,10 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('return sort menu and do manual', () => {
+    test('return sort menu and do manual', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -65,13 +64,13 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonManual = screen.getByRole('button', {name: 'Manual'})
-        userEvent.click(buttonManual)
+        await userEvent.click(buttonManual)
         expect(container).toMatchSnapshot()
         expect(mockedMutator.updateBlock).toBeCalledTimes(1)
     })
-    test('return sort menu and do revert', () => {
+    test('return sort menu and do revert', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -84,14 +83,14 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonRevert = screen.getByRole('button', {name: 'Revert'})
-        userEvent.click(buttonRevert)
+        await userEvent.click(buttonRevert)
         expect(container).toMatchSnapshot()
         expect(mockedMutator.changeViewSortOptions).toBeCalledTimes(1)
         expect(mockedMutator.changeViewSortOptions).toBeCalledWith(activeView.boardId, activeView.id, activeView.fields.sortOptions, [])
     })
-    test('return sort menu and do Name sort', () => {
+    test('return sort menu and do Name sort', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -104,9 +103,9 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonName = screen.getByRole('button', {name: 'Name'})
-        userEvent.click(buttonName)
+        await userEvent.click(buttonName)
         expect(container).toMatchSnapshot()
         expect(mockedMutator.changeViewSortOptions).toBeCalledTimes(1)
         expect(mockedMutator.changeViewSortOptions).toBeCalledWith(activeView.boardId, activeView.id, activeView.fields.sortOptions, [{propertyId: '__title', reversed: false}])
