@@ -114,11 +114,11 @@ func (hooks *hooksTimerLayer) MessageHasBeenUpdated(c *Context, newPost, oldPost
 	hooks.recordTime(startTime, "MessageHasBeenUpdated", true)
 }
 
-func (hooks *hooksTimerLayer) MessageWillBeConsumed(post *model.Post)(*model.Post){
+func (hooks *hooksTimerLayer) MessagesWillBeConsumed(posts []*model.Post)([]*model.Post){
 	startTime := timePkg.Now()
-	postReplacement := hooks.hooksImpl.MessageWillBeConsumed(post)
-	hooks.recordTime(startTime, "MessageWillBeConsumed", true)
-	return postReplacement
+	postReplacements := hooks.hooksImpl.MessagesWillBeConsumed(posts)
+	hooks.recordTime(startTime, "MessagesWillBeConsumed", true)
+	return postReplacements
 }
 
 func (hooks *hooksTimerLayer) ChannelHasBeenCreated(c *Context, channel *model.Channel) {

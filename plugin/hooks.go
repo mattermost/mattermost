@@ -167,14 +167,14 @@ type Hooks interface {
 	// Minimum server version: 5.2
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 
-	// MessageWillBeConsumed is invoked when a message is requested by a client before it is returned
+	// MessagesWillBeConsumed is invoked when a message is requested by a client before it is returned
 	// to the client
 	//
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	//
 	// Minimum server version: 5.2
-	MessageWillBeConsumed(post *model.Post) *model.Post
+	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
 	//

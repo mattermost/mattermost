@@ -1332,7 +1332,7 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	require.True(t, hookCalled)
 }
 
-func TestHookMessageWillBeConsumed(t *testing.T) {
+func TestHookMessagesWillBeConsumed(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1354,9 +1354,11 @@ func TestHookMessageWillBeConsumed(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) MessageWillBeConsumed(post *model.Post)(*model.Post) {
-			post.Message = "mwbc_plugin:" + post.Message
-			return post
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post)([]*model.Post) {
+			for _, post := range posts {
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
 		}
 
 		func main() {
