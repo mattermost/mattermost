@@ -1354,6 +1354,10 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		filteredProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
 	}
 
+	if channelAutoFollowThreads, exists := data[model.ChannelAutoFollowThreads]; exists {
+		filteredProps[model.ChannelAutoFollowThreads] = channelAutoFollowThreads
+	}
+
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
 		var appErr *model.AppError
@@ -2408,7 +2412,6 @@ func (a *App) PostAddToChannelMessage(c request.CTX, user *model.User, addedUser
 		Message:   message,
 		Type:      postType,
 		UserId:    user.Id,
-		RootId:    postRootId,
 		Props: model.StringInterface{
 			"userId":                   user.Id,
 			"username":                 user.Username,
@@ -2517,6 +2520,9 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
+		return model.NewAppError("removeUserFromChannel", model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if isGuest {

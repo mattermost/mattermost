@@ -4,7 +4,7 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, act} from '@testing-library/react'
+import {act, render} from '@testing-library/react'
 
 import userEvent from '@testing-library/user-event'
 import configureStore from 'redux-mock-store'
@@ -15,7 +15,7 @@ import {wrapIntl} from 'src/testUtils'
 
 import {defaultThemeName} from 'src/theme'
 
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 import SidebarSettingsMenu from './sidebarSettingsMenu'
 

@@ -11,7 +11,7 @@ import {mocked} from 'jest-mock'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import {Archiver} from 'src/archiver'
 

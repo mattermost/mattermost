@@ -60,6 +60,7 @@ export function getMessages(lang: string): {[key: string]: string} {
     case 'zh-tw':
         return messages_zhHans
     }
+
     return messages_en
 }
 export function getCurrentLanguage(): string {
@@ -73,6 +74,7 @@ export function getCurrentLanguage(): string {
             lang = 'en'
         }
     }
+
     return lang
 }
 

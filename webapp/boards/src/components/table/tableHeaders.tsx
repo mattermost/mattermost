@@ -4,8 +4,8 @@ import React, {useCallback, useMemo} from 'react'
 
 import {FormattedMessage, useIntl} from 'react-intl'
 
-import {IPropertyTemplate, Board} from 'src/blocks/board'
-import {createBoardView, BoardView, ISortOption} from 'src/blocks/boardView'
+import {Board, IPropertyTemplate} from 'src/blocks/board'
+import {BoardView, ISortOption, createBoardView} from 'src/blocks/boardView'
 import {Card} from 'src/blocks/card'
 import {Constants} from 'src/constants'
 import mutator from 'src/mutator'
@@ -136,6 +136,7 @@ const TableHeaders = (props: Props): JSX.Element => {
                 if (sortOption) {
                     sorted = sortOption.reversed ? 'down' : 'up'
                 }
+
                 return (
                     <TableHeader
                         name={template.name}

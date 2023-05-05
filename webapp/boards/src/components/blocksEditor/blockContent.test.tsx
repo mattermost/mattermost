@@ -4,17 +4,17 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {
+    act,
+    fireEvent,
     render,
     screen,
-    fireEvent,
-    act
 } from '@testing-library/react'
 
 import {
     mockDOM,
-    wrapDNDIntl,
     mockStateStore,
-    setup
+    setup,
+    wrapDNDIntl,
 } from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -146,7 +146,7 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call onSave on hit enter in the input', async () => {
         const onSave = jest.fn()
-        
+
         const {user} = setup(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <BlockContent

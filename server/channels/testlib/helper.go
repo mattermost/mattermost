@@ -58,6 +58,11 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 	}
 
+	// Unset environment variables commonly set for development that interfere with tests.
+	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
+
 	var mainHelper MainHelper
 	flag.Parse()
 
@@ -331,7 +336,7 @@ func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
 
 func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
 	for _, replica := range h.SQLStore.ReplicaXs {
-		_, err := replica.Exec(query, args...)
+		_, err := replica.Load().Exec(query, args...)
 		if err != nil {
 			return err
 		}

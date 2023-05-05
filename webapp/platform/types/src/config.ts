@@ -30,6 +30,7 @@ export type ClientConfig = {
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;
     CWSURL: string;
+    CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
@@ -38,6 +39,7 @@ export type ClientConfig = {
     DefaultTheme: string;
     DiagnosticId: string;
     DiagnosticsEnabled: string;
+    DisableRefetchingOnBrowserFocus: string;
     EmailLoginButtonBorderColor: string;
     EmailLoginButtonColor: string;
     EmailLoginButtonTextColor: string;
@@ -195,6 +197,7 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    DelayChannelAutocomplete: 'true' | 'false';
 };
 
 export type License = {
@@ -369,7 +372,6 @@ export type ServiceSettings = {
     EnableCustomGroups: boolean;
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
-    SelfHostedExpansion: boolean;
 };
 
 export type TeamSettings = {
@@ -526,7 +528,6 @@ export type EmailSettings = {
     LoginButtonColor: string;
     LoginButtonBorderColor: string;
     LoginButtonTextColor: string;
-    EnableInactivityEmail: boolean;
 };
 
 export type RateLimitSettings = {
@@ -729,7 +730,8 @@ export type ExperimentalSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
-    PatchPluginsReactDOM: boolean;
+    DisableRefetchingOnBrowserFocus: boolean;
+    DelayChannelAutocomplete: boolean;
 };
 
 export type AnalyticsSettings = {

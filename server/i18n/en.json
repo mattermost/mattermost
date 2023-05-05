@@ -1778,6 +1778,10 @@
     "translation": "Error trying to retrieve the first admin visit marketplace status from the store."
   },
   {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Error no organization name provided for self hosted onboarding."
+  },
+  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "Error trying to save first admin complete setup in the store."
   },
@@ -8456,6 +8460,10 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Invalid channel-auto-follow-threads value."
+  },
+  {
     "id": "model.channel_member.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -8806,6 +8814,10 @@
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Unable to locate local socket file directory."
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
