@@ -25,16 +25,6 @@ const enterprisePaidFeatures = [
     {sidebarName: 'Custom Terms of Service', featureDiscoveryTitle: 'Create custom terms of service with Mattermost Enterprise'},
 ];
 
-function withTrialBefore(trialed) {
-    cy.intercept('GET', '**/api/v4/trial-license/prev', {
-        statusCode: 200,
-        body: {
-            IsLicensed: trialed,
-            IsTrial: trialed,
-        },
-    });
-}
-
 describe('Feature discovery self hosted', () => {
     beforeEach(() => {
         cy.shouldRunOnTeamEdition();
@@ -45,7 +35,7 @@ describe('Feature discovery self hosted', () => {
     });
 
     it('MM-T5123 Self-Hosted | Ensure feature discovery shows option to start trial when no trial has ever been done before', () => {
-        withTrialBefore('false');
+        cy.withTrialBefore('false');
         [...professionalPaidFeatures, ...enterprisePaidFeatures].forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
             cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
@@ -55,7 +45,7 @@ describe('Feature discovery self hosted', () => {
     });
 
     it('MM-T5124 Self-Hosted | Ensure feature discovery for professional features shows option to purchase when a trial has been done before', () => {
-        withTrialBefore('true');
+        cy.withTrialBefore('true');
         professionalPaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
             cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
@@ -65,7 +55,7 @@ describe('Feature discovery self hosted', () => {
     });
 
     it('MM-T5125 Self-Hosted | Ensure feature discovery for enterprise features shows option to contact sales when a trial has been done before', () => {
-        withTrialBefore('true');
+        cy.withTrialBefore('true');
         enterprisePaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
             cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);

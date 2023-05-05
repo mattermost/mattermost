@@ -11,13 +11,13 @@
 // Group: @channels @enterprise @not_cloud @system_console
 
 // # Goes to the System Scheme page as System Admin
-const goToSessionLengths = () => {
+const sessionLengthsGoToSessionLengths = () => {
     cy.apiAdminLogin();
     cy.visit('/admin_console/environment/session_lengths');
 };
 
 // # Wait's until the Saving text becomes Save
-const waitUntilConfigSave = () => {
+const waitUntilConfigSaveSessionLength = () => {
     cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
         return el[0].innerText === 'Save';
     }));
@@ -26,7 +26,7 @@ const waitUntilConfigSave = () => {
 // Clicks the save button in the system console page.
 // waitUntilConfigSaved: If we need to wait for the save button to go from saving -> save.
 // Usually we need to wait unless we are doing this in team override scheme
-const saveConfig = (waitUntilConfigSaved = true, clickConfirmationButton = false) => {
+const saveConfigSessionLength = (waitUntilConfigSaved = true, clickConfirmationButton = false) => {
     // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
     cy.get('#saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
@@ -37,7 +37,7 @@ const saveConfig = (waitUntilConfigSaved = true, clickConfirmationButton = false
         cy.get('#confirmModalButton').click();
     }
     if (waitUntilConfigSaved) {
-        waitUntilConfigSave();
+        waitUntilConfigSaveSessionLength();
     }
 };
 
@@ -45,7 +45,7 @@ describe('MM-T2574 Session Lengths', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
         cy.apiRequireLicense();
-        goToSessionLengths();
+        sessionLengthsGoToSessionLengths();
     });
 
     describe('"Extend session length with activity" defaults to true', () => {
@@ -70,7 +70,7 @@ describe('MM-T2574 Session Lengths', () => {
             cy.get('#sessionIdleTimeoutInMinutes').
                 should('have.value', '43200').
                 clear().type('43201');
-            saveConfig();
+            saveConfigSessionLength();
             cy.get('#sessionIdleTimeoutInMinutes').should('have.value', '43201');
         });
         it('Setting "Session Cache (minutes)" should be saved in the server configuration', () => {

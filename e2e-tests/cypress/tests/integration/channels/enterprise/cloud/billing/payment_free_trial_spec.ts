@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-function simulateSubscription() {
+function simulateFreeTrialSubscription() {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
         statusCode: 200,
         body: {
@@ -53,7 +53,7 @@ describe('System Console - Payment Information section', () => {
     before(() => {
         // * Check if server has license for Cloud
         cy.apiRequireLicenseForFeature('Cloud');
-        simulateSubscription();
+        simulateFreeTrialSubscription();
 
         // # Visit Subscription page
         cy.visit('/admin_console/billing/subscription');

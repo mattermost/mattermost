@@ -117,6 +117,7 @@ const Customize = ({
                 </p>
                 <input
                     type='text'
+                    data-testid='work-template-customize-channel-name'
                     autoFocus={true}
                     placeholder={formatMessage({id: 'work_templates.customize.name_input_placeholder', defaultMessage: 'e.g. Web app, Growth, Customer Journey etc.'})}
                     value={name}

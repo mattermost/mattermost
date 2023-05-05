@@ -42,6 +42,16 @@ Cypress.Commands.add('apiGetClientLicense', () => {
     });
 });
 
+Cypress.Commands.add('withTrialBefore', (trialed) => {
+    cy.intercept('GET', '**/api/v4/trial-license/prev', {
+        statusCode: 200,
+        body: {
+            IsLicensed: trialed,
+            IsTrial: trialed,
+        },
+    });
+});
+
 Cypress.Commands.add('apiRequireLicenseForFeature', (...keys) => {
     Cypress.log({name: 'EE License', message: `Checking if server has license for feature: __${Object.values(keys).join(', ')}__.`});
 

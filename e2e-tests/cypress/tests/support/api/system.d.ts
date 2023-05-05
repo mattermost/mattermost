@@ -199,5 +199,14 @@ declare namespace Cypress {
          *   cy.shouldHaveEmailEnabled();
          */
         shouldHaveEmailEnabled(): Chainable;
+
+        /**
+         * Mock out the previous trial endpoint /api/v4/trial-license/prev
+         * with whether the workspace is on trial and licensed
+         *
+         * @example
+         *   cy.withTrialBefore('true');
+         */
+        withTrialBefore(trialed: 'true' | 'false'): Chainable;
     }
 }

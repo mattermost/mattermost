@@ -133,7 +133,7 @@ export default function useTooltip(options: TooltipOptions) {
                 // immediately reused for this click listener.
                 const clickedAfterModalOpen = (now - attachTime > 100);
                 if (clickedAfterModalOpen && !(e.target as any)?.closest(options.tooltipId)) {
-                    options.onClickOther();
+                    options.onClickOther?.();
                 }
             };
             document.addEventListener('click', listener);
