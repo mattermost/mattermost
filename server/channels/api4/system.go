@@ -17,12 +17,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
 )
 
 const (
@@ -189,6 +189,8 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
 		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
 	}
+
+	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)

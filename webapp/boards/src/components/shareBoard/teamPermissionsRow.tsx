@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react'
+import React, {ReactNode, useState} from 'react'
 import {useIntl} from 'react-intl'
 
 import MenuWrapper from 'src/widgets/menuWrapper'
@@ -12,10 +12,10 @@ import CompassIcon from 'src/widgets/icons/compassIcon'
 
 import {
     Board,
-    createBoard,
     BoardTypeOpen,
     BoardTypePrivate,
-    MemberRole
+    MemberRole,
+    createBoard,
 } from 'src/blocks/board'
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentTeam} from 'src/store/teams'
@@ -77,7 +77,7 @@ const TeamPermissionsRow = (): JSX.Element => {
                     id: 'shareBoard.confirm-change-team-role.title',
                     defaultMessage: 'Change minimum board role',
                 }),
-                subText: intl.formatMessage({
+                subText: intl.formatMessage<ReactNode>({
                     id: 'shareBoard.confirm-change-team-role.body',
                     defaultMessage: 'Everyone on this board with a lower permission than the "{role}" role will <b>now be promoted to {role}</b>. Are you sure you want to change the minimum role for the board?',
                 }, {

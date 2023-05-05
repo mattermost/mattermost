@@ -131,6 +131,7 @@ const TutorialTourTip = ({
                     defaultMessage={'Got it'}
                 />
             )
+
             return buttonText
         }
 
