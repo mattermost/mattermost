@@ -146,42 +146,28 @@ func (a *App) moveBoardsToDefaultCategory(userID, teamID, sourceCategoryID strin
 	var sourceCategoryBoards *model.CategoryBoards
 	defaultCategoryID := ""
 
-	page := 0
-	const perPage = 100
-done:
-	for ; true; page++ {
-		// we need a list of boards associated to this category
-		// so we can move them to user's default Boards category
-		// TODO: this should be a store API instead of fetching all categories and looping.
-		categoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return err
+	// iterate user's categories to find the source category
+	// and the default category.
+	// We need source category to get the list of its board
+	// and the default category to know its ID to
+	// move source category's boards to.
+	err := a.ForEachUserCategoryBoard(userID, teamID, func(categoryBoards model.CategoryBoards) (bool, error) {
+		if categoryBoards.ID == sourceCategoryID {
+			sourceCategoryBoards = &categoryBoards
 		}
-		// iterate user's categories to find the source category
-		// and the default category.
-		// We need source category to get the list of its board
-		// and the default category to know its ID to
-		// move source category's boards to.
-		for i := range categoryBoards {
-			if categoryBoards[i].ID == sourceCategoryID {
-				sourceCategoryBoards = &categoryBoards[i]
-			}
 
-			if categoryBoards[i].Name == defaultCategoryBoards {
-				defaultCategoryID = categoryBoards[i].ID
-			}
+		if categoryBoards.Name == defaultCategoryBoards {
+			defaultCategoryID = categoryBoards.ID
+		}
 
-			// if both categories are found, no need to iterate furthur.
-			if sourceCategoryBoards != nil && defaultCategoryID != "" {
-				break done
-			}
+		// if both categories are found, no need to iterate furthur.
+		if sourceCategoryBoards != nil && defaultCategoryID != "" {
+			return true, nil
 		}
-		if len(categoryBoards) < perPage {
-			break done
-		}
+		return false, nil
+	})
+	if err != nil {
+		return err
 	}
 
 	if sourceCategoryBoards == nil {

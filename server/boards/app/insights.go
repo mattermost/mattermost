@@ -75,23 +75,14 @@ func (a *App) GetUserTimezone(userID string) (string, error) {
 func getUserBoards(userID string, teamID string, a *App) ([]string, error) {
 	// get boards accessible by user and filter boardIDs
 	boardIDs := []string{}
-	page := 0
-	const perPage = 100
-	for ; true; page++ {
-		boards, err := a.store.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
-			IncludePublicBoards: true,
-			Page:                page,
-			PerPage:             perPage,
-		})
-		if err != nil {
-			return nil, errors.New("error getting boards for user")
-		}
-		for _, board := range boards {
-			boardIDs = append(boardIDs, board.ID)
-		}
-		if len(boards) < perPage {
-			break
-		}
+
+	err := a.ForEachBoardForUserAndTeam(userID, teamID, true, func(board *model.Board) (bool, error) {
+		boardIDs = append(boardIDs, board.ID)
+		return false, nil
+	})
+	if err != nil {
+		return nil, errors.New("error getting boards for user")
 	}
+
 	return boardIDs, nil
 }

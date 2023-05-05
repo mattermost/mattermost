@@ -31,6 +31,39 @@ func (a *App) GetUserCategoryBoards(userID, teamID string, opts model.QueryUserC
 	return categoryBoards, nil
 }
 
+func (a *App) ForEachUserCategoryBoard(userID, teamID string, fn func(cb model.CategoryBoards) (bool, error)) error {
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		categoryBoards, err := a.store.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		fetchCount := len(categoryBoards)
+
+		createdCategoryBoards, err := a.createDefaultCategoriesIfRequired(categoryBoards, userID, teamID)
+		if err != nil {
+			return err
+		}
+
+		categoryBoards = append(categoryBoards, createdCategoryBoards...)
+
+		for _, cb := range categoryBoards {
+			if done, err := fn(cb); done || err != nil {
+				return err
+			}
+		}
+
+		if fetchCount < perPage {
+			break
+		}
+	}
+	return nil
+}
+
 func (a *App) createDefaultCategoriesIfRequired(existingCategoryBoards []model.CategoryBoards, userID, teamID string) ([]model.CategoryBoards, error) {
 	createdCategories := []model.CategoryBoards{}
 
@@ -70,15 +103,14 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 
 	// once the category is created, we need to move all boards which do not
 	// belong to any category, into this category.
-	// TODO: paginate this
-	boardMembers, err := a.GetMembersForUser(userID, model.QueryPageOptions{})
+	boardMemberByBoardID := map[string]*model.BoardMember{}
+
+	err = a.ForEachMemberForUser(userID, func(member *model.BoardMember) (bool, error) {
+		boardMemberByBoardID[member.BoardID] = member
+		return false, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("createBoardsCategory error fetching user's board memberships: %w", err)
-	}
-
-	boardMemberByBoardID := map[string]*model.BoardMember{}
-	for _, boardMember := range boardMembers {
-		boardMemberByBoardID[boardMember.BoardID] = boardMember
 	}
 
 	createdCategoryBoards := &model.CategoryBoards{
@@ -88,23 +120,13 @@ func (a *App) createBoardsCategory(userID, teamID string, existingCategoryBoards
 
 	// get user's current team's boards
 	userTeamBoardIDs := []string{}
-	page := 0
-	const perPage = 100
-	for ; true; page++ {
-		userTeamBoards, err := a.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
-			IncludePublicBoards: false,
-			Page:                page,
-			PerPage:             perPage,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("createBoardsCategory error fetching user's team's boards: %w", err)
-		}
-		for _, board := range userTeamBoards {
-			userTeamBoardIDs = append(userTeamBoardIDs, board.ID)
-		}
-		if len(userTeamBoards) < perPage {
-			break
-		}
+
+	err = a.ForEachBoardForUserAndTeam(userID, teamID, false, func(board *model.Board) (bool, error) {
+		userTeamBoardIDs = append(userTeamBoardIDs, board.ID)
+		return false, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("createBoardsCategory error fetching user's team's boards: %w", err)
 	}
 
 	boardIDsToAdd := []string{}
@@ -171,27 +193,16 @@ func (a *App) AddUpdateUserCategoryBoard(teamID, userID, categoryID string, boar
 	}
 
 	var updatedCategory *model.CategoryBoards
-	page := 0
-	const perPage = 100
-done:
-	for ; true; page++ {
-		// TODO: this should be a store API instead of fetching all categories and looping.
-		userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return err
+
+	err = a.ForEachUserCategoryBoard(userID, teamID, func(cb model.CategoryBoards) (bool, error) {
+		if cb.ID == categoryID {
+			updatedCategory = &cb
+			return true, nil // done
 		}
-		for i := range userCategoryBoards {
-			if userCategoryBoards[i].ID == categoryID {
-				updatedCategory = &userCategoryBoards[i]
-				break done
-			}
-		}
-		if len(userCategoryBoards) < perPage {
-			break done
-		}
+		return false, nil // not done
+	})
+	if err != nil {
+		return err
 	}
 
 	if updatedCategory == nil {
@@ -243,27 +254,16 @@ func (a *App) verifyNewCategoryBoardsMatchExisting(userID, teamID, categoryID st
 	// all boards of the category while reordering.
 	// TODO: Can this be replaced with `SqlStore.GetCategory(categoryID)` ?
 	var targetCategoryBoards *model.CategoryBoards
-	page := 0
-	const perPage = 100
-done:
-	for ; true; page++ {
-		// TODO: this should be a store API instead of fetching all categories and looping.
-		existingCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return err
+
+	err := a.ForEachUserCategoryBoard(userID, teamID, func(cb model.CategoryBoards) (bool, error) {
+		if cb.ID == categoryID {
+			targetCategoryBoards = &cb
+			return true, nil // done
 		}
-		for i := range existingCategoryBoards {
-			if existingCategoryBoards[i].ID == categoryID {
-				targetCategoryBoards = &existingCategoryBoards[i]
-				break done
-			}
-		}
-		if len(existingCategoryBoards) < perPage {
-			break done
-		}
+		return false, nil // not done
+	})
+	if err != nil {
+		return err
 	}
 
 	if targetCategoryBoards == nil {

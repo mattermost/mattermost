@@ -146,32 +146,21 @@ func (a *App) getBoardDescendantModifiedInfo(boardID string, latest bool) (int64
 
 func (a *App) setBoardCategoryFromSource(sourceBoardID, destinationBoardID, userID, teamID string, asTemplate bool) error {
 	var destinationCategoryID string
-	page := 0
-	const perPage = 100
 
-done:
-	for ; true; page++ {
-		// find source board's category ID for the user
-		// TODO: this should be a store API instead of fetching all categories and looping through them.
-		userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return err
-		}
-		for _, categoryBoard := range userCategoryBoards {
-			for _, metadata := range categoryBoard.BoardMetadata {
-				if metadata.BoardID == sourceBoardID {
-					// category found!
-					destinationCategoryID = categoryBoard.ID
-					break done
-				}
+	// find source board's category ID for the user
+	// TODO: this should be a store API instead of fetching all categories and looping through them.
+	err := a.ForEachUserCategoryBoard(userID, teamID, func(categoryBoards model.CategoryBoards) (bool, error) {
+		for _, metadata := range categoryBoards.BoardMetadata {
+			if metadata.BoardID == sourceBoardID {
+				// category found!
+				destinationCategoryID = categoryBoards.ID
+				return true, nil // done
 			}
 		}
-		if len(userCategoryBoards) < perPage {
-			break done
-		}
+		return false, nil // not done
+	})
+	if err != nil {
+		return err
 	}
 
 	if destinationCategoryID == "" {
@@ -247,6 +236,30 @@ func (a *App) GetBoardsForUserAndTeam(userID, teamID string, opts model.QueryBoa
 	return a.store.GetBoardsForUserAndTeam(userID, teamID, opts)
 }
 
+func (a *App) ForEachBoardForUserAndTeam(userID, teamID string, includePublic bool, fn func(*model.Board) (bool, error)) error {
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		boards, err := a.store.GetBoardsForUserAndTeam(userID, teamID, model.QueryBoardOptions{
+			Page:                page,
+			PerPage:             perPage,
+			IncludePublicBoards: includePublic,
+		})
+		if err != nil {
+			return err
+		}
+		for _, board := range boards {
+			if done, err := fn(board); err != nil || done {
+				return err
+			}
+		}
+		if len(boards) < perPage {
+			break
+		}
+	}
+	return nil
+}
+
 func (a *App) GetTemplateBoards(teamID, userID string) ([]*model.Board, error) {
 	return a.store.GetTemplateBoards(teamID, userID)
 }
@@ -297,28 +310,16 @@ func (a *App) CreateBoard(board *model.Board, userID string, addMember bool) (*m
 
 func (a *App) addBoardsToDefaultCategory(userID, teamID string, boards []*model.Board) error {
 	defaultCategoryID := ""
-	page := 0
-	const perPage = 100
 
-done:
-	for ; true; page++ {
-		// TODO: this should be a store API instead of fetching all categories and looping.
-		userCategoryBoards, err := a.GetUserCategoryBoards(userID, teamID, model.QueryUserCategoriesOptions{
-			Page:    page,
-			PerPage: perPage,
-		})
-		if err != nil {
-			return err
+	err := a.ForEachUserCategoryBoard(userID, teamID, func(categoryBoards model.CategoryBoards) (bool, error) {
+		if categoryBoards.Name == defaultCategoryBoards {
+			defaultCategoryID = categoryBoards.ID
+			return true, nil // done
 		}
-		for _, categoryBoard := range userCategoryBoards {
-			if categoryBoard.Name == defaultCategoryBoards {
-				defaultCategoryID = categoryBoard.ID
-				break done
-			}
-		}
-		if len(userCategoryBoards) < perPage {
-			break done
-		}
+		return false, nil // not done
+	})
+	if err != nil {
+		return err
 	}
 
 	if defaultCategoryID == "" {
@@ -580,6 +581,29 @@ func (a *App) GetMembersForUser(userID string, opts model.QueryPageOptions) ([]*
 		}
 	}
 	return members, nil
+}
+
+func (a *App) ForEachMemberForUser(userID string, fn func(*model.BoardMember) (bool, error)) error {
+	page := 0
+	const perPage = 50
+	for ; true; page++ {
+		members, err := a.GetMembersForUser(userID, model.QueryPageOptions{
+			Page:    page,
+			PerPage: perPage,
+		})
+		if err != nil {
+			return err
+		}
+		for _, member := range members {
+			if done, err := fn(member); err != nil || done {
+				return err
+			}
+		}
+		if len(members) < perPage {
+			break
+		}
+	}
+	return nil
 }
 
 func (a *App) GetMemberForBoard(boardID string, userID string) (*model.BoardMember, error) {
