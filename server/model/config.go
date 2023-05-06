@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -239,12 +240,10 @@ const (
 	Office365SettingsDefaultTokenEndpoint   = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	Office365SettingsDefaultUserAPIEndpoint = "https://graph.microsoft.com/v1.0/me"
 
-	CloudSettingsDefaultCwsURL    = "https://customers.mattermost.com"
-	CloudSettingsDefaultCwsAPIURL = "https://portal.internal.prod.cloud.mattermost.com"
-	// TODO: update to "https://portal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsURLTest = "https://customers.mattermost.com"
-	// TODO: update to // "https://api.internal.test.cloud.mattermost.com" when ready to use test license key
-	CloudSettingsDefaultCwsAPIURLTest = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURL        = "https://customers.mattermost.com"
+	CloudSettingsDefaultCwsAPIURL     = "https://portal.internal.prod.cloud.mattermost.com"
+	CloudSettingsDefaultCwsURLTest    = "https://portal.test.cloud.mattermost.com"
+	CloudSettingsDefaultCwsAPIURLTest = "https://api.internal.test.cloud.mattermost.com"
 
 	OpenidSettingsDefaultScope = "profile openid email"
 
@@ -973,8 +972,8 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
-	PatchPluginsReactDOM            *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus *bool   `access:"experimental_features"`
+	DelayChannelAutocomplete        *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1010,12 +1009,12 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableAppBar = NewBool(false)
 	}
 
-	if s.PatchPluginsReactDOM == nil {
-		s.PatchPluginsReactDOM = NewBool(false)
-	}
-
 	if s.DisableRefetchingOnBrowserFocus == nil {
 		s.DisableRefetchingOnBrowserFocus = NewBool(false)
+	}
+
+	if s.DelayChannelAutocomplete == nil {
+		s.DelayChannelAutocomplete = NewBool(false)
 	}
 }
 
@@ -2781,6 +2780,7 @@ func (s *JobSettings) SetDefaults() {
 type CloudSettings struct {
 	CWSURL    *string `access:"write_restrictable"`
 	CWSAPIURL *string `access:"write_restrictable"`
+	CWSMock   *bool   `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -2795,6 +2795,10 @@ func (s *CloudSettings) SetDefaults() {
 		if !isProdLicensePublicKey {
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
+	}
+	if s.CWSMock == nil {
+		isMockCws := MockCWS == "true"
+		s.CWSMock = &isMockCws
 	}
 }
 
@@ -3749,6 +3753,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// we check if file has a valid parent, the server will try to create the socket
+	// file if it doesn't exist, but we need to be sure if the directory exist or not
+	if *s.EnableLocalMode {
+		parent := filepath.Dir(*s.LocalModeSocketLocation)
+		_, err := os.Stat(parent)
+		if err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return nil

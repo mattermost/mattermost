@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {act, render} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
-
 
 import {mocked} from 'jest-mock'
 
 import {TextBlock} from 'src/blocks/textBlock'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {Utils} from 'src/utils'
 

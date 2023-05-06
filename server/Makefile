@@ -132,6 +132,9 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
+TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards')
+BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
+PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
 SUITE_PACKAGES=$(shell $(GO) list ./...)
 
 TEMPLATES_DIR=templates
@@ -144,7 +147,7 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v0.15.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.4
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.5
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.2
@@ -168,9 +171,9 @@ endif
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ALL_PACKAGES=$(SUITE_PACKAGES) $(EE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES)
 else
-  ALL_PACKAGES=$(SUITE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES)
 endif
 
 all: run ## Alias for 'run'.
@@ -292,7 +295,7 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
@@ -453,7 +456,9 @@ else
 endif
 
 test-server-race: test-server-pre
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)

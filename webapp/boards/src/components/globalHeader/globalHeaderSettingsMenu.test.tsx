@@ -14,7 +14,7 @@ import {mocked} from 'jest-mock'
 
 import {wrapIntl} from 'src/testUtils'
 
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 import client from 'src/octoClient'
 

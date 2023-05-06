@@ -22,6 +22,7 @@ export function useMeasurePunchouts(elementIds: string[], additionalDeps: any[],
             setSize(document.getElementById('root')?.getBoundingClientRect())
         }, 100)
         window.addEventListener('resize', updateSize)
+
         return () => window.removeEventListener('resize', updateSize)
     }, [])
 
@@ -56,5 +57,6 @@ export function useMeasurePunchouts(elementIds: string[], additionalDeps: any[],
             height: `${(maxY - minY) + (offset ? offset.height : 0)}px`,
         }
     }, [...elementIds, ...additionalDeps, size, elementsAvailable])
+
     return channelPunchout
 }

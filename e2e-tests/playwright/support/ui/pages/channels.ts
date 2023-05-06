@@ -11,17 +11,23 @@ export default class ChannelsPage {
     readonly channels = 'Channels';
     readonly page: Page;
     readonly postCreate;
+    readonly findChannelsModal;
     readonly globalHeader;
     readonly header;
+    readonly headerMobile;
     readonly appBar;
+    readonly sidebarLeft;
     readonly sidebarRight;
 
     constructor(page: Page) {
         this.page = page;
         this.postCreate = new components.ChannelsPostCreate(page.locator('#post-create'));
+        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
         this.header = new components.ChannelsHeader(page.locator('.channel-header'));
+        this.headerMobile = new components.ChannelsHeaderMobile(page.locator('.navbar'));
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
+        this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
     }
 

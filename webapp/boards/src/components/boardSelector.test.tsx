@@ -4,19 +4,18 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {
+    act,
+    fireEvent,
     render,
     screen,
-    act,
-    fireEvent
 } from '@testing-library/react'
 import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
 
 import octoClient from 'src/octoClient'
-import {mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 import {createBoard} from 'src/blocks/board'
-import {wrapIntl} from 'src/testUtils'
 
 import BoardSelector from './boardSelector'
 
@@ -97,7 +96,7 @@ describe('components/boardSelector', () => {
         expect(container).toMatchSnapshot()
     })
 
-    it("escape button should unmount the component", () => {
+    it('escape button should unmount the component', () => {
         mockedOctoClient.searchLinkableBoards.mockResolvedValueOnce([])
 
         const store = mockStateStore([], state)
@@ -114,10 +113,10 @@ describe('components/boardSelector', () => {
         expect(store.dispatch).toHaveBeenCalledTimes(0)
 
         fireEvent.keyDown(getByText(/Link boards/i), {
-            key: "Escape",
-            code: "Escape",
+            key: 'Escape',
+            code: 'Escape',
             keyCode: 27,
-            charCode: 27
+            charCode: 27,
         })
 
         expect(store.dispatch).toHaveBeenCalledTimes(2)
