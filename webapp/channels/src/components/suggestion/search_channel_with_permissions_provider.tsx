@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {ActionResult} from 'mattermost-redux/types/actions';
 import {
     getChannelsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/channels';
@@ -17,11 +18,22 @@ import {logError} from 'mattermost-redux/actions/errors';
 
 import store from 'stores/redux_store.jsx';
 import {Constants} from 'utils/constants';
+import {Channel} from '@mattermost/types/channels';
 
-import Provider from './provider';
+import Provider, {ProviderResult} from './provider';
 import Suggestion from './suggestion.jsx';
 
+interface WrappedChannel {
+    channel: Channel;
+    name: Channel['name'];
+    deactivated: boolean;
+    type: Channel['type'];
+}
+
+type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
+
 class SearchChannelWithPermissionsSuggestion extends Suggestion {
+    node: HTMLDivElement | null | undefined;
     static get propTypes() {
         return {
             ...super.propTypes,
@@ -75,7 +87,7 @@ class SearchChannelWithPermissionsSuggestion extends Suggestion {
 
 let prefix = '';
 
-function channelSearchSorter(wrappedA, wrappedB) {
+function channelSearchSorter(wrappedA: WrappedChannel, wrappedB: WrappedChannel) {
     const aIsArchived = wrappedA.channel.delete_at ? wrappedA.channel.delete_at !== 0 : false;
     const bIsArchived = wrappedB.channel.delete_at ? wrappedB.channel.delete_at !== 0 : false;
     if (aIsArchived && !bIsArchived) {
@@ -106,15 +118,16 @@ function channelSearchSorter(wrappedA, wrappedB) {
 }
 
 export default class SearchChannelWithPermissionsProvider extends Provider {
-    constructor(channelSearchFunc) {
+    autocompleteChannelsForSearch: ChannelSearchFunction;
+    constructor(channelSearchFunc: ChannelSearchFunction) {
         super();
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
 
-    makeChannelSearchFilter(channelPrefix) {
+    makeChannelSearchFilter(channelPrefix: string) {
         const channelPrefixLower = channelPrefix.toLowerCase();
 
-        return (channel) => {
+        return (channel: Channel) => {
             const state = store.getState();
             const channelId = channel.id;
             const teamId = getCurrentTeamId(state);
@@ -133,7 +146,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         };
     }
 
-    handlePretextChanged(channelPrefix, resultsCallback) {
+    handlePretextChanged(channelPrefix: string, resultsCallback: (res: ProviderResult) => void) {
         if (channelPrefix) {
             prefix = channelPrefix;
             this.startNewRequest(channelPrefix);
@@ -150,7 +163,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         return true;
     }
 
-    async fetchChannels(channelPrefix, resultsCallback) {
+    async fetchChannels(channelPrefix: string, resultsCallback: (res: ProviderResult) => void) {
         const state = store.getState();
         const teamId = getCurrentTeamId(state);
         if (!teamId) {
@@ -175,7 +188,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         this.formatChannelsAndDispatch(channelPrefix, resultsCallback, channels);
     }
 
-    formatChannelsAndDispatch(channelPrefix, resultsCallback, allChannels) {
+    formatChannelsAndDispatch(channelPrefix: string, resultsCallback: (res: ProviderResult) => void, allChannels: Channel[]) {
         const channels = [];
 
         const state = store.getState();
@@ -186,19 +199,14 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
             return;
         }
 
-        const completedChannels = {};
+        const completedChannels: Record<Channel['id'], boolean> = {};
 
         const channelFilter = this.makeChannelSearchFilter(channelPrefix);
 
         const config = getConfig(state);
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
 
-        for (const id of Object.keys(allChannels)) {
-            const channel = allChannels[id];
-            if (!channel) {
-                continue;
-            }
-
+        for (const channel of allChannels) {
             if (completedChannels[channel.id]) {
                 continue;
             }
@@ -207,7 +215,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
                 const newChannel = Object.assign({}, channel);
                 const channelIsArchived = channel.delete_at !== 0;
 
-                const wrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false};
+                const wrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false, type: newChannel.type};
                 if (!viewArchivedChannels && channelIsArchived) {
                     continue;
                 } else if (!members[channel.id]) {

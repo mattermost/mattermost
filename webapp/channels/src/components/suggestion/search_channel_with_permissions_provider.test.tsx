@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getState} from 'stores/redux_store';
+import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 
+import getState from 'stores/redux_store';
 import mockStore from 'tests/test_store';
-
-import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider.jsx';
 
 jest.mock('stores/redux_store', () => ({
     dispatch: jest.fn(),
@@ -114,7 +113,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         },
     };
 
-    let searchProvider;
+    let searchProvider: SearchChannelWithPermissionsProvider;
 
     beforeEach(() => {
         const channelSearchFunc = jest.fn();
