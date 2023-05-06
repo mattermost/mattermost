@@ -590,7 +590,7 @@ export class FileUpload extends PureComponent<Props, State> {
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
 
         let bodyAction;
-        const buttonAriaLabel = formatMessage({id: 'accessibility.button.attachment', defaultMessage: 'attacddddhment'});
+        const buttonAriaLabel = formatMessage({id: 'accessibility.button.attachment', defaultMessage: 'attachment'});
         const iconAriaLabel = formatMessage({id: 'generic_icons.attach', defaultMessage: 'Attachment Icon'});
 
         if (this.props.pluginFileUploadMethods.length === 0) {
