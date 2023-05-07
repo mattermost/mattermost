@@ -110,8 +110,8 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
 
     it('MM-T1474 Verify Tab Support in Favorites section', () => {
         // # Mark few channels as Favorites
-        markAsFavorite('off-topic');
         markAsFavorite(testChannel.name);
+        markAsFavorite('off-topic');
 
         // # Press tab from the add channel button down to all unread channels
         cy.uiGetLHSAddChannelButton().focus().tab().tab().tab();
@@ -120,7 +120,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         });
 
         // * Verify if focus changes to different channels in Favorite Channels section
-        cy.focused().tab().tab().parent().next().find('.SidebarChannel').each((el, i) => {
+        cy.focused().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('FAVORITES');
                 cy.focused().tab().tab().tab();
@@ -198,6 +198,4 @@ function markAsFavorite(channelName) {
 
     // # mark it as Favorite
     cy.get('#toggleFavorite').click();
-
-    cy.get('#SidebarContainer .scrollbar--view').scrollTo('top', {ensureScrollable: false});
 }
