@@ -181,7 +181,7 @@ func IsDatabaseDSN(dsn string) bool {
 
 func isJSONMap(data []byte) bool {
 	var m map[string]any
-	err := json.Unmarshal([]byte(data), &m)
+	err := json.Unmarshal(data, &m)
 	return err == nil
 }
 

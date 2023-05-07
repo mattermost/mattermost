@@ -97,7 +97,7 @@ func (src *jsonSrc) Get() mlog.LoggerConfiguration {
 
 // Set updates the JSON specifying the source and reloads
 func (src *jsonSrc) Set(data []byte, _ *Store) error {
-	cfg, err := logTargetCfgFromJSON([]byte(data))
+	cfg, err := logTargetCfgFromJSON(data)
 	if err != nil {
 		return err
 	}
