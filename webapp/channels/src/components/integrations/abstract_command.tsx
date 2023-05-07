@@ -67,7 +67,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
             saving: false,
             clientError: null,
         };
-    }
+    };
 
     handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -186,31 +186,31 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         }
 
         this.props.action(command).then(() => this.setState({saving: false}));
-    }
+    };
 
     updateDisplayName = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             displayName: e.target.value,
         });
-    }
+    };
 
     updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateTrigger = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             trigger: e.target.value,
         });
-    }
+    };
 
     updateUrl = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             url: e.target.value,
         });
-    }
+    };
 
     updateMethod = (e: ChangeEvent<HTMLSelectElement>) => {
         const methodValue = e.target.value;
@@ -219,37 +219,37 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                 method: methodValue,
             });
         }
-    }
+    };
 
     updateUsername = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             username: e.target.value,
         });
-    }
+    };
 
     updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             iconUrl: e.target.value,
         });
-    }
+    };
 
     updateAutocomplete = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             autocomplete: e.target.checked,
         });
-    }
+    };
 
     updateAutocompleteHint = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             autocompleteHint: e.target.value,
         });
-    }
+    };
 
     updateAutocompleteDescription = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             autocompleteDescription: e.target.value,
         });
-    }
+    };
 
     render() {
         let autocompleteHint = null;
