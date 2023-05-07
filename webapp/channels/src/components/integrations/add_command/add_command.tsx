@@ -58,7 +58,6 @@ const AddCommand = ({team, actions}: Props) => {
             header={HEADER}
             footer={FOOTER}
             loading={LOADING}
-            renderExtra={''}
             action={addCommand}
             serverError={serverError}
         />
