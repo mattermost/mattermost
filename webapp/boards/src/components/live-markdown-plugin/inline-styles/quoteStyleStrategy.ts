@@ -13,6 +13,7 @@ const createQuoteStyleStrategy = (): InlineStrategy => {
         findStyleRanges: (block) => {
             const text = block.getText()
             const quoteRanges = findRangesWithRegex(text, quoteRegex)
+
             return quoteRanges
         },
         findDelimiterRanges: (block, styleRanges) => {
@@ -25,6 +26,7 @@ const createQuoteStyleStrategy = (): InlineStrategy => {
                 ).map((indices) => indices.map((x) => x + styleRange[0]))
                 quoteDelimiterRanges = quoteDelimiterRanges.concat(delimiterRange)
             })
+
             return quoteDelimiterRanges
         },
         styles: {

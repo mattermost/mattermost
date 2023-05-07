@@ -19,6 +19,7 @@ const HiddenCardCount = (props: Props): JSX.Element => {
     const onClickHandler = () => {
         props.showHiddenCardNotification(true)
     }
+
     return (
         <div
             className='HiddenCardCount'

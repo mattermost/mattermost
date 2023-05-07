@@ -1362,6 +1362,10 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		filteredProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
 	}
 
+	if channelAutoFollowThreads, exists := data[model.ChannelAutoFollowThreads]; exists {
+		filteredProps[model.ChannelAutoFollowThreads] = channelAutoFollowThreads
+	}
+
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
 		var appErr *model.AppError
@@ -2416,7 +2420,6 @@ func (a *App) PostAddToChannelMessage(c request.CTX, user *model.User, addedUser
 		Message:   message,
 		Type:      postType,
 		UserId:    user.Id,
-		RootId:    postRootId,
 		Props: model.StringInterface{
 			"userId":                   user.Id,
 			"username":                 user.Username,

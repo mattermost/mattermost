@@ -42,6 +42,11 @@ export default class NotificationSection extends React.PureComponent {
         ignoreChannelMentions: PropTypes.string,
 
         /**
+         * Auto-follow all new threads in this channel
+         */
+        channelAutoFollowThreads: PropTypes.string,
+
+        /**
          * User's global notification level
          */
         globalNotificationLevel: PropTypes.string,
@@ -124,6 +129,7 @@ export default class NotificationSection extends React.PureComponent {
             memberDesktopNotificationSound,
             ignoreChannelMentions,
             isNotificationsSettingSameAsGlobal,
+            channelAutoFollowThreads,
             onSubmit,
             onReset,
             section,
@@ -142,6 +148,7 @@ export default class NotificationSection extends React.PureComponent {
                     globalNotificationSound={globalNotificationSound}
                     ignoreChannelMentions={ignoreChannelMentions}
                     isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
+                    channelAutoFollowThreads={channelAutoFollowThreads}
                     onChange={this.handleOnChange}
                     onReset={onReset}
                     onChangeThreads={this.handleOnChangeThreads}
@@ -161,6 +168,7 @@ export default class NotificationSection extends React.PureComponent {
                 memberNotifyLevel={memberNotificationLevel}
                 globalNotifyLevel={globalNotificationLevel}
                 ignoreChannelMentions={ignoreChannelMentions}
+                channelAutoFollowThreads={channelAutoFollowThreads}
             />
         );
     }

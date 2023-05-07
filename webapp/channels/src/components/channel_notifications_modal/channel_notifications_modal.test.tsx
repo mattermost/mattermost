@@ -4,7 +4,7 @@
 import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
 
-import {DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelNotificationsModal from 'components/channel_notifications_modal/channel_notifications_modal';
@@ -27,6 +27,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
                 mark_unread: NotificationLevels.ALL,
                 push: NotificationLevels.DEFAULT,
                 ignore_channel_mentions: IgnoreChannelMentions.DEFAULT,
+                channel_auto_follow_threads: ChannelAutoFollowThreads.OFF,
                 desktop_threads: NotificationLevels.ALL,
                 push_threads: NotificationLevels.DEFAULT,
             },
@@ -66,6 +67,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         expect(wrapper.state('markUnreadNotifyLevel')).toEqual(NotificationLevels.ALL);
         expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.ALL);
         expect(wrapper.state('ignoreChannelMentions')).toEqual(IgnoreChannelMentions.OFF);
+        expect(wrapper.state('channelAutoFollowThreads')).toEqual(ChannelAutoFollowThreads.OFF);
     });
 
     test('should provide correct default when currentUser channel notify props is true', () => {
@@ -211,7 +213,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
 
         expect(wrapper.state('desktopNotifyLevel')).toEqual(NotificationLevels.NONE);
 
-        wrapper.instance().updateSection('');
+        wrapper.instance().updateSection(NotificationSections.NONE);
 
         expect(wrapper.state('desktopNotifyLevel')).toEqual(baseProps.channelMember?.notify_props.desktop);
     });
@@ -352,6 +354,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
         expect(wrapper.state('markUnreadNotifyLevel')).toEqual(NotificationLevels.MENTION);
         expect(wrapper.state('pushNotifyLevel')).toEqual(NotificationLevels.ALL);
         expect(wrapper.state('ignoreChannelMentions')).toEqual(IgnoreChannelMentions.ON);
+        expect(wrapper.state('channelAutoFollowThreads')).toEqual(ChannelAutoFollowThreads.OFF);
 
         wrapper.instance().resetStateFromNotifyProps(currentUserNotifyProps, {...channelMemberNotifyProps, desktop: NotificationLevels.ALL});
         expect(wrapper.state('desktopNotifyLevel')).toEqual(NotificationLevels.ALL);

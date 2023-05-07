@@ -30,6 +30,7 @@ export default function ContentElement(props: Props): JSX.Element|null {
     const handler = contentRegistry.getHandler(block.type)
     if (!handler) {
         Utils.logError(`ContentElement, unknown content type: ${block.type}`)
+
         return null
     }
 
