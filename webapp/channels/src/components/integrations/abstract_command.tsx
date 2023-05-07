@@ -5,29 +5,30 @@ import React, {ChangeEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Command} from '@mattermost/types/integrations';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 import LocalizedInput from 'components/localized_input/localized_input';
+import ExternalLink from 'components/external_link';
 
 import {t} from 'utils/i18n';
+import {Command} from '@mattermost/types/integrations';
 import {Team} from '@mattermost/types/teams';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
 type Props = {
-    team: Team;
-    header: {id: string ; defaultMessage: string};
-    footer: {id: string ; defaultMessage: string};
-    loading: {id: string ; defaultMessage: string};
-    renderExtra?: JSX.Element;
-    serverError: string;
-    initialCommand?: Partial<Command>;
-    action: (command: Command) => Promise<void>;
+    team: Team; // The current team
+    header: {id: string; defaultMessage: string}; // The header text to render, has id and defaultMessage
+    footer: {id: string; defaultMessage: string}; // The footer text to render, has id and defaultMessage
+    loading: {id: string; defaultMessage: string}; // The spinner loading text to render, has id and defaultMessage 
+    renderExtra?: JSX.Element; // Any extra component/node to render
+    serverError: string; // The server error text after a failed action
+    initialCommand?: Partial<Command>; // The Command used to set the initial state
+    action: (command: Command) => Promise<void>; // The async function to run when the action button is pressed
 }
 
 type State= {
@@ -387,7 +388,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.description.help'
-                                        defaultMessage='Describe your incoming webhook.'
+                                        defaultMessage='Describe your slash command.'
                                     />
                                 </div>
                             </div>
@@ -430,7 +431,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                         defaultMessage='Reserved: {link}'
                                         values={{
                                             link: (
-                                                <a
+                                                <ExternalLink
                                                     href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/#built-in-commands'
                                                     target='_blank'
                                                     rel='noopener noreferrer'
@@ -439,7 +440,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                                         id='add_command.trigger.helpReservedLinkText'
                                                         defaultMessage='See built-in slash commands'
                                                     />
-                                                </a>
+                                                </ExternalLink>
                                             ),
                                         }}
                                     />

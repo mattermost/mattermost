@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {FormEvent} from 'react';
 import {shallow} from 'enzyme';
 import {FormattedMessage} from 'react-intl';
 
@@ -47,6 +47,7 @@ describe('components/integrations/AbstractCommand', () => {
         header,
         footer,
         loading,
+        renderExtra: <div>renderExtra</div>,
         serverError: '',
         initialCommand: command,
         action,
@@ -178,8 +179,7 @@ describe('components/integrations/AbstractCommand', () => {
         );
         expect(newAction).toHaveBeenCalledTimes(0);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const evt: any = {preventDefault: jest.fn()};
+        const evt = {preventDefault: jest.fn()} as unknown as FormEvent<Element>;
         const handleSubmit = wrapper.instance().handleSubmit;
         handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(true);
