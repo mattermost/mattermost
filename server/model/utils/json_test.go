@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package model_test
+package utils_test
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/model/utils"
 )
 
 func TestHumanizeJsonError(t *testing.T) {
@@ -56,14 +56,14 @@ func TestHumanizeJsonError(t *testing.T) {
 				Struct: "struct",
 				Field:  "field",
 			},
-			"parsing error at line 3, character 4: json: cannot unmarshal bool into Go struct field struct.field of type model_test.testType",
+			"parsing error at line 3, character 4: json: cannot unmarshal bool into Go struct field struct.field of type utils_test.testType",
 		},
 	}
 
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := model.HumanizeJSONError(testCase.Err, testCase.Data)
+			actual := utils.HumanizeJSONError(testCase.Err, testCase.Data)
 			if testCase.ExpectedErr == "" {
 				assert.NoError(t, actual)
 			} else {
@@ -81,7 +81,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 		Data        []byte
 		Offset      int64
 		Err         error
-		Expected    *model.HumanizedJSONError
+		Expected    *utils.HumanizedJSONError
 	}{
 		{
 			"nil error",
@@ -95,7 +95,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			-1,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err: errors.Wrap(errors.New("message"), "invalid offset -1"),
 			},
 		},
@@ -104,7 +104,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			0,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 1"),
 				Line:      1,
 				Character: 1,
@@ -115,7 +115,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			5,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 6"),
 				Line:      1,
 				Character: 6,
@@ -126,7 +126,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			6,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 7"),
 				Line:      1,
 				Character: 7,
@@ -137,7 +137,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			7,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 1"),
 				Line:      2,
 				Character: 1,
@@ -148,7 +148,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			12,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 6"),
 				Line:      2,
 				Character: 6,
@@ -159,7 +159,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			13,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 7"),
 				Line:      2,
 				Character: 7,
@@ -170,7 +170,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			17,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 4"),
 				Line:      3,
 				Character: 4,
@@ -181,7 +181,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			19,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 6"),
 				Line:      3,
 				Character: 6,
@@ -192,7 +192,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			20,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 7"),
 				Line:      3,
 				Character: 7,
@@ -203,7 +203,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3\n"),
 			21,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err:       errors.Wrap(errors.New("message"), "parsing error at line 4, character 1"),
 				Line:      4,
 				Character: 1,
@@ -214,7 +214,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			21,
 			errors.New("message"),
-			&model.HumanizedJSONError{
+			&utils.HumanizedJSONError{
 				Err: errors.Wrap(errors.New("message"), "invalid offset 21"),
 			},
 		},
@@ -223,7 +223,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := model.NewHumanizedJSONError(testCase.Err, testCase.Data, testCase.Offset)
+			actual := utils.NewHumanizedJSONError(testCase.Err, testCase.Data, testCase.Offset)
 			if testCase.Expected != nil && actual.Err != nil {
 				if assert.EqualValues(t, testCase.Expected.Err.Error(), actual.Err.Error()) {
 					actual.Err = testCase.Expected.Err

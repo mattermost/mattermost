@@ -46,6 +46,7 @@ import (
 	"github.com/blang/semver"
 
 	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/model/utils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
@@ -382,7 +383,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	}
 
 	pluginPath := filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, manifest.Id)
-	err = model.CopyDir(fromPluginDir, pluginPath)
+	err = utils.CopyDir(fromPluginDir, pluginPath)
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
