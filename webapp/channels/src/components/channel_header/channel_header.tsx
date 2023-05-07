@@ -71,6 +71,7 @@ export type Props = {
     isQuickSwitcherOpen?: boolean;
     intl: IntlShape;
     pinnedPostsCount?: number;
+    hasNewPinnedPosts?: boolean;
     hasMoreThanOneTeam?: boolean;
     actions: {
         favoriteChannel: (channelId: string) => void;
@@ -470,6 +471,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 >
                     {this.props.pinnedPostsCount}
                 </span>
+                {this.props.hasNewPinnedPosts && <span className='channel-header__dot'/>}
             </>
         ) : (
             <i

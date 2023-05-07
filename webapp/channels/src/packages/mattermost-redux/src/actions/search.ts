@@ -246,7 +246,8 @@ export function getPinnedPosts(channelId: string): ActionFunc {
 
             const profilesAndStatuses = getProfilesAndStatusesForPosts(result.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(result.posts));
-            const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
+            const updateLastViewedPinnedPostAt = Client4.updateLastViewedPinnedPostAt(channelId, getCurrentUserId(getState()));
+            const arr: [Promise<any>, Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels, updateLastViewedPinnedPostAt];
             await Promise.all(arr);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);

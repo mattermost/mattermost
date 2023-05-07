@@ -745,7 +745,7 @@ export function handlePostEditEvent(msg) {
 
     // Update channel state
     if (currentChannelId === msg.broadcast.channel_id) {
-        dispatch(getChannelStats(currentChannelId));
+        dispatch(getChannelStats(currentChannelId, true));
         if (window.isActive) {
             dispatch(viewChannel(currentChannelId));
         }

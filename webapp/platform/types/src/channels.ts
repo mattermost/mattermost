@@ -16,6 +16,7 @@ export type ChannelStats = {
     member_count: number;
     guest_count: number;
     pinnedpost_count: number;
+    has_new_pinned_posts: boolean;
     files_count: number;
 };
 

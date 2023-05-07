@@ -129,6 +129,13 @@
         .channel-header__pin {
             font-size: 14.4px;
         }
+
+        .channel-header__dot {
+            width: 6px;
+            height: 6px;
+            background: #579eff;
+            border-radius: 50%;
+        }
     }
 
     .flex-parent {

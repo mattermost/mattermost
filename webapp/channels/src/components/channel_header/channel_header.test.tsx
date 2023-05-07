@@ -264,6 +264,18 @@ describe('components/ChannelHeader', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
+    test('should render the new pinned posts badge', () => {
+        const props = {
+            ...populatedProps,
+            pinnedPostsCount: 2,
+            hasNewPinnedPosts: true,
+        };
+        const wrapper = shallowWithIntl(
+            <ChannelHeader {...props}/>,
+        );
+        expect(wrapper).toMatchSnapshot();
+    });
+
     test('should render the guest tags on gms', () => {
         const props = {
             ...populatedProps,

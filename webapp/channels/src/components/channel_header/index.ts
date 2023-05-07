@@ -105,6 +105,7 @@ function makeMapStateToProps() {
             isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
             hasGuests: stats.guest_count > 0,
             pinnedPostsCount: stats.pinnedpost_count,
+            hasNewPinnedPosts: stats.has_new_pinned_posts,
             hasMoreThanOneTeam,
             teammateNameDisplaySetting: getTeammateNameDisplaySetting(state),
             currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),

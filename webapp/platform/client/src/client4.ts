@@ -2139,6 +2139,14 @@ export default class Client4 {
         );
     };
 
+    updateLastViewedPinnedPostAt = (channelId: string, userId: string) => {
+        this.trackEvent('api', 'api_update_last_viewed_pinned_post_at', {userId, channelId});
+        return this.doFetch<StatusOK>(
+            `${this.getChannelMemberRoute(channelId, userId)}/last_viewed_pinned_post_at`,
+            {method: 'put'},
+        );
+    }
+
     markPostAsUnread = (userId: string, postId: string) => {
         this.trackEvent('api', 'api_post_set_unread_post');
 
