@@ -11,7 +11,7 @@ import {ActionResult} from 'mattermost-redux/types/actions.js';
 
 import {t} from 'utils/i18n';
 
-import AbstractCommand from '../abstract_command.jsx';
+import AbstractCommand from '../abstract_command';
 
 const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
 const FOOTER = {id: t('add_command.save'), defaultMessage: 'Save'};
