@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import ViewMenu from 'src/components/viewMenu'
@@ -62,7 +62,7 @@ const ViewHeader = (props: Props) => {
 
     const {board, activeView, views, groupByProperty, cards, dateDisplayProperty} = props
     let readonly = props.readonly
-    if(!readonly){
+    if (!readonly) {
         readonly = !useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     }
 
@@ -119,10 +119,12 @@ const ViewHeader = (props: Props) => {
     const allowCreateView = (): boolean => {
         if (limits && (limits.views === LimitUnlimited || views.length < limits.views)) {
             setShowViewLimitDialog(false)
+
             return true
         }
 
         setShowViewLimitDialog(true)
+
         return false
     }
 

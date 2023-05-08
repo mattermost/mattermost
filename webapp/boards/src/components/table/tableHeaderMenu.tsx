@@ -22,6 +22,7 @@ type Props = {
 const TableHeaderMenu: FC<Props> = (props: Props): JSX.Element => {
     const {board, activeView, templateId, views, cards} = props
     const intl = useIntl()
+
     return (
         <Menu>
             <Menu.Text
