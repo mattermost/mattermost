@@ -7,7 +7,7 @@ import {useSelector} from 'react-redux';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {ChannelAutoFollowThreads, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 
 import SettingItemMax from 'components/setting_item_max';
 
@@ -17,6 +17,7 @@ import SectionTitle from './section_title';
 
 type Props = {
     ignoreChannelMentions?: string;
+    channelAutoFollowThreads?: string;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onChangeThreads?: (e: ChangeEvent<HTMLInputElement>) => void;
     onCollapseSection: (section: string) => void;
@@ -39,6 +40,7 @@ export default function ExpandView({
     serverError,
     onCollapseSection,
     ignoreChannelMentions,
+    channelAutoFollowThreads,
 }: Props) {
     const isCRTEnabled = useSelector(isCollapsedThreadsEnabled);
 
@@ -146,6 +148,46 @@ export default function ExpandView({
                             <Describe
                                 section={section}
                                 ignoreChannelMentions={IgnoreChannelMentions.OFF}
+                                memberNotifyLevel={memberNotifyLevel}
+                                globalNotifyLevel={globalNotifyLevel}
+                            />
+                        </label>
+                    </div>
+                </fieldset>
+            }
+            {section === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS &&
+                <fieldset>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                id='channelAutoFollowThreadsOn'
+                                name='channelAutoFollowThreads'
+                                type='radio'
+                                value={ChannelAutoFollowThreads.ON}
+                                checked={channelAutoFollowThreads === ChannelAutoFollowThreads.ON}
+                                onChange={onChange}
+                            />
+                            <Describe
+                                section={section}
+                                channelAutoFollowThreads={ChannelAutoFollowThreads.ON}
+                                memberNotifyLevel={memberNotifyLevel}
+                                globalNotifyLevel={globalNotifyLevel}
+                            />
+                        </label>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                id='channelAutoFollowThreadsOff'
+                                name='channelAutoFollowThreads'
+                                type='radio'
+                                value={ChannelAutoFollowThreads.OFF}
+                                checked={channelAutoFollowThreads === ChannelAutoFollowThreads.OFF}
+                                onChange={onChange}
+                            />
+                            <Describe
+                                section={section}
+                                channelAutoFollowThreads={ChannelAutoFollowThreads.OFF}
                                 memberNotifyLevel={memberNotifyLevel}
                                 globalNotifyLevel={globalNotifyLevel}
                             />

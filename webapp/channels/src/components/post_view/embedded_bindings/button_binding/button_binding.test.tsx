@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
 import {AppBinding, AppCallResponse} from '@mattermost/types/apps';
 
 import {Post} from '@mattermost/types/posts';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
 import ButtonBinding, {ButtonBinding as ButtonBindingUnwrapped} from './button_binding';
-
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 describe('components/post_view/embedded_bindings/button_binding/', () => {
     const post = {
         id: 'some_post_id',
@@ -58,15 +57,35 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
         },
     };
 
+    const initialState = {
+        entities: {
+            general: {config: {}},
+            users: {
+                profiles: {
+                },
+            },
+            groups: {myGroups: []},
+            emojis: {},
+            channels: {},
+            teams: {
+                teams: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+    };
+
     const intl = {
         formatMessage: (message: {id: string; defaultMessage: string}) => {
             return message.defaultMessage;
         },
     } as any;
 
-    test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(<ButtonBinding {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should match default component state', () => {
+        renderWithIntlAndStore(<ButtonBinding {...baseProps}/>, initialState);
+
+        screen.getByText('some_label');
     });
 
     test('should call doAppSubmit on click', async () => {
@@ -75,18 +94,24 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
             intl,
         };
 
-        const wrapper = shallow<ButtonBindingUnwrapped>(<ButtonBindingUnwrapped {...props}/>);
-        await wrapper.instance().handleClick();
+        renderWithIntlAndStore(<ButtonBindingUnwrapped {...props}/>, initialState);
+
+        screen.getByText('some_label');
+
+        const submitButton = screen.getByRole('button');
+        userEvent.click(submitButton);
 
         expect(baseProps.actions.getChannel).toHaveBeenCalledWith('some_channel_id');
-        expect(baseProps.actions.handleBindingClick).toHaveBeenCalledWith(binding, {
-            app_id: 'some_app_id',
-            channel_id: 'some_channel_id',
-            location: '/in_post/some_location',
-            post_id: 'some_post_id',
-            root_id: 'some_root_id',
-            team_id: 'some_team_id',
-        }, expect.anything());
+        await waitFor(() => {
+            expect(baseProps.actions.handleBindingClick).toHaveBeenCalledWith(binding, {
+                app_id: 'some_app_id',
+                channel_id: 'some_channel_id',
+                location: '/in_post/some_location',
+                post_id: 'some_post_id',
+                root_id: 'some_root_id',
+                team_id: 'some_team_id',
+            }, expect.anything());
+        });
 
         expect(baseProps.actions.postEphemeralCallResponseForPost).toHaveBeenCalledWith(callResponse, 'Nice job!', post);
     });
@@ -118,9 +143,15 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
             intl,
         };
 
-        const wrapper = shallow<ButtonBindingUnwrapped>(<ButtonBindingUnwrapped {...props}/>);
-        await wrapper.instance().handleClick();
+        renderWithIntlAndStore(<ButtonBindingUnwrapped {...props}/>, initialState);
 
-        expect(props.actions.postEphemeralCallResponseForPost).toHaveBeenCalledWith(errorCallResponse, 'The error', post);
+        screen.getByText('some_label');
+
+        const submitButton = screen.getByRole('button');
+        userEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(props.actions.postEphemeralCallResponseForPost).toHaveBeenCalledWith(errorCallResponse, 'The error', post);
+        });
     });
 });
