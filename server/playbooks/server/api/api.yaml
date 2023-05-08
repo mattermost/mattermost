@@ -836,7 +836,7 @@ paths:
           $ref: "#/components/responses/500"
 
   /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/add:
-    put:
+    post:
       summary: Add an item to a playbook run's checklist
       description: The most common pattern to add a new item is to only send its title as the request payload. By default, it is an open item, with no assignee and no slash command.
       operationId: addChecklistItem
