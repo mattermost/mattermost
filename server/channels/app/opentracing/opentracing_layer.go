@@ -34,9 +34,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 )

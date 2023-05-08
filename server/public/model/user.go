@@ -18,7 +18,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 const (

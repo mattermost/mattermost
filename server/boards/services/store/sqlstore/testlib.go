@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 	"github.com/mgdelacroix/foundation"
 	"github.com/stretchr/testify/require"
 )

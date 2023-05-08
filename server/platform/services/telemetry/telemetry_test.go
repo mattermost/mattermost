@@ -27,10 +27,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 type FakeConfigService struct {
