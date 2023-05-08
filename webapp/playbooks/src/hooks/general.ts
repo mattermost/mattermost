@@ -696,13 +696,11 @@ export function useEnsureGroupsAndMemberIds(groupIds: string[]) {
     useEffect(() => {
         const unknownIds = groupIds.filter((groupId) => {
             const group = getGroupFromStore(groupId);
-            console.log(group);
             if (group && group.member_ids) {
                 return false;
             }
             return true;
         });
-        console.log(unknownIds);
         if (unknownIds.length > 0) {
             dispatch(getGroupsByIds(unknownIds, true, true));
         }

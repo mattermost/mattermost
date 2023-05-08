@@ -81,6 +81,7 @@ interface Props {
     placeholder?: string;
     defaultValue?: UserProfile[]
     autoFocus?: boolean;
+    value?: UserProfile[];
 }
 
 const ProfileAutocomplete = (props: Props) => {
@@ -169,7 +170,8 @@ const ProfileAutocomplete = (props: Props) => {
             components={{DropdownIndicator: () => null, IndicatorSeparator: () => null}}
             styles={props.customSelectStyles ?? customStyles}
             classNamePrefix='profile-autocomplete'
-            {...props.isMultiMode ? {} : {value: null}}
+            value={props.value}
+            // {...props.isMultiMode ? {} : {value: null}}
         />
     );
 };
@@ -189,8 +191,8 @@ const StyledProfile = styled(Profile)`
     height: 24px;
 
     ${ProfileImage} {
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
     }
 
     ${ProfileName} {

@@ -636,7 +636,30 @@ export function makeGetProfilesNotInChannel(): (state: GlobalState, channelId: C
         },
     );
 }
+export function makeGetProfilesByIds(): (
+    state: GlobalState,
+    userIds: Array<UserProfile['id']>,
+) => UserProfile[] {
+    return createSelector(
+        'makeGetProfilesByIds',
+        getUsers,
+        (state: GlobalState, userIds: Array<UserProfile['id']>) => userIds,
+        (allProfilesById: Record<string, UserProfile>, allUserIds: string[]) => {
+            let userProfiles: UserProfile[] = [];
 
+            if (allUserIds && allUserIds.length > 0) {
+                const profilesById = allUserIds.
+                    filter((userId) => allProfilesById[userId]).
+                    map((userId) => allProfilesById[userId]);
+
+                if (profilesById && profilesById.length > 0) {
+                    userProfiles.push(...profilesById);
+                }
+            }
+            return userProfiles;
+        },
+    );
+}
 export function makeGetProfilesByIdsAndUsernames(): (
     state: GlobalState,
     props: {

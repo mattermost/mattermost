@@ -305,3 +305,21 @@ export const isMyGroup: (state: GlobalState, groupId: string) => boolean = creat
         return isMyGroup;
     },
 );
+
+export function makeGetGroupMemberIdsByGroupIds(): (state: GlobalState, groupIds: string[]) => string[] {
+    return  createSelector(
+        'getGroupMemberProfilesByGroupIds',
+        getAllGroups,
+        (state: GlobalState, groupIds: string[]) => groupIds,
+        (allGroups, groupIds) => {
+            const groups = groupIds.map((groupId) => allGroups[groupId]);
+            const memberIds: string[] = [];
+            groups.forEach((group) => {
+                if (group?.member_ids) {
+                    memberIds.push(...group?.member_ids);
+                }
+            });
+            return memberIds;
+        }
+    );
+}

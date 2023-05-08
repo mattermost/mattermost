@@ -1,14 +1,15 @@
-import React, {ComponentProps, useEffect, useState} from 'react';
+import React, {ComponentProps, useEffect, useState, useMemo} from 'react';
 
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
-import {UserProfile} from '@mattermost/types/users';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {OptionTypeBase, StylesConfig} from 'react-select';
+import {getCurrentUserId, makeGetProfilesByIds, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 import {ArrowLeftIcon} from '@mattermost/compass-icons/components';
 import {ApolloProvider} from '@apollo/client';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {searchProfiles} from 'mattermost-redux/actions/users';
 
 import {getPlaybooksGraphQLClient} from 'src/graphql_client';
 import {usePlaybook} from 'src/graphql/hooks';
@@ -24,8 +25,11 @@ import {displayPlaybookCreateModal} from 'src/actions';
 import PlaybooksSelector from 'src/components/playbooks_selector';
 import {SecondaryButton} from 'src/components/assets/buttons';
 import SearchInput from 'src/components/backstage/search_input';
-import {useCanCreatePlaybooksInTeam, useEnsureGroupsAndMemberIds} from 'src/hooks';
+import {useCanCreatePlaybooksInTeam, useEnsureGroupsAndMemberIds, useEnsureProfiles} from 'src/hooks';
 import {RUN_NAME_MAX_LENGTH} from 'src/constants';
+import { GlobalState } from '@mattermost/types/store';
+import { UserProfile } from '@mattermost/types/users';
+import { makeGetGroupMemberIdsByGroupIds } from 'mattermost-redux/selectors/entities/groups';
 
 const ID = 'playbooks_run_playbook_dialog';
 
@@ -54,6 +58,8 @@ const RunPlaybookModal = ({
     onRunCreated,
     ...modalProps
 }: Props) => {
+    const getProfilesByIdsAndUsernames = useMemo(makeGetProfilesByIds, []);
+    const getGroupMemberIdsByGroupIds = useMemo(makeGetGroupMemberIdsByGroupIds, []);
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -68,15 +74,27 @@ const RunPlaybookModal = ({
     const [searchTerm, setSearchTerm] = useState('');
     const [showsearch, setShowsearch] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [profiles, setProfiles] = useState<UserProfile[]>([]);
+    
     const canCreatePlaybooks = useCanCreatePlaybooksInTeam(teamId || '');
     useEnsureGroupsAndMemberIds(playbook?.invited_group_ids || []); 
+    const invitedGroupMemberIds = useSelector((state: GlobalState) => getGroupMemberIdsByGroupIds(state, playbook?.invited_group_ids || []));
+
+    const profileIds = useMemo(() => [...(playbook?.invited_user_ids || []), ...invitedGroupMemberIds], [playbook?.invited_user_ids, invitedGroupMemberIds]);
+    useEnsureProfiles(profileIds);
+
+    const invitedProfiles = useSelector((state: GlobalState) => getProfilesByIdsAndUsernames(state, profileIds));
 
     const currentChannelId = useSelector(getCurrentChannelId);
     let userId = useSelector(getCurrentUserId);
     if (playbook?.default_owner_enabled && playbook.default_owner_id) {
         userId = playbook.default_owner_id;
     }
+
+    const [profiles, setProfiles] = useState<UserProfile[]>([]);
+
+    useEffect(() => {
+        setProfiles([...invitedProfiles]);
+    }, [invitedProfiles]);
 
     useEffect(() => {
         if (playbook?.channel_mode === 'create_new_channel') {
@@ -125,6 +143,11 @@ const RunPlaybookModal = ({
         dispatch(displayPlaybookCreateModal({}));
         modalProps.onHide?.();
     };
+
+    const searchUsers = (term: string) => {
+        return dispatch(searchProfiles(term));
+    };
+
     const onSubmit = () => {
         if (!playbook || !selectedPlaybookId || isSubmitting) {
             return;
@@ -198,18 +221,22 @@ const RunPlaybookModal = ({
                     />
 
                     <InlineLabel>{formatMessage({defaultMessage: 'Run summary'})}</InlineLabel>
-                    <BaseTextArea
+                    <StyledBaseTextArea
                         data-testid={'run-summary-input'}
                         rows={5}
                         value={runSummary}
                         onChange={(e) => setRunSummary(e.target.value)}
                     />
+                    <AddParticipantsLabel>{formatMessage({defaultMessage: 'Add participants'})}</AddParticipantsLabel>
                     <ProfileAutocomplete
-                        searchProfiles={(term) => {}}
+                        autoFocus={false}
+                        searchProfiles={searchUsers}
                         userIds={[]}
+                        value={profiles}
                         isDisabled={false}
                         isMultiMode={true}
-                        setValues={setProfiles}
+                        customSelectStyles={selectStyles}
+                        setValues={(newUserProfiles) => (setProfiles(newUserProfiles))}
                         placeholder={formatMessage({defaultMessage: 'Search for people'})}
                     />
                     <ConfigChannelSection
@@ -426,6 +453,14 @@ const StyledGenericModal = styled(GenericModal)`
     }
 `;
 
+const AddParticipantsLabel = styled(InlineLabel)`
+    margin-bottom: -7px;
+`;
+
+const StyledBaseTextArea = styled(BaseTextArea)`
+    margin-bottom: 12px;
+`;
+
 const ColContainer = styled.div`
     display: flex;
     flex-direction: row;
@@ -462,7 +497,6 @@ const Body = styled.div`
 `;
 
 const ChannelContainer = styled.div`
-    margin-top: 39px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -534,6 +568,63 @@ const ErrorMessage = styled.div`
     font-weight: 400;
     margin-bottom: 20px !important;
 `;
+
+const selectStyles: StylesConfig<OptionTypeBase, boolean> = {
+    container: (provided) => ({
+        ...provided,
+    }),
+    control: (provided, {isDisabled}) => ({
+        ...provided,
+        backgroundColor: isDisabled ? 'rgba(var(--center-channel-bg-rgb),0.16)' : 'var(--center-channel-bg)',
+        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16)',
+        '&&:before': {content: 'none'},
+    }),
+    placeholder: (provided) => ({
+        ...provided,
+        marginLeft: '8px',
+    }),
+    input: (provided) => ({
+        ...provided,
+        marginLeft: '8px',
+        color: 'var(--center-channel-color)',
+    }),
+    multiValue: (provided) => ({
+        ...provided,
+        backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.08)',
+        borderRadius: '10px',
+        paddingLeft: '8px',
+        overflow: 'hidden',
+        alignItems: 'center',
+    }),
+    multiValueLabel: (provided) => ({
+        ...provided,
+        padding: 0,
+        paddingLeft: 0,
+        lineHeight: '18px',
+        color: 'var(--center-channel-color)',
+    }),
+    multiValueRemove: (provided) => ({
+        ...provided,
+        color: 'rgba(var(--center-channel-bg-rgb), 0.80)',
+        backgroundColor: 'rgba(var(--center-channel-color-rgb),0.32)',
+        borderRadius: '50%',
+        margin: '4px',
+        padding: 0,
+        cursor: 'pointer',
+        width: '13px',
+        height: '13px',
+        ':hover': {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb),0.56)',
+        },
+        ':active': {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb),0.56)',
+        },
+        '> svg': {
+            height: '13px',
+            width: '13px',
+        },
+    }),
+};
 
 const ApolloWrappedModal = (props: Props) => {
     const client = getPlaybooksGraphQLClient();
