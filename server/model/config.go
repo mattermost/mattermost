@@ -1324,7 +1324,7 @@ func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && len(*s.AdvancedLoggingConfig) != 0 {
+	if s.AdvancedLoggingConfig != nil && *s.AdvancedLoggingConfig != "" {
 		return []byte(*s.AdvancedLoggingConfig)
 	}
 	return []byte("{}")
@@ -1385,7 +1385,7 @@ func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
 	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && len(*s.AdvancedLoggingConfig) != 0 {
+	if s.AdvancedLoggingConfig != nil && *s.AdvancedLoggingConfig != "" {
 		return []byte(*s.AdvancedLoggingConfig)
 	}
 	return []byte("{}")
@@ -1452,7 +1452,7 @@ func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && len(*s.AdvancedLoggingConfig) != 0 {
+	if s.AdvancedLoggingConfig != nil && *s.AdvancedLoggingConfig != "" {
 		return []byte(*s.AdvancedLoggingConfig)
 	}
 	return []byte("{}")
