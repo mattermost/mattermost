@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -83,7 +82,6 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte, options ValidateLi
 	if options.Environment == "test" {
 		publicKey = publicKeyTest
 	}
-	mlog.Info(fmt.Sprintf("PUBLIC KEY %s, %+s", options.Environment, publicKey))
 	block, _ := pem.Decode(publicKey)
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
