@@ -101,7 +101,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	io.Copy(buf, file)
 
 	licenseBytes := buf.Bytes()
-	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
+	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes, utils.ValidateLicenseOptions{Environment: *c.App.Config().ServiceSettings.ExternalServiceEnvironment})
 	if appErr != nil {
 		c.Err = appErr
 		return

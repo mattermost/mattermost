@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	utils "github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	model "github.com/mattermost/mattermost-server/server/v8/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,25 +15,25 @@ type LicenseValidatorIface struct {
 	mock.Mock
 }
 
-// LicenseFromBytes provides a mock function with given fields: licenseBytes
-func (_m *LicenseValidatorIface) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
-	ret := _m.Called(licenseBytes)
+// LicenseFromBytes provides a mock function with given fields: licenseBytes, options
+func (_m *LicenseValidatorIface) LicenseFromBytes(licenseBytes []byte, options utils.ValidateLicenseOptions) (*model.License, *model.AppError) {
+	ret := _m.Called(licenseBytes, options)
 
 	var r0 *model.License
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func([]byte) (*model.License, *model.AppError)); ok {
-		return rf(licenseBytes)
+	if rf, ok := ret.Get(0).(func([]byte, utils.ValidateLicenseOptions) (*model.License, *model.AppError)); ok {
+		return rf(licenseBytes, options)
 	}
-	if rf, ok := ret.Get(0).(func([]byte) *model.License); ok {
-		r0 = rf(licenseBytes)
+	if rf, ok := ret.Get(0).(func([]byte, utils.ValidateLicenseOptions) *model.License); ok {
+		r0 = rf(licenseBytes, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.License)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]byte) *model.AppError); ok {
-		r1 = rf(licenseBytes)
+	if rf, ok := ret.Get(1).(func([]byte, utils.ValidateLicenseOptions) *model.AppError); ok {
+		r1 = rf(licenseBytes, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -42,23 +43,23 @@ func (_m *LicenseValidatorIface) LicenseFromBytes(licenseBytes []byte) (*model.L
 	return r0, r1
 }
 
-// ValidateLicense provides a mock function with given fields: signed
-func (_m *LicenseValidatorIface) ValidateLicense(signed []byte) (bool, string) {
-	ret := _m.Called(signed)
+// ValidateLicense provides a mock function with given fields: signed, options
+func (_m *LicenseValidatorIface) ValidateLicense(signed []byte, options utils.ValidateLicenseOptions) (bool, string) {
+	ret := _m.Called(signed, options)
 
 	var r0 bool
 	var r1 string
-	if rf, ok := ret.Get(0).(func([]byte) (bool, string)); ok {
-		return rf(signed)
+	if rf, ok := ret.Get(0).(func([]byte, utils.ValidateLicenseOptions) (bool, string)); ok {
+		return rf(signed, options)
 	}
-	if rf, ok := ret.Get(0).(func([]byte) bool); ok {
-		r0 = rf(signed)
+	if rf, ok := ret.Get(0).(func([]byte, utils.ValidateLicenseOptions) bool); ok {
+		r0 = rf(signed, options)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func([]byte) string); ok {
-		r1 = rf(signed)
+	if rf, ok := ret.Get(1).(func([]byte, utils.ValidateLicenseOptions) string); ok {
+		r1 = rf(signed, options)
 	} else {
 		r1 = ret.Get(1).(string)
 	}

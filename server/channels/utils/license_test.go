@@ -13,14 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testValidateLicenseOptions = ValidateLicenseOptions{}
+
 func TestValidateLicense(t *testing.T) {
 	t.Run("should fail with junk data", func(t *testing.T) {
 		b1 := []byte("junk")
-		ok, _ := LicenseValidator.ValidateLicense(b1)
+		ok, _ := LicenseValidator.ValidateLicense(b1, testValidateLicenseOptions)
 		require.False(t, ok, "should have failed - bad license")
 
 		b2 := []byte("junkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunkjunk")
-		ok, _ = LicenseValidator.ValidateLicense(b2)
+		ok, _ = LicenseValidator.ValidateLicense(b2, testValidateLicenseOptions)
 		require.False(t, ok, "should have failed - bad license")
 	})
 
@@ -39,7 +41,7 @@ func TestValidateLicense(t *testing.T) {
 		err = encoder.Close()
 		require.NoError(t, err)
 
-		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes(), testValidateLicenseOptions)
 		require.False(t, ok)
 		require.Empty(t, str)
 	})
@@ -58,7 +60,7 @@ func TestValidateLicense(t *testing.T) {
 		err = encoder.Close()
 		require.NoError(t, err)
 
-		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes(), testValidateLicenseOptions)
 		require.False(t, ok)
 		require.Empty(t, str)
 	})
@@ -87,7 +89,7 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")
 
-		success, _ := LicenseValidator.ValidateLicense(fileBytes)
+		success, _ := LicenseValidator.ValidateLicense(fileBytes, testValidateLicenseOptions)
 		assert.False(t, success, "should have been an invalid file")
 	})
 }

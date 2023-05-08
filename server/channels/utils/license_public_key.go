@@ -7,4 +7,7 @@ package utils
 import _ "embed"
 
 //go:embed license-public-key.txt
-var publicKey []byte
+var publicKeyProd []byte
+
+//go:embed license-public-key-test.txt
+var publicKeyTest []byte

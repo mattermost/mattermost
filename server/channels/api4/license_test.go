@@ -104,11 +104,11 @@ func TestUploadLicenseFile(t *testing.T) {
 			ExpiresAt: mills + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
 		}
 
-		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything, mock.Anything).Return(&license, nil).Once()
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, licenseStr)
 		utils.LicenseValidator = &mockLicenseValidator
 
 		licenseManagerMock := &mocks.LicenseInterface{}
@@ -139,11 +139,11 @@ func TestUploadLicenseFile(t *testing.T) {
 			ExpiresAt: model.GetMillis() + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
 		}
 
-		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything, mock.Anything).Return(&license, nil).Once()
 		licenseBytes, err := json.Marshal(license)
 		require.NoError(t, err)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseBytes))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, string(licenseBytes))
 		utils.LicenseValidator = &mockLicenseValidator
 
 		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte(""))
@@ -171,12 +171,12 @@ func TestUploadLicenseFile(t *testing.T) {
 			ExpiresAt: mills + 100 + (29*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
 		}
 
-		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything, mock.Anything).Return(&license, nil).Once()
 
 		licenseBytes, _ := json.Marshal(license)
 		licenseStr := string(licenseBytes)
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, licenseStr)
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, licenseStr)
 
 		utils.LicenseValidator = &mockLicenseValidator
 
@@ -274,7 +274,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, string(licenseJSON))
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -306,7 +306,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, string(licenseJSON))
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -344,7 +344,7 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, string(licenseJSON))
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -406,7 +406,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, string(licenseJSON))
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
@@ -436,7 +436,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseJSON))
+		mockLicenseValidator.On("ValidateLicense", mock.Anything, mock.Anything).Return(true, string(licenseJSON))
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()

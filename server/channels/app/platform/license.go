@@ -51,7 +51,7 @@ func (ps *PlatformService) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
-		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
+		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr), utils.ValidateLicenseOptions{Environment: *ps.Config().ServiceSettings.LicenseFileLocation})
 		if err != nil {
 			ps.logger.Error("Failed to read license set in environment.", mlog.Err(err))
 			return
@@ -85,7 +85,7 @@ func (ps *PlatformService) LoadLicense() {
 
 	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
+		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation, utils.ValidateLicenseOptions{Environment: *ps.Config().ServiceSettings.LicenseFileLocation})
 
 		if license != nil {
 			if _, err := ps.SaveLicense(licenseBytes); err != nil {
@@ -108,7 +108,7 @@ func (ps *PlatformService) LoadLicense() {
 }
 
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
-	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
+	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes, utils.ValidateLicenseOptions{Environment: *ps.Config().ServiceSettings.ExternalServiceEnvironment})
 	if !success {
 		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
 	}
@@ -229,7 +229,7 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 }
 
 func (ps *PlatformService) ValidateAndSetLicenseBytes(b []byte) bool {
-	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b); success {
+	if success, licenseStr := utils.LicenseValidator.ValidateLicense(b, utils.ValidateLicenseOptions{Environment: *ps.Config().ServiceSettings.LicenseFileLocation}); success {
 		var license model.License
 		if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
 			ps.logger.Warn("Failed to decode license from JSON", mlog.Err(jsonErr))

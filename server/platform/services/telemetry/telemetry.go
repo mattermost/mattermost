@@ -476,6 +476,7 @@ func (ts *TelemetryService) trackConfig() {
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"external_service_environment":                            *cfg.ServiceSettings.ExternalServiceEnvironment,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
