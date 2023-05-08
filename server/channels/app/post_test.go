@@ -26,8 +26,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -61,7 +61,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
@@ -110,7 +110,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 				"github.com/mattermost/mattermost-server/server/v8/public/model"
 				"time"
 			)

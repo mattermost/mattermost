@@ -674,7 +674,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 }
 
 func getPluginPackageDir() string {
-	dirs, err := goList("github.com/mattermost/mattermost-server/server/v8/plugin")
+	dirs, err := goList("github.com/mattermost/mattermost-server/server/v8/public/plugin")
 	if err != nil {
 		panic(err)
 	} else if len(dirs) != 1 {

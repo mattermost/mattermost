@@ -276,7 +276,7 @@ else
 endif
 
 plugin-checker:
-	$(GO) run $(GOFLAGS) ./plugin/checker
+	$(GO) run $(GOFLAGS) ./public/plugin/checker
 
 prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	@echo Downloading prepackaged plugins
