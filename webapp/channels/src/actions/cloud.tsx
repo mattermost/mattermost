@@ -22,7 +22,7 @@ import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/clo
 export function completeStripeAddPaymentMethod(
     stripe: Stripe,
     billingDetails: BillingDetails,
-    isDevMode: boolean,
+    cwsMockMode: boolean,
 ) {
     return async () => {
         let paymentSetupIntent: StripeSetupIntent;
@@ -31,7 +31,7 @@ export function completeStripeAddPaymentMethod(
         } catch (error) {
             return error;
         }
-        const cardSetupFunction = getConfirmCardSetup(isDevMode);
+        const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 
         const result = await confirmCardSetup(

@@ -15,7 +15,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {completeStripeAddPaymentMethod} from 'actions/cloud';
 
-import {isDevModeEnabled} from 'selectors/general';
+import {isCwsMockMode} from 'selectors/cloud';
 
 import {areBillingDetailsValid, BillingDetails} from 'types/cloud/sku';
 import {GlobalState} from 'types/store';
@@ -37,7 +37,7 @@ const PaymentInfoEdit: React.FC = () => {
     const dispatch = useDispatch();
     const history = useHistory();
 
-    const isDevMode = useSelector(isDevModeEnabled);
+    const cwsMockMode = useSelector(isCwsMockMode);
     const paymentInfo = useSelector((state: GlobalState) => state.entities.cloud.customer);
     const theme = useSelector(getTheme);
 
@@ -68,7 +68,7 @@ const PaymentInfoEdit: React.FC = () => {
 
     const handleSubmit = async () => {
         setIsSaving(true);
-        const setPaymentMethod = completeStripeAddPaymentMethod((await stripePromise)!, billingDetails!, isDevMode);
+        const setPaymentMethod = completeStripeAddPaymentMethod((await stripePromise)!, billingDetails!, cwsMockMode);
         const success = await setPaymentMethod();
 
         if (success) {
