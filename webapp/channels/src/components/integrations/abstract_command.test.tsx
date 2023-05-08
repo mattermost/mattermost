@@ -47,7 +47,7 @@ describe('components/integrations/AbstractCommand', () => {
         header,
         footer,
         loading,
-        renderExtra: <div>renderExtra</div>,
+        renderExtra: <div>{'renderExtra'}</div>,
         serverError: '',
         initialCommand: command,
         action,

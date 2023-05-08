@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {ChangeEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, MessageDescriptor} from 'react-intl';
+
 import {Link} from 'react-router-dom';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
@@ -21,14 +22,46 @@ const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
 type Props = {
-    team: Team; // The current team
-    header: {id: string; defaultMessage: string}; // The header text to render, has id and defaultMessage
-    footer: {id: string; defaultMessage: string}; // The footer text to render, has id and defaultMessage
-    loading: {id: string; defaultMessage: string}; // The spinner loading text to render, has id and defaultMessage 
-    renderExtra?: JSX.Element; // Any extra component/node to render
-    serverError: string; // The server error text after a failed action
-    initialCommand?: Partial<Command>; // The Command used to set the initial state
-    action: (command: Command) => Promise<void>; // The async function to run when the action button is pressed
+
+    /**
+    * The current team
+    */
+    team: Team;
+
+    /**
+    * The header text to render, has id and defaultMessage
+    */
+    header: MessageDescriptor;
+
+    /**
+    * The footer text to render, has id and defaultMessage
+    */
+    footer: MessageDescriptor;
+
+    /**
+    * The spinner loading text to render, has id and defaultMessage
+    */
+    loading: MessageDescriptor;
+
+    /**
+    * Any extra component/node to render
+    */
+    renderExtra?: JSX.Element;
+
+    /**
+    * The server error text after a failed action
+    */
+    serverError: string;
+
+    /**
+    * The Command used to set the initial state
+    */
+    initialCommand?: Partial<Command>;
+
+    /**
+    * The async function to run when the action button is pressed
+    */
+    action: (command: Command) => Promise<void>;
 }
 
 type State= {
@@ -607,7 +640,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={Utils.localizeMessage(this.props.loading.id, this.props.loading.defaultMessage)}
+                                spinningText={Utils.localizeMessage(this.props.loading?.id ?? '', this.props.loading?.defaultMessage as string)}
                                 onClick={this.handleSubmit}
                                 id='saveCommand'
                             >
