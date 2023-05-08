@@ -39,6 +39,7 @@ const createItalicStyleStrategy = (): InlineStrategy => {
             // e.g. [[0,6], [10,20]]
             const text = block.getText()
             const italicRanges = findRangesWithRegex(text, italicRegex)
+
             return italicRanges
         },
         findDelimiterRanges: (block, styleRanges) => {
@@ -53,6 +54,7 @@ const createItalicStyleStrategy = (): InlineStrategy => {
                 ).map((indices) => indices.map((x) => x + styleRange[0]))
                 italicDelimiterRanges = italicDelimiterRanges.concat(delimiterRange)
             })
+
             return italicDelimiterRanges
         },
         delimiterStyles: {

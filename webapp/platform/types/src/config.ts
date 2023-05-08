@@ -30,6 +30,7 @@ export type ClientConfig = {
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;
     CWSURL: string;
+    CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
@@ -729,7 +730,6 @@ export type ExperimentalSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
-    PatchPluginsReactDOM: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
     DelayChannelAutocomplete: boolean;
 };

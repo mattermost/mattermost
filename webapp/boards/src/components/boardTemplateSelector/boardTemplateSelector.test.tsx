@@ -5,7 +5,7 @@ import {
     render,
     screen,
     waitFor,
-    within
+    within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -20,7 +20,7 @@ import {MemoryRouter, Router} from 'react-router-dom'
 
 import Mutator from 'src/mutator'
 import {Team} from 'src/store/teams'
-import {createBoard, Board} from 'src/blocks/board'
+import {Board, createBoard} from 'src/blocks/board'
 import {IUser} from 'src/user'
 import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
@@ -288,7 +288,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            
+
             await userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
@@ -313,11 +313,10 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(divBoardToSelect).not.toBeNull()
 
             await userEvent.click(divBoardToSelect!)
-        
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            
+
             await userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
@@ -339,12 +338,12 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(divBoardToSelect).not.toBeNull()
 
             await userEvent.click(divBoardToSelect!)
-        
+
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            
+
             await userEvent.click(useTemplateButton!)
-            
+
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
             await waitFor(() => expect(mockedTelemetry.trackEvent).toBeCalledWith('boards', 'createBoardViaTemplate', {boardTemplateId: 'template_id_global'}))
@@ -367,9 +366,9 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-                
+
             await userEvent.click(useTemplateButton!)
-            
+
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), '2', team1.id))
             await waitFor(() => expect(mockedTelemetry.trackEvent).toBeCalledWith('boards', 'createBoardViaTemplate', {boardTemplateId: 'template_id_2'}))

@@ -16,6 +16,7 @@ const createStrikethroughStyleStrategy = (): InlineStrategy => {
             // e.g. [[0,6], [10,20]]
             const text = block.getText()
             const strikethroughRanges = findRangesWithRegex(text, strikethroughRegex)
+
             return strikethroughRanges
         },
         findDelimiterRanges: (block, styleRanges) => {
@@ -32,6 +33,7 @@ const createStrikethroughStyleStrategy = (): InlineStrategy => {
                     delimiterRange,
                 )
             })
+
             return strikethroughDelimiterRanges
         },
         styles: {

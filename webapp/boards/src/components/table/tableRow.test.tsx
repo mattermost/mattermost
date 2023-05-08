@@ -45,6 +45,7 @@ describe('components/table/TableRow', () => {
 
     const Wrapper: React.FC = ({children}) => {
         const store = mockStore(state)
+
         return wrapDNDIntl(
             <ColumnResizeProvider
                 columnWidths={{}}

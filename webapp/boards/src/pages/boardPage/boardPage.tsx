@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    useCallback,
     useEffect,
-    useState,
     useMemo,
-    useCallback
+    useState,
 } from 'react'
 import {batch} from 'react-redux'
 import {FormattedMessage, useIntl} from 'react-intl'
-import {useRouteMatch, useHistory} from 'react-router-dom'
+import {useHistory, useRouteMatch} from 'react-router-dom'
 
 import Workspace from 'src/components/workspace'
 import VersionMessage from 'src/components/messages/versionMessage'
@@ -25,17 +25,17 @@ import {Board, BoardMember} from 'src/blocks/board'
 import {BoardView} from 'src/blocks/boardView'
 import {Card} from 'src/blocks/card'
 import {
-    updateBoards,
-    updateMembersEnsuringBoardsAndUsers,
+    addMyBoardMemberships,
+    fetchBoardMembers,
     getCurrentBoardId,
     setCurrent as setCurrentBoard,
-    fetchBoardMembers,
-    addMyBoardMemberships,
+    updateBoards,
+    updateMembersEnsuringBoardsAndUsers,
 } from 'src/store/boards'
 import {getCurrentViewId, setCurrent as setCurrentView, updateViews} from 'src/store/views'
 import ConfirmationDialog from 'src/components/confirmationDialogBox'
 import {initialLoad, initialReadOnlyLoad, loadBoardData} from 'src/store/initialLoad'
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import {setTeam} from 'src/store/teams'
 import {updateCards} from 'src/store/cards'
 import {updateComments} from 'src/store/comments'
@@ -43,8 +43,8 @@ import {updateAttachments} from 'src/store/attachments'
 import {updateContents} from 'src/store/contents'
 import {
     fetchUserBlockSubscriptions,
-    getMe,
     followBlock,
+    getMe,
     unfollowBlock,
 } from 'src/store/users'
 import {setGlobalError} from 'src/store/globalError'
@@ -107,6 +107,7 @@ const BoardPage = (props: Props): JSX.Element => {
         if (props.readonly) {
             return initialReadOnlyLoad
         }
+
         return initialLoad
     }, [props.readonly])
 
@@ -190,11 +191,13 @@ const BoardPage = (props: Props): JSX.Element => {
             // as an admin, normally, this is deleted/missing board
             if (!allowAdmin && myUser.permissions?.find((s) => s === 'manage_system' || s === 'manage_team')) {
                 setShowJoinBoardDialog(true)
+
                 return
             }
             UserSettings.setLastBoardID(boardTeamId, null)
             UserSettings.setLastViewId(boardId, null)
             dispatch(setGlobalError('board-not-found'))
+
             return
         }
         const result: any = await dispatch(loadBoardData(boardId))

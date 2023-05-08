@@ -530,7 +530,6 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         EnableAppBar: false,
-        PatchPluginsReactDOM: false,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
     },
