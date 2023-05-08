@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/new_channel_modal should match snapshot 1`] = `
+exports[`components/add_channels_cta_button should match snapshot 1`] = `
 <MenuWrapper
   animationComponent={[Function]}
   className="AddChannelsCtaDropdown"
@@ -46,7 +46,7 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
 </MenuWrapper>
 `;
 
-exports[`components/new_channel_modal should match snapshot when user has only join channel permissions 1`] = `
+exports[`components/add_channels_cta_button should match snapshot when user has only join channel permissions 1`] = `
 <button
   aria-label="Add Channel Dropdown"
   className="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
