@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 // boardsServiceAPI provides a service API for other products such as Channels.

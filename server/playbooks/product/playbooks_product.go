@@ -12,7 +12,6 @@ import (
 
 	mmapp "github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/product/pluginapi/cluster"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/api"
@@ -27,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/telemetry"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

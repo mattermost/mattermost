@@ -8,7 +8,7 @@ package permissions
 import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 type PermissionsService interface {

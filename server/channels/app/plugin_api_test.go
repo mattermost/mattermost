@@ -28,10 +28,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/plugin/utils"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -1540,7 +1540,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 
 		import (
 			"github.com/mattermost/mattermost-server/server/v8/plugin"
-			"github.com/mattermost/mattermost-server/server/v8/model"
+			"github.com/mattermost/mattermost-server/server/v8/public/model"
 			"bytes"
 			"net/http"
 			"io"
@@ -1644,7 +1644,7 @@ func TestAPIMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/server/v8/model"
+		"github.com/mattermost/mattermost-server/server/v8/public/model"
 		"github.com/mattermost/mattermost-server/server/v8/plugin"
 	)
 
@@ -2112,7 +2112,7 @@ func TestPluginUploadsAPI(t *testing.T) {
 		  "fmt"
 			"bytes"
 
-      "github.com/mattermost/mattermost-server/server/v8/model"
+      "github.com/mattermost/mattermost-server/server/v8/public/model"
       "github.com/mattermost/mattermost-server/server/v8/plugin"
     )
 

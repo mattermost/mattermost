@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/imgutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func getInfoForBytes(name string, data io.ReadSeeker, size int) (*model.FileInfo, *model.AppError) {

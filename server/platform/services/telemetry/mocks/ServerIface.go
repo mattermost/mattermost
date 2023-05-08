@@ -10,7 +10,7 @@ import (
 	httpservice "github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	plugin "github.com/mattermost/mattermost-server/server/v8/plugin"
 

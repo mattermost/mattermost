@@ -20,7 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {

@@ -19,8 +19,8 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 // This is a file used to fuzz test the web_hub code.

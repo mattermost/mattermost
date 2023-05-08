@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.

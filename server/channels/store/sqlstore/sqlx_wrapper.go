@@ -18,8 +18,8 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 type StoreTestWrapper struct {

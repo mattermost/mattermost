@@ -12,9 +12,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func TestPluginCommand(t *testing.T) {
@@ -44,7 +44,7 @@ func TestPluginCommand(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type configuration struct {
@@ -125,7 +125,7 @@ func TestPluginCommand(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type configuration struct {
@@ -232,7 +232,7 @@ func TestPluginCommand(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type configuration struct {
@@ -297,7 +297,7 @@ func TestPluginCommand(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type MyPlugin struct {
@@ -342,7 +342,7 @@ func TestPluginCommand(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type MyPlugin struct {
@@ -393,7 +393,7 @@ func TestPluginCommand(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type configuration struct {
@@ -549,7 +549,7 @@ func TestProductCommands(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type configuration struct {

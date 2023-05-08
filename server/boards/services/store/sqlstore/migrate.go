@@ -17,8 +17,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	"github.com/mattermost/morph"
 	drivers "github.com/mattermost/morph/drivers"
