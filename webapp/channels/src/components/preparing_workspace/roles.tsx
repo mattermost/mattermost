@@ -18,7 +18,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getWorkTemplateCategories as fetchCategories} from 'mattermost-redux/actions/work_templates';
 import {getWorkTemplateCategories} from 'selectors/work_template';
 import classNames from 'classnames';
-import Input from 'components/widgets/inputs/input/input';
+import QuickInput from 'components/quick_input';
 import {CategoryOther} from '@mattermost/types/work_templates';
 
 type Props = PreparingWorkspacePageProps & {
@@ -109,8 +109,9 @@ const Roles = ({role, next, ...props}: Props) => {
                             ))}
                         </div>
                         {role === CategoryOther && (
-                            <Input
-                                value={props.roleOther}
+                            <QuickInput
+                                value={props.roleOther || ''}
+                                className='Roles__input'
                                 onChange={(e) => props.setRole(CategoryOther, e.target.value)}
                                 placeholder={formatMessage({
                                     id: 'onboarding_wizard.roles.other_input_placeholder',

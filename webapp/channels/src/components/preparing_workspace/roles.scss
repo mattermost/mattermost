@@ -1,7 +1,22 @@
 @import 'utils/mixins';
 
+$btn-margin-right: 24px;
+
 .plugins-skip-btn {
     margin-left: 8px;
+}
+
+.Roles__input {
+    width: calc(100% - $btn-margin-right);
+    border-radius: 4px;
+    padding: 10px 16px;
+    border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+    font-size: 16px;
+
+    &:active,
+    &:focus {
+        border: 2px solid var(--button-bg);
+    }
 }
 
 .Roles-body {
@@ -19,7 +34,7 @@
         @include button-large;
 
         border-color: rgba(63, 67, 80, 0.16);
-        margin-right: 24px;
+        margin-right: $btn-margin-right;
         margin-bottom: 24px;
         color: #3f4350;
 
