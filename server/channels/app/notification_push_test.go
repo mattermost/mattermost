@@ -23,8 +23,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost-server/server/v8/config"
 	fmocks "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {

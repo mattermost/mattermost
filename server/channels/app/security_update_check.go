@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
