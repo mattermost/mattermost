@@ -10,8 +10,8 @@ $btn-margin-right: 24px;
     width: calc(100% - $btn-margin-right);
     padding: 10px 16px;
     border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
-    font-size: 16px;
     border-radius: 4px;
+    font-size: 16px;
 
     &:active,
     &:focus {
