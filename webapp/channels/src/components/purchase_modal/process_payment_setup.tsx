@@ -36,13 +36,13 @@ type Props = RouteComponentProps & {
     billingDetails: BillingDetails | null;
     shippingAddress: Address | null;
     stripe: Promise<Stripe | null>;
-    isDevMode: boolean;
+    cwsMockMode: boolean;
     contactSupportLink: string;
     currentTeam: Team;
     addPaymentMethod: (
         stripe: Stripe,
         billingDetails: BillingDetails,
-        isDevMode: boolean
+        cwsMockMode: boolean
     ) => Promise<boolean | null>;
     subscribeCloudSubscription:
     | ((productId: string, shippingAddress: Address, seats?: number, downgradeFeedback?: Feedback) => Promise<ActionResult<Subscription, ComplianceError>>)
@@ -120,10 +120,10 @@ class ProcessPaymentSetup extends React.PureComponent<Props, State> {
             stripe,
             addPaymentMethod,
             billingDetails,
-            isDevMode,
+            cwsMockMode,
             subscribeCloudSubscription,
         } = this.props;
-        const success = await addPaymentMethod((await stripe)!, billingDetails!, isDevMode);
+        const success = await addPaymentMethod((await stripe)!, billingDetails!, cwsMockMode);
 
         if (typeof success !== 'boolean' || !success) {
             trackEvent('cloud_admin', 'complete_payment_failed', {
