@@ -71,7 +71,7 @@ export default class Logs extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.page !== prevState.page) {
+        if (this.state.page !== prevState.page && this.props.isPlainLogs) {
             this.reloadPlain();
         }
     }
@@ -145,8 +145,8 @@ export default class Logs extends React.PureComponent<Props, State> {
                     onClick={this.reloadPlain}
                 >
                     <FormattedMessage
-                        id='admin.logs.reloadLogs'
-                        defaultMessage='Reload'
+                        id='admin.logs.ReloadLogs'
+                        defaultMessage='Reload Logs'
                     />
                 </button>
                 <PlainLogList
@@ -175,7 +175,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                     >
                         <FormattedMessage
                             id='admin.logs.ReloadLogs'
-                            defaultMessage='ReloadLogs'
+                            defaultMessage='Reload Logs'
                         />
                     </button>
                 </div>
