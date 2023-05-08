@@ -193,7 +193,7 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
-		Name: "Should be able to search by hashtags with dashses and numbers",
+		Name: "Should be able to search by hashtags with dashes and numbers",
 		Fn:   testSearchHashtagWithDashAndNumbers,
 		Tags: []string{EngineAll},
 	},
