@@ -10,7 +10,7 @@ info:
 servers:
   - url: http://localhost:8065/plugins/playbooks/api/v0
 paths:
-  /runs:
+  /plugins/playbooks/api/v0/runs:
     get:
       summary: List all playbook runs
       description: Retrieve a paged list of playbook runs, filtered by team, status, owner, name and/or members, and sorted by ID, name, status, creation date, end date, team or owner ID.
@@ -198,7 +198,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/dialog:
+  /plugins/playbooks/api/v0/runs/dialog:
     post:
       summary: Create a new playbook run from dialog
       description: This is an internal endpoint to create a playbook run from the submission of an interactive dialog, filled by a user in the webapp. See [Interactive Dialogs](https://docs.mattermost.com/developer/interactive-dialogs.html) for more information.
@@ -276,7 +276,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/owners:
+  /plugins/playbooks/api/v0/runs/owners:
     get:
       summary: Get all owners
       description: Get the owners of all playbook runs, filtered by team.
@@ -314,7 +314,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/channels:
+  /plugins/playbooks/api/v0/runs/channels:
     get:
       summary: Get playbook run channels
       description: Get all channels associated with a playbook run, filtered by team, status, owner, name and/or members, and sorted by ID, name, status, creation date, end date, team, or owner ID.
@@ -413,7 +413,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/checklist-autocomplete:
+  /plugins/playbooks/api/v0/runs/checklist-autocomplete:
     get:
       summary: Get autocomplete data for /playbook check
       description: This is an internal endpoint used by the autocomplete system to retrieve the data needed to show the list of items that the user can check.
@@ -459,7 +459,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/channel/{channel_id}:
+  /plugins/playbooks/api/v0/runs/channel/{channel_id}:
     get:
       summary: Find playbook run by channel ID
       operationId: getPlaybookRunByChannelId
@@ -492,7 +492,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}:
+  /plugins/playbooks/api/v0/runs/{id}:
     get:
       summary: Get a playbook run
       operationId: getPlaybookRun
@@ -565,7 +565,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/metadata:
+  /plugins/playbooks/api/v0/runs/{id}/metadata:
     get:
       summary: Get playbook run metadata
       operationId: getPlaybookRunMetadata
@@ -598,7 +598,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/end:
+  /plugins/playbooks/api/v0/runs/{id}/end:
     put:
       summary: End a playbook run
       operationId: endPlaybookRun
@@ -651,7 +651,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/restart:
+  /plugins/playbooks/api/v0/runs/{id}/restart:
     put:
       summary: Restart a playbook run
       operationId: restartPlaybookRun
@@ -678,7 +678,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/status:
+  /plugins/playbooks/api/v0/runs/{id}/status:
     post:
       summary: Update a playbook run's status
       operationId: status
@@ -728,7 +728,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/finish:
+  /plugins/playbooks/api/v0/runs/{id}/finish:
     put:
       summary: Finish a playbook
       operationId: finish
@@ -755,7 +755,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/owner:
+  /plugins/playbooks/api/v0/runs/{id}/owner:
     post:
       summary: Update playbook run owner
       operationId: changeOwner
@@ -800,7 +800,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/next-stage-dialog:
+  /plugins/playbooks/api/v0/runs/{id}/next-stage-dialog:
     post:
       summary: Go to next stage from dialog
       description: This is an internal endpoint to go to the next stage via a confirmation dialog, submitted by a user in the webapp.
@@ -835,7 +835,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/checklists/{checklist}/add:
+  /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/add:
     put:
       summary: Add an item to a playbook run's checklist
       description: The most common pattern to add a new item is to only send its title as the request payload. By default, it is an open item, with no assignee and no slash command.
@@ -923,7 +923,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /runs/{id}/checklists/{checklist}/reorder:
+  /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/reorder:
     put:
       summary: Reorder an item in a playbook run's checklist
       operationId: reoderChecklistItem
@@ -978,7 +978,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/checklists/{checklist}/item/{item}:
+  /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/item/{item}:
     put:
       summary: Update an item of a playbook run's checklist
       description: Update the title and the slash command of an item in one of the playbook run's checklists.
@@ -1083,7 +1083,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/checklists/{checklist}/item/{item}/state:
+  /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/item/{item}/state:
     put:
       summary: Update the state of an item
       operationId: itemSetState
@@ -1145,7 +1145,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/checklists/{checklist}/item/{item}/assignee:
+  /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/item/{item}/assignee:
     put:
       summary: Update the assignee of an item
       operationId: itemSetAssignee
@@ -1202,7 +1202,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/checklists/{checklist}/item/{item}/run:
+  /plugins/playbooks/api/v0/runs/{id}/checklists/{checklist}/item/{item}/run:
     put:
       summary: Run an item's slash command
       operationId: itemRun
@@ -1249,7 +1249,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /runs/{id}/timeline/{event_id}/:
+  /plugins/playbooks/api/v0/runs/{id}/timeline/{event_id}/:
     delete:
       summary: Remove a timeline event from the playbook run
       operationId: removeTimelineEvent
@@ -1285,7 +1285,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /playbooks:
+  /plugins/playbooks/api/v0/playbooks:
     get:
       summary: List all playbooks
       description: Retrieve a paged list of playbooks, filtered by team, and sorted by title, number of stages or number of steps.
@@ -1562,7 +1562,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /playbooks/{id}:
+  /plugins/playbooks/api/v0/playbooks/{id}:
     get:
       summary: Get a playbook
       operationId: getPlaybook
@@ -1658,7 +1658,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /playbooks/{id}/autofollows:
+  /plugins/playbooks/api/v0/playbooks/{id}/autofollows:
     get:
       summary: Get the list of followers' user IDs of a playbook
       operationId: getAutoFollows

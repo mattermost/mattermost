@@ -34,12 +34,12 @@ const Option = (props: {data: OptionProps}): JSX.Element => {
     if (!calculationToProperties.get(props.data.value)) {
         const supportedPropertyTypes = new Map<string, boolean>([])
         if (typesByOptions.get(props.data.value)) {
-            (typesByOptions.get(props.data.value) || []).
-                forEach((propertyType) => supportedPropertyTypes.set(propertyType, true))
+            (typesByOptions.get(props.data.value) || [])
+                .forEach((propertyType) => supportedPropertyTypes.set(propertyType, true))
         }
 
-        const supportedProperties = props.data.cardProperties.
-            filter((property) => supportedPropertyTypes.get(property.type) || supportedPropertyTypes.get('common'))
+        const supportedProperties = props.data.cardProperties
+            .filter((property) => supportedPropertyTypes.get(property.type) || supportedPropertyTypes.get('common'))
 
         calculationToProperties.set(props.data.value, supportedProperties)
         setCalculationToProperties(calculationToProperties)

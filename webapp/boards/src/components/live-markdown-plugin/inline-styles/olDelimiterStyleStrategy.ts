@@ -11,6 +11,7 @@ const createOLDelimiterStyleStrategy = (): InlineStrategy => {
         findStyleRanges: (block) => {
             const text = block.getText()
             const olDelimiterRanges = findRangesWithRegex(text, olDelimiterRegex)
+
             return olDelimiterRanges
         },
         styles: {

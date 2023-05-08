@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {
-    EditorState,
     CharacterMetadata,
-    ContentState,
     ContentBlock,
-    EditorChangeType,
+    ContentState,
     DraftStyleMap,
+    EditorChangeType,
+    EditorState,
 } from 'draft-js'
 import {EditorPlugin} from '@draft-js-plugins/editor'
-import {Repeat, List} from 'immutable'
+import {List, Repeat} from 'immutable'
 
 // Inline style handlers
 import createBoldStyleStrategy from './inline-styles/boldStyleStrategy'
@@ -64,10 +64,12 @@ function createLiveMarkdownPlugin(config: LiveMarkdownPluginConfig = {}): Editor
     // Construct the block style fn
     const blockStyleMap = blockTypeStrategies.reduce((map: Record<string, string>, blockStrategy) => {
         map[blockStrategy.type] = blockStrategy.className
+
         return map
     }, {})
     const blockStyleFn = (block: ContentBlock) => {
         const blockType = block.getType()
+
         return blockStyleMap[blockType]
     }
 
@@ -257,6 +259,7 @@ const applyStyleRangesToCharacterMetadata = (
             styledCharacterMetadataList = styledCharacterMetadataList.set(i, styled)
         }
     })
+
     return styledCharacterMetadataList
 }
 

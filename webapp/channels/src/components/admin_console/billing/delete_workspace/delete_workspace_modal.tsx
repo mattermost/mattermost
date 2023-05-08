@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {useDispatch, useSelector} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
+import {LegacyGenericModal} from '@mattermost/components';
 
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -29,7 +29,6 @@ import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud'
 import {isCloudLicense} from 'utils/license_utils';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {trackEvent} from 'actions/telemetry_actions';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 
 import DeleteWorkspaceSuccessModal from './success_modal';
@@ -122,7 +121,6 @@ export default function DeleteWorkspaceModal(props: Props) {
                 modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
                 dialogType: DeleteWorkspaceSuccessModal,
             }));
-            trackEvent('cloud_admin', 'self_serve_workspace_deletion_completed');
         } else { // Failure
             dispatch(openModal({
                 modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
@@ -182,12 +180,12 @@ export default function DeleteWorkspaceModal(props: Props) {
     }
 
     return (
-        <GenericModal
+        <LegacyGenericModal
             className='DeleteWorkspaceModal'
             onExited={handleClickCancel}
         >
-            <div>
-                <LaptopAlertSVG/>
+            <div className='DeleteWorkspaceModal__Icon'>
+                <LaptopAlertSVG height={156}/>
             </div>
             <div className='DeleteWorkspaceModal__Title'>
                 <FormattedMessage
@@ -198,7 +196,7 @@ export default function DeleteWorkspaceModal(props: Props) {
             <div className='DeleteWorkspaceModal__Usage'>
                 <FormattedMessage
                     id='admin.billing.subscription.deleteWorkspaceModal.usage'
-                    defaultMessage='As part of your paid subscription to Mattermost {product_name} you have created '
+                    defaultMessage='As part of your subscription to Mattermost {sku} you have created '
                     values={{
                         sku: product?.name,
                     }}
@@ -251,6 +249,6 @@ export default function DeleteWorkspaceModal(props: Props) {
                     />
                 </button>
             </div>
-        </GenericModal>
+        </LegacyGenericModal>
     );
 }

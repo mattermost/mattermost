@@ -13,7 +13,7 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -104,6 +104,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const currentUser = useSelector(getCurrentUser);
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const isCloud = useSelector(isCurrentLicenseCloud);
     const graphQLEnabled = useSelector(isGraphQLEnabled);
 
@@ -634,12 +635,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         } else if (experimentalPrimaryTeamMember.team_id) {
             // Only set experimental team if user is on that team
             history.push(`/${ExperimentalPrimaryTeam}`);
-        } else {
+        } else if (onboardingFlowEnabled) {
             // need info about whether admin or not,
             // and whether admin has already completed
             // first time onboarding. Instead of fetching and orchestrating that here,
             // let the default root component handle it.
             history.push('/');
+        } else {
+            redirectUserToDefaultTeam();
         }
     };
 

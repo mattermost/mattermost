@@ -5,10 +5,10 @@ import React, {useCallback, useMemo, useState} from 'react'
 import {useIntl} from 'react-intl'
 
 import FullCalendar, {
+    DayCellContentArg,
     EventChangeArg,
-    EventInput,
     EventContentArg,
-    DayCellContentArg
+    EventInput,
 } from '@fullcalendar/react'
 
 import interactionPlugin from '@fullcalendar/interaction'
@@ -60,6 +60,7 @@ function createDatePropertyFromCalendarDates(start: Date, end: Date): DateProper
     if (dateTo !== dateFrom) {
         dateProperty.to = dateTo
     }
+
     return dateProperty
 }
 
@@ -69,6 +70,7 @@ function createDatePropertyFromCalendarDate(start: Date): DateProperty {
     const dateFrom = start.getTime() - timeZoneOffset(start.getTime())
 
     const dateProperty: DateProperty = {from: dateFrom}
+
     return dateProperty
 }
 
@@ -97,6 +99,7 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
         if (readonly || !dateDisplayProperty || propsRegistry.get(dateDisplayProperty.type).isReadOnly) {
             return false
         }
+
         return true
     }, [readonly, dateDisplayProperty])
 
@@ -118,6 +121,7 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
                 //full calendar end date is exclusive, so increment by 1 day.
                 dateTo.setDate(dateTo.getDate() + 1)
             }
+
             return [{
                 id: card.id,
                 title: card.title,

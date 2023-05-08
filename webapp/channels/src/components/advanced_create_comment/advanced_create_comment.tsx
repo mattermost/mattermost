@@ -7,6 +7,8 @@ import React from 'react';
 
 import {ModalData} from 'types/actions.js';
 
+import {isNil} from 'lodash';
+
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -25,7 +27,7 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste} from 'utils/paste';
+import {getTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
@@ -40,6 +42,8 @@ import {ServerError} from '@mattermost/types/errors';
 import {FileInfo} from '@mattermost/types/files';
 import EmojiMap from 'utils/emoji_map';
 import {
+    applyLinkMarkdown,
+    ApplyLinkMarkdownOptions,
     applyMarkdown,
     ApplyMarkdownOptions,
 } from 'utils/markdown/apply_markdown';
@@ -425,14 +429,36 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         const {clipboardData} = e;
+
+        const target = e.target as TextboxElement;
+
+        const {selectionStart, selectionEnd, value} = target;
+
+        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+        const clipboardText = clipboardData.getData('text/plain');
+        const isClipboardTextURL = isHttpProtocol(clipboardText) || isHttpsProtocol(clipboardText);
+        const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
+
         const hasLinks = hasHtmlLink(clipboardData);
         let table = getTable(clipboardData);
-        if (!table && !hasLinks) {
+        if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
             return;
         }
-        table = table as HTMLTableElement;
 
         e.preventDefault();
+
+        if (shouldApplyLinkMarkdown) {
+            this.applyLinkMarkdownWhenPaste({
+                selectionStart,
+                selectionEnd,
+                message: value,
+                url: clipboardText,
+            });
+
+            return;
+        }
+
+        table = table as HTMLTableElement;
 
         const draft = this.state.draft!;
         let message = draft.message;
@@ -912,6 +938,15 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     selectionEnd,
                     message: value,
                 });
+            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
+                e.stopPropagation();
+                e.preventDefault();
+                this.applyMarkdown({
+                    markdownMode: 'link',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
             }
         } else if (ctrlAltCombo) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
@@ -1007,6 +1042,25 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             const textbox = this.textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+        });
+    };
+
+    applyLinkMarkdownWhenPaste = (params: ApplyLinkMarkdownOptions) => {
+        const res = applyLinkMarkdown(params);
+
+        const draft = this.state.draft!;
+        const modifiedDraft = {
+            ...draft,
+            message: res.message,
+        };
+
+        this.handleDraftChange(modifiedDraft);
+
+        this.setState({
+            draft: modifiedDraft,
+        }, () => {
+            const textbox = this.textboxRef.current?.getInputBox();
+            Utils.setSelectionRange(textbox, res.selectionEnd + 1, res.selectionEnd + 1);
         });
     };
 
