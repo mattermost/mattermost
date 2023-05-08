@@ -1251,7 +1251,8 @@ type LogSettings struct {
 	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	AdvancedLoggingConfig  json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1309,9 +1310,24 @@ func (s *LogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = []byte("{}")
+	if s.AdvancedLoggingJSON == nil {
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
+}
+
+func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
+
+	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && len(*s.AdvancedLoggingConfig) != 0 {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type ExperimentalAuditSettings struct {
@@ -1322,7 +1338,8 @@ type ExperimentalAuditSettings struct {
 	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1354,9 +1371,24 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = []byte("{}")
+	if s.AdvancedLoggingJSON == nil {
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
+}
+
+func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
+
+	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && len(*s.AdvancedLoggingConfig) != 0 {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type NotificationLogSettings struct {
@@ -1368,7 +1400,8 @@ type NotificationLogSettings struct {
 	FileLevel             *string         `access:"write_restrictable,cloud_restrictable"`
 	FileJson              *bool           `access:"write_restrictable,cloud_restrictable"`
 	FileLocation          *string         `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig json.RawMessage `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1404,9 +1437,24 @@ func (s *NotificationLogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = []byte("{}")
+	if s.AdvancedLoggingJSON == nil {
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
+}
+
+func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
+
+	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && len(*s.AdvancedLoggingConfig) != 0 {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type PasswordSettings struct {

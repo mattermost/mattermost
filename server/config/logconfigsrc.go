@@ -15,7 +15,13 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
+const (
+	LogConfigSrcTypeJSON LogConfigSrcType = "json"
+	LogConfigSrcTypeFile LogConfigSrcType = "file"
+)
+
 type LogSrcListener func(old, new mlog.LoggerConfiguration)
+type LogConfigSrcType string
 
 // LogConfigSrc abstracts the Advanced Logging configuration so that implementations can
 // fetch from file, database, etc.
@@ -25,6 +31,9 @@ type LogConfigSrc interface {
 
 	// Set updates the dsn specifying the source and reloads
 	Set(dsn []byte, configStore *Store) (err error)
+
+	// GetType returns the type of config source (JSON, file, ...)
+	GetType() LogConfigSrcType
 
 	// Close cleans up resources.
 	Close() error
@@ -106,6 +115,11 @@ func (src *jsonSrc) Set(data []byte, _ *Store) error {
 	return nil
 }
 
+// GetType returns the config source type.
+func (src *jsonSrc) GetType() LogConfigSrcType {
+	return LogConfigSrcTypeJSON
+}
+
 func (src *jsonSrc) set(cfg mlog.LoggerConfiguration) {
 	src.mutex.Lock()
 	defer src.mutex.Unlock()
@@ -161,6 +175,11 @@ func (src *fileSrc) Set(path []byte, configStore *Store) error {
 
 	src.set(cfg)
 	return nil
+}
+
+// GetType returns the config source type.
+func (src *fileSrc) GetType() LogConfigSrcType {
+	return LogConfigSrcTypeFile
 }
 
 func (src *fileSrc) set(cfg mlog.LoggerConfiguration) {
