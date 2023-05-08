@@ -80,7 +80,7 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
         let posts;
 
         try {
-            posts = await Client4.searchPostsWithParams(teamId, params);
+            posts = await Client4.searchPostsWithParams('', params);
 
             const profilesAndStatuses = getProfilesAndStatusesForPosts(posts.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(posts.posts));
