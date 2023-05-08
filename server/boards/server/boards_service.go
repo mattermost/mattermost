@@ -18,9 +18,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/boards/ws"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 const (

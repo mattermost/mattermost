@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model/utils"
+	"github.com/mattermost/mattermost-server/server/public/model/utils"
 )
 
 func TestHumanizeJsonError(t *testing.T) {

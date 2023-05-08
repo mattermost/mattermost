@@ -14,8 +14,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
