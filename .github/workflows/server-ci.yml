@@ -1,4 +1,4 @@
-name: Mattermost Build
+name: Server CI
 on:
   pull_request:
   push:
@@ -87,26 +87,6 @@ jobs:
         run: make plugin-checker
       - name: Run mattermost-vet
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
-  golangci:
-    name: golangci-lint
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost-server
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.52.2
-          working-directory: server
-          args: --new-from-rev=HEAD~ --whole-files # This only checks the latest commit for speed.
   check-migrations:
     name: Check migration files
     runs-on: ubuntu-22.04

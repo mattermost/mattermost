@@ -16,7 +16,7 @@ import {getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/h
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {isDevModeEnabled} from 'selectors/general';
+import {isCwsMockMode} from 'selectors/cloud';
 
 import {closeModal} from 'actions/views/modals';
 import {pageVisited} from 'actions/telemetry_actions';
@@ -169,7 +169,7 @@ export default function SelfHostedExpansionModal() {
     const theme = useSelector(getTheme);
     const progress = useSelector(getSelfHostedSignupProgress);
     const user = useSelector(getCurrentUser);
-    const isDevMode = useSelector(isDevModeEnabled);
+    const cwsMockMode = useSelector(isCwsMockMode);
 
     const license = useSelector(getLicense);
     const licensedSeats = parseInt(license.Users, 10);
@@ -259,7 +259,7 @@ export default function SelfHostedExpansionModal() {
                     id: signupCustomerResult.setup_intent_id,
                     client_secret: signupCustomerResult.setup_intent_secret,
                 },
-                isDevMode,
+                cwsMockMode,
                 {
                     address: formState.address,
                     address2: formState.address2,

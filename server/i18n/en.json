@@ -8460,6 +8460,10 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Invalid channel-auto-follow-threads value."
+  },
+  {
     "id": "model.channel_member.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
