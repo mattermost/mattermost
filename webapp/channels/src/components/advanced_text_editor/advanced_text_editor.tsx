@@ -169,7 +169,7 @@ const AdvanceTextEditor = ({
 
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
-    const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
+    const [showFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
     const input = textboxRef.current?.getInputBox();
@@ -357,18 +357,6 @@ const AdvanceTextEditor = ({
 
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
 
-    const handleWidthChange = useCallback((width: number) => {
-        if (!editorBodyRef.current || !editorActionsRef.current || !input) {
-            return;
-        }
-    }, [message, input]);
-
-    useEffect(() => {
-        if (!message) {
-            handleWidthChange(0);
-        }
-    }, [handleWidthChange, message]);
-
     useEffect(() => {
         if (!input) {
             return;
@@ -469,7 +457,6 @@ const AdvanceTextEditor = ({
                             listenForMentionKeyClick={true}
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
-                            onWidthChange={handleWidthChange}
                         />
                         {attachmentPreview}
                         {!readOnlyChannel && (showFormattingBar || shouldShowPreview) && (
