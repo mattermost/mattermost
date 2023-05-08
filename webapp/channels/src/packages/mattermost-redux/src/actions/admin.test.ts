@@ -52,7 +52,7 @@ describe('Actions.Admin', () => {
 
         const state = store.getState();
 
-        const logs = state.entities.admin.logs;
+        const logs = state.entities.admin.plainLogs;
 
         expect(logs).toBeTruthy();
         expect(Object.keys(logs).length > 0).toBeTruthy();
