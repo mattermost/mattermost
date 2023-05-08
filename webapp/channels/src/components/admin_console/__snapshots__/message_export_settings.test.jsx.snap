@@ -9,12 +9,14 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Compliance Export"
         id="admin.complianceExport.title"
       />
-    </AdminHeader>
+    </div>
     <SettingsGroup
       container={true}
       show={true}
@@ -186,12 +188,14 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Compliance Export"
         id="admin.complianceExport.title"
       />
-    </AdminHeader>
+    </div>
     <SettingsGroup
       container={true}
       show={true}
@@ -460,12 +464,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Compliance Export"
         id="admin.complianceExport.title"
       />
-    </AdminHeader>
+    </div>
     <SettingsGroup
       container={true}
       show={true}
@@ -637,12 +643,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Compliance Export"
         id="admin.complianceExport.title"
       />
-    </AdminHeader>
+    </div>
     <SettingsGroup
       container={true}
       show={true}

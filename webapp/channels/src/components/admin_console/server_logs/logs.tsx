@@ -7,8 +7,6 @@ import {debounce} from 'lodash';
 
 import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
-
 import {
     LogFilter,
     LogLevels,
@@ -196,11 +194,12 @@ export default class Logs extends React.PureComponent<Props, State> {
         );
         return (
             <div className='wrapper--admin'>
-                <FormattedAdminHeader
-                    id='admin.logs.title'
-                    defaultMessage='Server Logs'
-                />
-
+                <div className='admin-console__header'>
+                    <FormattedMessage
+                        id='admin.logs.title'
+                        defaultMessage='Server Logs'
+                    />
+                </div>
                 <div className='admin-console__wrapper'>
                     <div className='admin-logs-content admin-console__content'>
                         {content}

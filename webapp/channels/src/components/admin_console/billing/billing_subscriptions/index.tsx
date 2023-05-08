@@ -3,13 +3,13 @@
 
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import {FormattedMessage} from 'react-intl';
 
 import {getCloudSubscription, getCloudProducts, getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
 
@@ -124,10 +124,12 @@ const BillingSubscriptions = () => {
 
     return (
         <div className='wrapper--fixed BillingSubscriptions'>
-            <FormattedAdminHeader
-                id='admin.billing.subscription.title'
-                defaultMessage='Subscription'
-            />
+            <div className='admin-console__header'>
+                <FormattedMessage
+                    id='admin.billing.subscription.title'
+                    defaultMessage='Subscription'
+                />
+            </div>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {errorLoadingData && <CloudFetchError/>}

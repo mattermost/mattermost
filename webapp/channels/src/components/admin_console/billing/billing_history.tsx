@@ -13,7 +13,6 @@ import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import CloudFetchError from 'components/cloud_fetch_error';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
@@ -67,12 +66,15 @@ const BillingHistory = () => {
     }, [isCloud]);
     const billingHistoryTable = invoices && <BillingHistoryTable invoices={invoices}/>;
     const areInvoicesEmpty = Object.keys(invoices || {}).length === 0;
+
     return (
         <div className='wrapper--fixed BillingHistory'>
-            <FormattedAdminHeader
-                id='admin.billing.history.title'
-                defaultMessage='Billing History'
-            />
+            <div className='admin-console__header'>
+                <FormattedMessage
+                    id='admin.billing.history.title'
+                    defaultMessage='Billing History'
+                />
+            </div>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {invoicesError && <CloudFetchError/>}

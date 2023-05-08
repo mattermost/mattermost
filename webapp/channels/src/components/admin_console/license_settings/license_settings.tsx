@@ -2,22 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {ClientLicense} from '@mattermost/types/config';
-import {ActionResult} from 'mattermost-redux/types/actions';
 import {StatusOK} from '@mattermost/types/client4';
-
-import {isLicenseExpired, isLicenseExpiring, isTrialLicense, isEnterpriseOrE20License, licenseSKUWithFirstLetterCapitalized} from 'utils/license_utils';
-
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 import {ServerError} from '@mattermost/types/errors';
 
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
-import ExternalLink from 'components/external_link';
-
+import {isLicenseExpired, isLicenseExpiring, isTrialLicense, isEnterpriseOrE20License, licenseSKUWithFirstLetterCapitalized} from 'utils/license_utils';
 import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
+
+import {trackEvent} from 'actions/telemetry_actions';
+
+import ExternalLink from 'components/external_link';
 
 import {ModalData} from 'types/actions';
 
@@ -332,11 +331,12 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed'>
-                <FormattedAdminHeader
-                    id='admin.license.title'
-                    defaultMessage='Edition and License'
-                />
-
+                <div className='admin-console__header'>
+                    <FormattedMessage
+                        id='admin.license.title'
+                        defaultMessage='Edition and License'
+                    />
+                </div>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='admin-console__banner_section'>

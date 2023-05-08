@@ -10,7 +10,6 @@ import {Role} from '@mattermost/types/roles';
 import {t} from 'utils/i18n';
 import {getHistory} from 'utils/browser_history';
 
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
 
@@ -78,11 +77,12 @@ export default class SystemRoles extends React.PureComponent<Props> {
 
         return (
             <div className='wrapper--fixed'>
-                <FormattedAdminHeader
-                    id='admin.permissions.systemRoles'
-                    defaultMessage='System Roles'
-                />
-
+                <div className='admin-console__header'>
+                    <FormattedMessage
+                        id='admin.permissions.systemRoles'
+                        defaultMessage='System Roles'
+                    />
+                </div>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <AdminPanel

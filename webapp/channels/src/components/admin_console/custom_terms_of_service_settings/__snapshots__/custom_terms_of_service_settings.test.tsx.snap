@@ -9,12 +9,14 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Custom Terms of Service"
         id="admin.support.termsOfServiceTitle"
       />
-    </AdminHeader>
+    </div>
     <LoadingScreen />
     <div
       className="admin-console-save"
@@ -68,12 +70,14 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Custom Terms of Service"
         id="admin.support.termsOfServiceTitle"
       />
-    </AdminHeader>
+    </div>
     <LoadingScreen />
     <div
       className="admin-console-save"
@@ -127,12 +131,14 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Custom Terms of Service"
         id="admin.support.termsOfServiceTitle"
       />
-    </AdminHeader>
+    </div>
     <LoadingScreen />
     <div
       className="admin-console-save"
@@ -186,12 +192,14 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Custom Terms of Service"
         id="admin.support.termsOfServiceTitle"
       />
-    </AdminHeader>
+    </div>
     <LoadingScreen />
     <div
       className="admin-console-save"

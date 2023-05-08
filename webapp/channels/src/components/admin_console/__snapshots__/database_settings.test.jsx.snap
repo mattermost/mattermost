@@ -9,12 +9,14 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
   <div
     className="wrapper--fixed"
   >
-    <AdminHeader>
+    <div
+      className="admin-console__header"
+    >
       <MemoizedFormattedMessage
         defaultMessage="Database Settings"
         id="admin.database.title"
       />
-    </AdminHeader>
+    </div>
     <SettingsGroup
       container={true}
       show={true}

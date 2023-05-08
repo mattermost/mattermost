@@ -12,6 +12,7 @@ import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
 import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapter';
 import * as Utils from 'utils/utils';
+
 import RequestButton from 'components/admin_console/request_button/request_button';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import TextSetting from 'components/admin_console/text_setting';
@@ -30,11 +31,7 @@ import SaveButton from 'components/save_button';
 import FormError from 'components/form_error';
 import Tooltip from 'components/tooltip';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 
 import Setting from './setting';
 
@@ -276,16 +273,18 @@ export default class SchemaAdminSettings extends React.PureComponent {
         }
         if (this.props.schema.translate === false) {
             return (
-                <AdminHeader>
+                <div className='admin-console__header'>
                     {this.props.schema.name || this.props.schema.id}
-                </AdminHeader>
+                </div>
             );
         }
         return (
-            <FormattedAdminHeader
-                id={this.props.schema.name || this.props.schema.id}
-                defaultMessage={this.props.schema.name_default || this.props.schema.id}
-            />
+            <div className='admin-console__header'>
+                <FormattedMessage
+                    id={this.props.schema.name || this.props.schema.id}
+                    defaultMessage={this.props.schema.name_default || this.props.schema.id}
+                />
+            </div>
         );
     };
 
@@ -1160,12 +1159,12 @@ export default class SchemaAdminSettings extends React.PureComponent {
         if (!schema) {
             return (
                 <div className={'wrapper--fixed'}>
-                    <AdminHeader>
+                    <div className='admin-console__header'>
                         <FormattedMessage
                             id='error.plugin_not_found.title'
                             defaultMessage='Plugin Not Found'
                         />
-                    </AdminHeader>
+                    </div>
                     <div className='admin-console__wrapper'>
                         <div className='admin-console__content'>
                             <p>
