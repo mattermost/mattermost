@@ -4,8 +4,9 @@
 import React from 'react';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
-import BaseModal from "./base_modal";
-import ModalHeader from "./modal_header";
+import BaseModal from './base_modal';
+import ModalHeader from './modal_header';
+import {FormattedMessage} from "react-intl";
 
 type ModalProps = {
     title: string | React.ReactNode;
@@ -16,9 +17,11 @@ type ModalProps = {
     onClose?: () => void;
     onConfirm?: () => void;
     onCancel?: () => void;
+    cancelButtonText?: React.ReactNode;
+    confirmButtonText?: React.ReactNode;
 }
 
-const GenericModal = ({title, children, isOpen, onClose, onConfirm, onCancel, dialogClassName = '', dialogId = ''}: ModalProps) => {
+const GenericModal = ({title, children, isOpen, onClose, confirmButtonText, cancelButtonText, onConfirm, onCancel, dialogClassName = '', dialogId = ''}: ModalProps) => {
     const hasActions = Boolean(onConfirm || onCancel);
 
     const handleConfirmAction = () => {
@@ -46,8 +49,20 @@ const GenericModal = ({title, children, isOpen, onClose, onConfirm, onCancel, di
                 {children}
                 {hasActions && (
                     <DialogActions>
-                        {onCancel && <Button onClick={handleCancelAction}>{'Cancel'}</Button>}
-                        {onConfirm && <Button variant='contained' onClick={handleConfirmAction}>{'Confirm'}</Button>}
+                        {onCancel && <Button onClick={handleCancelAction}>
+                            {cancelButtonText
+                             || <FormattedMessage
+                                id='generic_modal.cancel'
+                                defaultMessage='Cancel'
+                            />}
+                        </Button>}
+                        {onConfirm && <Button variant='contained' onClick={handleConfirmAction}>
+                            {confirmButtonText ||
+                                <FormattedMessage
+                                id='generic_modal.confirm'
+                                defaultMessage='Confirm'
+                            />}
+                        </Button>}
                     </DialogActions>
                 )}
             </BaseModal>
@@ -55,3 +70,6 @@ const GenericModal = ({title, children, isOpen, onClose, onConfirm, onCancel, di
 };
 
 export default GenericModal;
+
+// TODO:Find some solution for translations, right now we are using the t function in webapp/channels/src/components/generic_modal.tsx.
+// https://mattermost.atlassian.net/browse/MM-52680

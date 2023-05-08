@@ -8,6 +8,7 @@ import {withRouter} from 'react-router-dom';
 import {ActionFunc} from 'mattermost-redux/types/actions';
 import {Post} from '@mattermost/types/posts';
 import {makeGetCommentCountForPost} from 'mattermost-redux/selectors/entities/posts';
+import {getNewUIEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {GlobalState} from 'types/store';
 import {deleteAndRemovePost} from 'actions/post_actions';
@@ -41,6 +42,7 @@ function makeMapStateToProps() {
 
         return {
             commentCount: getReplyCount(state, post),
+            isNewUI: getNewUIEnabled(state),
         };
     };
 }
