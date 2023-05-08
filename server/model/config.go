@@ -1449,7 +1449,6 @@ func (s *NotificationLogSettings) SetDefaults() {
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 // AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
-
 	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
 		return s.AdvancedLoggingJSON
 	}
