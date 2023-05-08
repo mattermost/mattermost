@@ -1,4 +1,4 @@
-name: Mattermost Build
+name: Server CI
 on:
   pull_request:
   push:

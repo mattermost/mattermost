@@ -5,6 +5,8 @@
 
 import React from 'react';
 
+import {isNil} from 'lodash';
+
 import {Posts} from 'mattermost-redux/constants';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import {ActionResult} from 'mattermost-redux/types/actions';
@@ -30,11 +32,11 @@ import {
     mentionsMinusSpecialMentionsInText,
     hasRequestedPersistentNotifications,
 } from 'utils/post_utils';
-import {getTable, hasHtmlLink, formatMarkdownMessage, formatGithubCodePaste, isGitHubCodeBlock} from 'utils/paste';
+import {getTable, hasHtmlLink, formatMarkdownMessage, formatGithubCodePaste, isGitHubCodeBlock, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyLinkMarkdown, ApplyLinkMarkdownOptions, applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -928,14 +930,36 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const {clipboardData} = e;
 
+        const target = e.target as TextboxElement;
+
+        const {selectionStart, selectionEnd, value} = target;
+
+        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+        const clipboardText = clipboardData.getData('text/plain');
+        const isClipboardTextURL = isHttpProtocol(clipboardText) || isHttpsProtocol(clipboardText);
+        const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
+
         const hasLinks = hasHtmlLink(clipboardData);
         let table = getTable(clipboardData);
-        if (!table && !hasLinks) {
+
+        if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
             return;
         }
-        table = table as HTMLTableElement;
 
         e.preventDefault();
+
+        if (shouldApplyLinkMarkdown) {
+            this.applyLinkMarkdownWhenPaste({
+                selectionStart,
+                selectionEnd,
+                message: value,
+                url: clipboardText,
+            });
+
+            return;
+        }
+
+        table = table as HTMLTableElement;
 
         const message = this.state.message;
         if (table && isGitHubCodeBlock(table.className)) {
@@ -1227,6 +1251,15 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                     selectionEnd,
                     message: value,
                 });
+            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
+                e.stopPropagation();
+                e.preventDefault();
+                this.applyMarkdown({
+                    markdownMode: 'link',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
             }
         } else if (ctrlAltCombo) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
@@ -1369,6 +1402,24 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }, () => {
             const textbox = this.textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+
+            const draft = {
+                ...this.props.draft,
+                message: this.state.message,
+            };
+
+            this.handleDraftChange(draft);
+        });
+    };
+
+    applyLinkMarkdownWhenPaste = (params: ApplyLinkMarkdownOptions) => {
+        const res = applyLinkMarkdown(params);
+
+        this.setState({
+            message: res.message,
+        }, () => {
+            const textbox = this.textboxRef.current?.getInputBox();
+            Utils.setSelectionRange(textbox, res.selectionEnd + 1, res.selectionEnd + 1);
 
             const draft = {
                 ...this.props.draft,
