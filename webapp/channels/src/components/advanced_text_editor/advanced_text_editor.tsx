@@ -361,25 +361,6 @@ const AdvanceTextEditor = ({
         if (!editorBodyRef.current || !editorActionsRef.current || !input) {
             return;
         }
-
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
-
-        if (!message) {
-            // if we do not have a message we can just render the default state
-            setShowFormattingSpacer(false);
-            return;
-        }
-
-        const inputPaddingLeft = parseInt(window.getComputedStyle(input, null).paddingLeft || '0', 10);
-        const inputPaddingRight = parseInt(window.getComputedStyle(input, null).paddingRight || '0', 10);
-        const inputPaddingX = inputPaddingLeft + inputPaddingRight;
-        const currentWidth = width + inputPaddingX;
-
-        if (currentWidth >= maxWidth) {
-            setShowFormattingSpacer(true);
-        } else {
-            setShowFormattingSpacer(false);
-        }
     }, [message, input]);
 
     useEffect(() => {
