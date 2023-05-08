@@ -58,9 +58,9 @@ services:
       NODE_PATH: /usr/local/lib/node_modules/
     healthcheck:
       test: [ "CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000" ]
-      interval: 5s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 15s
+      retries: 12
     working_dir: /cypress
     volumes:
       - "../../e2e-tests/cypress/:/cypress:ro"

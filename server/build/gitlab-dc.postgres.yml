@@ -12,9 +12,9 @@ services:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
-      interval: 5s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 15s
+      retries: 12
     networks:
       default:
         aliases:
