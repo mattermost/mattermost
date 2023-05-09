@@ -11,7 +11,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/server/v8/boards/model"
+	model "github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 )
 
 // MockStore is a mock of Store interface.

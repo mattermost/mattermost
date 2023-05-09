@@ -6,8 +6,8 @@ package localpermissions
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	permissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"

@@ -8,7 +8,7 @@ package store
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 )

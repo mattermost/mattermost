@@ -14,8 +14,8 @@ import (
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/boards/model/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/public/boards/model/mocks"
 )
 
 func TestIsCloud(t *testing.T) {

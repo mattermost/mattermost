@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	sq "github.com/Masterminds/squirrel"
 

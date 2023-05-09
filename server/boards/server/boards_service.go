@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/auth"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mmpermissions"
@@ -17,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/mattermostauthlayer"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/boards/ws"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"

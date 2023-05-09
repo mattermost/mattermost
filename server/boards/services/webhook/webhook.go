@@ -9,8 +9,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )

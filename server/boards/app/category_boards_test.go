@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 )
 
 func TestGetUserCategoryBoards(t *testing.T) {

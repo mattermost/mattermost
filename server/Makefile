@@ -313,6 +313,7 @@ app-layers: ## Extract interface from App struct
 boards-gen: ## Run generators for Boards
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0
 	cd boards && $(GO) generate ./...
+	cd public/boards && $(GO) generate ./...
 
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo

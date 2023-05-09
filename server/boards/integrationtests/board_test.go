@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/client"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/stretchr/testify/require"
 )

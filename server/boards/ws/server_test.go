@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/auth"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 

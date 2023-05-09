@@ -13,7 +13,7 @@ import (
 	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 
-	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
+	fb_model "github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"

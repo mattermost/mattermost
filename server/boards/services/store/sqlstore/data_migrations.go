@@ -12,8 +12,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )

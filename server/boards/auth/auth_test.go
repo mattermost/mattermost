@@ -10,12 +10,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/localpermissions"
 	mockpermissions "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/mockstore"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )

@@ -6,9 +6,9 @@ package mmpermissions
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	mmpermissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mmpermissions/mocks"
 	permissionsMocks "github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"

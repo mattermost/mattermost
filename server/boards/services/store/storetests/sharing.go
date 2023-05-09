@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 )
 
 func StoreTestSharingStore(t *testing.T, runStoreTests func(*testing.T, func(*testing.T, store.Store))) {

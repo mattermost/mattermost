@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 )
 
 func (a *App) GetSharing(boardID string) (*model.Sharing, error) {

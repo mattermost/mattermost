@@ -8,11 +8,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/server"
 	"github.com/mattermost/mattermost-server/server/v8/boards/ws"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
-	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/boards/model/mocks"
+	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/public/boards/model/mocks"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"

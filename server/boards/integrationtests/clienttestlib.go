@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/client"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/server"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/auth"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
@@ -20,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"

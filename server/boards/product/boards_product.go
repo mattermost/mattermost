@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/server"
+	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
