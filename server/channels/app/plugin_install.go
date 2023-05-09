@@ -45,11 +45,11 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/model/utils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model/utils"
 )
 
 // managedPluginFileName is the file name of the flag file that marks

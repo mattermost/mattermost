@@ -28,10 +28,10 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 // teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.

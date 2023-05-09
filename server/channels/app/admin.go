@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 var latestVersionCache = cache.NewLRU(cache.LRUOptions{

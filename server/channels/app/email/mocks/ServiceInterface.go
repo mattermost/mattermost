@@ -11,7 +11,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	templates "github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
 

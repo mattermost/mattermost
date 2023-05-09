@@ -6,7 +6,7 @@ package mocks
 
 import (
 	request "github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/v8/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 

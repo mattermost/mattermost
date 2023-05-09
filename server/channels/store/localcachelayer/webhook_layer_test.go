@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func TestWebhookStore(t *testing.T) {

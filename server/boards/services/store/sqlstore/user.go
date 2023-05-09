@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	sq "github.com/Masterminds/squirrel"
 

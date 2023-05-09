@@ -15,7 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/retrylayer"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {

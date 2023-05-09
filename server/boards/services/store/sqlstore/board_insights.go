@@ -13,7 +13,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )

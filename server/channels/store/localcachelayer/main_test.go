@@ -14,9 +14,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	cachemocks "github.com/mattermost/mattermost-server/server/v8/platform/services/cache/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 var mainHelper *testlib.MainHelper

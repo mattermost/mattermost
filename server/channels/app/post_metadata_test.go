@@ -29,9 +29,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func TestPreparePostListForClient(t *testing.T) {

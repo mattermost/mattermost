@@ -5,7 +5,7 @@ package last_accessible_file
 
 import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 const (
