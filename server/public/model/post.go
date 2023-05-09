@@ -15,7 +15,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/markdown"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/markdown"
 )
 
 const (
