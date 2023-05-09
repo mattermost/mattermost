@@ -23,8 +23,8 @@
   "devDependencies": {
     "@babel/preset-typescript": "7.21.0",
     "isomorphic-fetch": "3.0.0",
-    "jest": "*",
-    "nock": "*"
+    "jest": "29.5.0",
+    "nock": "13.2.8"
   },
   "peerDependencies": {
     "@mattermost/types": "*",
