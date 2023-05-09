@@ -22,7 +22,11 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -40,7 +44,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -58,7 +64,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -76,9 +84,13 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Reset config
         run: make config-reset
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Run plugin-checker
         run: make plugin-checker
       - name: Run mattermost-vet
@@ -106,7 +118,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
@@ -129,7 +143,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Generate work templates
         run: make generate-worktemplates
       - name: Check generated work templates
@@ -162,7 +178,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -180,7 +198,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Generate app layers
         run: make app-layers
       - name: Check generated code
@@ -220,7 +240,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Build
         run: |
           make config-reset
