@@ -126,9 +126,9 @@ describe('System Console - Subscriptions section', () => {
         });
     });
 
-    it('MM-T4122 "Upgrade now" navigation and closing of Upgrade window', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
+    it('MM-T4122 "Purchase now" navigation and closing of Upgrade window', () => {
+        // # Click on View plans button
+        cy.get('button.PlanDetails__viewPlansButton').click();
         cy.get('#professional_action').click();
 
         // * Check for "Provide Your Payment Details" label
@@ -137,13 +137,13 @@ describe('System Console - Subscriptions section', () => {
         // # Click on close button of Upgrade window
         cy.get('#closeIcon').parent().should('exist').click();
 
-        // * Check for "Your trial has started!" label
-        cy.contains('span', 'Your trial has started!').should('be.visible');
+        // * Check for "Your 30 day Enterprise trial has started!" label
+        cy.contains('span', 'Your 30 day Enterprise trial has started!').should('be.visible');
     });
 
     it('MM-T4124 Purchase modal UI check', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
+        // # Click on Purchase Now button
+        cy.contains('span', 'Purchase Now').parent().click();
 
         cy.get('#professional_action').click();
 
@@ -161,8 +161,8 @@ describe('System Console - Subscriptions section', () => {
     });
 
     it('MM-T4128 Enable/disable "Upgrade" button in Purchase modal', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
+        // # Click on Purchase Now button
+        cy.contains('span', 'Purchase Now').parent().click();
 
         // # Click on Upgrade Now button on plans modal
         cy.get('#professional_action').click();
