@@ -17,15 +17,6 @@ ${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/matterm
 ${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
 ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
 
-# Initialize cypress report directory
-mme2e_log "Prepare Cypress: initialize report and logs directory"
-${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress bash <<EOF
-mkdir -p logs
-mkdir -p results/junit
-touch results/junit/empty.xml
-echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
-EOF
-
 # Generate the test mattermosts-server config, and restart its container
 mme2e_log "Prepare Server: patching the mattermost-server config"
 ${MME2E_DC_SERVER} exec -T -e "OUTPUT_CONFIG=/tmp/config_generated.json" -w /opt/mattermost-server/server -- utils go run scripts/config_generator/main.go

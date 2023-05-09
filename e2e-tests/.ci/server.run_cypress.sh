@@ -21,19 +21,26 @@ firefox:         $(firefox --version || true)
 INNEREOF
 EOF
 
+# Initialize cypress report directory
+mme2e_log "Prepare Cypress: clean and initialize report and logs directory"
+${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress bash <<EOF
+rm -rf logs results
+mkdir -p logs
+mkdir -p results/junit
+touch results/junit/empty.xml
+echo '<?xml version="1.0" encoding="UTF-8"?>' > results/junit/empty.xml
+EOF
+
 # Run cypress test
+# No need to collect its exit status: if it's nonzero, this script will terminate since we use '-e'
 if ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress bash -c '[ -n "${AUTOMATION_DASHBOARD_URL}" ]'; then
 	mme2e_log "AUTOMATION_DASHBOARD_URL is set. Using run_test_cycle.js for the cypress run"
 	${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress node --trace-warnings generate_test_cycle.js ${MME2E_TEST_FILTER}
-	${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress node run_test_cycle.js \
-		2> >(tee ../cypress/logs/cypress.stderr) | tee ../cypress/logs/cypress.stdout
+	${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress node run_test_cycle.js | tee ../cypress/logs/cypress.log
 else
 	mme2e_log "AUTOMATION_DASHBOARD_URL is unset. Using run_tests.js for the cypress run"
-	${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress node run_tests.js ${MME2E_TEST_FILTER} \
-		2> >(tee ../cypress/logs/cypress.stderr) | tee ../cypress/logs/cypress.stdout
+	${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress node run_tests.js ${MME2E_TEST_FILTER} | tee ../cypress/logs/cypress.log
 fi
-CYPRESS_EXIT_CODE=$?
-mme2e_log "Cypress exited with code: $CYPRESS_EXIT_CODE"
 
 # Collect server logs
 ${MME2E_DC_SERVER} exec -T -- server cat /mattermost/logs/mattermost.log >../cypress/logs/mattermost.log

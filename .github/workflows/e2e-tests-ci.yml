@@ -75,3 +75,6 @@ jobs:
       - name: ci/e2e-smoketests
         run: |
           make
+          # Assert that the run contained 0 failures
+          CYPRESS_FAILURES=$(find ../cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+          [ "$CYPRESS_FAILURES" = "0" ]
