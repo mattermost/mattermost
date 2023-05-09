@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 type MyPlugin struct {

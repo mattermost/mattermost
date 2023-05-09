@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 )

@@ -26,7 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -285,7 +285,7 @@ func TestCreateUser(t *testing.T) {
 
 			import (
 				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
 			type MyPlugin struct {
