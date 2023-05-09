@@ -5128,6 +5128,10 @@
     "translation": "Unable to get the file info."
   },
   {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Could not decode gif."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
   },
@@ -9090,10 +9094,6 @@
   {
     "id": "model.emoji.user_id.app_error",
     "translation": "Invalid creator id."
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Could not decode gif."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",

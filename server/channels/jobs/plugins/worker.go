@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package scheduler
+package plugins
 
 import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
