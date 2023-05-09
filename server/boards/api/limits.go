@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 )
 
 func (a *API) registerLimitsRoutes(r *mux.Router) {

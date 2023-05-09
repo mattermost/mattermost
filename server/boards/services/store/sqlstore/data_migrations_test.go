@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/sqlstore/migrationstests"
 	"github.com/mgdelacroix/foundation"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

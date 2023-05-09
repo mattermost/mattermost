@@ -9,10 +9,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 func (s *SQLStore) getUserCategoryBoards(db sq.BaseRunner, userID, teamID string) ([]model.CategoryBoards, error) {

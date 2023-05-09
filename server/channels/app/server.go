@@ -27,6 +27,10 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/timezones"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
@@ -67,10 +71,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/timezones"
 )
 
 // declaring this as var to allow overriding in tests

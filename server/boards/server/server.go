@@ -19,6 +19,7 @@ import (
 
 	"github.com/oklog/run"
 
+	appModel "github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/api"
 	"github.com/mattermost/mattermost-server/server/v8/boards/app"
 	"github.com/mattermost/mattermost-server/server/v8/boards/auth"
@@ -35,10 +36,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 	"github.com/mattermost/mattermost-server/server/v8/boards/web"
 	"github.com/mattermost/mattermost-server/server/v8/boards/ws"
-	appModel "github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 const (

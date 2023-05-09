@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 var errTestStore = errors.New("plugin test store error")

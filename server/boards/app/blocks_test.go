@@ -12,9 +12,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 )
 
 type blockError struct {

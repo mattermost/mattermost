@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
 	"github.com/stretchr/testify/require"
 )

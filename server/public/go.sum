@@ -1,0 +1,4 @@
+github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3 h1:QW2p25fGTu/S0MvEftCo3wV7aEFHBt2m1DTg1HUwh+o=
+github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
+github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d h1:/RJ/UV7M5c7L2TQ0KNm4yZxxFvC1nvRz/gY/Daa35aI=
+github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=

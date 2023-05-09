@@ -11,15 +11,15 @@ import (
 	"net/http"
 	"strings"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 
 	sq "github.com/Masterminds/squirrel"
 
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 var boardsBotID string

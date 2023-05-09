@@ -6,7 +6,7 @@ package notifysubscriptions
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 )
 
 func getBoardDescription(board *model.Block) string {

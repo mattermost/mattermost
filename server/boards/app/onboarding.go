@@ -6,7 +6,7 @@ package app
 import (
 	"errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 )
 
 const (

@@ -14,9 +14,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	_ "github.com/lib/pq" // postgres driver
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 const (

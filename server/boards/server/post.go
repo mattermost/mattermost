@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/markdown"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/markdown"
 )
 
 func postWithBoardsEmbed(post *mm_model.Post) *mm_model.Post {

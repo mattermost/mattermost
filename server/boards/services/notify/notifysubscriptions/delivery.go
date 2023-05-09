@@ -4,9 +4,9 @@
 package notifysubscriptions
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // SubscriptionDelivery provides an interface for delivering subscription notifications to other systems, such as

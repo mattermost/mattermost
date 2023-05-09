@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 type syncTask struct {

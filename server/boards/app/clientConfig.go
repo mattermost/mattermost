@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 )
 
 func (a *App) GetClientConfig() *model.ClientConfig {

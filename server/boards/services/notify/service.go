@@ -8,9 +8,9 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 type Action string

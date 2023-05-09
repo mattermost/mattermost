@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/assets"
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 const (

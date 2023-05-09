@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
-	"github.com/mattermost/mattermost-server/server/v8/public/boards/model"
 )
 
 func InsertBlocks(t *testing.T, s store.Store, blocks []*model.Block, userID string) {
