@@ -21,7 +21,6 @@ import (
 
 	"github.com/mattermost/ldap"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
@@ -1573,30 +1572,6 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool, skipVerify bool) filestore.FileBackendSettings {
-	if *s.DriverName == ImageDriverLocal {
-		return filestore.FileBackendSettings{
-			DriverName: *s.DriverName,
-			Directory:  *s.Directory,
-		}
-	}
-	return filestore.FileBackendSettings{
-		DriverName:                         *s.DriverName,
-		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,
-		AmazonS3SecretAccessKey:            *s.AmazonS3SecretAccessKey,
-		AmazonS3Bucket:                     *s.AmazonS3Bucket,
-		AmazonS3PathPrefix:                 *s.AmazonS3PathPrefix,
-		AmazonS3Region:                     *s.AmazonS3Region,
-		AmazonS3Endpoint:                   *s.AmazonS3Endpoint,
-		AmazonS3SSL:                        s.AmazonS3SSL == nil || *s.AmazonS3SSL,
-		AmazonS3SignV2:                     s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
-		AmazonS3SSE:                        s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
-		AmazonS3Trace:                      s.AmazonS3Trace != nil && *s.AmazonS3Trace,
-		AmazonS3RequestTimeoutMilliseconds: *s.AmazonS3RequestTimeoutMilliseconds,
-		SkipVerify:                         skipVerify,
-	}
-}
-
 type EmailSettings struct {
 	EnableSignUpWithEmail             *bool   `access:"authentication_email"`
 	EnableSignInWithEmail             *bool   `access:"authentication_email"`
@@ -2780,6 +2755,7 @@ func (s *JobSettings) SetDefaults() {
 type CloudSettings struct {
 	CWSURL    *string `access:"write_restrictable"`
 	CWSAPIURL *string `access:"write_restrictable"`
+	CWSMock   *bool   `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -2794,6 +2770,10 @@ func (s *CloudSettings) SetDefaults() {
 		if !isProdLicensePublicKey {
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
+	}
+	if s.CWSMock == nil {
+		isMockCws := MockCWS == "true"
+		s.CWSMock = &isMockCws
 	}
 }
 

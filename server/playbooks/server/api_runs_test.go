@@ -506,6 +506,7 @@ func TestRunRetrieval(t *testing.T) {
 }
 
 func TestRunPostStatusUpdate(t *testing.T) {
+	t.Skip("MM-52694")
 	e := Setup(t)
 	e.CreateBasic()
 

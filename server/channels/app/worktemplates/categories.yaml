@@ -2,7 +2,17 @@
   name: worktemplate.category.product_teams
 - id: devops
   name: worktemplate.category.devops
-- id: companywide
-  name: worktemplate.category.companywide
 - id: leadership
   name: worktemplate.category.leadership
+- id: engineering
+  name: worktemplate.category.engineering
+- id: project_management
+  name: worktemplate.category.project_management
+- id: marketing
+  name: worktemplate.category.marketing
+- id: design
+  name: worktemplate.category.design
+- id: qa
+  name: worktemplate.category.qa
+- id: other
+  name: worktemplate.category.other
