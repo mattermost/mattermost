@@ -4,16 +4,11 @@
 import React from 'react'
 
 import {
-    render,
     act,
+    fireEvent,
+    render,
     screen,
-    fireEvent
 } from '@testing-library/react'
-
-
-
-
-
 
 import {wrapIntl} from 'src/testUtils'
 

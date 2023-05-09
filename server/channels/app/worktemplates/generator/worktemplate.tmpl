@@ -46,6 +46,7 @@ var wt{{.MD5}} = &WorkTemplate{
 	UseCase:      "{{.UseCase}}",
 	Illustration: "{{.Illustration}}",
 	Visibility:   "{{.Visibility}}",
+	OnboardingOnly: {{.OnboardingOnly}},
 	{{if .FeatureFlag}}FeatureFlag: &FeatureFlag{
 		Name:  "{{.FeatureFlag.Name}}",
 		Value: "{{.FeatureFlag.Value}}",
@@ -93,6 +94,7 @@ var wt{{.MD5}} = &WorkTemplate{
 				Illustration: "{{.Playbook.Illustration}}",
 			},{{end}}{{if .Integration}}Integration: &Integration{
 				ID: "{{.Integration.ID}}",
+				Recommended: {{.Integration.Recommended}},
 			},{{end}}
 		},
 		{{end}}

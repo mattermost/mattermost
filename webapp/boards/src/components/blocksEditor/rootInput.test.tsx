@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 
 import RootInput from './rootInput'
 

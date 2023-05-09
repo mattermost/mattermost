@@ -6,7 +6,6 @@ import {ActionMeta, OnChangeValue, StylesConfig} from 'react-select'
 import {FormatOptionLabelMeta} from 'react-select/base'
 import CreatableSelect from 'react-select/creatable'
 
-
 import {IPropertyOption} from 'src/blocks/board'
 import {Constants} from 'src/constants'
 
@@ -52,6 +51,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
         if (!isMulti) {
             className += ' Label-no-margin'
         }
+
         return (
             <Label
                 color={option.color}
@@ -69,6 +69,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
             </Label>
         )
     }
+
     return (
         <div
             className='value-menu-option'
@@ -157,6 +158,7 @@ const valueSelectorStyle: StylesConfig<IPropertyOption> = {
 
 function ValueSelector(props: Props): JSX.Element {
     const intl = useIntl()
+
     return (
         <CreatableSelect
             noOptionsMessage={() => intl.formatMessage({id: 'ValueSelector.noOptions', defaultMessage: 'No options. Start typing to add the first one!'})}

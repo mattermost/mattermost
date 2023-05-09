@@ -27,6 +27,7 @@ function createCard(block?: Block): Card {
             }
         }
     }
+
     return {
         ...createBlock(block),
         type: 'card',
