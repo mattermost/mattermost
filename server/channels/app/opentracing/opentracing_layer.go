@@ -11382,7 +11382,7 @@ func (a *OpenTracingAppLayer) GetWorkTemplateCategories(t i18n.TranslateFunc) ([
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map[string]string, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
+func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map[string]string, includeOnboardingTemplates bool, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWorkTemplates")
 
@@ -11394,7 +11394,7 @@ func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWorkTemplates(category, featureFlags, t)
+	resultVar0, resultVar1 := a.app.GetWorkTemplates(category, featureFlags, includeOnboardingTemplates, t)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17374,6 +17374,28 @@ func (a *OpenTracingAppLayer) UpdateDNDStatusOfUsers() {
 
 	defer span.Finish()
 	a.app.UpdateDNDStatusOfUsers()
+}
+
+func (a *OpenTracingAppLayer) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateDefaultProfileImage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateDefaultProfileImage(c, user)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post {
