@@ -861,7 +861,7 @@ type AppIface interface {
 	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError)
 	GetWorkTemplateCategories(t i18n.TranslateFunc) ([]*model.WorkTemplateCategory, *model.AppError)
-	GetWorkTemplates(category string, featureFlags map[string]string, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError)
+	GetWorkTemplates(category string, featureFlags map[string]string, includeOnboardingTemplates bool, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError)
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
