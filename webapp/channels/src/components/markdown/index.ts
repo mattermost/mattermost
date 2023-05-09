@@ -56,7 +56,7 @@ function makeMapStateToProps() {
 
         return {
             autolinkedUrlSchemes: getAutolinkedUrlSchemes(state),
-            channelNamesMap: getChannelNamesMap(state, ownProps),
+            channelNamesMap: ownProps.channelNamesMap || getChannelNamesMap(state, ownProps),
             enableFormatting: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             managedResourcePaths: getManagedResourcePaths(state),
             mentionKeys: ownProps.mentionKeys || getAllUserMentionKeys(state),

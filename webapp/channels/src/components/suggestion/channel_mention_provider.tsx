@@ -6,7 +6,10 @@ import React from 'react';
 import {Channel} from '@mattermost/types/channels';
 import {ActionResult} from 'mattermost-redux/types/actions.js';
 
-import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {
+    getMyChannelMemberships,
+    getChannelsInAllTeams,
+} from 'mattermost-redux/selectors/entities/channels';
 
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
@@ -16,6 +19,7 @@ import {Constants} from 'utils/constants';
 
 import Provider from './provider';
 import Suggestion from './suggestion.jsx';
+import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 export const MIN_CHANNEL_LINK_LENGTH = 2;
 
@@ -107,6 +111,7 @@ export default class ChannelMentionProvider extends Provider {
     }
 
     handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+        const currentTeamId = getCurrentTeamId(store.getState());
         this.resetRequest();
 
         const captured = (/\B(~([^~\r\n]*))$/i).exec(pretext.toLowerCase());
@@ -152,7 +157,7 @@ export default class ChannelMentionProvider extends Provider {
         const words = prefix.toLowerCase().split(/\s+/);
         const wrappedChannelIds: Record<string, boolean> = {};
         let wrappedChannels: WrappedChannels[] = [];
-        getMyChannels(store.getState()).forEach((item) => {
+        getChannelsInAllTeams(store.getState()).forEach((item) => {
             if (item.type !== 'O' || item.delete_at > 0) {
                 return;
             }
@@ -189,11 +194,19 @@ export default class ChannelMentionProvider extends Provider {
             //
             return sortChannelsByTypeAndDisplayName('en', a.channel as Channel, b.channel as Channel);
         });
-        const channelMentions = wrappedChannels.map((item) => '~' + item.channel?.name);
+        const channelMentions = wrappedChannels.map((item) => {
+            if (item.type !== Constants.GM_CHANNEL && item.type !== Constants.DM_CHANNEL && item.channel?.team_id) {
+                const team = getTeam(store.getState(), item.channel.team_id);
+                if (currentTeamId !== item.channel.team_id) {
+                    return '~' + item.channel?.name + `(${team.name})`;
+                }
+            }
+            return '~' + item.channel?.name;
+        });
         resultCallback({
             terms: channelMentions.concat([' ']),
             items: wrappedChannels.concat([{
-                type: Constants.MENTION_MORE_CHANNELS,
+                type: Constants.MENTION_CHANNELS,
                 loading: true,
             }]),
             component: ChannelMentionSuggestion,
@@ -240,7 +253,7 @@ export default class ChannelMentionProvider extends Provider {
                 }
 
                 wrappedMoreChannels.push({
-                    type: Constants.MENTION_MORE_CHANNELS,
+                    type: Constants.MENTION_CHANNELS,
                     channel: item,
                 });
             });
@@ -253,7 +266,15 @@ export default class ChannelMentionProvider extends Provider {
             });
 
             const wrapped = wrappedChannels.concat(wrappedMoreChannels);
-            const mentions = wrapped.map((item) => '~' + item.channel?.name);
+            const mentions = wrapped.map((item) => {
+                if (item.type !== Constants.GM_CHANNEL && item.type !== Constants.DM_CHANNEL && item.channel?.team_id) {
+                    const team = getTeam(store.getState(), item.channel.team_id);
+                    if (currentTeamId !== item.channel.team_id) {
+                        return '~' + item.channel?.name + `(${team.name})`;
+                    }
+                }
+                return '~' + item.channel?.name;
+            });
 
             resultCallback({
                 matchedPretext: captured[1],
