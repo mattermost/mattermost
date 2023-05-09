@@ -889,5 +889,4 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 	c.App.Srv().GetTelemetryService().SendTelemetry("delete_workspace_feedback", deleteRequest.Feedback.ToMap())
 
 	ReturnStatusOK(w)
-
 }

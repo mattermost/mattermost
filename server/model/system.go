@@ -17,6 +17,7 @@ const (
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
 	SystemInstallationDateKey              = "InstallationDate"
 	SystemOrganizationName                 = "OrganizationName"
+	SystemFirstAdminRole                   = "FirstAdminRole"
 	SystemFirstServerRunTimestampKey       = "FirstServerRunTimestamp"
 	SystemClusterEncryptionKey             = "ClusterEncryptionKey"
 	SystemUpgradedFromTeId                 = "UpgradedFromTE"

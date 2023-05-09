@@ -155,6 +155,7 @@ export class TestHelper {
             mark_unread: 'all',
             push: 'default',
             ignore_channel_mentions: 'default',
+            channel_auto_follow_threads: 'off',
         };
         const notifyProps = Object.assign({}, defaultNotifyProps, overrideNotifyProps);
 

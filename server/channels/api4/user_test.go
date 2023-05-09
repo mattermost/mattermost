@@ -3665,8 +3665,15 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	defer th.TearDown()
 	user := th.BasicUser
 
+	startTime := model.GetMillis()
+	time.Sleep(time.Millisecond)
+
 	_, err := th.Client.SetDefaultProfileImage(context.Background(), user.Id)
 	require.NoError(t, err)
+
+	iuser, getUserErr := th.App.GetUser(user.Id)
+	require.Nil(t, getUserErr)
+	assert.Less(t, iuser.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 
 	resp, err := th.Client.SetDefaultProfileImage(context.Background(), model.NewId())
 	require.Error(t, err)
@@ -3685,12 +3692,14 @@ func TestSetDefaultProfileImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
+	time.Sleep(time.Millisecond)
+
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), user.Id)
 	require.NoError(t, err)
 
 	ruser, appErr := th.App.GetUser(user.Id)
 	require.Nil(t, appErr)
-	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have reset to default")
+	assert.Less(t, ruser.LastPictureUpdate, iuser.LastPictureUpdate, "LastPictureUpdate should be updated to a lower negative number")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	err = th.cleanupTestFile(info)
