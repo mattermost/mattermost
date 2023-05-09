@@ -13,9 +13,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/model/utils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
@@ -52,7 +51,7 @@ type Environment struct {
 	registeredPlugins      sync.Map
 	pluginHealthCheckJob   *PluginHealthCheckJob
 	logger                 *mlog.Logger
-	metrics                einterfaces.MetricsInterface
+	metrics                metricsInterface
 	newAPIImpl             apiImplCreatorFunc
 	dbDriver               Driver
 	pluginDir              string
@@ -67,7 +66,7 @@ func NewEnvironment(
 	pluginDir string,
 	webappPluginDir string,
 	logger *mlog.Logger,
-	metrics einterfaces.MetricsInterface,
+	metrics metricsInterface,
 ) (*Environment, error) {
 	return &Environment{
 		logger:          logger,

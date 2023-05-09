@@ -11,14 +11,13 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type hooksTimerLayer struct {
 	pluginID  string
 	hooksImpl Hooks
-	metrics   einterfaces.MetricsInterface
+	metrics   metricsInterface
 }
 
 func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
