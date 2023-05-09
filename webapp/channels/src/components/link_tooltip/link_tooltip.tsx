@@ -107,6 +107,7 @@ export default class LinkTooltip extends React.PureComponent<Props, State> {
             'data-hashtag': attributes['data-hashtag'],
             'data-link': attributes['data-link'],
             'data-channel-mention': attributes['data-channel-mention'],
+            'data-channel-mention-team': attributes['data-channel-mention-team'],
         };
         return (
             <React.Fragment>

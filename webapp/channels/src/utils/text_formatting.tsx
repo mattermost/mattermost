@@ -585,6 +585,11 @@ export function autolinkChannelMentions(
         replaceChannelMentionWithToken,
     );
 
+    output = output.replace(
+        /\B(~([a-z0-9.\-_]*))/gi,
+        replaceChannelMentionWithToken,
+    );
+
     return output;
 }
 
