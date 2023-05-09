@@ -4,7 +4,7 @@ cd $(dirname $0)
 . .e2erc
 
 # Set required variables
-MME2E_TEST_FILTER_DEFAULT='--group=@smoke'
+MME2E_TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
 MME2E_TEST_FILTER=${MME2E_TEST_FILTER:-$MME2E_TEST_FILTER_DEFAULT}
 
 # Print run information

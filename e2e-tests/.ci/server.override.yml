@@ -80,7 +80,7 @@ services:
       - "../../e2e-tests/.ci/.env.dashboard"
     environment:
       REPO: "mattermost-server"
-      CI_BASE_URL: "localhost-${MM_NODE_INDEX}"
+      CI_BASE_URL: "localhost-${MME2E_NODE_INDEX}"
       # Cypress configuration
       BROWSER: "chrome"
       HEADLESS: "true"
