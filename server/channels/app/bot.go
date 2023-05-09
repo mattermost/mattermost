@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
