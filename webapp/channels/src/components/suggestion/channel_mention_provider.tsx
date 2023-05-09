@@ -19,7 +19,7 @@ import {Constants} from 'utils/constants';
 
 import Provider from './provider';
 import Suggestion from './suggestion.jsx';
-import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getMyTeams, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 export const MIN_CHANNEL_LINK_LENGTH = 2;
 
@@ -61,12 +61,18 @@ export class ChannelMentionSuggestion extends Suggestion {
         }
 
         let className = 'suggestion-list__item';
+        let teamName = null;
+        const team = getTeam(store.getState(), item.channel.team_id);
+        if (item.channel.team_id && team) {
+            teamName = (<span className='ml-2 suggestion-list__team-name'>{team.display_name}</span>);
+        }
         if (isSelection) {
             className += ' suggestion--selected';
         }
 
         const description = '~' + item.channel.name;
 
+        const isPartOfOnlyOneTeam = getMyTeams(store.getState()).length === 1;
         return (
             <div
                 className={className}
@@ -79,7 +85,10 @@ export class ChannelMentionSuggestion extends Suggestion {
                     <span className='suggestion-list__main'>
                         {channelName}
                     </span>
-                    {description}
+                    <span className='ml-2'>
+                        {description}
+                        {!isPartOfOnlyOneTeam && <span>{teamName}</span>}
+                    </span>
                 </div>
             </div>
         );
