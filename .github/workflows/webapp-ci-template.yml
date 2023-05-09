@@ -1,13 +1,10 @@
-name: Web App CI
+# Base CI template which is called from webapp-ci-pr.yml
+# and webapp-ci-master.yml
+
+name: Web App CI Template
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - mono-repo*
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  workflow_call:
+
 defaults:
   run:
     shell: bash
