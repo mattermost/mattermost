@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"gopkg.in/guregu/null.v4"
 
 	"github.com/gorilla/mux"

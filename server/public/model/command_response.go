@@ -8,7 +8,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/utils"
+	"github.com/mattermost/mattermost-server/server/public/utils"
 )
 
 const (

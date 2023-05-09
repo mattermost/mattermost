@@ -3,7 +3,7 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/server/v8/public/model"
+import "github.com/mattermost/mattermost-server/server/public/model"
 
 type GenericChannelActionWithoutPayload struct {
 	ID          string      `json:"id"`

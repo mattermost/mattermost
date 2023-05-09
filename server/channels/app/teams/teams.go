@@ -6,8 +6,8 @@ package teams
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
 )
 
 func (ts *TeamService) CreateTeam(team *model.Team) (*model.Team, error) {
