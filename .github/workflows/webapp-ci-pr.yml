@@ -1,9 +1,7 @@
-name: Server CI
+name: Web App CI
 on:
   pull_request:
 
-env:
-  go-version: "1.19.5"
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -16,4 +14,4 @@ concurrency:
 
 jobs:
   pr-ci:
-    uses: ./.github/workflows/server-ci-template.yml
+    uses: ./.github/workflows/webapp-ci-template.yml

@@ -1,3 +1,6 @@
+# Base CI template which is called from server-ci-pr.yml
+# and server-ci-master.yml
+
 name: Server CI Template
 on:
   workflow_call:
