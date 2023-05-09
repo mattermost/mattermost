@@ -11382,7 +11382,7 @@ func (a *OpenTracingAppLayer) GetWorkTemplateCategories(t i18n.TranslateFunc) ([
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map[string]string, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
+func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map[string]string, includeOnboardingTemplates bool, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWorkTemplates")
 
@@ -11394,7 +11394,7 @@ func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWorkTemplates(category, featureFlags, t)
+	resultVar0, resultVar1 := a.app.GetWorkTemplates(category, featureFlags, includeOnboardingTemplates, t)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -1603,6 +1603,7 @@ describe('components/AdvancedCreateComment', () => {
         (instance) => instance.find(AdvanceTextEditor),
         (instance) => instance.state().draft.message,
         false,
+        'reply_textbox',
     );
 
     it('should blur when ESCAPE is pressed', () => {
