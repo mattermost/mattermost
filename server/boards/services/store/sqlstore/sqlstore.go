@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 // SQLStore is a SQL database.

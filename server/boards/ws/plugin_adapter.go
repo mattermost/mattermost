@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 const websocketMessagePrefix = "custom_boards_"

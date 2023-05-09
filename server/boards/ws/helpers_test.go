@@ -9,8 +9,8 @@ import (
 	authMocks "github.com/mattermost/mattermost-server/server/v8/boards/auth/mocks"
 	wsMocks "github.com/mattermost/mattermost-server/server/v8/boards/ws/mocks"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 
 	"github.com/golang/mock/gomock"
 )

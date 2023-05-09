@@ -13,9 +13,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/v8/public/shared/mlog"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
