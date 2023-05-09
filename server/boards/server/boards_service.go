@@ -19,8 +19,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/ws"
 
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	mm_model "github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 )
 
 const (

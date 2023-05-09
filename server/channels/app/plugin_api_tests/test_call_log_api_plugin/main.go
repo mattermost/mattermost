@@ -6,8 +6,8 @@ package main
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 )
 
 type PluginUsingLogAPI struct {

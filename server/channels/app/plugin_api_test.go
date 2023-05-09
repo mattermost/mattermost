@@ -29,9 +29,9 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/utils"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin/utils"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -143,7 +143,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -830,7 +830,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/server/v8/plugin"
+      "github.com/mattermost/mattermost-server/server/v8/public/plugin"
     )
 
     type MyPlugin struct {
@@ -982,7 +982,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 		)
 
 		type configuration struct {
@@ -1498,7 +1498,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1539,7 +1539,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 			"github.com/mattermost/mattermost-server/server/v8/public/model"
 			"bytes"
 			"net/http"
@@ -1645,7 +1645,7 @@ func TestAPIMetrics(t *testing.T) {
 
 	import (
 		"github.com/mattermost/mattermost-server/server/v8/public/model"
-		"github.com/mattermost/mattermost-server/server/v8/plugin"
+		"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 	)
 
 	type MyPlugin struct {
@@ -2044,7 +2044,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
     import (
 	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost-server/server/v8/plugin"
+      "github.com/mattermost/mattermost-server/server/v8/public/plugin"
     )
 
     type MyPlugin struct {
@@ -2113,7 +2113,7 @@ func TestPluginUploadsAPI(t *testing.T) {
 			"bytes"
 
       "github.com/mattermost/mattermost-server/server/v8/public/model"
-      "github.com/mattermost/mattermost-server/server/v8/plugin"
+      "github.com/mattermost/mattermost-server/server/v8/public/plugin"
     )
 
     type TestPlugin struct {
