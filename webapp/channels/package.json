@@ -183,7 +183,7 @@
     "jest-styled-components": "7.1.1",
     "jest-watch-typeahead": "0.6.4",
     "mini-css-extract-plugin": "2.0.0",
-    "mmjstool": "github:mattermost/mattermost-utilities#237c2194aa646021535c54e4aafed084807b93a6",
+    "mmjstool": "github:mattermost/mattermost-utilities#043f88c972e38fec90bcce49624761958cc65fe6",
     "nock": "13.2.8",
     "prettier": "2.3.2",
     "react-router-enzyme-context": "1.2.0",
