@@ -1,4 +1,4 @@
-name: Web App CI
+name: Web App CI PR
 on:
   pull_request:
 

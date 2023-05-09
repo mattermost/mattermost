@@ -1,4 +1,4 @@
-name: Web App CI
+name: Web App CI Master
 on:
   push:
     branches:
