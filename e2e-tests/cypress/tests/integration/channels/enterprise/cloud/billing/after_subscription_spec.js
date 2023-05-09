@@ -23,8 +23,9 @@ describe('System Console - after subscription scenarios', () => {
         // * Check for Subscription header
         cy.contains('.admin-console__header', 'Subscription').should('be.visible');
 
-        // # Click Subscribe Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
+        // # Click Upgrade now button
+        cy.get('.PlanDetails__top > .btn').click()
+        cy.get('#professional_action').click();
 
         cy.intercept('POST', '/api/v4/cloud/payment/confirm').as('confirm');
 
@@ -43,6 +44,9 @@ describe('System Console - after subscription scenarios', () => {
         cy.get('#input_city').clear().type('testcity');
         cy.get('#input_state').clear().type('teststate');
         cy.get('#input_postalCode').clear().type('4444');
+
+        // * Number of Seats
+        cy.get('#input_UserSeats').clear().type('10');
 
         // # Click Subscribe button
         cy.get('.RHS').find('button').last().should('be.enabled').click();
