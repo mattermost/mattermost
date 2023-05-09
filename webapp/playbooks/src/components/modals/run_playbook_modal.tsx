@@ -25,11 +25,12 @@ import {displayPlaybookCreateModal} from 'src/actions';
 import PlaybooksSelector from 'src/components/playbooks_selector';
 import {SecondaryButton} from 'src/components/assets/buttons';
 import SearchInput from 'src/components/backstage/search_input';
-import {useCanCreatePlaybooksInTeam, useEnsureGroupsAndMemberIds, useEnsureProfiles} from 'src/hooks';
+import {useCanCreatePlaybooksInTeam, useEnsureGroupsAndMemberIds, useEnsureProfiles, usePrevious} from 'src/hooks';
 import {RUN_NAME_MAX_LENGTH} from 'src/constants';
 import { GlobalState } from '@mattermost/types/store';
 import { UserProfile } from '@mattermost/types/users';
 import { makeGetGroupMemberIdsByGroupIds } from 'mattermost-redux/selectors/entities/groups';
+import { isEqual } from 'lodash';
 
 const ID = 'playbooks_run_playbook_dialog';
 
@@ -83,6 +84,7 @@ const RunPlaybookModal = ({
     useEnsureProfiles(profileIds);
 
     const invitedProfiles = useSelector((state: GlobalState) => getProfilesByIdsAndUsernames(state, profileIds));
+    const prevInvitedProfiles = usePrevious(invitedProfiles);
 
     const currentChannelId = useSelector(getCurrentChannelId);
     let userId = useSelector(getCurrentUserId);
@@ -93,7 +95,9 @@ const RunPlaybookModal = ({
     const [profiles, setProfiles] = useState<UserProfile[]>([]);
 
     useEffect(() => {
-        setProfiles([...invitedProfiles]);
+        if (!isEqual(prevInvitedProfiles, invitedProfiles)) {
+            setProfiles([...invitedProfiles]);
+        }
     }, [invitedProfiles]);
 
     useEffect(() => {
@@ -236,7 +240,7 @@ const RunPlaybookModal = ({
                         isDisabled={false}
                         isMultiMode={true}
                         customSelectStyles={selectStyles}
-                        setValues={(newUserProfiles) => (setProfiles(newUserProfiles))}
+                        setValues={(newUserProfiles) => setProfiles(newUserProfiles)}
                         placeholder={formatMessage({defaultMessage: 'Search for people'})}
                     />
                     <ConfigChannelSection
@@ -570,14 +574,12 @@ const ErrorMessage = styled.div`
 `;
 
 const selectStyles: StylesConfig<OptionTypeBase, boolean> = {
-    container: (provided) => ({
-        ...provided,
-    }),
     control: (provided, {isDisabled}) => ({
         ...provided,
         backgroundColor: isDisabled ? 'rgba(var(--center-channel-bg-rgb),0.16)' : 'var(--center-channel-bg)',
         border: '1px solid rgba(var(--center-channel-color-rgb), 0.16)',
         '&&:before': {content: 'none'},
+        minHeight: '42px',
     }),
     placeholder: (provided) => ({
         ...provided,
