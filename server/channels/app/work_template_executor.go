@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 
 	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
 

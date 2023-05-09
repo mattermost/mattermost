@@ -12,7 +12,7 @@ import (
 
 	model "github.com/mattermost/mattermost-server/server/v8/public/model"
 
-	plugin "github.com/mattermost/mattermost-server/server/v8/plugin"
+	plugin "github.com/mattermost/mattermost-server/server/v8/public/plugin"
 
 	product "github.com/mattermost/mattermost-server/server/v8/channels/product"
 )
