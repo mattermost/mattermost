@@ -14,9 +14,8 @@ type DialogTitleProps = MUIDialogTitleProps & { hasCloseButton: boolean};
 const StyledModalHeader = styled(MUIDialogTitle, {
     shouldForwardProp: (prop) => prop !== 'hasCloseButton',
 })<DialogTitleProps>({
-    display: 'grid',
-    gridTemplateColumns: '1fr max-content max-content',
-    gap: 12,
+    display: 'flex',
+    justifyContent: 'space-between',
     fontFamily: 'Metropolis',
     fontStyle: 'normal',
     fontWeight: 600,
@@ -24,7 +23,7 @@ const StyledModalHeader = styled(MUIDialogTitle, {
     lineHeight: '28px',
     color: 'var(--center-channel-color)',
     alignItems: 'center',
-    padding: '0',
+    padding: '0'
 });
 
 const StyledModalTitleSection = styled('div')`
@@ -57,7 +56,7 @@ const ModalHeader = ({title, onClose, children, rightSection = null, sx}: ModalH
                         compact={true}
                         type='button'
                         onClick={onClose}
-                        IconComponent={CloseIcon}
+                        IconComponent={<CloseIcon size={20}/>}
                     />
                 )}
             </StyledModalHeader>

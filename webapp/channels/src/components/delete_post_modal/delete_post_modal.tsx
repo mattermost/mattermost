@@ -130,7 +130,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
 
         if (this.props.isNewUI) {
             const title = (
-                <Typography variant='h400'>
+                <Typography variant='h500'>
                     <FormattedMessage
                         id='delete_post.confirm_new'
                         defaultMessage='Delete {term}'
@@ -150,7 +150,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                     onConfirm={this.handleDelete}
                     onCancel={this.onHide}
                 >
-                    <Typography variant='b200'>
+                    <Typography variant='b100'>
                         <FormattedMessage
                             id='delete_post.question'
                             defaultMessage='Are you sure you want to delete this {term}?'

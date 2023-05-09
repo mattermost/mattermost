@@ -6,10 +6,10 @@ import classNames from 'classnames';
 import React from 'react';
 import MuiIconButton, {IconButtonProps as MuiIconButtonProps} from '@mui/material/IconButton';
 
-type ExcludedMuiProps = 'sx' | 'disableFocusRipple' | 'disableRipple' | 'color' | 'classes';
+type ExcludedMuiProps = 'disableFocusRipple' | 'disableRipple' | 'color' | 'classes';
 
 type CustomProps = {
-    IconComponent: React.FC;
+    IconComponent: React.ReactNode;
     compact?: boolean;
     toggled?: boolean;
     inverted?: boolean;
@@ -23,6 +23,7 @@ const IconButton = ({IconComponent, label, destructive = false, compact = false,
     return (
         <MuiIconButton
             {...props}
+            size={'large'}
             className={classNames({compact, toggled, inverted})}
             color={destructive ? 'error' : 'primary'}
         >
@@ -33,7 +34,7 @@ const IconButton = ({IconComponent, label, destructive = false, compact = false,
                 alignContent='center'
             >
                 <Grid item={true}>
-                    <IconComponent/>
+                    {IconComponent}
                 </Grid>
                 {label && (
                     <Grid
