@@ -63,7 +63,6 @@
 		"trim-newlines": "^4.0.2"
 	},
 	"devDependencies": {
-		"@babel/cli": "7.17.6",
 		"@babel/core": "7.17.8",
 		"@babel/polyfill": "7.10.4",
 		"@babel/preset-env": "7.16.11",

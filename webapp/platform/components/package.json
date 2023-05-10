@@ -12,7 +12,6 @@
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
-    "@babel/cli": "^7.17.6",
     "@babel/core": "^7.17.7",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
