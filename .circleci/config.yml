@@ -321,7 +321,7 @@ jobs:
       - attach_workspace:
           at: /mnt/ramdisk/
       - setup_remote_docker:
-          version: 20.10.7
+          version: 20.10.14
       - run:
           command: |
             export TAG="${CIRCLE_SHA1:0:7}"
