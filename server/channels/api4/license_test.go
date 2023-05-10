@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	mocks2 "github.com/mattermost/mattermost-server/server/v8/channels/utils/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
 
 	"github.com/stretchr/testify/mock"
