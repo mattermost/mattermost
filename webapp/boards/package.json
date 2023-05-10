@@ -63,11 +63,7 @@
 		"trim-newlines": "^4.0.2"
 	},
 	"devDependencies": {
-		"@babel/core": "7.17.8",
 		"@babel/polyfill": "7.10.4",
-		"@babel/preset-env": "7.16.11",
-		"@babel/preset-react": "7.16.7",
-		"@babel/preset-typescript": "7.16.7",
 		"@babel/runtime": "7.17.8",
 		"@formatjs/cli": "^4.8.2",
 		"@formatjs/ts-transformer": "^3.9.2",
