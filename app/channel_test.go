@@ -645,7 +645,7 @@ func TestLeaveChannel(t *testing.T) {
 
 	t.Run("thread memberships are deleted", func(t *testing.T) {
 		createThread(th.BasicChannel)
-		channel2 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+		channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
 		createThread(channel2)
 
 		threads, err := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
@@ -655,7 +655,7 @@ func TestLeaveChannel(t *testing.T) {
 		err = th.App.LeaveChannel(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NotNil(t, err, "It should remove channel membership")
 
 		threads, err = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})

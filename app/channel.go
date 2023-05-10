@@ -2431,8 +2431,8 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 	if err := a.Srv().Store.ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
-		return model.NewAppError("removeUserFromChannel", model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
+	if err := a.Srv().Store.Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
+		return model.NewAppError("removeUserFromChannel", model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel: "+err.Error(), http.StatusInternalServerError)
 	}
 
 	if isGuest {

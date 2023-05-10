@@ -6563,17 +6563,14 @@ func TestSingleThreadGet(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.PostPriority = false
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
-		*cfg.ServiceSettings.PostPriority = true
-		cfg.FeatureFlags.PostPriority = true
 	})
 
 	client := th.Client
 
 	t.Run("get single thread", func(t *testing.T) {
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 		// create a post by regular user
 		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6584,11 +6581,6 @@ func TestSingleThreadGet(t *testing.T) {
 		rpost2, _ := postAndCheck(t, client, &model.Post{
 			ChannelId: th.BasicChannel2.Id,
 			Message:   "testMsg2",
-			Metadata: &model.PostMetadata{
-				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
-				},
-			},
 		})
 		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply", RootId: rpost2.Id})
 
@@ -6601,23 +6593,12 @@ func TestSingleThreadGet(t *testing.T) {
 		require.Equal(t, threads.Threads[0].PostId, tr.PostId)
 		require.Empty(t, tr.Participants[0].Username)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostPriority = false
-		})
-
 		tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
 		require.NoError(t, err)
 		require.NotEmpty(t, tr.Participants[0].Username)
-		require.Equal(t, false, tr.IsUrgent)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.PostPriority = true
-			cfg.FeatureFlags.PostPriority = true
-		})
 
 		tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
 		require.NoError(t, err)
-		require.Equal(t, true, tr.IsUrgent)
 	})
 
 	t.Run("should error when not a team member", func(t *testing.T) {
