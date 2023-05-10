@@ -46,7 +46,6 @@ const config = {
     ],
 };
 
-// Jest needs module transformation
 config.env = {
     test: {
         presets: config.presets,
