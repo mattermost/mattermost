@@ -11,7 +11,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // MockConfigurationAPI is a mock of ConfigurationAPI interface.
