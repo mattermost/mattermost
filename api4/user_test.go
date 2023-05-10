@@ -6596,9 +6596,6 @@ func TestSingleThreadGet(t *testing.T) {
 		tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
 		require.NoError(t, err)
 		require.NotEmpty(t, tr.Participants[0].Username)
-
-		tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
-		require.NoError(t, err)
 	})
 
 	t.Run("should error when not a team member", func(t *testing.T) {
