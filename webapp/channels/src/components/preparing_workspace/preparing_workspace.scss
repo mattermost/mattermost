@@ -1,5 +1,6 @@
 @import 'utils/variables';
 @import 'utils/mixins';
+@import 'mixins';
 
 .PreparingWorkspace {
     width: 100vw;
@@ -93,34 +94,35 @@
         animation-duration: 0.3s;
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
-    }
-}
 
-.enter {
-    animation-name: slideInRight;
-}
+        @include sideIllustrationKeyframe(invitation, 651);
 
-.exit {
-    animation-name: slideOutRight;
-}
+        &.enter {
+            animation-name: invitationSlideInRight;
+        }
 
-@keyframes slideInRight {
-    from {
-        right: -651px;
+        &.exit {
+            animation-name: invitationSlideOutRight;
+        }
     }
 
-    to {
-        right: 0;
-    }
-}
+    &__roles-illustration {
+        position: absolute;
+        right: -295px;
+        bottom: 0;
+        animation-duration: 0.3s;
+        animation-fill-mode: forwards;
+        animation-timing-function: ease-in-out;
 
-@keyframes slideOutRight {
-    from {
-        right: 0;
-    }
+        @include sideIllustrationKeyframe(roles, 295);
 
-    to {
-        right: -651px;
+        &.enter {
+            animation-name: rolesSlideInRight;
+        }
+
+        &.exit {
+            animation-name: rolesSlideOutRight;
+        }
     }
 }
 
@@ -144,5 +146,12 @@
     .PreparingWorkspacePageContainer .Plugins-body {
         padding-top: 200px;
         overflow-y: visible;
+    }
+}
+
+@media screen and (max-width: 1199px) {
+    .PreparingWorkspace__roles-illustration,
+    .PreparingWorkspace__invite-members-illustration {
+        display: none;
     }
 }

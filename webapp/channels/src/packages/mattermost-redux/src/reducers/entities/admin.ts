@@ -33,6 +33,19 @@ function logs(state: string[] = [], action: GenericAction) {
     }
 }
 
+function plainLogs(state: string[] = [], action: GenericAction) {
+    switch (action.type) {
+    case AdminTypes.RECEIVED_PLAIN_LOGS: {
+        return action.data;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+
+    default:
+        return state;
+    }
+}
+
 function audits(state: Record<string, Audit> = {}, action: GenericAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_AUDITS: {
@@ -658,8 +671,11 @@ function dataRetentionCustomPoliciesCount(state = 0, action: GenericAction) {
 
 export default combineReducers({
 
-    // array of strings each representing a log entry
+    // array of LogObjects each representing a log entry (JSON)
     logs,
+
+    // array of strings each representing a log entry (legacy)
+    plainLogs,
 
     // object where every key is an audit id and has an object with audit details
     audits,

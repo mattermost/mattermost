@@ -28,7 +28,7 @@ import InfoToast from 'components/info_toast/info_toast';
 
 import RestorePostModal from '../restore_post_modal';
 
-import {PropsFromRedux} from '.';
+import type {PropsFromRedux} from './index';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

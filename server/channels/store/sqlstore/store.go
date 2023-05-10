@@ -56,7 +56,7 @@ const (
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	minimumRequiredPostgresVersion = 100000
+	minimumRequiredPostgresVersion = 110000
 	// major*1000 + minor*100 + patch
 	minimumRequiredMySQLVersion = 5712
 

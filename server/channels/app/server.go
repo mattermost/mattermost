@@ -47,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
@@ -70,7 +71,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/scheduler"
 )
 
 // declaring this as var to allow overriding in tests
@@ -1500,8 +1500,8 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypePlugins,
-		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
-		scheduler.MakeScheduler(s.Jobs),
+		plugins.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		plugins.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
