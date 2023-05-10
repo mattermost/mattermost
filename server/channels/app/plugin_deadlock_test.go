@@ -24,7 +24,7 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
@@ -112,7 +112,7 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
@@ -147,7 +147,7 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 
@@ -218,7 +218,7 @@ func TestPluginDeadlock(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
+				"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 				"github.com/mattermost/mattermost-server/server/v8/public/model"
 			)
 

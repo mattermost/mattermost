@@ -548,7 +548,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			"net/http"
 			"encoding/json"
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 			"github.com/mattermost/mattermost-server/server/v8/public/model"
 		)
 
@@ -840,7 +840,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			"net/http"
 			"encoding/json" 
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 			"github.com/mattermost/mattermost-server/server/v8/public/model"
 		)
 
@@ -1042,7 +1042,7 @@ func TestDoPluginRequest(t *testing.T) {
 			"reflect"
 			"sort"
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 		)
 
 		type MyPlugin struct {

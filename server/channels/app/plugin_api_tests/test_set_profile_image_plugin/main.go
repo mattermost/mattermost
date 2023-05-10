@@ -11,8 +11,8 @@ import (
 	"image/png"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/plugin_api_tests"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/plugin"
 )
 
 type MyPlugin struct {
