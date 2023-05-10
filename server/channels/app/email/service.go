@@ -14,10 +14,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 const (

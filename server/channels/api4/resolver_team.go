@@ -10,7 +10,7 @@ import (
 	"github.com/graph-gophers/dataloader/v6"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/web"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/public/model"
 )
 
 func getGraphQLTeam(ctx context.Context, id string) (*model.Team, error) {
