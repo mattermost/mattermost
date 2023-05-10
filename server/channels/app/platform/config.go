@@ -122,7 +122,7 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	var err error
 	var logConfigSrc config.LogConfigSrc
 	dsn := logSettings.GetAdvancedLoggingConfig()
-	if !config.IsEmptyDSN(dsn) {
+	if !config.IsEmptyJSON(dsn) {
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, ps.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)

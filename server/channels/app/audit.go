@@ -110,7 +110,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 
 	var logConfigSrc config.LogConfigSrc
 	dsn := s.platform.Config().ExperimentalAuditSettings.GetAdvancedLoggingConfig()
-	if bAllowAdvancedLogging && !config.IsEmptyDSN(dsn) {
+	if bAllowAdvancedLogging && !config.IsEmptyJSON(dsn) {
 		var err error
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.platform.GetConfigStore())
 		if err != nil {

@@ -39,8 +39,8 @@ type LogConfigSrc interface {
 	Close() error
 }
 
-func IsEmptyDSN(dsn json.RawMessage) bool {
-	if len(dsn) == 0 || bytes.Equal(dsn, []byte("{}")) || bytes.Equal(dsn, []byte("\"\"")) {
+func IsEmptyJSON(j json.RawMessage) bool {
+	if len(j) == 0 || bytes.Equal(j, []byte("{}")) || bytes.Equal(j, []byte("\"\"")) || bytes.Equal(j, []byte("[]")) {
 		return true
 	}
 	return false
