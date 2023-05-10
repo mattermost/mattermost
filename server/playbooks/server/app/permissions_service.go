@@ -107,7 +107,7 @@ func (p *PermissionsService) canViewTeam(userID string, teamID string) bool {
 	}
 
 	// This is list team channels so that Guests are excluded.
-	return p.api.HasPermissionToTeam(userID, teamID, model.PermissionListTeamChannels)
+	return p.api.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam)
 }
 
 func (p *PermissionsService) PlaybookCreate(userID string, playbook Playbook) error {
@@ -367,9 +367,10 @@ func (p *PermissionsService) PlaybookViewWithPlaybook(userID string, playbook Pl
 		return errors.Wrapf(noAccessErr, "no playbook access; no team view permission for team `%s`", playbook.TeamID)
 	}
 
-	// If the playbook is public team access is enough to view
 	if p.PlaybookIsPublic(playbook) {
-		return nil
+		if p.hasPermissionsToPlaybook(userID, playbook, model.PermissionPublicPlaybookView) {
+			return nil
+		}
 	}
 
 	if p.hasPermissionsToPlaybook(userID, playbook, model.PermissionPrivatePlaybookView) {
