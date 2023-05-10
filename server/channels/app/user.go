@@ -19,17 +19,17 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mfa"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 const (
@@ -792,7 +792,7 @@ func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	return a.ch.srv.GetDefaultProfileImage(user)
 }
 
-func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
+func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 	img, appErr := a.GetDefaultProfileImage(user)
 	if appErr != nil {
 		return appErr
@@ -808,6 +808,16 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	}
 
 	a.InvalidateCacheForUser(user.Id)
+
+	return nil
+}
+
+func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
+
+	if err := a.UpdateDefaultProfileImage(c, user); err != nil {
+		c.Logger().Error("Failed to update default profile image for user", mlog.String("user_id", user.Id), mlog.Err(err))
+		return err
+	}
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
@@ -1228,37 +1238,53 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		}
 	}
 
+	newUser := userUpdate.New
+
+	if (newUser.Username != userUpdate.Old.Username) && (newUser.LastPictureUpdate <= 0) {
+		// When a username is updated and the profile is still using a default profile picture, generate a new one based on their username
+		if err := a.UpdateDefaultProfileImage(c, newUser); err != nil {
+			c.Logger().Warn("Error with updating default profile image", mlog.Err(err))
+		}
+
+		tempUser, getUserErr := a.GetUser(user.Id)
+		if getUserErr != nil {
+			c.Logger().Warn("Error when retrieving user after profile picture update, avatar may fail to update automatically on client applications.", mlog.Err(getUserErr))
+		} else {
+			newUser = tempUser
+		}
+	}
+
 	if sendNotifications {
-		if userUpdate.New.Email != userUpdate.Old.Email || newEmail != "" {
+		if newUser.Email != userUpdate.Old.Email || newEmail != "" {
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv().Go(func() {
-					if err := a.SendEmailVerification(userUpdate.New, newEmail, ""); err != nil {
+					if err := a.SendEmailVerification(newUser, newEmail, ""); err != nil {
 						c.Logger().Error("Failed to send email verification", mlog.Err(err))
 					}
 				})
 			} else {
 				a.Srv().Go(func() {
-					if err := a.Srv().EmailService.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+					if err := a.Srv().EmailService.SendEmailChangeEmail(userUpdate.Old.Email, newUser.Email, newUser.Locale, a.GetSiteURL()); err != nil {
 						c.Logger().Error("Failed to send email change email", mlog.Err(err))
 					}
 				})
 			}
 		}
 
-		if userUpdate.New.Username != userUpdate.Old.Username {
+		if newUser.Username != userUpdate.Old.Username {
 			a.Srv().Go(func() {
-				if err := a.Srv().EmailService.SendChangeUsernameEmail(userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+				if err := a.Srv().EmailService.SendChangeUsernameEmail(newUser.Username, newUser.Email, newUser.Locale, a.GetSiteURL()); err != nil {
 					c.Logger().Error("Failed to send change username email", mlog.Err(err))
 				}
 			})
 		}
-		a.sendUpdatedUserEvent(*userUpdate.New)
+		a.sendUpdatedUserEvent(*newUser)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
 
-	return userUpdate.New, nil
+	return newUser, nil
 }
 
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {

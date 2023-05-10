@@ -61,25 +61,6 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, combining users removed from channel by all actors', () => {
-        const allUserIds = ['current_user_id', 'other_user_id_1', 'removed_user_id_1', 'removed_user_id_2'];
-        const messageData = [{
-            actorId: 'current_user_id',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_1'],
-        }, {
-            actorId: 'other_user_id_1',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_2'],
-        }];
-        const props = {...baseProps, messageData, allUserIds};
-        const wrapper = shallowWithIntl(
-            <CombinedSystemMessage {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should match snapshot when join leave messages are turned off', () => {
         const wrapper = shallowWithIntl(
             <CombinedSystemMessage
@@ -103,29 +84,6 @@ describe('components/post_view/CombinedSystemMessage', () => {
             userIds: ['removed_user_id_2'],
         }];
         const props = {...baseProps, messageData, allUserIds, showJoinLeave: false};
-        const wrapper = shallowWithIntl(
-            <CombinedSystemMessage {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when current user is removed from then rejoined the channel', () => {
-        const allUserIds = ['current_user_id', 'other_user_id_1', 'removed_user_id_1', 'removed_user_id_2'];
-        const messageData = [{
-            actorId: '',
-            postType: Posts.POST_TYPES.JOIN_CHANNEL,
-            userIds: ['current_user_id'],
-        }, {
-            actorId: 'current_user_id',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_1', 'removed_user_id_2'],
-        }, {
-            actorId: 'other_user_id_1',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_2', 'current_user_id'],
-        }];
-        const props = {...baseProps, messageData, allUserIds};
         const wrapper = shallowWithIntl(
             <CombinedSystemMessage {...props}/>,
         );
@@ -163,5 +121,35 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(props.actions.getMissingProfilesByIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
         expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledTimes(1);
         expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledWith(['user1']);
+    });
+    test('should render messages in chronological order', () => {
+        const allUserIds = ['current_user_id', 'other_user_id_1', 'user_id_1', 'user_id_2', 'join_last'];
+        const messageData = [{
+            actorId: 'current_user_id',
+            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
+            userIds: ['removed_user_id_1'],
+        }, {
+            actorId: 'other_user_id_1',
+            postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
+            userIds: ['removed_user_id_2'],
+        }, {
+            actorId: 'other_user_id_1',
+            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
+            userIds: ['removed_user_id_2'],
+        }, {
+            actorId: 'user_id_1',
+            postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
+            userIds: ['user_id_2'],
+        }, {
+            actorId: 'join_last',
+            postType: Posts.POST_TYPES.JOIN_CHANNEL,
+            userIds: [''],
+        }];
+        const props = {...baseProps, messageData, allUserIds};
+        const wrapper = shallowWithIntl(
+            <CombinedSystemMessage {...props}/>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
     });
 });

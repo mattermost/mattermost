@@ -38,6 +38,11 @@ export default class NotificationSection extends React.PureComponent {
         ignoreChannelMentions: PropTypes.string,
 
         /**
+         * Auto-follow all new threads in this channel
+         */
+        channelAutoFollowThreads: PropTypes.string,
+
+        /**
          * User's global notification level
          */
         globalNotificationLevel: PropTypes.string,
@@ -93,6 +98,7 @@ export default class NotificationSection extends React.PureComponent {
             memberNotificationLevel,
             memberThreadsNotificationLevel,
             ignoreChannelMentions,
+            channelAutoFollowThreads,
             onSubmit,
             section,
             serverError,
@@ -106,6 +112,7 @@ export default class NotificationSection extends React.PureComponent {
                     memberThreadsNotifyLevel={memberThreadsNotificationLevel}
                     globalNotifyLevel={globalNotificationLevel}
                     ignoreChannelMentions={ignoreChannelMentions}
+                    channelAutoFollowThreads={channelAutoFollowThreads}
                     onChange={this.handleOnChange}
                     onChangeThreads={this.handleOnChangeThreads}
                     onSubmit={onSubmit}
@@ -122,6 +129,7 @@ export default class NotificationSection extends React.PureComponent {
                 memberNotifyLevel={memberNotificationLevel}
                 globalNotifyLevel={globalNotificationLevel}
                 ignoreChannelMentions={ignoreChannelMentions}
+                channelAutoFollowThreads={channelAutoFollowThreads}
             />
         );
     }

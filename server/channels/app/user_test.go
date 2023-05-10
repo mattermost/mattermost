@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/model/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -85,9 +85,11 @@ func TestCreateOAuthUser(t *testing.T) {
 	})
 }
 
-func TestSetDefaultProfileImage(t *testing.T) {
+func TestUpdateDefaultProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	startTime := model.GetMillis()
+	time.Sleep(time.Millisecond)
 
 	err := th.App.SetDefaultProfileImage(th.Context, &model.User{
 		Id:       model.NewId(),
@@ -98,11 +100,11 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user := th.BasicUser
 
-	err = th.App.SetDefaultProfileImage(th.Context, user)
+	err = th.App.UpdateDefaultProfileImage(th.Context, user)
 	require.Nil(t, err)
 
 	user = getUserFromDB(th.App, user.Id, t)
-	assert.Equal(t, int64(0), user.LastPictureUpdate)
+	assert.Less(t, user.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 }
 
 func TestAdjustProfileImage(t *testing.T) {
@@ -194,6 +196,33 @@ func TestUpdateUser(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, u)
 	})
+
+	t.Run("fails if default profile picture is not updated when user has default profile picture and username is changed", func(t *testing.T) {
+		user.Username = "updatedUsername"
+		iLastPictureUpdate := user.LastPictureUpdate
+		require.Equal(t, iLastPictureUpdate, int64(0))
+		u, err := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, err)
+		require.NotNil(t, u)
+		require.Less(t, u.LastPictureUpdate, iLastPictureUpdate)
+	})
+
+	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
+		// Give the user a LastPictureUpdate to mimic having a custom profile picture
+		err := th.App.Srv().Store().User().UpdateLastPictureUpdate(user.Id)
+		require.NoError(t, err)
+		iUser, errGetUser := th.App.GetUser(user.Id)
+		require.Nil(t, errGetUser)
+		iUser.Username = "updatedUsername"
+		iLastPictureUpdate := iUser.LastPictureUpdate
+		require.Greater(t, iLastPictureUpdate, int64(0))
+
+		// Attempt the update, ensure the LastPictureUpdate has not changed
+		updatedUser, errUpdateUser := th.App.UpdateUser(th.Context, iUser, false)
+		require.Nil(t, errUpdateUser)
+		require.NotNil(t, updatedUser)
+		require.Equal(t, updatedUser.LastPictureUpdate, iLastPictureUpdate)
+	})
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {
@@ -255,8 +284,8 @@ func TestCreateUser(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/public/plugin"
+				"github.com/mattermost/mattermost-server/server/public/model"
 			)
 
 			type MyPlugin struct {
