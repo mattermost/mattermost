@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/public/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/pkg/errors"
 )
 
