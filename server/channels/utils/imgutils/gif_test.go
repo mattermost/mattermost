@@ -94,5 +94,6 @@ func TestCountGIFFrames(t *testing.T) {
 		_, err = CountGIFFrames(bytes.NewReader(b))
 
 		assert.Error(t, err)
+		assert.Equal(t, errTooMuch, err)
 	})
 }
