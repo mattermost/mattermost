@@ -431,23 +431,6 @@ test-compile: ## Compile tests.
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-gomodtidy:
-	@cp go.mod go.mod.orig
-	@cp go.sum go.sum.orig
-	@if [ -f "channels/imports/imports.go" ]; then \
-		mv channels/imports/imports.go channels/imports/imports.go.orig; \
-	fi;
-	$(GO) mod tidy
-	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
-		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
-		rm go.*.orig; \
-		exit 1; \
-	fi;
-	@if [ -f "channels/imports/imports.go.orig" ]; then \
-		mv channels/imports/imports.go.orig channels/imports/imports.go; \
-	fi;
-	@rm go.*.orig;
-
 modules-tidy:
 	@if [ -f "channels/imports/imports.go" ]; then \
 		mv channels/imports/imports.go channels/imports/imports.go.orig; \
