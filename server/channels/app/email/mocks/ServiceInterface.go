@@ -7,7 +7,7 @@ package mocks
 import (
 	io "io"
 
-	i18n "github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	i18n "github.com/mattermost/mattermost-server/server/v8/public/shared/i18n"
 
 	mock "github.com/stretchr/testify/mock"
 
