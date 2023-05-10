@@ -6,7 +6,7 @@
 const config = {
     moduleDirectories: ['src', 'node_modules'],
     testEnvironment: 'jsdom',
-    testPathIgnorePatterns: ['/node_modules/'],
+    testPathIgnorePatterns: ['/node_modules/', '/.rollup.cache/'],
     clearMocks: true,
     moduleNameMapper: {
         '^@mattermost/(components)$': '<rootDir>/../platform/$1/src',
