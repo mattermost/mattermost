@@ -74,6 +74,7 @@ import './plugin.scss'
 import CreateBoardFromTemplate from 'src/components/createBoardFromTemplate'
 
 import CloudUpgradeNudge from './components/cloudUpgradeNudge/cloudUpgradeNudge'
+import RhsChannelBoardsToggle from './components/rhsChannelBoardsToggleIcon'
 
 function getSubpath(siteURL: string): string {
     const url = new URL(siteURL)
@@ -365,10 +366,15 @@ export default class Plugin {
                 </ErrorBoundary>
             )
 
-            const {rhsId, toggleRHSPlugin} = this.registry.registerRightHandSidebarComponent(component, title)
-            this.rhsId = rhsId
+            const {id, toggleRHSPlugin} = this.registry.registerRightHandSidebarComponent(component, title)
+            this.rhsId = id
 
-            this.channelHeaderButtonId = registry.registerChannelHeaderButtonAction(<FocalboardIcon/>, () => mmStore.dispatch(toggleRHSPlugin), 'Boards', 'Boards')
+            this.channelHeaderButtonId = registry.registerChannelHeaderButtonAction(
+                () => <RhsChannelBoardsToggle boardsRhsId={id}/>,
+                () => mmStore.dispatch(toggleRHSPlugin),
+                'Boards',
+                'Boards'
+            )
 
             this.registry.registerProduct(
                 '/boards',
