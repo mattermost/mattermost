@@ -453,6 +453,7 @@ modules-tidy:
 		mv channels/imports/imports.go channels/imports/imports.go.orig; \
 	fi;
 	-$(GO) mod tidy
+	-cd public && $(GO) mod tidy
 	@if [ -f "channels/imports/imports.go.orig" ]; then \
 		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
