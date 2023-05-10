@@ -4,7 +4,7 @@
 import React from 'react';
 import {render, screen} from '@testing-library/react';
 
-import {FooterPagination} from './';
+import {FooterPagination} from './footer_pagination';
 import {wrapIntl} from '../../testUtils'
 
 describe('components/GenericModal/FooterPagination', () => {
@@ -32,6 +32,6 @@ describe('components/GenericModal/FooterPagination', () => {
 
         render(wrapIntl(<FooterPagination {...props}/>));
 
-        screen.getByText('Showing 1-10 of 17');
+        expect(screen.getByText('Showing 1-10 of 17')).toBeInTheDocument();
     });
 });
