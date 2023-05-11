@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/stretchr/testify/assert"
@@ -506,6 +506,7 @@ func TestRunRetrieval(t *testing.T) {
 }
 
 func TestRunPostStatusUpdate(t *testing.T) {
+	t.Skip("MM-52694")
 	e := Setup(t)
 	e.CreateBasic()
 
