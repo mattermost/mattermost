@@ -35,6 +35,8 @@ const (
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
 	maxPropSizeBytes = 1024 * 1024
+
+	NoTranslation = "<untranslated>"
 )
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)

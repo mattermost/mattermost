@@ -583,6 +583,85 @@ func TestLeaveDefaultChannel(t *testing.T) {
 		_, err = th.App.GetChannelMember(context.Background(), townSquare.Id, guest.Id)
 		assert.NotNil(t, err)
 	})
+
+	t.Run("Trying to leave the default channel should not delete thread memberships", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: townSquare.Id,
+			Message:   "root post",
+			UserId:    th.BasicUser.Id,
+		}
+		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply := &model.Post{
+			ChannelId: townSquare.Id,
+			Message:   "reply post",
+			UserId:    th.BasicUser.Id,
+			RootId:    rpost.Id,
+		}
+		_, err = th.App.CreatePost(th.Context, reply, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		threads, err := th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 1)
+
+		err = th.App.LeaveChannel(th.Context, townSquare.Id, th.BasicUser.Id)
+		assert.NotNil(t, err, "It should fail to remove a regular user from the default channel")
+		assert.Equal(t, err.Id, "api.channel.remove.default.app_error")
+
+		threads, err = th.App.GetThreadsForUser(th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 1)
+	})
+}
+
+func TestLeaveChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	createThread := func(channel *model.Channel) (rpost *model.Post) {
+		t.Helper()
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "root post",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "reply post",
+			UserId:    th.BasicUser.Id,
+			RootId:    rpost.Id,
+		}
+		_, err = th.App.CreatePost(th.Context, reply, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		return rpost
+	}
+
+	t.Run("thread memberships are deleted", func(t *testing.T) {
+		createThread(th.BasicChannel)
+		channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
+		createThread(channel2)
+
+		threads, err := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 2)
+
+		err = th.App.LeaveChannel(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		require.NotNil(t, err, "It should remove channel membership")
+
+		threads, err = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
+		require.Nil(t, err)
+		require.Len(t, threads.Threads, 1)
+	})
 }
 
 func TestLeaveLastChannel(t *testing.T) {
