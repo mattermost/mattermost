@@ -6,7 +6,7 @@ package users
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.

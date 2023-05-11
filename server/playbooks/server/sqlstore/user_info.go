@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
