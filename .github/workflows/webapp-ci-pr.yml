@@ -2,7 +2,7 @@ name: Web App CI PR
 on:
   pull_request:
     paths:
-      - 'webapp/**/*'
+      - 'webapp/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
