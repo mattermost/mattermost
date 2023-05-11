@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
 	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/config"
@@ -110,7 +111,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 
 	var logConfigSrc config.LogConfigSrc
 	dsn := s.platform.Config().ExperimentalAuditSettings.GetAdvancedLoggingConfig()
-	if bAllowAdvancedLogging && !config.IsEmptyJSON(dsn) {
+	if bAllowAdvancedLogging && !utils.IsEmptyJSON(dsn) {
 		var err error
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.platform.GetConfigStore())
 		if err != nil {

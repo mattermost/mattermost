@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/config"
@@ -122,7 +123,7 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	var err error
 	var logConfigSrc config.LogConfigSrc
 	dsn := logSettings.GetAdvancedLoggingConfig()
-	if !config.IsEmptyJSON(dsn) {
+	if !utils.IsEmptyJSON(dsn) {
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, ps.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)

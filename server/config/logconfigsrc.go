@@ -4,7 +4,6 @@
 package config
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"path/filepath"
@@ -37,13 +36,6 @@ type LogConfigSrc interface {
 
 	// Close cleans up resources.
 	Close() error
-}
-
-func IsEmptyJSON(j json.RawMessage) bool {
-	if len(j) == 0 || bytes.Equal(j, []byte("{}")) || bytes.Equal(j, []byte("\"\"")) || bytes.Equal(j, []byte("[]")) {
-		return true
-	}
-	return false
 }
 
 // NewLogConfigSrc creates an advanced logging configuration source, backed by a

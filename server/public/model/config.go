@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
 )
 
 const (
@@ -1309,21 +1310,25 @@ func (s *LogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.AdvancedLoggingJSON == nil {
-		s.AdvancedLoggingJSON = []byte("{}")
-	}
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
 	}
+	s.AdvancedLoggingConfig = nil
 }
 
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
-
-	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && *s.AdvancedLoggingConfig != "" {
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
 	}
 	return []byte("{}")
@@ -1370,21 +1375,24 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
 
-	if s.AdvancedLoggingJSON == nil {
-		s.AdvancedLoggingJSON = []byte("{}")
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
 	}
-
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
-	}
+	s.AdvancedLoggingConfig = nil
 }
 
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
-
-	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && *s.AdvancedLoggingConfig != "" {
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
 	}
 	return []byte("{}")
@@ -1436,22 +1444,24 @@ func (s *NotificationLogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.AdvancedLoggingJSON == nil {
-		s.AdvancedLoggingJSON = []byte("{}")
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
 	}
-
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
-	}
+	s.AdvancedLoggingConfig = nil
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 // AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
-	if len(s.AdvancedLoggingJSON) != 0 && string(s.AdvancedLoggingJSON) != "{}" {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && *s.AdvancedLoggingConfig != "" {
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
 	}
 	return []byte("{}")
