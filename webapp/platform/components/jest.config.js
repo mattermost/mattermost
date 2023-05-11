@@ -16,7 +16,7 @@ const config = {
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
     setupFilesAfterEnv: [
-        '<rootDir>/src/setupTests.ts',
+        '<rootDir>/setupTests.ts',
     ],
 };
 
