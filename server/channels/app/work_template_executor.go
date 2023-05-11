@@ -10,17 +10,17 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/server/public/plugin"
 	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 
 	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type WorkTemplateExecutor interface {

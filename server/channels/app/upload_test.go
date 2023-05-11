@@ -15,9 +15,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/imgutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestCreateUploadSession(t *testing.T) {

@@ -640,12 +640,12 @@ function changeCss(className: string, classValue: string) {
     }
 }
 
-function updateCodeTheme(userTheme: string) {
+function updateCodeTheme(codeTheme: string) {
     let cssPath = '';
     Constants.THEME_ELEMENTS.forEach((element) => {
         if (element.id === 'codeTheme') {
-            (element.themes as any).forEach((theme: Theme) => {
-                if (userTheme === theme.id) {
+            element.themes?.forEach((theme) => {
+                if (codeTheme === theme.id) {
                     cssPath = theme.cssURL!;
                 }
             });
