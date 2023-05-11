@@ -9,6 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
 import Accordion, {AccordionItemType} from 'components/common/accordion/accordion';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LoadingScreen from '../../loading_screen';
 import type {Props} from '../admin_console';
@@ -121,12 +122,12 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
 
     return loading || !accordionItemsData ? <LoadingScreen/> : (
         <div className='WorkspaceOptimizationDashboard wrapper--fixed'>
-            <div className='admin-console__header'>
+            <AdminHeader>
                 <FormattedMessage
                     id={'admin.reporting.workspace_optimization.title'}
                     defaultMessage='Workspace Optimization'
                 />
-            </div>
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <OverallScore
                     chips={

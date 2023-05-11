@@ -23,6 +23,7 @@ import LocalizedInput from 'components/localized_input/localized_input';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import ConfirmModal from 'components/confirm_modal';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import SystemUsersList from './list';
 
@@ -369,7 +370,7 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header'>
+                <AdminHeader>
                     <FormattedMessage
                         id='admin.system_users.title'
                         defaultMessage='{siteName} Users'
@@ -377,7 +378,7 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                             siteName: this.props.siteName,
                         }}
                     />
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='more-modal__list member-list-holder'>

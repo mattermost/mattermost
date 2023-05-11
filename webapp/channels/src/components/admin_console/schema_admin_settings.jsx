@@ -32,6 +32,7 @@ import FormError from 'components/form_error';
 import Tooltip from 'components/tooltip';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import Setting from './setting';
 
@@ -273,18 +274,18 @@ export default class SchemaAdminSettings extends React.PureComponent {
         }
         if (this.props.schema.translate === false) {
             return (
-                <div className='admin-console__header'>
+                <AdminHeader>
                     {this.props.schema.name || this.props.schema.id}
-                </div>
+                </AdminHeader>
             );
         }
         return (
-            <div className='admin-console__header'>
+            <AdminHeader>
                 <FormattedMessage
                     id={this.props.schema.name || this.props.schema.id}
                     defaultMessage={this.props.schema.name_default || this.props.schema.id}
                 />
-            </div>
+            </AdminHeader>
         );
     };
 
@@ -1159,12 +1160,12 @@ export default class SchemaAdminSettings extends React.PureComponent {
         if (!schema) {
             return (
                 <div className={'wrapper--fixed'}>
-                    <div className='admin-console__header'>
+                    <AdminHeader>
                         <FormattedMessage
                             id='error.plugin_not_found.title'
                             defaultMessage='Plugin Not Found'
                         />
-                    </div>
+                    </AdminHeader>
                     <div className='admin-console__wrapper'>
                         <div className='admin-console__content'>
                             <p>

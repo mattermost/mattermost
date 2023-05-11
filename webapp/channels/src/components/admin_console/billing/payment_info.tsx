@@ -15,6 +15,7 @@ import {pageVisited} from 'actions/telemetry_actions';
 
 import AlertBanner from 'components/alert_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import PaymentInfoDisplay from './payment_info_display';
 
@@ -57,12 +58,12 @@ const PaymentInfo: React.FC<Props> = () => {
 
     return (
         <div className='wrapper--fixed PaymentInfo'>
-            <div className='admin-console__header'>
+            <AdminHeader>
                 <FormattedMessage
                     id='admin.billing.payment_info.title'
                     defaultMessage='Payment Information'
                 />
-            </div>
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {showCreditCardBanner && isCardAboutToExpire && (

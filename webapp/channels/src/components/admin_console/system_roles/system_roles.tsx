@@ -12,6 +12,9 @@ import {getHistory} from 'utils/browser_history';
 
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import './system_roles.scss';
 
 type Props = {
     roles: Record<string, Role>;
@@ -40,8 +43,6 @@ const columns: Column[] = [
         textAlign: 'right',
     },
 ];
-
-import './system_roles.scss';
 
 export default class SystemRoles extends React.PureComponent<Props> {
     render() {
@@ -77,12 +78,12 @@ export default class SystemRoles extends React.PureComponent<Props> {
 
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header'>
+                <AdminHeader>
                     <FormattedMessage
                         id='admin.permissions.systemRoles'
                         defaultMessage='System Roles'
                     />
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <AdminPanel

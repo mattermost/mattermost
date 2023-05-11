@@ -13,6 +13,7 @@ import LoadingScreen from 'components/loading_screen';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import AdminPanelWithLink from 'components/widgets/admin_console/admin_panel_with_link';
 import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {t} from 'utils/i18n';
 import {LicenseSkus} from 'utils/constants';
@@ -217,12 +218,12 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
 
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header'>
+                <AdminHeader>
                     <FormattedMessage
                         id='admin.permissions.permissionSchemes'
                         defaultMessage='Permission Schemes'
                     />
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='banner info'>

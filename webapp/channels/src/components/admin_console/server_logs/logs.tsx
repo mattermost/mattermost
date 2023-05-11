@@ -14,6 +14,8 @@ import {
     LogServerNames,
 } from '@mattermost/types/admin';
 
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
 
@@ -194,12 +196,12 @@ export default class Logs extends React.PureComponent<Props, State> {
         );
         return (
             <div className='wrapper--admin'>
-                <div className='admin-console__header'>
+                <AdminHeader>
                     <FormattedMessage
                         id='admin.logs.title'
                         defaultMessage='Server Logs'
                     />
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-logs-content admin-console__content'>
                         {content}

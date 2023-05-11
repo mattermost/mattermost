@@ -14,6 +14,7 @@ import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 import CloudFetchError from 'components/cloud_fetch_error';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import ExternalLink from 'components/external_link';
@@ -69,12 +70,12 @@ const BillingHistory = () => {
 
     return (
         <div className='wrapper--fixed BillingHistory'>
-            <div className='admin-console__header'>
+            <AdminHeader>
                 <FormattedMessage
                     id='admin.billing.history.title'
                     defaultMessage='Billing History'
                 />
-            </div>
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {invoicesError && <CloudFetchError/>}
