@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 const (

@@ -12,7 +12,7 @@ import (
 
 	_ "github.com/mattermost/mattermost-server/server/v8/channels/app/slashcommands"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestEchoCommand(t *testing.T) {
