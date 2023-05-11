@@ -5,7 +5,7 @@ package app
 
 // TODO: platform: remove this and use from platform package
 import (
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
 )
 
