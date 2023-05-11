@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"

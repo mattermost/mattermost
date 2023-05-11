@@ -29,16 +29,10 @@ import {t} from 'utils/i18n';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
-import githubCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/github.css';
-
-// eslint-disable-line import/order
-import monokaiCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/monokai.css';
-
-// eslint-disable-line import/order
-import solarizedDarkCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/base16/solarized-dark.css';
-
-// eslint-disable-line import/order
-import solarizedLightCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/base16/solarized-light.css'; // eslint-disable-line import/order
+import githubCSS from 'highlight.js/styles/github.css';
+import monokaiCSS from 'highlight.js/styles/monokai.css';
+import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
+import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text',
