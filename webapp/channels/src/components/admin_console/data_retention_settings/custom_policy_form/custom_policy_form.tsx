@@ -308,7 +308,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         const {serverError, formErrorText} = this.state;
         return (
             <div className='wrapper--fixed DataRetentionSettings'>
-                <AdminHeader>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/compliance/data_retention_settings'
