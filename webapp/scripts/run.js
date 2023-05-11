@@ -16,9 +16,16 @@ async function watchAll(useRunner) {
 
     const commands = [
         {command: 'npm:run --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
-        {command: 'npm:start:product --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        {command: 'npm:start:product --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
     ];
+
+    const useProductDevServers = process.env.MM_USE_PRODUCT_DEV_SERVERS !== 'false';
+    if (useProductDevServers) {
+        commands.push({command: 'npm:start:dev-server --workspace=boards', name: 'boards', prefixColor: 'blue'});
+        commands.push({command: 'npm:start:dev-server --workspace=playbooks', name: 'playbooks', prefixColor: 'red'});
+    } else {
+        commands.push({command: 'npm:start --workspace=boards', name: 'boards', prefixColor: 'blue'});
+        commands.push({command: 'npm:start --workspace=playbooks', name: 'playbooks', prefixColor: 'red'});
+    }
 
     commands.push(...getPlatformCommands('run'));
 

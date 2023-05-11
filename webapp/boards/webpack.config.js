@@ -186,7 +186,9 @@ config.plugins.push(new MiniCssExtractPlugin({
     chunkFilename: '[name].[contenthash].css',
 }));
 
-if (NPM_TARGET === 'start:product') {
+const useProductDevServers = process.env.MM_USE_PRODUCT_DEV_SERVERS !== 'false';
+
+if (NPM_TARGET === 'start:dev-server' && useProductDevServers) {
     const url = new URL(process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006');
 
     const protocol = url.protocol.substring(0, url.protocol.length - 1);

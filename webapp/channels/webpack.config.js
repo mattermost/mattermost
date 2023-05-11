@@ -3,6 +3,7 @@
 
 /* eslint-disable no-console, no-process-env */
 
+const fs = require('fs');
 const path = require('path');
 
 const url = require('url');
@@ -29,6 +30,7 @@ const targetIsEslint = NPM_TARGET === 'check' || NPM_TARGET === 'fix' || process
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
+const useProductDevServers = process.env.MM_USE_PRODUCT_DEV_SERVERS !== 'false';
 const boardsDevServerUrl = process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006';
 const playbooksDevServerUrl = process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007';
 
@@ -280,6 +282,28 @@ var config = {
     ],
 };
 
+if (DEV && !useProductDevServers) {
+    config.plugins.push({
+        apply: (compiler) => {
+            compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
+                const boardsDist = path.resolve(__dirname, '../boards/dist');
+                const boardsSymlink = './dist/products/boards';
+                const playbooksDist = path.resolve(__dirname, '../playbooks/dist');
+                const playbooksSymlink = './dist/products/playbooks';
+
+                fs.mkdir('./dist/products', () => {
+                    if (!fs.existsSync(boardsSymlink)) {
+                        fs.symlinkSync(boardsDist, boardsSymlink, 'dir');
+                    }
+                    if (!fs.existsSync(playbooksSymlink)) {
+                        fs.symlinkSync(playbooksDist, playbooksSymlink, 'dir');
+                    }
+                });
+            });
+        },
+    });
+}
+
 function generateCSP() {
     let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
 
@@ -287,9 +311,10 @@ function generateCSP() {
         // react-hot-loader and development source maps require eval
         csp += ' \'unsafe-eval\'';
 
-        csp += ' ' + boardsDevServerUrl;
-
-        csp += ' ' + playbooksDevServerUrl;
+        if (useProductDevServers) {
+            csp += ' ' + boardsDevServerUrl;
+            csp += ' ' + playbooksDevServerUrl;
+        }
     }
 
     return csp;
@@ -329,7 +354,7 @@ async function initializeModuleFederation() {
 
         if (process.env.MM_DONT_INCLUDE_PRODUCTS) {
             console.warn('Skipping initialization of products');
-        } else if (DEV) {
+        } else if (DEV && useProductDevServers) {
             // For development, we use Webpack dev servers for each product
             for (const product of products) {
                 remotes[product.name] = `${product.name}@${product.baseUrl}/remote_entry.js`;

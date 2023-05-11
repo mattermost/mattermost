@@ -106,9 +106,8 @@
   "scripts": {
     "build": "webpack --mode=production --stats-error-details",
     "build:watch": "webpack --mode=production --watch",
-    "debug": "webpack --mode=development",
-    "debug:watch": "webpack --mode=development --watch",
-    "dev-server": "webpack serve --mode=development",
+    "start": "webpack --mode=development --watch",
+    "start:dev-server": "webpack serve --mode=development",
     "check": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --cache",
     "fix": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx --ext tsx --ext ts . --quiet --fix --cache",
     "test": "cross-env TZ=Etc/UTC jest",
@@ -120,8 +119,6 @@
     "i18n-extract": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" --id-interpolation-pattern '[sha512:contenthash:base64:6]' --format simple --out-file i18n/en.json",
     "graphql": "graphql-codegen --config graphql_gen.ts",
     "report-unused-exports": "ts-prune",
-    "build:product": "webpack --mode=production",
-    "start:product": "webpack serve --mode=development",
     "deploy:product": "node scripts/deploy.js",
     "clean": "rm -rf node_modules"
   }

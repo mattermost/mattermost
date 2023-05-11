@@ -133,7 +133,9 @@ config.output = {
     chunkFilename: '[name].[contenthash].js',
 };
 
-if (NPM_TARGET === 'start:product') {
+const useProductDevServers = process.env.MM_USE_PRODUCT_DEV_SERVERS !== 'false';
+
+if (NPM_TARGET === 'start:dev-server' && useProductDevServers) {
     const url = new URL(process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007');
 
     const protocol = url.protocol.substring(0, url.protocol.length - 1);
