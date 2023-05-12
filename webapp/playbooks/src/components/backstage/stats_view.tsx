@@ -9,9 +9,14 @@ import {FormattedNumber, useIntl} from 'react-intl';
 import {DateTime} from 'luxon';
 
 import {DefaultFetchPlaybookRunsParamsTime, FetchPlaybookRunsParams, fetchParamsTimeEqual} from 'src/types/playbook_run';
+
+// Need to remove the old svg icons as a cleanup
 import ClipboardsPlay from 'src/components/assets/icons/clipboards_play';
 import Profiles from 'src/components/assets/icons/profiles';
 import ClipboardsCheckmark from 'src/components/assets/icons/clipboards_checkmark';
+
+import {PlayBoxMultipleOutlineIcon, AccountMultipleOutlineIcon, FlagCheckeredIcon} from '@mattermost/compass-icons/components';
+
 import {PlaybookStats} from 'src/types/stats';
 import {useAllowPlaybookStatsView} from 'src/hooks';
 
@@ -264,17 +269,17 @@ const PercentageChange = styled.div`
     }
 `;
 
-const ClipboardsPlayBig = styled(ClipboardsPlay)`
+const PlayBoxMultipleOutlineIconBig = styled(PlayBoxMultipleOutlineIcon)`
     height: 32px;
     width: auto;
 `;
 
-const ProfilesBig = styled(Profiles)`
+const AccountMultipleOutlineIconBig = styled(AccountMultipleOutlineIcon)`
     height: 32px;
     width: auto;
 `;
 
-const ClipboardsCheckmarkBig = styled(ClipboardsCheckmark)`
+const FlagCheckeredIconBig = styled(FlagCheckeredIcon)`
     height: 32px;
     width: auto;
 `;
