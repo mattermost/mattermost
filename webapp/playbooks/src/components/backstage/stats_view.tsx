@@ -10,11 +10,6 @@ import {DateTime} from 'luxon';
 
 import {DefaultFetchPlaybookRunsParamsTime, FetchPlaybookRunsParams, fetchParamsTimeEqual} from 'src/types/playbook_run';
 
-// Need to remove the old svg icons as a cleanup
-import ClipboardsPlay from 'src/components/assets/icons/clipboards_play';
-import Profiles from 'src/components/assets/icons/profiles';
-import ClipboardsCheckmark from 'src/components/assets/icons/clipboards_checkmark';
-
 import {PlayBoxMultipleOutlineIcon, AccountMultipleOutlineIcon, FlagCheckeredIcon} from '@mattermost/compass-icons/components';
 
 import {PlaybookStats} from 'src/types/stats';
@@ -132,17 +127,17 @@ const StatsView = (props: Props) => {
         <>
             <BottomRow>
                 <StatCard>
-                    <ClipboardsPlayBig/>
+                    <PlayBoxMultipleOutlineIconBig/>
                     <StatText>{formatMessage({defaultMessage: 'Runs currently in progress'})}</StatText>
                     <StatNum>{props.stats.runs_in_progress}</StatNum>
                 </StatCard>
                 <StatCard>
-                    <ProfilesBig/>
+                    <AccountMultipleOutlineIconBig/>
                     <StatText>{formatMessage({defaultMessage: 'Participants currently active'})}</StatText>
                     <StatNum>{props.stats.participants_active}</StatNum>
                 </StatCard>
                 <StatCard>
-                    <ClipboardsCheckmarkBig/>
+                    <FlagCheckeredIconBig/>
                     <StatText>{formatMessage({defaultMessage: 'Runs finished in the last 30 days'})}</StatText>
                     <StatNumRow>
                         <StatNum>{props.stats.runs_finished_prev_30_days}</StatNum>
@@ -270,16 +265,19 @@ const PercentageChange = styled.div`
 `;
 
 const PlayBoxMultipleOutlineIconBig = styled(PlayBoxMultipleOutlineIcon)`
+    color: var(--button-bg);
     height: 32px;
     width: auto;
 `;
 
 const AccountMultipleOutlineIconBig = styled(AccountMultipleOutlineIcon)`
+    color: var(--button-bg);
     height: 32px;
     width: auto;
 `;
 
 const FlagCheckeredIconBig = styled(FlagCheckeredIcon)`
+    color: var(--button-bg);
     height: 32px;
     width: auto;
 `;
