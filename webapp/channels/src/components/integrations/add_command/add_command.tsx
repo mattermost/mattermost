@@ -3,19 +3,14 @@
 
 import React, {useState} from 'react';
 import {useHistory} from 'react-router-dom';
+import {useIntl, MessageDescriptor} from 'react-intl';
 
 import {Command} from '@mattermost/types/integrations';
 import {Team} from '@mattermost/types/teams';
 
 import {ActionResult} from 'mattermost-redux/types/actions.js';
 
-import {t} from 'utils/i18n';
-
 import AbstractCommand from '../abstract_command';
-
-const HEADER = {id: t('integrations.add'), defaultMessage: 'Add'};
-const FOOTER = {id: t('add_command.save'), defaultMessage: 'Save'};
-const LOADING = {id: t('add_command.saving'), defaultMessage: 'Saving...'};
 
 export type Props = {
 
@@ -35,7 +30,10 @@ export type Props = {
 
 const AddCommand = ({team, actions}: Props) => {
     const history = useHistory();
-
+    const {formatMessage} = useIntl();
+    const HEADER = formatMessage({id: ('integrations.add'), defaultMessage: 'Add'}) as MessageDescriptor;
+    const FOOTER = formatMessage({id: ('add_command.save'), defaultMessage: 'Save'}) as MessageDescriptor;
+    const LOADING = formatMessage({id: ('add_command.saving'), defaultMessage: 'Saving...'}) as MessageDescriptor;
     const [serverError, setServerError] = useState('');
 
     const addCommand = async (command: Command) => {
