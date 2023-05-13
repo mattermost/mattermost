@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // MentionDeliver notifies a user they have been mentioned in a blockv ia the plugin API.

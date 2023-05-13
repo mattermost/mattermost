@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/manualtesting"
@@ -22,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/web"
 	"github.com/mattermost/mattermost-server/server/v8/channels/wsapi"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 var serverCmd = &cobra.Command{

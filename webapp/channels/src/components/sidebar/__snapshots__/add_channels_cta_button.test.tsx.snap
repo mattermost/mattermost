@@ -30,12 +30,22 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
   >
     <MenuGroup>
       <MenuItemAction
+        icon={
+          <i
+            className="icon-plus"
+          />
+        }
         id="showNewChannel"
         onClick={[Function]}
         show={true}
         text="Create new channel"
       />
       <MenuItemAction
+        icon={
+          <i
+            className="icon-globe"
+          />
+        }
         id="showMoreChannels"
         onClick={[Function]}
         show={true}
