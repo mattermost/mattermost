@@ -12,6 +12,8 @@ import type {Locale} from 'date-fns';
 
 import {getName} from 'country-list';
 
+import {isNil} from 'lodash';
+
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 
 import {
@@ -638,12 +640,12 @@ function changeCss(className: string, classValue: string) {
     }
 }
 
-function updateCodeTheme(userTheme: string) {
+function updateCodeTheme(codeTheme: string) {
     let cssPath = '';
     Constants.THEME_ELEMENTS.forEach((element) => {
         if (element.id === 'codeTheme') {
-            (element.themes as any).forEach((theme: Theme) => {
-                if (userTheme === theme.id) {
+            element.themes?.forEach((theme) => {
+                if (codeTheme === theme.id) {
                     cssPath = theme.cssURL!;
                 }
             });
@@ -1659,6 +1661,26 @@ export function deleteKeysFromObject(value: Record<string, any>, keys: string[])
 function isSelection() {
     const selection = window.getSelection();
     return selection!.type === 'Range';
+}
+
+export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
+    const {id} = e.target as HTMLElement;
+
+    const isTypingInPost = id === 'post_textbox';
+    const isTypingInReply = id === 'reply_textbox';
+
+    if (!isTypingInPost && !isTypingInReply) {
+        return false;
+    }
+
+    const {
+        selectionStart,
+        selectionEnd,
+    } = e.target as TextboxElement;
+
+    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+
+    return hasSelection;
 }
 
 /*
