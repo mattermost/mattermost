@@ -33,7 +33,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-
 export type Props = {
     groupID: string;
     group: Group;
