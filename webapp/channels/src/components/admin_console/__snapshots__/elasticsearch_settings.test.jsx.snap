@@ -9,14 +9,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Elasticsearch"
         id="admin.elasticsearch.title"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}
@@ -482,14 +480,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Elasticsearch"
         id="admin.elasticsearch.title"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}

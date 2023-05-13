@@ -9,14 +9,12 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="High Availability"
         id="admin.advance.cluster"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}
@@ -287,14 +285,12 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="High Availability"
         id="admin.advance.cluster"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}
@@ -565,14 +561,12 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="High Availability"
         id="admin.advance.cluster"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}
@@ -843,14 +837,12 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="High Availability"
         id="admin.advance.cluster"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}

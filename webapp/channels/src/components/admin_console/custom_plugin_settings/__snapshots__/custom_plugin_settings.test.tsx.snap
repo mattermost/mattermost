@@ -4,11 +4,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 <div
   className="wrapper--fixed "
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     testplugin
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -248,11 +246,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 <div
   className="wrapper--fixed "
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     testplugin
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -320,11 +316,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 <div
   className="wrapper--fixed "
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     testplugin
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

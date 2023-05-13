@@ -4,14 +4,12 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -111,14 +109,12 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -218,14 +214,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -356,14 +350,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -482,14 +474,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -608,14 +598,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -734,14 +722,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -860,14 +846,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -986,14 +970,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1089,14 +1071,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1203,14 +1183,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1317,14 +1295,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1424,14 +1400,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1540,14 +1514,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1639,14 +1611,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1749,14 +1719,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Edition and License"
       id="admin.license.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

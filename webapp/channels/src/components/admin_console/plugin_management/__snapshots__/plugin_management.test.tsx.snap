@@ -9,14 +9,12 @@ exports[`components/PluginManagement should match snapshot 1`] = `
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -361,14 +359,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -713,14 +709,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -812,14 +806,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -1164,14 +1156,12 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -1518,14 +1508,12 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -1874,14 +1862,12 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -2226,14 +2212,12 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -2555,14 +2539,12 @@ exports[`components/PluginManagement should match snapshot, text entered into th
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -2907,14 +2889,12 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -3266,14 +3246,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -3681,14 +3659,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -4064,14 +4040,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -4447,14 +4421,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >
@@ -4830,14 +4802,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Management"
         id="admin.plugin.management.title"
       />
-    </div>
+    </AdminHeader>
     <div
       className="admin-console__wrapper"
     >

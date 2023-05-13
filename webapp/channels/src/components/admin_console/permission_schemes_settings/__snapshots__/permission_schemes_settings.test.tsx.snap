@@ -6,14 +6,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Permission Schemes"
       id="admin.permissions.permissionSchemes"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -112,14 +110,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Permission Schemes"
       id="admin.permissions.permissionSchemes"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -196,14 +192,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Permission Schemes"
       id="admin.permissions.permissionSchemes"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -328,14 +322,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Permission Schemes"
       id="admin.permissions.permissionSchemes"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -460,14 +452,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Permission Schemes"
       id="admin.permissions.permissionSchemes"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

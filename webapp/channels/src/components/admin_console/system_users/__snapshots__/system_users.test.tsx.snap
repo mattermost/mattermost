@@ -4,9 +4,7 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="{siteName} Users"
       id="admin.system_users.title"
@@ -16,7 +14,7 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
         }
       }
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

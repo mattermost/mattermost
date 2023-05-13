@@ -44,14 +44,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
 <div
   className="wrapper--fixed "
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Configuration"
       id="config"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

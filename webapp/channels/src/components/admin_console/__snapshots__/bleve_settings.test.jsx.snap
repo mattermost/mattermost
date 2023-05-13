@@ -9,14 +9,12 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Bleve"
         id="admin.bleve.title"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}
@@ -273,14 +271,12 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
   <div
     className="wrapper--fixed"
   >
-    <div
-      className="admin-console__header"
-    >
+    <AdminHeader>
       <MemoizedFormattedMessage
         defaultMessage="Bleve"
         id="admin.bleve.title"
       />
-    </div>
+    </AdminHeader>
     <SettingsGroup
       container={true}
       show={true}
