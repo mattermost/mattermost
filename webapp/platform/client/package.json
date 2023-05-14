@@ -22,7 +22,6 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "7.21.0",
-    "@types/jest": "29.5.1",
     "isomorphic-fetch": "3.0.0",
     "jest": "*",
     "nock": "*"

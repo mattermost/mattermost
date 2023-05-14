@@ -7,7 +7,5 @@ module.exports = {
     moduleNameMapper: {
         '^@mattermost/types/(.*)$': '<rootDir>/../types/src/$1',
     },
-    setupFiles: [
-        '<rootDir>/setupTests.ts'
-    ],
+    setupFiles: ['isomorphic-fetch'],
 };
