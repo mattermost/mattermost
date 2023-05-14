@@ -154,7 +154,9 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
 
 export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
     return (dispatch: DispatchFunc) => {
-        dispatch(setGlobalItem(key, value));
+        if (value?.message === '' || value?.message.replace(/\s/g, '').length || (value?.message.replace(/\s/g, '').length && value?.fileInfos.length > 0)) {
+            dispatch(setGlobalItem(key, value));
+        }
         dispatch(setGlobalDraftSource(key, isRemote));
         return {data: true};
     };
