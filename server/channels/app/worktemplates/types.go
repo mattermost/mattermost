@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
 )
 
 type WorkTemplateCategory struct {
@@ -18,14 +18,15 @@ type WorkTemplateCategory struct {
 }
 
 type WorkTemplate struct {
-	ID           string       `yaml:"id"`
-	Category     string       `yaml:"category"`
-	UseCase      string       `yaml:"useCase"`
-	Illustration string       `yaml:"illustration"`
-	Visibility   string       `yaml:"visibility"`
-	FeatureFlag  *FeatureFlag `yaml:"featureFlag,omitempty"`
-	Description  Description  `yaml:"description"`
-	Content      []Content    `yaml:"content"`
+	ID             string       `yaml:"id"`
+	Category       string       `yaml:"category"`
+	UseCase        string       `yaml:"useCase"`
+	Illustration   string       `yaml:"illustration"`
+	Visibility     string       `yaml:"visibility"`
+	OnboardingOnly bool         `yaml:"onboardingOnly"`
+	FeatureFlag    *FeatureFlag `yaml:"featureFlag,omitempty"`
+	Description    Description  `yaml:"description"`
+	Content        []Content    `yaml:"content"`
 }
 
 func (wt WorkTemplate) ToModelWorkTemplate(t i18n.TranslateFunc) *model.WorkTemplate {
@@ -201,17 +202,19 @@ func (wt WorkTemplate) Validate(categoryIds map[string]struct{}) error {
 		}
 	}
 
-	if hasChannel && wt.Description.Channel == nil {
-		return errors.New("description.channel is required")
-	}
-	if hasBoard && wt.Description.Board == nil {
-		return errors.New("description.board is required")
-	}
-	if hasPlaybook && wt.Description.Playbook == nil {
-		return errors.New("description.playbook is required")
-	}
-	if hasIntegration && wt.Description.Integration == nil {
-		return errors.New("description.integration is required")
+	if !wt.OnboardingOnly {
+		if hasChannel && wt.Description.Channel == nil {
+			return errors.New("description.channel is required")
+		}
+		if hasBoard && wt.Description.Board == nil {
+			return errors.New("description.board is required")
+		}
+		if hasPlaybook && wt.Description.Playbook == nil {
+			return errors.New("description.playbook is required")
+		}
+		if hasIntegration && wt.Description.Integration == nil {
+			return errors.New("description.integration is required")
+		}
 	}
 
 	for _, channel := range mustHaveChannels {
