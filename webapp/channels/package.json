@@ -178,7 +178,7 @@
     "jest-junit": "12.2.0",
     "jest-styled-components": "7.1.1",
     "jest-watch-typeahead": "0.6.4",
-    "mmjstool": "github:mattermost/mattermost-utilities#043f88c972e38fec90bcce49624761958cc65fe6",
+    "mmjstool": "github:mattermost/mattermost-utilities#e65ab00f22628cbdee736fd2e4f192f07225e82d",
     "nock": "13.2.8",
     "prettier": "2.3.2",
     "react-router-enzyme-context": "1.2.0",
