@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 

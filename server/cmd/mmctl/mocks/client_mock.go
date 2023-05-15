@@ -13,7 +13,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // MockClient is a mock of Client interface.

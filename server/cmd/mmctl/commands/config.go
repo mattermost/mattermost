@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"

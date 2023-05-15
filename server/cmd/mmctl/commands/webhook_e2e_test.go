@@ -8,7 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func (s *MmctlE2ETestSuite) TestCreateIncomingWebhookCmd() {

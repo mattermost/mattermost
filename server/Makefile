@@ -74,7 +74,7 @@ BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
-	MMCTL_TESTFLAGS += -ldflags '-X "$(MMCTL_PKG).EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/server/v8/model.BuildEnterpriseReady=true"'
+	MMCTL_TESTFLAGS += -ldflags '-X "$(MMCTL_PKG).EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/server/public/model.BuildEnterpriseReady=true"'
 	MMCTL_BUILD_TAGS += enterprise
 
   ifeq ($(BUILD_ENTERPRISE),true)

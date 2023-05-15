@@ -9,7 +9,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 
 	"github.com/spf13/cobra"
 )

@@ -19,7 +19,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+
+	"github.com/mattermost/mattermost-server/server/public/model"
+	pUtils "github.com/mattermost/mattermost-server/server/public/utils"
 
 	"github.com/icrowley/fake"
 	"github.com/spf13/cobra"
@@ -168,7 +170,7 @@ func processProfileImagesDir(profileImagesPath, tmpDir, bulk string) ([]string, 
 			profileImageSrc := filepath.Join(profileImagesPath, profileImage.Name())
 			profileImagePath := filepath.Join(attachmentsDir, profileImage.Name())
 			profileImageDst := filepath.Join(tmpDir, profileImagePath)
-			if err := utils.CopyFile(profileImageSrc, profileImageDst); err != nil {
+			if err := pUtils.CopyFile(profileImageSrc, profileImageDst); err != nil {
 				return nil, fmt.Errorf("cannot copy file %q to %q: %w", profileImageSrc, profileImageDst, err)
 			}
 			// the path we use in the profile info is relative to the zipfile base

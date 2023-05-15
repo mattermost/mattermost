@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"

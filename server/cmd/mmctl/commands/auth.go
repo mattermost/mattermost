@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/term"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
 )
