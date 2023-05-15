@@ -4,8 +4,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -17,7 +17,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         id="admin.channel_settings.channel_detail.channel_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -191,8 +191,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -204,7 +204,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         id="admin.channel_settings.channel_detail.channel_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -374,8 +374,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -387,7 +387,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         id="admin.channel_settings.channel_detail.channel_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -513,8 +513,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -526,7 +526,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         id="admin.channel_settings.channel_detail.channel_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -648,8 +648,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -661,7 +661,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         id="admin.channel_settings.channel_detail.channel_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -787,8 +787,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -800,7 +800,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         id="admin.channel_settings.channel_detail.channel_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
