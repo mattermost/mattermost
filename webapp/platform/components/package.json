@@ -25,7 +25,6 @@
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
     "babel-loader": "^8.2.3",
-    "babel-plugin-formatjs": "10.3.14",
     "css-loader": "^6.7.1",
     "rollup": "^2.75.7",
     "rollup-plugin-auto-external": "^2.0.0",
