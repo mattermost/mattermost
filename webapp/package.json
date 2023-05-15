@@ -27,6 +27,7 @@
     "@babel/preset-typescript": "7.21.5",
     "babel-plugin-formatjs": "10.5.1",
     "babel-plugin-styled-components": "2.1.1",
+    "babel-plugin-typescript-to-proptypes": "2.1.0",
     "blessed": "0.1.81",
     "chalk": "4.1.2",
     "concurrently": "7.6.0",
