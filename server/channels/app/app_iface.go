@@ -826,6 +826,7 @@ type AppIface interface {
 	GetUserAccessTokensForUser(userID string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
 	GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
+	GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
