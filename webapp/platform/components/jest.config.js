@@ -15,9 +15,7 @@ const config = {
         '^.+\\.(css|scss)$': 'identity-obj-proxy',
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-    setupFilesAfterEnv: [
-        '<rootDir>/setupTests.ts',
-    ],
+    setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
 };
 
 module.exports = config;
