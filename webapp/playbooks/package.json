@@ -72,7 +72,6 @@
     "babel-loader": "8.2.3",
     "babel-plugin-add-react-displayname": "0.0.5",
     "babel-plugin-formatjs": "10.3.14",
-    "babel-plugin-styled-components": "2.0.2",
     "babel-plugin-typescript-to-proptypes": "2.0.0",
     "classnames": "2.3.1",
     "eslint-import-resolver-webpack": "0.13.2",
