@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect} from 'react'
+import React, {useEffect, useRef} from 'react'
 
 import {BlockInputProps, ContentType} from 'src/components/blocksEditor/blocks/types'
 
@@ -20,6 +20,7 @@ const ListItem: ContentType = {
         useEffect(() => {
             ref.current?.focus()
         }, [])
+
         return (
             <ul>
                 <li>

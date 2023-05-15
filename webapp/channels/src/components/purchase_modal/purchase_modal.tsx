@@ -111,7 +111,7 @@ type CardProps = {
 type Props = {
     customer: CloudCustomer | undefined;
     show: boolean;
-    isDevMode: boolean;
+    cwsMockMode: boolean;
     products: Record<string, Product> | undefined;
     yearlyProducts: Record<string, Product>;
     contactSalesLink: string;
@@ -137,7 +137,7 @@ type Props = {
         completeStripeAddPaymentMethod: (
             stripe: Stripe,
             billingDetails: BillingDetails,
-            isDevMode: boolean
+            cwsMockMode: boolean
         ) => Promise<boolean | null>;
         subscribeCloudSubscription: (
             productId: string,
@@ -1006,7 +1006,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                                             this.props.actions.
                                                 subscribeCloudSubscription
                                         }
-                                        isDevMode={this.props.isDevMode}
+                                        cwsMockMode={this.props.cwsMockMode}
                                         onClose={() => {
                                             this.props.actions.getCloudSubscription();
                                             this.props.actions.closeModal();

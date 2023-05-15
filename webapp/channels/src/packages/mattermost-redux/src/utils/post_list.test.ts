@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {GlobalState} from '@mattermost/types/store';
-import {Post} from '@mattermost/types/posts';
+import {ActivityEntry, Post} from '@mattermost/types/posts';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {Posts, Preferences} from '../constants';
@@ -11,7 +11,6 @@ import TestHelper from '../../test/test_helper';
 import {
     COMBINED_USER_ACTIVITY,
     combineUserActivitySystemPost,
-    comparePostTypes,
     DATE_LINE,
     getDateForDateLine,
     getFirstPostId,
@@ -23,7 +22,7 @@ import {
     makeCombineUserActivityPosts,
     makeFilterPostsAndAddSeparators,
     makeGenerateCombinedPost,
-    postTypePriority,
+    extractUserActivityData,
     START_OF_NEW_MESSAGES,
 } from './post_list';
 
@@ -1014,8 +1013,11 @@ describe('makeGenerateCombinedPost', () => {
                     'bill joined the channel.',
                 ],
                 user_activity: {
-                    allUserIds: ['user2', 'user3', 'user1'],
-                    allUsernames: [],
+                    allUserIds: ['user1', 'user3', 'user2'],
+                    allUsernames: [
+                        'alice',
+                        'joe',
+                    ],
                     messageData: [
                         {
                             postType: Posts.POST_TYPES.JOIN_CHANNEL,
@@ -1023,18 +1025,18 @@ describe('makeGenerateCombinedPost', () => {
                         },
                         {
                             postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
-                            userIds: ['user2', 'user3'],
+                            userIds: ['user3', 'user2'],
                             actorId: 'user1',
                         },
                     ],
                 },
             },
-            system_post_ids: ['post1', 'post2', 'post3'],
+            system_post_ids: ['post3', 'post2', 'post1'],
             type: Posts.POST_TYPES.COMBINED_USER_ACTIVITY,
             user_activity_posts: [
-                state.entities.posts.posts.post1,
-                state.entities.posts.posts.post2,
                 state.entities.posts.posts.post3,
+                state.entities.posts.posts.post2,
+                state.entities.posts.posts.post1,
             ],
             user_id: '',
             metadata: {},
@@ -1109,7 +1111,7 @@ describe('makeGenerateCombinedPost', () => {
             };
             generateCombinedPost(state, initialCombinedId);
 
-            expect((generateCombinedPost as any).recomputations()).toBe(1);
+            expect((generateCombinedPost as any).recomputations()).toBe(2);
         });
 
         test('should recalculate when one of the included posts change', () => {
@@ -1141,574 +1143,332 @@ describe('makeGenerateCombinedPost', () => {
         });
     });
 });
+const PostTypes = Posts.POST_TYPES;
+describe('extractUserActivityData', () => {
+    const postAddToChannel: ActivityEntry = {
+        postType: PostTypes.ADD_TO_CHANNEL,
+        actorId: ['user_id_1'],
+        userIds: ['added_user_id_1'],
+        usernames: ['added_username_1'],
+    };
+    const postAddToTeam: ActivityEntry = {
+        postType: PostTypes.ADD_TO_TEAM,
+        actorId: ['user_id_1'],
+        userIds: ['added_user_id_1', 'added_user_id_2'],
+        usernames: ['added_username_1', 'added_username_2'],
+    };
+    const postLeaveChannel: ActivityEntry = {
+        postType: PostTypes.LEAVE_CHANNEL,
+        actorId: ['user_id_1'],
+        userIds: [],
+        usernames: [],
+    };
 
-describe('combineUserActivitySystemPost', () => {
-    const PostTypes = Posts.POST_TYPES;
+    const postJoinChannel: ActivityEntry = {
+        postType: PostTypes.JOIN_CHANNEL,
+        actorId: ['user_id_1'],
+        userIds: [],
+        usernames: [],
+    };
 
-    it('should return null', () => {
-        expect(Boolean(combineUserActivitySystemPost())).toBe(false);
-        expect(Boolean(combineUserActivitySystemPost([]))).toBe(false);
+    const postRemoveFromChannel: ActivityEntry = {
+        postType: PostTypes.REMOVE_FROM_CHANNEL,
+        actorId: ['user_id_1'],
+        userIds: ['removed_user_id_1'],
+        usernames: ['removed_username_1'],
+    };
+    const postLeaveTeam: ActivityEntry = {
+        postType: PostTypes.LEAVE_TEAM,
+        actorId: ['user_id_1'],
+        userIds: [],
+        usernames: [],
+    };
+
+    const postJoinTeam: ActivityEntry = {
+        postType: PostTypes.JOIN_TEAM,
+        actorId: ['user_id_1'],
+        userIds: [],
+        usernames: [],
+    };
+    const postRemoveFromTeam: ActivityEntry = {
+        postType: PostTypes.REMOVE_FROM_TEAM,
+        actorId: ['user_id_1'],
+        userIds: [],
+        usernames: [],
+    };
+    it('should return empty activity when empty ', () => {
+        expect(extractUserActivityData([])).toEqual({allUserIds: [], allUsernames: [], messageData: []});
     });
-
-    const postAddToChannel1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
-    const postAddToChannel2 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_2', addedUsername: 'added_username_2'}});
-    const postAddToChannel3 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_3', addedUsername: 'added_username_3'}});
-    const postAddToChannel4 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_2', props: {addedUserId: 'added_user_id_4', addedUsername: 'added_username_4'}});
-    const postAddToChannel5 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUsername: 'added_username_1'}});
-    it('should match return for ADD_TO_CHANNEL', () => {
-        const out1 = {
-            allUserIds: ['added_user_id_1', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1, postAddToChannel2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1, postAddToChannel2, postAddToChannel3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1', 'added_user_id_4', 'user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1, postAddToChannel2, postAddToChannel3, postAddToChannel4])).toEqual(out4);
-
-        const out5 = {
-            allUserIds: ['user_id_1'],
-            allUsernames: ['added_username_1'],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_username_1']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel5])).toEqual(out5);
-
-        const out6 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1', 'added_user_id_4', 'user_id_2'],
-            allUsernames: ['added_username_1'],
-            messageData: [
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_username_1', 'added_user_id_1', 'added_user_id_2', 'added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1, postAddToChannel2, postAddToChannel3, postAddToChannel4, postAddToChannel5])).toEqual(out6);
-    });
-
-    it('should match return for ADD_TO_CHANNEL, backward compatibility with addedUsername', () => {
-        const out1 = {
-            allUserIds: ['user_id_1'],
-            allUsernames: ['added_user_name_1'],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_name_1']}],
-        };
-        expect(combineUserActivitySystemPost([{...postAddToChannel1, props: {addedUsername: 'added_user_name_1'}}])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['added_user_id_2', 'user_id_1'],
-            allUsernames: ['added_user_name_1'],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_name_1', 'added_user_id_2']}],
-        };
-        expect(combineUserActivitySystemPost([{...postAddToChannel1, props: {addedUsername: 'added_user_name_1'}}, postAddToChannel2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1', 'user_id_2'],
-            allUsernames: ['added_user_name_4'],
-            messageData: [
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_name_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1, postAddToChannel2, postAddToChannel3, {...postAddToChannel4, props: {addedUsername: 'added_user_name_4'}}])).toEqual(out3);
-    });
-
-    const postAddToTeam1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_TEAM, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1'}});
-    const postAddToTeam2 = TestHelper.getPostMock({type: PostTypes.ADD_TO_TEAM, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_2'}});
-    const postAddToTeam3 = TestHelper.getPostMock({type: PostTypes.ADD_TO_TEAM, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_3'}});
-    const postAddToTeam4 = TestHelper.getPostMock({type: PostTypes.ADD_TO_TEAM, user_id: 'user_id_2', props: {addedUserId: 'added_user_id_4'}});
-    it('should match return for ADD_TO_TEAM', () => {
-        const out1 = {
-            allUserIds: ['added_user_id_1', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_1']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToTeam1])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_1', 'added_user_id_2']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToTeam1, postAddToTeam2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']}],
-        };
-        expect(combineUserActivitySystemPost([postAddToTeam1, postAddToTeam2, postAddToTeam3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1', 'added_user_id_4', 'user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postAddToTeam1, postAddToTeam2, postAddToTeam3, postAddToTeam4])).toEqual(out4);
-    });
-
-    it('should match return for ADD_TO_TEAM, backward compatibility with addedUsername', () => {
-        const out1 = {
-            allUserIds: ['user_id_1'],
-            allUsernames: ['added_user_name_1'],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_name_1']}],
-        };
-        expect(combineUserActivitySystemPost([{...postAddToTeam1, props: {addedUsername: 'added_user_name_1'}}])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['added_user_id_2', 'user_id_1'],
-            allUsernames: ['added_user_name_1'],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_name_1', 'added_user_id_2']}],
-        };
-        expect(combineUserActivitySystemPost([{...postAddToTeam1, props: {addedUsername: 'added_user_name_1'}}, postAddToTeam2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3', 'user_id_1', 'user_id_2'],
-            allUsernames: ['added_user_name_4'],
-            messageData: [
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_name_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postAddToTeam1, postAddToTeam2, postAddToTeam3, {...postAddToTeam4, props: {addedUsername: 'added_user_name_4'}}])).toEqual(out3);
-    });
-
-    const postJoinChannel1 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_1'});
-    const postJoinChannel2 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_2'});
-    const postJoinChannel3 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_3'});
-    const postJoinChannel4 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_4'});
     it('should match return for JOIN_CHANNEL', () => {
-        const out1 = {
+        const userActivities = [postJoinChannel];
+        const expectedOutput = {
             allUserIds: ['user_id_1'],
             allUsernames: [],
             messageData: [{postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']}],
         };
-        expect(combineUserActivitySystemPost([postJoinChannel1])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2']}],
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
+        const postJoinChannel2: ActivityEntry = {
+            postType: PostTypes.JOIN_CHANNEL,
+            actorId: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
+            userIds: [],
+            usernames: [],
         };
-        expect(combineUserActivitySystemPost([postJoinChannel1, postJoinChannel2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+        const expectedOutput2 = {
+            allUserIds: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
             allUsernames: [],
-            messageData: [{postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']}],
+            messageData: [{postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5']}],
         };
-        expect(combineUserActivitySystemPost([postJoinChannel1, postJoinChannel2, postJoinChannel3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']}],
-        };
-        expect(combineUserActivitySystemPost([postJoinChannel1, postJoinChannel2, postJoinChannel3, postJoinChannel4])).toEqual(out4);
+        expect(extractUserActivityData([postJoinChannel2])).toEqual(expectedOutput2);
     });
 
-    const postJoinTeam1 = TestHelper.getPostMock({type: PostTypes.JOIN_TEAM, user_id: 'user_id_1'});
-    const postJoinTeam2 = TestHelper.getPostMock({type: PostTypes.JOIN_TEAM, user_id: 'user_id_2'});
-    const postJoinTeam3 = TestHelper.getPostMock({type: PostTypes.JOIN_TEAM, user_id: 'user_id_3'});
-    const postJoinTeam4 = TestHelper.getPostMock({type: PostTypes.JOIN_TEAM, user_id: 'user_id_4'});
-    it('should match return for JOIN_TEAM', () => {
-        const out1 = {
+    it('should return expected data for ADD_TO_CHANNEL', () => {
+        const userActivities = [postAddToChannel];
+        const expectedOutput = {
+            allUserIds: ['added_user_id_1', 'user_id_1'],
+            allUsernames: ['added_username_1'],
+            messageData: [{postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_1', userIds: ['added_user_id_1']}],
+        };
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
+        const postAddToChannel2: ActivityEntry = {
+            postType: PostTypes.ADD_TO_CHANNEL,
+            actorId: ['user_id_2'],
+            userIds: ['added_user_id_2', 'added_user_id_3', 'added_user_id_4'],
+            usernames: ['added_username_2', 'added_username_3', 'added_username_4'],
+        };
+        const userActivities2 = [postAddToChannel, postAddToChannel2];
+        const expectedOutput2 = {
+            allUserIds: ['added_user_id_1', 'user_id_1', 'added_user_id_2', 'added_user_id_3', 'added_user_id_4', 'user_id_2'],
+            allUsernames: ['added_username_1', 'added_username_2', 'added_username_3', 'added_username_4'],
+            messageData: [
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_1', userIds: ['added_user_id_1']},
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_2', userIds: ['added_user_id_2', 'added_user_id_3', 'added_user_id_4']},
+            ],
+        };
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
+    });
+
+    it('should return expected data for ADD_TO_TEAM', () => {
+        const userActivities = [postAddToTeam];
+        const expectedOutput = {
+            allUserIds: ['added_user_id_1', 'added_user_id_2', 'user_id_1'],
+            allUsernames: ['added_username_1', 'added_username_2'],
+            messageData: [{postType: PostTypes.ADD_TO_TEAM, actorId: 'user_id_1', userIds: ['added_user_id_1', 'added_user_id_2']}],
+        };
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
+        const postAddToTeam2: ActivityEntry = {
+            postType: PostTypes.ADD_TO_TEAM,
+            actorId: ['user_id_2'],
+            userIds: ['added_user_id_3', 'added_user_id_4'],
+            usernames: ['added_username_3', 'added_username_4'],
+        };
+        const userActivities2 = [postAddToTeam, postAddToTeam2];
+        const expectedOutput2 = {
+            allUserIds: ['added_user_id_1', 'added_user_id_2', 'user_id_1', 'added_user_id_3', 'added_user_id_4', 'user_id_2'],
+            allUsernames: ['added_username_1', 'added_username_2', 'added_username_3', 'added_username_4'],
+            messageData: [
+                {postType: PostTypes.ADD_TO_TEAM, actorId: 'user_id_1', userIds: ['added_user_id_1', 'added_user_id_2']},
+                {postType: PostTypes.ADD_TO_TEAM, actorId: 'user_id_2', userIds: ['added_user_id_3', 'added_user_id_4']},
+            ],
+        };
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
+    });
+
+    it('should return expected data for JOIN_TEAM', () => {
+        const userActivities = [postJoinTeam];
+        const expectedOutput = {
             allUserIds: ['user_id_1'],
             allUsernames: [],
             messageData: [{postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1']}],
         };
-        expect(combineUserActivitySystemPost([postJoinTeam1])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1', 'user_id_2']}],
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
+        const postJoinTeam2: ActivityEntry = {
+            postType: PostTypes.JOIN_TEAM,
+            actorId: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
+            userIds: [],
+            usernames: [],
         };
-        expect(combineUserActivitySystemPost([postJoinTeam1, postJoinTeam2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+        const userActivities2 = [postJoinTeam, postJoinTeam2];
+        const expectedOutput2 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
             allUsernames: [],
-            messageData: [{postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1', 'user_id_2', 'user_id_3']}],
+            messageData: [
+                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1']},
+                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5']},
+            ],
         };
-        expect(combineUserActivitySystemPost([postJoinTeam1, postJoinTeam2, postJoinTeam3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']}],
-        };
-        expect(combineUserActivitySystemPost([postJoinTeam1, postJoinTeam2, postJoinTeam3, postJoinTeam4])).toEqual(out4);
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
     });
 
-    const postLeaveChannel1 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_1'});
-    const postLeaveChannel2 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_2'});
-    const postLeaveChannel3 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_3'});
-    const postLeaveChannel4 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_4'});
-    it('should match return for LEAVE_CHANNEL', () => {
-        const out1 = {
+    it('should return expected data for LEAVE_CHANNEL', () => {
+        const userActivities = [postLeaveChannel];
+        const expectedOutput = {
             allUserIds: ['user_id_1'],
             allUsernames: [],
             messageData: [{postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']}],
         };
-        expect(combineUserActivitySystemPost([postLeaveChannel1])).toEqual(out1);
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
 
-        const out2 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2']}],
+        const postLeaveChannel2: ActivityEntry = {
+            postType: PostTypes.LEAVE_CHANNEL,
+            actorId: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
+            userIds: [],
+            usernames: [],
         };
-        expect(combineUserActivitySystemPost([postLeaveChannel1, postLeaveChannel2])).toEqual(out2);
+        const userActivities2 = [postLeaveChannel, postLeaveChannel2];
+        const expectedOutput2 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
+            allUsernames: [],
+            messageData: [
 
-        const out3 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']}],
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5']},
+            ],
         };
-        expect(combineUserActivitySystemPost([postLeaveChannel1, postLeaveChannel2, postLeaveChannel3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']}],
-        };
-        expect(combineUserActivitySystemPost([postLeaveChannel1, postLeaveChannel2, postLeaveChannel3, postLeaveChannel4])).toEqual(out4);
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
     });
 
-    const postLeaveTeam1 = TestHelper.getPostMock({type: PostTypes.LEAVE_TEAM, user_id: 'user_id_1'});
-    const postLeaveTeam2 = TestHelper.getPostMock({type: PostTypes.LEAVE_TEAM, user_id: 'user_id_2'});
-    const postLeaveTeam3 = TestHelper.getPostMock({type: PostTypes.LEAVE_TEAM, user_id: 'user_id_3'});
-    const postLeaveTeam4 = TestHelper.getPostMock({type: PostTypes.LEAVE_TEAM, user_id: 'user_id_4'});
-    it('should match return for LEAVE_TEAM', () => {
-        const out1 = {
+    it('should return expected data for LEAVE_TEAM', () => {
+        const userActivities = [postLeaveTeam];
+        const expectedOutput = {
             allUserIds: ['user_id_1'],
             allUsernames: [],
             messageData: [{postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1']}],
         };
-        expect(combineUserActivitySystemPost([postLeaveTeam1])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1', 'user_id_2']}],
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
+        const postLeaveTeam2: ActivityEntry = {
+            postType: PostTypes.LEAVE_TEAM,
+            actorId: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
+            userIds: [],
+            usernames: [],
         };
-        expect(combineUserActivitySystemPost([postLeaveTeam1, postLeaveTeam2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+        const userActivities2 = [postLeaveTeam, postLeaveTeam2];
+        const expectedOutput2 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
             allUsernames: [],
-            messageData: [{postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1', 'user_id_2', 'user_id_3']}],
+            messageData: [
+                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5']},
+            ],
         };
-        expect(combineUserActivitySystemPost([postLeaveTeam1, postLeaveTeam2, postLeaveTeam3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']}],
-        };
-        expect(combineUserActivitySystemPost([postLeaveTeam1, postLeaveTeam2, postLeaveTeam3, postLeaveTeam4])).toEqual(out4);
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
     });
-
-    const postRemoveFromChannel1 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_CHANNEL, user_id: 'user_id_1', props: {removedUserId: 'removed_user_id_1'}});
-    const postRemoveFromChannel2 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_CHANNEL, user_id: 'user_id_1', props: {removedUserId: 'removed_user_id_2'}});
-    const postRemoveFromChannel3 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_CHANNEL, user_id: 'user_id_1', props: {removedUserId: 'removed_user_id_3'}});
-    const postRemoveFromChannel4 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_CHANNEL, user_id: 'user_id_1', props: {removedUserId: 'removed_user_id_4'}});
-    it('should match return for REMOVE_FROM_CHANNEL', () => {
-        const out1 = {
+    it('should return expected data for REMOVE_FROM_CHANNEL', () => {
+        const userActivities = [postRemoveFromChannel];
+        const expectedOutput = {
             allUserIds: ['removed_user_id_1', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1']}],
+            allUsernames: ['removed_username_1'],
+            messageData: [{postType: PostTypes.REMOVE_FROM_CHANNEL, actorId: 'user_id_1', userIds: ['removed_user_id_1']}],
         };
-        expect(combineUserActivitySystemPost([postRemoveFromChannel1])).toEqual(out1);
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
 
-        const out2 = {
-            allUserIds: ['removed_user_id_1', 'removed_user_id_2', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1', 'removed_user_id_2']}],
+        const postRemoveFromChannel2: ActivityEntry = {
+            postType: PostTypes.REMOVE_FROM_CHANNEL,
+            actorId: ['user_id_2'],
+            userIds: ['removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4', 'removed_user_id_5'],
+            usernames: ['removed_username_2', 'removed_username_3', 'removed_username_4', 'removed_username_5'],
         };
-        expect(combineUserActivitySystemPost([postRemoveFromChannel1, postRemoveFromChannel2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['removed_user_id_1', 'removed_user_id_2', 'removed_user_id_3', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1', 'removed_user_id_2', 'removed_user_id_3']}],
+        const userActivities2 = [postRemoveFromChannel, postRemoveFromChannel2];
+        const expectedOutput2 = {
+            allUserIds: ['removed_user_id_1', 'user_id_1', 'removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4', 'removed_user_id_5', 'user_id_2'],
+            allUsernames: ['removed_username_1', 'removed_username_2', 'removed_username_3', 'removed_username_4', 'removed_username_5'],
+            messageData: [
+                {postType: PostTypes.REMOVE_FROM_CHANNEL, actorId: 'user_id_1', userIds: ['removed_user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_CHANNEL, actorId: 'user_id_2', userIds: ['removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4', 'removed_user_id_5']},
+            ],
         };
-        expect(combineUserActivitySystemPost([postRemoveFromChannel1, postRemoveFromChannel2, postRemoveFromChannel3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['removed_user_id_1', 'removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4', 'user_id_1'],
-            allUsernames: [],
-            messageData: [{actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1', 'removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4']}],
-        };
-        expect(combineUserActivitySystemPost([postRemoveFromChannel1, postRemoveFromChannel2, postRemoveFromChannel3, postRemoveFromChannel4])).toEqual(out4);
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
     });
-
-    const postRemoveFromTeam1 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_TEAM, user_id: 'user_id_1'});
-    const postRemoveFromTeam2 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_TEAM, user_id: 'user_id_2'});
-    const postRemoveFromTeam3 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_TEAM, user_id: 'user_id_3'});
-    const postRemoveFromTeam4 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_TEAM, user_id: 'user_id_4'});
-    it('should match return for REMOVE_FROM_TEAM', () => {
-        const out1 = {
+    it('should return expected data for REMOVE_FROM_TEAM', () => {
+        const userActivities = [postRemoveFromTeam];
+        const expectedOutput = {
             allUserIds: ['user_id_1'],
             allUsernames: [],
             messageData: [{postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1']}],
         };
-        expect(combineUserActivitySystemPost([postRemoveFromTeam1])).toEqual(out1);
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
 
-        const out2 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1', 'user_id_2']}],
+        const postRemoveFromTeam2: ActivityEntry = {
+            postType: PostTypes.REMOVE_FROM_TEAM,
+            actorId: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
+            userIds: [],
+            usernames: [],
         };
-        expect(combineUserActivitySystemPost([postRemoveFromTeam1, postRemoveFromTeam2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+        const userActivities2 = [postRemoveFromTeam, postRemoveFromTeam2];
+        const expectedOutput2 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4', 'user_id_5'],
             allUsernames: [],
-            messageData: [{postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1', 'user_id_2', 'user_id_3']}],
+            messageData: [
+                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_2', 'user_id_3', 'user_id_4', 'user_id_5']},
+            ],
         };
-        expect(combineUserActivitySystemPost([postRemoveFromTeam1, postRemoveFromTeam2, postRemoveFromTeam3])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'],
-            allUsernames: [],
-            messageData: [{postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']}],
-        };
-        expect(combineUserActivitySystemPost([postRemoveFromTeam1, postRemoveFromTeam2, postRemoveFromTeam3, postRemoveFromTeam4])).toEqual(out4);
+        expect(extractUserActivityData(userActivities2)).toEqual(expectedOutput2);
     });
-
-    it('should match return on combination', () => {
-        const out1 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'user_id_1'],
-            allUsernames: [],
+    it('should return expected data for multiple post types', () => {
+        const userActivities = [postAddToChannel, postAddToTeam, postJoinChannel, postJoinTeam, postLeaveChannel, postLeaveTeam, postRemoveFromChannel, postRemoveFromTeam];
+        const expectedOutput = {
+            allUserIds: ['added_user_id_1', 'user_id_1', 'added_user_id_2', 'removed_user_id_1'],
+            allUsernames: ['added_username_1', 'added_username_2', 'removed_username_1'],
             messageData: [
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_1', 'added_user_id_2']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postAddToChannel1, postAddToChannel2, postAddToTeam1, postAddToTeam2])).toEqual(out1);
-
-        const out2 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1', 'user_id_2']},
-                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postJoinChannel1, postJoinChannel2, postJoinTeam1, postJoinTeam2])).toEqual(out2);
-
-        const out3 = {
-            allUserIds: ['user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1', 'user_id_2']},
-                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postLeaveChannel1, postLeaveChannel2, postLeaveTeam1, postLeaveTeam2])).toEqual(out3);
-
-        const out4 = {
-            allUserIds: ['removed_user_id_1', 'removed_user_id_2', 'user_id_1', 'user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1', 'user_id_2']},
-                {actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1', 'removed_user_id_2']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([postRemoveFromChannel1, postRemoveFromChannel2, postRemoveFromTeam1, postRemoveFromTeam2])).toEqual(out4);
-
-        const out5 = {
-            allUserIds: ['added_user_id_1', 'added_user_id_2', 'user_id_1', 'user_id_2', 'removed_user_id_1', 'removed_user_id_2'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2']},
-                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2']},
-                {actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1', 'removed_user_id_2']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([
-            postAddToChannel1,
-            postJoinChannel1,
-            postLeaveChannel1,
-            postRemoveFromChannel1,
-            postAddToChannel2,
-            postJoinChannel2,
-            postLeaveChannel2,
-            postRemoveFromChannel2,
-        ])).toEqual(out5);
-
-        const out6 = {
-            allUserIds: ['added_user_id_3', 'user_id_1', 'added_user_id_4', 'user_id_2', 'user_id_3', 'user_id_4'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_3', 'user_id_4']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_4']},
-                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_3', 'user_id_4']},
-                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_3', 'user_id_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([
-            postAddToTeam3,
-            postJoinTeam3,
-            postLeaveTeam3,
-            postRemoveFromTeam3,
-            postAddToTeam4,
-            postJoinTeam4,
-            postLeaveTeam4,
-            postRemoveFromTeam4,
-        ])).toEqual(out6);
-
-        const out7 = {
-            allUserIds: ['added_user_id_3', 'added_user_id_1', 'added_user_id_2', 'user_id_1', 'added_user_id_4', 'user_id_2', 'user_id_3', 'user_id_4', 'removed_user_id_1', 'removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_3', 'user_id_4', 'user_id_1', 'user_id_2']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_3', 'added_user_id_1', 'added_user_id_2']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_4']},
-                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_3', 'user_id_4', 'user_id_1', 'user_id_2']},
-                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_3', 'user_id_4', 'user_id_1', 'user_id_2']},
-                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1', 'added_user_id_2', 'added_user_id_3']},
-                {actorId: 'user_id_2', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_4']},
-                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4']},
-                {actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1', 'removed_user_id_2', 'removed_user_id_3', 'removed_user_id_4']},
-            ],
-        };
-        expect(combineUserActivitySystemPost([
-            postAddToTeam3,
-            postJoinTeam3,
-            postLeaveTeam3,
-            postRemoveFromTeam3,
-            postAddToTeam4,
-            postJoinTeam4,
-            postLeaveTeam4,
-            postRemoveFromTeam4,
-
-            postAddToChannel1,
-            postJoinChannel1,
-            postLeaveChannel1,
-            postRemoveFromChannel1,
-            postAddToChannel2,
-            postJoinChannel2,
-            postLeaveChannel2,
-            postRemoveFromChannel2,
-
-            postAddToChannel3,
-            postJoinChannel3,
-            postLeaveChannel3,
-            postRemoveFromChannel3,
-            postAddToChannel4,
-            postJoinChannel4,
-            postLeaveChannel4,
-            postRemoveFromChannel4,
-
-            postAddToTeam1,
-            postJoinTeam1,
-            postLeaveTeam1,
-            postRemoveFromTeam1,
-            postAddToTeam2,
-            postJoinTeam2,
-            postLeaveTeam2,
-            postRemoveFromTeam2,
-        ])).toEqual(out7);
-
-        const out8 = {
-            allUserIds: ['added_user_id_3', 'user_id_1', 'user_id_3', 'added_user_id_1', 'removed_user_id_1'],
-            allUsernames: [],
-            messageData: [
-                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_3']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_TEAM, userIds: ['added_user_id_3']},
-                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_3']},
-                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_3']},
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_1', userIds: ['added_user_id_1']},
+                {postType: PostTypes.ADD_TO_TEAM, actorId: 'user_id_1', userIds: ['added_user_id_1', 'added_user_id_2']},
                 {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
-                {actorId: 'user_id_1', postType: PostTypes.ADD_TO_CHANNEL, userIds: ['added_user_id_1']},
+                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1']},
                 {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
-                {actorId: 'user_id_1', postType: PostTypes.REMOVE_FROM_CHANNEL, userIds: ['removed_user_id_1']},
+                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_CHANNEL, actorId: 'user_id_1', userIds: ['removed_user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1']},
             ],
         };
-        expect(combineUserActivitySystemPost([
-            postAddToTeam3,
-            postAddToTeam3,
-            postJoinTeam3,
-            postJoinTeam3,
-            postLeaveTeam3,
-            postLeaveTeam3,
-            postRemoveFromTeam3,
-            postRemoveFromTeam3,
-
-            postAddToChannel1,
-            postAddToChannel1,
-            postJoinChannel1,
-            postJoinChannel1,
-            postLeaveChannel1,
-            postLeaveChannel1,
-            postRemoveFromChannel1,
-            postRemoveFromChannel1,
-        ])).toEqual(out8);
+        expect(extractUserActivityData(userActivities)).toEqual(expectedOutput);
     });
 });
 
-describe('comparePostTypes', () => {
-    const {
-        JOIN_TEAM,
-        ADD_TO_TEAM,
-        LEAVE_TEAM,
-        REMOVE_FROM_TEAM,
-        JOIN_CHANNEL,
-        ADD_TO_CHANNEL,
-        LEAVE_CHANNEL,
-        REMOVE_FROM_CHANNEL,
-    } = Posts.POST_TYPES;
+describe('combineUserActivityData', () => {
+    it('combineUserActivitySystemPost returns null when systemPosts is an empty array', () => {
+        expect(combineUserActivitySystemPost([])).toBeNull();
+    });
+    it('correctly combine different post types and actorIds by order', () => {
+        const postAddToChannel1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
+        const postAddToTeam1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_TEAM, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1'}});
+        const postJoinChannel1 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_1'});
+        const postJoinTeam1 = TestHelper.getPostMock({type: PostTypes.JOIN_TEAM, user_id: 'user_id_1'});
+        const postLeaveChannel1 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_1'});
+        const postLeaveTeam1 = TestHelper.getPostMock({type: PostTypes.LEAVE_TEAM, user_id: 'user_id_1'});
+        const postRemoveFromChannel1 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_CHANNEL, user_id: 'user_id_1', props: {removedUserId: 'removed_user_id_1', removedUsername: 'removed_username_1'}});
+        const postRemoveFromTeam1 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_TEAM, user_id: 'user_id_1'});
+        const posts = [postAddToChannel1, postAddToTeam1, postJoinChannel1, postJoinTeam1, postLeaveChannel1, postLeaveTeam1, postRemoveFromChannel1, postRemoveFromTeam1].reverse();
+        const expectedOutput = {
+            allUserIds: ['added_user_id_1', 'user_id_1', 'removed_user_id_1'],
+            allUsernames: ['added_username_1', 'removed_username_1'],
+            messageData: [
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_1', userIds: ['added_user_id_1']},
+                {postType: PostTypes.ADD_TO_TEAM, actorId: 'user_id_1', userIds: ['added_user_id_1']},
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_CHANNEL, actorId: 'user_id_1', userIds: ['removed_user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+    });
+    it('correctly combine same post types', () => {
+        const postAddToChannel1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
+        const postAddToChannel2 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_2', props: {addedUserId: 'added_user_id_2', addedUsername: 'added_username_2'}});
+        const postAddToChannel3 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_3', props: {addedUserId: 'added_user_id_3', addedUsername: 'added_username_3'}});
 
-    const testCases = [
-        [],
-        [{postType: JOIN_TEAM}],
-        [{postType: JOIN_TEAM}, {postType: ADD_TO_TEAM}],
-        [{postType: ADD_TO_TEAM}, {postType: JOIN_TEAM}],
-        [{postType: ADD_TO_TEAM}, {postType: ADD_TO_TEAM}, {postType: JOIN_TEAM}],
-        [{postType: JOIN_TEAM}, {postType: ADD_TO_TEAM}, {postType: LEAVE_TEAM}, {postType: REMOVE_FROM_TEAM}],
-        [{postType: REMOVE_FROM_TEAM}, {postType: LEAVE_TEAM}, {postType: ADD_TO_TEAM}, {postType: JOIN_TEAM}],
-        [{postType: JOIN_CHANNEL}, {postType: ADD_TO_CHANNEL}, {postType: LEAVE_CHANNEL}, {postType: REMOVE_FROM_CHANNEL}],
-        [{postType: REMOVE_FROM_CHANNEL}, {postType: LEAVE_CHANNEL}, {postType: ADD_TO_CHANNEL}, {postType: JOIN_CHANNEL}],
-        [{postType: LEAVE_CHANNEL}, {postType: REMOVE_FROM_CHANNEL}, {postType: LEAVE_TEAM}, {postType: REMOVE_FROM_TEAM}],
-        [{postType: LEAVE_TEAM}, {postType: REMOVE_FROM_TEAM}, {postType: LEAVE_CHANNEL}, {postType: REMOVE_FROM_CHANNEL}],
-        [{postType: JOIN_CHANNEL}, {postType: LEAVE_CHANNEL}, {postType: JOIN_CHANNEL}, {postType: REMOVE_FROM_CHANNEL}, {postType: ADD_TO_CHANNEL}],
-    ];
-
-    for (const testCase of testCases) {
-        let previousType = '';
-        testCase.sort(comparePostTypes as any).forEach((sortedTestCase, index) => {
-            it(`should sort post type correctly: ${previousType} should come first before ${sortedTestCase.postType}`, () => {
-                if (index > 0) {
-                    expect(postTypePriority[previousType] <= postTypePriority[sortedTestCase.postType]).toBeTruthy();
-                }
-
-                previousType = sortedTestCase.postType;
-            });
-        });
-    }
+        const posts = [postAddToChannel1, postAddToChannel2, postAddToChannel3].reverse();
+        const expectedOutput = {
+            allUserIds: ['added_user_id_1', 'user_id_1', 'added_user_id_2', 'user_id_2', 'added_user_id_3', 'user_id_3'],
+            allUsernames: ['added_username_1', 'added_username_2', 'added_username_3'],
+            messageData: [
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_1', userIds: ['added_user_id_1']},
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_2', userIds: ['added_user_id_2']},
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_3', userIds: ['added_user_id_3']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+    });
 });

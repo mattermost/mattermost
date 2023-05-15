@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {
-    createSlice,
     PayloadAction,
     createAsyncThunk,
-    createSelector
+    createSelector,
+    createSlice,
 } from '@reduxjs/toolkit'
 
 import {default as client} from 'src/octoClient'
@@ -45,6 +45,7 @@ export const fetchBoardMembers = createAsyncThunk(
         users.push(...usersData)
 
         thunkAPI.dispatch(setBoardUsers(users))
+
         return members
     },
 )
@@ -85,6 +86,7 @@ export const updateMembersEnsuringBoardsAndUsers = createAsyncThunk(
             const deleted = !m.schemeAdmin && !m.schemeEditor && !m.schemeViewer && !m.schemeCommenter
             if (deleted) {
                 thunkAPI.dispatch(removeBoardUsersById([m.userId]))
+
                 return
             }
             if (boardUsers[m.userId]) {
@@ -222,6 +224,7 @@ const boardsSlice = createSlice({
             const boardId = action.payload[0].boardId
             const boardMembersMap = action.payload.reduce((acc: {[key: string]: BoardMember}, val: BoardMember) => {
                 acc[val.userId] = val
+
                 return acc
             }, {})
             state.membersInBoards[boardId] = boardMembersMap
@@ -239,8 +242,8 @@ export const getMySortedBoards = createSelector(
     getBoards,
     (state: RootState): {[key: string]: BoardMember} => state.boards?.myBoardMemberships || {},
     (boards, myBoardMemberships: {[key: string]: BoardMember}) => {
-        return Object.values(boards).filter((b) => myBoardMemberships[b.id]).
-            sort((a, b) => a.title.localeCompare(b.title))
+        return Object.values(boards).filter((b) => myBoardMemberships[b.id])
+            .sort((a, b) => a.title.localeCompare(b.title))
     },
 )
 
@@ -260,6 +263,7 @@ export function getBoard(boardId: string): (state: RootState) => Board|null {
         } else if (state.boards.templates && state.boards.templates[boardId]) {
             return state.boards.templates[boardId]
         }
+
         return null
     }
 }

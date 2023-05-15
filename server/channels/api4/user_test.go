@@ -20,13 +20,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 
-	_ "github.com/mattermost/mattermost-server/server/v8/model/oauthproviders/gitlab"
+	_ "github.com/mattermost/mattermost-server/server/v8/channels/app/oauthproviders/gitlab"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -3664,8 +3664,15 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	defer th.TearDown()
 	user := th.BasicUser
 
+	startTime := model.GetMillis()
+	time.Sleep(time.Millisecond)
+
 	_, err := th.Client.SetDefaultProfileImage(user.Id)
 	require.NoError(t, err)
+
+	iuser, getUserErr := th.App.GetUser(user.Id)
+	require.Nil(t, getUserErr)
+	assert.Less(t, iuser.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 
 	resp, err := th.Client.SetDefaultProfileImage(model.NewId())
 	require.Error(t, err)
@@ -3684,12 +3691,14 @@ func TestSetDefaultProfileImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
+	time.Sleep(time.Millisecond)
+
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(user.Id)
 	require.NoError(t, err)
 
 	ruser, appErr := th.App.GetUser(user.Id)
 	require.Nil(t, appErr)
-	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have reset to default")
+	assert.Less(t, ruser.LastPictureUpdate, iuser.LastPictureUpdate, "LastPictureUpdate should be updated to a lower negative number")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	err = th.cleanupTestFile(info)

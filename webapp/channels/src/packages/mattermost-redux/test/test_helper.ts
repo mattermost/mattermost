@@ -453,6 +453,7 @@ class TestHelper {
             mark_unread: 'mention',
             push: 'default',
             ignore_channel_mentions: 'default',
+            channel_auto_follow_threads: 'off',
             ...override,
         };
     };

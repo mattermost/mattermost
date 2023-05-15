@@ -5,6 +5,7 @@ import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Archiver} from 'src/archiver'
 import {
+    Theme,
     darkTheme,
     darkThemeName,
     defaultTheme,
@@ -13,20 +14,18 @@ import {
     lightThemeName,
     setTheme,
     systemThemeName,
-    Theme
 } from 'src/theme'
 import Menu from 'src/widgets/menu'
 import MenuWrapper from 'src/widgets/menuWrapper'
-import {useAppDispatch, useAppSelector} from 'src/store/hooks'
-import {storeLanguage} from 'src/store/language'
-import {getCurrentTeam, Team} from 'src/store/teams'
+import {useAppSelector} from 'src/store/hooks'
+import {Team, getCurrentTeam} from 'src/store/teams'
 import {UserSettings} from 'src/userSettings'
 
 import './sidebarSettingsMenu.scss'
 import CheckIcon from 'src/widgets/icons/check'
 import {Constants} from 'src/constants'
 
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 type Props = {
     activeTheme: string
@@ -34,7 +33,6 @@ type Props = {
 
 const SidebarSettingsMenu = (props: Props) => {
     const intl = useIntl()
-    const dispatch = useAppDispatch()
     const currentTeam = useAppSelector<Team|null>(getCurrentTeam)
 
     // we need this as the sidebar doesn't always need to re-render
@@ -123,23 +121,6 @@ const SidebarSettingsMenu = (props: Props) => {
                             }
                         }}
                     />
-                    <Menu.SubMenu
-                        id='lang'
-                        name={intl.formatMessage({id: 'Sidebar.set-language', defaultMessage: 'Set language'})}
-                        position='top'
-                    >
-                        {
-                            Constants.languages.map((language) => (
-                                <Menu.Text
-                                    key={language.code}
-                                    id={`${language.name}-lang`}
-                                    name={language.displayName}
-                                    onClick={async () => dispatch(storeLanguage(language.code))}
-                                    rightIcon={intl.locale.toLowerCase() === language.code ? <CheckIcon/> : null}
-                                />
-                            ))
-                        }
-                    </Menu.SubMenu>
                     <Menu.SubMenu
                         id='theme'
                         name={intl.formatMessage({id: 'Sidebar.set-theme', defaultMessage: 'Set theme'})}

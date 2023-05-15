@@ -8,10 +8,10 @@ import {Utils} from 'src/utils'
 import Button from 'src/widgets/buttons/button'
 import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import {
-    getCurrentTeam,
     Team,
+    getCurrentTeam,
     refreshCurrentTeam,
-    regenerateSignupToken
+    regenerateSignupToken,
 } from 'src/store/teams'
 
 import Modal from 'src/components/modal'

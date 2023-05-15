@@ -37,6 +37,27 @@ describe('Actions.Admin', () => {
         TestHelper.tearDown();
     });
 
+    it('getPlainLogs', async () => {
+        nock(Client4.getBaseRoute()).
+            get('/logs').
+            query(true).
+            reply(200, [
+                '[2017/04/04 14:56:19 EDT] [INFO] Starting Server...',
+                '[2017/04/04 14:56:19 EDT] [INFO] Server is listening on :8065',
+                '[2017/04/04 15:01:48 EDT] [INFO] Stopping Server...',
+                '[2017/04/04 15:01:48 EDT] [INFO] Closing SqlStore',
+            ]);
+
+        await Actions.getPlainLogs()(store.dispatch, store.getState);
+
+        const state = store.getState();
+
+        const logs = state.entities.admin.plainLogs;
+
+        expect(logs).toBeTruthy();
+        expect(Object.keys(logs).length > 0).toBeTruthy();
+    });
+
     it('getAudits', async () => {
         nock(Client4.getBaseRoute()).
             get('/audits').

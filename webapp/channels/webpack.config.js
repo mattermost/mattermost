@@ -3,7 +3,6 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const childProcess = require('child_process');
 const path = require('path');
 
 const url = require('url');
@@ -12,7 +11,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
-const nodeExternals = require('webpack-node-externals');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest');
@@ -25,7 +23,6 @@ const packageJson = require('./package.json');
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
 const targetIsRun = NPM_TARGET?.startsWith('run');
-const targetIsTest = NPM_TARGET === 'test';
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
 const targetIsEslint = NPM_TARGET === 'check' || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
@@ -55,11 +52,12 @@ if (DEV) {
 const buildTimestamp = Date.now();
 
 var config = {
-    entry: ['./src/root.tsx', './src/root.html'],
+    entry: ['./src/root.tsx'],
     output: {
         publicPath,
         filename: '[name].[contenthash].js',
         chunkFilename: '[name].[contenthash].js',
+        assetModuleFilename: 'files/[contenthash][ext]',
         clean: true,
     },
     module: {
@@ -77,25 +75,29 @@ var config = {
                 },
             },
             {
-                type: 'javascript/auto',
                 test: /\.json$/,
                 include: [
                     path.resolve(__dirname, 'src/i18n'),
                 ],
                 exclude: [/en\.json$/],
-                use: [
-                    {
-                        loader: 'file-loader?name=i18n/[name].[contenthash].[ext]',
-                    },
-                ],
+                type: 'asset/resource',
+                generator: {
+                    filename: 'i18n/[name].[contenthash].json',
+                },
             },
             {
                 test: /\.(css|scss)$/,
+                exclude: /\/highlight\.js\//,
                 use: [
                     DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                     },
+                ],
+            },
+            {
+                test: /\.scss$/,
+                use: [
                     {
                         loader: 'sass-loader',
                         options: {
@@ -108,13 +110,8 @@ var config = {
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
+                type: 'asset/resource',
                 use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
                     {
                         loader: 'image-webpack-loader',
                         options: {},
@@ -123,25 +120,11 @@ var config = {
             },
             {
                 test: /\.apng$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
-                ],
+                type: 'asset/resource',
             },
             {
-                test: /\.html$/,
-                use: [
-                    {
-                        loader: 'html-loader',
-                        options: {
-                            sources: false,
-                        },
-                    },
-                ],
+                test: /\/highlight\.js\/.*\.css$/,
+                type: 'asset/resource',
             },
         ],
     },
@@ -460,13 +443,6 @@ if (DEV) {
 config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
 }));
-
-// Test mode configuration
-if (targetIsTest) {
-    config.entry = ['.src/root.tsx'];
-    config.target = 'node';
-    config.externals = [nodeExternals()];
-}
 
 if (targetIsDevServer) {
     const proxyToServer = {

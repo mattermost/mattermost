@@ -43,3 +43,5 @@ export const isCloudDelinquencyGreaterThan90Days = createSelector(
         return (Math.floor((now.getTime() - delinquentDate.getTime()) / (1000 * 60 * 60 * 24)) >= 90);
     },
 );
+
+export const isCwsMockMode = (state: GlobalState) => getConfig(state)?.CWSMock === 'true';
