@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ChangeEvent, ClipboardEvent, createRef, MouseEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage, MessageDescriptor} from 'react-intl';
 
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -18,108 +18,101 @@ import ColorChooser from '../color_chooser/color_chooser';
 
 const COPY_SUCCESS_INTERVAL = 3000;
 
-type Messages = {
-    [key: string]: {
-        id: string;
-        defaultMessage: string;
-    };
-}
-
-const messages: Messages = defineMessages({
+const messages: Record<string, MessageDescriptor> = defineMessages({
     sidebarBg: {
-        id: t('user.settings.custom_theme.sidebarBg'),
+        id: 'user.settings.custom_theme.sidebarBg',
         defaultMessage: 'Sidebar BG',
     },
     sidebarText: {
-        id: t('user.settings.custom_theme.sidebarText'),
+        id: 'user.settings.custom_theme.sidebarText',
         defaultMessage: 'Sidebar Text',
     },
     sidebarHeaderBg: {
-        id: t('user.settings.custom_theme.sidebarHeaderBg'),
+        id: 'user.settings.custom_theme.sidebarHeaderBg',
         defaultMessage: 'Sidebar Header BG',
     },
     sidebarTeamBarBg: {
-        id: t('user.settings.custom_theme.sidebarTeamBarBg'),
+        id: 'user.settings.custom_theme.sidebarTeamBarBg',
         defaultMessage: 'Team Sidebar BG',
     },
     sidebarHeaderTextColor: {
-        id: t('user.settings.custom_theme.sidebarHeaderTextColor'),
+        id: 'user.settings.custom_theme.sidebarHeaderTextColor',
         defaultMessage: 'Sidebar Header Text',
     },
     sidebarUnreadText: {
-        id: t('user.settings.custom_theme.sidebarUnreadText'),
+        id: 'user.settings.custom_theme.sidebarUnreadText',
         defaultMessage: 'Sidebar Unread Text',
     },
     sidebarTextHoverBg: {
-        id: t('user.settings.custom_theme.sidebarTextHoverBg'),
+        id: 'user.settings.custom_theme.sidebarTextHoverBg',
         defaultMessage: 'Sidebar Text Hover BG',
     },
     sidebarTextActiveBorder: {
-        id: t('user.settings.custom_theme.sidebarTextActiveBorder'),
+        id: 'user.settings.custom_theme.sidebarTextActiveBorder',
         defaultMessage: 'Sidebar Text Active Border',
     },
     sidebarTextActiveColor: {
-        id: t('user.settings.custom_theme.sidebarTextActiveColor'),
+        id: 'user.settings.custom_theme.sidebarTextActiveColor',
         defaultMessage: 'Sidebar Text Active Color',
     },
     onlineIndicator: {
-        id: t('user.settings.custom_theme.onlineIndicator'),
+        id: 'user.settings.custom_theme.onlineIndicator',
         defaultMessage: 'Online Indicator',
     },
     awayIndicator: {
-        id: t('user.settings.custom_theme.awayIndicator'),
+        id: 'user.settings.custom_theme.awayIndicator',
         defaultMessage: 'Away Indicator',
     },
     dndIndicator: {
-        id: t('user.settings.custom_theme.dndIndicator'),
+        id: 'user.settings.custom_theme.dndIndicator',
         defaultMessage: 'Do Not Disturb Indicator',
     },
     mentionBg: {
-        id: t('user.settings.custom_theme.mentionBg'),
+        id: 'user.settings.custom_theme.mentionBg',
         defaultMessage: 'Mention Jewel BG',
     },
     mentionColor: {
-        id: t('user.settings.custom_theme.mentionColor'),
+        id: 'user.settings.custom_theme.mentionColor',
         defaultMessage: 'Mention Jewel Text',
     },
     centerChannelBg: {
-        id: t('user.settings.custom_theme.centerChannelBg'),
+        id: 'user.settings.custom_theme.centerChannelBg',
         defaultMessage: 'Center Channel BG',
     },
     centerChannelColor: {
-        id: t('user.settings.custom_theme.centerChannelColor'),
+        id: 'user.settings.custom_theme.centerChannelColor',
         defaultMessage: 'Center Channel Text',
     },
     newMessageSeparator: {
-        id: t('user.settings.custom_theme.newMessageSeparator'),
+        id: 'user.settings.custom_theme.newMessageSeparator',
         defaultMessage: 'New Message Separator',
     },
     linkColor: {
-        id: t('user.settings.custom_theme.linkColor'),
+        id: 'user.settings.custom_theme.linkColor',
         defaultMessage: 'Link Color',
     },
     buttonBg: {
-        id: t('user.settings.custom_theme.buttonBg'),
+        id: 'user.settings.custom_theme.buttonBg',
         defaultMessage: 'Button BG',
     },
     buttonColor: {
-        id: t('user.settings.custom_theme.buttonColor'),
+        id: 'user.settings.custom_theme.buttonColor',
         defaultMessage: 'Button Text',
     },
     errorTextColor: {
-        id: t('user.settings.custom_theme.errorTextColor'),
+        id: 'user.settings.custom_theme.errorTextColor',
         defaultMessage: 'Error Text Color',
     },
     mentionHighlightBg: {
-        id: t('user.settings.custom_theme.mentionHighlightBg'),
+        id: 'user.settings.custom_theme.mentionHighlightBg',
         defaultMessage: 'Mention Highlight BG',
     },
     mentionHighlightLink: {
-        id: t('user.settings.custom_theme.mentionHighlightLink'),
+        id: 'user.settings.custom_theme.mentionHighlightLink',
         defaultMessage: 'Mention Highlight Link',
     },
     codeTheme: {
-        id: t('user.settings.custom_theme.codeTheme'),
+        id: 'user.settings.custom_theme.codeTheme',
         defaultMessage: 'Code Theme',
     },
 });

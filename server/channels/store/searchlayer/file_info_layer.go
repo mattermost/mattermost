@@ -4,10 +4,10 @@
 package searchlayer
 
 import (
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 type SearchFileInfoStore struct {
