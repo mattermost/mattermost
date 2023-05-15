@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/v8/channels/web"
 	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/web"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
 

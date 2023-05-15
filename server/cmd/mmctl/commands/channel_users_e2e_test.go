@@ -6,9 +6,9 @@ package commands
 import (
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"

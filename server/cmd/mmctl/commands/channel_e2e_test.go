@@ -8,9 +8,9 @@ import (
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 

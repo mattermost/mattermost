@@ -25,8 +25,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
 	_ "golang.org/x/image/webp" // image decoder
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
