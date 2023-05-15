@@ -472,7 +472,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline' http://localhost:9006 http://localhost:9007", devCSP)
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
 	})
 
 	t.Run("allowed dev flags", func(t *testing.T) {
