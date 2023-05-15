@@ -4991,7 +4991,6 @@
   "status_dropdown.set_online": "Online",
   "status_dropdown.set_ooo": "Out of Office",
   "status_dropdown.set_ooo.extra": "Automatic Replies are enabled",
-  "string.id": "default message",
   "success_modal.return_to_workspace": "Return to workspace",
   "success_modal.subtitle": "Your final bill will be prorated. Your workspace now has {plan} limits.",
   "suggestion_list.no_matches": "No items match __{value}__",
