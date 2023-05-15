@@ -16,7 +16,6 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/fatih/color v1.15.0
-	github.com/francoispqt/gojay v1.2.13
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/getsentry/sentry-go v0.20.0
 	github.com/go-sql-driver/mysql v1.7.0
@@ -33,9 +32,7 @@ require (
 	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
-	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/go-plugin v1.4.9
 	github.com/hashicorp/memberlist v0.3.1
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/isacikgoz/prompt v0.1.0
@@ -47,6 +44,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/gziphandler v0.0.1
+	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
 	github.com/mattermost/mattermost-server/server/public v0.0.0-00010101000000-000000000000
 	github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e
@@ -89,7 +87,6 @@ require (
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/term v0.7.0
-	golang.org/x/text v0.9.0
 	golang.org/x/tools v0.8.0
 	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/mail.v2 v2.3.1
@@ -150,11 +147,11 @@ require (
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
-	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
-	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.9 // indirect
+	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
@@ -173,7 +170,6 @@ require (
 	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
