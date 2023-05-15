@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
 )
 
 const (
@@ -1238,19 +1239,20 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleLevel           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleJson            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableColor            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile             *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLevel              *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileJson               *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLocation           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableWebhookDebugging *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleJson            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableColor            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile             *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLevel              *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileJson               *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1308,20 +1310,40 @@ func (s *LogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
 	}
+	s.AdvancedLoggingConfig = nil
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB         *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize      *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileEnabled           *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileName              *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
+	FileMaxSizeMB         *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxAgeDays        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1353,21 +1375,40 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
 	}
+	s.AdvancedLoggingConfig = nil
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel          *string `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson           *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableColor           *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile            *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLevel             *string `access:"write_restrictable,cloud_restrictable"`
-	FileJson              *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLocation          *string `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"write_restrictable,cloud_restrictable"`
+	EnableConsole         *bool           `access:"write_restrictable,cloud_restrictable"`
+	ConsoleLevel          *string         `access:"write_restrictable,cloud_restrictable"`
+	ConsoleJson           *bool           `access:"write_restrictable,cloud_restrictable"`
+	EnableColor           *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile            *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLevel             *string         `access:"write_restrictable,cloud_restrictable"`
+	FileJson              *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLocation          *string         `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1403,9 +1444,27 @@ func (s *NotificationLogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewString("")
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
 	}
+	s.AdvancedLoggingConfig = nil
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	return []byte("{}")
 }
 
 type PasswordSettings struct {
