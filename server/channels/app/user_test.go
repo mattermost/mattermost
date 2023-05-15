@@ -1173,6 +1173,44 @@ func TestPasswordRecovery(t *testing.T) {
 
 }
 
+func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("remove manually added tokens", func(t *testing.T) {
+		for i := 0; i < 5; i++ {
+			token := model.NewToken(
+				TokenTypePasswordRecovery,
+				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
+			)
+			require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		}
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, len(tokens))
+
+		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
+		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(tokens))
+	})
+
+	t.Run("add multiple tokens, should only be one valid", func(t *testing.T) {
+		_, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		token, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(tokens))
+		assert.Equal(t, token.Token, tokens[0].Token)
+	})
+}
+
 func TestGetViewUsersRestrictions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

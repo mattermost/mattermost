@@ -15,7 +15,7 @@ import {Team} from '@mattermost/types/teams';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getFirstAdminSetupComplete, getConfig, getLicense, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
 
 import {CategoryOther} from '@mattermost/types/work_templates';
@@ -23,6 +23,7 @@ import {CategoryOther} from '@mattermost/types/work_templates';
 import Constants from 'utils/constants';
 import {getSiteURL, teamNameToUrl} from 'utils/url';
 import {makeNewTeam} from 'utils/team_utils';
+import {GlobalState} from 'types/store';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
@@ -117,6 +118,7 @@ const PreparingWorkspace = (props: Props) => {
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
+    const isWorkTemplateEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'WorkTemplate') === 'true');
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
@@ -134,7 +136,7 @@ const PreparingWorkspace = (props: Props) => {
 
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
-        WizardSteps.Roles,
+        isWorkTemplateEnabled && WizardSteps.Roles,
         pluginsEnabled && WizardSteps.Plugins,
         WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,

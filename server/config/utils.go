@@ -179,9 +179,10 @@ func IsDatabaseDSN(dsn string) bool {
 		strings.HasPrefix(dsn, "postgresql://")
 }
 
-func isJSONMap(data string) bool {
+func isJSONMap(data []byte) bool {
 	var m map[string]any
-	return json.Unmarshal([]byte(data), &m) == nil
+	err := json.Unmarshal(data, &m)
+	return err == nil
 }
 
 func GetValueByPath(path []string, obj any) (any, bool) {
