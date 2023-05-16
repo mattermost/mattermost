@@ -8,9 +8,9 @@ import {FormattedNumber, useIntl} from 'react-intl';
 
 import {DateTime} from 'luxon';
 
-import {DefaultFetchPlaybookRunsParamsTime, FetchPlaybookRunsParams, fetchParamsTimeEqual} from 'src/types/playbook_run';
+import {AccountMultipleOutlineIcon, FlagCheckeredIcon, PlayBoxMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {PlayBoxMultipleOutlineIcon, AccountMultipleOutlineIcon, FlagCheckeredIcon} from '@mattermost/compass-icons/components';
+import {DefaultFetchPlaybookRunsParamsTime, FetchPlaybookRunsParams, fetchParamsTimeEqual} from 'src/types/playbook_run';
 
 import {PlaybookStats} from 'src/types/stats';
 import {useAllowPlaybookStatsView} from 'src/hooks';
