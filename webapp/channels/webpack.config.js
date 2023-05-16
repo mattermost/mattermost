@@ -412,9 +412,7 @@ if (DEV) {
     config.devtool = 'source-map';
 }
 
-const env = {
-    STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY || ''),
-};
+const env = {};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
     env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');

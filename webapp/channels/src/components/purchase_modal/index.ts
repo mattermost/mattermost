@@ -30,6 +30,8 @@ import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_clou
 import {findOnlyYearlyProducts} from 'utils/products';
 import {getCloudContactSalesLink, getCloudSupportLink} from 'utils/contact_support_sales';
 
+import {getStripePublicKey} from 'components/payment_form/stripe';
+
 const PurchaseModal = makeAsyncComponent('PurchaseModal', React.lazy(() => import('./purchase_modal')));
 
 function mapStateToProps(state: GlobalState) {
@@ -46,6 +48,7 @@ function mapStateToProps(state: GlobalState) {
     const companyName = customer?.name || '';
     const contactSalesLink = getCloudContactSalesLink(firstName, lastName, companyName, customerEmail, 'mattermost', 'in-product-cloud');
     const contactSupportLink = getCloudSupportLink(customerEmail, 'Cloud purchase', '', window.location.host);
+    const stripePublicKey = getStripePublicKey(state);
 
     return {
         show: isModalOpen(state, ModalIdentifiers.CLOUD_PURCHASE),
@@ -64,6 +67,7 @@ function mapStateToProps(state: GlobalState) {
         theme: getTheme(state),
         isDelinquencyModal,
         usersCount: Number(getAdminAnalytics(state)!.TOTAL_USERS) || 1,
+        stripePublicKey,
     };
 }
 type Actions = {
