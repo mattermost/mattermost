@@ -60,7 +60,7 @@ jobs:
             --ulimit nofile=8096:8096 \
             --env-file=dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
-            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" \
+            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304" \
             -v ~/work/mattermost-server:/mattermost-server \
             -w /mattermost-server/mattermost-server \
             $BUILD_IMAGE &

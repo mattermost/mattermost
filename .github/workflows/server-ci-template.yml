@@ -224,7 +224,7 @@ jobs:
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml
     with:
-      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
   build-mattermost-server:
     name: Build mattermost-server
