@@ -5,15 +5,17 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
 
+import {GlobalState} from '@mattermost/types/store';
+
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import {GlobalState} from '@mattermost/types/store';
 
 import {pageVisited} from 'actions/telemetry_actions';
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
+
 import AlertBanner from 'components/alert_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import PaymentInfoDisplay from './payment_info_display';
 
@@ -56,10 +58,12 @@ const PaymentInfo: React.FC<Props> = () => {
 
     return (
         <div className='wrapper--fixed PaymentInfo'>
-            <FormattedAdminHeader
-                id='admin.billing.payment_info.title'
-                defaultMessage='Payment Information'
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id='admin.billing.payment_info.title'
+                    defaultMessage='Payment Information'
+                />
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {showCreditCardBanner && isCardAboutToExpire && (
