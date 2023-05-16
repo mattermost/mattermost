@@ -7,8 +7,8 @@ SELECT count(*) != 0 INTO column_exist
     WHERE table_name = 'users'
     AND table_schema = current_schema()
     AND column_name = 'remoteid'
-    AND NOT data_type = 'varchar(26)';
+    AND NOT data_type = 'varchar(255)';
 IF column_exist THEN
-    ALTER TABLE users ALTER COLUMN remoteid TYPE VARCHAR(26);
+    ALTER TABLE users ALTER COLUMN remoteid TYPE VARCHAR(255);
 END IF;
 END $$;
