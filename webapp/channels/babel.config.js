@@ -41,10 +41,22 @@ const config = {
     sourceType: 'unambiguous',
 };
 
-// Jest needs module transformation
 config.env = {
     test: {
-        presets: config.presets,
+        presets: config.presets.map((preset) => {
+            const [presetName, presetOptions] = preset;
+            if (presetName === '@babel/preset-env') {
+                return [
+                    presetName,
+                    {
+                        ...presetOptions,
+                        modules: 'auto', // Jest needs module transformation
+                    },
+                ];
+            }
+
+            return preset;
+        }),
         plugins: config.plugins,
     },
     production: {
@@ -52,6 +64,5 @@ config.env = {
         plugins: config.plugins.filter((plugin) => plugin !== 'babel-plugin-typescript-to-proptypes'),
     },
 };
-config.env.test.presets[0][1].modules = 'auto';
 
 module.exports = config;
