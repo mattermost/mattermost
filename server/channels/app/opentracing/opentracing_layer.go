@@ -10605,9 +10605,9 @@ func (a *OpenTracingAppLayer) GetUserByEmail(email string) (*model.User, *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByExternalUserId")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByRemoteID")
 
 	a.ctx = newCtx
 	a.app.Srv().Store().SetContext(newCtx)
@@ -10617,7 +10617,7 @@ func (a *OpenTracingAppLayer) GetUserByExternalUserId(externalUserId string) (*m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUserByExternalUserId(externalUserId)
+	resultVar0, resultVar1 := a.app.GetUserByRemoteID(remoteID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

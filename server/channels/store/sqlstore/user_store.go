@@ -1174,6 +1174,26 @@ func (us SqlUserStore) GetByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
+func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	query := us.usersQuery.Where(sq.Eq{"RemoteId": remoteID})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_remote_id_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplicaX().Get(&user, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("remoteid=%s", remoteID)), "failed to find User")
+		}
+
+		return nil, errors.Wrapf(err, "failed to get User with RemoteId=%s", remoteID)
+	}
+
+	return &user, nil
+}
+
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")

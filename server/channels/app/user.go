@@ -461,6 +461,20 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByRemoteID(remoteID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserByRemoteID", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetUserByRemoteID", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return user, nil
+}
+
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByAuth(authData, authService)
 	if err != nil {

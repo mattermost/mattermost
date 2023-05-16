@@ -216,8 +216,6 @@ channels/db/migrations/mysql/000107_threadmemberships_cleanup.down.sql
 channels/db/migrations/mysql/000107_threadmemberships_cleanup.up.sql
 channels/db/migrations/mysql/000108_remove_orphaned_oauth_preferences.down.sql
 channels/db/migrations/mysql/000108_remove_orphaned_oauth_preferences.up.sql
-channels/db/migrations/mysql/000109_external_user_id.down.sql
-channels/db/migrations/mysql/000109_external_user_id.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -434,5 +432,3 @@ channels/db/migrations/postgres/000107_threadmemberships_cleanup.down.sql
 channels/db/migrations/postgres/000107_threadmemberships_cleanup.up.sql
 channels/db/migrations/postgres/000108_remove_orphaned_oauth_preferences.down.sql
 channels/db/migrations/postgres/000108_remove_orphaned_oauth_preferences.up.sql
-channels/db/migrations/postgres/000109_external_user_id.down.sql
-channels/db/migrations/postgres/000109_external_user_id.up.sql
