@@ -1599,35 +1599,6 @@ func (s *apiRPCServer) GetUserByEmail(args *Z_GetUserByEmailArgs, returns *Z_Get
 	return nil
 }
 
-type Z_GetUserByExternalUserIdArgs struct {
-	A string
-}
-
-type Z_GetUserByExternalUserIdReturns struct {
-	A *model.User
-	B *model.AppError
-}
-
-func (g *apiRPCClient) GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError) {
-	_args := &Z_GetUserByExternalUserIdArgs{externalUserId}
-	_returns := &Z_GetUserByExternalUserIdReturns{}
-	if err := g.client.Call("Plugin.GetUserByExternalUserId", _args, _returns); err != nil {
-		log.Printf("RPC call to GetUserByExternalUserId API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) GetUserByExternalUserId(args *Z_GetUserByExternalUserIdArgs, returns *Z_GetUserByExternalUserIdReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.GetUserByExternalUserId(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API GetUserByExternalUserId called but not implemented."))
-	}
-	return nil
-}
-
 type Z_GetUserByUsernameArgs struct {
 	A string
 }

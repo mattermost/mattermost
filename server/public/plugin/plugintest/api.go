@@ -2514,34 +2514,6 @@ func (_m *API) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	return r0, r1
 }
 
-// GetUserByExternalUserId provides a mock function with given fields: externalUserId
-func (_m *API) GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError) {
-	ret := _m.Called(externalUserId)
-
-	var r0 *model.User
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.User, *model.AppError)); ok {
-		return rf(externalUserId)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
-		r0 = rf(externalUserId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(externalUserId)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetUserByUsername provides a mock function with given fields: name
 func (_m *API) GetUserByUsername(name string) (*model.User, *model.AppError) {
 	ret := _m.Called(name)

@@ -156,12 +156,12 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
                                 />
 
                                 {this.props.user.is_bot && <BotTag/>}
-                                {this.props.user.external_user_id && (
+                                {this.props.user.remote_id && (
                                     <Tag
                                         text={
                                             <FormattedMessage
-                                                id='admin.user_item.ExternalUser'
-                                                defaultMessage='External user'
+                                                id='admin.user_item.remoteUser'
+                                                defaultMessage='Remote user'
                                             />
                                         }
                                     />

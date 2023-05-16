@@ -105,10 +105,6 @@ func (us *UserService) GetUserByEmail(email string) (*model.User, error) {
 	return us.store.GetByEmail(email)
 }
 
-func (us *UserService) GetUserByExternalUserId(externalUserId string) (*model.User, error) {
-	return us.store.GetByExternalUserId(externalUserId)
-}
-
 func (us *UserService) GetUserByAuth(authData *string, authService string) (*model.User, error) {
 	return us.store.GetByAuth(authData, authService)
 }

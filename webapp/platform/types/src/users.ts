@@ -54,7 +54,6 @@ export type UserProfile = {
     terms_of_service_id: string;
     terms_of_service_create_at: number;
     remote_id?: string;
-    external_user_id?: string;
     status?: string;
 };
 
@@ -132,7 +131,7 @@ export type GetFilteredUsersStatsOpts = {
     in_channel?: string;
     include_deleted?: boolean;
     include_bots?: boolean;
-    include_external_users?: boolean;
+    include_remote_users?: boolean;
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];

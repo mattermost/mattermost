@@ -174,13 +174,6 @@ func (api *apiTimerLayer) GetUserByEmail(email string) (*model.User, *model.AppE
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetUserByExternalUserId(externalUserId)
-	api.recordTime(startTime, "GetUserByExternalUserId", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
 func (api *apiTimerLayer) GetUserByUsername(name string) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetUserByUsername(name)

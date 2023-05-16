@@ -461,20 +461,6 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
-func (a *App) GetUserByExternalUserId(externalUserId string) (*model.User, *model.AppError) {
-	user, err := a.ch.srv.userService.GetUserByExternalUserId(externalUserId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByExternalUserId", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetUserByExternalUserId", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-	return user, nil
-}
-
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByAuth(authData, authService)
 	if err != nil {
