@@ -18,13 +18,7 @@
     "directory": "webapp/platform/client"
   },
   "dependencies": {
-    "form-data": "4.0.0"
-  },
-  "devDependencies": {
-    "@babel/preset-typescript": "7.21.0",
-    "isomorphic-fetch": "3.0.0",
-    "jest": "*",
-    "nock": "*"
+    "form-data": "^4.0.0"
   },
   "peerDependencies": {
     "@mattermost/types": "*",
