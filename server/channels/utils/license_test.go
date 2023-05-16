@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,7 @@ func TestValidateLicense(t *testing.T) {
 		require.False(t, ok, "should have failed - bad license")
 	})
 
-	t.Run("should not panic on shorted than expected input", func(t *testing.T) {
+	t.Run("should not panic on shorter than expected input", func(t *testing.T) {
 		var licenseData bytes.Buffer
 		var inputData []byte
 
@@ -59,6 +60,15 @@ func TestValidateLicense(t *testing.T) {
 		require.NoError(t, err)
 
 		ok, str := LicenseValidator.ValidateLicense(licenseData.Bytes())
+		require.False(t, ok)
+		require.Empty(t, str)
+	})
+
+	t.Run("should reject invalid license in test service environment", func(t *testing.T) {
+		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", model.ExternalServiceEnvironmentTest)
+		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
+
+		ok, str := LicenseValidator.ValidateLicense(nil)
 		require.False(t, ok)
 		require.Empty(t, str)
 	})

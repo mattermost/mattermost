@@ -2820,15 +2820,9 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
-			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
-		}
 	}
 	if s.CWSAPIURL == nil {
 		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
-			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
-		}
 	}
 	if s.CWSMock == nil {
 		isMockCws := MockCWS == "true"

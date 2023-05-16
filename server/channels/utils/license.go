@@ -74,6 +74,13 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 	plaintext := decoded[:len(decoded)-256]
 	signature := decoded[len(decoded)-256:]
 
+	var publicKey []byte
+	switch model.GetExternalServiceEnvironment() {
+	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud:
+		publicKey = productionPublicKey
+	case model.ExternalServiceEnvironmentTest, model.ExternalServiceEnvironmentDev:
+		publicKey = testPublicKey
+	}
 	block, _ := pem.Decode(publicKey)
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
