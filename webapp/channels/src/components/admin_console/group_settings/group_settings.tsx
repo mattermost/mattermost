@@ -10,6 +10,7 @@ import {getSiteURL} from 'utils/url';
 import GroupsList from 'components/admin_console/group_settings/groups_list';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 type Props = {
     isDisabled?: boolean;
@@ -19,13 +20,12 @@ const GroupSettings = ({isDisabled}: Props) => {
     const siteURL = getSiteURL();
     return (
         <div className='wrapper--fixed'>
-            <div className='admin-console__header'>
+            <AdminHeader>
                 <FormattedMessage
                     id='admin.group_settings.groupsPageTitle'
                     defaultMessage='Groups'
                 />
-            </div>
-
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     <div className={'banner info'}>

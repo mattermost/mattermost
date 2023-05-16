@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -221,7 +221,7 @@ func TestIsJSONMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isJSONMap(tt.data); got != tt.want {
+			if got := isJSONMap([]byte(tt.data)); got != tt.want {
 				t.Errorf("isJSONMap() = %v, want %v", got, tt.want)
 			}
 		})
