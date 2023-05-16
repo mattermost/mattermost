@@ -66,7 +66,7 @@ const PlaybookEditor = () => {
 
         dispatch(selectTeam(teamId));
         dispatch(fetchMyChannelsAndMembersREST(teamId));
-        dispatch(fetchMyCategories(teamId));
+        dispatch(fetchMyCategories(teamId, false));
     }, [dispatch, playbook?.team_id, playbookId]);
 
     useDefaultRedirectOnTeamChange(playbook?.team_id);
