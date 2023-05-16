@@ -96,7 +96,6 @@ export const canIPostUpdateForRun = (state: GlobalState, channelId: string, team
 };
 
 export const inPlaybookRunChannel = createSelector(
-    'inPlaybookRunChannel',
     getCurrentTeamId,
     getCurrentChannelId,
     myPlaybookRunsByTeam,
@@ -106,7 +105,6 @@ export const inPlaybookRunChannel = createSelector(
 );
 
 export const currentPlaybookRun = createSelector(
-    'currentPlaybookRun',
     getCurrentTeamId,
     getCurrentChannelId,
     myPlaybookRunsByTeam,
@@ -118,7 +116,6 @@ export const currentPlaybookRun = createSelector(
 const emptyChecklistState = {} as Record<number, boolean>;
 
 export const currentChecklistCollapsedState = (stateKey: string) => createSelector(
-    'currentChecklistCollapsedState',
     pluginState,
     (plugin) => {
         return plugin.checklistCollapsedState[stateKey] ?? emptyChecklistState;
@@ -126,7 +123,6 @@ export const currentChecklistCollapsedState = (stateKey: string) => createSelect
 );
 
 export const currentChecklistAllCollapsed = (stateKey: string) => createSelector(
-    'currentChecklistAllCollapsed',
     currentChecklistCollapsedState(stateKey),
     (checklistsState) => {
         if (Object.entries(checklistsState).length === 0) {
@@ -147,7 +143,6 @@ export const currentChecklistItemsFilter = (state: GlobalState, stateKey: string
 };
 
 export const myActivePlaybookRunsList = createSelector(
-    'myActivePlaybookRunsList',
     getCurrentTeamId,
     myPlaybookRunsByTeam,
     (teamId, playbookRunMapByTeam) => {
@@ -169,7 +164,6 @@ export const myPlaybookRunsMap = (state: GlobalState) => {
 };
 
 export const lastUpdatedByPlaybookRunId = createSelector(
-    'lastUpdatedByPlaybookRunId',
     getCurrentTeamId,
     myPlaybookRunsByTeam,
     (teamId, playbookRunsMapByTeam) => {
@@ -225,7 +219,6 @@ export const isPlaybookActionsModalVisible = (state: GlobalState): boolean =>
     pluginState(state).playbookActionsModalVisibility;
 
 export const isCurrentUserAdmin = createSelector(
-    'isCurrentUserAdmin',
     getCurrentUser,
     (user) => {
         const rolesArray = user.roles.split(' ');
@@ -234,7 +227,6 @@ export const isCurrentUserAdmin = createSelector(
 );
 
 export const isCurrentUserChannelAdmin = createSelector(
-    'isCurrentUserChannelAdmin',
     getMyCurrentChannelMembership,
     (membership) => {
         return membership?.scheme_admin || false;
@@ -242,7 +234,6 @@ export const isCurrentUserChannelAdmin = createSelector(
 );
 
 export const isCurrentUserChannelMember = (channelId: string) => createSelector(
-    'isCurrentUserChannelMember',
     getMyChannelMemberships,
     (memberships) => {
         return memberships[channelId]?.scheme_user || memberships[channelId]?.scheme_admin || false;
@@ -252,7 +243,6 @@ export const isCurrentUserChannelMember = (channelId: string) => createSelector(
 export const hasViewedByChannelID = (state: GlobalState) => pluginState(state).hasViewedByChannel;
 
 export const isTeamEdition = createSelector(
-    'isTeamEdition',
     getConfig,
     (config) => config.BuildEnterpriseReady !== 'true',
 );
@@ -260,7 +250,6 @@ export const isTeamEdition = createSelector(
 const rhsAboutCollapsedState = (state: GlobalState): Record<string, boolean> => pluginState(state).rhsAboutCollapsedByChannel;
 
 export const currentRHSAboutCollapsedState = createSelector(
-    'currentRHSAboutCollapsedState',
     getCurrentChannelId,
     rhsAboutCollapsedState,
     (channelId, stateByChannel) => {
@@ -280,7 +269,6 @@ export const selectExperimentalFeatures = (state: GlobalState) => Boolean(global
 // Select tasks assigned to the current user, or unassigned but belonging to a run owned by the
 // current user.
 export const selectMyTasks = createSelector(
-    'selectMyTasks',
     myPlaybookRuns,
     getCurrentUser,
     (playbookRuns, currentUser) => Object
@@ -331,7 +319,6 @@ export const isTaskOverdue = (item: ChecklistItem) => {
 // Determine if there are overdue tasks assigned to the current user, or unassigned but belonging
 // to a run owned by the current user.
 export const selectHasOverdueTasks = createSelector(
-    'hasOverdueTasks',
     selectMyTasks,
     (myTasks) => myTasks.some((checklistItem) => isTaskOverdue(checklistItem))
 );

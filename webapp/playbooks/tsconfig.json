@@ -25,7 +25,6 @@
     "paths": {
       "src": ["src"],
       "mattermost-redux/*": ["../channels/src/packages/mattermost-redux/src/*"],
-      "reselect": ["../channels/src/packages/reselect/src"]
     }
   },
   "include": [
