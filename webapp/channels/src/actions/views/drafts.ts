@@ -110,7 +110,14 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
             const connectionId = getConnectionId(state);
             const userId = getCurrentUserId(state);
             try {
-                await upsertDraft(updatedValue, userId, rootId, connectionId);
+                if (value?.message === '' || value?.message.replace(/\s/g, '').length || (value && value?.fileInfos.length > 0)) {
+                    if (value?.message.replace(/\s/g, '').length) {
+                        await upsertDraft(updatedValue, userId, rootId, connectionId);
+                    } else {
+                        //This case is when there is a file attached with no message
+                        await upsertDraft({...updatedValue, message: ''}, userId, rootId, connectionId);
+                    }
+                }
             } catch (error) {
                 return {data: false, error};
             }
@@ -154,8 +161,13 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
 
 export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
     return (dispatch: DispatchFunc) => {
-        if (value?.message === '' || value?.message.replace(/\s/g, '').length || (value?.message.replace(/\s/g, '').length && value?.fileInfos.length > 0)) {
-            dispatch(setGlobalItem(key, value));
+        if (value?.message === '' || value?.message.replace(/\s/g, '').length || (value && value?.fileInfos.length > 0)) {
+            if (value?.message.replace(/\s/g, '').length) {
+                dispatch(setGlobalItem(key, value));
+            } else {
+                //This case is when there is a file attached with no message
+                dispatch(setGlobalItem(key, {...value, message: ''}));
+            }
         }
         dispatch(setGlobalDraftSource(key, isRemote));
         return {data: true};
