@@ -14,7 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 // EnsureSchemaMigrationFormat checks the schema migrations table
@@ -126,7 +126,7 @@ func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
 	case model.MysqlDBType:
 		query = query.Where(sq.Eq{"TABLE_SCHEMA": s.schemaName})
 	case model.PostgresDBType:
-		query = query.Where(sq.Eq{"TABLE_SCHEMA": "current_schema()"})
+		query = query.Where("table_schema = current_schema()")
 	}
 
 	rows, err := query.Query()

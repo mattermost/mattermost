@@ -6,12 +6,13 @@ import {FormattedMessage} from 'react-intl';
 import {uniq, difference} from 'lodash';
 
 import {Role} from '@mattermost/types/roles';
-import {Client4} from 'mattermost-redux/client';
-
 import {UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
+import {Client4} from 'mattermost-redux/client';
+import {ActionResult} from 'mattermost-redux/types/actions';
 import Permissions from 'mattermost-redux/constants/permissions';
+
+import {isError} from 'types/actions';
 
 import Constants from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
@@ -19,8 +20,7 @@ import {getHistory} from 'utils/browser_history';
 import FormError from 'components/form_error';
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
-
-import {isError} from 'types/actions';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import SystemRoleUsers from './system_role_users';
 import SystemRolePermissions from './system_role_permissions';
@@ -243,7 +243,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         const defaultName = role.name.split('').map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' ');
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/system_roles'
@@ -254,7 +254,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                             defaultMessage={defaultName}
                         />
                     </div>
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <SystemRolePermissions

@@ -24,6 +24,7 @@ const AdminBadge = (props: Props) => {
     } else {
         return null
     }
+
     return (
         <div className='AdminBadge'>
             <div className='AdminBadge__box'>

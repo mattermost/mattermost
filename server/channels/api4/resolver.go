@@ -10,10 +10,10 @@ import (
 
 	"github.com/graph-gophers/dataloader/v6"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/web"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // cursorPrefix is used to categorize objects
@@ -353,9 +353,12 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 			return nil, appErr
 		}
 	} else {
+		appsCategoryEnabled := c.App.Config().FeatureFlags.AppsSidebarCategory
+
 		opts := &store.SidebarCategorySearchOpts{
-			TeamID:      args.TeamID,
-			ExcludeTeam: args.ExcludeTeam,
+			TeamID:              args.TeamID,
+			ExcludeTeam:         args.ExcludeTeam,
+			AppsCategoryEnabled: appsCategoryEnabled,
 		}
 		categories, appErr = c.App.GetSidebarCategories(c.AppContext, args.UserID, opts)
 		if appErr != nil {

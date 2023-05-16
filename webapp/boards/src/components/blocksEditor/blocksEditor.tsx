@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useMemo} from 'react'
+import React, {useMemo, useState} from 'react'
 import {DndProvider} from 'react-dnd'
 import {HTML5Backend} from 'react-dnd-html5-backend'
 
@@ -22,6 +22,7 @@ function BlocksEditor(props: Props) {
     const [editing, setEditing] = useState<BlockData|null>(null)
     const [afterBlock, setAfterBlock] = useState<BlockData|null>(null)
     const contentOrder = useMemo(() => props.blocks.filter((b) => b.id).map((b) => b.id!), [props.blocks])
+
     return (
         <div
             className='BlocksEditor'
@@ -34,6 +35,7 @@ function BlocksEditor(props: Props) {
                             setEditing(afterBlock)
                         }
                         setAfterBlock(null)
+
                         return
                     }
                     let prevBlock = null
@@ -97,6 +99,7 @@ function BlocksEditor(props: Props) {
                                 const newBlock = await props.onBlockModified(b)
                                 setNextType(registry.get(b.contentType).nextType || '')
                                 setAfterBlock(newBlock)
+
                                 return newBlock
                             }}
                             onMove={props.onBlockMoved}
@@ -109,6 +112,7 @@ function BlocksEditor(props: Props) {
                                     const newBlock = await props.onBlockCreated(b, afterBlock)
                                     setNextType(registry.get(b.contentType).nextType || '')
                                     setAfterBlock(newBlock)
+
                                     return newBlock
                                 }}
                             />)}
