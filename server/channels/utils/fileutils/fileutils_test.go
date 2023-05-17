@@ -102,7 +102,7 @@ func TestFindFile(t *testing.T) {
 					fmt.Sprintf("%s: quadruple-nested subdirectory of containing directory", fileName),
 					&tmpDir5,
 					fileName,
-					filePath,
+					filePathResolved,
 				},
 			}...)
 		}
