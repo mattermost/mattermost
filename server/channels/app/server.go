@@ -73,8 +73,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
 )
 
-// declaring this as var to allow overriding in tests
-var SentryDSN = "placeholder_sentry_dsn"
+var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -912,11 +911,15 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
-		sentryHandler := sentryhttp.New(sentryhttp.Options{
-			Repanic: true,
-		})
-		handler = sentryHandler.Handle(handler)
+	switch model.GetExternalServiceEnvironment() {
+	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud, model.ExternalServiceEnvironmentTest:
+		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+			sentryHandler := sentryhttp.New(sentryhttp.Options{
+				Repanic: true,
+			})
+			handler = sentryHandler.Handle(handler)
+		}
+	case model.ExternalServiceEnvironmentDev:
 	}
 
 	if allowedOrigins := *s.platform.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
