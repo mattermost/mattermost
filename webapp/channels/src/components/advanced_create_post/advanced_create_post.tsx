@@ -925,7 +925,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         const hasLinks = hasHtmlLink(clipboardData);
         let table = getTable(clipboardData);
 
-        if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
+        if (!table && !hasLinks && !shouldApplyLinkMarkdown && !clipboardText) {
             return;
         }
 
@@ -954,8 +954,17 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return;
         }
 
+        let formattedMessage;
+
+        if (table || hasLinks) {
+            formattedMessage = formatMarkdownMessage(clipboardData, message.trim(), this.state.caretPosition);
+        } else if (clipboardText) {
+            formattedMessage = clipboardText;
+        } else {
+            return;
+        }
+
         const originalSize = message.length;
-        const formattedMessage = formatMarkdownMessage(clipboardData, message.trim(), this.state.caretPosition);
         const newCaretPosition = formattedMessage.length - (originalSize - this.state.caretPosition);
         this.setMessageAndCaretPostion(formattedMessage, newCaretPosition);
         this.handlePostPasteDraft(formattedMessage);
