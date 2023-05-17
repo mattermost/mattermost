@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {NotificationSections} from 'utils/constants';
 
+import './section_title.scss';
+
 type Props = {
     section: string;
     isExpanded?: boolean;
@@ -16,7 +18,7 @@ type Props = {
 export default function SectionTitle({section, isExpanded, isNotificationsSettingSameAsGlobal, onClickResetButton}: Props) {
     if (section === NotificationSections.DESKTOP || section === NotificationSections.PUSH) {
         return (
-            <div className='d-flex justify-content-between'>
+            <div className='SectionTitle__wrapper'>
                 {section === NotificationSections.DESKTOP &&
                 <FormattedMessage
                     id='channel_notifications.desktopNotifications'
@@ -30,7 +32,7 @@ export default function SectionTitle({section, isExpanded, isNotificationsSettin
                 />}
                 {isExpanded && !isNotificationsSettingSameAsGlobal &&
                 <button
-                    className='d-flex align-items-center color--link cursor--pointer style--none '
+                    className='SectionTitle__resetButton color--link'
                     onClick={onClickResetButton}
                 >
                     <i className='icon icon-refresh'/>
