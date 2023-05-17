@@ -23,6 +23,7 @@ export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: Gener
                 [category.id]: {
                     ...nextState[category.id],
                     ...category,
+                    collapsed: action.isWebSocket ? state[category.id].collapsed : category.collapsed,
                 },
             };
         }, state);

@@ -17,12 +17,12 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 )
 
 type SqlPostStore struct {
@@ -1986,7 +1986,9 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 
 	for _, c := range s.specialSearchChars() {
-		terms = strings.Replace(terms, c, " ", -1)
+		if !params.IsHashtag {
+			terms = strings.Replace(terms, c, " ", -1)
+		}
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
 
@@ -2011,7 +2013,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
 			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
 		} else {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
+			tsVectorSearchQuery := strings.Join(strings.Fields(terms), " & ")
+			if params.IsHashtag {
+				tsVectorSearchQuery = terms
+			}
+
+			termsClause = "(" + tsVectorSearchQuery + ")" + excludeClause
 		}
 
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
@@ -2045,6 +2052,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 
 		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (? IN BOOLEAN MODE)", searchType)
+
+		if params.IsHashtag {
+			termsClause = "\"" + termsClause + "\""
+		}
+
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 

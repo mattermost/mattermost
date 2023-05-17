@@ -14,7 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 // EnsureSchemaMigrationFormat checks the schema migrations table
@@ -27,7 +27,7 @@ func (s *SQLStore) EnsureSchemaMigrationFormat() error {
 	}
 
 	if !migrationNeeded {
-		s.logger.Info("Schema migration table is correct format")
+		s.logger.Info("Schema migration table is in correct format")
 		return nil
 	}
 

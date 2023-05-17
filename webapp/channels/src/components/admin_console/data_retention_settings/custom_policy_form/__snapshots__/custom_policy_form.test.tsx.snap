@@ -4,8 +4,8 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
 <div
   className="wrapper--fixed DataRetentionSettings"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -17,7 +17,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         id="admin.data_retention.customTitle"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -264,8 +264,8 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
 <div
   className="wrapper--fixed DataRetentionSettings"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -277,7 +277,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         id="admin.data_retention.customTitle"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

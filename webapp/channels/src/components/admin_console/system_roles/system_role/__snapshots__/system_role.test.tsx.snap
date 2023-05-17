@@ -4,8 +4,8 @@ exports[`admin_console/system_role should match snapshot 1`] = `
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -17,7 +17,7 @@ exports[`admin_console/system_role should match snapshot 1`] = `
         id="admin.permissions.roles.role_name.name"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -69,8 +69,8 @@ exports[`admin_console/system_role should match snapshot with isLicensedForCloud
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -82,7 +82,7 @@ exports[`admin_console/system_role should match snapshot with isLicensedForCloud
         id="admin.permissions.roles.role_name.name"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

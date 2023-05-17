@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 const CardLimitTimestampSystemKey = "card_limit_timestamp"
