@@ -6,6 +6,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -53,4 +54,33 @@ func NewHumanizedJSONError(err error, data []byte, offset int64) *HumanizedJSONE
 		Character: character,
 		Err:       errors.Wrapf(err, "parsing error at line %d, character %d", line, character),
 	}
+}
+
+func IsEmptyJSON(j json.RawMessage) bool {
+	if len(j) == 0 || bytes.Equal(j, []byte("{}")) || bytes.Equal(j, []byte("\"\"")) || bytes.Equal(j, []byte("[]")) {
+		return true
+	}
+	return false
+}
+
+func StringPtrToJSON(ptr *string) json.RawMessage {
+	if ptr == nil || len(*ptr) == 0 {
+		return []byte("{}")
+	}
+	s := *ptr
+
+	if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+		return []byte(s)
+	}
+
+	if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
+		return []byte(s)
+	}
+
+	if strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") {
+		return []byte(s)
+	}
+
+	// This must be a bare string which will need quotes to make a valid JSON document.
+	return []byte("\"" + s + "\"")
 }

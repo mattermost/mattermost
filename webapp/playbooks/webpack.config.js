@@ -133,31 +133,4 @@ config.output = {
     chunkFilename: '[name].[contenthash].js',
 };
 
-if (NPM_TARGET === 'start:product') {
-    const url = new URL(process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007');
-
-    const protocol = url.protocol.substring(0, url.protocol.length - 1);
-    const hostname = url.hostname;
-    let port = url.port;
-    if (!port) {
-        port = protocol === 'https' ? '443' : '80';
-    }
-
-    config.devServer = {
-        server: {
-            type: protocol,
-            options: {
-                minVersion: process.env.MM_SERVICESETTINGS_TLSMINVER ?? 'TLSv1.2',
-                key: process.env.MM_SERVICESETTINGS_TLSKEYFILE,
-                cert: process.env.MM_SERVICESETTINGS_TLSCERTFILE,
-            },
-        },
-        host: hostname,
-        port,
-        devMiddleware: {
-            writeToDisk: false,
-        },
-    };
-}
-
 module.exports = config;
