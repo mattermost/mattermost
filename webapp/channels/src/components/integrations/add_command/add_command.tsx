@@ -31,9 +31,9 @@ export type Props = {
 const AddCommand = ({team, actions}: Props) => {
     const history = useHistory();
     const {formatMessage} = useIntl();
-    const HEADER = formatMessage({id: ('integrations.add'), defaultMessage: 'Add'}) as MessageDescriptor;
-    const FOOTER = formatMessage({id: ('add_command.save'), defaultMessage: 'Save'}) as MessageDescriptor;
-    const LOADING = formatMessage({id: ('add_command.saving'), defaultMessage: 'Saving...'}) as MessageDescriptor;
+    const headerMessage = formatMessage({id: ('integrations.add'), defaultMessage: 'Add'}) as MessageDescriptor;
+    const footerMessage = formatMessage({id: ('add_command.save'), defaultMessage: 'Save'}) as MessageDescriptor;
+    const loadingMessage = formatMessage({id: ('add_command.saving'), defaultMessage: 'Saving...'}) as MessageDescriptor;
     const [serverError, setServerError] = useState('');
 
     const addCommand = async (command: Command) => {
@@ -53,9 +53,9 @@ const AddCommand = ({team, actions}: Props) => {
     return (
         <AbstractCommand
             team={team}
-            header={HEADER}
-            footer={FOOTER}
-            loading={LOADING}
+            header={headerMessage}
+            footer={footerMessage}
+            loading={loadingMessage}
             action={addCommand}
             serverError={serverError}
         />
