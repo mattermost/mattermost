@@ -429,6 +429,12 @@ func NewServer(options ...Option) (*Server, error) {
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
+	if model.GetExternalServiceEnvironment() != model.ExternalServiceEnvironmentDefault {
+		mlog.Info(
+			"External service environment configured",
+			mlog.String("external_service_environment", model.GetExternalServiceEnvironment()),
+		)
+	}
 
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))

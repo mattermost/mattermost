@@ -198,6 +198,7 @@ export type ClientConfig = {
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    ExternalServiceEnvironment: string;
 };
 
 export type License = {
@@ -936,4 +937,11 @@ export enum CollapsedThreads {
     DEFAULT_ON = 'default_on',
     DEFAULT_OFF = 'default_off',
     ALWAYS_ON = 'always_on',
+}
+
+export enum ExternalServiceEnvironment {
+    DEFAULT = '',
+    CLOUD = 'cloud',
+    TEST = 'test',
+    DEV = 'dev',
 }
