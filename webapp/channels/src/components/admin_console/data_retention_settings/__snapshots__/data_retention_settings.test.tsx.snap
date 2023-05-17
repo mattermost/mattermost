@@ -4,14 +4,12 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
 <div
   className="wrapper--fixed DataRetentionSettings"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Data Retention Policies"
       id="admin.data_retention.settings.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -384,14 +382,12 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
 <div
   className="wrapper--fixed DataRetentionSettings"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Data Retention Policies"
       id="admin.data_retention.settings.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -784,14 +780,12 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
 <div
   className="wrapper--fixed DataRetentionSettings"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Data Retention Policies"
       id="admin.data_retention.settings.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1179,14 +1173,12 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
 <div
   className="wrapper--fixed DataRetentionSettings"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Data Retention Policies"
       id="admin.data_retention.settings.title"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

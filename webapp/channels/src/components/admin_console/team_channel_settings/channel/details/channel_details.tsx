@@ -7,20 +7,23 @@ import {cloneDeep} from 'lodash';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+
 import {UserProfile} from '@mattermost/types/users';
 import {Scheme} from '@mattermost/types/schemes';
 import {SyncablePatch, Group, SyncableType} from '@mattermost/types/groups';
 import {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
-
 import {ServerError} from '@mattermost/types/errors';
+
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ConfirmModal from 'components/confirm_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
 import FormError from 'components/form_error';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+
 import Constants from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import {NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import ConvertConfirmModal from '../../convert_confirm_modal';
@@ -779,7 +782,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         );
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/channels'
@@ -790,7 +793,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             defaultMessage='Channel Configuration'
                         />
                     </div>
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <ChannelProfile

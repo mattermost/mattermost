@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
