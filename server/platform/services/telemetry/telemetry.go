@@ -31,8 +31,9 @@ const (
 	DBAccessAttempts    = 3
 	DBAccessTimeoutSecs = 10
 
-	RudderKey          = "placeholder_rudder_key"
-	RudderDataplaneURL = "placeholder_rudder_dataplane_url"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1aoejPqhgONMI720CsBSRWzzRQ9"
+	rudderKeyDev       = "1aoeoCDeh7OCHcbW2kseWlwUFyq"
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
@@ -156,13 +157,21 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
-	if !strings.Contains(RudderKey, "placeholder") && !strings.Contains(RudderDataplaneURL, "placeholder") {
-		return RudderConfig{RudderKey, RudderDataplaneURL}
-	} else if os.Getenv("RudderKey") != "" && os.Getenv("RudderDataplaneURL") != "" {
+	// Support unit testing
+	if os.Getenv("RudderKey") != "" && os.Getenv("RudderDataplaneURL") != "" {
 		return RudderConfig{os.Getenv("RudderKey"), os.Getenv("RudderDataplaneURL")}
-	} else {
-		return RudderConfig{}
 	}
+
+	rudderKey := ""
+	switch model.GetExternalServiceEnvironment() {
+	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud:
+		rudderKey = rudderKeyProd
+	case model.ExternalServiceEnvironmentTest:
+		rudderKey = rudderKeyDev
+	case model.ExternalServiceEnvironmentDev:
+	}
+
+	return RudderConfig{rudderKey, rudderDataplaneURL}
 }
 
 func (ts *TelemetryService) telemetryEnabled() bool {
@@ -1328,7 +1337,7 @@ func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 		config.Endpoint = endpoint
 		config.Verbose = ts.verbose
 		// For testing
-		if endpoint != RudderDataplaneURL {
+		if endpoint != rudderDataplaneURL {
 			config.BatchSize = 1
 		}
 		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)

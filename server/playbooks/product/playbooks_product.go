@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
@@ -54,10 +53,10 @@ const (
 
 const ServerKey product.ServiceKey = "server"
 
-// These credentials for Rudder need to be replaced at build-time.
 const (
-	rudderDataplaneURL = "placeholder_rudder_dataplane_url"
-	rudderWriteKey     = "placeholder_playbooks_rudder_key"
+	rudderDataplaneURL       = "https://pdat.matterlytics.com"
+	rudderWriteKeyProduction = "1ag0Mv7LPf5uJNhcnKomqg0ENFd"
+	rudderWriteKeyDev        = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
 )
 
 var errServiceTypeAssert = errors.New("type assertion failed")
@@ -334,7 +333,16 @@ func (pp *playbooksProduct) Start() error {
 
 	pp.handler = api.NewHandler(pp.config)
 
-	if strings.HasPrefix(rudderWriteKey, "placeholder_") {
+	rudderWriteKey := ""
+	switch model.GetExternalServiceEnvironment() {
+	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud:
+		rudderWriteKey = rudderWriteKeyProduction
+	case model.ExternalServiceEnvironmentTest:
+		rudderWriteKey = rudderWriteKeyDev
+	case model.ExternalServiceEnvironmentDev:
+	}
+
+	if rudderWriteKey == "" {
 		logrus.Warn("Rudder credentials are not set. Disabling analytics.")
 		pp.telemetryClient = &telemetry.NoopTelemetry{}
 	} else {

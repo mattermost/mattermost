@@ -12,6 +12,8 @@ import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
 
+import {ExternalServiceEnvironment} from '@mattermost/types/config'
+
 import {RudderTelemetryHandler, rudderAnalytics} from 'src/rudder'
 
 import appBarIcon from 'static/app-bar-icon.png'
@@ -83,8 +85,6 @@ function getSubpath(siteURL: string): string {
     return url.pathname.replace(/\/+$/, '')
 }
 
-const TELEMETRY_RUDDER_KEY = 'placeholder_boards_rudder_key'
-const TELEMETRY_RUDDER_DATAPLANE_URL = 'placeholder_rudder_dataplane_url'
 const TELEMETRY_OPTIONS = {
     context: {
         ip: '0.0.0.0',
@@ -512,12 +512,20 @@ export default class Plugin {
 
         const config = await octoClient.getClientConfig()
         if (config?.telemetry) {
-            let rudderKey = TELEMETRY_RUDDER_KEY
-            let rudderUrl = TELEMETRY_RUDDER_DATAPLANE_URL
-
-            if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-                rudderKey = process.env.RUDDER_KEY as string //eslint-disable-line no-process-env
-                rudderUrl = process.env.RUDDER_DATAPLANE_URL as string //eslint-disable-line no-process-env
+            const rudderUrl = 'https://pdat.matterlytics.com'
+            let rudderKey = ''
+            switch (mmStore.getState().entities.general.config.ExternalServiceEnvironment) {
+            case ExternalServiceEnvironment.DEFAULT:
+                rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
+                break
+            case ExternalServiceEnvironment.CLOUD:
+                rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
+                break
+            case ExternalServiceEnvironment.TEST:
+                rudderKey = '1myWYwHRDFdLDTpznQ7qFlOPQaa'
+                break
+            case ExternalServiceEnvironment.DEV:
+                break
             }
 
             if (rudderKey !== '') {

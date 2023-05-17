@@ -5,20 +5,21 @@ package telemetry
 
 import (
 	"os"
-	"strings"
 	"time"
 
 	rudder "github.com/rudderlabs/analytics-go"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/scheduler"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 )
 
 const (
-	rudderKey                  = "placeholder_boards_rudder_key"
-	rudderDataplaneURL         = "placeholder_rudder_dataplane_url"
+	rudderDataplaneURL         = "https://pdat.matterlytics.com"
+	rudderKeyProd              = "1myWcDbTkIThnpPYyms7DKlmQWl"
+	rudderKeyDev               = "1myWYwHRDFdLDTpznQ7qFlOPQaa"
 	timeBetweenTelemetryChecks = 10 * time.Minute
 )
 
@@ -54,13 +55,20 @@ func (ts *Service) RegisterTracker(name string, f TrackerFunc) {
 }
 
 func (ts *Service) getRudderConfig() RudderConfig {
-	if !strings.Contains(rudderKey, "placeholder") && !strings.Contains(rudderDataplaneURL, "placeholder") {
-		return RudderConfig{rudderKey, rudderDataplaneURL}
-	}
+	// Support unit testing
 	if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
 		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
 	}
-	return RudderConfig{}
+
+	rudderKey := ""
+	switch model.GetExternalServiceEnvironment() {
+	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud:
+		rudderKey = rudderKeyProd
+	case model.ExternalServiceEnvironmentTest, model.ExternalServiceEnvironmentDev:
+		rudderKey = rudderKeyDev
+	}
+
+	return RudderConfig{rudderKey, rudderDataplaneURL}
 }
 
 func (ts *Service) sendDailyTelemetry(override bool) {
