@@ -4,7 +4,7 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, waitFor, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
 
@@ -13,7 +13,7 @@ import {act} from 'react-dom/test-utils'
 import userEvent from '@testing-library/user-event'
 
 import {wrapIntl} from 'src/testUtils'
-import {IPropertyTemplate, Board} from 'src/blocks/board'
+import {Board, IPropertyTemplate} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 
 import PersonProperty from './property'
@@ -63,6 +63,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -89,6 +90,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -115,6 +117,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -141,6 +144,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -167,6 +171,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
 

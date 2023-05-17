@@ -4,7 +4,7 @@ import React from 'react'
 import {IntlShape} from 'react-intl'
 
 import {Card} from 'src/blocks/card'
-import {Board, IPropertyTemplate, PropertyTypeEnum as BoardPropertyTypeEnum} from 'src/blocks/board'
+import {Board, PropertyTypeEnum as BoardPropertyTypeEnum, IPropertyTemplate} from 'src/blocks/board'
 import {Options} from 'src/components/calculations/options'
 import {Utils} from 'src/utils'
 
@@ -47,6 +47,7 @@ export abstract class PropertyType {
         this.displayValue = (value: string | string[] | undefined) => value
         this.valueLength = (value: string | string[] | undefined, card: Card, template: IPropertyTemplate, intl: IntlShape, fontDescriptor: string): number => {
             const displayValue = this.displayValue(value, card, template, intl) || ''
+
             return Utils.getTextWidth(displayValue.toString(), fontDescriptor)
         }
     }
@@ -58,6 +59,7 @@ export abstract class PropertyType {
         } else if (Array.isArray(displayValue)) {
             return `"${encodeText((displayValue as string[]).join('|'))}"`
         }
+
         return ''
     }
 

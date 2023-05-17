@@ -7,7 +7,7 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
 	store "github.com/mattermost/mattermost-server/server/v8/channels/store"
@@ -298,25 +298,32 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, opts *stor
 	return r0, r1
 }
 
-// CreateSidebarCategory provides a mock function with given fields: userID, teamID, newCategory
-func (_m *ChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
-	ret := _m.Called(userID, teamID, newCategory)
+// CreateSidebarCategory provides a mock function with given fields: userID, teamID, newCategory, options
+func (_m *ChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userID, teamID, newCategory)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.SidebarCategoryWithChannels
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)); ok {
-		return rf(userID, teamID, newCategory)
+	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)); ok {
+		return rf(userID, teamID, newCategory, options...)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
-		r0 = rf(userID, teamID, newCategory)
+	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userID, teamID, newCategory, options...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, *model.SidebarCategoryWithChannels) error); ok {
-		r1 = rf(userID, teamID, newCategory)
+	if rf, ok := ret.Get(1).(func(string, string, *model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(userID, teamID, newCategory, options...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -591,6 +598,32 @@ func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID st
 
 	if rf, ok := ret.Get(1).(func(int, string) error); ok {
 		r1 = rf(limit, afterID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetBotChannelsByUser provides a mock function with given fields: userID, opts
+func (_m *ChannelStore) GetBotChannelsByUser(userID string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
+	ret := _m.Called(userID, opts)
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, store.ChannelSearchOpts) (model.ChannelList, error)); ok {
+		return rf(userID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(string, store.ChannelSearchOpts) model.ChannelList); ok {
+		r0 = rf(userID, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) error); ok {
+		r1 = rf(userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1592,25 +1625,32 @@ func (_m *ChannelStore) GetSidebarCategories(userID string, opts *store.SidebarC
 	return r0, r1
 }
 
-// GetSidebarCategoriesForTeamForUser provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, teamID)
+// GetSidebarCategoriesForTeamForUser provides a mock function with given fields: userID, teamID, options
+func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userID, teamID)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
+		return rf(userID, teamID, options...)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, ...*store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userID, teamID, options...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+	if rf, ok := ret.Get(1).(func(string, string, ...*store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(userID, teamID, options...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1618,25 +1658,32 @@ func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID
 	return r0, r1
 }
 
-// GetSidebarCategory provides a mock function with given fields: categoryID
-func (_m *ChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error) {
-	ret := _m.Called(categoryID)
+// GetSidebarCategory provides a mock function with given fields: categoryID, options
+func (_m *ChannelStore) GetSidebarCategory(categoryID string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, categoryID)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.SidebarCategoryWithChannels
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.SidebarCategoryWithChannels, error)); ok {
-		return rf(categoryID)
+	if rf, ok := ret.Get(0).(func(string, ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)); ok {
+		return rf(categoryID, options...)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.SidebarCategoryWithChannels); ok {
-		r0 = rf(categoryID)
+	if rf, ok := ret.Get(0).(func(string, ...*store.SidebarCategorySearchOpts) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(categoryID, options...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(categoryID)
+	if rf, ok := ret.Get(1).(func(string, ...*store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(categoryID, options...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2582,34 +2629,41 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 	return r0, r1
 }
 
-// UpdateSidebarCategories provides a mock function with given fields: userID, teamID, categories
-func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
-	ret := _m.Called(userID, teamID, categories)
+// UpdateSidebarCategories provides a mock function with given fields: userID, teamID, categories, options
+func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userID, teamID, categories)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 []*model.SidebarCategoryWithChannels
 	var r1 []*model.SidebarCategoryWithChannels
 	var r2 error
-	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)); ok {
-		return rf(userID, teamID, categories)
+	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)); ok {
+		return rf(userID, teamID, categories, options...)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
-		r0 = rf(userID, teamID, categories)
+	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) []*model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userID, teamID, categories, options...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.SidebarCategoryWithChannels)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
-		r1 = rf(userID, teamID, categories)
+	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) []*model.SidebarCategoryWithChannels); ok {
+		r1 = rf(userID, teamID, categories, options...)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]*model.SidebarCategoryWithChannels)
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
-		r2 = rf(userID, teamID, categories)
+	if rf, ok := ret.Get(2).(func(string, string, []*model.SidebarCategoryWithChannels, ...*store.SidebarCategorySearchOpts) error); ok {
+		r2 = rf(userID, teamID, categories, options...)
 	} else {
 		r2 = ret.Error(2)
 	}

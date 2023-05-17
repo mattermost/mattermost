@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
-    createContext,
     ReactElement,
     ReactNode,
+    createContext,
+    useCallback,
     useContext,
     useMemo,
     useState,
-    useCallback
 } from 'react'
 
 import {useIntl} from 'react-intl'
@@ -37,6 +37,7 @@ export function useCardDetailContext(): CardDetailContextType {
     if (!cardDetailContext) {
         throw new Error('CardDetailContext is not available!')
     }
+
     return cardDetailContext
 }
 

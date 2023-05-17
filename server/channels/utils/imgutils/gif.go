@@ -366,7 +366,7 @@ func (d *decoder) readGraphicControl() error {
 }
 
 func (d *decoder) readImageDescriptor() error {
-	err := d.checkImageFromDescriptor()
+	w, h, err := d.readImageDimensionsFromDescriptor()
 	if err != nil {
 		return err
 	}
@@ -390,7 +390,7 @@ func (d *decoder) readImageDescriptor() error {
 	lzwr := lzw.NewReader(br, lzw.LSB, int(litWidth))
 	defer lzwr.Close()
 
-	if _, err := io.Copy(io.Discard, lzwr); err != nil {
+	if _, err := io.Copy(io.Discard, io.LimitReader(lzwr, int64(w*h))); err != nil {
 		if err != io.ErrUnexpectedEOF {
 			return fmt.Errorf("gif: reading image data: %v", err)
 		}
@@ -428,9 +428,9 @@ func (d *decoder) readImageDescriptor() error {
 	return nil
 }
 
-func (d *decoder) checkImageFromDescriptor() error {
+func (d *decoder) readImageDimensionsFromDescriptor() (int, int, error) {
 	if err := readFull(d.r, d.tmp[:9]); err != nil {
-		return fmt.Errorf("gif: can't read image descriptor: %s", err)
+		return 0, 0, fmt.Errorf("gif: can't read image descriptor: %s", err)
 	}
 	left := int(d.tmp[0]) + int(d.tmp[1])<<8
 	top := int(d.tmp[2]) + int(d.tmp[3])<<8
@@ -455,10 +455,10 @@ func (d *decoder) checkImageFromDescriptor() error {
 	// imageBounds.Max (d.width, d.height) and not frameBounds.Min (left, top)
 	// against imageBounds.Min (0, 0).
 	if left+width > d.width || top+height > d.height {
-		return errors.New("gif: frame bounds larger than image bounds")
+		return 0, 0, errors.New("gif: frame bounds larger than image bounds")
 	}
 
-	return nil
+	return width, height, nil
 }
 
 func (d *decoder) readBlock() (int, error) {

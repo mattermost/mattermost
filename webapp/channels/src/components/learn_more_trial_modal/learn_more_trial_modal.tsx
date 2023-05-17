@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
@@ -16,10 +16,13 @@ import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
 import CloudStartTrialButton from 'components/cloud_start_trial/cloud_start_trial_btn';
 import {BtnStyle} from 'components/common/carousel/carousel_button';
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ExternalLink from 'components/external_link';
 
 import {closeModal} from 'actions/views/modals';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import StartTrialBtn from './start_trial_btn';
 
@@ -43,8 +46,11 @@ const LearnMoreTrialModal = (
     const [embargoed, setEmbargoed] = useState(false);
     const dispatch = useDispatch<DispatchFunc>();
 
+    const [, salesLink] = useOpenSalesLink();
+
     // Cloud conditions
     const license = useSelector(getLicense);
+    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const isCloud = license?.Cloud === 'true';
 
     const handleEmbargoError = useCallback(() => {
@@ -78,6 +84,20 @@ const LearnMoreTrialModal = (
                 extraClass={'btn btn-primary start-cloud-trial-btn'}
             />
         );
+        if (cloudFreeDeprecated) {
+            startTrialBtn = (
+                <ExternalLink
+                    location='learn_more_trial_modal'
+                    href={salesLink}
+                    className='btn btn-primary start-cloud-trial-btn'
+                >
+                    <FormattedMessage
+                        id='learn_more_trial_modal.contact_sales'
+                        defaultMessage='Contact sales'
+                    />
+                </ExternalLink>
+            );
+        }
     }
 
     const handleOnClose = useCallback(() => {

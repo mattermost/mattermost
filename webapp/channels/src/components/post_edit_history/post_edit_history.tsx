@@ -11,7 +11,7 @@ import LoadingScreen from 'components/loading_screen';
 
 import EditedPostItem from './edited_post_item';
 
-import {PropsFromRedux} from '.';
+import type {PropsFromRedux} from './index';
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
     <div

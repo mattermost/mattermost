@@ -35,13 +35,13 @@ const STRIPE_ALREADY_SUCCEEDED = 'You cannot update this SetupIntent because it 
 export function confirmSelfHostedSignup(
     stripe: Stripe,
     stripeSetupIntent: StripeSetupIntent,
-    isDevMode: boolean,
+    cwsMockMode: boolean,
     billingDetails: BillingDetails,
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     subscriptionRequest: CreateSubscriptionRequest,
 ): ActionFunc {
     return async (dispatch: DispatchFunc) => {
-        const cardSetupFunction = getConfirmCardSetup(isDevMode);
+        const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 
         const shouldConfirmCard = selfHostedNeedsConfirmation(initialProgress);
@@ -202,13 +202,13 @@ export function getTrueUpReviewStatus(): ActionFunc {
 export function confirmSelfHostedExpansion(
     stripe: Stripe,
     stripeSetupIntent: StripeSetupIntent,
-    isDevMode: boolean,
+    cwsMockMode: boolean,
     billingDetails: BillingDetails,
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     expansionRequest: SelfHostedExpansionRequest,
 ): ActionFunc {
     return async (dispatch: DispatchFunc) => {
-        const cardSetupFunction = getConfirmCardSetup(isDevMode);
+        const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 
         const shouldConfirmCard = selfHostedNeedsConfirmation(initialProgress);

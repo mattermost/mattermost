@@ -530,8 +530,8 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         DisableAppBar: true,
-        PatchPluginsReactDOM: false,
         DisableRefetchingOnBrowserFocus: false,
+        DelayChannelAutocomplete: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
