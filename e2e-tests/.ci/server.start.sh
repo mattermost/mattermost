@@ -28,8 +28,7 @@ cat >.env.cypress <<EOF
 BRANCH=$MME2E_BRANCH
 BUILD_ID=$MME2E_BUILD_ID
 EOF
-[ -z "${AUTOMATION_DASHBOARD_URL:-}" ]   || echo "AUTOMATION_DASHBOARD_URL=$AUTOMATION_DASHBOARD_URL"     >>.env.cypress
-[ -z "${AUTOMATION_DASHBOARD_TOKEN:-}" ] || echo "AUTOMATION_DASHBOARD_TOKEN=$AUTOMATION_DASHBOARD_TOKEN" >>.env.cypress
+mme2e_generate_envfile_from_vars AUTOMATION_DASHBOARD_URL AUTOMATION_DASHBOARD_TOKEN >>.env.cypress
 
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Waiting for server image to be available"
