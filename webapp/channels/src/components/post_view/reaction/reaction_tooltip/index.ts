@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';

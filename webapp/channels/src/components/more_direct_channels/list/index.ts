@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {getAllChannels, getChannelsWithUserProfiles} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

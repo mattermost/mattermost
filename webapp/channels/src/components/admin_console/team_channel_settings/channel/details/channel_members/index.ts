@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {ServerError} from '@mattermost/types/errors';
 import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';

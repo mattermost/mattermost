@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {getAllChannelsWithCount as getData, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';

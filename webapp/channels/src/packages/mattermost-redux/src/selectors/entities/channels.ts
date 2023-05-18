@@ -50,7 +50,7 @@ import {
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {
     Channel,

@@ -4,7 +4,7 @@
 import {useCallback} from 'react';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

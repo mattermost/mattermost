@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 import {TeamSearchOpts} from '@mattermost/types/teams';

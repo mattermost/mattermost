@@ -3,7 +3,7 @@
 
 import {isMobile} from 'utils/utils';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {makeGetCategory, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';

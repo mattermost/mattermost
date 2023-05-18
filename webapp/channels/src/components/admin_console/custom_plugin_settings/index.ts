@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';

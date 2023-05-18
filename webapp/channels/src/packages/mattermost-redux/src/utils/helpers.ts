@@ -3,7 +3,7 @@
 
 import shallowEqual from 'shallow-equals';
 
-import * as reselect from 'reselect';
+import * as reselect from 'packages/reselect/src';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {

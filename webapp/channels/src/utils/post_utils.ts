@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {IntlShape, useIntl} from 'react-intl';
-
 import {useMemo} from 'react';
-
 import {useSelector} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {Client4} from 'mattermost-redux/client';
 

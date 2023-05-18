@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {Team, TeamSearchOpts} from '@mattermost/types/teams';
 import {debounce} from 'mattermost-redux/actions/helpers';

@@ -4,7 +4,7 @@
 import {bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'packages/reselect/src';
 
 import {Post} from '@mattermost/types/posts';
 import {GenericAction} from 'mattermost-redux/types/actions';
