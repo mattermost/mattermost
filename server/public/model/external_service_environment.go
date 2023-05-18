@@ -6,44 +6,44 @@ import (
 )
 
 const (
-	// ExternalServiceEnvironmentDefault represents the self-managed environment in which no
+	// ServiceEnvironmentDefault represents the self-managed environment in which no
 	// explicit configuration is present.
-	ExternalServiceEnvironmentDefault = ""
-	// ExternalServiceEnvironmentCloud represents the Mattermost Cloud environment in which
-	// MM_EXTERNALSERVICEENVIRONMENT is explicitly set to "cloud".
-	ExternalServiceEnvironmentCloud = "cloud"
-	// ExternalServiceEnvironmentCloud represents testing environments within Mattermost in
-	// which MM_EXTERNALSERVICEENVIRONMENT is explicitly set to "test".
-	ExternalServiceEnvironmentTest = "test"
-	// ExternalServiceEnvironmentDev represents development environments in which the build
+	ServiceEnvironmentDefault = ""
+	// ServiceEnvironmentCloud represents the Mattermost Cloud environment in which
+	// MM_SERVICEENVIRONMENT is explicitly set to "cloud".
+	ServiceEnvironmentCloud = "cloud"
+	// ServiceEnvironmentCloud represents testing environments within Mattermost in
+	// which MM_SERVICEENVIRONMENT is explicitly set to "test".
+	ServiceEnvironmentTest = "test"
+	// ServiceEnvironmentDev represents development environments in which the build
 	// number is empty or set to "dev". This prevents unintentionally using production keys
 	// while preserving the default behaviour for the self-managed environment.
-	ExternalServiceEnvironmentDev = "dev"
+	ServiceEnvironmentDev = "dev"
 )
 
-// GetExternalServiceEnvironment returns the currently configured external service environment,
+// GetServiceEnvironment returns the currently configured external service environment,
 // deciding which public key is used to validate enterprise licenses, which telemetry keys are
 // active, and which Stripe keys are in use.
 //
-// To configure an environment other than default, set MM_EXTERNALSERVICEENVIRONMENT before
+// To configure an environment other than default, set MM_SERVICEENVIRONMENT before
 // starting the application. Only production builds -- with a non-empty, non-"dev" build number --
 // honour this environment variable, as dev builds will force the "dev" environment.
 //
 // Note that this configuration is explicitly not part of the model.Config data structure, as it
 // should never be persisted to the config store nor accidentally configured in any other way than
-// the MM_EXTERNALSERVICEENVIRONMENT variable.
-func GetExternalServiceEnvironment() string {
+// the MM_SERVICEENVIRONMENT variable.
+func GetServiceEnvironment() string {
 	// Force the test environment unless a production build number is provided.
 	if BuildNumber == "" || BuildNumber == "dev" {
-		return ExternalServiceEnvironmentDev
+		return ServiceEnvironmentDev
 	}
 
-	externalServiceEnvironment := strings.TrimSpace(strings.ToLower(os.Getenv("MM_EXTERNALSERVICEENVIRONMENT")))
+	externalServiceEnvironment := strings.TrimSpace(strings.ToLower(os.Getenv("MM_SERVICEENVIRONMENT")))
 
 	switch externalServiceEnvironment {
-	case ExternalServiceEnvironmentDefault, ExternalServiceEnvironmentCloud, ExternalServiceEnvironmentTest:
+	case ServiceEnvironmentDefault, ServiceEnvironmentCloud, ServiceEnvironmentTest:
 		return externalServiceEnvironment
 	}
 
-	return ExternalServiceEnvironmentDefault
+	return ServiceEnvironmentDefault
 }

@@ -12,7 +12,7 @@ import {SuiteWindow} from 'src/types/index'
 
 import {PluginRegistry} from 'src/types/mattermost-webapp'
 
-import {ExternalServiceEnvironment} from '@mattermost/types/config'
+import {ServiceEnvironment} from '@mattermost/types/config'
 
 import {RudderTelemetryHandler, rudderAnalytics} from 'src/rudder'
 
@@ -514,17 +514,17 @@ export default class Plugin {
         if (config?.telemetry) {
             const rudderUrl = 'https://pdat.matterlytics.com'
             let rudderKey = ''
-            switch (mmStore.getState().entities.general.config.ExternalServiceEnvironment) {
-            case ExternalServiceEnvironment.DEFAULT:
+            switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
+            case ServiceEnvironment.DEFAULT:
                 rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
                 break
-            case ExternalServiceEnvironment.CLOUD:
+            case ServiceEnvironment.CLOUD:
                 rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
                 break
-            case ExternalServiceEnvironment.TEST:
+            case ServiceEnvironment.TEST:
                 rudderKey = '1myWYwHRDFdLDTpznQ7qFlOPQaa'
                 break
-            case ExternalServiceEnvironment.DEV:
+            case ServiceEnvironment.DEV:
                 break
             }
 

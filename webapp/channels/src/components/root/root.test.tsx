@@ -16,7 +16,7 @@ import * as GlobalActions from 'actions/global_actions';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
 import matchMedia from 'tests/helpers/match_media.mock';
 import {ProductComponent} from 'types/store/plugins';
-import {ExternalServiceEnvironment} from '@mattermost/types/config';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 import store from 'stores/redux_store.jsx';
 
@@ -204,7 +204,7 @@ describe('components/Root', () => {
             store.dispatch({
                 type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
                 data: {
-                    ExternalServiceEnvironment: ExternalServiceEnvironment.DEV,
+                    ServiceEnvironment: ServiceEnvironment.DEV,
                 },
             });
 
@@ -221,7 +221,7 @@ describe('components/Root', () => {
             store.dispatch({
                 type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
                 data: {
-                    ExternalServiceEnvironment: ExternalServiceEnvironment.TEST,
+                    ServiceEnvironment: ServiceEnvironment.TEST,
                 },
             });
 
@@ -244,7 +244,7 @@ describe('components/Root', () => {
             store.dispatch({
                 type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
                 data: {
-                    ExternalServiceEnvironment: ExternalServiceEnvironment.TEST,
+                    ServiceEnvironment: ServiceEnvironment.TEST,
                 },
             });
 

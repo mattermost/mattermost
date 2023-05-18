@@ -163,12 +163,12 @@ func (ts *TelemetryService) getRudderConfig() RudderConfig {
 	}
 
 	rudderKey := ""
-	switch model.GetExternalServiceEnvironment() {
-	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud:
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud:
 		rudderKey = rudderKeyProd
-	case model.ExternalServiceEnvironmentTest:
+	case model.ServiceEnvironmentTest:
 		rudderKey = rudderKeyDev
-	case model.ExternalServiceEnvironmentDev:
+	case model.ServiceEnvironmentDev:
 	}
 
 	return RudderConfig{rudderKey, rudderDataplaneURL}

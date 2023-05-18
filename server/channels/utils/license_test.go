@@ -65,8 +65,8 @@ func TestValidateLicense(t *testing.T) {
 	})
 
 	t.Run("should reject invalid license in test service environment", func(t *testing.T) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", model.ExternalServiceEnvironmentTest)
-		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 
 		ok, str := LicenseValidator.ValidateLicense(nil)
 		require.False(t, ok)

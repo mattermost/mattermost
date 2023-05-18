@@ -292,10 +292,10 @@ func NewServer(options ...Option) (*Server, error) {
 	// -------------------------------------------------------------------------
 
 	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
-		switch model.GetExternalServiceEnvironment() {
-		case model.ExternalServiceEnvironmentDev:
+		switch model.GetServiceEnvironment() {
+		case model.ServiceEnvironmentDev:
 			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
-		case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud, model.ExternalServiceEnvironmentTest:
+		case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud, model.ServiceEnvironmentTest:
 			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
@@ -423,7 +423,7 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_date", model.BuildDate),
 		mlog.String("build_hash", model.BuildHash),
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
-		mlog.String("external_service_environment", model.GetExternalServiceEnvironment()),
+		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
 		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
@@ -907,15 +907,15 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	switch model.GetExternalServiceEnvironment() {
-	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud, model.ExternalServiceEnvironmentTest:
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud, model.ServiceEnvironmentTest:
 		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
 			sentryHandler := sentryhttp.New(sentryhttp.Options{
 				Repanic: true,
 			})
 			handler = sentryHandler.Handle(handler)
 		}
-	case model.ExternalServiceEnvironmentDev:
+	case model.ServiceEnvironmentDev:
 	}
 
 	if allowedOrigins := *s.platform.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {

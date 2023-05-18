@@ -93,7 +93,7 @@ import {applyLuxonDefaults} from './effects';
 
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
-import {ExternalServiceEnvironment} from '@mattermost/types/config';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -235,15 +235,15 @@ export default class Root extends React.PureComponent<Props, State> {
 
         const rudderUrl = 'https://pdat.matterlytics.com';
         let rudderKey = '';
-        switch (config.ExternalServiceEnvironment) {
-        case ExternalServiceEnvironment.DEFAULT:
-        case ExternalServiceEnvironment.CLOUD:
+        switch (config.ServiceEnvironment) {
+        case ServiceEnvironment.DEFAULT:
+        case ServiceEnvironment.CLOUD:
             rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
             break;
-        case ExternalServiceEnvironment.TEST:
+        case ServiceEnvironment.TEST:
             rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
             break;
-        case ExternalServiceEnvironment.DEV:
+        case ServiceEnvironment.DEV:
             break;
         }
 

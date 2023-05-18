@@ -9,38 +9,38 @@ import (
 )
 
 const (
-	ExternalServiceEnvironmentDefault = ""
-	ExternalServiceEnvironmentCloud   = "cloud"
-	ExternalServiceEnvironmentTest    = "test"
+	ServiceEnvironmentDefault = ""
+	ServiceEnvironmentCloud   = "cloud"
+	ServiceEnvironmentTest    = "test"
 )
 
-func TestGetExternalServiceEnvironment(t *testing.T) {
+func TestGetServiceEnvironment(t *testing.T) {
 	t.Run("no env", func(t *testing.T) {
-		require.Equal(t, model.ExternalServiceEnvironmentDefault, model.GetExternalServiceEnvironment())
+		require.Equal(t, model.ServiceEnvironmentDefault, model.GetServiceEnvironment())
 	})
 	t.Run("empty string", func(t *testing.T) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", "")
-		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
-		require.Equal(t, model.ExternalServiceEnvironmentDefault, model.GetExternalServiceEnvironment())
+		os.Setenv("MM_SERVICEENVIRONMENT", "")
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		require.Equal(t, model.ServiceEnvironmentDefault, model.GetServiceEnvironment())
 	})
 	t.Run("cloud", func(t *testing.T) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", "cloud")
-		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
-		require.Equal(t, model.ExternalServiceEnvironmentCloud, model.GetExternalServiceEnvironment())
+		os.Setenv("MM_SERVICEENVIRONMENT", "cloud")
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		require.Equal(t, model.ServiceEnvironmentCloud, model.GetServiceEnvironment())
 	})
 	t.Run("test", func(t *testing.T) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", "test")
-		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
-		require.Equal(t, model.ExternalServiceEnvironmentTest, model.GetExternalServiceEnvironment())
+		os.Setenv("MM_SERVICEENVIRONMENT", "test")
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		require.Equal(t, model.ServiceEnvironmentTest, model.GetServiceEnvironment())
 	})
 	t.Run("dev", func(t *testing.T) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", "dev")
-		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
-		require.Equal(t, model.ExternalServiceEnvironmentDev, model.GetExternalServiceEnvironment())
+		os.Setenv("MM_SERVICEENVIRONMENT", "dev")
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		require.Equal(t, model.ServiceEnvironmentDev, model.GetServiceEnvironment())
 	})
 	t.Run("whitespace and case insensitive", func(t *testing.T) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", "   Cloud  ")
-		defer os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
-		require.Equal(t, model.ExternalServiceEnvironmentCloud, model.GetExternalServiceEnvironment())
+		os.Setenv("MM_SERVICEENVIRONMENT", "   Cloud  ")
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		require.Equal(t, model.ServiceEnvironmentCloud, model.GetServiceEnvironment())
 	})
 }

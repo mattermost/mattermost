@@ -334,12 +334,12 @@ func (pp *playbooksProduct) Start() error {
 	pp.handler = api.NewHandler(pp.config)
 
 	rudderWriteKey := ""
-	switch model.GetExternalServiceEnvironment() {
-	case model.ExternalServiceEnvironmentDefault, model.ExternalServiceEnvironmentCloud:
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud:
 		rudderWriteKey = rudderWriteKeyProduction
-	case model.ExternalServiceEnvironmentTest:
+	case model.ServiceEnvironmentTest:
 		rudderWriteKey = rudderWriteKeyDev
-	case model.ExternalServiceEnvironmentDev:
+	case model.ServiceEnvironmentDev:
 	}
 
 	if rudderWriteKey == "" {

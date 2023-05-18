@@ -11,7 +11,7 @@ import {
 } from '@stripe/stripe-js';
 
 import {GlobalState} from 'types/store';
-import {ExternalServiceEnvironment} from '@mattermost/types/config';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 type ConfirmCardSetupType = (clientSecret: string, data?: ConfirmCardSetupData | undefined, options?: ConfirmCardSetupOptions | undefined) => Promise<{ setupIntent?: SetupIntent | undefined; error?: StripeError | undefined }> | undefined;
 
@@ -31,12 +31,12 @@ export const STRIPE_CSS_SRC = 'https://fonts.googleapis.com/css?family=Open+Sans
 //eslint-disable-next-line no-process-env
 
 export const getStripePublicKey = (state: GlobalState) => {
-    switch (state.entities.general.config.ExternalServiceEnvironment) {
-    case ExternalServiceEnvironment.DEFAULT:
-    case ExternalServiceEnvironment.CLOUD:
+    switch (state.entities.general.config.ServiceEnvironment) {
+    case ServiceEnvironment.DEFAULT:
+    case ServiceEnvironment.CLOUD:
         return 'pk_live_cDF5gYLPf5vQjJ7jp71p7GRK';
-    case ExternalServiceEnvironment.TEST:
-    case ExternalServiceEnvironment.DEV:
+    case ServiceEnvironment.TEST:
+    case ServiceEnvironment.DEV:
         return 'pk_test_ttEpW6dCHksKyfAFzh6MvgBj';
     }
 

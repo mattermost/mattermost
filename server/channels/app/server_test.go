@@ -396,7 +396,7 @@ func TestSentry(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 
 	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
-		os.Setenv("MM_EXTERNALSERVICEENVIRONMENT", model.ExternalServiceEnvironmentTest)
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		oldBuildNumber := model.BuildNumber
 		model.BuildNumber = "test"
@@ -404,7 +404,7 @@ func TestSentry(t *testing.T) {
 		oldSentryDSN := SentryDSN
 		SentryDSN = dsn.String()
 		t.Cleanup(func() {
-			os.Unsetenv("MM_EXTERNALSERVICEENVIRONMENT")
+			os.Unsetenv("MM_SERVICEENVIRONMENT")
 			model.BuildNumber = oldBuildNumber
 			SentryDSN = oldSentryDSN
 		})
