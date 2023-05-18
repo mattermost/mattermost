@@ -398,10 +398,15 @@ func TestSentry(t *testing.T) {
 	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
 		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
+		// Allow Playbooks to startup
+		oldBuildHash := model.BuildHash
+		model.BuildHash = "dev"
+
 		oldSentryDSN := SentryDSN
 		SentryDSN = dsn.String()
 		t.Cleanup(func() {
 			os.Unsetenv("MM_SERVICEENVIRONMENT")
+			model.BuildHash = oldBuildHash
 			SentryDSN = oldSentryDSN
 		})
 	}
