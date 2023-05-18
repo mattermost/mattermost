@@ -19,7 +19,7 @@ import {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import LegacyGenericModal from 'components/generic_modal';
+import GenericModal from 'components/generic_modal';
 import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
 import LoadingScreen from 'components/loading_screen';
@@ -317,7 +317,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         );
 
         return (
-            <LegacyGenericModal
+            <GenericModal
                 onExited={this.handleExit}
                 id='moreChannelsModal'
                 aria-labelledby='moreChannelsModalLabel'
@@ -330,7 +330,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                 bodyPadding={false}
             >
                 {body}
-            </LegacyGenericModal>
+            </GenericModal>
         );
     }
 }
