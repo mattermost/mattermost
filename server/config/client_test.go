@@ -326,6 +326,38 @@ func TestGetClientConfig(t *testing.T) {
 				"ExperimentalSharedChannels": "true",
 			},
 		},
+		{
+			"Disable boards",
+			&model.Config{
+				ProductSettings: model.ProductSettings{
+					DisableBoards: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"DisableBoards": "false",
+			},
+		},
+		{
+			"Disable playbooks",
+			&model.Config{
+				ProductSettings: model.ProductSettings{
+					DisablePlaybooks: model.NewBool(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"DisablePlaybooks": "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
