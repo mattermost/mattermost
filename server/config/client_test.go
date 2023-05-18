@@ -329,9 +329,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Disable boards",
 			&model.Config{
-				ProductSettings: model.ProductSettings{
-					DisableBoards: model.NewBool(true),
-				},
+				ProductSettings: model.ProductSettings{},
 			},
 			"",
 			&model.License{
@@ -345,9 +343,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Disable playbooks",
 			&model.Config{
-				ProductSettings: model.ProductSettings{
-					DisablePlaybooks: model.NewBool(true),
-				},
+				ProductSettings: model.ProductSettings{},
 			},
 			"",
 			&model.License{
