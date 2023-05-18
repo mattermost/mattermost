@@ -64,8 +64,9 @@ func (ts *Service) getRudderConfig() RudderConfig {
 	switch model.GetServiceEnvironment() {
 	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud:
 		rudderKey = rudderKeyProd
-	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
+	case model.ServiceEnvironmentTest:
 		rudderKey = rudderKeyDev
+	case model.ServiceEnvironmentDev:
 	}
 
 	return RudderConfig{rudderKey, rudderDataplaneURL}
