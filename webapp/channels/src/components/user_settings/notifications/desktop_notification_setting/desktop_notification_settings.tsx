@@ -26,6 +26,7 @@ type Props = {
     activity: string;
     threads?: string;
     sound: string;
+    callsSound: string;
     updateSection: (section: string) => void;
     setParentState: (key: string, value: string | boolean) => void;
     submit: () => void;
@@ -35,26 +36,33 @@ type Props = {
     areAllSectionsInactive: boolean;
     saving: boolean;
     selectedSound: string;
+    callsSelectedSound: string;
     isCollapsedThreadsEnabled: boolean;
+    isCallsEnabled: boolean;
 };
 
 type State = {
     selectedOption: SelectedOption;
+    callsSelectedOption: SelectedOption;
     blurDropdown: boolean;
 };
 
 export default class DesktopNotificationSettings extends React.PureComponent<Props, State> {
     dropdownSoundRef: RefObject<ReactSelect>;
+    callsDropdownRef: RefObject<ReactSelect>;
     minRef: RefObject<SettingItemMinComponent>;
 
     constructor(props: Props) {
         super(props);
         const selectedOption = {value: props.selectedSound, label: props.selectedSound};
+        const callsSelectedOption = {value: props.callsSelectedSound, label: props.callsSelectedSound};
         this.state = {
             selectedOption,
+            callsSelectedOption,
             blurDropdown: false,
         };
         this.dropdownSoundRef = React.createRef();
+        this.callsDropdownRef = React.createRef();
         this.minRef = React.createRef();
     }
 
@@ -91,16 +99,28 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         }
     };
 
+    setCallsNotificationRing: ReactSelect['onChange'] = (selectedOption: ValueType<SelectedOption>): void => {
+        if (selectedOption && 'value' in selectedOption) {
+            this.props.setParentState('callsNotificationSound', selectedOption.value);
+            this.setState({callsSelectedOption: selectedOption});
+            NotificationSounds.tryNotificationRing(selectedOption.value);
+        }
+    };
+
     blurDropdown(): void {
         if (!this.state.blurDropdown) {
             this.setState({blurDropdown: true});
             if (this.dropdownSoundRef.current) {
                 this.dropdownSoundRef.current.blur();
             }
+            if (this.callsDropdownRef.current) {
+                this.callsDropdownRef.current.blur();
+            }
         }
     }
 
     buildMaximizedSetting = (): JSX.Element => {
+        const showSoundSelection = !isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'));
         const inputs = [];
 
         const activityRadio = [false, false, false];
@@ -115,6 +135,8 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         let soundSection;
         let notificationSelection;
         let threadsNotificationSelection;
+        let callsSection;
+        let callsNotificationSelection;
         if (this.props.activity !== NotificationLevels.NONE) {
             const soundRadio = [false, false];
             if (this.props.sound === 'false') {
@@ -123,26 +145,104 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 soundRadio[0] = true;
             }
 
-            if (this.props.sound === 'true') {
+            if (this.props.sound === 'true' && showSoundSelection) {
                 const sounds = Array.from(NotificationSounds.notificationSounds.keys());
                 const options = sounds.map((sound) => {
                     return {value: sound, label: sound};
                 });
 
-                if (!isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'))) {
-                    notificationSelection = (<div className='pt-2'>
+                notificationSelection = (<div className='pt-2'>
+                    <ReactSelect
+                        className='react-select notification-sound-dropdown'
+                        classNamePrefix='react-select'
+                        id='displaySoundNotification'
+                        options={options}
+                        clearable={false}
+                        onChange={this.setDesktopNotificationSound}
+                        value={this.state.selectedOption}
+                        isSearchable={false}
+                        ref={this.dropdownSoundRef}
+                    /></div>);
+            }
+
+            if (this.props.isCallsEnabled) {
+                const callsSoundRadio = [false, false];
+                if (this.props.callsSound === 'false') {
+                    callsSoundRadio[1] = true;
+                } else {
+                    callsSoundRadio[0] = true;
+                }
+
+                if (this.props.callsSound === 'true' && showSoundSelection) {
+                    const callsSounds = Array.from(NotificationSounds.callsNotificationSounds.keys());
+                    const callsOptions = callsSounds.map((sound) => {
+                        return {value: sound, label: sound};
+                    });
+
+                    callsNotificationSelection = (<div className='pt-2'>
                         <ReactSelect
                             className='react-select notification-sound-dropdown'
                             classNamePrefix='react-select'
-                            id='displaySoundNotification'
-                            options={options}
+                            id='displayCallsSoundNotification'
+                            options={callsOptions}
                             clearable={false}
-                            onChange={this.setDesktopNotificationSound}
-                            value={this.state.selectedOption}
+                            onChange={this.setCallsNotificationRing}
+                            value={this.state.callsSelectedOption}
                             isSearchable={false}
-                            ref={this.dropdownSoundRef}
+                            ref={this.callsDropdownRef}
                         /></div>);
                 }
+
+                callsSection = (
+                    <>
+                        <hr/>
+                        <fieldset>
+                            <legend className='form-legend'>
+                                <FormattedMessage
+                                    id='user.settings.notifications.desktop.calls_sound'
+                                    defaultMessage='Notification sound for incoming calls'
+                                />
+                            </legend>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        id='callsSoundOn'
+                                        type='radio'
+                                        name='callsNotificationSounds'
+                                        checked={callsSoundRadio[0]}
+                                        data-key={'callsDesktopSound'}
+                                        data-value={'true'}
+                                        onChange={this.handleOnChange}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.notifications.on'
+                                        defaultMessage='On'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            <div className='radio'>
+                                <label>
+                                    <input
+                                        id='soundOff'
+                                        type='radio'
+                                        name='callsNotificationSounds'
+                                        checked={callsSoundRadio[1]}
+                                        data-key={'callsDesktopSound'}
+                                        data-value={'false'}
+                                        onChange={this.handleOnChange}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.notifications.off'
+                                        defaultMessage='Off'
+                                    />
+                                </label>
+                                <br/>
+                            </div>
+                            {callsNotificationSelection}
+                        </fieldset>
+                    </>
+                );
             }
 
             if (NotificationSounds.hasSoundOptions()) {
@@ -328,6 +428,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 <hr/>
                 {threadsNotificationSelection}
                 {soundSection}
+                {callsSection}
             </div>,
         );
 

@@ -11,6 +11,7 @@ import semver from 'semver';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants, {NotificationLevels} from 'utils/constants';
+import * as NotificationSounds from 'utils/notification_sounds';
 import {a11yFocus, localizeMessage, moveCursorToEnd} from 'utils/utils';
 import {isDesktopApp} from 'utils/user_agent';
 import {t} from 'utils/i18n';
@@ -38,6 +39,7 @@ export type Props = {
         updateMe: (user: UserProfile) => Promise<ActionResult>;
     };
     isCollapsedThreadsEnabled: boolean;
+    isCallsEnabled: boolean;
 }
 
 type State = {
@@ -49,7 +51,9 @@ type State = {
     pushActivity: UserNotifyProps['push'];
     pushStatus: UserNotifyProps['push_status'];
     desktopSound: UserNotifyProps['desktop_sound'];
+    callsDesktopSound: UserNotifyProps['calls_desktop_sound'];
     desktopNotificationSound: UserNotifyProps['desktop_notification_sound'];
+    callsNotificationSound: UserNotifyProps['calls_notification_sound'];
     usernameKey: boolean;
     customKeys: string;
     customKeysChecked: boolean;
@@ -70,7 +74,9 @@ function getNotificationsStateFromProps(props: Props): State {
     let pushThreads: UserNotifyProps['push_threads'] = NotificationLevels.ALL;
     let emailThreads: UserNotifyProps['email_threads'] = NotificationLevels.ALL;
     let sound: UserNotifyProps['desktop_sound'] = 'true';
+    let callsSound: UserNotifyProps['calls_desktop_sound'] = 'true';
     let desktopNotificationSound: UserNotifyProps['desktop_notification_sound'] = 'Bing';
+    let callsNotificationSound: UserNotifyProps['calls_notification_sound'] = 'Dynamic';
     let comments: UserNotifyProps['comments'] = 'never';
     let enableEmail: UserNotifyProps['email'] = 'true';
     let pushActivity: UserNotifyProps['push'] = NotificationLevels.MENTION;
@@ -97,8 +103,14 @@ function getNotificationsStateFromProps(props: Props): State {
         if (user.notify_props.desktop_sound) {
             sound = user.notify_props.desktop_sound;
         }
+        if (user.notify_props.calls_desktop_sound) {
+            callsSound = user.notify_props.calls_desktop_sound;
+        }
         if (user.notify_props.desktop_notification_sound) {
             desktopNotificationSound = user.notify_props.desktop_notification_sound;
+        }
+        if (user.notify_props.calls_notification_sound) {
+            callsNotificationSound = user.notify_props.calls_notification_sound;
         }
         if (user.notify_props.comments) {
             comments = user.notify_props.comments;
@@ -162,7 +174,9 @@ function getNotificationsStateFromProps(props: Props): State {
         pushActivity,
         pushStatus,
         desktopSound: sound,
+        callsDesktopSound: callsSound,
         desktopNotificationSound,
+        callsNotificationSound,
         usernameKey,
         customKeys,
         customKeysChecked: customKeys.length > 0,
@@ -200,8 +214,10 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         const data: UserNotifyProps = {} as UserNotifyProps;
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
+        data.calls_desktop_sound = this.state.callsDesktopSound;
         if (!isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'))) {
             data.desktop_notification_sound = this.state.desktopNotificationSound;
+            data.calls_notification_sound = this.state.callsNotificationSound;
         }
         data.desktop = this.state.desktopActivity;
         data.desktop_threads = this.state.desktopThreads;
@@ -235,6 +251,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         data.channel = this.state.channelKey.toString() as UserNotifyProps['channel'];
 
         this.setState({isSaving: true});
+        NotificationSounds.stopTryNotificationRing();
 
         this.props.actions.updateMe({notify_props: data} as UserProfile).
             then(({data: result, error: err}) => {
@@ -247,7 +264,10 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
             });
     };
 
-    handleCancel = (): void => this.setState(getNotificationsStateFromProps(this.props));
+    handleCancel = (): void => {
+        this.setState(getNotificationsStateFromProps(this.props));
+        NotificationSounds.stopTryNotificationRing();
+    };
 
     handleUpdateSection = (section: string): void => {
         if (section) {
@@ -1031,6 +1051,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                         activity={this.state.desktopActivity}
                         threads={this.state.desktopThreads}
                         sound={this.state.desktopSound}
+                        callsSound={this.state.callsDesktopSound}
                         updateSection={this.handleUpdateSection}
                         setParentState={this.setStateValue}
                         submit={this.handleSubmit}
@@ -1039,8 +1060,10 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                         error={this.state.serverError}
                         active={this.props.activeSection === 'desktop'}
                         selectedSound={this.state.desktopNotificationSound || 'default'}
+                        callsSelectedSound={this.state.callsNotificationSound || 'default'}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         areAllSectionsInactive={this.props.activeSection === ''}
+                        isCallsEnabled={this.props.isCallsEnabled}
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting

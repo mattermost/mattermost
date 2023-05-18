@@ -7,6 +7,10 @@ import down from 'sounds/down.mp3';
 import hello from 'sounds/hello.mp3';
 import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
+import calls_dynamic from 'sounds/calls_dynamic.mp3';
+import calls_calm from 'sounds/calls_calm.mp3';
+import calls_urgent from 'sounds/calls_urgent.mp3';
+import calls_cheerful from 'sounds/calls_cheerful.mp3';
 
 import * as UserAgent from 'utils/user_agent';
 
@@ -17,6 +21,13 @@ export const notificationSounds = new Map([
     ['Hello', hello],
     ['Ripple', ripple],
     ['Upstairs', upstairs],
+]);
+
+export const callsNotificationSounds = new Map([
+    ['Dynamic', calls_dynamic],
+    ['Calm', calls_calm],
+    ['Urgent', calls_urgent],
+    ['Cheerful', calls_cheerful],
 ]);
 
 let canDing = true;
@@ -33,6 +44,45 @@ export function ding(name: string) {
 export function tryNotificationSound(name: string) {
     const audio = new Audio(notificationSounds.get(name) ?? notificationSounds.get('Bing'));
     audio.play();
+}
+
+let currentRing: HTMLAudioElement;
+export function ring(name: string) {
+    if (!hasSoundOptions()) {
+        return;
+    }
+
+    currentRing = loopNotificationRing(name);
+}
+
+export function stopRing() {
+    currentRing?.pause();
+}
+
+let currentTryRing: HTMLAudioElement;
+let currentTimer: NodeJS.Timeout;
+export function tryNotificationRing(name: string) {
+    if (!hasSoundOptions()) {
+        return;
+    }
+    currentTryRing?.pause();
+    clearTimeout(currentTimer);
+
+    currentTryRing = loopNotificationRing(name);
+    currentTimer = setTimeout(() => {
+        currentTryRing?.pause();
+    }, 5000);
+}
+
+export function stopTryNotificationRing() {
+    currentTryRing?.pause();
+}
+
+export function loopNotificationRing(name: string) {
+    const audio = new Audio(callsNotificationSounds.get(name) ?? callsNotificationSounds.get('Dynamic'));
+    audio.loop = true;
+    audio.play();
+    return audio;
 }
 
 export function hasSoundOptions() {
