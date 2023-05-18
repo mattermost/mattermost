@@ -47,30 +47,27 @@ function loadRemoteModules() {
          * Note that these import paths must be statically defined or else they won't be found at runtime. They
          * can't be constructed based on the name of a product at runtime.
          */
-        let products = [
-            {
+        const products = [];
+        if (config.DisableBoards !== 'true') {
+            products.push({
                 id: 'boards',
                 load: () => ({
                     index: import('boards'),
 
                     // manifest: import('boards/manifest'),
                 }),
-            },
-            {
+            });
+        }
+
+        if (config.DisablePlaybooks !== 'true') {
+            products.push({
                 id: 'playbooks',
                 load: () => ({
                     index: import('playbooks'),
 
                     // manifest: import('boards/manifest'),
                 }),
-            },
-        ];
-
-        if (config.DisableBoards === 'true') {
-            products = products.filter((p) => p.id !== 'boards');
-        }
-        if (config.DisablePlaybooks === 'true') {
-            products = products.filter((p) => p.id !== 'playbooks');
+            });
         }
 
         await Promise.all(products.map(async (product) => {

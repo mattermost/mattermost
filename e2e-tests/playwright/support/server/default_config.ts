@@ -602,6 +602,8 @@ const defaultServerConfig: AdminConfig = {
     },
     ProductSettings: {
         EnablePublicSharedBoards: false,
+        DisableBoards: false,
+        DisablePlaybooks: false,
     },
     PluginSettings: {
         Enable: true,
