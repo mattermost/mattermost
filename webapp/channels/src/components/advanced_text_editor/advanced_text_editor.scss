@@ -67,50 +67,6 @@
         }
     }
 
-    &__priority {
-        display: flex;
-        align-items: center;
-        padding: 14px 16px 0;
-        gap: 6px;
-
-        &-ack {
-            display: flex;
-            align-items: center;
-            color: var(--online-indicator);
-
-            > span {
-                margin-left: 4px;
-                font-size: 11px;
-                font-weight: 600;
-            }
-
-            &-tooltip {
-                max-width: 230px;
-            }
-        }
-
-        button.close {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: -1px;
-            color: rgb(var(--center-channel-color));
-            font-size: 17px;
-            opacity: 0.56;
-            visibility: hidden;
-
-            &:hover {
-                opacity: 0.72;
-            }
-        }
-
-        &:hover {
-            button.close {
-                visibility: visible;
-            }
-        }
-    }
-
     &__action-button {
         display: flex;
         width: 32px;

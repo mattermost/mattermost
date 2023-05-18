@@ -71,48 +71,49 @@ const (
 var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
 
 type SqlStoreStores struct {
-	team                 store.TeamStore
-	channel              store.ChannelStore
-	post                 store.PostStore
-	retentionPolicy      store.RetentionPolicyStore
-	thread               store.ThreadStore
-	user                 store.UserStore
-	bot                  store.BotStore
-	audit                store.AuditStore
-	cluster              store.ClusterDiscoveryStore
-	remoteCluster        store.RemoteClusterStore
-	compliance           store.ComplianceStore
-	session              store.SessionStore
-	oauth                store.OAuthStore
-	system               store.SystemStore
-	webhook              store.WebhookStore
-	command              store.CommandStore
-	commandWebhook       store.CommandWebhookStore
-	preference           store.PreferenceStore
-	license              store.LicenseStore
-	token                store.TokenStore
-	emoji                store.EmojiStore
-	status               store.StatusStore
-	fileInfo             store.FileInfoStore
-	uploadSession        store.UploadSessionStore
-	reaction             store.ReactionStore
-	job                  store.JobStore
-	userAccessToken      store.UserAccessTokenStore
-	plugin               store.PluginStore
-	channelMemberHistory store.ChannelMemberHistoryStore
-	role                 store.RoleStore
-	scheme               store.SchemeStore
-	TermsOfService       store.TermsOfServiceStore
-	productNotices       store.ProductNoticesStore
-	group                store.GroupStore
-	UserTermsOfService   store.UserTermsOfServiceStore
-	linkMetadata         store.LinkMetadataStore
-	sharedchannel        store.SharedChannelStore
-	draft                store.DraftStore
-	notifyAdmin          store.NotifyAdminStore
-	postPriority         store.PostPriorityStore
-	postAcknowledgement  store.PostAcknowledgementStore
-	trueUpReview         store.TrueUpReviewStore
+	team                       store.TeamStore
+	channel                    store.ChannelStore
+	post                       store.PostStore
+	retentionPolicy            store.RetentionPolicyStore
+	thread                     store.ThreadStore
+	user                       store.UserStore
+	bot                        store.BotStore
+	audit                      store.AuditStore
+	cluster                    store.ClusterDiscoveryStore
+	remoteCluster              store.RemoteClusterStore
+	compliance                 store.ComplianceStore
+	session                    store.SessionStore
+	oauth                      store.OAuthStore
+	system                     store.SystemStore
+	webhook                    store.WebhookStore
+	command                    store.CommandStore
+	commandWebhook             store.CommandWebhookStore
+	preference                 store.PreferenceStore
+	license                    store.LicenseStore
+	token                      store.TokenStore
+	emoji                      store.EmojiStore
+	status                     store.StatusStore
+	fileInfo                   store.FileInfoStore
+	uploadSession              store.UploadSessionStore
+	reaction                   store.ReactionStore
+	job                        store.JobStore
+	userAccessToken            store.UserAccessTokenStore
+	plugin                     store.PluginStore
+	channelMemberHistory       store.ChannelMemberHistoryStore
+	role                       store.RoleStore
+	scheme                     store.SchemeStore
+	TermsOfService             store.TermsOfServiceStore
+	productNotices             store.ProductNoticesStore
+	group                      store.GroupStore
+	UserTermsOfService         store.UserTermsOfServiceStore
+	linkMetadata               store.LinkMetadataStore
+	sharedchannel              store.SharedChannelStore
+	draft                      store.DraftStore
+	notifyAdmin                store.NotifyAdminStore
+	postPriority               store.PostPriorityStore
+	postAcknowledgement        store.PostAcknowledgementStore
+	postPersistentNotification store.PostPersistentNotificationStore
+	trueUpReview               store.TrueUpReviewStore
 }
 
 type SqlStore struct {
@@ -232,6 +233,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
+	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
@@ -1074,6 +1076,10 @@ func (ss *SqlStore) Draft() store.DraftStore {
 
 func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
 	return ss.stores.postAcknowledgement
+}
+
+func (ss *SqlStore) PostPersistentNotification() store.PostPersistentNotificationStore {
+	return ss.stores.postPersistentNotification
 }
 
 func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
