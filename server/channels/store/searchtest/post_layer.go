@@ -193,6 +193,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should be able to search by hashtags with dashes and numbers",
+		Fn:   testSearchHashtagWithDashAndNumbers,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should not return system messages",
 		Fn:   testSearchShouldExcludeSystemMessages,
 		Tags: []string{EngineAll},
@@ -1414,6 +1419,29 @@ func testSearchHashtagWithUnderscores(t *testing.T, th *SearchTestHelper) {
 
 	require.Len(t, results.Posts, 1)
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
+}
+
+func testSearchHashtagWithDashAndNumbers(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching hashtag #hashtag-1-finals23", "#hashtag-1-finals23", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching hashtag #hashtag-1-finals23", "#hashtag-1-finals23", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "searching hashtag #hashtag-finals20", "#hashtag-finals20", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	params := &model.SearchParams{
+		Terms:     "#hashtag-1-finals23",
+		IsHashtag: true,
+	}
+	results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.Posts, 2)
+	th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
 }
 
 func testSearchShouldExcludeSystemMessages(t *testing.T, th *SearchTestHelper) {
