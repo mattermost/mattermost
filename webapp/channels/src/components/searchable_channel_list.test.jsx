@@ -4,7 +4,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import SearchableChannelList from 'components/searchable_channel_list.jsx';
+import SearchableChannelList from 'components/searchable_channel_list';
 
 describe('components/SearchableChannelList', () => {
     const baseProps = {
@@ -22,14 +22,14 @@ describe('components/SearchableChannelList', () => {
 
     test('should match init snapshot', () => {
         const wrapper = shallow(
-            <SearchableChannelList {...baseProps}/>,
+            <SearchableChannelList {...baseProps} />,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should set page to 0 when starting search', () => {
         const wrapper = shallow(
-            <SearchableChannelList {...baseProps}/>,
+            <SearchableChannelList {...baseProps} />,
         );
 
         wrapper.setState({page: 10});

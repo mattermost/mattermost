@@ -71,7 +71,9 @@
 
         .primary-message {
             margin: 0;
+            color: var(--center-channel-color);
             font-size: inherit;
+            line-height: 28px;
         }
     }
 
@@ -174,6 +176,7 @@
 }
 
 body.app__body {
+
     .channel-invite,
     .user-groups-modal-create {
         .multi-select__wrapper {
@@ -184,6 +187,7 @@ body.app__body {
 }
 
 body:not(.app__body) {
+
     .channel-invite,
     .user-groups-modal-create {
         .multi-select__wrapper {

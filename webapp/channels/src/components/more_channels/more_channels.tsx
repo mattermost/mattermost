@@ -10,7 +10,7 @@ import {Channel, ChannelMembership} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
-import SearchableChannelList from 'components/searchable_channel_list.jsx';
+import SearchableChannelList from 'components/searchable_channel_list';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
 import {ModalData} from 'types/actions';
@@ -23,6 +23,8 @@ import LegacyGenericModal from 'components/generic_modal';
 import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
 import LoadingScreen from 'components/loading_screen';
+
+import './more_channels.scss';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
@@ -94,7 +96,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         }
-        this.loadComplete()
+        this.loadComplete();
     }
 
     loadComplete = () => {
@@ -280,11 +282,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primaryButton', <i className='icon-plus' />)}
+                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
             </>
         );
 
-        const body = this.state.loading ? <LoadingScreen /> : (
+        const body = this.state.loading ? <LoadingScreen/> : (
             <React.Fragment>
                 <SearchableChannelList
                     channels={this.activeChannels}
