@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState, memo} from 'react';
+import React, {useCallback, useState, memo} from 'react';
 import {useSelector} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
+import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 
 import BetaTag from '../widgets/tag/beta_tag';
 
@@ -21,11 +21,6 @@ type Props = {
     settings?: PostPriorityMetadata;
     onClose: () => void;
     onApply: (props: PostPriorityMetadata) => void;
-    placement: string;
-    rightOffset?: number;
-    topOffset?: number;
-    leftOffset?: number;
-    style?: React.CSSProperties;
 }
 
 const UrgentIcon = styled(AlertOutlineIcon)`
@@ -41,6 +36,10 @@ const StandardIcon = styled(MessageTextOutlineIcon)`
 `;
 
 const AcknowledgementIcon = styled(CheckCircleOutlineIcon)`
+    fill: rgba(var(--center-channel-color-rgb), 0.56);
+`;
+
+const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
     fill: rgba(var(--center-channel-color-rgb), 0.56);
 `;
 
@@ -73,53 +72,50 @@ const Footer = styled.div`
 `;
 
 const Picker = styled.div`
-    position: absolute;
-    z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
-    margin-right: 3px;
+    *zoom: 1;
     background: var(--center-channel-bg);
     border-radius: 4px;
+    border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    user-select: none;
+    display: flex;
+    flex-direction: column;
+    left: 0;
+    margin-right: 3px;
+    min-width: 0;
     overflow: hidden;
-    *zoom: 1;
+    user-select: none;
+    width: max-content;
 `;
 
 function PostPriorityPicker({
-    leftOffset = 0,
     onApply,
     onClose,
-    placement,
-    rightOffset = 0,
     settings,
-    style,
-    topOffset = 0,
 }: Props) {
     const {formatMessage} = useIntl();
     const [priority, setPriority] = useState<PostPriority|''>(settings?.priority || '');
     const [requestedAck, setRequestedAck] = useState<boolean>(settings?.requested_ack || false);
-
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        ref.current?.focus();
-    }, []);
+    const [persistentNotifications, setPersistentNotifications] = useState<boolean>(settings?.persistent_notifications || false);
 
     const postAcknowledgementsEnabled = useSelector(isPostAcknowledgementsEnabled);
+    const persistentNotificationsEnabled = useSelector(isPersistentNotificationsEnabled) && postAcknowledgementsEnabled;
+    const interval = useSelector(getPersistentNotificationIntervalMinutes);
 
-    const makeOnSelectPriority = useCallback((type?: PostPriority) => () => {
+    const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+
         setPriority(type || '');
 
         if (!postAcknowledgementsEnabled) {
             onApply({
                 priority: type || '',
                 requested_ack: false,
+                persistent_notifications: false,
             });
             onClose();
-        } else if (type === PostPriority.URGENT) {
-            setRequestedAck(true);
+        } else if (type !== PostPriority.URGENT) {
+            setPersistentNotifications(false);
         }
     }, [onApply, onClose, postAcknowledgementsEnabled]);
 
@@ -127,43 +123,23 @@ function PostPriorityPicker({
         setRequestedAck(!requestedAck);
     }, [requestedAck]);
 
+    const handlePersistentNotifications = useCallback(() => {
+        setPersistentNotifications(!persistentNotifications);
+    }, [persistentNotifications]);
+
     const handleApply = () => {
         onApply({
             priority,
             requested_ack: requestedAck,
+            persistent_notifications: persistentNotifications,
         });
         onClose();
     };
 
-    let pickerStyle: React.CSSProperties = {};
-    if (style && !(style.left === 0 && style.top === 0)) {
-        if (placement === 'top' || placement === 'bottom') {
-            // Only take the top/bottom position passed by React Bootstrap since we want to be left-aligned
-            pickerStyle = {
-                top: style.top,
-                bottom: style.bottom,
-                left: leftOffset,
-            };
-        } else {
-            pickerStyle = {...style};
-        }
-
-        pickerStyle.top = pickerStyle.top ? Number(pickerStyle.top) + topOffset : topOffset;
-
-        if (pickerStyle.right) {
-            pickerStyle.right = Number(pickerStyle.right) + rightOffset;
-        }
-    }
-
     const feedbackLink = postAcknowledgementsEnabled ? 'https://forms.gle/noA8Azg7RdaBZtMB6' : 'https://forms.gle/mMcRFQzyKAo9Sv49A';
 
     return (
-        <Picker
-            ref={ref}
-            tabIndex={-1}
-            style={pickerStyle}
-            className='PostPriorityPicker'
-        >
+        <Picker className='PostPriorityPicker'>
             <Header className='modal-title'>
                 {formatMessage({
                     id: 'post_priority.picker.header',
@@ -215,22 +191,44 @@ function PostPriorityPicker({
                             })}
                         />
                     </MenuGroup>
-                    {postAcknowledgementsEnabled && (
+                    {(postAcknowledgementsEnabled || persistentNotificationsEnabled) && (
                         <MenuGroup>
-                            <ToggleItem
-                                disabled={false}
-                                onClick={handleAck}
-                                toggled={requestedAck}
-                                icon={<AcknowledgementIcon size={18}/>}
-                                text={formatMessage({
-                                    id: 'post_priority.requested_ack.text',
-                                    defaultMessage: 'Request acknowledgement',
-                                })}
-                                description={formatMessage({
-                                    id: 'post_priority.requested_ack.description',
-                                    defaultMessage: 'An acknowledgement button will appear with your message',
-                                })}
-                            />
+                            {postAcknowledgementsEnabled && (
+                                <ToggleItem
+                                    disabled={false}
+                                    onClick={handleAck}
+                                    toggled={requestedAck}
+                                    icon={<AcknowledgementIcon size={18}/>}
+                                    text={formatMessage({
+                                        id: 'post_priority.requested_ack.text',
+                                        defaultMessage: 'Request acknowledgement',
+                                    })}
+                                    description={formatMessage({
+                                        id: 'post_priority.requested_ack.description',
+                                        defaultMessage: 'An acknowledgement button will appear with your message',
+                                    })}
+                                />
+                            )}
+                            {priority === PostPriority.URGENT && persistentNotificationsEnabled && (
+                                <ToggleItem
+                                    disabled={priority !== PostPriority.URGENT}
+                                    onClick={handlePersistentNotifications}
+                                    toggled={persistentNotifications}
+                                    icon={<PersistentNotificationsIcon size={18}/>}
+                                    text={formatMessage({
+                                        id: 'post_priority.persistent_notifications.text',
+                                        defaultMessage: 'Send persistent notifications',
+                                    })}
+                                    description={formatMessage(
+                                        {
+                                            id: 'post_priority.persistent_notifications.description',
+                                            defaultMessage: 'Recipients will be notified every {interval, plural, one {1 minute} other {{interval} minutes}} until they acknowledge or reply',
+                                        }, {
+                                            interval,
+                                        },
+                                    )}
+                                />
+                            )}
                         </MenuGroup>
                     )}
                 </Menu>
