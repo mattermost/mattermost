@@ -422,6 +422,7 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_date", model.BuildDate),
 		mlog.String("build_hash", model.BuildHash),
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+		mlog.String("external_service_environment", model.GetExternalServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
 		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
