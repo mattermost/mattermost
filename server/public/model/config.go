@@ -2820,7 +2820,7 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		switch GetServiceEnvironment() {
-		case ServiceEnvironmentDefault, ServiceEnvironmentCloud:
+		case ServiceEnvironmentEnterprise, ServiceEnvironmentCloud:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
@@ -2828,7 +2828,7 @@ func (s *CloudSettings) SetDefaults() {
 	}
 	if s.CWSAPIURL == nil {
 		switch GetServiceEnvironment() {
-		case ServiceEnvironmentDefault, ServiceEnvironmentCloud:
+		case ServiceEnvironmentEnterprise, ServiceEnvironmentCloud:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)

@@ -295,7 +295,7 @@ func NewServer(options ...Option) (*Server, error) {
 		switch model.GetServiceEnvironment() {
 		case model.ServiceEnvironmentDev:
 			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
-		case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud, model.ServiceEnvironmentTest:
+		case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud, model.ServiceEnvironmentTest:
 			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
@@ -908,7 +908,7 @@ func (s *Server) Start() error {
 	var handler http.Handler = s.RootRouter
 
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud, model.ServiceEnvironmentTest:
+	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud, model.ServiceEnvironmentTest:
 		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
 			sentryHandler := sentryhttp.New(sentryhttp.Options{
 				Repanic: true,

@@ -76,7 +76,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 
 	var publicKey []byte
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud:
+	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
 		publicKey = productionPublicKey
 	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
 		publicKey = testPublicKey

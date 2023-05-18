@@ -62,7 +62,7 @@ func (ts *Service) getRudderConfig() RudderConfig {
 
 	rudderKey := ""
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud:
+	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
 		rudderKey = rudderKeyProd
 	case model.ServiceEnvironmentTest:
 		rudderKey = rudderKeyDev

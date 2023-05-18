@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package model
 
 import (
@@ -6,18 +9,19 @@ import (
 )
 
 const (
-	// ServiceEnvironmentDefault represents the self-managed environment in which no
-	// explicit configuration is present.
-	ServiceEnvironmentDefault = ""
+	// ServiceEnvironmentEnterprise represents the self-managed environment. This can be
+	// configured explicitly with MM_SERVICEENVIRONMENT explicitly set to "enterprise", but is
+	// also the default for any production builds.
+	ServiceEnvironmentEnterprise = "enterprise"
 	// ServiceEnvironmentCloud represents the Mattermost Cloud environment in which
 	// MM_SERVICEENVIRONMENT is explicitly set to "cloud".
 	ServiceEnvironmentCloud = "cloud"
 	// ServiceEnvironmentCloud represents testing environments within Mattermost in
 	// which MM_SERVICEENVIRONMENT is explicitly set to "test".
 	ServiceEnvironmentTest = "test"
-	// ServiceEnvironmentDev represents development environments in which the build
-	// number is empty or set to "dev". This prevents unintentionally using production keys
-	// while preserving the default behaviour for the self-managed environment.
+	// ServiceEnvironmentDev represents development environments. This can be configured
+	// explicitly with MM_SERVICEENVIRONMENT set to "dev", but is also the default for any
+	// non-production builds.
 	ServiceEnvironmentDev = "dev"
 )
 
@@ -26,24 +30,19 @@ const (
 // active, and which Stripe keys are in use.
 //
 // To configure an environment other than default, set MM_SERVICEENVIRONMENT before
-// starting the application. Only production builds -- with a non-empty, non-"dev" build number --
-// honour this environment variable, as dev builds will force the "dev" environment.
+// starting the application. Production builds default to ServiceEnvironmentEnterprise, and
+// non-production builds default to ServiceEnvironmentDev.
 //
 // Note that this configuration is explicitly not part of the model.Config data structure, as it
 // should never be persisted to the config store nor accidentally configured in any other way than
 // the MM_SERVICEENVIRONMENT variable.
 func GetServiceEnvironment() string {
-	// Force the test environment unless a production build number is provided.
-	if BuildNumber == "" || BuildNumber == "dev" {
-		return ServiceEnvironmentDev
-	}
-
 	externalServiceEnvironment := strings.TrimSpace(strings.ToLower(os.Getenv("MM_SERVICEENVIRONMENT")))
 
 	switch externalServiceEnvironment {
-	case ServiceEnvironmentDefault, ServiceEnvironmentCloud, ServiceEnvironmentTest:
+	case ServiceEnvironmentEnterprise, ServiceEnvironmentCloud, ServiceEnvironmentTest, ServiceEnvironmentDev:
 		return externalServiceEnvironment
 	}
 
-	return ServiceEnvironmentDefault
+	return getDefaultServiceEnvironment()
 }

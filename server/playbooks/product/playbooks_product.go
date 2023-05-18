@@ -335,7 +335,7 @@ func (pp *playbooksProduct) Start() error {
 
 	rudderWriteKey := ""
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentDefault, model.ServiceEnvironmentCloud:
+	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
 		rudderWriteKey = rudderWriteKeyProduction
 	case model.ServiceEnvironmentTest:
 		rudderWriteKey = rudderWriteKeyDev
