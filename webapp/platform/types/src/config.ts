@@ -39,6 +39,8 @@ export type ClientConfig = {
     DiagnosticId: string;
     DiagnosticsEnabled: string;
     DisableRefetchingOnBrowserFocus: string;
+    DisableBoards: string;
+    DisablePlaybooks: string;
     EmailLoginButtonBorderColor: string;
     EmailLoginButtonColor: string;
     EmailLoginButtonTextColor: string;
@@ -807,6 +809,8 @@ export type JobSettings = {
 
 export type ProductSettings = {
     EnablePublicSharedBoards: boolean;
+    DisableBoards: boolean;
+    DisablePlaybooks: boolean;
 };
 
 export type PluginSettings = {

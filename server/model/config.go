@@ -2798,6 +2798,8 @@ func (s *CloudSettings) SetDefaults() {
 
 type ProductSettings struct {
 	EnablePublicSharedBoards *bool
+	DisableBoards            *bool
+	DisablePlaybooks         *bool
 }
 
 func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
@@ -2807,6 +2809,12 @@ func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
 		} else {
 			s.EnablePublicSharedBoards = NewBool(false)
 		}
+	}
+	if s.DisableBoards == nil {
+		s.DisableBoards = NewBool(false)
+	}
+	if s.DisablePlaybooks == nil {
+		s.DisablePlaybooks = NewBool(false)
 	}
 }
 

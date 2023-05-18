@@ -137,6 +137,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["PostPriority"] = strconv.FormatBool(*c.ServiceSettings.PostPriority)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 
+	props["DisableBoards"] = strconv.FormatBool(*c.ProductSettings.DisableBoards)
+	props["DisablePlaybooks"] = strconv.FormatBool(*c.ProductSettings.DisablePlaybooks)
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

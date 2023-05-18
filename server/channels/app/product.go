@@ -82,10 +82,18 @@ func (s *Server) shouldStart(product string) bool {
 			s.Log().Warn("Skipping Boards start: disabled via env var")
 			return false
 		}
+		if *s.Config().ProductSettings.DisableBoards {
+			s.Log().Warn("Skipping Boards start: disabled via configuration")
+			return false
+		}
 	}
 	if product == "playbooks" {
 		if os.Getenv("MM_DISABLE_PLAYBOOKS") == "true" {
 			s.Log().Warn("Skipping Playbooks start: disabled via env var")
+			return false
+		}
+		if *s.Config().ProductSettings.DisablePlaybooks {
+			s.Log().Warn("Skipping Playbooks start: disabled via configuration")
 			return false
 		}
 	}

@@ -571,10 +571,10 @@ func (s *Server) doElasticsearchFixChannelIndex() {
 		return
 	}
 
-	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
-		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
-		return
-	}
+	// if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+	// 	mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+	// 	return
+	// }
 }
 
 func (a *App) DoAppMigrations() {

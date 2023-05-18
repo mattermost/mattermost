@@ -41,4 +41,21 @@ describe('initializeProducts', () => {
 
         expect(Client4.getBoardsRoute().startsWith('/plugins/focalboard')).toBe(true);
     });
+
+    test('should set Client4 to use the correct Boards URL for plugin mode', async () => {
+        const store = testConfigureStore({
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagBoardsProduct: 'true',
+                        DisableBoards: 'true',
+                    },
+                },
+            },
+        });
+
+        await store.dispatch(initializeProducts());
+
+        expect(Client4.getBoardsRoute().startsWith('/plugins/focalboard')).toBe(true);
+    });
 });
