@@ -20,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
 
     const sendPushNotifications = config.SendPushNotifications === 'true';
     const enableAutoResponder = config.ExperimentalEnableAutomaticReplies === 'true';
-    const isCallsEnabled = semver.gte(state.plugins.plugins[suitePluginIds.calls]?.version || '', '0.17.0');
+    const isCallsEnabled = state.plugins.plugins[suitePluginIds.calls] && semver.gte(state.plugins.plugins[suitePluginIds.calls].version || '', '0.17.0');
 
     return {
         sendPushNotifications,
