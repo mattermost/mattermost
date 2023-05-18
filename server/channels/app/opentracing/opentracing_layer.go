@@ -18,25 +18,25 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/timezones"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
 	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
@@ -11382,7 +11382,7 @@ func (a *OpenTracingAppLayer) GetWorkTemplateCategories(t i18n.TranslateFunc) ([
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map[string]string, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
+func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map[string]string, includeOnboardingTemplates bool, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWorkTemplates")
 
@@ -11394,7 +11394,7 @@ func (a *OpenTracingAppLayer) GetWorkTemplates(category string, featureFlags map
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWorkTemplates(category, featureFlags, t)
+	resultVar0, resultVar1 := a.app.GetWorkTemplates(category, featureFlags, includeOnboardingTemplates, t)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11902,6 +11902,28 @@ func (a *OpenTracingAppLayer) InvalidateCacheForUser(userID string) {
 
 	defer span.Finish()
 	a.app.InvalidateCacheForUser(userID)
+}
+
+func (a *OpenTracingAppLayer) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidatePasswordRecoveryTokensForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.InvalidatePasswordRecoveryTokensForUser(userID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
@@ -17374,6 +17396,28 @@ func (a *OpenTracingAppLayer) UpdateDNDStatusOfUsers() {
 
 	defer span.Finish()
 	a.app.UpdateDNDStatusOfUsers()
+}
+
+func (a *OpenTracingAppLayer) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateDefaultProfileImage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateDefaultProfileImage(c, user)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post {

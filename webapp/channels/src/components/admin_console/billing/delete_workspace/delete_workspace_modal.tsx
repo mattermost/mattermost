@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {useDispatch, useSelector} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
+import {LegacyGenericModal} from '@mattermost/components';
 
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -180,7 +180,7 @@ export default function DeleteWorkspaceModal(props: Props) {
     }
 
     return (
-        <GenericModal
+        <LegacyGenericModal
             className='DeleteWorkspaceModal'
             onExited={handleClickCancel}
         >
@@ -249,6 +249,6 @@ export default function DeleteWorkspaceModal(props: Props) {
                     />
                 </button>
             </div>
-        </GenericModal>
+        </LegacyGenericModal>
     );
 }

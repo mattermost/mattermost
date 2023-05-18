@@ -4,15 +4,17 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
 <div
   className="wrapper--fixed"
 >
-  <FormattedAdminHeader
-    defaultMessage="{siteName} Users"
-    id="admin.system_users.title"
-    values={
-      Object {
-        "siteName": "Site name",
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="{siteName} Users"
+      id="admin.system_users.title"
+      values={
+        Object {
+          "siteName": "Site name",
+        }
       }
-    }
-  />
+    />
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

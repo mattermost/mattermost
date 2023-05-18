@@ -69,6 +69,12 @@ describe('Incoming webhook', () => {
 
         cy.getLastPost().within(() => {
             cy.findByRole('link', {name: 'Testing Integration Attachments', hidden: true});
+        });
+
+        // # Scroll to the bottom of the posts
+        cy.get('.post-list__dynamic').scrollTo('bottom');
+
+        cy.getLastPost().within(() => {
             cy.get('.attachment__image').should('be.visible');
             cy.get(':nth-child(2) > thead > tr > .attachment-field__caption').should('have.text', 'Area');
             cy.get(':nth-child(3) > thead > tr > :nth-child(1)').should('have.text', 'Iteration');

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
-import {fireEvent} from "@testing-library/dom"
+import {fireEvent} from '@testing-library/dom'
 
 export const keyDownEscapeLegacy = (element: Element) => {
     fireEvent.keyDown(element, {
