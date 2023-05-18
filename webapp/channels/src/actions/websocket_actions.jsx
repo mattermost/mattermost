@@ -233,7 +233,7 @@ export function reconnect() {
             // we can request for getPosts again when socket is connected
             dispatch(getPosts(currentChannelId));
         }
-        StatusActions.loadStatusesForChannelAndSidebar();
+        dispatch(StatusActions.loadStatusesForChannelAndSidebar());
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
         dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));
@@ -1474,7 +1474,8 @@ function handleSidebarCategoryUpdated(msg) {
         }
 
         // Fetch all categories in case any other categories had channels moved out of them.
-        doDispatch(fetchMyCategories(msg.broadcast.team_id));
+        // True indicates it is called from WebSocket
+        doDispatch(fetchMyCategories(msg.broadcast.team_id, true));
     };
 }
 

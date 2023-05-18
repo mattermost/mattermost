@@ -5,6 +5,15 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {RouteComponentProps} from 'react-router-dom';
 
+import {Scheme, SchemePatch} from '@mattermost/types/schemes';
+import {Role} from '@mattermost/types/roles';
+import {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import {Team} from '@mattermost/types/teams';
+import {ServerError} from '@mattermost/types/errors';
+
+import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import GeneralConstants from 'mattermost-redux/constants/general';
+
 import {PermissionsScope, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 import {t} from 'utils/i18n';
@@ -17,25 +26,13 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
+import LocalizedInput from 'components/localized_input/localized_input';
+import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
-
-import LocalizedInput from 'components/localized_input/localized_input';
-
-import {Scheme, SchemePatch} from '@mattermost/types/schemes';
-import {Role} from '@mattermost/types/roles';
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {Team} from '@mattermost/types/teams';
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
-
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
-
-import GeneralConstants from 'mattermost-redux/constants/general';
-
-import ExternalLink from 'components/external_link';
-
 import TeamInList from './team_in_list';
 
 type RolesMap = {
@@ -591,7 +588,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         alreadySelected={teams.map((team) => team.id)}
                     />
                 }
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/permissions'
@@ -602,7 +599,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             defaultMessage='Team Scheme'
                         />
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
