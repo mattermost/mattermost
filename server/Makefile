@@ -34,9 +34,6 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
-# Go tags
-GOTAGS ?= $(GOTAGS:)
-
 # Docker
 export COMPOSE_PROJECT_NAME=mattermost-server
 
@@ -539,7 +536,7 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
-	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -563,7 +560,7 @@ run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
 
 run-client: client ## Runs the webapp.
 	@echo Running mattermost client for development
@@ -623,7 +620,7 @@ restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
 
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
