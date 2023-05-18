@@ -41,6 +41,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         "mfa_active": false,
         "nickname": "",
         "notify_props": Object {
+          "calls_desktop_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",
@@ -147,6 +148,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         "mfa_active": false,
         "nickname": "",
         "notify_props": Object {
+          "calls_desktop_sound": "true",
           "channel": "false",
           "comments": "never",
           "desktop": "default",

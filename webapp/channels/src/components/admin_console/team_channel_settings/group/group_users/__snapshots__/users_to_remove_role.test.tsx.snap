@@ -53,6 +53,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole 
       "mfa_active": false,
       "nickname": "",
       "notify_props": Object {
+        "calls_desktop_sound": "true",
         "channel": "false",
         "comments": "never",
         "desktop": "default",
@@ -145,6 +146,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole 
       "mfa_active": false,
       "nickname": "",
       "notify_props": Object {
+        "calls_desktop_sound": "true",
         "channel": "false",
         "comments": "never",
         "desktop": "default",
@@ -237,6 +239,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole 
       "mfa_active": false,
       "nickname": "",
       "notify_props": Object {
+        "calls_desktop_sound": "true",
         "channel": "false",
         "comments": "never",
         "desktop": "default",
@@ -329,6 +332,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole 
       "mfa_active": false,
       "nickname": "",
       "notify_props": Object {
+        "calls_desktop_sound": "true",
         "channel": "false",
         "comments": "never",
         "desktop": "default",
@@ -412,6 +416,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole 
       "mfa_active": false,
       "nickname": "",
       "notify_props": Object {
+        "calls_desktop_sound": "true",
         "channel": "false",
         "comments": "never",
         "desktop": "default",
@@ -495,6 +500,7 @@ exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole 
       "mfa_active": false,
       "nickname": "",
       "notify_props": Object {
+        "calls_desktop_sound": "true",
         "channel": "false",
         "comments": "never",
         "desktop": "default",
