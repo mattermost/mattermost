@@ -14,7 +14,7 @@ A description of what this pull request does.
 <!--
 If this pull request addresses a Help Wanted ticket, please link the relevant GitHub issue, e.g.
 
-  Fixes https://github.com/mattermost/mattermost-server/issues/XXXXX
+Fixes https://github.com/mattermost/mattermost-server/issues/XXXXX
 
 Otherwise, link the JIRA ticket.
 -->

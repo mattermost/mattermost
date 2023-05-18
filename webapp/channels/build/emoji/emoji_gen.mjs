@@ -4,18 +4,21 @@
 /*
 * This function will generate the emoji files for both the webapp and server to use emojis from emoji-datasource
 * It will generate the following files:
-* 'mattermost-webapp/utils/emoji.ts'
-* 'mattermost-webapp/sass/components/_emojisprite.scss'
-* 'mattermost-webapp/utils/emoji.json'
-* 'mattermost-server/model/emoji_data.go', (if server-dir argument is passed with path to server, otherwise it will be generated in './emoji_data.go'")
+* '<rootDir>/webapp/channels/src/utils/emoji.ts'
+* '<rootDir>/webapp/channels/src/sass/components/_emojisprite.scss'
+* '<rootDir>/webapp/channels/src/utils/emoji.json'
+* '<rootDir>/server/public/model/emoji_data.go',
 *
 * For help on how to use this script, run:
 * npm run make-emojis -- --help
 */
 
+/* eslint-disable no-console */
+
 import path from 'path';
 import * as Fs from 'fs/promises';
 import {readFileSync} from 'fs';
+import {fileURLToPath} from 'url';
 
 import yargs from 'yargs';
 import jsonData from 'emoji-datasource/emoji.json';
@@ -28,15 +31,10 @@ const EMOJI_SIZE_PADDED = EMOJI_SIZE + 2; // 1px per side
 const EMOJI_DEFAULT_SKIN = 'default';
 const endResults = [];
 
-const argv = yargs(process.argv.slice(2)).
+const argv = yargs(process.argv.slice(1)).
     scriptName('make-emojis').
     usage('Usage : npm run $0 -- [args]').
     example('npm run $0 -- --excluded-emoji-file ./excludedEmojis.txt', 'removes mentioned emojis from the app').
-    example('npm run $0 -- --server-dir ../mattermost-server', 'path to mattermost-server for copying emoji_data.go file').
-    option('server-dir', {
-        description: 'Path to mattermost-server',
-        type: 'string',
-    }).
     option('excluded-emoji-file', {
         description: 'Path to a file containing emoji short names to exclude',
         type: 'string',
@@ -46,32 +44,40 @@ const argv = yargs(process.argv.slice(2)).
     argv;
 
 const argsExcludedEmojiFile = argv['excluded-emoji-file'];
-const argsServerDirectory = argv['server-dir'];
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(currentDir, '..', '..', '..', '..');
+const serverRootDir = path.resolve(rootDir, 'server');
+const webappRootDir = path.resolve(rootDir, 'webapp');
 
 const successLogColor = '\x1b[32m%s\x1b[0m';
 const errorLogColor = '\x1b[31m%s\x1b[0m';
 const warnLogColor = '\x1b[33m%s\x1b[0m';
 
-// copy image files
-const source = `node_modules/emoji-datasource-apple/img/apple/${EMOJI_SIZE}/`;
-const readDirPromise = Fs.readdir(source);
+// Copy emoji images from 'emoji-datasource-apple'
+const emojiDataSourceDir = path.resolve(webappRootDir, `node_modules/emoji-datasource-apple/img/apple/${EMOJI_SIZE}/`);
+const emojiImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images', 'emoji');
+const readDirPromise = Fs.readdir(emojiDataSourceDir);
 endResults.push(readDirPromise);
 readDirPromise.then((images) => {
-    console.log(`Copying ${images.length} emoji images, this might take a while`);
+    console.log(`Copying ${images.length} emoji images, this might take a while\n`);
 
     for (const imageFile of images) {
         endResults.push(
-            Fs.copyFile(path.join(source, imageFile), path.join('images/emoji', imageFile)).
+            Fs.copyFile(path.join(emojiDataSourceDir, imageFile), path.join(emojiImagesDir, imageFile)).
                 catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy ${imageFile}: ${err}`)));
     }
 });
-Fs.copyFile('images/icon64x64.png', 'images/emoji/mattermost.png');
 
-// copy sheet image
-const sheetSource = `node_modules/emoji-datasource-apple/img/apple/sheets/${EMOJI_SIZE}.png`;
+const webappImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images');
+Fs.copyFile(path.resolve(webappImagesDir, 'icon64x64.png'), path.resolve(webappImagesDir, 'emoji/mattermost.png'));
+
+const sheetSource = path.resolve(webappRootDir, `node_modules/emoji-datasource-apple/img/apple/sheets/${EMOJI_SIZE}.png`);
+const sheetAbsoluteFile = path.resolve(webappRootDir, 'channels', 'src', 'images/emoji-sheets/apple-sheet.png');
 const sheetFile = 'images/emoji-sheets/apple-sheet.png';
-console.log('Copying sprite sheet');
-Fs.copyFile(sheetSource, sheetFile).catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy sheet file: ${err}`));
+
+// Copy sheet image
+Fs.copyFile(sheetSource, sheetAbsoluteFile).catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy sheet file: ${err}`));
 
 // we'll load it as a two dimensional array so we can generate a Map out of it
 const emojiIndicesByAlias = [];
@@ -112,7 +118,7 @@ function writeFile(fileName, filePath, data) {
     const promise = Fs.writeFile(filePath, data, writeOptions);
 
     promise.then(() => {
-        console.log(successLogColor, `${fileName} generated successfully.`);
+        console.log(successLogColor, `${fileName} generated successfully in ${filePath}\n`);
     });
     return promise;
 }
@@ -300,8 +306,9 @@ fullEmoji.forEach((emoji, index) => {
 // Removed properties that are not needed for the webapp
 const trimmedDownEmojis = fullEmoji.map((emoji) => trimPropertiesFromEmoji(emoji));
 
-// write emoji.json
-endResults.push(writeFile('emoji.json', 'utils/emoji.json', JSON.stringify(trimmedDownEmojis, null, 4)));
+// Create the emoji.json file
+const webappUtilsEmojiDir = path.resolve(webappRootDir, 'channels', 'src', 'utils', 'emoji.json');
+endResults.push(writeFile('emoji.json', webappUtilsEmojiDir, JSON.stringify(trimmedDownEmojis, null, 4)));
 
 const categoryList = Object.keys(jsonCategories).filter((item) => item !== 'Component').map(convertCategory);
 const categoryNames = ['recent', ...categoryList, 'custom'];
@@ -319,8 +326,13 @@ for (const skin of emojiIndicesByCategoryAndSkin.keys()) {
     skinnedCats.push(`['${skin}', genSkinnedCategories('${skin}')]`);
 }
 
-// generate emoji.ts out of the emoji.json parsing we did
-const emojiJSX = `// This file is automatically generated via \`make emojis\`. Do not modify it manually.
+// Generate contents of emoji.ts out of the emoji.json parsing we did earlier
+const emojiJSX = `// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// This file is automatically generated via \`/webapp/channels/build/emoji_gen.mjs\`. Do not modify it manually.
+
+/* eslint-disable */
 
 import {t} from 'utils/i18n';
 
@@ -371,14 +383,14 @@ const getSkinnedCategories = memoize(genSkinnedCategories);
 export const EmojiIndicesByCategory = new Map([${skinnedCats.join(', ')}]);
 `;
 
-// write emoji.ts
-endResults.push(writeFile('emoji.ts', 'utils/emoji.ts', emojiJSX));
-
-// golang emoji data
+// Create the emoji.ts file
+const webappUtilsEmojiTSDir = path.resolve(webappRootDir, 'channels', 'src', 'utils', 'emoji.ts');
+endResults.push(writeFile('emoji.ts', webappUtilsEmojiTSDir, emojiJSX));
 
 const emojiGo = `// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-// This file is automatically generated via \`make emojis\`. Do not modify it manually.
+
+// This file is automatically generated via \`/webapp/channels/build/emoji_gen.mjs\`. Do not modify it manually.
 
 package model
 
@@ -388,26 +400,12 @@ ${emojiImagesByAlias.join(`,
 }
 `;
 
-const goPromise = writeFile('emoji_data.go', 'emoji_data.go', emojiGo);
+// Create the emoji_data.go file
+const serverEmojiDataDir = path.resolve(serverRootDir, 'public', 'model', 'emoji_data.go');
+const goPromise = writeFile('emoji_data.go', serverEmojiDataDir, emojiGo);
 endResults.push(goPromise);
 
-// If server-dir is defined we can update the file emoji_data.go in the server directory
-if (argsServerDirectory) {
-    const destination = path.join(argsServerDirectory, 'model/emoji_data.go');
-    goPromise.then(() => {
-        // this is an obvious race condition, as goPromise might be the last one, and then executed out of the `all` call below,
-        // but it shouldn't be any problem other than a log out of place and a need to do an explicit catch.
-        const mvPromise = Fs.rename('emoji_data.go', destination);
-        endResults.push(mvPromise);
-        mvPromise.catch((err) => {
-            console.log(errorLogColor, `[ERROR] There was an error trying to move the emoji_data.go file: ${err}`);
-        });
-    });
-} else {
-    console.log(warnLogColor, '\n[WARNING] server-dir path not defined, `emoji_data.go` will be located in the root of this project, remember to move it to the server\n');
-}
-
-// sprite css file
+// Create individual emoji styles
 const cssCats = categoryNames.filter((cat) => cat !== 'custom').map((cat) => `.emoji-category-${cat} { background-image: url('${sheetFile}'); }`);
 const cssEmojis = [];
 for (const key of emojiFilePositions.keys()) {
@@ -456,8 +454,9 @@ ${cssCats.join('\n')}
 ${cssEmojis.join('\n')}
 `;
 
-// write emoji.ts
-endResults.push(writeFile('_emojisprite.scss', 'sass/components/_emojisprite.scss', cssRules));
+// Create the emojisprite.scss file
+const emojispriteDir = path.resolve(webappRootDir, 'channels', 'src', 'sass', 'components', '_emojisprite.scss');
+endResults.push(writeFile('_emojisprite.scss', emojispriteDir, cssRules));
 
 Promise.all(endResults).then(() => {
     console.log(warnLogColor, '\n[WARNING] Remember to run `make i18n-extract` as categories might have changed.');
