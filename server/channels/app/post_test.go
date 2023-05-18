@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -16,17 +17,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	eMocks "github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	eMocks "github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -60,8 +61,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/public/plugin"
+				"github.com/mattermost/mattermost-server/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -109,8 +110,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/public/plugin"
+				"github.com/mattermost/mattermost-server/server/public/model"
 				"time"
 			)
 
@@ -2066,6 +2067,66 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
+	})
+
+	t.Run("should not include comments made before the given post when rootPost is inaccessible", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+
+		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
+
+		post1, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test1",
+		}, channel, false, true)
+		require.Nil(t, err)
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user2.Id,
+			ChannelId: channel.Id,
+			RootId:    post1.Id,
+			Message:   "test2",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		time.Sleep(time.Millisecond * 2)
+
+		post3, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test3",
+		}, channel, false, true)
+		require.Nil(t, err)
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			RootId:    post1.Id,
+			Message:   "test4",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// Make posts created before post3 inaccessible
+		e := th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+			Name:  model.SystemLastAccessiblePostTime,
+			Value: strconv.FormatInt(post3.CreateAt, 10),
+		})
+		require.NoError(t, e)
+
+		// post4 should mention the user, but since post2 is inaccessible due to the cloud plan's limit,
+		// post4 does not notify the user.
+
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post3)
+
+		assert.Nil(t, err)
+		assert.Zero(t, count)
 	})
 
 	t.Run("should count mentions from the user's webhook posts", func(t *testing.T) {

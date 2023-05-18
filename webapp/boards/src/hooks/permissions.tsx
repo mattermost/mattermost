@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useAppSelector} from 'src/store/hooks'
-import {getMyBoardMembership, getCurrentBoardId, getBoard} from 'src/store/boards'
+import {getBoard, getCurrentBoardId, getMyBoardMembership} from 'src/store/boards'
 import {getCurrentTeam} from 'src/store/teams'
 import {Permission} from 'src/constants'
 import {MemberRole} from 'src/blocks/board'
@@ -41,11 +41,13 @@ export const useHasPermissions = (teamId: string, boardId: string, permissions: 
             return true
         }
     }
+
     return false
 }
 
 export const useHasCurrentTeamPermissions = (boardId: string, permissions: Permission[]): boolean => {
     const currentTeam = useAppSelector(getCurrentTeam)
+
     return useHasPermissions(currentTeam?.id || '', boardId, permissions)
 }
 

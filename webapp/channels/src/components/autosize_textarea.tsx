@@ -129,6 +129,8 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             height: 0,
         };
 
+        Reflect.deleteProperty(otherProps, 'onWidthChange');
+
         if (this.height <= 0) {
             // Set an initial number of rows so that the textarea doesn't appear too large when its first rendered
             heightProps.rows = 1;

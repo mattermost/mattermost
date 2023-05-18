@@ -12,7 +12,8 @@ import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/prefere
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import * as Utils from 'utils/utils';
+import {getTimestamp} from 'utils/utils';
+import {getPermalinkURL} from 'selectors/urls';
 import {getSiteURL} from 'utils/url';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
@@ -40,7 +41,7 @@ export function forwardPost(post, channel, message = '') {
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
 
-        const relativePermaLink = Utils.getPermalinkURL(state, currentTeam.id, post.id);
+        const relativePermaLink = getPermalinkURL(state, currentTeam.id, post.id);
         const permaLink = `${getSiteURL()}${relativePermaLink}`;
 
         const license = getLicense(state);
@@ -54,7 +55,7 @@ export function forwardPost(post, channel, message = '') {
 
         newPost.channel_id = channelId;
 
-        const time = Utils.getTimestamp();
+        const time = getTimestamp();
         const userId = currentUserId;
 
         newPost.message = message ? `${message}\n${permaLink}` : permaLink;

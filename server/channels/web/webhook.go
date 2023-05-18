@@ -13,8 +13,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 func (w *Web) InitWebhooks() {

@@ -61,6 +61,7 @@ function BlockContent(props: Props) {
                     const updatedBlock = await onSave(b)
                     props.setEditing(null)
                     props.setAfterBlock(updatedBlock)
+
                     return updatedBlock
                 }}
                 id={block.id}
@@ -73,6 +74,7 @@ function BlockContent(props: Props) {
     const contentType = registry.get(block.contentType)
     if (contentType && contentType.Display) {
         const DisplayContent = contentType.Display
+
         return (
             <div
                 ref={drop}
@@ -118,6 +120,7 @@ function BlockContent(props: Props) {
             </div>
         )
     }
+
     return null
 }
 

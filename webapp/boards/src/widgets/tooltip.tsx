@@ -16,6 +16,7 @@ type Props = {
 function Tooltip(props: Props): JSX.Element {
     const placement = props.placement || 'top'
     const className = `octo-tooltip tooltip-${placement}`
+
     return (
         <div
             className={className}
