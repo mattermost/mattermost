@@ -33,14 +33,10 @@ import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/s
 
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 
-import store from 'stores/redux_store.jsx';
-
 import * as Utils from 'utils/utils';
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
 
 export const queue = new PQueue({concurrency: 4});
-const dispatch = store.dispatch;
-const getState = store.getState;
 
 export function loadProfilesAndStatusesInChannel(channelId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options = {}) {
     return async (doDispatch: DispatchFunc) => {
@@ -263,7 +259,7 @@ export function loadNewGMIfNeeded(channelId: string) {
         function checkPreference() {
             const pref = getBool(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
             if (pref === false) {
-                dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}]));
+                doDispatch(savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}]));
                 loadProfilesForGM();
                 return {data: true};
             }
@@ -316,106 +312,110 @@ export const getGMsForLoading = (state: GlobalState) => {
 };
 
 export async function loadProfilesForGM() {
-    const state = getState();
-    const newPreferences = [];
-    const userIdsInChannels = Selectors.getUserIdsInChannels(state);
-    const currentUserId = Selectors.getCurrentUserId(state);
-    const collapsedThreads = isCollapsedThreadsEnabled(state);
+    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+        const state = doGetState();
+        const newPreferences = [];
+        const userIdsInChannels = Selectors.getUserIdsInChannels(state);
+        const currentUserId = Selectors.getCurrentUserId(state);
+        const collapsedThreads = isCollapsedThreadsEnabled(state);
 
-    const userIdsForLoadingCustomEmojis = new Set();
-    for (const channel of getGMsForLoading(state)) {
-        const userIds = userIdsInChannels[channel.id] || new Set();
+        const userIdsForLoadingCustomEmojis = new Set();
+        for (const channel of getGMsForLoading(state)) {
+            const userIds = userIdsInChannels[channel.id] || new Set();
 
-        userIds.forEach((userId) => userIdsForLoadingCustomEmojis.add(userId));
+            userIds.forEach((userId) => userIdsForLoadingCustomEmojis.add(userId));
 
-        if (userIds.size >= Constants.MIN_USERS_IN_GM) {
-            continue;
-        }
-
-        const isVisible = getBool(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channel.id);
-
-        if (!isVisible) {
-            const messageCount = getChannelMessageCount(state, channel.id);
-            const member = getMyChannelMember(state, channel.id);
-
-            const unreadCount = calculateUnreadCount(messageCount, member, collapsedThreads);
-
-            if (!unreadCount.showUnread) {
+            if (userIds.size >= Constants.MIN_USERS_IN_GM) {
                 continue;
             }
 
-            newPreferences.push({
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
-                name: channel.id,
-                value: 'true',
-            });
+            const isVisible = getBool(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channel.id);
+
+            if (!isVisible) {
+                const messageCount = getChannelMessageCount(state, channel.id);
+                const member = getMyChannelMember(state, channel.id);
+
+                const unreadCount = calculateUnreadCount(messageCount, member, collapsedThreads);
+
+                if (!unreadCount.showUnread) {
+                    continue;
+                }
+
+                newPreferences.push({
+                    user_id: currentUserId,
+                    category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
+                    name: channel.id,
+                    value: 'true',
+                });
+            }
+
+            const getProfilesAction = UserActions.getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM);
+            queue.add(() => doDispatch(getProfilesAction));
         }
 
-        const getProfilesAction = UserActions.getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM);
-        queue.add(() => dispatch(getProfilesAction));
-    }
+        await queue.onEmpty();
 
-    await queue.onEmpty();
-
-    if (userIdsForLoadingCustomEmojis.size > 0) {
-        dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));
-    }
-    if (newPreferences.length > 0) {
-        dispatch(savePreferences(currentUserId, newPreferences));
-    }
+        if (userIdsForLoadingCustomEmojis.size > 0) {
+            doDispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));
+        }
+        if (newPreferences.length > 0) {
+            doDispatch(savePreferences(currentUserId, newPreferences));
+        }
+    };
 }
 
 export async function loadProfilesForDM() {
-    const state = getState();
-    const channels = getMyChannels(state);
-    const newPreferences = [];
-    const profilesToLoad = [];
-    const profileIds = [];
-    const currentUserId = Selectors.getCurrentUserId(state);
-    const collapsedThreads = isCollapsedThreadsEnabled(state);
+    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+        const state = doGetState();
+        const channels = getMyChannels(state);
+        const newPreferences = [];
+        const profilesToLoad = [];
+        const profileIds = [];
+        const currentUserId = Selectors.getCurrentUserId(state);
+        const collapsedThreads = isCollapsedThreadsEnabled(state);
 
-    for (let i = 0; i < channels.length; i++) {
-        const channel = channels[i];
-        if (channel.type !== Constants.DM_CHANNEL) {
-            continue;
-        }
-
-        const teammateId = channel.name.replace(currentUserId, '').replace('__', '');
-        const isVisible = getBool(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammateId);
-
-        if (!isVisible) {
-            const member = getMyChannelMember(state, channel.id);
-            const messageCount = getChannelMessageCount(state, channel.id);
-
-            const unreadCount = calculateUnreadCount(messageCount, member, collapsedThreads);
-
-            if (!member || !unreadCount.showUnread) {
+        for (let i = 0; i < channels.length; i++) {
+            const channel = channels[i];
+            if (channel.type !== Constants.DM_CHANNEL) {
                 continue;
             }
 
-            newPreferences.push({
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-                name: teammateId,
-                value: 'true',
-            });
+            const teammateId = channel.name.replace(currentUserId, '').replace('__', '');
+            const isVisible = getBool(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammateId);
+
+            if (!isVisible) {
+                const member = getMyChannelMember(state, channel.id);
+                const messageCount = getChannelMessageCount(state, channel.id);
+
+                const unreadCount = calculateUnreadCount(messageCount, member, collapsedThreads);
+
+                if (!member || !unreadCount.showUnread) {
+                    continue;
+                }
+
+                newPreferences.push({
+                    user_id: currentUserId,
+                    category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+                    name: teammateId,
+                    value: 'true',
+                });
+            }
+
+            if (!Selectors.getUser(state, teammateId)) {
+                profilesToLoad.push(teammateId);
+            }
+            profileIds.push(teammateId);
         }
 
-        if (!Selectors.getUser(state, teammateId)) {
-            profilesToLoad.push(teammateId);
+        if (newPreferences.length > 0) {
+            savePreferences(currentUserId, newPreferences)(doDispatch);
         }
-        profileIds.push(teammateId);
-    }
 
-    if (newPreferences.length > 0) {
-        savePreferences(currentUserId, newPreferences)(dispatch);
-    }
-
-    if (profilesToLoad.length > 0) {
-        await UserActions.getProfilesByIds(profilesToLoad)(dispatch, getState);
-    }
-    await loadCustomEmojisForCustomStatusesByUserIds(profileIds)(dispatch, getState);
+        if (profilesToLoad.length > 0) {
+            await UserActions.getProfilesByIds(profilesToLoad)(doDispatch, doGetState);
+        }
+        await loadCustomEmojisForCustomStatusesByUserIds(profileIds)(doDispatch, doGetState);
+    };
 }
 
 export function autocompleteUsersInTeam(username: string) {
@@ -435,14 +435,14 @@ export function autocompleteUsers(username: string) {
 
 export function autoResetStatus() {
     return async (doDispatch: DispatchFunc, doGetState: GetStateFunc): Promise<{data: UserStatus}> => {
-        const {currentUserId} = getState().entities.users;
+        const {currentUserId} = doGetState().entities.users;
         const {data: userStatus} = await (UserActions.getStatus(currentUserId)(doDispatch, doGetState) as Promise<{data: UserStatus}>);
 
         if (userStatus.status === UserStatuses.OUT_OF_OFFICE || !userStatus.manual) {
             return {data: userStatus};
         }
 
-        const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
+        const autoReset = getBool(doGetState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
 
         if (autoReset) {
             UserActions.setStatus({user_id: currentUserId, status: 'online'})(doDispatch, doGetState);
