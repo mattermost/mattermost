@@ -7,7 +7,7 @@ import {render, screen} from '@testing-library/react';
 import {FooterPagination} from './footer_pagination';
 import {wrapIntl} from '../../testUtils'
 
-describe('components/GenericModal/FooterPagination', () => {
+describe('LegacyGenericModal/FooterPagination', () => {
     const baseProps = {
         page: 0,
         total: 0,

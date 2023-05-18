@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/GenericModal/FooterPagination should render default 1`] = `
+exports[`LegacyGenericModal/FooterPagination should render default 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": <body>

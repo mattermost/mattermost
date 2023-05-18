@@ -7,7 +7,7 @@ import {render, screen} from '@testing-library/react';
 import {LegacyGenericModal} from './legacy_generic_modal';
 import {wrapIntl} from '../testUtils';
 
-describe('components/GenericModal', () => {
+describe('LegacyGenericModal', () => {
     const baseProps = {
         onExited: jest.fn(),
         modalHeaderText: 'Modal Header Text',
