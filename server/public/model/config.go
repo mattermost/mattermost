@@ -2819,10 +2819,20 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentDefault, ServiceEnvironmentCloud:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
+		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentDefault, ServiceEnvironmentCloud:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
+		}
 	}
 	if s.CWSMock == nil {
 		isMockCws := MockCWS == "true"
