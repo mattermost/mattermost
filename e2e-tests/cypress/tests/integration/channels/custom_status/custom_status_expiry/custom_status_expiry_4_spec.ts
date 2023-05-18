@@ -142,4 +142,33 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         // * Correct clear time should be displayed in the status dropdown
         cy.get('.status-dropdown-menu .custom_status__expiry time').should('have.text', dateToBeSelected.format('MMM DD'));
     });
+
+    it('MM-52881 should show the selected date when reopening the date picker', () => {
+        // # clear the status
+        cy.get('.input-clear-x').click();
+
+        // # open the status modal
+        cy.get('.custom_status__row').click();
+
+        // # select the first option
+        cy.get('.statusSuggestion__row').first().click();
+
+        // # open the date picker
+        cy.get('.dateTime__calendar-icon').click();
+
+        // * Verify that DayPicker overlay is visible
+        cy.get('.date-picker__popper').should('be.visible');
+
+        // # Click on the date which is dateToBeSelected
+        for (let i = 0; i < months; i++) {
+            cy.get('.fa-angle-right').click();
+        }
+        cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
+
+        // # reopen the date picker
+        cy.get('.dateTime__calendar-icon').click();
+
+        // * Verify that date selected is still selected
+        cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).should('have.class', 'rdp-day_selected');
+    });
 });
