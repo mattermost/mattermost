@@ -640,6 +640,9 @@ func TestNoticeValidation(t *testing.T) {
 			model.BuildNumber = tt.args.serverVersion
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
+				defer func() {
+					model.BuildNumber = ""
+				}()
 			}
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),
