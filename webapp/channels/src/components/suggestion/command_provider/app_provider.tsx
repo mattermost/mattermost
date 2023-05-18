@@ -7,7 +7,7 @@ import {Store} from 'redux';
 
 import globalStore from 'stores/redux_store';
 
-import Provider from '../provider';
+import Provider, {ResultsCallback} from '../provider';
 import {GlobalState} from 'types/store';
 
 import {Constants} from 'utils/constants';
@@ -31,19 +31,11 @@ type Props = {
     rootId?: string;
 };
 
-export type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: Array<AutocompleteSuggestion | UserProfile | {channel: Channel}>;
-    component?: React.ElementType;
-    components?: React.ElementType[];
-}
-
-type ResultsCallback = (results: Results) => void;
+type Item = AutocompleteSuggestion | UserProfile | {channel: Channel};
 
 export default class AppCommandProvider extends Provider {
     private store: Store<GlobalState>;
-    private triggerCharacter: string;
+    public triggerCharacter: string;
     private appCommandParser: AppCommandParser;
 
     constructor(props: Props) {
@@ -58,7 +50,7 @@ export default class AppCommandProvider extends Provider {
         this.appCommandParser.setChannelContext(props.channelId, props.teamId, props.rootId);
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<Item>) {
         if (!pretext.startsWith(this.triggerCharacter)) {
             return false;
         }

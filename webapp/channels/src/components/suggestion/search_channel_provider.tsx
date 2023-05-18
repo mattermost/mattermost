@@ -11,21 +11,12 @@ import store from 'stores/redux_store.jsx';
 import Constants from 'utils/constants';
 import {getCurrentLocale} from 'selectors/i18n';
 
-import Provider from './provider';
+import Provider, {ResultsCallback} from './provider';
 import SearchChannelSuggestion from './search_channel_suggestion';
 
 import {Channel} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 
 const getState = store.getState;
-
-export type Results = {
-    matchedPretext: string;
-    terms: string[];
-    items: Channel[];
-    component: React.ElementType;
-}
-
-type ResultsCallback = (results: Results) => void;
 
 function itemToTerm(isAtSearch: boolean, item: { type: string; display_name: string; name: string }) {
     const prefix = isAtSearch ? '' : '@';
@@ -48,7 +39,7 @@ export default class SearchChannelProvider extends Provider {
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             let channelPrefix = captured[1];

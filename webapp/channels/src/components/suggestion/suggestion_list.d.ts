@@ -24,7 +24,7 @@ interface Props {
     items: any[];
     terms: string[];
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
+    components: Array<React.FunctionComponent<SuggestionProps<unknown>>>;
     wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret

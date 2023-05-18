@@ -10,15 +10,16 @@ import SearchChannelSuggestion from './search_channel_suggestion';
 
 describe('components/suggestion/search_channel_suggestion', () => {
     const mockChannel = TestHelper.getChannelMock();
-    const mockTeamMate = TestHelper.getUserMock();
 
     const baseProps = {
         item: mockChannel,
         isSelection: false,
-        teammate: mockTeamMate,
-        currentUser: 'userid1',
+        currentUserId: 'userid1',
+        teammateIsBot: false,
         term: '',
         matchedPretext: '',
+        onClick: jest.fn(),
+        onMouseMove: jest.fn(),
     };
 
     test('should match snapshot', () => {

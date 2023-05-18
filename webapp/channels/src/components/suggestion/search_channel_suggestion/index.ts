@@ -16,9 +16,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
+    const teammate = getDirectTeammate(state, ownProps.item.id);
+
     return {
-        teammate: getDirectTeammate(state, ownProps.item.id),
-        currentUser: getCurrentUserId(state),
+        teammateIsBot: Boolean(teammate && teammate.is_bot),
+        currentUserId: getCurrentUserId(state),
     };
 };
 

@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Provider from './provider';
+import Provider, {ResultsCallback} from './provider';
 import SearchDateSuggestion from './search_date_suggestion';
 
 type DateItem = {label: string; date: string};
 
-type ResultsCallback = (results: {matchedPretext: string; terms: string[]; items: DateItem[]; component: typeof SearchDateSuggestion}) => void;
-
 export default class SearchDateProvider extends Provider {
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<DateItem>) {
         const captured = (/\b(?:on|before|after):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const datePrefix = captured[1];

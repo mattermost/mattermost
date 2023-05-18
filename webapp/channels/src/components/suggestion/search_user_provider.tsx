@@ -12,68 +12,55 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 import {UserProfile} from '@mattermost/types/users';
 import {UserAutocomplete} from '@mattermost/types/autocomplete';
 
-import Provider from './provider';
-import Suggestion from './suggestion.jsx';
-import {ProviderResults} from './generic_user_provider';
+import Provider, {ResultsCallback} from './provider';
+import {SuggestionContainer, SuggestionProps} from './suggestion';
 
-class SearchUserSuggestion extends Suggestion {
-    private node?: HTMLDivElement | null;
-    render() {
-        const {item, isSelection} = this.props;
+const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<UserProfile>>((props, ref) => {
+    const {item} = props;
 
-        let className = 'suggestion-list__item';
-        if (isSelection) {
-            className += ' suggestion--selected';
-        }
+    const username = item.username;
+    let description = '';
 
-        const username = item.username;
-        let description = '';
+    if ((item.first_name || item.last_name) && item.nickname) {
+        description = `${Utils.getFullName(item)} (${item.nickname})`;
+    } else if (item.nickname) {
+        description = `(${item.nickname})`;
+    } else if (item.first_name || item.last_name) {
+        description = `${Utils.getFullName(item)}`;
+    }
 
-        if ((item.first_name || item.last_name) && item.nickname) {
-            description = `${Utils.getFullName(item)} (${item.nickname})`;
-        } else if (item.nickname) {
-            description = `(${item.nickname})`;
-        } else if (item.first_name || item.last_name) {
-            description = `${Utils.getFullName(item)}`;
-        }
-
-        let sharedIcon;
-        if (item.remote_id) {
-            sharedIcon = (
-                <SharedUserIndicator
-                    className='mention__shared-user-icon'
-                    withTooltip={true}
-                />
-            );
-        }
-
-        return (
-            <div
-                className={className}
-                ref={(node) => {
-                    this.node = node;
-                }}
-                onClick={this.handleClick}
-                onMouseMove={this.handleMouseMove}
-                {...Suggestion.baseProps}
-            >
-                <Avatar
-                    size='sm'
-                    username={username}
-                    url={Utils.imageURLForUser(item.id, item.last_picture_update)}
-                />
-                <div className='suggestion-list__ellipsis'>
-                    <span className='suggestion-list__main'>
-                        {'@'}{username}
-                    </span>
-                    {item.is_bot && <BotTag/>}
-                    {description}
-                </div>
-                {sharedIcon}
-            </div>
+    let sharedIcon;
+    if (item.remote_id) {
+        sharedIcon = (
+            <SharedUserIndicator
+                className='mention__shared-user-icon'
+                withTooltip={true}
+            />
         );
     }
-}
+
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            <Avatar
+                size='sm'
+                username={username}
+                url={Utils.imageURLForUser(item.id, item.last_picture_update)}
+            />
+            <div className='suggestion-list__ellipsis'>
+                <span className='suggestion-list__main'>
+                    {'@'}{username}
+                </span>
+                {item.is_bot && <BotTag/>}
+                {description}
+            </div>
+            {sharedIcon}
+        </SuggestionContainer>
+    );
+});
+SearchUserSuggestion.displayName = 'SearchUserSuggestion';
 
 export default class SearchUserProvider extends Provider {
     private autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
@@ -82,7 +69,7 @@ export default class SearchUserProvider extends Provider {
         this.autocompleteUsersInTeam = userSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: (res: ProviderResults) => void) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
 
         this.doAutocomplete(captured, resultsCallback);
@@ -90,7 +77,7 @@ export default class SearchUserProvider extends Provider {
         return Boolean(captured);
     }
 
-    async doAutocomplete(captured: RegExpExecArray | null, resultsCallback: (res: ProviderResults) => void) {
+    async doAutocomplete(captured: RegExpExecArray | null, resultsCallback: ResultsCallback<UserProfile>) {
         if (!captured) {
             return;
         }
