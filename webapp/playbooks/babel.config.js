@@ -10,7 +10,7 @@ const config = {
                 edge: 42,
                 safari: 12,
             },
-            modules: false,
+            modules: 'auto',
             corejs: 3,
             debug: false,
             useBuiltIns: 'usage',
@@ -50,20 +50,7 @@ const config = {
 
 config.env = {
     test: {
-        presets: config.presets.map((preset) => {
-            const [presetName, presetOptions] = preset;
-            if (presetName === '@babel/preset-env') {
-                return [
-                    presetName,
-                    {
-                        ...presetOptions,
-                        modules: 'auto', // Jest needs module transformation
-                    },
-                ];
-            }
-
-            return preset;
-        }),
+        presets: config.presets,
         plugins: config.plugins,
     },
     production: {
