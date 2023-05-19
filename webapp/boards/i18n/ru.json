@@ -257,6 +257,7 @@
   "Sidebar.export-archive": "Экспорт архива",
   "Sidebar.import": "Импорт",
   "Sidebar.import-archive": "Импортировать архивный файл",
+  "Sidebar.external-import-docs": "Внешние документы импорта",
   "Sidebar.invite-users": "Пригласить пользователей",
   "Sidebar.logout": "Выйти",
   "Sidebar.new-category.badge": "Новый",

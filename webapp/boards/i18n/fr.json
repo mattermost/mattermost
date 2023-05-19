@@ -254,6 +254,7 @@
   "Sidebar.export-archive": "Exporter une archive",
   "Sidebar.import": "Importer",
   "Sidebar.import-archive": "Importer un fichier d'archive",
+  "Sidebar.external-import-docs": "Docs d'importation externe",
   "Sidebar.invite-users": "Inviter des utilisateurs",
   "Sidebar.logout": "Se déconnecter",
   "Sidebar.new-category.badge": "Nouveau",

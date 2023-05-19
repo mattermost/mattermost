@@ -254,6 +254,7 @@
   "Sidebar.export-archive": "Eksportuoti archyvą",
   "Sidebar.import": "Importuoti",
   "Sidebar.import-archive": "Importuoti archyvo failą",
+  "Sidebar.external-import-docs": "Išoriniai importo doks",
   "Sidebar.new-category.badge": "Naujas",
   "Sidebar.new-category.drag-boards-cta": "Vilkite lentas čia...",
   "Sidebar.no-boards-in-category": "Viduje nėra lentų",

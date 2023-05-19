@@ -257,6 +257,7 @@
   "Sidebar.export-archive": "Arşivi dışa aktar",
   "Sidebar.import": "İçe aktar",
   "Sidebar.import-archive": "Arşiv dosyası import et",
+  "Sidebar.external-import-docs": "Harici ithalat belgeleri",
   "Sidebar.invite-users": "Kullanıcıları çağır",
   "Sidebar.logout": "Oturumu kapat",
   "Sidebar.new-category.badge": "Yeni",

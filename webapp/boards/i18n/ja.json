@@ -257,6 +257,7 @@
   "Sidebar.export-archive": "エクスポート",
   "Sidebar.import": "インポート",
   "Sidebar.import-archive": "アーカイブファイルをインポートする",
+  "Sidebar.external-import-docs": "外部インポートドキュメント",
   "Sidebar.invite-users": "ユーザーを招待する",
   "Sidebar.logout": "ログアウト",
   "Sidebar.new-category.badge": "新規",
