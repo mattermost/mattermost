@@ -29,7 +29,7 @@ mme2e_load_env_file () {
 }
 mme2e_generate_envfile_from_vars () {
   for VARIABLE in "$@"; do
-    [ -z "${!VARIABLE}" ] || echo "${VARIABLE}=${!VARIABLE}";
+    [ -z "${!VARIABLE:-}" ] || echo "${VARIABLE}=${!VARIABLE}";
   done
 }
 mme2e_wait_command_success () {
