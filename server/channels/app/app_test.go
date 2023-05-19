@@ -119,6 +119,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionGetPublicLink.Id,
 			model.PermissionCreatePost.Id,
 			model.PermissionUseChannelMentions.Id,
+			model.PermissionUseSlashCommands.Id,
 			model.PermissionManagePublicChannelProperties.Id,
 			model.PermissionDeletePublicChannel.Id,
 			model.PermissionManagePrivateChannelProperties.Id,
