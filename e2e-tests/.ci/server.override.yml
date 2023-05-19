@@ -5,7 +5,7 @@ version: '2.4'
 services:
 
   server:
-    image: "${MME2E_SERVER_IMAGE}"
+    image: "${SERVER_IMAGE}"
     restart: always
     env_file:
       - "../../e2e-tests/.ci/.env.server"
@@ -23,10 +23,8 @@ services:
       MM_EMAILSETTINGS_SMTPSERVER: "inbucket"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_FEATUREFLAGS_USECASEONBOARDING: "false"
-      # TODO added by me, check before merging the PR
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
-      MM_LICENSE: "${MM_LICENSE}"
     ports:
       - "8065:8065"
     depends_on:
@@ -69,15 +67,13 @@ services:
         aliases:
           - webhook-interactions
 
-  # TODO use gitlab actions' matrix directive to parallelize the jobs
-  # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
   cypress:
     image: "public.ecr.aws/mattermostqa/cypress-browsers-public:node16.14.2-slim-chrome100-ff99-edge"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     env_file:
-      - "../../e2e-tests/.ci/.env.cypress"
       - "../../e2e-tests/.ci/.env.dashboard"
+      - "../../e2e-tests/.ci/.env.cypress"
     environment:
       REPO: "mattermost-server"
       # Cypress configuration

@@ -23,4 +23,7 @@ mme2e_log "Generating a signed JWT token for accessing the dashboard"
 AUTOMATION_DASHBOARD_TOKEN=$(${MME2E_DC_DASHBOARD} exec -T -u $MME2E_UID dashboard node script/sign.js | awk '{ print $2; }') # The token secret is specified in the dashboard.override.yml file
 
 mme2e_log "Generating the .env.dashboard file, to point Cypress to the dashboard URL"
-mme2e_generate_envfile_from_vars AUTOMATION_DASHBOARD_URL AUTOMATION_DASHBOARD_TOKEN >.env.dashboard
+mme2e_generate_envfile_from_var_names >.env.dashboard <<EOF
+AUTOMATION_DASHBOARD_URL
+AUTOMATION_DASHBOARD_TOKEN
+EOF
