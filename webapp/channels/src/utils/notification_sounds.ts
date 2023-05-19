@@ -51,6 +51,7 @@ export function ring(name: string) {
     if (!hasSoundOptions()) {
         return;
     }
+    currentRing?.pause();
 
     currentRing = loopNotificationRing(name);
 }
