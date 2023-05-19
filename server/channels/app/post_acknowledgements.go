@@ -31,7 +31,6 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 
 	acknowledgedAt := model.GetMillis()
 	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(postID, userID, acknowledgedAt)
-
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -40,6 +39,10 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 		default:
 			return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+	}
+
+	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+		return nil, appErr
 	}
 
 	// The post is always modified since the UpdateAt always changes
