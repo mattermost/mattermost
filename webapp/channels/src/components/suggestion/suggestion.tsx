@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
 
-export interface SuggestionProps<Item> {
+export interface SuggestionProps<Item> extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick' | 'onMouseMove'> {
     // eslint-disable-next-line react/no-unused-prop-types
     item: Item;
 
@@ -15,43 +15,48 @@ export interface SuggestionProps<Item> {
     children?: React.ReactNode;
     onClick: (term: string, matchedPretext: string) => void;
     onMouseMove: (term: string) => void;
-
-    'data-testid'?: string;
-    id?: string;
-    role?: string;
-    tabIndex?: number;
 }
 
 const SuggestionContainer = React.forwardRef<HTMLDivElement, SuggestionProps<unknown>>((props, ref) => {
     const {
+        children,
+        term,
+        matchedPretext,
+        isSelection,
+
         onClick,
         onMouseMove,
+
+        role = 'button',
+        tabIndex = -1,
+        ...otherProps
     } = props;
+
+    Reflect.deleteProperty(otherProps, 'item');
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
-        onClick(props.term, props.matchedPretext);
-    }, [onClick, props.term, props.matchedPretext]);
+        onClick(term, matchedPretext);
+    }, [onClick, term, matchedPretext]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
-        onMouseMove(props.term);
-    }, [onMouseMove, props.term]);
+        onMouseMove(term);
+    }, [onMouseMove, term]);
 
     return (
         <div
-            id={props.id}
             ref={ref}
-            className={classNames('suggestion-list__item', {'suggestion--selected': props.isSelection})}
+            className={classNames('suggestion-list__item', {'suggestion--selected': isSelection})}
             onClick={handleClick}
             onMouseMove={handleMouseMove}
-            role={props.role ?? 'button'}
-            tabIndex={props.tabIndex ?? -1}
-            data-testid={props['data-testid']}
+            role={role}
+            tabIndex={tabIndex}
+            {...otherProps}
         >
-            {props.children}
+            {children}
         </div>
     );
 });

@@ -13,7 +13,7 @@ import {SuggestionContainer, SuggestionProps} from './suggestion';
 type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
 
 const GenericChannelSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Channel>>((props, ref) => {
-    const item = props.item;
+    const {item} = props;
 
     const channelName = item.display_name;
     const purpose = item.purpose;

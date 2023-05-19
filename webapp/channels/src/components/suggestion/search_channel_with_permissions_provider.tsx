@@ -155,7 +155,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         let channelsFromServer: Channel[] = [];
         try {
             const {data} = await channelsAsync;
-            channelsFromServer = data!;
+            channelsFromServer = data ?? [];
         } catch (err) {
             store.dispatch(logError(err));
         }

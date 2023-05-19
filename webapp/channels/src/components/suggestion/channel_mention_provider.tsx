@@ -26,7 +26,7 @@ type WrappedChannel = {
 }
 
 export const ChannelMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
-    const item = props.item;
+    const {item} = props;
     const channelIsArchived = item.channel && item.channel.delete_at && item.channel.delete_at !== 0;
 
     const channelName = item.channel?.display_name;
