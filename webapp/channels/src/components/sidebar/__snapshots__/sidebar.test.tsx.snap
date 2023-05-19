@@ -71,7 +71,6 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     showCreateUserGroupModal={[Function]}
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
-    ={true}
     unreadFilterEnabled={false}
     userGroupsEnabled={false}
   />
