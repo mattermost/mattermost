@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-const SetByEnv: React.FunctionComponent = (): JSX.Element => {
+export default function SetByEnv(): JSX.Element {
     return (
         <div className='alert alert-warning'>
             <FormattedMessage
@@ -13,6 +13,4 @@ const SetByEnv: React.FunctionComponent = (): JSX.Element => {
             />
         </div>
     );
-};
-
-export default SetByEnv;
+}
