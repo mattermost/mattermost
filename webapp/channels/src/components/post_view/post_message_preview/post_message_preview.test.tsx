@@ -66,30 +66,30 @@ describe('PostMessagePreview', () => {
     });
 
     test('show render without preview when preview posts becomes undefined after being defined', () => {
-        const props = baseProps
+        const props = baseProps;
         let wrapper = shallow(
             <PostMessagePreview
                 {...props}
-            />
+            />,
         );
 
         expect(wrapper).toMatchSnapshot();
-        let permalink = wrapper.find('.permalink')
+        let permalink = wrapper.find('.permalink');
         expect(permalink.length).toBe(1);
 
         // now we'll set the preview post to undefined. This happens when the
         // previewed post is deleted.
-        props.previewPost = undefined
+        props.previewPost = undefined;
 
         wrapper = shallow(
             <PostMessagePreview
                 {...props}
-            />
+            />,
         );
         expect(wrapper).toMatchSnapshot();
-        permalink = wrapper.find('.permalink')
+        permalink = wrapper.find('.permalink');
         expect(permalink.length).toBe(0);
-    })
+    });
 
     test('should not render bot icon', () => {
         const postProps = {
