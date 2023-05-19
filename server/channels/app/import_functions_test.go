@@ -459,7 +459,7 @@ func TestImportImportRole(t *testing.T) {
 	// Try changing all the params and reimporting.
 	data.DisplayName = ptrStr("new display name")
 	data.Description = ptrStr("description")
-	data.Permissions = &[]string{"use_slash_commands"}
+	data.Permissions = &[]string{"manage_slash_commands"}
 
 	err = th.App.importRole(th.Context, &data, false, true)
 	require.Nil(t, err, "Should have succeeded. %v", err)

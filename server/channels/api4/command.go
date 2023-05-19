@@ -329,13 +329,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For compatibility reasons, PermissionCreatePost is also checked.
-	// TODO: Remove in 8.0: https://mattermost.atlassian.net/browse/MM-51274
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionUseSlashCommands) {
-		c.SetPermissionError(model.PermissionUseSlashCommands)
-		return
-	}
-
 	channel, err := c.App.GetChannel(c.AppContext, commandArgs.ChannelId)
 	if err != nil {
 		c.Err = err
@@ -352,13 +345,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		if c.AppContext.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {
 			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreatePost) {
 				c.SetPermissionError(model.PermissionCreatePost)
-				return
-			}
-
-			// For compatibility reasons, PermissionCreatePost is also checked.
-			// TODO: Remove in 8.0: https://mattermost.atlassian.net/browse/MM-51274
-			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionUseSlashCommands) {
-				c.SetPermissionError(model.PermissionUseSlashCommands)
 				return
 			}
 		}
