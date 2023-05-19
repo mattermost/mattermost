@@ -14,6 +14,7 @@ import {IUser, UserConfigPatch} from 'src/user'
 import octoClient from 'src/octoClient'
 import {UserSettings} from 'src/userSettings'
 import SettingsIcon from 'src/widgets/icons/settings'
+import CompassIcon from 'src/widgets/icons/compassIcon'
 
 import {Constants} from 'src/constants'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
@@ -50,12 +51,21 @@ const GlobalHeaderSettingsMenu = (props: Props) => {
                     >
                         <Menu.Text
                             id='import_archive'
-                            name={intl.formatMessage({id: 'Sidebar.import-archive', defaultMessage: 'Import archive'})}
+                            icon={
+                                <CompassIcon
+                                    icon='import'
+                                />
+                            }
+                            name={intl.formatMessage({id: 'Sidebar.import-archive', defaultMessage: 'Import archive file'})}
                             onClick={async () => {
                                 TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ImportArchive)
                                 Archiver.importFullArchive()
                             }}
                         />
+                        <Menu.Separator/>
+                        <span className='settings-menu-title__text'>
+                            {intl.formatMessage({id: 'Sidebar.external-import-docs', defaultMessage: 'External import docs'})}
+                        </span>
                         {
                             Constants.imports.map((i) => (
                                 <Menu.Text
