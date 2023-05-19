@@ -516,8 +516,6 @@ export default class Plugin {
             let rudderKey = ''
             switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
             case ServiceEnvironment.ENTERPRISE:
-                rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
-                break
             case ServiceEnvironment.CLOUD:
                 rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
                 break
