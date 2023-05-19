@@ -12,9 +12,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {ClientLicense} from '@mattermost/types/config';
 
 import LoadingScreen from 'components/loading_screen';
-
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import * as AdminActions from 'actions/admin_actions';
 import {StatTypes} from 'utils/constants';
 import Banner from 'components/admin_console/banner';
@@ -23,11 +21,12 @@ import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
 import {ActivatedUserCard} from 'components/analytics/activated_users_card';
 import TrueUpReview from 'components/analytics/true_up_review';
+import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getMonthLong} from 'utils/i18n';
 
 import {formatPostsPerDayData, formatUsersWithPostsPerDayData, synchronizeChartLabels} from '../format';
-import ExternalLink from 'components/external_link';
 
 const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 
@@ -286,7 +285,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <div className='admin-console__header team-statistics__header-row'>
+                <AdminHeader>
                     <div className='team-statistics__header'>
                         <FormattedMarkdownMessage
                             id='analytics.team.title'
@@ -306,7 +305,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                             {teams}
                         </select>
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>

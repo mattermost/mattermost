@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/server/v8/model/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -284,8 +284,8 @@ func TestCreateUser(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/server/v8/plugin"
-				"github.com/mattermost/mattermost-server/server/v8/model"
+				"github.com/mattermost/mattermost-server/server/public/plugin"
+				"github.com/mattermost/mattermost-server/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -1171,6 +1171,44 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
+}
+
+func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("remove manually added tokens", func(t *testing.T) {
+		for i := 0; i < 5; i++ {
+			token := model.NewToken(
+				TokenTypePasswordRecovery,
+				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
+			)
+			require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		}
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, len(tokens))
+
+		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
+		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(tokens))
+	})
+
+	t.Run("add multiple tokens, should only be one valid", func(t *testing.T) {
+		_, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		token, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(tokens))
+		assert.Equal(t, token.Token, tokens[0].Token)
+	})
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {

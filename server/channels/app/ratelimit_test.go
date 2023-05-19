@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func genRateLimitSettings(useAuth, useIP bool, header string) *model.RateLimitSettings {

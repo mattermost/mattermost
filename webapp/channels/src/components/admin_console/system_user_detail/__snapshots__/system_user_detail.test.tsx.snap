@@ -4,8 +4,8 @@ exports[`components/admin_console/system_user_detail should match default snapsh
 <div
   className="SystemUserDetail wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -17,7 +17,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
         id="admin.systemUserDetail.title"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -240,8 +240,8 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
 <div
   className="SystemUserDetail wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -253,7 +253,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
         id="admin.systemUserDetail.title"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -478,8 +478,8 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
 <div
   className="SystemUserDetail wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -491,7 +491,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
         id="admin.systemUserDetail.title"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -722,8 +722,8 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
 <div
   className="SystemUserDetail wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -735,7 +735,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
         id="admin.systemUserDetail.title"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -960,8 +960,8 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
 <div
   className="SystemUserDetail wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -973,7 +973,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
         id="admin.systemUserDetail.title"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -1196,8 +1196,8 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
 <div
   className="SystemUserDetail wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
       <Connect(BlockableLink)
@@ -1209,7 +1209,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
         id="admin.systemUserDetail.title"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

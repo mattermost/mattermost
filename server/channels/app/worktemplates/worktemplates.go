@@ -25,10 +25,14 @@ func ListCategories() ([]*WorkTemplateCategory, error) {
 	return OrderedWorkTemplateCategories, nil
 }
 
-func ListByCategory(category string) ([]*WorkTemplate, error) {
+func ListByCategory(category string, includeOnboardingTemplate bool) ([]*WorkTemplate, error) {
 	wts := []*WorkTemplate{}
 	for i := range OrderedWorkTemplates {
 		if OrderedWorkTemplates[i].Category == category {
+			// do not include work template with onboarding only flag if includeOnboardingTemplate is false
+			if !includeOnboardingTemplate && OrderedWorkTemplates[i].OnboardingOnly {
+				continue
+			}
 			wts = append(wts, OrderedWorkTemplates[i])
 		}
 	}

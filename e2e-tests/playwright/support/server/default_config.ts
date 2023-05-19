@@ -170,6 +170,11 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        AllowPersistentNotifications: true,
+        PersistentNotificationMaxCount: 6,
+        PersistentNotificationMaxRecipients: 5,
+        PersistentNotificationIntervalMinutes: 5,
+        AllowPersistentNotificationsForGuests: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',

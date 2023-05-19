@@ -10,13 +10,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/timeutils"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
