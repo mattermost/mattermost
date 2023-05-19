@@ -31,13 +31,3 @@ Notes:
 ##### How to control which tests to run
 
 The `TEST_FILTER` variable will control which test files to run Cypress tests against. Please check the `e2e-tests/cypress/run_tests.js` file for details about its format.
-
-
-
-##### TODOS
-
-- Run E2E tests in CI, using `workflow_runs`
-- In CI: upload the server+cypress logs as a job artifact, after the run
-- In CI: report back to the `QA: UI Test Automation` channel at the end of the run, with the link to the automation dasbhoard.
-  * Will require updating `cypress/save_report.js`
-  * No need for the S3 upload, we'll rely only on the automation dashboard
