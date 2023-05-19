@@ -66,7 +66,7 @@ describe('PostMessagePreview', () => {
     });
 
     test('show render without preview when preview posts becomes undefined after being defined', () => {
-        const props = baseProps;
+        const props = {...baseProps};
         let wrapper = shallow(
             <PostMessagePreview
                 {...props}
