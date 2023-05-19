@@ -8773,37 +8773,6 @@ func (c *Client4) CheckCWSConnection(userId string) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-// Worktemplates sections
-
-func (c *Client4) worktemplatesRoute() string {
-	return "/worktemplates"
-}
-
-// GetWorktemplateCategories returns categories of worktemplates
-func (c *Client4) GetWorktemplateCategories() ([]*WorkTemplateCategory, *Response, error) {
-	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var categories []*WorkTemplateCategory
-	err = json.NewDecoder(r.Body).Decode(&categories)
-	return categories, BuildResponse(r), err
-}
-
-func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, *Response, error) {
-	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories/"+category+"/templates", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var templates []*WorkTemplate
-	err = json.NewDecoder(r.Body).Decode(&templates)
-	return templates, BuildResponse(r), err
-}
-
 func (c *Client4) SubmitTrueUpReview(req map[string]any) (*Response, error) {
 	reqBytes, err := json.Marshal(req)
 	if err != nil {

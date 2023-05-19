@@ -14,12 +14,48 @@ import SingleColumnLayout from './single_column_layout';
 
 import PageLine from './page_line';
 import './roles.scss';
-import {useDispatch, useSelector} from 'react-redux';
-import {getWorkTemplateCategories as fetchCategories} from 'mattermost-redux/actions/work_templates';
-import {getWorkTemplateCategories} from 'selectors/work_template';
 import classNames from 'classnames';
 import QuickInput from 'components/quick_input';
-import {CategoryOther} from '@mattermost/types/work_templates';
+import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
+
+const Roles = [
+    {
+        id: 'product_teams',
+        name: localizeMessage('onboarding_wizard.roles.product_teams', 'Product Teams'),
+    },
+    {
+        id: 'devops',
+        name: localizeMessage('onboarding_wizard.roles.product_teams', 'Devops'),
+    },
+    {
+        id: 'leadership',
+        name: localizeMessage('onboarding_wizard.roles.leadership', 'Leadership'),
+    },
+    {
+        id: 'engineering',
+        name: localizeMessage('onboarding_wizard.roles.engineering', 'Engineering'),
+    },
+    {
+        id: 'project_management',
+        name: localizeMessage('onboarding_wizard.roles.project_management', 'Project Management'),
+    },
+    {
+        id: 'marketing',
+        name: localizeMessage('onboarding_wizard.roles.marketing', 'Marketing'),
+    },
+    {
+        id: 'design',
+        name: localizeMessage('onboarding_wizard.roles.design', 'Design'),
+    },
+    {
+        id: 'qa',
+        name: localizeMessage('onboarding_wizard.roles.qa', 'QA'),
+    },
+    {
+        id: 'other',
+        name: localizeMessage('onboarding_wizard.roles.other', 'Other'),
+    },
+];
 
 type Props = PreparingWorkspacePageProps & {
     role: Form['role'];
@@ -28,16 +64,9 @@ type Props = PreparingWorkspacePageProps & {
     className?: string;
     quickNext(role: string): void;
 }
-const Roles = ({role, next, ...props}: Props) => {
+const RolesPage = ({role, next, ...props}: Props) => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
-    const categories = useSelector(getWorkTemplateCategories);
-
     let className = 'Roles-body';
-
-    useEffect(() => {
-        dispatch(fetchCategories());
-    }, []);
 
     useEffect(() => {
         if (props.show) {
@@ -63,7 +92,7 @@ const Roles = ({role, next, ...props}: Props) => {
     );
 
     const selectRole = (role: string) => {
-        if (role !== CategoryOther) {
+        if (role !== 'other') {
             props.quickNext(role);
         }
         props.setRole(role, '');
@@ -71,7 +100,7 @@ const Roles = ({role, next, ...props}: Props) => {
 
     const roleIsSet = Boolean(role);
     const roleOtherIsSet = Boolean(props.roleOther);
-    const canContinue = (roleIsSet && role !== CategoryOther) || (role === CategoryOther && roleOtherIsSet);
+    const canContinue = (roleIsSet && role !== 'other') || (role === 'other' && roleOtherIsSet);
 
     return (
         <CSSTransition
@@ -98,21 +127,21 @@ const Roles = ({role, next, ...props}: Props) => {
                     <Description>{description}</Description>
                     <PageBody>
                         <div className='Roles-list'>
-                            {categories.map((category) => (
+                            {Roles.map((rle) => (
                                 <button
-                                    key={category.id}
-                                    className={classNames('role-button', {active: category.id === role})}
-                                    onClick={() => selectRole(category.id)}
+                                    key={rle.id}
+                                    className={classNames('role-button', {active: rle.id === role})}
+                                    onClick={() => selectRole(rle.id)}
                                 >
-                                    {category.name}
+                                    {rle.name}
                                 </button>
                             ))}
                         </div>
-                        {role === CategoryOther && (
+                        {role === 'other' && (
                             <QuickInput
                                 value={props.roleOther || ''}
                                 className='Roles__input'
-                                onChange={(e) => props.setRole(CategoryOther, e.target.value)}
+                                onChange={(e) => props.setRole('other', e.target.value)}
                                 placeholder={formatMessage({
                                     id: 'onboarding_wizard.roles.other_input_placeholder',
                                     defaultMessage: 'Please share your primary function',
@@ -155,4 +184,4 @@ const Roles = ({role, next, ...props}: Props) => {
     );
 };
 
-export default Roles;
+export default RolesPage;

@@ -673,7 +673,6 @@ const defaultServerConfig: AdminConfig = {
         InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
-        WorkTemplate: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,

@@ -113,5 +113,3 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
         return config.PluginsEnabled === 'true' && config.EnableMarketplace === 'true';
     },
 );
-
-export const getWorkTemplatesLinkedProducts = (state: GlobalState) => state.entities.worktemplates.linkedProducts;

@@ -28,7 +28,6 @@ import hostedCustomer from './hosted_customer';
 import usage from './usage';
 import threads from './threads';
 import insights from './insights';
-import worktemplates from './work_templates';
 
 export default combineReducers({
     general,
@@ -56,5 +55,4 @@ export default combineReducers({
     insights,
     usage,
     hostedCustomer,
-    worktemplates,
 });

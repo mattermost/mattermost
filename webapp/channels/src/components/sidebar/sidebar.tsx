@@ -53,7 +53,6 @@ type Props = {
     canCreateCustomGroups: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
-    showWorkTemplateButton: boolean;
 };
 
 type State = {
@@ -256,7 +255,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         unreadFilterEnabled={this.props.unreadFilterEnabled}
                         userGroupsEnabled={this.props.userGroupsEnabled}
                         canCreateCustomGroups={this.props.canCreateCustomGroups}
-                        showWorkTemplateButton={this.props.showWorkTemplateButton}
                     />
                 )}
                 <div
