@@ -500,6 +500,22 @@ func (_m *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return r0
 }
 
+// PostPersistentNotification provides a mock function with given fields:
+func (_m *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
+	ret := _m.Called()
+
+	var r0 store.PostPersistentNotificationStore
+	if rf, ok := ret.Get(0).(func() store.PostPersistentNotificationStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostPersistentNotificationStore)
+		}
+	}
+
+	return r0
+}
+
 // PostPriority provides a mock function with given fields:
 func (_m *Store) PostPriority() store.PostPriorityStore {
 	ret := _m.Called()

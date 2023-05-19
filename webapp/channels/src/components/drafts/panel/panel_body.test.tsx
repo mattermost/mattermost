@@ -112,7 +112,7 @@ describe('components/drafts/panel/panel_body', () => {
                     {...baseProps}
                     priority={{
                         priority: PostPriority.IMPORTANT,
-                        requested_ack: true,
+                        requested_ack: false,
                     }}
                 />
             </Provider>,

@@ -197,6 +197,10 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    AllowPersistentNotifications: string;
+    PersistentNotificationMaxRecipients: string;
+    PersistentNotificationIntervalMinutes: string;
+    AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
     ServiceEnvironment: string;
 };
@@ -373,6 +377,11 @@ export type ServiceSettings = {
     EnableCustomGroups: boolean;
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
+    AllowPersistentNotifications: boolean;
+    AllowPersistentNotificationsForGuests: boolean;
+    PersistentNotificationIntervalMinutes: number;
+    PersistentNotificationMaxCount: number;
+    PersistentNotificationMaxRecipients: number;
 };
 
 export type TeamSettings = {
