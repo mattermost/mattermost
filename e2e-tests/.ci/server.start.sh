@@ -14,8 +14,8 @@ ${MME2E_DC_SERVER} down -v
 
 # Generate .env.server
 mme2e_log "Generating .env.server"
-cat >.env.server <<<""
-[ -z "${MM_LICENSE:-}" ] || echo "MM_LICENSE=$MM_LICENSE" >>.env.server
+cat >.env.server </dev/null
+mme2e_generate_envfile_from_vars MM_LICENSE >>.env.server
 envarr=$(echo ${MM_ENV:-} | tr "," "\n")
 for env in $envarr; do
   echo "> [$env]"
@@ -27,6 +27,7 @@ mme2e_log "Generating .env.cypress"
 cat >.env.cypress <<EOF
 BRANCH=$MME2E_BRANCH
 BUILD_ID=$MME2E_BUILD_ID
+CI_BASE_URL=$MME2E_CI_BASE_URL
 EOF
 mme2e_generate_envfile_from_vars AUTOMATION_DASHBOARD_URL AUTOMATION_DASHBOARD_TOKEN >>.env.cypress
 

@@ -5,6 +5,7 @@ export MME2E_DC_DASHBOARD="docker-compose -p mmdashboard -f $(readlink -e ./dash
 export MME2E_UID=$(id -u)
 export MME2E_SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
 export MME2E_SERVER_IMAGE=${MME2E_SERVER_IMAGE:-$MME2E_SERVER_IMAGE_DEFAULT}
+export MME2E_CI_BASE_URL="${MME2E_CI_BASE_URL:-localhost}"
 
 # Function definitions
 mme2e_log () { echo "[$(date -Is)]" "$@"; }

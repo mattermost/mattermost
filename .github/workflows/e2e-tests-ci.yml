@@ -75,4 +75,5 @@ jobs:
           make
           # Assert that the run contained 0 failures
           CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
+          echo "Cypress run completed with $CYPRESS_FAILURES failures"
           [ "$CYPRESS_FAILURES" = "0" ]
