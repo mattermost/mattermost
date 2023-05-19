@@ -515,7 +515,7 @@ export default class Plugin {
             const rudderUrl = 'https://pdat.matterlytics.com'
             let rudderKey = ''
             switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
-            case ServiceEnvironment.DEFAULT:
+            case ServiceEnvironment.ENTERPRISE:
                 rudderKey = '1myWcDbTkIThnpPYyms7DKlmQWl'
                 break
             case ServiceEnvironment.CLOUD:

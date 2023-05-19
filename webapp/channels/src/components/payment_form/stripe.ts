@@ -32,7 +32,7 @@ export const STRIPE_CSS_SRC = 'https://fonts.googleapis.com/css?family=Open+Sans
 
 export const getStripePublicKey = (state: GlobalState) => {
     switch (state.entities.general.config.ServiceEnvironment) {
-    case ServiceEnvironment.DEFAULT:
+    case ServiceEnvironment.ENTERPRISE:
     case ServiceEnvironment.CLOUD:
         return 'pk_live_cDF5gYLPf5vQjJ7jp71p7GRK';
     case ServiceEnvironment.TEST:

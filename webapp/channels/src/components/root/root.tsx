@@ -236,7 +236,7 @@ export default class Root extends React.PureComponent<Props, State> {
         const rudderUrl = 'https://pdat.matterlytics.com';
         let rudderKey = '';
         switch (config.ServiceEnvironment) {
-        case ServiceEnvironment.DEFAULT:
+        case ServiceEnvironment.ENTERPRISE:
         case ServiceEnvironment.CLOUD:
             rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
             break;

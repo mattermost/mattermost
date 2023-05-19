@@ -940,7 +940,7 @@ export enum CollapsedThreads {
 }
 
 export enum ServiceEnvironment {
-    DEFAULT = '',
+    ENTERPRISE = 'enterprise',
     CLOUD = 'cloud',
     TEST = 'test',
     DEV = 'dev',
