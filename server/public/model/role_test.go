@@ -71,6 +71,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 		PermissionManagePublicChannelMembers.Id,
 		PermissionUploadFile.Id,
 		PermissionGetPublicLink.Id,
+		PermissionUseSlashCommands.Id,
 	}
 
 	baseModeratedPermissions := []string{
