@@ -25,8 +25,10 @@ import {Constants} from 'utils/constants';
 import {General} from 'mattermost-redux/constants';
 
 import {OwnProps} from './index';
+import {Post} from '@mattermost/types/posts';
 
 export type Props = OwnProps & {
+    previewPost?: Post;
     currentTeamUrl: string;
     channelDisplayName?: string;
     user: UserProfile | null;

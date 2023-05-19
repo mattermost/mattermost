@@ -126,7 +126,6 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
                 return (
                     <PostMessagePreview
                         metadata={embed.data}
-                        previewPost={embed.data.post}
                         handleFileDropdownOpened={this.props.handleFileDropdownOpened}
                     />
                 );

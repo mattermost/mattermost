@@ -291,7 +291,6 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
                     >
                         <PostMessagePreview
                             metadata={previewMetaData}
-                            previewPost={previewMetaData.post}
                             handleFileDropdownOpened={noop}
                             preventClickAction={true}
                             previewFooterMessage={postPreviewFooterMessage}
