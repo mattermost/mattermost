@@ -18,29 +18,26 @@ export default class ClusterTable extends React.PureComponent {
     };
 
     render() {
-        var versionMismatch = (
+        let versionMismatch = (
             <img
                 alt='version mismatch'
                 className='cluster-status'
                 src={statusGreen}
             />
         );
-
-        var configMismatch = (
+        let configMismatch = (
             <img
                 alt='config mismatch'
                 className='cluster-status'
                 src={statusGreen}
             />
         );
-
-        var versionMismatchWarning = (
+        let versionMismatchWarning = (
             <div/>
         );
-
-        var version = '';
-        var configHash = '';
-        var singleItem = false;
+        let version = '';
+        let configHash = '';
+        let singleItem = false;
 
         if (this.props.clusterInfos.length) {
             version = this.props.clusterInfos[0].version;
@@ -84,8 +81,8 @@ export default class ClusterTable extends React.PureComponent {
             return null;
         });
 
-        var items = this.props.clusterInfos.map((clusterInfo) => {
-            var status = null;
+        const items = this.props.clusterInfos.map((clusterInfo) => {
+            let status = null;
 
             if (clusterInfo.hostname === '') {
                 clusterInfo.hostname = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
