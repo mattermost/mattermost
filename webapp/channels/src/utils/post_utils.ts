@@ -5,12 +5,11 @@ import {IntlShape, useIntl} from 'react-intl';
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {createSelector} from 'packages/reselect/src';
-
 import {Client4} from 'mattermost-redux/client';
 
 import {Permissions, Posts} from 'mattermost-redux/constants';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';

@@ -3,10 +3,9 @@
 
 import moment from 'moment-timezone';
 
-import {createSelector} from 'packages/reselect/src';
-
 import {Posts, Preferences} from 'mattermost-redux/constants';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForIds, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';

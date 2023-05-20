@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'packages/reselect/src';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getChannelNameToDisplayNameMap} from 'mattermost-redux/selectors/entities/channels';

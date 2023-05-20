@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'packages/reselect/src';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {
     getCurrentChannel,

@@ -4,10 +4,9 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import {createSelector} from 'packages/reselect/src';
-
 import {linkLdapGroup, unlinkLdapGroup, getLdapGroups as fetchLdapGroups} from 'mattermost-redux/actions/admin';
 import {getLdapGroups, getLdapGroupsCount} from 'mattermost-redux/selectors/entities/admin';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {GlobalState} from '@mattermost/types/store';
 import {ActionFunc} from 'mattermost-redux/types/actions';
