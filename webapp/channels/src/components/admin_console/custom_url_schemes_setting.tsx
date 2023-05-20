@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { ChangeEvent, Component } from 'react';
 
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
@@ -11,7 +11,20 @@ import LocalizedInput from 'components/localized_input/localized_input';
 
 import Setting from './setting';
 
-export default class CustomURLSchemesSetting extends React.PureComponent {
+type CustomURLSchemesSettingProps = {
+    id: string;
+    value: string[];
+    onChange: (id: string, valueAsArray: string[]) => void;
+    disabled: boolean;
+    setByEnv: boolean;
+}
+
+type CustomURLSchemesSettingState = {
+    value: string;
+}
+
+export default class CustomURLSchemesSetting extends 
+    Component<CustomURLSchemesSettingProps, CustomURLSchemesSettingState>  {
     static get propTypes() {
         return {
             id: PropTypes.string.isRequired,
@@ -22,7 +35,7 @@ export default class CustomURLSchemesSetting extends React.PureComponent {
         };
     }
 
-    constructor(props) {
+    constructor(props: CustomURLSchemesSettingProps) {
         super(props);
 
         this.state = {
@@ -30,15 +43,15 @@ export default class CustomURLSchemesSetting extends React.PureComponent {
         };
     }
 
-    stringToArray = (str) => {
+    stringToArray = (str: string): string[] => {
         return str.split(',').map((s) => s.trim()).filter(Boolean);
     };
 
-    arrayToString = (arr) => {
+    arrayToString = (arr: string[]): string => {
         return arr.join(',');
     };
 
-    handleChange = (e) => {
+    handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
         const valueAsArray = this.stringToArray(e.target.value);
 
         this.props.onChange(this.props.id, valueAsArray);
