@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React, { ChangeEvent, Component } from 'react';
+import React, {ChangeEvent, Component} from 'react';
 
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
@@ -23,8 +23,8 @@ type CustomURLSchemesSettingState = {
     value: string;
 }
 
-export default class CustomURLSchemesSetting extends 
-    Component<CustomURLSchemesSettingProps, CustomURLSchemesSettingState>  {
+export default class CustomURLSchemesSetting extends
+    Component<CustomURLSchemesSettingProps, CustomURLSchemesSettingState> {
     static get propTypes() {
         return {
             id: PropTypes.string.isRequired,
