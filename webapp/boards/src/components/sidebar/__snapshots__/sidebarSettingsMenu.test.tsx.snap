@@ -50,7 +50,7 @@ exports[`components/sidebar/SidebarSettingsMenu imports menu open should match s
                       class="menu-options"
                     >
                       <div
-                        aria-label="Import archive"
+                        aria-label="Import archive file"
                         class="MenuOption TextOption menu-option"
                         role="button"
                       >
@@ -67,7 +67,7 @@ exports[`components/sidebar/SidebarSettingsMenu imports menu open should match s
                           <div
                             class="menu-name"
                           >
-                            Import archive
+                            Import archive file
                           </div>
                         </div>
                         <div

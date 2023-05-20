@@ -52,7 +52,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                       class="menu-options"
                     >
                       <div
-                        aria-label="Import archive"
+                        aria-label="Import archive file"
                         class="MenuOption TextOption menu-option"
                         role="button"
                       >
@@ -60,8 +60,12 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           class="d-flex"
                         >
                           <div
-                            class="noicon"
-                          />
+                            class="menu-option__icon"
+                          >
+                            <i
+                              class="CompassIcon icon-import"
+                            />
+                          </div>
                         </div>
                         <div
                           class="menu-option__content"
@@ -69,13 +73,21 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           <div
                             class="menu-name"
                           >
-                            Import archive
+                            Import archive file
                           </div>
                         </div>
                         <div
                           class="noicon"
                         />
                       </div>
+                      <div
+                        class="MenuOption MenuSeparator menu-separator"
+                      />
+                      <span
+                        class="settings-menu-title__text"
+                      >
+                        External import docs
+                      </span>
                       <div
                         aria-label="Trello"
                         class="MenuOption TextOption menu-option"
