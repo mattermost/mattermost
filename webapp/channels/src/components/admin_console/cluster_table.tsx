@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -11,12 +10,22 @@ import statusYellow from 'images/status_yellow.png';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
-export default class ClusterTable extends React.PureComponent {
-    static propTypes = {
-        clusterInfos: PropTypes.array.isRequired,
-        reload: PropTypes.func.isRequired,
-    };
+type Props = {
+    clusterInfos: Array<{
+        version: string;
+        config_hash: string;
+        hostname: string;
+        ipaddress: string;
+    }>;
+    reload: () => void;
+}
+type Style = {
+    clusterTable: React.CSSProperties;
+    clusterCell: React.CSSProperties;
+    warning: React.CSSProperties;
+}
 
+export default class ClusterTable extends React.PureComponent<Props> {
     render() {
         let versionMismatch = (
             <img
@@ -188,7 +197,8 @@ export default class ClusterTable extends React.PureComponent {
     }
 }
 
-const style = {
+const style: Style = {
     clusterTable: {margin: 10, marginBottom: 30},
     clusterCell: {whiteSpace: 'nowrap'},
+    warning: {marginBottom: 10},
 };
