@@ -3,7 +3,8 @@
 
 import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 
-import getState from 'stores/redux_store';
+import store from 'stores/redux_store';
+const getState = store.getState;
 import mockStore from 'tests/test_store';
 
 jest.mock('stores/redux_store', () => ({
