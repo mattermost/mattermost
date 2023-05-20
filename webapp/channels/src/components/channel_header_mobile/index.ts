@@ -7,7 +7,6 @@ import {bindActionCreators, Dispatch} from 'redux';
 import {withRouter, matchPath} from 'react-router-dom';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {
     getCurrentChannel,
