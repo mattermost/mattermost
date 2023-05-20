@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 type StoreResult struct {
@@ -84,6 +84,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
 }
 
@@ -997,6 +998,16 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+}
+
+type PostPersistentNotificationStore interface {
+	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
+	GetSingle(postID string) (*model.PostPersistentNotifications, error)
+	UpdateLastActivity(postIds []string) error
+	Delete(postIds []string) error
+	DeleteExpired(maxSentCount int16) error
+	DeleteByChannel(channelIds []string) error
+	DeleteByTeam(teamIds []string) error
 }
 
 type TrueUpReviewStore interface {

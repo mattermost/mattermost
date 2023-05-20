@@ -93,6 +93,20 @@ describe('channels > channel header', {testIsolation: true}, () => {
             // * Verify tooltip text
             cy.get('#pluginTooltip').contains('Playbooks');
         });
+
+        it('webapp should make the Playbook channel header button active when opened', () => {
+            // # Navigate directly to a non-playbook run channel
+            cy.visit(`/${testTeam.name}/channels/town-square`);
+
+            cy.get('#channel-header').within(() => {
+                // # Click the channel header button
+                cy.get('#incidentIcon').click();
+
+                // * Verify channel header button is showing active className
+                cy.get('#incidentIcon').parent().
+                    should('have.class', 'channel-header__icon--active-inverted');
+            });
+        });
     });
 
     describe('description text', () => {

@@ -1,12 +1,14 @@
 {
   "name": "@mattermost/components",
-  "version": "7.11.0",
+  "version": "8.0.0",
+  "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "styles": "dist/index.esm.css",
   "scripts": {
     "build": "rollup -c",
     "run": "rollup -c --watch",
+    "test": "cross-env TZ=Etc/UTC jest",
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
