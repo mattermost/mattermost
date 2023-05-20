@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 /*
-* This function will generate the emoji files for both the webapp and server to use emojis from emoji-datasource
+* This script will generate the emoji files for both the webapp and server to use emojis from emoji-datasource
 * It will generate the following files:
 * '<rootDir>/webapp/channels/src/utils/emoji.ts'
 * '<rootDir>/webapp/channels/src/sass/components/_emojisprite.scss'
@@ -15,10 +15,10 @@
 
 /* eslint-disable no-console */
 
-import path from 'path';
-import * as Fs from 'fs/promises';
-import {readFileSync} from 'fs';
-import {fileURLToPath} from 'url';
+import path from 'node:path';
+import * as fsPromise from 'node:fs/promises';
+import * as fs from 'node:fs';
+import * as url from 'node:url';
 
 import yargs from 'yargs';
 import jsonData from 'emoji-datasource/emoji.json';
@@ -45,39 +45,52 @@ const argv = yargs(process.argv.slice(1)).
 
 const argsExcludedEmojiFile = argv['excluded-emoji-file'];
 
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
+function writeToFileAndPrint(fileName, filePath, data) {
+    const promise = fsPromise.writeFile(filePath, data, writeOptions);
+
+    promise.then(() => {
+        const successLogColor = '\x1b[32m%s\x1b[0m';
+        console.log(successLogColor, `${fileName} generated successfully in ${filePath}\n`);
+    });
+    return promise;
+}
+
+function normalizeCategoryName(category) {
+    return category.toLowerCase().replace(' & ', '-');
+}
+
+const currentDir = path.dirname(url.fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, '..', '..', '..', '..');
 const serverRootDir = path.resolve(rootDir, 'server');
 const webappRootDir = path.resolve(rootDir, 'webapp');
 
-const successLogColor = '\x1b[32m%s\x1b[0m';
 const errorLogColor = '\x1b[31m%s\x1b[0m';
 const warnLogColor = '\x1b[33m%s\x1b[0m';
 
 // Copy emoji images from 'emoji-datasource-apple'
 const emojiDataSourceDir = path.resolve(webappRootDir, `node_modules/emoji-datasource-apple/img/apple/${EMOJI_SIZE}/`);
 const emojiImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images', 'emoji');
-const readDirPromise = Fs.readdir(emojiDataSourceDir);
+const readDirPromise = fsPromise.readdir(emojiDataSourceDir);
 endResults.push(readDirPromise);
 readDirPromise.then((images) => {
     console.log(`Copying ${images.length} emoji images, this might take a while\n`);
 
     for (const imageFile of images) {
         endResults.push(
-            Fs.copyFile(path.join(emojiDataSourceDir, imageFile), path.join(emojiImagesDir, imageFile)).
+            fsPromise.copyFile(path.join(emojiDataSourceDir, imageFile), path.join(emojiImagesDir, imageFile)).
                 catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy ${imageFile}: ${err}`)));
     }
 });
 
 const webappImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images');
-Fs.copyFile(path.resolve(webappImagesDir, 'icon64x64.png'), path.resolve(webappImagesDir, 'emoji/mattermost.png'));
+fsPromise.copyFile(path.resolve(webappImagesDir, 'icon64x64.png'), path.resolve(webappImagesDir, 'emoji/mattermost.png'));
 
 const sheetSource = path.resolve(webappRootDir, `node_modules/emoji-datasource-apple/img/apple/sheets/${EMOJI_SIZE}.png`);
 const sheetAbsoluteFile = path.resolve(webappRootDir, 'channels', 'src', 'images/emoji-sheets/apple-sheet.png');
 const sheetFile = 'images/emoji-sheets/apple-sheet.png';
 
 // Copy sheet image
-Fs.copyFile(sheetSource, sheetAbsoluteFile).catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy sheet file: ${err}`));
+fsPromise.copyFile(sheetSource, sheetAbsoluteFile).catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy sheet file: ${err}`));
 
 // we'll load it as a two dimensional array so we can generate a Map out of it
 const emojiIndicesByAlias = [];
@@ -110,30 +123,19 @@ const writeOptions = {
     signal: control.signal,
 };
 
-function filename(emoji) {
-    return emoji.image.split('.')[0];
-}
-
-function writeFile(fileName, filePath, data) {
-    const promise = Fs.writeFile(filePath, data, writeOptions);
-
-    promise.then(() => {
-        console.log(successLogColor, `${fileName} generated successfully in ${filePath}\n`);
+// Extract excluded emoji shortnames as an array
+const excludedEmoji = [];
+if (argsExcludedEmojiFile) {
+    fs.readFileSync(path.normalize(argsExcludedEmojiFile), 'utf-8').split(/\r?\n/).forEach((line) => {
+        excludedEmoji.push(line);
     });
-    return promise;
+    console.log(warnLogColor, `\n[WARNING] The following emoji(s) will be excluded from the webapp: \n${excludedEmoji}\n`);
 }
 
-function convertCategory(category) {
-    return category.toLowerCase().replace(' & ', '-');
-}
+// Remove unwanted emoji
+const filteredEmojiJson = jsonData.filter((element) => !excludedEmoji.some((e) => element.short_names.includes(e)));
 
-function addIndexToMap(emojiMap, key, ...indexes) {
-    const newList = emojiMap.get(key) || [];
-    newList.push(...indexes);
-    emojiMap.set(key, newList);
-}
-
-function genSkinVariations(emoji) {
+function generateEmojiSkinVariations(emoji) {
     if (!emoji.skin_variations) {
         return [];
     }
@@ -151,6 +153,79 @@ function genSkinVariations(emoji) {
         return variation;
     });
 }
+
+// populate skin tones as full emojis
+const fullEmoji = [...filteredEmojiJson];
+filteredEmojiJson.forEach((emoji) => {
+    const variations = generateEmojiSkinVariations(emoji);
+    fullEmoji.push(...variations);
+});
+
+// add old shortnames to maintain backwards compatibility with gemoji
+fullEmoji.forEach((emoji) => {
+    if (emoji.short_name in additionalShortnames) {
+        emoji.short_names.push(...additionalShortnames[emoji.short_name]);
+    }
+});
+
+// add built-in custom emojis
+fullEmoji.push({
+    id: 'mattermost',
+    name: 'Mattermost',
+    unified: '',
+    image: 'mattermost.png',
+    short_name: 'mattermost',
+    short_names: ['mattermost'],
+    category: 'custom',
+});
+
+fullEmoji.sort((emojiA, emojiB) => emojiA.sort_order - emojiB.sort_order);
+
+function addIndexToMap(emojiMap, key, ...indexes) {
+    const newList = emojiMap.get(key) || [];
+    newList.push(...indexes);
+    emojiMap.set(key, newList);
+}
+
+const skinset = new Set();
+fullEmoji.forEach((emoji, index) => {
+    if (emoji.unified) {
+        emojiIndicesByUnicode.push([emoji.unified.toLowerCase(), index]);
+    }
+
+    const safeCat = normalizeCategoryName(emoji.category);
+    categoryDefaultTranslation.set(safeCat, emoji.category);
+    emoji.category = safeCat;
+    addIndexToMap(emojiIndicesByCategory, safeCat, index);
+    if (emoji.skins || emoji.skin_variations) {
+        const skin = (emoji.skins && emoji.skins[0]) || EMOJI_DEFAULT_SKIN;
+        skinset.add(skin);
+        const categoryBySkin = emojiIndicesByCategoryAndSkin.get(skin) || new Map();
+        addIndexToMap(categoryBySkin, safeCat, index);
+        emojiIndicesByCategoryAndSkin.set(skin, categoryBySkin);
+    } else {
+        addIndexToMap(emojiIndicesByCategoryNoSkin, safeCat, index);
+    }
+    categoryNamesSet.add(safeCat);
+    emojiIndicesByAlias.push(...emoji.short_names.map((alias) => [alias, index]));
+    const file = emoji.image.split('.')[0];
+    emoji.fileName = emoji.image;
+    emoji.image = file;
+
+    if (emoji.category !== 'custom') {
+        let x = emoji.sheet_x * EMOJI_SIZE_PADDED;
+        if (x !== 0) {
+            x += 'px';
+        }
+        let y = emoji.sheet_y * EMOJI_SIZE_PADDED;
+        if (y !== 0) {
+            y += 'px';
+        }
+        emojiFilePositions.set(file, `-${x} -${y};`);
+    }
+
+    emojiImagesByAlias.push(...emoji.short_names.map((alias) => `"${alias}": "${file}"`));
+});
 
 function trimPropertiesFromEmoji(emoji) {
     if (emoji.hasOwnProperty('non_qualified')) {
@@ -224,93 +299,14 @@ function trimPropertiesFromEmoji(emoji) {
     return emoji;
 }
 
-// Extract excluded emoji shortnames as an array
-const excludedEmoji = [];
-if (argsExcludedEmojiFile) {
-    readFileSync(path.normalize(argsExcludedEmojiFile), 'utf-8').split(/\r?\n/).forEach((line) => {
-        excludedEmoji.push(line);
-    });
-    console.log(warnLogColor, `\n[WARNING] The following emoji(s) will be excluded from the webapp: \n${excludedEmoji}\n`);
-}
-
-// Remove unwanted emoji
-const filteredEmojiJson = jsonData.filter((element) => !excludedEmoji.some((e) => element.short_names.includes(e)));
-
-// populate skin tones as full emojis
-const fullEmoji = [...filteredEmojiJson];
-filteredEmojiJson.forEach((emoji) => {
-    const variations = genSkinVariations(emoji);
-    fullEmoji.push(...variations);
-});
-
-// add old shortnames to maintain backwards compatibility with gemoji
-fullEmoji.forEach((emoji) => {
-    if (emoji.short_name in additionalShortnames) {
-        emoji.short_names.push(...additionalShortnames[emoji.short_name]);
-    }
-});
-
-// add built-in custom emojis
-fullEmoji.push({
-    id: 'mattermost',
-    name: 'Mattermost',
-    unified: '',
-    image: 'mattermost.png',
-    short_name: 'mattermost',
-    short_names: ['mattermost'],
-    category: 'custom',
-});
-
-fullEmoji.sort((emojiA, emojiB) => emojiA.sort_order - emojiB.sort_order);
-
-const skinset = new Set();
-fullEmoji.forEach((emoji, index) => {
-    if (emoji.unified) {
-        emojiIndicesByUnicode.push([emoji.unified.toLowerCase(), index]);
-    }
-
-    const safeCat = convertCategory(emoji.category);
-    categoryDefaultTranslation.set(safeCat, emoji.category);
-    emoji.category = safeCat;
-    addIndexToMap(emojiIndicesByCategory, safeCat, index);
-    if (emoji.skins || emoji.skin_variations) {
-        const skin = (emoji.skins && emoji.skins[0]) || EMOJI_DEFAULT_SKIN;
-        skinset.add(skin);
-        const categoryBySkin = emojiIndicesByCategoryAndSkin.get(skin) || new Map();
-        addIndexToMap(categoryBySkin, safeCat, index);
-        emojiIndicesByCategoryAndSkin.set(skin, categoryBySkin);
-    } else {
-        addIndexToMap(emojiIndicesByCategoryNoSkin, safeCat, index);
-    }
-    categoryNamesSet.add(safeCat);
-    emojiIndicesByAlias.push(...emoji.short_names.map((alias) => [alias, index]));
-    const file = filename(emoji);
-    emoji.fileName = emoji.image;
-    emoji.image = file;
-
-    if (emoji.category !== 'custom') {
-        let x = emoji.sheet_x * EMOJI_SIZE_PADDED;
-        if (x !== 0) {
-            x += 'px';
-        }
-        let y = emoji.sheet_y * EMOJI_SIZE_PADDED;
-        if (y !== 0) {
-            y += 'px';
-        }
-        emojiFilePositions.set(file, `-${x} -${y};`);
-    }
-
-    emojiImagesByAlias.push(...emoji.short_names.map((alias) => `"${alias}": "${file}"`));
-});
-
 // Removed properties that are not needed for the webapp
 const trimmedDownEmojis = fullEmoji.map((emoji) => trimPropertiesFromEmoji(emoji));
 
 // Create the emoji.json file
 const webappUtilsEmojiDir = path.resolve(webappRootDir, 'channels', 'src', 'utils', 'emoji.json');
-endResults.push(writeFile('emoji.json', webappUtilsEmojiDir, JSON.stringify(trimmedDownEmojis, null, 4)));
+endResults.push(writeToFileAndPrint('emoji.json', webappUtilsEmojiDir, JSON.stringify(trimmedDownEmojis, null, 4)));
 
-const categoryList = Object.keys(jsonCategories).filter((item) => item !== 'Component').map(convertCategory);
+const categoryList = Object.keys(jsonCategories).filter((item) => item !== 'Component').map(normalizeCategoryName);
 const categoryNames = ['recent', ...categoryList, 'custom'];
 categoryDefaultTranslation.set('recent', 'Recently Used');
 categoryDefaultTranslation.set('searchResults', 'Search Results');
@@ -330,7 +326,7 @@ for (const skin of emojiIndicesByCategoryAndSkin.keys()) {
 const emojiJSX = `// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// This file is automatically generated via \`/webapp/channels/build/emoji_gen.mjs\`. Do not modify it manually.
+// This file is automatically generated via \`/webapp/channels/build/make_emojis.mjs\`. Do not modify it manually.
 
 /* eslint-disable */
 
@@ -385,12 +381,12 @@ export const EmojiIndicesByCategory = new Map([${skinnedCats.join(', ')}]);
 
 // Create the emoji.ts file
 const webappUtilsEmojiTSDir = path.resolve(webappRootDir, 'channels', 'src', 'utils', 'emoji.ts');
-endResults.push(writeFile('emoji.ts', webappUtilsEmojiTSDir, emojiJSX));
+endResults.push(writeToFileAndPrint('emoji.ts', webappUtilsEmojiTSDir, emojiJSX));
 
 const emojiGo = `// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// This file is automatically generated via \`/webapp/channels/build/emoji_gen.mjs\`. Do not modify it manually.
+// This file is automatically generated via \`/webapp/channels/build/make_emojis.mjs\`. Do not modify it manually.
 
 package model
 
@@ -402,7 +398,7 @@ ${emojiImagesByAlias.join(`,
 
 // Create the emoji_data.go file
 const serverEmojiDataDir = path.resolve(serverRootDir, 'public', 'model', 'emoji_data.go');
-const goPromise = writeFile('emoji_data.go', serverEmojiDataDir, emojiGo);
+const goPromise = writeToFileAndPrint('emoji_data.go', serverEmojiDataDir, emojiGo);
 endResults.push(goPromise);
 
 // Create individual emoji styles
@@ -456,7 +452,7 @@ ${cssEmojis.join('\n')}
 
 // Create the emojisprite.scss file
 const emojispriteDir = path.resolve(webappRootDir, 'channels', 'src', 'sass', 'components', '_emojisprite.scss');
-endResults.push(writeFile('_emojisprite.scss', emojispriteDir, cssRules));
+endResults.push(writeToFileAndPrint('_emojisprite.scss', emojispriteDir, cssRules));
 
 Promise.all(endResults).then(() => {
     console.log(warnLogColor, '\n[WARNING] Remember to run `make i18n-extract` as categories might have changed.');
