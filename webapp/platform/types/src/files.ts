@@ -20,11 +20,20 @@ export type FileInfo = {
     archived: boolean;
     link?: string;
 };
+
+export type UploadInfo = {
+    name: string;
+    percent?: number;
+    type?: string;
+}
+export type FilePreviewInfo = FileInfo & UploadInfo;
+
 export type FilesState = {
     files: Record<string, FileInfo>;
     filesFromSearch: Record<string, FileSearchResultItem>;
     fileIdsByPostId: Record<string, string[]>;
     filePublicLink?: {link: string};
+    filePreviews: Record<string, FilePreviewInfo[]>;
 };
 
 export type FileUploadResponse = {

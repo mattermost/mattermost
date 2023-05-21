@@ -4,7 +4,7 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
+import {getFilePreviews, makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Post} from '@mattermost/types/posts';
 import {GenericAction} from 'mattermost-redux/types/actions';
@@ -15,6 +15,8 @@ import {getCurrentLocale} from 'selectors/i18n';
 import {isEmbedVisible} from 'selectors/posts';
 
 import {openModal} from 'actions/views/modals';
+
+import {cancelUploadingFile} from 'actions/file_actions';
 
 import FileAttachmentList from './file_attachment_list';
 
@@ -44,6 +46,7 @@ function makeMapStateToProps() {
         return {
             enableSVGs: getConfig(state).EnableSVGs === 'true',
             fileInfos,
+            filePreviews: getFilePreviews(state, ownProps.post.pending_post_id),
             fileCount,
             isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
             locale: getCurrentLocale(state),
@@ -55,6 +58,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
             openModal,
+            cancelUploadingFile,
         }, dispatch),
     };
 }

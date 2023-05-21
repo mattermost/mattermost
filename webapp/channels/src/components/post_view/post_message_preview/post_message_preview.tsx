@@ -103,7 +103,7 @@ const PostMessagePreview = (props: Props) => {
 
     let fileAttachmentPreview = null;
 
-    if (((previewPost.file_ids && previewPost.file_ids.length > 0) || (previewPost.filenames && previewPost.filenames.length > 0))) {
+    if (((previewPost.file_ids && previewPost.file_ids.length > 0) || (previewPost.filenames && previewPost.filenames.length > 0)) || (previewPost.file_client_ids && previewPost.file_client_ids.length > 0)) {
         fileAttachmentPreview = (
             <FileAttachmentListContainer
                 post={previewPost}

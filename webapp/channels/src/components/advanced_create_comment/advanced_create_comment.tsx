@@ -35,11 +35,10 @@ import PostDeletedModal from 'components/post_deleted_modal';
 import {PostDraft} from 'types/store/draft';
 import {Group, GroupSource} from '@mattermost/types/groups';
 import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
 import {Emoji} from '@mattermost/types/emojis';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
+import {FileInfo, FilePreviewInfo} from '@mattermost/types/files';
 import EmojiMap from 'utils/emoji_map';
 import {
     applyLinkMarkdown,
@@ -115,7 +114,7 @@ type Props = {
     updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
 
     // Called when submitting the comment
-    onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
+    onSubmit: (draft: PostDraft, filePreviewInfos: FilePreviewInfo[], options: {ignoreSlash: boolean}) => void;
 
     // Called when resetting comment message history index
     onResetHistoryIndex: () => void;
@@ -190,11 +189,12 @@ type Props = {
     emojiMap: EmojiMap;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+
+    cancelUploadingFile: (clientId: string) => void;
 }
 
 type State = {
     showEmojiPicker: boolean;
-    uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
     draft?: PostDraft;
@@ -235,7 +235,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             createPostErrorId: props.createPostErrorId,
             rootId: props.rootId,
             messageInHistory: props.messageInHistory,
-            draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsInProgress: []},
+            draft: state.draft || {...props.draft, caretPosition: props.draft.message.length, uploadsProgressPercent: {}},
         };
 
         const rootChanged = props.rootId !== state.rootId;
@@ -245,7 +245,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                 ...updatedState,
                 draft: {
                     ...props.draft,
-                    uploadsInProgress: rootChanged ? [] : props.draft.uploadsInProgress,
+                    uploadsProgressPercent: rootChanged ? {} : props.draft.uploadsProgressPercent,
                 },
             };
         }
@@ -258,7 +258,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         this.state = {
             showEmojiPicker: false,
-            uploadsProgressPercent: {},
             renderScrollbar: false,
             scrollbarWidth: 0,
             errorClass: null,
@@ -304,7 +303,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (prevState.draft!.uploadsInProgress.length < this.state.draft!.uploadsInProgress.length && this.props.scrollToBottom) {
+        if (Object.keys(prevState.draft!.uploadsProgressPercent).length < Object.keys(this.state.draft!.uploadsProgressPercent).length && this.props.scrollToBottom) {
             this.props.scrollToBottom();
         }
 
@@ -692,11 +691,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             return;
         }
 
-        if (draft.uploadsInProgress.length > 0) {
-            this.isDraftSubmitting = false;
-            return;
-        }
-
         if (this.state.postError) {
             this.setState({errorClass: 'animation--highlight'});
             setTimeout(() => {
@@ -725,7 +719,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const options = {ignoreSlash};
 
         try {
-            await this.props.onSubmit(draft, options);
+            const filePreviewInfos = Object.values(draft.uploadsProgressPercent).filter((f): f is FilePreviewInfo => f !== undefined);
+            await this.props.onSubmit(draft, filePreviewInfos, options);
 
             this.setState({
                 postError: null,
@@ -747,7 +742,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
 
         this.isDraftSubmitting = false;
-        this.setState({draft: {...this.props.draft, uploadsInProgress: []}});
+        this.setState({draft: {...this.props.draft, uploadsProgressPercent: {}}});
         this.draftsForPost[this.props.rootId] = null;
     };
 
@@ -1071,11 +1066,14 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
     handleUploadStart = (clientIds: string[]) => {
         const draft = this.state.draft!;
-        const uploadsInProgress = [...draft.uploadsInProgress, ...clientIds];
+        const uploadsProgressPercent = {...draft.uploadsProgressPercent};
+        clientIds.forEach((clientId) => {
+            uploadsProgressPercent[clientId] = undefined;
+        });
 
         const modifiedDraft = {
             ...draft,
-            uploadsInProgress,
+            uploadsProgressPercent,
         };
         this.props.onUpdateCommentDraft(modifiedDraft);
         this.setState({draft: modifiedDraft});
@@ -1087,28 +1085,42 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
-        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [filePreviewInfo.clientId]: filePreviewInfo};
-        this.setState({uploadsProgressPercent});
+        const draft = this.state.draft;
+        if (draft && Object.keys(this.props.draft.uploadsProgressPercent).includes(filePreviewInfo.clientId)) {
+            const uploadsProgressPercent = {...draft.uploadsProgressPercent, [filePreviewInfo.clientId]: filePreviewInfo};
+            const modifiedDraft = {
+                ...draft,
+                uploadsProgressPercent,
+            };
+            this.handleDraftChange(modifiedDraft);
+            this.setState({draft: modifiedDraft});
+        }
     };
 
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], _: string, rootId?: string) => {
         const draft = this.draftsForPost[rootId!]!;
-        const uploadsInProgress = [...draft.uploadsInProgress];
+
+        if (!draft || !Object.keys(draft.uploadsProgressPercent).some((clientId) => clientIds.includes(clientId))) {
+            return;
+        }
+
+        const draftUploadsProgressPercent = {...draft.uploadsProgressPercent};
+
         const newFileInfos = sortFileInfos([...draft.fileInfos, ...fileInfos], this.props.locale);
 
         // remove each finished file from uploads
         for (let i = 0; i < clientIds.length; i++) {
-            const index = uploadsInProgress.indexOf(clientIds[i]);
+            const key = Object.keys(draftUploadsProgressPercent).find((clientId) => clientId === clientIds[i]);
 
-            if (index !== -1) {
-                uploadsInProgress.splice(index, 1);
+            if (key !== undefined) {
+                delete draftUploadsProgressPercent[key];
             }
         }
 
         const modifiedDraft = {
             ...draft,
             fileInfos: newFileInfos,
-            uploadsInProgress,
+            draftUploadsProgressPercent,
         };
         this.handleDraftChange(modifiedDraft, rootId!, true, true);
         if (this.props.rootId === rootId) {
@@ -1119,16 +1131,16 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     handleUploadError = (err: string | ServerError | null, clientId: string | number = -1, _?: string, rootId = '') => {
         if (clientId !== -1) {
             const draft = {...this.draftsForPost[rootId]!};
-            const uploadsInProgress = [...draft.uploadsInProgress];
+            const uploadsProgressPercent = {...draft.uploadsProgressPercent};
 
-            const index = uploadsInProgress.indexOf(clientId as string);
-            if (index !== -1) {
-                uploadsInProgress.splice(index, 1);
+            const key = Object.keys(uploadsProgressPercent).find((key) => key === clientId as string);
+            if (key !== undefined) {
+                delete uploadsProgressPercent[key];
             }
 
             const modifiedDraft = {
                 ...draft,
-                uploadsInProgress,
+                uploadsProgressPercent,
             };
             this.props.updateCommentDraftWithRootId(rootId, modifiedDraft, true);
             this.draftsForPost[rootId] = modifiedDraft;
@@ -1152,22 +1164,20 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     removePreview = (id: string) => {
         const draft = this.state.draft!;
         const fileInfos = [...draft.fileInfos];
-        const uploadsInProgress = [...draft.uploadsInProgress];
+        const uploadsProgressPercent = {...draft.uploadsProgressPercent};
 
         // Clear previous errors
         this.handleUploadError(null);
 
         // id can either be the id of an uploaded file or the client id of an in progress upload
-        let index = fileInfos.findIndex((info) => info.id === id);
+        const index = fileInfos.findIndex((info) => info.id === id);
         if (index === -1) {
-            index = uploadsInProgress.indexOf(id);
+            const key = Object.keys(uploadsProgressPercent).find((clientId) => clientId === id);
 
-            if (index !== -1) {
-                uploadsInProgress.splice(index, 1);
+            if (key !== undefined) {
+                delete uploadsProgressPercent[key];
 
-                if (this.fileUploadRef.current) {
-                    this.fileUploadRef.current.cancelUpload(id);
-                }
+                this.props.cancelUploadingFile(id);
             }
         } else {
             fileInfos.splice(index, 1);
@@ -1176,7 +1186,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const modifiedDraft = {
             ...draft,
             fileInfos,
-            uploadsInProgress,
+            uploadsProgressPercent,
         };
 
         this.props.onUpdateCommentDraft(modifiedDraft);
@@ -1220,7 +1230,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         if (draft) {
             const message = draft.message ? draft.message.trim() : '';
             const fileInfos = draft.fileInfos ? draft.fileInfos : [];
-            if (message.trim().length !== 0 || fileInfos.length !== 0) {
+            const uploadsProgressPercent = Object.keys(draft.uploadsProgressPercent);
+            if (message.trim().length !== 0 || fileInfos.length !== 0 || uploadsProgressPercent.length !== 0) {
                 return true;
             }
         }
@@ -1248,7 +1259,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             <form onSubmit={this.handleSubmit}>
                 {
                     this.props.canPost &&
-                    (this.props.draft.fileInfos.length > 0 || this.props.draft.uploadsInProgress.length > 0) &&
+                    (this.props.draft.fileInfos.length > 0 || Object.keys(this.props.draft.uploadsProgressPercent).length > 0) &&
                     <FileLimitStickyBanner/>
                 }
                 <AdvancedTextEditor
@@ -1257,7 +1268,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
                     currentUserId={this.props.currentUserId}
                     message={draft.message}
                     showEmojiPicker={this.state.showEmojiPicker}
-                    uploadsProgressPercent={this.state.uploadsProgressPercent}
+                    uploadsProgressPercent={draft.uploadsProgressPercent}
                     channelId={this.props.channelId}
                     postId={this.props.rootId}
                     errorClass={this.state.errorClass}

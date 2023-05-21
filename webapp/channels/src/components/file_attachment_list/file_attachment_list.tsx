@@ -12,6 +12,9 @@ import FileAttachment from 'components/file_attachment';
 import SingleImageView from 'components/single_image_view';
 import FilePreviewModal from 'components/file_preview_modal';
 
+import FilePreview from 'components/file_preview';
+import {FilePreviewInfo} from '@mattermost/types/files';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 type Props = OwnProps & PropsFromRedux;
@@ -60,6 +63,25 @@ export default function FileAttachmentList(props: Props) {
     }
 
     const postFiles = [];
+
+    const filePreviews = sortFileInfos(props.filePreviews.slice().filter((f) => !sortedFileInfos.map((s) => s.clientId).includes(f.clientId)));
+    if (filePreviews.length !== 0) {
+        postFiles.push(
+            <FilePreview
+                key='KEY'
+                fileInfos={[]}
+                uploadsProgressPercent={filePreviews.reduce((s, f) => {
+                    return {
+                        ...s,
+                        [f.clientId]: f,
+                    };
+                }, {} as {[clientID: string]: FilePreviewInfo})}
+                onRemove={(id) => {
+                    props.actions.cancelUploadingFile(id);
+                }}
+            />,
+        );
+    }
     if (sortedFileInfos && sortedFileInfos.length > 0) {
         for (let i = 0; i < sortedFileInfos.length; i++) {
             const fileInfo = sortedFileInfos[i];

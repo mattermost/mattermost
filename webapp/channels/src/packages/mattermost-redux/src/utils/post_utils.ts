@@ -140,16 +140,31 @@ function isJoinLeavePostForUsername(post: Post, currentUsername: string): boolea
         post.props.removedUsername === currentUsername;
 }
 
+export function isPostUploadingFile(post: Post): boolean {
+    return post.id === post.pending_post_id && post.file_client_ids !== undefined && post.file_client_ids.length !== 0;
+}
+
+export function isPostDangling(state: GlobalState, post: Post) {
+    const rootPost = state.entities.posts.posts[post.root_id];
+    return rootPost && isPostPending(rootPost);
+}
+
+export function isPostPending(post: Post) {
+    return post.id === post.pending_post_id;
+}
+
 export function isPostPendingOrFailed(post: Post): boolean {
-    return post.failed || post.id === post.pending_post_id;
+    return post.failed || isPostPending(post);
 }
 
 export function comparePosts(a: Post, b: Post): number {
+    const aIsUploadingFile = isPostUploadingFile(a);
+    const bIsUploadingFile = isPostUploadingFile(b);
     const aIsPendingOrFailed = isPostPendingOrFailed(a);
     const bIsPendingOrFailed = isPostPendingOrFailed(b);
-    if (aIsPendingOrFailed && !bIsPendingOrFailed) {
+    if (!aIsUploadingFile && aIsPendingOrFailed && !bIsPendingOrFailed) {
         return -1;
-    } else if (!aIsPendingOrFailed && bIsPendingOrFailed) {
+    } else if (!bIsUploadingFile && !aIsPendingOrFailed && bIsPendingOrFailed) {
         return 1;
     }
 

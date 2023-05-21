@@ -87,6 +87,7 @@ export type Post = {
     pending_post_id: string;
     reply_count: number;
     file_ids?: string[];
+    file_client_ids?: string[];
     metadata: PostMetadata;
     failed?: boolean;
     user_activity_posts?: Post[];

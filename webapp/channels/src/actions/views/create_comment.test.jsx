@@ -151,7 +151,7 @@ describe('rhs view actions', () => {
                     value: {
                         message: '',
                         fileInfos: [],
-                        uploadsInProgress: [],
+                        uploadsProgressPercent: {},
                         channelId,
                         rootId,
                     },
@@ -183,9 +183,9 @@ describe('rhs view actions', () => {
             // make sure callback is a function which clears uploadsInProgress
             expect(typeof callback).toBe('function');
 
-            const draft = {message: 'test msg', channelId, rootId, uploadsInProgress: [3, 4], fileInfos: [{id: 1}, {id: 2}]};
+            const draft = {message: 'test msg', channelId, rootId, uploadsProgressPercent: {3: undefined, 4: undefined}, fileInfos: [{id: 1}, {id: 2}]};
 
-            expect(callback(null, draft)).toEqual({...draft, uploadsInProgress: []});
+            expect(callback(null, draft)).toEqual({...draft, uploadsProgressPercent: {}});
 
             const testStore = mockStore(initialState);
 
@@ -249,7 +249,7 @@ describe('rhs view actions', () => {
 
             const testStore = mockStore(initialState);
 
-            testStore.dispatch(updateCommentDraft(rootId, {message: 'test message', channelId, rootId, fileInfos: [], uploadsInProgress: []}));
+            testStore.dispatch(updateCommentDraft(rootId, {message: 'test message', channelId, rootId, fileInfos: [], uploadsProgressPercent: {}}));
 
             expect(store.getActions()).toEqual(
                 expect.arrayContaining(testStore.getActions()),
@@ -260,7 +260,7 @@ describe('rhs view actions', () => {
     });
 
     describe('submitPost', () => {
-        const draft = {message: '', channelId, rootId, fileInfos: []};
+        const draft = {message: '', channelId, rootId, fileInfos: [], uploadsProgressPercent: {}};
 
         const post = {
             file_ids: [],

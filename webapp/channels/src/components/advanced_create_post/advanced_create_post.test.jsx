@@ -44,7 +44,7 @@ const currentChannelProp = {
 const currentChannelMembersCountProp = 9;
 const draftProp = {
     message: '',
-    uploadsInProgress: [],
+    uploadsProgressPercent: {},
     fileInfos: [],
 };
 
@@ -833,10 +833,9 @@ describe('components/advanced_create_post', () => {
         const clientIds = ['a'];
         const draft = {
             ...draftProp,
-            uploadsInProgress: [
-                ...draftProp.uploadsInProgress,
-                ...clientIds,
-            ],
+            uploadsProgressPercent: Object.assign(draftProp.uploadsProgressPercent, {
+                a: undefined,
+            }),
         };
 
         instance.handleUploadStart(clientIds, currentChannelProp.id);
@@ -857,26 +856,27 @@ describe('components/advanced_create_post', () => {
 
         const instance = wrapper.instance();
         const clientIds = ['a'];
-        const uploadsInProgressDraft = {
+        const uploadsProgressPercentDraft = {
             ...draftProp,
-            uploadsInProgress: [
-                ...draftProp.uploadsInProgress,
-                'a',
-            ],
+            uploadsProgressPercent: Object.assign(draftProp.uploadsProgressPercent, {
+                a: undefined,
+            }),
         };
 
-        instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
+        instance.draftsForChannel[currentChannelProp.id] = uploadsProgressPercentDraft;
 
-        wrapper.setProps({draft: uploadsInProgressDraft});
-        const fileInfos = {
-            id: 'a',
-        };
+        wrapper.setProps({draft: uploadsProgressPercentDraft});
+        const fileInfos = [{
+            name: 'a',
+            clientId: 'a',
+        }];
         const expectedDraft = {
             ...draftProp,
             fileInfos: [
                 ...draftProp.fileInfos,
-                fileInfos,
+                fileInfos[0],
             ],
+            uploadsProgressPercent: {},
         };
 
         instance.handleFileUploadComplete(fileInfos, clientIds, currentChannelProp.id);
@@ -900,10 +900,9 @@ describe('components/advanced_create_post', () => {
         const instance = wrapper.instance();
         const uploadsInProgressDraft = {
             ...draftProp,
-            uploadsInProgress: [
-                ...draftProp.uploadsInProgress,
-                'a',
-            ],
+            uploadsProgressPercent: Object.assign(draftProp.uploadsProgressPercent, {
+                a: undefined,
+            }),
         };
 
         wrapper.setProps({draft: uploadsInProgressDraft});
@@ -1218,6 +1217,7 @@ describe('components/advanced_create_post', () => {
                 message: '/fakecommand some text',
             }),
             expect.anything(),
+            expect.anything(),
         );
     });
 
@@ -1257,6 +1257,7 @@ describe('components/advanced_create_post', () => {
             expect.objectContaining({
                 message: 'some valid text',
             }),
+            expect.anything(),
             expect.anything(),
         );
     });
@@ -1653,5 +1654,76 @@ describe('components/advanced_create_post', () => {
         const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: false, draft: {...draftProp, metadata: {priority: {priority: 'important'}}}}));
 
         expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should be able to send post which is uploading file without message', async () => {
+        const clientId = 'clientId';
+        const onSubmitPost = jest.fn();
+        const wrapper = shallow(advancedCreatePost({
+            actions: {
+                ...actionsProp,
+                onSubmitPost,
+            },
+            draft: {
+                ...draftProp,
+                uploadsProgressPercent: {
+                    id: undefined,
+                },
+            },
+        }));
+
+        const uploadsProgressPercent = {
+            [clientId]: {},
+        };
+        wrapper.setState({
+            message: '',
+            uploadsProgressPercent,
+        });
+
+        await wrapper.instance().handleSubmit({preventDefault: jest.fn()});
+
+        expect(onSubmitPost).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: '',
+            }),
+            [],
+            Object.values(uploadsProgressPercent),
+        );
+
+        expect(wrapper.state().uploadsProgressPercent).toStrictEqual({});
+    });
+
+    it('should call cancelUploadingFile when draft has no corresponding fileInfo', () => {
+        const id = 'a';
+        const cancelUploadingFile = jest.fn();
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...actionsProp,
+                    cancelUploadingFile,
+                },
+                draft: {
+                    ...draftProp,
+                    uploadsProgressPercent: {[id]: undefined},
+                },
+            }),
+        );
+
+        wrapper.instance().removePreview(id);
+        expect(cancelUploadingFile).toHaveBeenCalled();
+    });
+
+    it("should ignore already submitted file's progoress", () => {
+        const wrapper = shallow(
+            advancedCreatePost(),
+        );
+
+        const uploadsProgressPercent = ['a'];
+        wrapper.setState({
+            uploadsProgressPercent,
+        });
+
+        wrapper.instance().handleUploadProgress({clientId: 'b'});
+        expect(wrapper.state().uploadsProgressPercent).toStrictEqual(uploadsProgressPercent);
     });
 });

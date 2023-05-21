@@ -49,6 +49,8 @@ import {UserProfile} from '@mattermost/types/users';
 import {Post} from '@mattermost/types/posts';
 import {Emoji} from '@mattermost/types/emojis';
 
+import {FilePreviewInfo} from '@mattermost/types/files';
+
 import PostUserProfile from './user_profile';
 import PostOptions from './post_options';
 import {Team} from '@mattermost/types/teams';
@@ -117,10 +119,11 @@ export type Props = {
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
+    filePreviews: FilePreviewInfo[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {
-    const {post, shouldHighlight, togglePostMenu} = props;
+    const {post, shouldHighlight, filePreviews, togglePostMenu} = props;
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
@@ -283,7 +286,7 @@ const PostComponent = (props: Props): JSX.Element => {
         const hovered =
             hover || fileDropdownOpened || dropdownOpened || a11yActive || props.isPostBeingEdited;
         return classNames('a11y__section post', {
-            'post--highlight': shouldHighlight && !fadeOutHighlight,
+            'post--highlight': props.shouldHighlight && !fadeOutHighlight,
             'same--root': hasSameRoot(props),
             'other--root': !hasSameRoot(props) && !isSystemMessage,
             'post--bot': PostUtils.isFromBot(post),
@@ -642,7 +645,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                 slot2={<EditPost/>}
                                 onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                             />
-                            {post.file_ids && post.file_ids.length > 0 &&
+                            {((post.file_ids && post.file_ids.length > 0) || filePreviews.length > 0) &&
                             <FileAttachmentListContainer
                                 post={post}
                                 compactDisplay={props.compactDisplay}

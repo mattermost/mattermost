@@ -35,14 +35,15 @@ import {Constants, StoragePrefixes} from 'utils/constants';
 import type {PostDraft} from 'types/store/draft';
 import type {GlobalState} from 'types/store';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {FilePreviewInfo} from '@mattermost/types/files';
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
-        if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
+        if (!draft || !draft.uploadsProgressPercent || Object.keys(draft.uploadsProgressPercent).length === 0) {
             return draft;
         }
 
-        return {...draft, uploadsInProgress: []};
+        return {...draft, uploadsProgressPercent: {}};
     });
 }
 
@@ -102,7 +103,11 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
 
         post = hookResult.data;
 
-        return dispatch(PostActions.createPost(post, draft.fileInfos));
+        return dispatch(PostActions.createPost(
+            post,
+            draft.fileInfos,
+            Object.values(draft.uploadsProgressPercent).filter((filePreviewInfo): filePreviewInfo is FilePreviewInfo => filePreviewInfo !== undefined),
+        ));
     };
 }
 

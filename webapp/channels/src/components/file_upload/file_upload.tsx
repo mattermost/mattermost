@@ -7,9 +7,6 @@ import classNames from 'classnames';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
 
-import {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-import {ServerError} from '@mattermost/types/errors';
-
 import dragster from 'utils/dragster';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
@@ -31,14 +28,14 @@ import {
 import {UploadFile} from 'actions/file_actions';
 
 import {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
+import {FileInfo, FileUploadResponse, FilePreviewInfo} from '@mattermost/types/files';
+import {ServerError} from '@mattermost/types/errors';
 
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-
-import {FilePreviewInfo} from '../file_preview/file_preview';
 
 const holders = defineMessages({
     limited: {

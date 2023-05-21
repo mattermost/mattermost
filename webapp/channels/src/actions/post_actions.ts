@@ -3,7 +3,7 @@
 
 import {Post} from '@mattermost/types/posts';
 import {GroupChannel} from '@mattermost/types/groups';
-import {FileInfo} from '@mattermost/types/files';
+import {FileInfo, FilePreviewInfo} from '@mattermost/types/files';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
@@ -14,7 +14,7 @@ import * as PostActions from 'mattermost-redux/actions/posts';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
+import {canEditPost, comparePosts, isPostDangling} from 'mattermost-redux/utils/post_utils';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {addRecentEmoji} from 'actions/emoji_actions';
@@ -97,8 +97,8 @@ export function unflagPost(postId: string) {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[]) {
-    return async (dispatch: DispatchFunc) => {
+export function createPost(post: Post, files: FileInfo[], filePreviews: FilePreviewInfo[] = []) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         // parse message and emit emoji event
         const emojis = matchEmoticons(post.message);
         if (emojis) {
@@ -112,11 +112,13 @@ export function createPost(post: Post, files: FileInfo[]) {
         if (UserAgent.isIosClassic()) {
             result = await dispatch(PostActions.createPostImmediately(post, files));
         } else {
-            result = await dispatch(PostActions.createPost(post, files));
+            result = await dispatch(PostActions.createPost(post, files, filePreviews));
         }
 
         if (post.root_id) {
-            dispatch(storeCommentDraft(post.root_id, null));
+            if (!isPostDangling(getState(), post)) {
+                dispatch(storeCommentDraft(post.root_id, null));
+            }
         } else {
             dispatch(storeDraft(post.channel_id, null));
         }

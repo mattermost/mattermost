@@ -18,6 +18,7 @@ import {
     getEmbedFromMetadata,
     shouldUpdatePost,
     isPermalink,
+    isPostUploadingFile,
 } from 'mattermost-redux/utils/post_utils';
 
 describe('PostUtils', () => {
@@ -648,6 +649,25 @@ describe('PostUtils', () => {
             const storedPostSansMetadata = {...storedPost};
             delete (storedPostSansMetadata as any).metadata;
             expect(shouldUpdatePost(post, storedPostSansMetadata)).toBe(true);
+        });
+    });
+
+    describe('isPostUploadingFile', () => {
+        it('should return true when post which has file being uploaded passed in argument', () => {
+            const post = TestHelper.getPostMock({
+                id: 'pending',
+                pending_post_id: 'pending',
+                file_client_ids: ['a'],
+            });
+            expect(isPostUploadingFile(post)).toBe(true);
+        });
+
+        it('should return false when post which has no file being uploaded passed in argument', () => {
+            const post = TestHelper.getPostMock({
+                id: 'id',
+                pending_post_id: 'pending',
+            });
+            expect(isPostUploadingFile(post)).toBe(false);
         });
     });
 });

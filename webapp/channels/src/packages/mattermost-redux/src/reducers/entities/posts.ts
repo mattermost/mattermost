@@ -363,6 +363,14 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         currentState[post.root_id] = nextRootPost;
     }
 
+    const childPosts = (Object.values(currentState) as Post[]).filter((p) => p.root_id && p.root_id === post.pending_post_id);
+    childPosts.forEach((childPost) => {
+        currentState[childPost.id] = {
+            ...childPost,
+            root_id: post.id,
+        };
+    });
+
     return currentState;
 }
 

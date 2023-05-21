@@ -194,7 +194,7 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             message: draft.message,
             fileInfos,
             props: draft.props,
-            uploadsInProgress: [],
+            uploadsProgressPercent: {},
             channelId: draft.channel_id,
             rootId: draft.root_id,
             createAt: draft.create_at,

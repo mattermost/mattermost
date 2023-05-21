@@ -84,7 +84,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             return;
         }
 
-        const selectedChanged = this.props.selected.id !== prevProps.selected.id;
+        const selectedChanged = prevProps.selected && this.props.selected.id !== prevProps.selected.id;
 
         if (reconnected || selectedChanged) {
             this.onInit(reconnected);

@@ -9,6 +9,10 @@ import {TestHelper} from 'utils/test_helper';
 import FileAttachment from 'components/file_attachment';
 import SingleImageView from 'components/single_image_view';
 
+import {FileInfo, FilePreviewInfo} from '@mattermost/types/files';
+
+import FilePreview from 'components/file_preview';
+
 import FileAttachmentList from './file_attachment_list';
 
 describe('FileAttachmentList', () => {
@@ -21,6 +25,7 @@ describe('FileAttachmentList', () => {
         TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2}),
         TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1}),
     ];
+    const filePreviews: FilePreviewInfo[] = [];
     const baseProps = {
         post,
         fileCount: 3,
@@ -32,7 +37,9 @@ describe('FileAttachmentList', () => {
         handleFileDropdownOpened: jest.fn(),
         actions: {
             openModal: jest.fn(),
+            cancelUploadingFile: jest.fn(),
         },
+        filePreviews,
     };
 
     test('should render a FileAttachment for a single file', () => {
@@ -113,5 +120,25 @@ describe('FileAttachmentList', () => {
 
         expect(wrapper.find(SingleImageView).exists()).toBe(false);
         expect(wrapper.find(FileAttachment).exists()).toBe(true);
+    });
+
+    test('should render FilePreview', () => {
+        const filePreviews: FileInfo[] = [
+            TestHelper.getFileInfoMock({
+                clientId: 'a',
+            }),
+        ];
+        const props = {
+            ...baseProps,
+            filePreviews,
+        };
+        const wrapper = shallow(
+            <FileAttachmentList {...props}/>,
+        );
+
+        expect(wrapper.find(FilePreview)).toHaveLength(1);
+        expect(Object.keys(wrapper.find(FilePreview).first().props().uploadsProgressPercent!)).toStrictEqual(['a']);
+
+        expect(wrapper.find(FileAttachment).last().props().fileInfo.id).toBe('file_id_3');
     });
 });

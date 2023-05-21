@@ -6,7 +6,7 @@ import {combineReducers} from 'redux';
 import {FileTypes, InsightTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {Post} from '@mattermost/types/posts';
-import {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
+import {FileInfo, FilePreviewInfo, FileSearchResultItem} from '@mattermost/types/files';
 import {TopThread} from '@mattermost/types/insights';
 
 export function files(state: Record<string, FileInfo> = {}, action: GenericAction) {
@@ -188,9 +188,96 @@ function filePublicLink(state: {link: string} = {link: ''}, action: GenericActio
     }
 }
 
+function filePreviews(state: Record<string, FilePreviewInfo[]> = {}, action: GenericAction) {
+    switch (action.type) {
+    case FileTypes.RECEIVED_FILE_PREVIEWS:
+        return {
+            ...state,
+            [action.pendingPostId]: action.data,
+        };
+
+    case FileTypes.UPDATE_FILE_UPLOAD_PROGRESS: {
+        const nextState = {...state};
+        const entries = Object.entries(nextState);
+        for (let entryIndex = 0; entryIndex < entries.length; entryIndex++) {
+            const entry = entries[entryIndex];
+            const filePreviewInfoIndex = entry[1].findIndex((f) => f.clientId === action.data.clientId);
+            if (filePreviewInfoIndex === -1) {
+                continue;
+            }
+            const pendingPostId = entry[0];
+            const filePreviewInfo = nextState[pendingPostId][filePreviewInfoIndex];
+            nextState[pendingPostId] = nextState[pendingPostId].map((f) => {
+                if (f.clientId !== filePreviewInfo.clientId) {
+                    return f;
+                }
+                return {
+                    ...f,
+                    percent: action.data.percent,
+                };
+            });
+            break;
+        }
+        return nextState;
+    }
+
+    case FileTypes.REMOVE_FILE_PREVIEWS: {
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.pendingPostId);
+        return nextState;
+    }
+
+    case FileTypes.UPLOAD_FILES_CANCEL: {
+        const entry = Object.entries(state).find((entry) => entry[1].some((f) => f.clientId === action.clientId));
+        if (!entry) {
+            return state;
+        }
+        return {
+            ...state,
+            [entry[0]]: entry[1].filter((f) => f.clientId !== action.clientId),
+        };
+    }
+
+    default:
+        return state;
+    }
+}
+
+function fileUploadRequests(state: Record<string, XMLHttpRequest> = {}, action: GenericAction) {
+    switch (action.type) {
+    case FileTypes.START_UPLOADING_FILE:
+        return {
+            ...state,
+            [action.clientId]: action.data,
+        };
+
+    case FileTypes.UPLOAD_FILES_CANCEL: {
+        const request = state[action.clientId];
+        if (!request) {
+            return state;
+        }
+        request.abort();
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.clientId);
+        return nextState;
+    }
+
+    case FileTypes.RECEIVED_UPLOAD_FILES: {
+        const nextState = {...state};
+        action.data.forEach((fileInfo: FileInfo) => Reflect.deleteProperty(nextState, fileInfo.clientId));
+        return nextState;
+    }
+
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     files,
     filesFromSearch,
     fileIdsByPostId,
     filePublicLink,
+    filePreviews,
+    fileUploadRequests,
 });

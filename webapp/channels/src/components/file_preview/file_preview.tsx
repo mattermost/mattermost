@@ -4,7 +4,7 @@
 import React, {ReactNode} from 'react';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
-import {FileInfo} from '@mattermost/types/files';
+import {FilePreviewInfo} from '@mattermost/types/files';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 import Constants, {FileTypes} from 'utils/constants';
@@ -12,25 +12,16 @@ import * as Utils from 'utils/utils';
 
 import FileProgressPreview from './file_progress_preview';
 
-type UploadInfo = {
-    name: string;
-    percent?: number;
-    type?: string;
-}
-export type FilePreviewInfo = FileInfo & UploadInfo;
-
 type Props = {
     enableSVGs: boolean;
     onRemove?: (id: string) => void;
     fileInfos: FilePreviewInfo[];
-    uploadsInProgress?: string[];
-    uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
+    uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo | undefined};
 }
 
 export default class FilePreview extends React.PureComponent<Props> {
     static defaultProps = {
         fileInfos: [],
-        uploadsInProgress: [],
         uploadsProgressPercent: {},
     };
 
@@ -41,6 +32,7 @@ export default class FilePreview extends React.PureComponent<Props> {
     render() {
         const previews: ReactNode[] = [];
 
+        const fileInfoClientIds = this.props.fileInfos.map((f) => f.clientId);
         this.props.fileInfos.forEach((info) => {
             const type = Utils.getFileType(info.extension);
 
@@ -117,21 +109,22 @@ export default class FilePreview extends React.PureComponent<Props> {
             );
         });
 
-        if (this.props.uploadsInProgress && this.props.uploadsProgressPercent) {
-            const uploadsProgressPercent = this.props.uploadsProgressPercent;
-            this.props.uploadsInProgress.forEach((clientId) => {
-                const fileInfo = uploadsProgressPercent[clientId];
-                if (fileInfo) {
-                    previews.push(
-                        <FileProgressPreview
-                            key={clientId}
-                            clientId={clientId}
-                            fileInfo={fileInfo}
-                            handleRemove={this.handleRemove}
-                        />,
-                    );
-                }
-            });
+        const uploadsProgressPercent = this.props.uploadsProgressPercent;
+        if (uploadsProgressPercent) {
+            Object.values(uploadsProgressPercent).
+                filter((filePreviewInfo): filePreviewInfo is FilePreviewInfo => filePreviewInfo !== undefined && !fileInfoClientIds.includes(filePreviewInfo.clientId)).
+                forEach((fileInfo) => {
+                    if (fileInfo) {
+                        previews.push(
+                            <FileProgressPreview
+                                key={fileInfo.clientId}
+                                clientId={fileInfo.clientId}
+                                fileInfo={fileInfo}
+                                handleRemove={this.handleRemove}
+                            />,
+                        );
+                    }
+                });
         }
 
         return (

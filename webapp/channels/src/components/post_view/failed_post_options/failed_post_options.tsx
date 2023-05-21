@@ -10,7 +10,7 @@ import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {ExtendedPost} from 'mattermost-redux/actions/posts';
 
 type CreatePostAction =
-    (post: Post, files: FileInfo[]) => (dispatch: DispatchFunc) => Promise<{data?: boolean}>;
+    (post: Post, files: FileInfo[]) => (dispatch: DispatchFunc, getState: GetStateFunc) => Promise<{data?: boolean}>;
 type RemovePostAction =
     (post: ExtendedPost) => (dispatch: DispatchFunc, getState: GetStateFunc) => void;
 

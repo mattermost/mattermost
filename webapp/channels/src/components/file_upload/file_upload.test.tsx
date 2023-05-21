@@ -166,7 +166,7 @@ describe('components/FileUpload', () => {
 
     test('should props.onFileUpload when fileUploadSuccess is called', () => {
         const data = {
-            file_infos: [{id: 'file_info1'} as FileInfo],
+            file_infos: [{id: 'file_info1', clientId: 'id1'} as FileInfo],
             client_ids: ['id1'],
         };
 

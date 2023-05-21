@@ -57,21 +57,19 @@ import {PreferenceType} from '@mattermost/types/preferences';
 import {ServerError} from '@mattermost/types/errors';
 import {CommandArgs} from '@mattermost/types/integrations';
 import {Group, GroupSource} from '@mattermost/types/groups';
-import {FileInfo} from '@mattermost/types/files';
+import {FileInfo, FilePreviewInfo} from '@mattermost/types/files';
 import {Emoji} from '@mattermost/types/emojis';
 
 import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
 
 import FileLimitStickyBanner from '../file_limit_sticky_banner';
 
-import {FilePreviewInfo} from '../file_preview/file_preview';
-
 import PriorityLabels from './priority_labels';
 
 const KeyCodes = Constants.KeyCodes;
 
 function isDraftEmpty(draft: PostDraft): boolean {
-    return !draft || (!draft.message && draft.fileInfos.length === 0);
+    return !draft || (!draft.message && (!draft.fileInfos || draft.fileInfos.length === 0));
 }
 
 // Temporary fix for IE-11, see MM-13423
@@ -192,7 +190,7 @@ type Props = {
         addReaction: (postId: string, emojiName: string) => void;
 
         // func called for posting message
-        onSubmitPost: (post: Post, fileInfos: FileInfo[]) => void;
+        onSubmitPost: (post: Post, fileInfos: FileInfo[], filePreviewInfos: FilePreviewInfo[]) => void;
 
         // func called for removing a reaction
         removeReaction: (postId: string, emojiName: string) => void;
@@ -233,6 +231,7 @@ type Props = {
         savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
 
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+        cancelUploadingFile: (clientId: string) => void;
     };
 
     groupsWithAllowReference: Map<string, Group> | null;
@@ -470,7 +469,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             e.preventDefault();
         }
 
-        if (this.props.draft.uploadsInProgress.length > 0 || this.state.submitting) {
+        if (this.state.submitting) {
             return;
         }
 
@@ -490,7 +489,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         post.props = this.props.draft.props || {};
         post.metadata = (this.props.draft.metadata || {}) as PostMetadata;
 
-        if (post.message.trim().length === 0 && this.props.draft.fileInfos.length === 0) {
+        if (post.message.trim().length === 0 && this.props.draft.fileInfos.length === 0 && Object.keys(this.state.uploadsProgressPercent).length === 0) {
             return;
         }
 
@@ -794,7 +793,14 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         post = hookResult.data;
 
-        actions.onSubmitPost(post, draft.fileInfos);
+        if (Object.keys(draft.uploadsProgressPercent).length === 0) {
+            actions.onSubmitPost(post, draft.fileInfos, []);
+        } else {
+            actions.onSubmitPost(post, [], Object.values(this.state.uploadsProgressPercent));
+        }
+        this.setState({
+            uploadsProgressPercent: {},
+        });
         actions.scrollPostListToBottom();
 
         this.setState({submitting: false});
@@ -994,11 +1000,16 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handleUploadStart = (clientIds: string[], channelId: string) => {
-        const uploadsInProgress = [...this.props.draft.uploadsInProgress, ...clientIds];
+        const uploadsProgressPercent = {
+            ...this.props.draft.uploadsProgressPercent,
+        };
+        clientIds.forEach((clientId) => {
+            uploadsProgressPercent[clientId] = undefined;
+        });
 
         const draft = {
             ...this.props.draft,
-            uploadsInProgress,
+            uploadsProgressPercent,
         };
 
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId);
@@ -1010,29 +1021,36 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     handleUploadProgress = (filePreviewInfo: FilePreviewInfo) => {
-        const uploadsProgressPercent = {
-            ...this.state.uploadsProgressPercent,
-            [filePreviewInfo.clientId]: filePreviewInfo,
-        };
-        this.setState({uploadsProgressPercent});
+        if (Object.keys(this.props.draft.uploadsProgressPercent).includes(filePreviewInfo.clientId)) {
+            const uploadsProgressPercent = {
+                ...this.state.uploadsProgressPercent,
+                [filePreviewInfo.clientId]: filePreviewInfo,
+            };
+            this.setState({uploadsProgressPercent});
+        }
     };
 
     handleFileUploadComplete = (fileInfos: FileInfo[], clientIds: string[], channelId: string) => {
         const draft = {...this.draftsForChannel[channelId]!};
 
-        // remove each finished file from uploads
-        for (let i = 0; i < clientIds.length; i++) {
-            if (draft.uploadsInProgress) {
-                const index = draft.uploadsInProgress.indexOf(clientIds[i]);
-
-                if (index !== -1) {
-                    draft.uploadsInProgress = draft.uploadsInProgress.filter((item, itemIndex) => index !== itemIndex);
-                }
+        if (draft.fileInfos) {
+            const draftFileInfos = draft.uploadsProgressPercent ? fileInfos.filter((fileInfo) => Object.keys(draft.uploadsProgressPercent).includes(fileInfo.clientId)) : fileInfos;
+            if (draftFileInfos.length !== 0) {
+                draft.fileInfos = sortFileInfos(draft.fileInfos.concat(draftFileInfos), this.props.locale);
             }
         }
 
-        if (draft.fileInfos) {
-            draft.fileInfos = sortFileInfos(draft.fileInfos.concat(fileInfos), this.props.locale);
+        // remove each finished file from uploads
+        for (let i = 0; i < clientIds.length; i++) {
+            if (draft.uploadsProgressPercent) {
+                const key = Object.keys(draft.uploadsProgressPercent).find((clientId) => clientId === clientIds[i]);
+
+                if (key !== undefined) {
+                    const uploadsProgressPercent = {...draft.uploadsProgressPercent};
+                    delete uploadsProgressPercent[key];
+                    draft.uploadsProgressPercent = uploadsProgressPercent;
+                }
+            }
         }
 
         this.handleDraftChange(draft, true);
@@ -1051,14 +1069,15 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const draft = {...this.draftsForChannel[channelId]!};
 
-        if (draft.uploadsInProgress) {
-            const index = draft.uploadsInProgress.indexOf(clientId);
+        if (draft.uploadsProgressPercent) {
+            const key = Object.keys(draft.uploadsProgressPercent).find((i) => i === clientId);
 
-            if (index !== -1) {
-                const uploadsInProgress = draft.uploadsInProgress.filter((item, itemIndex) => index !== itemIndex);
+            if (key !== undefined) {
+                const uploadsProgressPercent = {...draft.uploadsProgressPercent};
+                delete uploadsProgressPercent[key];
                 const modifiedDraft = {
                     ...draft,
-                    uploadsInProgress,
+                    uploadsProgressPercent,
                 };
                 this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId);
                 this.draftsForChannel[channelId] = modifiedDraft;
@@ -1077,24 +1096,22 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.setState({serverError: null});
 
         // id can either be the id of an uploaded file or the client id of an in progress upload
-        let index = draft.fileInfos.findIndex((info) => info.id === id);
-        if (index === -1) {
-            index = draft.uploadsInProgress.indexOf(id);
+        const fileInfo = draft.fileInfos.find((info) => info.id === id);
+        if (fileInfo === undefined) {
+            const key = Object.keys(draft.uploadsProgressPercent).find((i) => i === id);
 
-            if (index !== -1) {
-                const uploadsInProgress = draft.uploadsInProgress.filter((item, itemIndex) => index !== itemIndex);
-
+            if (key !== undefined) {
+                const uploadsProgressPercent = {...draft.uploadsProgressPercent};
+                delete uploadsProgressPercent[key];
                 modifiedDraft = {
                     ...draft,
-                    uploadsInProgress,
+                    uploadsProgressPercent,
                 };
 
-                if (this.fileUploadRef.current && this.fileUploadRef.current) {
-                    this.fileUploadRef.current.cancelUpload(id);
-                }
+                this.props.actions.cancelUploadingFile(id);
             }
         } else {
-            const fileInfos = draft.fileInfos.filter((item, itemIndex) => index !== itemIndex);
+            const fileInfos = draft.fileInfos.filter((f) => f.id !== fileInfo.id);
 
             modifiedDraft = {
                 ...draft,
@@ -1636,9 +1653,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 className={centerClass}
                 onSubmit={this.handleSubmit}
             >
-                {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
+                {
+                    canPost &&
+                    (draft.fileInfos.length > 0 || Object.keys(draft.uploadsProgressPercent).length > 0) &&
                     <FileLimitStickyBanner/>
-                )}
+                }
                 <AdvancedTextEditor
                     location={Locations.CENTER}
                     currentUserId={this.props.currentUserId}

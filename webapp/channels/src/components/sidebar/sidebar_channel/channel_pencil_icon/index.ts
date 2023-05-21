@@ -22,7 +22,7 @@ function hasDraft(draft: PostDraft|null, id: Channel['id'], currentChannelId?: s
         return false;
     }
 
-    return Boolean(draft.message.trim() || draft.fileInfos.length || draft.uploadsInProgress.length) && currentChannelId !== id;
+    return Boolean(draft.message.trim() || draft.fileInfos.length || Object.keys(draft.uploadsProgressPercent).length) && currentChannelId !== id;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

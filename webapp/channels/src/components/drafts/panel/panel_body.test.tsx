@@ -24,7 +24,7 @@ describe('components/drafts/panel/panel_body', () => {
         fileInfos: [] as PostDraft['fileInfos'],
         message: 'message',
         status: 'status' as UserStatus['status'],
-        uploadsInProgress: [] as PostDraft['uploadsInProgress'],
+        uploadsProgressPercent: {} as PostDraft['uploadsProgressPercent'],
         userId: 'user_id' as UserProfile['id'],
         username: 'username' as UserProfile['username'],
     };

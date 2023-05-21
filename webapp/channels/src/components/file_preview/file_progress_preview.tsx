@@ -8,8 +8,7 @@ import {ProgressBar} from 'react-bootstrap';
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 import {getFileTypeFromMime} from 'utils/file_utils';
 import * as Utils from 'utils/utils';
-
-import {FilePreviewInfo} from './file_preview';
+import {FilePreviewInfo} from '@mattermost/types/files';
 
 type Props = {
     handleRemove: (id: string) => void;

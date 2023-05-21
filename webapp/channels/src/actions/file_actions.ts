@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {FileInfo} from '@mattermost/types/files';
+import {FileInfo, FilePreviewInfo, FileUploadResponse} from '@mattermost/types/files';
 import {ServerError} from '@mattermost/types/errors';
 
 import {FileTypes} from 'mattermost-redux/action_types';
@@ -11,9 +11,10 @@ import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {Client4} from 'mattermost-redux/client';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
+
+import {postRemoved, storePendingPostByClientId, storePost} from 'mattermost-redux/actions/posts';
 
 export interface UploadFile {
     file: File;
@@ -23,7 +24,7 @@ export interface UploadFile {
     channelId: string;
     clientId: string;
     onProgress: (filePreviewInfo: FilePreviewInfo) => void;
-    onSuccess: (data: any, channelId: string, rootId: string) => void;
+    onSuccess: (data: FileUploadResponse, channelId: string, rootId: string) => void;
     onError: (err: string | ServerError, clientId: string, channelId: string, rootId: string) => void;
 }
 
@@ -59,6 +60,10 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     percent,
                     type,
                 } as FilePreviewInfo;
+                dispatch({
+                    type: FileTypes.UPDATE_FILE_UPLOAD_PROGRESS,
+                    data: filePreviewInfo,
+                });
                 onProgress(filePreviewInfo);
             };
         }
@@ -85,6 +90,8 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                             type: FileTypes.UPLOAD_FILES_SUCCESS,
                         },
                     ]));
+
+                    dispatch(storePendingPostByClientId(clientId));
 
                     onSuccess(response, channelId, rootId);
                 } else if (xhr.status >= 400 && xhr.readyState === 4) {
@@ -141,6 +148,46 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
 
         xhr.send(formData);
 
+        dispatch({
+            type: FileTypes.START_UPLOADING_FILE,
+            clientId,
+            data: xhr,
+        });
+
         return xhr;
+    };
+}
+
+export function cancelUploadingFile(clientId: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState();
+        const pendingPostEntry = Object.entries(state.entities.files.filePreviews).find((entry) => entry[1].some((filePreview) => filePreview.clientId === clientId));
+        if (!pendingPostEntry) {
+            return;
+        }
+        const pendingPostId = pendingPostEntry[0];
+
+        dispatch({
+            type: FileTypes.UPLOAD_FILES_CANCEL,
+            clientId,
+        });
+
+        // If this is the last uploading file, immediately send the message or delete it.
+        if (pendingPostEntry[1].length !== 1) {
+            return;
+        }
+
+        const pendingPost = Object.values(state.entities.posts.posts).find((post) => post.pending_post_id === pendingPostId);
+        if (!pendingPost) {
+            return;
+        }
+
+        if (pendingPost.message.length === 0) {
+            // If this post doesn't have message, then delete it.
+            await dispatch(postRemoved(pendingPost));
+        } else {
+            // otherwise send it.
+            await dispatch(storePost(pendingPost, []));
+        }
     };
 }
