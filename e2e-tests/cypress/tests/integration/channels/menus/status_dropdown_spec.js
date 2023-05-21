@@ -15,7 +15,7 @@ import theme from '../../../fixtures/theme.json';
 
 describe('Status dropdown menu', () => {
     const statusTestCases = [
-        {text: 'Online', className: 'icon-check', profileClassName: 'icon-check-circle'},
+        {text: 'Online', className: 'icon-check-circle', profileClassName: 'icon-check-circle'},
         {text: 'Away', className: 'icon-clock'},
         {text: 'Do Not Disturb', className: 'icon-minus-circle'},
         {text: 'Offline', className: 'icon-circle-outline'},

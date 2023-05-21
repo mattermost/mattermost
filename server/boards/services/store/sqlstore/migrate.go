@@ -16,9 +16,9 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 
 	"github.com/mattermost/morph"
 	drivers "github.com/mattermost/morph/drivers"
@@ -28,7 +28,7 @@ import (
 
 	_ "github.com/lib/pq" // postgres driver
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 //go:embed migrations/*.sql
@@ -70,7 +70,10 @@ func (s *SQLStore) getMigrationConnection() (*sql.DB, error) {
 	}
 	*settings.DriverName = s.dbType
 
-	db := sqlstore.SetupConnection("master", connectionString, &settings)
+	db, err := sqlstore.SetupConnection("master", connectionString, &settings, sqlstore.DBPingAttempts)
+	if err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }

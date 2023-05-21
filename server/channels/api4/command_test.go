@@ -14,8 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -1062,6 +1063,83 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	// if we omit the team id from the request, the slash command will fail because this is a DM channel, and the
 	// team id can't be inherited from the channel
 	_, resp, err = client.ExecuteCommand(dmChannel.Id, "/postcommand")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestExecuteCommandReadOnly(t *testing.T) {
+	th := Setup(t).InitBasic()
+	ctx := request.EmptyContext(th.TestLogger)
+	defer th.TearDown()
+	client := th.Client
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	expectedCommandResponse := &model.CommandResponse{
+		Text:         "test post command response",
+		ResponseType: model.CommandResponseTypeInChannel,
+		Type:         "custom_test",
+		Props:        map[string]any{"someprop": "somevalue"},
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		r.ParseForm()
+		require.Equal(t, th.BasicTeam.Name, r.FormValue("team_domain"))
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
+		}
+	}))
+	defer ts.Close()
+
+	// create a slash command on that team
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "postcommand",
+	}
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
+
+	// Confirm that the command works when the channel is not read only
+	_, resp, err := client.ExecuteCommandWithTeam(th.BasicChannel.Id, th.BasicChannel.TeamId, "/postcommand")
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	// Enable Enterprise features
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	_, appErr = th.App.PatchChannelModerationsForChannel(
+		ctx,
+		th.BasicChannel,
+		[]*model.ChannelModerationPatch{{
+			Name: &model.PermissionCreatePost.Id,
+			Roles: &model.ChannelModeratedRolesPatch{
+				Guests:  model.NewBool(false),
+				Members: model.NewBool(false),
+			},
+		}})
+	require.Nil(t, appErr)
+
+	// Confirm that the command fails when the channel is read only
+	_, resp, err = client.ExecuteCommandWithTeam(th.BasicChannel.Id, th.BasicChannel.TeamId, "/postcommand")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }

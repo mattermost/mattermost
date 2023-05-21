@@ -4,6 +4,7 @@ exports[`components/FormattedMarkdownMessage should allow to disable links 1`] =
 <IntlProvider
   defaultFormats={Object {}}
   defaultLocale="en"
+  fallbackOnEmptyString={true}
   formats={Object {}}
   locale="en"
   messages={
@@ -14,6 +15,7 @@ exports[`components/FormattedMarkdownMessage should allow to disable links 1`] =
     }
   }
   onError={[Function]}
+  onWarn={[Function]}
   textComponent={Symbol(react.fragment)}
 >
   <FormattedMarkdownMessage
@@ -41,6 +43,7 @@ exports[`components/FormattedMarkdownMessage should backup to default 1`] = `
 <IntlProvider
   defaultFormats={Object {}}
   defaultLocale="en"
+  fallbackOnEmptyString={true}
   formats={Object {}}
   locale="en"
   messages={
@@ -51,6 +54,7 @@ exports[`components/FormattedMarkdownMessage should backup to default 1`] = `
     }
   }
   onError={[Function]}
+  onWarn={[Function]}
   textComponent={Symbol(react.fragment)}
 >
   <FormattedMarkdownMessage
@@ -72,6 +76,7 @@ exports[`components/FormattedMarkdownMessage should escape non-BR 1`] = `
 <IntlProvider
   defaultFormats={Object {}}
   defaultLocale="en"
+  fallbackOnEmptyString={true}
   formats={Object {}}
   locale="en"
   messages={
@@ -82,6 +87,7 @@ exports[`components/FormattedMarkdownMessage should escape non-BR 1`] = `
     }
   }
   onError={[Function]}
+  onWarn={[Function]}
   textComponent={Symbol(react.fragment)}
 >
   <FormattedMarkdownMessage
@@ -109,6 +115,7 @@ exports[`components/FormattedMarkdownMessage should render message 1`] = `
 <IntlProvider
   defaultFormats={Object {}}
   defaultLocale="en"
+  fallbackOnEmptyString={true}
   formats={Object {}}
   locale="en"
   messages={
@@ -119,6 +126,7 @@ exports[`components/FormattedMarkdownMessage should render message 1`] = `
     }
   }
   onError={[Function]}
+  onWarn={[Function]}
   textComponent={Symbol(react.fragment)}
 >
   <FormattedMarkdownMessage
@@ -140,6 +148,7 @@ exports[`components/FormattedMarkdownMessage values should work 1`] = `
 <IntlProvider
   defaultFormats={Object {}}
   defaultLocale="en"
+  fallbackOnEmptyString={true}
   formats={Object {}}
   locale="en"
   messages={
@@ -150,6 +159,7 @@ exports[`components/FormattedMarkdownMessage values should work 1`] = `
     }
   }
   onError={[Function]}
+  onWarn={[Function]}
   textComponent={Symbol(react.fragment)}
 >
   <FormattedMarkdownMessage

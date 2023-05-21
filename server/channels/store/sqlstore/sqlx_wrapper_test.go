@@ -6,12 +6,13 @@ package sqlstore
 import (
 	"context"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestSqlX(t *testing.T) {
@@ -28,12 +29,14 @@ func TestSqlX(t *testing.T) {
 			}
 			*settings.QueryTimeout = 1
 			store := &SqlStore{
-				rrCounter: 0,
-				srCounter: 0,
-				settings:  settings,
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
 			}
 
-			store.initConnection()
+			require.NoError(t, store.initConnection())
 
 			defer store.Close()
 

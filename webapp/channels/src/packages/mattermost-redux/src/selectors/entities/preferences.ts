@@ -245,8 +245,8 @@ export function isCustomGroupsEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableCustomGroups === 'true';
 }
 
-export function getUseCaseOnboarding(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'UseCaseOnboarding') === 'true' && getLicense(state)?.Cloud === 'true';
+export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
+    return getConfig(state).EnableOnboardingFlow === 'true';
 }
 
 export function insightsAreEnabled(state: GlobalState): boolean {
@@ -302,6 +302,10 @@ export function onboardingTourTipsEnabled(state: GlobalState): boolean {
 
 export function deprecateCloudFree(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'DeprecateCloudFree') === 'true';
+}
+
+export function cloudReverseTrial(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
 }
 
 export function appsSidebarCategoryEnabled(state: GlobalState): boolean {

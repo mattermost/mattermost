@@ -10,9 +10,10 @@ import classNames from 'classnames';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
-import {Theme, getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
+import {Theme, getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 
@@ -67,7 +68,6 @@ const LazyTermsOfService = React.lazy(() => import('components/terms_of_service'
 const LazyShouldVerifyEmail = React.lazy(() => import('components/should_verify_email/should_verify_email'));
 const LazyDoVerifyEmail = React.lazy(() => import('components/do_verify_email/do_verify_email'));
 const LazyClaimController = React.lazy(() => import('components/claim'));
-const LazyHelpController = React.lazy(() => import('components/help/help_controller'));
 const LazyLinkingLandingPage = React.lazy(() => import('components/linking_landing_page'));
 const LazySelectTeam = React.lazy(() => import('components/select_team'));
 const LazyAuthorize = React.lazy(() => import('components/authorize'));
@@ -106,7 +106,6 @@ const Signup = makeAsyncComponent('SignupController', LazySignup);
 const ShouldVerifyEmail = makeAsyncComponent('ShouldVerifyEmail', LazyShouldVerifyEmail);
 const DoVerifyEmail = makeAsyncComponent('DoVerifyEmail', LazyDoVerifyEmail);
 const ClaimController = makeAsyncComponent('ClaimController', LazyClaimController);
-const HelpController = makeAsyncComponent('HelpController', LazyHelpController);
 const LinkingLandingPage = makeAsyncComponent('LinkingLandingPage', LazyLinkingLandingPage);
 const SelectTeam = makeAsyncComponent('SelectTeam', LazySelectTeam);
 const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
@@ -358,8 +357,11 @@ export default class Root extends React.PureComponent<Props, State> {
             return;
         }
 
-        const useCaseOnboarding = getUseCaseOnboarding(storeState);
-        if (!useCaseOnboarding) {
+        const teams = getActiveTeamsList(storeState);
+
+        const onboardingFlowEnabled = getIsOnboardingFlowEnabled(storeState);
+
+        if (teams.length > 0 || !onboardingFlowEnabled) {
             GlobalActions.redirectUserToDefaultTeam();
             return;
         }
@@ -579,10 +581,6 @@ export default class Root extends React.PureComponent<Props, State> {
                     <HFTRoute
                         path={'/claim'}
                         component={ClaimController}
-                    />
-                    <HFTRoute
-                        path={'/help'}
-                        component={HelpController}
                     />
                     <LoggedInRoute
                         path={'/terms_of_service'}

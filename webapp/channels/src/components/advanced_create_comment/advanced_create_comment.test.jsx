@@ -40,6 +40,7 @@ describe('components/AdvancedCreateComment', () => {
             uploadsInProgress: [{}],
             fileInfos: [{}, {}, {}],
         },
+        isRemoteDraft: false,
         enableAddButton: true,
         ctrlSend: false,
         latestPostId,
@@ -84,9 +85,10 @@ describe('components/AdvancedCreateComment', () => {
 
     test('should match snapshot, empty comment', () => {
         const draft = emptyDraft;
+        const isRemoteDraft = false;
         const enableAddButton = false;
         const ctrlSend = true;
-        const props = {...baseProps, draft, enableAddButton, ctrlSend};
+        const props = {...baseProps, draft, isRemoteDraft, enableAddButton, ctrlSend};
 
         const wrapper = shallow(
             <AdvancedCreateComment {...props}/>,
@@ -104,8 +106,9 @@ describe('components/AdvancedCreateComment', () => {
             uploadsInProgress: [],
             fileInfos: [],
         };
+        const isRemoteDraft = false;
         const ctrlSend = true;
-        const props = {...baseProps, ctrlSend, draft, clearCommentDraftUploads, onResetHistoryIndex, getChannelMemberCountsByGroup};
+        const props = {...baseProps, ctrlSend, draft, isRemoteDraft, clearCommentDraftUploads, onResetHistoryIndex, getChannelMemberCountsByGroup};
 
         const wrapper = shallow(
             <AdvancedCreateComment {...props}/>,
@@ -1600,6 +1603,7 @@ describe('components/AdvancedCreateComment', () => {
         (instance) => instance.find(AdvanceTextEditor),
         (instance) => instance.state().draft.message,
         false,
+        'reply_textbox',
     );
 
     it('should blur when ESCAPE is pressed', () => {

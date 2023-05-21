@@ -7,31 +7,20 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/notify"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 var ErrBlocksFromMultipleBoards = errors.New("the block set contain blocks from multiple boards")
 
-func (a *App) GetBlocks(boardID, parentID string, blockType string) ([]*model.Block, error) {
-	if boardID == "" {
+func (a *App) GetBlocks(opts model.QueryBlocksOptions) ([]*model.Block, error) {
+	if opts.BoardID == "" {
 		return []*model.Block{}, nil
 	}
-
-	if blockType != "" && parentID != "" {
-		return a.store.GetBlocksWithParentAndType(boardID, parentID, blockType)
-	}
-
-	if blockType != "" {
-		return a.store.GetBlocksWithType(boardID, blockType)
-	}
-
-	return a.store.GetBlocksWithParent(boardID, parentID)
+	return a.store.GetBlocks(opts)
 }
 
 func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTemplate bool) ([]*model.Block, error) {
@@ -44,6 +33,11 @@ func (a *App) DuplicateBlock(boardID string, blockID string, userID string, asTe
 	}
 
 	blocks, err := a.store.DuplicateBlock(boardID, blockID, userID, asTemplate)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.CopyAndUpdateCardFiles(boardID, userID, blocks, asTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -295,95 +289,6 @@ func (a *App) InsertBlocksAndNotify(blocks []*model.Block, modifiedByID string, 
 	return blocks, nil
 }
 
-func (a *App) CopyCardFiles(sourceBoardID string, copiedBlocks []*model.Block) error {
-	// Images attached in cards have a path comprising the card's board ID.
-	// When we create a template from this board, we need to copy the files
-	// with the new board ID in path.
-	// Not doing so causing images in templates (and boards created from this
-	// template) to fail to load.
-
-	// look up ID of source sourceBoard, which may be different than the blocks.
-	sourceBoard, err := a.GetBoard(sourceBoardID)
-	if err != nil || sourceBoard == nil {
-		return fmt.Errorf("cannot fetch source board %s for CopyCardFiles: %w", sourceBoardID, err)
-	}
-
-	var destTeamID string
-	var destBoardID string
-
-	for i := range copiedBlocks {
-		block := copiedBlocks[i]
-		fileName := ""
-		isOk := false
-
-		switch block.Type {
-		case model.TypeImage:
-			fileName, isOk = block.Fields["fileId"].(string)
-			if !isOk || fileName == "" {
-				continue
-			}
-		case model.TypeAttachment:
-			fileName, isOk = block.Fields["attachmentId"].(string)
-			if !isOk || fileName == "" {
-				continue
-			}
-		default:
-			continue
-		}
-
-		// create unique filename in case we are copying cards within the same board.
-		ext := filepath.Ext(fileName)
-		destFilename := utils.NewID(utils.IDTypeNone) + ext
-
-		if destBoardID == "" || block.BoardID != destBoardID {
-			destBoardID = block.BoardID
-			destBoard, err := a.GetBoard(destBoardID)
-			if err != nil {
-				return fmt.Errorf("cannot fetch destination board %s for CopyCardFiles: %w", sourceBoardID, err)
-			}
-			destTeamID = destBoard.TeamID
-		}
-
-		sourceFilePath := filepath.Join(sourceBoard.TeamID, sourceBoard.ID, fileName)
-		destinationFilePath := filepath.Join(destTeamID, block.BoardID, destFilename)
-
-		a.logger.Debug(
-			"Copying card file",
-			mlog.String("sourceFilePath", sourceFilePath),
-			mlog.String("destinationFilePath", destinationFilePath),
-		)
-
-		if err := a.filesBackend.CopyFile(sourceFilePath, destinationFilePath); err != nil {
-			a.logger.Error(
-				"CopyCardFiles failed to copy file",
-				mlog.String("sourceFilePath", sourceFilePath),
-				mlog.String("destinationFilePath", destinationFilePath),
-				mlog.Err(err),
-			)
-		}
-		if block.Type == model.TypeAttachment {
-			block.Fields["attachmentId"] = destFilename
-			parts := strings.Split(fileName, ".")
-			fileInfoID := parts[0][1:]
-			fileInfo, err := a.store.GetFileInfo(fileInfoID)
-			if err != nil {
-				return fmt.Errorf("CopyCardFiles: cannot retrieve original fileinfo: %w", err)
-			}
-			newParts := strings.Split(destFilename, ".")
-			newFileID := newParts[0][1:]
-			fileInfo.Id = newFileID
-			err = a.store.SaveFileInfo(fileInfo)
-			if err != nil {
-				return fmt.Errorf("CopyCardFiles: cannot create fileinfo: %w", err)
-			}
-		} else {
-			block.Fields["fileId"] = destFilename
-		}
-	}
-
-	return nil
-}
-
 func (a *App) GetBlockByID(blockID string) (*model.Block, error) {
 	return a.store.GetBlock(blockID)
 }
@@ -512,10 +417,6 @@ func (a *App) UndeleteBlock(blockID string, modifiedBy string) (*model.Block, er
 
 func (a *App) GetBlockCountsByType() (map[string]int64, error) {
 	return a.store.GetBlockCountsByType()
-}
-
-func (a *App) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
-	return a.store.GetBlocksForBoard(boardID)
 }
 
 func (a *App) notifyBlockChanged(action notify.Action, block *model.Block, oldBlock *model.Block, modifiedByID string) {

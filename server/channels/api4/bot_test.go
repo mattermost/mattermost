@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -297,11 +297,10 @@ func TestPatchBot(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		bots, resp, err := th.Client.GetBots(0, 2, "")
+		bot, resp, err := th.Client.GetBot(createdBot.UserId, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, bots, 1)
-		require.Equal(t, []*model.Bot{patchedBot}, bots)
+		require.Equal(t, patchedBot, bot)
 	})
 
 	t.Run("patch my bot without permission", func(t *testing.T) {
@@ -630,7 +629,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

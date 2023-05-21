@@ -8,7 +8,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func GetTimeForMillis(unixMillis int64) time.Time {

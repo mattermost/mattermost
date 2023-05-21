@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	mock_sqlstore "github.com/mattermost/mattermost-server/v6/server/playbooks/server/sqlstore/mocks"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	mock_sqlstore "github.com/mattermost/mattermost-server/server/v8/playbooks/server/sqlstore/mocks"
 )
 
 func setupStatsStore(t *testing.T, db *sqlx.DB) *StatsStore {

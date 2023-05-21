@@ -6,7 +6,7 @@ import {
     fireEvent,
     render,
     screen,
-    waitFor
+    waitFor,
 } from '@testing-library/react'
 import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
@@ -174,7 +174,7 @@ describe('components/content/checkboxElement', () => {
         ))
         const input = screen.getByRole('textbox')
 
-        // should delete if title is empty 
+        // should delete if title is empty
         await userEvent.type(input, '{Escape}')
         expect(deleteElement).toHaveBeenCalledTimes(1)
         await userEvent.type(input, '{Enter}')

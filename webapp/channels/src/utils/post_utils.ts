@@ -20,6 +20,7 @@ import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mat
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetDisplayName, getCurrentUserId, getUser, UserMentionKey, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
 
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
@@ -27,7 +28,7 @@ import {Channel} from '@mattermost/types/channels';
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {ServerError} from '@mattermost/types/errors';
 import {Group} from '@mattermost/types/groups';
-import {Post} from '@mattermost/types/posts';
+import {Post, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
 import {Reaction} from '@mattermost/types/reactions';
 import {UserProfile} from '@mattermost/types/users';
 
@@ -42,11 +43,11 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {GlobalState} from 'types/store';
 
 import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 import EmojiMap from './emoji_map';
 import * as Emoticons from './emoticons';
@@ -236,7 +237,7 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
     }
 
     // Focus if it is an attempted paste
-    if (Utils.cmdOrCtrlPressed(e) && Utils.isKeyPressed(e, Constants.KeyCodes.V)) {
+    if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.V)) {
         return true;
     }
 
@@ -257,7 +258,7 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
 
     // Do not focus when pressing space on link elements
     const spaceKeepFocusTags = ['BUTTON', 'A'];
-    if (Utils.isKeyPressed(e, Constants.KeyCodes.SPACE) && spaceKeepFocusTags.includes(activeElement.tagName)) {
+    if (Keyboard.isKeyPressed(e, Constants.KeyCodes.SPACE) && spaceKeepFocusTags.includes(activeElement.tagName)) {
         return false;
     }
 
@@ -311,7 +312,7 @@ export function postMessageOnKeyPress(
     }
 
     // Only ENTER sends, unless shift or alt key pressed.
-    if (!Utils.isKeyPressed(event, Constants.KeyCodes.ENTER) || event.shiftKey || event.altKey) {
+    if (!Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER) || event.shiftKey || event.altKey) {
         return {allowSending: false};
     }
 
@@ -737,4 +738,42 @@ export function mentionsMinusSpecialMentionsInText(message: string) {
     }
 
     return mentions;
+}
+
+function isUserProfile(entity: UserProfile | Group): entity is UserProfile {
+    return (entity as UserProfile).username !== undefined;
+}
+
+export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState, message: Post['message']) => number {
+    return createSelector(
+        'getUserOrGroupMentionCountFromMessage',
+        (_state: GlobalState, message: Post['message']) => message,
+        getUsersByUsername,
+        getAllGroupsForReferenceByName,
+        (message, users, groups) => {
+            let count = 0;
+            const markdownCleanedText = formatWithRenderer(message, new MentionableRenderer());
+            const mentions = new Set(markdownCleanedText.match(Constants.MENTIONS_REGEX) || []);
+            mentions.forEach((mention) => {
+                const data = {...groups, ...users};
+                const userOrGroup = getUserOrGroupFromMentionName(data, mention.substring(1));
+
+                if (userOrGroup) {
+                    if (isUserProfile(userOrGroup)) {
+                        count++;
+                    } else {
+                        count += userOrGroup.member_count;
+                    }
+                }
+            });
+            return count;
+        },
+    );
+}
+
+export function hasRequestedPersistentNotifications(priority?: PostPriorityMetadata) {
+    return (
+        priority?.priority === PostPriority.URGENT &&
+        priority?.persistent_notifications
+    );
 }
