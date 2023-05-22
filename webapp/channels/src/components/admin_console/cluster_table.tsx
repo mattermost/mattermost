@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import * as Utils from 'utils/utils';
 import statusGreen from 'images/status_green.png';
 import statusYellow from 'images/status_yellow.png';
@@ -19,10 +18,11 @@ type Props = {
     }>;
     reload: () => void;
 }
+
 type Style = {
-    clusterTable: React.CSSProperties;
-    clusterCell: React.CSSProperties;
-    warning: React.CSSProperties;
+    clusterTable: CSSProperties;
+    clusterCell: CSSProperties;
+    warning: CSSProperties;
 }
 
 export default class ClusterTable extends React.PureComponent<Props> {
