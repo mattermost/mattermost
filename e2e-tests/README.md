@@ -17,7 +17,7 @@ Instructions, detailed:
   * All variables are optional, and will be set to sane defaults
 2. (optional) `make start-dashboard`: start the automation-dashboard in the background
   * This also sets the `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN` variables for the cypress container
-  * Note that if you run the dashboard locally, but also specify other `AUTOMNATION_DASHBOARD_*` variables in your env, the latter variables will take precedence
+  * Note that if you run the dashboard locally, but also specify other `AUTOMATION_DASHBOARD_*` variables in your env, the latter variables will take precedence
 3. `make`: start and prepare the server, then run the cypress tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard, if you launched it locally
 4. `make stop`: tears down the server (and the dashboard, if running), then cleans up the env placeholder files
