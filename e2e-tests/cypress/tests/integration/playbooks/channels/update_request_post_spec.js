@@ -19,6 +19,13 @@ describe('channels > update request post', {testIsolation: true}, () => {
     let testPlaybookRun2;
 
     before(() => {
+        cy.apiUpdateConfig({
+            ServiceSettings: {
+                ThreadAutoFollow: true,
+                CollapsedThreads: 'default_on',
+            },
+        });
+
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testParticipant = user;
@@ -128,6 +135,9 @@ describe('channels > update request post', {testIsolation: true}, () => {
                     // Open RHS
                     cy.clickPostCommentIcon(lastPostId);
 
+                    // # Click on "Got it" button, dismissing the CRT onboarding
+                    cy.findByText('Got it').click();
+
                     // Post a reply message
                     cy.postMessageReplyInRHS('test reply');
 
@@ -170,6 +180,9 @@ describe('channels > update request post', {testIsolation: true}, () => {
                 cy.getLastPostId().then((lastPostId) => {
                     // Open RHS
                     cy.clickPostCommentIcon(lastPostId);
+
+                    // # Click on "Got it" button, dismissing the CRT onboarding
+                    cy.findByText('Got it').click();
 
                     // Post a reply message
                     cy.postMessageReplyInRHS('test reply');
