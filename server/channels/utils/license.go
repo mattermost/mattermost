@@ -76,9 +76,9 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 
 	var publicKey []byte
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
+	case model.ServiceEnvironmentProduction:
 		publicKey = productionPublicKey
-	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
+	case model.ServiceEnvironmentTest:
 		publicKey = testPublicKey
 	}
 	block, _ := pem.Decode(publicKey)

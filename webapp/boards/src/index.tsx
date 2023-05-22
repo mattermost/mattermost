@@ -528,14 +528,11 @@ export default class Plugin {
             const rudderUrl = TELEMETRY_RUDDER_URL
             let rudderKey = ''
             switch (mmStore.getState().entities.general.config.ServiceEnvironment) {
-            case ServiceEnvironment.ENTERPRISE:
-            case ServiceEnvironment.CLOUD:
+            case ServiceEnvironment.PRODUCTION:
                 rudderKey = TELEMETRY_RUDDER_KEY_PROD
                 break
             case ServiceEnvironment.TEST:
                 rudderKey = TELEMETRY_RUDDER_KEY_TEST
-                break
-            case ServiceEnvironment.DEV:
                 break
             }
 

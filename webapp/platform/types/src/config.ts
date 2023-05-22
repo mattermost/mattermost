@@ -949,8 +949,6 @@ export enum CollapsedThreads {
 }
 
 export enum ServiceEnvironment {
-    ENTERPRISE = 'enterprise',
-    CLOUD = 'cloud',
+    PRODUCTION = 'production',
     TEST = 'test',
-    DEV = 'dev',
 }

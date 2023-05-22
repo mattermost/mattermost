@@ -33,7 +33,7 @@ const (
 
 	rudderDataplaneURL = "https://pdat.matterlytics.com"
 	rudderKeyProd      = "1aoejPqhgONMI720CsBSRWzzRQ9"
-	rudderKeyDev       = "1aoeoCDeh7OCHcbW2kseWlwUFyq"
+	rudderKeyTest      = "1aoeoCDeh7OCHcbW2kseWlwUFyq"
 
 	// These are placeholders to allow the existing release pipelines to run without failing to
 	// insert the values that are now hard-coded above. Remove this once we converge on the
@@ -170,11 +170,10 @@ func (ts *TelemetryService) getRudderConfig() RudderConfig {
 
 	rudderKey := ""
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
+	case model.ServiceEnvironmentProduction:
 		rudderKey = rudderKeyProd
 	case model.ServiceEnvironmentTest:
-		rudderKey = rudderKeyDev
-	case model.ServiceEnvironmentDev:
+		rudderKey = rudderKeyTest
 	}
 
 	return RudderConfig{rudderKey, rudderDataplaneURL}

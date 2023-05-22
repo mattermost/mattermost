@@ -56,7 +56,7 @@ const ServerKey product.ServiceKey = "server"
 const (
 	rudderDataplaneURL = "https://pdat.matterlytics.com"
 	rudderKeyProd      = "1ag0Mv7LPf5uJNhcnKomqg0ENFd"
-	rudderKeyDev       = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
+	rudderKeyTest      = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
 
 	// These are placeholders to allow the existing release pipelines to run without failing to
 	// insert the values that are now hard-coded above. Remove this once we converge on the
@@ -341,11 +341,10 @@ func (pp *playbooksProduct) Start() error {
 
 	rudderWriteKey := ""
 	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
+	case model.ServiceEnvironmentProduction:
 		rudderWriteKey = rudderKeyProd
 	case model.ServiceEnvironmentTest:
-		rudderWriteKey = rudderKeyDev
-	case model.ServiceEnvironmentDev:
+		rudderWriteKey = rudderKeyTest
 	}
 
 	if rudderWriteKey == "" {

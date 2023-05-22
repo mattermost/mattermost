@@ -200,15 +200,20 @@ describe('components/Root', () => {
             Client4.telemetryHandler = undefined;
         });
 
-        test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', () => {
+        test('should not set a TelemetryHandler when onConfigLoaded is called if telemetry is not enabled', () => {
             store.dispatch({
                 type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
                 data: {
-                    ServiceEnvironment: ServiceEnvironment.DEV,
+                    ServiceEnvironment: ServiceEnvironment.TEST,
                 },
             });
 
-            const wrapper = shallow(<Root {...baseProps}/>);
+            const props = {
+                ...baseProps,
+                telemetryEnabled: false,
+            };
+
+            const wrapper = shallow(<Root {...props}/>);
 
             Client4.trackEvent('category', 'event');
 

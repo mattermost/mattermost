@@ -2845,17 +2845,17 @@ type CloudSettings struct {
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
 		switch GetServiceEnvironment() {
-		case ServiceEnvironmentEnterprise, ServiceEnvironmentCloud:
+		case ServiceEnvironmentProduction:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+		case ServiceEnvironmentTest:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
 		switch GetServiceEnvironment() {
-		case ServiceEnvironmentEnterprise, ServiceEnvironmentCloud:
+		case ServiceEnvironmentProduction:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		case ServiceEnvironmentTest, ServiceEnvironmentDev:
+		case ServiceEnvironmentTest:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
