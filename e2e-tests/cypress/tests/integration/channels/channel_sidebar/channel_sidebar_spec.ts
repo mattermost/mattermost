@@ -87,14 +87,13 @@ describe('Channel sidebar', () => {
         cy.uiGetLHSHeader().findByText(teamName);
 
         // # Switch to Off Topic
-        cy.visit(`/${teamName}/channels/off-topic`);
+        cy.uiClickSidebarItem('off-topic');
 
         // # Wait for the channel to change
         cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').should('contain', 'Off-Topic');
 
         // # Click on the channel menu and select Leave Channel
-        cy.get('#channelHeaderTitle').click();
-        cy.get('#channelLeaveChannel').should('be.visible').click();
+        cy.uiLeaveChannel();
 
         // * Verify that we've switched to Town Square
         verifyChannelSwitch('Town Square', `/${teamName}/channels/town-square`);

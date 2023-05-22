@@ -161,56 +161,42 @@ describe('Leave an archived channel', () => {
     });
 
     it('MM-T1700 - All archived public channels are shown Important', () => {
-        let archivedPublicChannel1;
-        let archivedPublicChannel2;
-
-        // # Create public channel
-        cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
-            archivedPublicChannel1 = channel;
-
-            // # Visit the channel
-            cy.visit(`/${testTeam.name}/channels/${archivedPublicChannel1.name}`);
-
-            // # Archive the channel
-            cy.uiArchiveChannel();
-        });
-
-        // # Create second public channel
-        cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
-            archivedPublicChannel2 = channel;
-
-            // # Visit the channel
-            cy.visit(`/${testTeam.name}/channels/${archivedPublicChannel2.name}`);
-
-            // # Archive the channel
+        // # Create a first public channel
+        cy.uiCreateChannel({prefix: 'arch1', isNewSidebar: true}).then((archivedPublicChannel1) => {
+            // # Archive the first channel
             cy.uiArchiveChannel();
 
-            // # Leave channel
-            cy.uiLeaveChannel();
+            // # Create second public channel
+            cy.uiCreateChannel({prefix: 'arch2', isNewSidebar: true}).then((archivedPublicChannel2) => {
+                // # Archive the second channel
+                cy.uiArchiveChannel();
 
-            // # User should be redirected to last viewed channel
-            cy.url().should('include', `/${testTeam.name}/channels/${archivedPublicChannel1.name}`);
+                // # Leave the second channel
+                cy.uiLeaveChannel();
+
+                // * Verify user should be redirected to last viewed channel
+                cy.url().should('include', `/${testTeam.name}/channels/${archivedPublicChannel1.name}`);
+
+                // # Click on browse channels
+                cy.uiBrowseOrCreateChannel('Browse channels').click();
+
+                // # More channels modal opens
+                cy.get('.more-modal').should('be.visible').within(() => {
+                    // * Public channels are shown by default
+                    cy.findByText(channelType.public).should('be.visible').click();
+
+                    // # Go to archived channels
+                    cy.findByText('Archived Channels').click();
+
+                    // * Channel list should contain both archived public channels
+                    cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.name);
+                    cy.get('#moreChannelsList').should('contain', archivedPublicChannel2.name);
+                });
+
+                // # Close the modal
+                cy.get('body').typeWithForce('{esc}');
+            });
         });
-
-        // # Click on add channel button
-        cy.get('#SidebarContainer .AddChannelDropdown_dropdownButton').click();
-
-        // # Click on browse channels
-        cy.get('#showMoreChannels').click();
-
-        // # More channels modal opens
-        cy.get('.more-modal').should('be.visible').within(() => {
-            // # Public channels are shown by default
-            cy.findByText(channelType.public).should('be.visible').click();
-
-            // # Go to archived channels
-            cy.findByText('Archived Channels').click();
-
-            // # Channel list should contain both archived public channels
-            cy.get('#moreChannelsList').should('contain', archivedPublicChannel1.display_name);
-            cy.get('#moreChannelsList').should('contain', archivedPublicChannel2.display_name);
-        });
-        cy.get('body').typeWithForce('{esc}');
     });
 
     it('MM-T1701 - Only Private channels you are a member of are displayed', () => {
