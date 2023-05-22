@@ -1897,7 +1897,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.isPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1974,6 +1974,10 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
+	}
+
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByTeam([]string{team.Id}); err != nil {
+		return model.NewAppError("SoftDeleteTeam", "app.post_persistent_notification.delete_by_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	team.DeleteAt = model.GetMillis()
