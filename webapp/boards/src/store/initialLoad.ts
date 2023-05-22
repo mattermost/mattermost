@@ -32,6 +32,7 @@ export const initialLoad = createAsyncThunk(
         if (!team) {
             throw new Error(ErrorId.TeamUndefined)
         }
+
         return {
             team,
             teams,
@@ -65,6 +66,7 @@ export const loadBoardData = createAsyncThunk(
     'loadBoardData',
     async (boardID: string) => {
         const blocks = await client.getAllBlocks(boardID)
+
         return {
             blocks,
         }
@@ -75,6 +77,7 @@ export const loadBoards = createAsyncThunk(
     'loadBoards',
     async () => {
         const boards = await client.getBoards()
+
         return {
             boards,
         }
@@ -85,6 +88,7 @@ export const loadMyBoardsMemberships = createAsyncThunk(
     'loadMyBoardsMemberships',
     async () => {
         const boardsMemberships = await client.getMyBoardMemberships()
+
         return {
             boardsMemberships,
         }

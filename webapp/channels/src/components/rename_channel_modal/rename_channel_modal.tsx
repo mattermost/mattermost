@@ -14,25 +14,24 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {getShortenedURL, validateChannelUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 const holders = defineMessages({
     maxLength: {
-        id: t('rename_channel.maxLength'),
+        id: 'rename_channel.maxLength',
         defaultMessage: 'This field must be less than {maxLength, number} characters',
     },
     url: {
-        id: t('rename_channel.url'),
+        id: 'rename_channel.url',
         defaultMessage: 'URL',
     },
     defaultError: {
-        id: t('rename_channel.defaultError'),
+        id: 'rename_channel.defaultError',
         defaultMessage: ' - Cannot be changed for the default channel',
     },
     displayNameHolder: {
-        id: t('rename_channel.displayNameHolder'),
+        id: 'rename_channel.displayNameHolder',
         defaultMessage: 'Enter display name',
     },
 });
@@ -105,17 +104,17 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
     setError = (err: ServerError) => {
         this.setState({serverError: err.message});
-    }
+    };
 
     unsetError = () => {
         this.setState({serverError: ''});
-    }
+    };
 
     handleEntering = () => {
         if (this.textbox) {
             Utils.placeCaretAtEnd(this.textbox);
         }
-    }
+    };
 
     handleHide = (e?: MouseEvent) => {
         if (e) {
@@ -129,7 +128,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
             invalid: false,
             show: false,
         });
-    }
+    };
 
     handleSubmit = async (e?: MouseEvent<HTMLButtonElement>): Promise<void> => {
         if (e) {
@@ -186,13 +185,13 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
         } else if (error) {
             this.setError(error);
         }
-    }
+    };
 
     onSaveSuccess = () => {
         this.handleHide();
         this.unsetError();
         getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
-    }
+    };
 
     handleCancel = (e?: MouseEvent) => {
         this.setState({
@@ -201,20 +200,20 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
         });
 
         this.handleHide(e);
-    }
+    };
 
     onNameChange = (e: ChangeEvent<HTMLInputElement> | {target: {value: string}}) => {
         const name = e.target.value.trim().replace(/[^A-Za-z0-9-_]/g, '').toLowerCase();
         this.setState({channelName: name});
-    }
+    };
 
     onDisplayNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({displayName: e.target.value});
-    }
+    };
 
     getTextbox = (node: HTMLInputElement) => {
         this.textbox = node;
-    }
+    };
 
     render(): JSX.Element {
         let displayNameError = null;

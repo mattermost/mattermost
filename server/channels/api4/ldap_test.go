@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 )
 
 var spPrivateKey = `-----BEGIN PRIVATE KEY-----

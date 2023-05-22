@@ -14,14 +14,14 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/bot"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 )
 
 // PlaybookRunHandler is the API handler.

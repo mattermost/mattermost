@@ -8,10 +8,10 @@ import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import {DeepPartial} from '@mattermost/types/utilities';
 
 import {localizeMessage} from 'utils/utils';
+
 import SaveButton from 'components/save_button';
 import Tooltip from 'components/tooltip';
 import FormError from 'components/form_error';
-
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 export type BaseProps = {
@@ -69,7 +69,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
 
     private closeTooltip = () => {
         this.setState({errorTooltip: false});
-    }
+    };
 
     private openTooltip = (e: React.MouseEvent) => {
         const elm: HTMLElement|null = e.currentTarget.querySelector('.control-label');
@@ -77,7 +77,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
             const isElipsis = elm.offsetWidth < elm.scrollWidth;
             this.setState({errorTooltip: isElipsis});
         }
-    }
+    };
 
     protected handleChange = (id: string, value: boolean) => {
         this.setState((prevState) => ({
@@ -95,7 +95,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         e.preventDefault();
 
         this.doSubmit();
-    }
+    };
 
     protected doSubmit = async (callback?: () => void) => {
         this.setState({

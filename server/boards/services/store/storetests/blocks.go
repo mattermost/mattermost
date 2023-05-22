@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,7 +69,7 @@ func testInsertBlock(t *testing.T, store store.Store) {
 	userID := testUserID
 	boardID := testBoardID
 
-	blocks, errBlocks := store.GetBlocksForBoard(boardID)
+	blocks, errBlocks := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, errBlocks)
 	initialCount := len(blocks)
 
@@ -85,7 +85,7 @@ func testInsertBlock(t *testing.T, store store.Store) {
 		err := store.InsertBlock(block, "user-id-1")
 		require.NoError(t, err)
 
-		blocks, err := store.GetBlocksForBoard(boardID)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, err)
 		require.Len(t, blocks, initialCount+1)
 
@@ -105,7 +105,7 @@ func testInsertBlock(t *testing.T, store store.Store) {
 		err := store.InsertBlock(block, "user-id-1")
 		require.Error(t, err)
 
-		blocks, err := store.GetBlocksForBoard(boardID)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, err)
 		require.Len(t, blocks, initialCount+1)
 	})
@@ -121,7 +121,7 @@ func testInsertBlock(t *testing.T, store store.Store) {
 		err := store.InsertBlock(block, "user-id-1")
 		require.Error(t, err)
 
-		blocks, err := store.GetBlocksForBoard(boardID)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, err)
 		require.Len(t, blocks, initialCount+1)
 	})
@@ -204,7 +204,7 @@ func testInsertBlock(t *testing.T, store store.Store) {
 func testInsertBlocks(t *testing.T, store store.Store) {
 	userID := testUserID
 
-	blocks, errBlocks := store.GetBlocksForBoard("id-test")
+	blocks, errBlocks := store.GetBlocks(model.QueryBlocksOptions{BoardID: "id-test"})
 	require.NoError(t, errBlocks)
 	initialCount := len(blocks)
 
@@ -227,7 +227,7 @@ func testInsertBlocks(t *testing.T, store store.Store) {
 		err := store.InsertBlocks(newBlocks, "user-id-1")
 		require.Error(t, err)
 
-		blocks, err := store.GetBlocksForBoard("id-test")
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: "id-test"})
 		require.NoError(t, err)
 		// no blocks should have been inserted
 		require.Len(t, blocks, initialCount)
@@ -249,7 +249,7 @@ func testPatchBlock(t *testing.T, store store.Store) {
 	err := store.InsertBlock(block, "user-id-1")
 	require.NoError(t, err)
 
-	blocks, errBlocks := store.GetBlocksForBoard(boardID)
+	blocks, errBlocks := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, errBlocks)
 	initialCount := len(blocks)
 
@@ -259,7 +259,7 @@ func testPatchBlock(t *testing.T, store store.Store) {
 		require.ErrorAs(t, err, &nf)
 		require.True(t, model.IsErrNotFound(err))
 
-		blocks, err := store.GetBlocksForBoard(boardID)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, err)
 		require.Len(t, blocks, initialCount)
 	})
@@ -272,7 +272,7 @@ func testPatchBlock(t *testing.T, store store.Store) {
 		err := store.PatchBlock("id-test", blockPatch, "user-id-1")
 		require.Error(t, err)
 
-		blocks, err := store.GetBlocksForBoard(boardID)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, err)
 		require.Len(t, blocks, initialCount)
 	})
@@ -452,7 +452,7 @@ var (
 
 func testGetSubTree2(t *testing.T, store store.Store) {
 	boardID := testBoardID
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	initialCount := len(blocks)
 
@@ -460,7 +460,7 @@ func testGetSubTree2(t *testing.T, store store.Store) {
 	time.Sleep(1 * time.Millisecond)
 	defer DeleteBlocks(t, store, subtreeSampleBlocks, "test")
 
-	blocks, err = store.GetBlocksForBoard(boardID)
+	blocks, err = store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	require.Len(t, blocks, initialCount+6)
 
@@ -492,7 +492,7 @@ func testDeleteBlock(t *testing.T, store store.Store) {
 	userID := testUserID
 	boardID := testBoardID
 
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	initialCount := len(blocks)
 
@@ -516,7 +516,7 @@ func testDeleteBlock(t *testing.T, store store.Store) {
 	InsertBlocks(t, store, blocksToInsert, "user-id-1")
 	defer DeleteBlocks(t, store, blocksToInsert, "test")
 
-	blocks, err = store.GetBlocksForBoard(boardID)
+	blocks, err = store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	require.Len(t, blocks, initialCount+3)
 
@@ -550,7 +550,7 @@ func testUndeleteBlock(t *testing.T, store store.Store) {
 	boardID := testBoardID
 	userID := testUserID
 
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	initialCount := len(blocks)
 
@@ -574,7 +574,7 @@ func testUndeleteBlock(t *testing.T, store store.Store) {
 	InsertBlocks(t, store, blocksToInsert, "user-id-1")
 	defer DeleteBlocks(t, store, blocksToInsert, "test")
 
-	blocks, err = store.GetBlocksForBoard(boardID)
+	blocks, err = store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	require.Len(t, blocks, initialCount+3)
 
@@ -643,7 +643,7 @@ func testUndeleteBlock(t *testing.T, store store.Store) {
 
 func testGetBlocks(t *testing.T, store store.Store) {
 	boardID := testBoardID
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 
 	blocksToInsert := []*model.Block{
@@ -686,65 +686,74 @@ func testGetBlocks(t *testing.T, store store.Store) {
 	InsertBlocks(t, store, blocksToInsert, "user-id-1")
 	defer DeleteBlocks(t, store, blocksToInsert, "test")
 
-	t.Run("not existing parent", func(t *testing.T) {
+	t.Run("not existing parent with type", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithParentAndType(boardID, "not-exists", "test")
+		opts := model.QueryBlocksOptions{BoardID: boardID, ParentID: "not-exists", BlockType: model.BlockType("test")}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Empty(t, blocks)
 	})
 
-	t.Run("not existing type", func(t *testing.T) {
+	t.Run("not existing type with parent", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithParentAndType(boardID, "block1", "not-existing")
+		opts := model.QueryBlocksOptions{BoardID: boardID, ParentID: "block1", BlockType: model.BlockType("not-existing")}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Empty(t, blocks)
 	})
 
 	t.Run("valid parent and type", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithParentAndType(boardID, "block1", "test")
+		opts := model.QueryBlocksOptions{BoardID: boardID, ParentID: "block1", BlockType: model.BlockType("test")}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Len(t, blocks, 2)
 	})
 
 	t.Run("not existing parent", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithParent(boardID, "not-exists")
+		opts := model.QueryBlocksOptions{BoardID: boardID, ParentID: "not-exists"}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Empty(t, blocks)
 	})
 
 	t.Run("valid parent", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithParent(boardID, "block1")
+		opts := model.QueryBlocksOptions{BoardID: boardID, ParentID: "block1"}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Len(t, blocks, 3)
 	})
 
 	t.Run("not existing type", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithType(boardID, "not-exists")
+		opts := model.QueryBlocksOptions{BoardID: boardID, BlockType: model.BlockType("not-exists")}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Empty(t, blocks)
 	})
 
 	t.Run("valid type", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksWithType(boardID, "test")
+		opts := model.QueryBlocksOptions{BoardID: boardID, BlockType: model.BlockType("test")}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Len(t, blocks, 4)
 	})
 
 	t.Run("not existing board", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksForBoard("not-exists")
+		opts := model.QueryBlocksOptions{BoardID: "not-exists"}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Empty(t, blocks)
 	})
 
 	t.Run("all blocks of the a board", func(t *testing.T) {
 		time.Sleep(1 * time.Millisecond)
-		blocks, err = store.GetBlocksForBoard(boardID)
+		opts := model.QueryBlocksOptions{BoardID: boardID}
+		blocks, err = store.GetBlocks(opts)
 		require.NoError(t, err)
 		require.Len(t, blocks, 5)
 	})
@@ -863,7 +872,7 @@ func testDuplicateBlock(t *testing.T, store store.Store) {
 
 func testGetBlockMetadata(t *testing.T, store store.Store) {
 	boardID := testBoardID
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 
 	blocksToInsert := []*model.Block{
@@ -1082,12 +1091,20 @@ func testUndeleteBlockChildren(t *testing.T, store store.Store) {
 		require.Nil(t, block)
 
 		// ensure the card children were deleted
-		blocks, err := store.GetBlocksWithParentAndType(cardDelete.BoardID, cardDelete.ID, model.TypeText)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{
+			BoardID:   cardDelete.BoardID,
+			ParentID:  cardDelete.ID,
+			BlockType: model.TypeText},
+		)
 		require.NoError(t, err)
 		assert.Empty(t, blocks)
 
 		// ensure the other card children remain.
-		blocks, err = store.GetBlocksWithParentAndType(cardKeep.BoardID, cardKeep.ID, model.TypeText)
+		blocks, err = store.GetBlocks(model.QueryBlocksOptions{
+			BoardID:   cardKeep.BoardID,
+			ParentID:  cardKeep.ID,
+			BlockType: model.TypeText},
+		)
 		require.NoError(t, err)
 		assert.Len(t, blocks, len(blocksKeep))
 
@@ -1101,7 +1118,11 @@ func testUndeleteBlockChildren(t *testing.T, store store.Store) {
 		require.NotNil(t, block)
 
 		// ensure the card children were restored
-		blocks, err = store.GetBlocksWithParentAndType(cardDelete.BoardID, cardDelete.ID, model.TypeText)
+		blocks, err = store.GetBlocks(model.QueryBlocksOptions{
+			BoardID:   cardDelete.BoardID,
+			ParentID:  cardDelete.ID,
+			BlockType: model.TypeText},
+		)
 		require.NoError(t, err)
 		assert.Len(t, blocks, len(blocksDelete))
 	})
@@ -1117,12 +1138,12 @@ func testUndeleteBlockChildren(t *testing.T, store store.Store) {
 		require.Nil(t, board)
 
 		// ensure all cards and blocks for the board were deleted
-		blocks, err := store.GetBlocksForBoard(boardDelete.ID)
+		blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardDelete.ID})
 		require.NoError(t, err)
 		assert.Empty(t, blocks)
 
 		// ensure the other board's cards and blocks remain.
-		blocks, err = store.GetBlocksForBoard(boardKeep.ID)
+		blocks, err = store.GetBlocks(model.QueryBlocksOptions{BoardID: boardKeep.ID})
 		require.NoError(t, err)
 		assert.Len(t, blocks, len(blocksKeep)+len(cardsKeep))
 
@@ -1136,7 +1157,7 @@ func testUndeleteBlockChildren(t *testing.T, store store.Store) {
 		require.NotNil(t, board)
 
 		// ensure the board's cards and blocks were restored.
-		blocks, err = store.GetBlocksForBoard(boardDelete.ID)
+		blocks, err = store.GetBlocks(model.QueryBlocksOptions{BoardID: boardDelete.ID})
 		require.NoError(t, err)
 		assert.Len(t, blocks, len(blocksDelete)+len(cardsDelete))
 	})

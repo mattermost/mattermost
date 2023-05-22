@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -23,10 +22,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
 )
 
 var testDir = ""
@@ -790,6 +789,12 @@ func TestGetFileHeaders(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
+	CheckStartsWith := func(tb testing.TB, value, prefix, message string) {
+		tb.Helper()
+
+		require.True(tb, strings.HasPrefix(value, prefix), fmt.Sprintf("%s: %s", message, value))
+	}
+
 	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool, loadFile bool) func(*testing.T) {
 		return func(t *testing.T) {
 			if loadFile {
@@ -832,11 +837,8 @@ func TestGetFileHeaders(t *testing.T) {
 	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false, false))
 	t.Run("html", testHeaders(data, "test.html", "text/plain", false, false))
 	t.Run("js", testHeaders(data, "test.js", "text/plain", false, false))
-	if os.Getenv("IS_CI") == "true" {
-		t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
-	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-		t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
-	}
+	// *.go are categorized differently by different platforms
+	// t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
 	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))

@@ -84,7 +84,8 @@ describe('components/sidebarCategory', () => {
         },
     }
 
-    test('sidebar call hideSidebar', async () => {
+    // https://mattermost.atlassian.net/browse/MM-52212
+    test.skip('sidebar call hideSidebar', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
@@ -111,7 +112,8 @@ describe('components/sidebarCategory', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('sidebar collapsed without active board', async () => {
+    // https://mattermost.atlassian.net/browse/MM-52212
+    test.skip('sidebar collapsed without active board', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
@@ -136,7 +138,8 @@ describe('components/sidebarCategory', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('sidebar collapsed with active board in it', async () => {
+    // https://mattermost.atlassian.net/browse/MM-52212
+    test.skip('sidebar collapsed with active board in it', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
@@ -162,7 +165,8 @@ describe('components/sidebarCategory', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('sidebar template close self', async () => {
+    // https://mattermost.atlassian.net/browse/MM-52212
+    test.skip('sidebar template close self', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
@@ -193,7 +197,10 @@ describe('components/sidebarCategory', () => {
         expect(mockTemplateClose).toBeCalled()
     })
 
-    test('sidebar template close other', async () => {
+    // TODO: Remove when fetch is mocked correctly
+    // https://mattermost.atlassian.net/browse/MM-52212
+
+    test.skip('sidebar template close other', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 

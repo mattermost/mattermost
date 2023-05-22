@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.

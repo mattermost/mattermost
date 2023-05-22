@@ -19,6 +19,7 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 type Props = {
+    id?: string;
     showCloseButton: boolean;
     color: string;
     textColor: string;
@@ -69,7 +70,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         showLinkAsButton: false,
         isTallBanner: false,
         showCTA: true,
-    }
+    };
 
     enableToolTipIfNeeded = () => {
         const elm = this.messageRef.current;
@@ -82,7 +83,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             return;
         }
         this.setState({showTooltip: false});
-    }
+    };
 
     componentDidMount() {
         this.props.actions.incrementAnnouncementBarCount();
@@ -107,7 +108,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         if (this.props.handleClose) {
             this.props.handleClose();
         }
-    }
+    };
 
     render() {
         if (!this.props.message) {
@@ -172,6 +173,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 style={barStyle}
                 // eslint-disable-next-line react/no-unknown-property
                 css={{gridArea: 'announcement'}}
+                data-testid={this.props.id}
             >
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}

@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
 	"github.com/stretchr/testify/require"
 )

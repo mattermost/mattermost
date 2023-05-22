@@ -4,9 +4,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelSettings should matc
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="{siteName} Channels"
       id="admin.channel_settings.groupsPageTitle"
@@ -16,7 +14,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelSettings should matc
         }
       }
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

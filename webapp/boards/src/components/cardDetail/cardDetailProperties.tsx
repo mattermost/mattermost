@@ -63,6 +63,7 @@ const CardDetailProperties = (props: Props) => {
         // if only the name has changed, set the property without warning
         if (affectsNumOfCards === '0' || oldType === newType) {
             mutator.changePropertyTypeAndName(board, cards, propertyTemplate, newType.type, newName)
+
             return
         }
 

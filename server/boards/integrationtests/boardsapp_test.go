@@ -11,10 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/server"
+	"github.com/mattermost/mattermost-server/server/v8/boards/server"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 func TestSetConfiguration(t *testing.T) {
@@ -77,10 +77,13 @@ func TestSetConfiguration(t *testing.T) {
 	})
 
 	t.Run("test enable shared boards", func(t *testing.T) {
+		baseProductSettings := &model.ProductSettings{
+			EnablePublicSharedBoards: &falseRef,
+		}
+
 		mmConfig := baseConfig
-		mmConfig.PluginSettings.Plugins = make(map[string]map[string]interface{})
-		mmConfig.PluginSettings.Plugins[server.PluginName] = make(map[string]interface{})
-		mmConfig.PluginSettings.Plugins[server.PluginName][server.SharedBoardsName] = true
+		mmConfig.ProductSettings = *baseProductSettings
+		mmConfig.ProductSettings.EnablePublicSharedBoards = &boolTrue
 		config := server.CreateBoardsConfig(*mmConfig, "", "")
 		assert.Equal(t, true, config.EnablePublicSharedBoards)
 	})

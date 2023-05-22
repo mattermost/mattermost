@@ -17,15 +17,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/plugin/utils"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/config"
 )
 
 var apiClient *model.Client4
@@ -55,7 +55,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	th := setupTestHelper(tb, false)
+	th := setupTestHelper(tb, false, []app.Option{app.SkipProductsInitialization()})
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().SetStore(&emptyMockStore)
@@ -68,17 +68,18 @@ func Setup(tb testing.TB) *TestHelper {
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	return setupTestHelper(tb, true)
+	mainHelper.PreloadBoardsMigrationsIfNeeded()
+	return setupTestHelper(tb, true, nil)
 }
 
-func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
+func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option) *TestHelper {
 	memoryStore := config.NewTestMemoryStore()
 	newConfig := memoryStore.Get().Clone()
+	newConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	memoryStore.Set(newConfig)
-	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
@@ -107,7 +108,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 
 	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
@@ -204,7 +205,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v6/plugin"
+		"github.com/mattermost/mattermost-server/server/public/plugin"
 	)
 
 	type MyPlugin struct {
@@ -282,7 +283,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"
@@ -291,7 +292,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v6/plugin"
+		"github.com/mattermost/mattermost-server/server/public/plugin"
 	)
 
 	type MyPlugin struct {

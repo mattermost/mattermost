@@ -3,25 +3,21 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import {RouteComponentProps} from 'react-router-dom';
-
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
-
-import LoadingScreen from 'components/loading_screen';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
-import AdminPanelWithLink from 'components/widgets/admin_console/admin_panel_with_link';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
 
-import {LicenseSkus} from 'utils/constants';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
+import LoadingScreen from 'components/loading_screen';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import AdminPanelWithLink from 'components/widgets/admin_console/admin_panel_with_link';
 import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {t} from 'utils/i18n';
+import {LicenseSkus} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';
 
@@ -89,7 +85,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
             }
             Promise.all(promises).then(() => this.setState({loadingMore: false, page: this.state.page + 1}));
         });
-    }
+    };
 
     // |RunJobs && !EnableCluster|(*App).IsPhase2MigrationCompleted|View                                                   |
     // |-------------------------|---------------------------------|-------------------------------------------------------|
@@ -127,7 +123,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
             'Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the {documentationLink}.',
             docLink,
         );
-    }
+    };
 
     teamOverrideUnavalableView = (id: string, defaultMsg: string, documentationLink: React.ReactNode) => {
         return (
@@ -211,7 +207,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
             );
         }
         return false;
-    }
+    };
 
     render = () => {
         if (this.state.loading) {
@@ -222,11 +218,12 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
 
         return (
             <div className='wrapper--fixed'>
-                <FormattedAdminHeader
-                    id='admin.permissions.permissionSchemes'
-                    defaultMessage='Permission Schemes'
-                />
-
+                <AdminHeader>
+                    <FormattedMessage
+                        id='admin.permissions.permissionSchemes'
+                        defaultMessage='Permission Schemes'
+                    />
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='banner info'>

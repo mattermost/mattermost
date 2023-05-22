@@ -115,6 +115,7 @@ function advancedCreatePost({
             fullWidthTextBox={fullWidthTextBox}
             currentChannelMembersCount={currentChannelMembersCount}
             draft={draft}
+            isRemoteDraft={false}
             recentPostIdInChannel={recentPostIdInChannel}
             latestReplyablePostId={latestReplyablePostId}
             locale={locale}
@@ -1580,6 +1581,7 @@ describe('components/advanced_create_post', () => {
         (instance) => instance.find(AdvanceTextEditor),
         (instance) => instance.state().message,
         false,
+        'post_textbox',
     );
 
     /**

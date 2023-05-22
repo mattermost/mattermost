@@ -14,15 +14,15 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 )
 
 const (
@@ -474,9 +474,13 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
+		"allow_persistent_notifications":                          *cfg.ServiceSettings.AllowPersistentNotifications,
+		"allow_persistent_notifications_for_guests":               *cfg.ServiceSettings.AllowPersistentNotificationsForGuests,
+		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
+		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
+		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
-		"self_hosted_expansion":                                   *cfg.ServiceSettings.SelfHostedExpansion,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -522,6 +526,7 @@ func (ts *TelemetryService) trackConfig() {
 		"query_timeout":                        *cfg.SqlSettings.QueryTimeout,
 		"disable_database_search":              *cfg.SqlSettings.DisableDatabaseSearch,
 		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
+		"replica_monitor_interval_seconds":     *cfg.SqlSettings.ReplicaMonitorIntervalSeconds,
 	})
 
 	ts.SendTelemetry(TrackConfigLog, map[string]any{
@@ -533,7 +538,8 @@ func (ts *TelemetryService) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
-		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
+		"advanced_logging_json":    len(cfg.LogSettings.AdvancedLoggingJSON) != 0,
+		"advanced_logging_config":  cfg.LogSettings.AdvancedLoggingConfig != nil && *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigAudit, map[string]any{
@@ -543,7 +549,8 @@ func (ts *TelemetryService) trackConfig() {
 		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
 		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
 		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
-		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
+		"advanced_logging_json":   len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
+		"advanced_logging_config": cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != nil && *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
@@ -554,7 +561,8 @@ func (ts *TelemetryService) trackConfig() {
 		"file_level":              *cfg.NotificationLogSettings.FileLevel,
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
-		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
+		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
+		"advanced_logging_config": cfg.NotificationLogSettings.AdvancedLoggingConfig != nil && *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigPassword, map[string]any{
@@ -750,15 +758,16 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigExperimental, map[string]any{
-		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
-		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
-		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
-		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
-		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"client_side_cert_enable":             *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
+		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
+		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
+		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
+		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
+		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{

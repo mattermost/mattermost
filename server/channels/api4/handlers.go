@@ -8,8 +8,8 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/web"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/web"
 )
 
 type Context = web.Context

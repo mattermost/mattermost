@@ -3,7 +3,7 @@
 
 import {act, render, screen} from '@testing-library/react'
 
-import React, {ReactNode, ReactElement} from 'react'
+import React, {ReactElement, ReactNode} from 'react'
 import {mocked} from 'jest-mock'
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -11,7 +11,7 @@ import userEvent from '@testing-library/user-event'
 
 import {Utils} from 'src/utils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import mutator from 'src/mutator'
 

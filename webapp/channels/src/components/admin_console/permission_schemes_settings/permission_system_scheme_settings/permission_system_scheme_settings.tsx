@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import GeneralConstants from 'mattermost-redux/constants/general';
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {Role} from '@mattermost/types/roles';
+
+import GeneralConstants from 'mattermost-redux/constants/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import {PermissionsScope, DefaultRolePermissions} from 'utils/constants';
@@ -19,11 +20,12 @@ import LoadingScreen from 'components/loading_screen';
 import FormError from 'components/form_error';
 import BlockableLink from 'components/admin_console/blockable_link';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
+import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     config: Partial<ClientConfig>;
@@ -127,7 +129,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
             return true;
         }
         return false;
-    }
+    };
 
     selectRow = (permission: string) => {
         this.setState({selectedPermission: permission});
@@ -139,7 +141,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
         setTimeout(() => {
             this.setState({selectedPermission: undefined});
         }, 3000);
-    }
+    };
 
     loadRolesIntoState(props: Props) {
         this.setState({
@@ -195,7 +197,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                 permissions: role.permissions?.filter((p) => PermissionsScope[p] === 'run_scope'),
             },
         };
-    }
+    };
 
     deriveRolesFromGuests = (role: Partial<Role>): Record<string, Partial<Role>> => {
         return {
@@ -212,7 +214,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                 permissions: role.permissions?.filter((p) => PermissionsScope[p] === 'channel_scope'),
             },
         };
-    }
+    };
 
     restoreExcludedPermissions = (roles: Record<string, Partial<Role>>) => {
         for (const permission of this.props.roles.system_user.permissions) {
@@ -236,7 +238,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
             }
         }
         return roles;
-    }
+    };
 
     restoreGuestPermissions = (roles: Record<string, Partial<Role>>) => {
         for (const permission of this.props.roles.system_guest.permissions) {
@@ -255,7 +257,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
             }
         }
         return roles;
-    }
+    };
 
     handleSubmit = async () => {
         const teamAdminPromise = this.props.actions.editRole(this.state.roles.team_admin);
@@ -303,13 +305,13 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
 
         this.setState({serverError, saving: false, saveNeeded});
         this.props.actions.setNavigationBlocked(saveNeeded);
-    }
+    };
 
     toggleRole = (roleId: string) => {
         const newOpenRoles = {...this.state.openRoles};
         newOpenRoles[roleId] = !newOpenRoles[roleId];
         this.setState({openRoles: newOpenRoles});
-    }
+    };
 
     togglePermission = (roleId: string, permissions: Iterable<string>) => {
         const roles = {...this.state.roles};
@@ -327,7 +329,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
 
         this.setState({roles, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     resetDefaults = () => {
         const newRolesState = JSON.parse(JSON.stringify({...this.state.roles}));
@@ -338,11 +340,11 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
 
         this.setState({roles: newRolesState, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    }
+    };
 
     haveGuestAccountsPermissions = () => {
         return this.props.license.GuestAccountsPermissions === 'true';
-    }
+    };
 
     render = () => {
         if (!this.state.loaded) {
@@ -351,7 +353,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
         const isLicensed = this.props.license?.IsLicensed === 'true';
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/permissions'
@@ -362,7 +364,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             defaultMessage='System Scheme'
                         />
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>

@@ -1,27 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect}  from 'react'
-import {FormattedMessage, IntlProvider, useIntl} from 'react-intl'
-
-import {getMessages} from 'src/i18n'
-import {getLanguage} from 'src/store/language'
+import React, {useEffect} from 'react'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import {useWebsockets} from 'src/hooks/websockets'
 
 import {Board, BoardMember} from 'src/blocks/board'
 import {getCurrentTeamId} from 'src/store/teams'
 import {IUser} from 'src/user'
-import {getMe, fetchMe} from 'src/store/users'
+import {fetchMe, getMe} from 'src/store/users'
 import {loadBoards, loadMyBoardsMemberships} from 'src/store/initialLoad'
 import {getCurrentChannel} from 'src/store/channels'
 import {
+    addMyBoardMemberships,
     getMySortedBoards,
     setLinkToChannel,
     updateBoards,
     updateMembersEnsuringBoardsAndUsers,
-    addMyBoardMemberships,
 } from 'src/store/boards'
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import AddIcon from 'src/widgets/icons/add'
 import Button from 'src/widgets/buttons/button'
 
@@ -92,10 +89,10 @@ const RHSChannelBoards = () => {
 
     if (currentChannel.type === 'D') {
         channelName = intl.formatMessage({id: 'rhs-boards.dm', defaultMessage: 'DM'})
-        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.dm', defaultMessage: 'this Direct Message'})
+        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.dm', defaultMessage: 'this direct message'})
     } else if (currentChannel.type === 'G') {
         channelName = intl.formatMessage({id: 'rhs-boards.gm', defaultMessage: 'GM'})
-        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.gm', defaultMessage: 'this Group Message'})
+        headerChannelName = intl.formatMessage({id: 'rhs-boards.header.gm', defaultMessage: 'this group message'})
     }
 
     if (channelBoards.length === 0) {
@@ -125,7 +122,7 @@ const RHSChannelBoards = () => {
                             <FormattedMessage
                                 id='rhs-boards.link-boards-to-channel'
                                 defaultMessage='Link boards to {channelName}'
-                                values={{channelName: channelName}}
+                                values={{channelName}}
                             />
                         </Button>
                     }
@@ -169,17 +166,4 @@ const RHSChannelBoards = () => {
     )
 }
 
-const IntlRHSChannelBoards = () => {
-    const language = useAppSelector<string>(getLanguage)
-
-    return (
-        <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
-        >
-            <RHSChannelBoards/>
-        </IntlProvider>
-    )
-}
-
-export default IntlRHSChannelBoards
+export default RHSChannelBoards

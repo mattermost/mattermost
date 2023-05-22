@@ -575,18 +575,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    @media screen and (min-width: 768px) {
-        .SidebarNavContainer {
-            .scrollbar--view {
-                max-width: 240px;
-            }
-        }
-
-        #SidebarContainer .SidebarChannelGroup .SidebarChannelGroupHeader {
-            max-width: 240px;
-        }
-    }
-
     .SidebarCategory_newLabel {
         display: flex;
         width: 32px;
@@ -755,6 +743,14 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .AddChannelsCtaDropdown .dropdown-menu {
         min-width: 210px !important;
         margin-left: 20px;
+
+        .MenuItem button span {
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+
+            i {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+        }
     }
 
     #introTextInvite,
@@ -1027,6 +1023,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     /* Channels */
     .SidebarChannel {
         display: flex;
+        overflow: hidden;
         height: 32px;
 
         /* height required for transition animation */

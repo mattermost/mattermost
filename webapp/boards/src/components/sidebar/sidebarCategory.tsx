@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    ReactNode,
     useCallback,
     useEffect,
     useMemo,
     useRef,
-    useState
+    useState,
 } from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
@@ -24,6 +25,7 @@ import CompassIcon from 'src/widgets/icons/compassIcon'
 import OptionsIcon from 'src/widgets/icons/options'
 import Menu from 'src/widgets/menu'
 import MenuWrapper from 'src/widgets/menuWrapper'
+import {UserSettings} from 'src/userSettings'
 
 import './sidebarCategory.scss'
 import {Category, CategoryBoardMetadata, CategoryBoards} from 'src/store/sidebar'
@@ -38,10 +40,10 @@ import {getCurrentCard} from 'src/store/cards'
 import {Utils} from 'src/utils'
 
 import {
-    TOUR_SIDEBAR,
+    FINISHED,
     SidebarTourSteps,
     TOUR_BOARD,
-    FINISHED
+    TOUR_SIDEBAR,
 } from 'src/components/onboardingTour/index'
 import telemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
@@ -167,7 +169,7 @@ const SidebarCategory = (props: Props) => {
             id: 'SidebarCategories.CategoryMenu.DeleteModal.Title',
             defaultMessage: 'Delete this category?',
         }),
-        subText: intl.formatMessage(
+        subText: intl.formatMessage<ReactNode>(
             {
                 id: 'SidebarCategories.CategoryMenu.DeleteModal.Body',
                 defaultMessage: 'Boards in <b>{categoryName}</b> will move back to the Boards categories. You\'re not removed from any boards.',
@@ -201,12 +203,24 @@ const SidebarCategory = (props: Props) => {
                     setTimeout(() => {
                         showBoard(props.boards[nextBoardId as number].id)
                     }, 120)
+                } else {
+                    setTimeout(() => {
+                        const newPath = generatePath('/team/:teamId', {teamId: teamID})
+                        history.push(newPath)
+                    }, 120)
                 }
             },
             async () => {
                 showBoard(deleteBoard.id)
             },
         )
+        if (
+            UserSettings.lastBoardId &&
+            UserSettings.lastBoardId[deleteBoard.teamId] === deleteBoard.id
+        ) {
+            UserSettings.setLastBoardID(deleteBoard.teamId, null)
+            UserSettings.setLastViewId(deleteBoard.id, null)
+        }
     }, [showBoard, deleteBoard, props.boards])
 
     const updateCategory = useCallback(async (value: boolean) => {
@@ -373,6 +387,7 @@ const SidebarCategory = (props: Props) => {
                                             if (!isBoardVisible(board.id)) {
                                                 return null
                                             }
+
                                             return (
                                                 <SidebarBoardItem
                                                     index={zzz}

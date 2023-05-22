@@ -44,7 +44,7 @@ export default class TextSetting extends React.PureComponent<WidgetTextSettingPr
         } else {
             this.props.onChange(this.props.id, e.target.value);
         }
-    }
+    };
 
     public render(): JSX.Element {
         const {resizable} = this.props;

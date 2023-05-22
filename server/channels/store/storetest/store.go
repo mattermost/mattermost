@@ -10,56 +10,57 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 )
 
 // Store can be used to provide mock stores for testing.
 type Store struct {
-	TeamStore                 mocks.TeamStore
-	ChannelStore              mocks.ChannelStore
-	PostStore                 mocks.PostStore
-	UserStore                 mocks.UserStore
-	RetentionPolicyStore      mocks.RetentionPolicyStore
-	BotStore                  mocks.BotStore
-	AuditStore                mocks.AuditStore
-	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
-	RemoteClusterStore        mocks.RemoteClusterStore
-	ComplianceStore           mocks.ComplianceStore
-	SessionStore              mocks.SessionStore
-	OAuthStore                mocks.OAuthStore
-	SystemStore               mocks.SystemStore
-	WebhookStore              mocks.WebhookStore
-	CommandStore              mocks.CommandStore
-	CommandWebhookStore       mocks.CommandWebhookStore
-	PreferenceStore           mocks.PreferenceStore
-	LicenseStore              mocks.LicenseStore
-	TokenStore                mocks.TokenStore
-	EmojiStore                mocks.EmojiStore
-	ThreadStore               mocks.ThreadStore
-	StatusStore               mocks.StatusStore
-	FileInfoStore             mocks.FileInfoStore
-	UploadSessionStore        mocks.UploadSessionStore
-	ReactionStore             mocks.ReactionStore
-	JobStore                  mocks.JobStore
-	UserAccessTokenStore      mocks.UserAccessTokenStore
-	PluginStore               mocks.PluginStore
-	ChannelMemberHistoryStore mocks.ChannelMemberHistoryStore
-	RoleStore                 mocks.RoleStore
-	SchemeStore               mocks.SchemeStore
-	TermsOfServiceStore       mocks.TermsOfServiceStore
-	GroupStore                mocks.GroupStore
-	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
-	LinkMetadataStore         mocks.LinkMetadataStore
-	SharedChannelStore        mocks.SharedChannelStore
-	ProductNoticesStore       mocks.ProductNoticesStore
-	DraftStore                mocks.DraftStore
-	context                   context.Context
-	NotifyAdminStore          mocks.NotifyAdminStore
-	PostPriorityStore         mocks.PostPriorityStore
-	PostAcknowledgementStore  mocks.PostAcknowledgementStore
-	TrueUpReviewStore         mocks.TrueUpReviewStore
+	TeamStore                       mocks.TeamStore
+	ChannelStore                    mocks.ChannelStore
+	PostStore                       mocks.PostStore
+	UserStore                       mocks.UserStore
+	RetentionPolicyStore            mocks.RetentionPolicyStore
+	BotStore                        mocks.BotStore
+	AuditStore                      mocks.AuditStore
+	ClusterDiscoveryStore           mocks.ClusterDiscoveryStore
+	RemoteClusterStore              mocks.RemoteClusterStore
+	ComplianceStore                 mocks.ComplianceStore
+	SessionStore                    mocks.SessionStore
+	OAuthStore                      mocks.OAuthStore
+	SystemStore                     mocks.SystemStore
+	WebhookStore                    mocks.WebhookStore
+	CommandStore                    mocks.CommandStore
+	CommandWebhookStore             mocks.CommandWebhookStore
+	PreferenceStore                 mocks.PreferenceStore
+	LicenseStore                    mocks.LicenseStore
+	TokenStore                      mocks.TokenStore
+	EmojiStore                      mocks.EmojiStore
+	ThreadStore                     mocks.ThreadStore
+	StatusStore                     mocks.StatusStore
+	FileInfoStore                   mocks.FileInfoStore
+	UploadSessionStore              mocks.UploadSessionStore
+	ReactionStore                   mocks.ReactionStore
+	JobStore                        mocks.JobStore
+	UserAccessTokenStore            mocks.UserAccessTokenStore
+	PluginStore                     mocks.PluginStore
+	ChannelMemberHistoryStore       mocks.ChannelMemberHistoryStore
+	RoleStore                       mocks.RoleStore
+	SchemeStore                     mocks.SchemeStore
+	TermsOfServiceStore             mocks.TermsOfServiceStore
+	GroupStore                      mocks.GroupStore
+	UserTermsOfServiceStore         mocks.UserTermsOfServiceStore
+	LinkMetadataStore               mocks.LinkMetadataStore
+	SharedChannelStore              mocks.SharedChannelStore
+	ProductNoticesStore             mocks.ProductNoticesStore
+	DraftStore                      mocks.DraftStore
+	context                         context.Context
+	NotifyAdminStore                mocks.NotifyAdminStore
+	PostPriorityStore               mocks.PostPriorityStore
+	PostAcknowledgementStore        mocks.PostAcknowledgementStore
+	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
+	TrueUpReviewStore               mocks.TrueUpReviewStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -109,6 +110,9 @@ func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChann
 func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
+}
+func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
+	return &s.PostPersistentNotificationStore
 }
 func (s *Store) MarkSystemRanUnitTests()            { /* do nothing */ }
 func (s *Store) Close()                             { /* do nothing */ }
@@ -171,5 +175,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.NotifyAdminStore,
 		&s.PostPriorityStore,
 		&s.PostAcknowledgementStore,
+		&s.PostPersistentNotificationStore,
 	)
 }

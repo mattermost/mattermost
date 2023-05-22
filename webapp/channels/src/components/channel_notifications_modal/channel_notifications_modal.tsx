@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
-import {IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {ChannelAutoFollowThreads, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 
 import NotificationSection from 'components/channel_notifications_modal/components/notification_section.jsx';
 
@@ -47,6 +47,7 @@ type State = {
     pushNotifyLevel: ChannelNotifyProps['push'];
     pushThreadsNotifyLevel: UserNotifyProps['push_threads'];
     ignoreChannelMentions: ChannelNotifyProps['ignore_channel_mentions'];
+    channelAutoFollowThreads: ChannelNotifyProps['channel_auto_follow_threads'];
 };
 
 export default class ChannelNotificationsModal extends React.PureComponent<Props, State> {
@@ -95,6 +96,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
             pushNotifyLevel: channelMemberNotifyProps?.push || NotificationLevels.DEFAULT,
             pushThreadsNotifyLevel: channelMemberNotifyProps?.push_threads || NotificationLevels.ALL,
             ignoreChannelMentions,
+            channelAutoFollowThreads: channelMemberNotifyProps?.channel_auto_follow_threads || ChannelAutoFollowThreads.OFF,
         };
     }
 
@@ -103,7 +105,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
     handleExit = () => {
         this.updateSection(NotificationSections.NONE);
         this.props.onExited();
-    }
+    };
 
     updateSection = (section = NotificationSections.NONE) => {
         this.setState({activeSection: section});
@@ -112,7 +114,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
             const channelNotifyProps = this.props.channelMember && this.props.channelMember.notify_props;
             this.resetStateFromNotifyProps(this.props.currentUser.notify_props, channelNotifyProps);
         }
-    }
+    };
 
     handleUpdateChannelNotifyProps = async (props: Partial<ChannelNotifyProps>) => {
         const {
@@ -127,7 +129,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         } else {
             this.updateSection(NotificationSections.NONE);
         }
-    }
+    };
 
     handleSubmitDesktopNotifyLevel = () => {
         const channelNotifyProps = this.props.channelMember && this.props.channelMember.notify_props as ChannelMemberNotifyProps;
@@ -144,7 +146,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const props = {desktop: desktopNotifyLevel, desktop_threads: desktopThreadsNotifyLevel};
 
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     handleUpdateDesktopNotifyLevel = (desktopNotifyLevel: ChannelNotifyProps['desktop']) => this.setState({desktopNotifyLevel});
 
@@ -161,7 +163,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         const props = {mark_unread: markUnreadNotifyLevel};
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     handleUpdateMarkUnreadLevel = (markUnreadNotifyLevel: ChannelNotifyProps['mark_unread']) => this.setState({markUnreadNotifyLevel});
 
@@ -179,7 +181,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
 
         const props = {push: pushNotifyLevel, push_threads: pushThreadsNotifyLevel};
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
 
     handleUpdatePushNotificationLevel = (pushNotifyLevel: ChannelNotifyProps['push']) => this.setState({pushNotifyLevel});
     handleUpdatePushThreadsNotificationLevel = (pushThreadsNotifyLevel: UserNotifyProps['push_threads']) => this.setState({pushThreadsNotifyLevel});
@@ -190,13 +192,28 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
         const {ignoreChannelMentions} = this.state;
 
         if (channelNotifyProps?.ignore_channel_mentions === ignoreChannelMentions) {
-            this.updateSection('');
+            this.updateSection(NotificationSections.NONE);
             return;
         }
 
         const props = {ignore_channel_mentions: ignoreChannelMentions};
         this.handleUpdateChannelNotifyProps(props);
-    }
+    };
+
+    handleUpdateChannelAutoFollowThreads = (channelAutoFollowThreads: ChannelNotifyProps['channel_auto_follow_threads']) => this.setState({channelAutoFollowThreads});
+
+    handleSubmitChannelAutoFollowThreads = () => {
+        const channelNotifyProps = this.props.channelMember && this.props.channelMember.notify_props;
+        const {channelAutoFollowThreads} = this.state;
+
+        if (channelNotifyProps?.channel_auto_follow_threads === channelAutoFollowThreads) {
+            this.updateSection(NotificationSections.NONE);
+            return;
+        }
+
+        const props = {channel_auto_follow_threads: channelAutoFollowThreads};
+        this.handleUpdateChannelNotifyProps(props);
+    };
 
     render() {
         const {
@@ -207,6 +224,7 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
             pushNotifyLevel,
             pushThreadsNotifyLevel,
             ignoreChannelMentions,
+            channelAutoFollowThreads,
             serverError,
         } = this.state;
 
@@ -301,6 +319,18 @@ export default class ChannelNotificationsModal extends React.PureComponent<Props
                                     }
                                 </div>
                                 }
+                                <div className='divider-light'/>
+                                <NotificationSection
+                                    section={NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS}
+                                    expand={activeSection === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS}
+                                    memberNotificationLevel={markUnreadNotifyLevel}
+                                    ignoreChannelMentions={ignoreChannelMentions}
+                                    channelAutoFollowThreads={channelAutoFollowThreads}
+                                    onChange={this.handleUpdateChannelAutoFollowThreads}
+                                    onSubmit={this.handleSubmitChannelAutoFollowThreads}
+                                    onUpdateSection={this.updateSection}
+                                    serverError={serverError}
+                                />
                                 <div className='divider-dark'/>
                             </div>
                         </div>

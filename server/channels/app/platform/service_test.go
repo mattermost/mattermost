@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 )
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
@@ -28,16 +28,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
-	dsn := ""
-	if driverName == model.DatabaseDriverPostgres {
-		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
-	} else {
-		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
-	}
 	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
-	if dsn != "" {
-		cfg.SqlSettings.DataSource = &dsn
-	}
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
@@ -112,6 +103,7 @@ func TestMetrics(t *testing.T) {
 
 		require.NotNil(t, th.Service.metrics)
 		metricsAddr := strings.Replace(th.Service.metrics.listenAddr, "[::]", "http://localhost", 1)
+		metricsAddr = strings.Replace(metricsAddr, "127.0.0.1", "http://localhost", 1)
 
 		resp, err := http.Get(metricsAddr)
 		require.NoError(t, err)

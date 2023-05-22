@@ -6,7 +6,7 @@ package slashcommands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestCodeProviderDoCommand(t *testing.T) {

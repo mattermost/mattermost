@@ -3,22 +3,21 @@
 
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import {FormattedMessage} from 'react-intl';
+
+import {GlobalState} from '@mattermost/types/store';
 
 import {getCloudSubscription, getCloudProducts, getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {pageVisited} from 'actions/telemetry_actions';
-
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
-import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
-import CloudFetchError from 'components/cloud_fetch_error';
-
 import {
     getSubscriptionProduct,
     getCloudSubscription as selectCloudSubscription,
     getCloudCustomer as selectCloudCustomer,
     getCloudErrors,
 } from 'mattermost-redux/selectors/entities/cloud';
+
+import {pageVisited} from 'actions/telemetry_actions';
+
 import {
     CloudProducts,
     RecurringIntervals,
@@ -29,18 +28,18 @@ import {hasSomeLimits} from 'utils/limits';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 import {useQuery} from 'utils/http_utils';
 
+import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
+import CloudFetchError from 'components/cloud_fetch_error';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import DeleteWorkspaceCTA from 'components/admin_console/billing//delete_workspace/delete_workspace_cta';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import PlanDetails from '../plan_details';
 import BillingSummary from '../billing_summary';
-import {GlobalState} from '@mattermost/types/store';
-
 import ContactSalesCard from './contact_sales_card';
 import Limits from './limits';
-
 import {
     creditCardExpiredBanner,
     paymentFailedBanner,
@@ -48,6 +47,7 @@ import {
 import LimitReachedBanner from './limit_reached_banner';
 import CancelSubscription from './cancel_subscription';
 import {ToYearlyNudgeBanner} from './to_yearly_nudge_banner';
+import {ToPaidNudgeBanner} from './to_paid_plan_nudge_banner';
 
 import './billing_subscriptions.scss';
 
@@ -123,10 +123,12 @@ const BillingSubscriptions = () => {
 
     return (
         <div className='wrapper--fixed BillingSubscriptions'>
-            <FormattedAdminHeader
-                id='admin.billing.subscription.title'
-                defaultMessage='Subscription'
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id='admin.billing.subscription.title'
+                    defaultMessage='Subscription'
+                />
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {errorLoadingData && <CloudFetchError/>}
@@ -136,6 +138,7 @@ const BillingSubscriptions = () => {
                         />
                         {shouldShowPaymentFailedBanner() && paymentFailedBanner()}
                         {<ToYearlyNudgeBanner/>}
+                        {<ToPaidNudgeBanner/>}
                         {showCreditCardBanner &&
                             isCardExpired &&
                             creditCardExpiredBanner(setShowCreditCardBanner)}

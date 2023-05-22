@@ -6,8 +6,8 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 )
 
 func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
@@ -59,4 +59,8 @@ func (a *App) PurgeBleveIndexes() *model.AppError {
 		return err
 	}
 	return nil
+}
+
+func (a *App) ActiveSearchBackend() string {
+	return a.ch.srv.platform.SearchEngine.ActiveEngine()
 }

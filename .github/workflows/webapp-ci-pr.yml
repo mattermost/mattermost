@@ -1,0 +1,19 @@
+name: Web App CI PR
+on:
+  pull_request:
+    paths:
+      - 'webapp/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# This file just imports the template yml
+# and runs it with concurrency. We have to do this in this way
+# because the concurrency label cannot be added conditionally
+# and it _always_ cancels pending workflows. So master CI builds
+# always kept getting canceled.
+
+jobs:
+  pr-ci:
+    uses: ./.github/workflows/webapp-ci-template.yml

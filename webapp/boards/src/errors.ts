@@ -49,9 +49,10 @@ function errorDefFromId(id: ErrorId | null): ErrorDef {
     case ErrorId.TeamUndefined: {
         errDef.title = intl.formatMessage({id: 'error.team-undefined', defaultMessage: 'Not a valid team.'})
         errDef.button1Enabled = true
-        errDef.button1Text = intl.formatMessage({id: 'error.back-to-home', defaultMessage: 'Back to Home'})
+        errDef.button1Text = intl.formatMessage({id: 'error.back-to-home', defaultMessage: 'Back to home'})
         errDef.button1Redirect = (): string => {
             UserSettings.setLastTeamID(null)
+
             return window.location.origin
         }
         errDef.button1Fill = true
@@ -75,6 +76,7 @@ function errorDefFromId(id: ErrorId | null): ErrorDef {
             if (r) {
                 return `/login?r=${r}`
             }
+
             return '/login'
         }
         errDef.button1Fill = true
@@ -93,13 +95,14 @@ function errorDefFromId(id: ErrorId | null): ErrorDef {
     default: {
         errDef.title = intl.formatMessage({id: 'error.unknown', defaultMessage: 'An error occurred.'})
         errDef.button1Enabled = true
-        errDef.button1Text = intl.formatMessage({id: 'error.back-to-home', defaultMessage: 'Back to Home'})
+        errDef.button1Text = intl.formatMessage({id: 'error.back-to-home', defaultMessage: 'Back to home'})
         errDef.button1Redirect = '/'
         errDef.button1Fill = true
         errDef.button1ClearHistory = true
         break
     }
     }
+
     return errDef
 }
 

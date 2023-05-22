@@ -4,7 +4,7 @@
 package plugindelivery
 
 import (
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 type servicesAPI interface {
