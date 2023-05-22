@@ -35,6 +35,12 @@ const (
 	rudderKeyProd      = "1aoejPqhgONMI720CsBSRWzzRQ9"
 	rudderKeyDev       = "1aoeoCDeh7OCHcbW2kseWlwUFyq"
 
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_rudder_key"
+
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
 	TrackConfigService           = "config_service"

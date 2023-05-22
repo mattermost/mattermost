@@ -17,9 +17,16 @@ import (
 )
 
 const (
-	rudderDataplaneURL         = "https://pdat.matterlytics.com"
-	rudderKeyProd              = "1myWcDbTkIThnpPYyms7DKlmQWl"
-	rudderKeyDev               = "1myWYwHRDFdLDTpznQ7qFlOPQaa"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1myWcDbTkIThnpPYyms7DKlmQWl"
+	rudderKeyDev       = "1myWYwHRDFdLDTpznQ7qFlOPQaa"
+
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_boards_rudder_key"
+
 	timeBetweenTelemetryChecks = 10 * time.Minute
 )
 

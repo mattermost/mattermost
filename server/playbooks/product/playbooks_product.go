@@ -57,6 +57,12 @@ const (
 	rudderDataplaneURL = "https://pdat.matterlytics.com"
 	rudderKeyProd      = "1ag0Mv7LPf5uJNhcnKomqg0ENFd"
 	rudderKeyDev       = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
+
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_playbooks_rudder_key"
 )
 
 var errServiceTypeAssert = errors.New("type assertion failed")
