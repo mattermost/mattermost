@@ -54,9 +54,9 @@ const (
 const ServerKey product.ServiceKey = "server"
 
 const (
-	rudderDataplaneURL       = "https://pdat.matterlytics.com"
-	rudderWriteKeyProduction = "1ag0Mv7LPf5uJNhcnKomqg0ENFd"
-	rudderWriteKeyTest       = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1ag0Mv7LPf5uJNhcnKomqg0ENFd"
+	rudderKeyDev       = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
 )
 
 var errServiceTypeAssert = errors.New("type assertion failed")
@@ -336,9 +336,9 @@ func (pp *playbooksProduct) Start() error {
 	rudderWriteKey := ""
 	switch model.GetServiceEnvironment() {
 	case model.ServiceEnvironmentEnterprise, model.ServiceEnvironmentCloud:
-		rudderWriteKey = rudderWriteKeyProduction
+		rudderWriteKey = rudderKeyProd
 	case model.ServiceEnvironmentTest:
-		rudderWriteKey = rudderWriteKeyTest
+		rudderWriteKey = rudderKeyDev
 	case model.ServiceEnvironmentDev:
 	}
 
