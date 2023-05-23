@@ -51,6 +51,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/plugins"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
@@ -1580,6 +1581,12 @@ func (s *Server) initJobs() {
 		model.JobTypeTrialNotifyAdmin,
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypePostPersistentNotifications,
+		post_persistent_notifications.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		post_persistent_notifications.MakeScheduler(s.Jobs, func() *model.License { return s.License() }),
 	)
 
 	s.Jobs.RegisterJobType(
