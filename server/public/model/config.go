@@ -2861,20 +2861,6 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
-type ProductSettings struct {
-	EnablePublicSharedBoards *bool
-}
-
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePublicSharedBoards == nil {
-		if p, ok := plugins[PluginIdFocalboard]; ok {
-			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
-		} else {
-			s.EnablePublicSharedBoards = NewBool(false)
-		}
-	}
-}
-
 type PluginState struct {
 	Enable bool
 }

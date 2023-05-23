@@ -605,9 +605,6 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePublicSharedBoards: false,
-    },
     PluginSettings: {
         Enable: true,
         EnableUploads: false,

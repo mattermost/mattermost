@@ -816,10 +816,6 @@ export type JobSettings = {
     CleanupConfigThresholdDays: number;
 };
 
-export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
-};
-
 export type PluginSettings = {
     Enable: boolean;
     EnableUploads: boolean;

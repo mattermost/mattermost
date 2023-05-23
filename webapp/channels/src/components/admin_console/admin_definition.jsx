@@ -5862,42 +5862,6 @@ const AdminDefinition = {
             },
         },
     },
-    products: {
-        icon: (
-            <ProductsIcon
-                size={16}
-                className={'category-icon fa'}
-                color={'currentColor'}
-            />
-        ),
-        sectionTitle: t('admin.sidebar.products'),
-        sectionTitleDefault: 'Products',
-        isHidden: it.any(
-            it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
-        ),
-        boards: {
-            url: 'products/boards',
-            title: t('admin.sidebar.boards'),
-            title_default: 'Boards',
-            isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-            schema: {
-                id: 'BoardsSettings',
-                name: t('admin.site.boards'),
-                name_default: 'Boards',
-                settings: [
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ProductSettings.EnablePublicSharedBoards',
-                        label: t('admin.customization.enablePublicSharedBoardsTitle'),
-                        label_default: 'Enable Public Shared Boards:',
-                        help_text: t('admin.customization.enablePublicSharedBoardsDesc'),
-                        help_text_default: 'This allows board editors to share boards that can be accessed by anyone with the link.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-                    },
-                ],
-            },
-        },
-    },
     integrations: {
         icon: (
             <SitemapIcon

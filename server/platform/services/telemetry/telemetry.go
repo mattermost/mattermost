@@ -867,10 +867,6 @@ func (ts *TelemetryService) trackConfig() {
 		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
 
-	ts.SendTelemetry(TrackConfigProducts, map[string]any{
-		"enable_public_shared_boards": *cfg.ProductSettings.EnablePublicSharedBoards,
-	})
-
 	// Convert feature flags to map[string]any for sending
 	flags := cfg.FeatureFlags.ToMap()
 	interfaceFlags := make(map[string]any)
