@@ -17,6 +17,7 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 import './keyboard_shortcuts_modal.scss';
+import {isCallsEnabled} from 'selectors/calls';
 
 const modalMessages = defineMessages({
     msgHeader: {
@@ -91,9 +92,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
 
     const isLinux = UserAgent.isLinux();
 
-    const isCallsEnabled = useSelector((state: GlobalState) => {
-        return Boolean(state.plugins.plugins[suitePluginIds.calls]);
-    });
+    const callsEnabled = useSelector(isCallsEnabled);
 
     const renderShortcutSequences = (shortcuts: {[key: string]: KeyboardShortcutDescriptor}) => {
         return Object.entries(shortcuts).map(([key, shortcut]) => {
@@ -203,7 +202,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                         </div>
 
                     </div>
-                    { isCallsEnabled &&
+                    { callsEnabled &&
                     <div className='row'>
                         <div className='col-sm-4'>
                             <div className='section'>
