@@ -137,6 +137,11 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableCustomGroups"] = "false"
 	props["InsightsEnabled"] = strconv.FormatBool(c.FeatureFlags.InsightsEnabled)
 	props["PostPriority"] = strconv.FormatBool(*c.ServiceSettings.PostPriority)
+	props["AllowPersistentNotifications"] = strconv.FormatBool(*c.ServiceSettings.AllowPersistentNotifications)
+	props["AllowPersistentNotificationsForGuests"] = strconv.FormatBool(*c.ServiceSettings.AllowPersistentNotificationsForGuests)
+	props["PersistentNotificationMaxCount"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxCount), 10)
+	props["PersistentNotificationIntervalMinutes"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationIntervalMinutes), 10)
+	props["PersistentNotificationMaxRecipients"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxRecipients), 10)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 

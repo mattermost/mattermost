@@ -172,6 +172,20 @@ type PostPriority struct {
 	ChannelId string `json:",omitempty"`
 }
 
+type PostPersistentNotifications struct {
+	PostId     string
+	CreateAt   int64
+	LastSentAt int64
+	DeleteAt   int64
+	SentCount  int16
+}
+
+type GetPersistentNotificationsPostsParams struct {
+	MaxTime      int64
+	MaxSentCount int16
+	PerPage      int
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -803,11 +817,26 @@ func (o *Post) GetPreviewedPostProp() string {
 }
 
 func (o *Post) GetPriority() *PostPriority {
-	if o.Metadata != nil && o.Metadata.Priority != nil {
-		return o.Metadata.Priority
+	if o.Metadata == nil {
+		return nil
 	}
+	return o.Metadata.Priority
+}
 
-	return nil
+func (o *Post) GetPersistentNotification() *bool {
+	priority := o.GetPriority()
+	if priority == nil {
+		return nil
+	}
+	return priority.PersistentNotifications
+}
+
+func (o *Post) GetRequestedAck() *bool {
+	priority := o.GetPriority()
+	if priority == nil {
+		return nil
+	}
+	return priority.RequestedAck
 }
 
 func (o *Post) IsUrgent() bool {
