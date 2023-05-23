@@ -6962,7 +6962,7 @@ const AdminDefinition = {
                         label: t('admin.experimental.alwaysShowTeamSidebar.title'),
                         label_default: 'Always show team sidebar:',
                         help_text: t('admin.experimental.alwaysShowTeamSidebar.desc'),
-                        help_text_default: 'When enabled (default off), team sidebar always appears',
+                        help_text_default: 'When true, the team sidebar will always be shown. When false, the team sidebar will be hidden for users that are members of only one team.',
                         help_text_markdown: false,
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },

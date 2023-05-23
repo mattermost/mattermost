@@ -883,7 +883,7 @@
   "admin.environment.webServer": "Web Server",
   "admin.experimental.allowCustomThemes.desc": "Enables the **Display > Theme > Custom Theme** section in Settings.",
   "admin.experimental.allowCustomThemes.title": "Allow Custom Themes:",
-  "admin.experimental.alwaysShowTeamSidebar.desc": "When enabled (default off), team sidebar always appears",
+  "admin.experimental.alwaysShowTeamSidebar.desc": "When true, the team sidebar will always be shown. When false, the team sidebar will be hidden for users that are members of only one team.",
   "admin.experimental.alwaysShowTeamSidebar.title": "Always show team sidebar:",
   "admin.experimental.clientSideCertCheck.desc": "When **primary**, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.",
   "admin.experimental.clientSideCertCheck.title": "Client-Side Certification Login Method:",
