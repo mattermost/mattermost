@@ -21,7 +21,7 @@ Other useful resources:
 Table of contents
 =================
 
-  * [Try out Mattermost](#try-out-mattermost)
+  * [Try out Mattermost](https://mattermost.com/sign-up/)
   * [Install Mattermost](#install-mattermost)
   * [Native Mobile and Desktop Apps](#native-mobile-and-desktop-apps)
   * [Get Security Bulletins](#get-security-bulletins)
