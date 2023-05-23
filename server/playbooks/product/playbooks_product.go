@@ -354,7 +354,7 @@ func (pp *playbooksProduct) Start() error {
 		logrus.Info("Rudder credentials are set. Enabling analytics.")
 		diagnosticID := pp.serviceAdapter.GetDiagnosticID()
 		serverVersion := pp.serviceAdapter.GetServerVersion()
-		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, model.BuildHash, serverVersion)
+		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, serverVersion)
 		if err != nil {
 			return errors.Wrapf(err, "failed init telemetry client")
 		}
