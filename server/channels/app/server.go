@@ -298,26 +298,31 @@ func NewServer(options ...Option) (*Server, error) {
 	// -------------------------------------------------------------------------
 
 	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
-		if err2 := sentry.Init(sentry.ClientOptions{
-			Dsn:              SentryDSN,
-			Release:          model.BuildHash,
-			AttachStacktrace: true,
-			BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-				// sanitize data sent to sentry to reduce exposure of PII
-				if event.Request != nil {
-					event.Request.Cookies = ""
-					event.Request.QueryString = ""
-					event.Request.Headers = nil
-					event.Request.Data = ""
-				}
-				return event
-			},
-			EnableTracing: false,
-			TracesSampler: sentry.TracesSampler(func(ctx sentry.SamplingContext) float64 {
-				return 0.0
-			}),
-		}); err2 != nil {
-			mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
+		switch model.GetServiceEnvironment() {
+		case model.ServiceEnvironmentDev:
+			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
+		case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
+			if err2 := sentry.Init(sentry.ClientOptions{
+				Dsn:              SentryDSN,
+				Release:          model.BuildHash,
+				AttachStacktrace: true,
+				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+					// sanitize data sent to sentry to reduce exposure of PII
+					if event.Request != nil {
+						event.Request.Cookies = ""
+						event.Request.QueryString = ""
+						event.Request.Headers = nil
+						event.Request.Data = ""
+					}
+					return event
+				},
+				EnableTracing: false,
+				TracesSampler: sentry.TracesSampler(func(ctx sentry.SamplingContext) float64 {
+					return 0.0
+				}),
+			}); err2 != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
+			}
 		}
 	}
 
@@ -908,11 +913,15 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
-		sentryHandler := sentryhttp.New(sentryhttp.Options{
-			Repanic: true,
-		})
-		handler = sentryHandler.Handle(handler)
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
+		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+			sentryHandler := sentryhttp.New(sentryhttp.Options{
+				Repanic: true,
+			})
+			handler = sentryHandler.Handle(handler)
+		}
+	case model.ServiceEnvironmentDev:
 	}
 
 	if allowedOrigins := *s.platform.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {

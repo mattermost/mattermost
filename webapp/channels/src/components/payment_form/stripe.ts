@@ -35,6 +35,7 @@ export const getStripePublicKey = (state: GlobalState) => {
     case ServiceEnvironment.PRODUCTION:
         return 'pk_live_cDF5gYLPf5vQjJ7jp71p7GRK';
     case ServiceEnvironment.TEST:
+    case ServiceEnvironment.DEV:
         return 'pk_test_ttEpW6dCHksKyfAFzh6MvgBj';
     }
 

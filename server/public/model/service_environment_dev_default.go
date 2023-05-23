@@ -6,5 +6,5 @@
 package model
 
 func getDefaultServiceEnvironment() string {
-	return ServiceEnvironmentTest
+	return ServiceEnvironmentDev
 }

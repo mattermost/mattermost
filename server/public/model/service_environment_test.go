@@ -34,6 +34,11 @@ func TestGetServiceEnvironment(t *testing.T) {
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 		require.Equal(t, model.ServiceEnvironmentTest, model.GetServiceEnvironment())
 	})
+	t.Run("dev", func(t *testing.T) {
+		os.Setenv("MM_SERVICEENVIRONMENT", "dev")
+		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		require.Equal(t, model.ServiceEnvironmentDev, model.GetServiceEnvironment())
+	})
 	t.Run("whitespace and case insensitive", func(t *testing.T) {
 		os.Setenv("MM_SERVICEENVIRONMENT", "   Test  ")
 		defer os.Unsetenv("MM_SERVICEENVIRONMENT")

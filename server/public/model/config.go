@@ -2847,7 +2847,7 @@ func (s *CloudSettings) SetDefaults() {
 		switch GetServiceEnvironment() {
 		case ServiceEnvironmentProduction:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		case ServiceEnvironmentTest:
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
@@ -2855,7 +2855,7 @@ func (s *CloudSettings) SetDefaults() {
 		switch GetServiceEnvironment() {
 		case ServiceEnvironmentProduction:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		case ServiceEnvironmentTest:
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}

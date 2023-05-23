@@ -951,4 +951,5 @@ export enum CollapsedThreads {
 export enum ServiceEnvironment {
     PRODUCTION = 'production',
     TEST = 'test',
+    DEV = 'dev',
 }

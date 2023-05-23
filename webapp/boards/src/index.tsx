@@ -534,6 +534,8 @@ export default class Plugin {
             case ServiceEnvironment.TEST:
                 rudderKey = TELEMETRY_RUDDER_KEY_TEST
                 break
+            case ServiceEnvironment.DEV:
+                break
             }
 
             if (rudderKey !== '') {

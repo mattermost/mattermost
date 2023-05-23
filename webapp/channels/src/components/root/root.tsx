@@ -242,6 +242,8 @@ export default class Root extends React.PureComponent<Props, State> {
         case ServiceEnvironment.TEST:
             rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
             break;
+        case ServiceEnvironment.DEV:
+            break;
         }
 
         if (rudderKey !== '' && this.props.telemetryEnabled) {

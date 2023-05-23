@@ -345,6 +345,7 @@ func (pp *playbooksProduct) Start() error {
 		rudderWriteKey = rudderKeyProd
 	case model.ServiceEnvironmentTest:
 		rudderWriteKey = rudderKeyTest
+	case model.ServiceEnvironmentDev:
 	}
 
 	if rudderWriteKey == "" {
