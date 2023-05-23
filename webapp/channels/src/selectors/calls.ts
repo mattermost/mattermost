@@ -7,5 +7,5 @@ import semver from 'semver';
 
 export function isCallsEnabled(state: GlobalState, minVersion = '0.4.2') {
     return state.plugins.plugins[suitePluginIds.calls] &&
-        semver.gte(state.plugins.plugins[suitePluginIds.calls].version || '', minVersion);
+        semver.gte(state.plugins.plugins[suitePluginIds.calls].version || '0.0.0', minVersion);
 }
