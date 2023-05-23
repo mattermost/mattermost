@@ -56,18 +56,18 @@ export const Participants = ({playbookRun, role, teamName}: Props) => {
     };
 
     useEffect(() => {
+        if (!playbookRun) {
+            return;
+        }
+
         const profiles = dispatch(getProfilesByIds(playbookRun.participant_ids));
 
         //@ts-ignore
         profiles.then(({data}: { data: UserProfile[] }) => {
-            // getProfilesByIds doesn't return current user profile, so add it when a user is participant
-            if (role === Role.Participant) {
-                data.push(myUser);
-            }
             data.sort(sortByUsername);
             setParticipantsProfiles(data || []);
         });
-    }, [dispatch, myUser, playbookRun.participant_ids, role]);
+    }, [dispatch, playbookRun, playbookRun.participant_ids, role]);
 
     const includesTerm = (user: UserProfile) => {
         const userInfo = user.first_name + ';' + user.last_name + ';' + user.nickname + ';' + user.username;
