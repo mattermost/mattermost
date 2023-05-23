@@ -1,22 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { ActionResult } from 'mattermost-redux/types/actions';
-import { getSuggestionsSplitBy, getSuggestionsSplitByMultiple } from 'mattermost-redux/utils/user_utils';
+import {ActionResult} from 'mattermost-redux/types/actions';
+import {
+    getSuggestionsSplitBy,
+    getSuggestionsSplitByMultiple,
+} from 'mattermost-redux/utils/user_utils';
 import {Group} from '@mattermost/types/groups';
-import { makeGetProfilesInChannel } from 'mattermost-redux/selectors/entities/users';
-import { makeAddLastViewAtToProfiles } from 'mattermost-redux/selectors/entities/utils';
-import {UserProfile, UserProfileWithLastViewAt} from '@mattermost/types/users';
+import {makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
+import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
+import {
+    UserProfile,
+    UserProfileWithLastViewAt,
+} from '@mattermost/types/users';
 
 import store from 'stores/redux_store';
-import { Constants } from 'utils/constants';
-import { GlobalState } from 'types/store';
+import {Constants} from 'utils/constants';
+import {GlobalState} from 'types/store';
 
 import Provider from '../provider';
 
 import AtMentionSuggestion from './at_mention_suggestion';
 
-const profilesInChannelOptions = { active: true };
+const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
 
 type Filters = {
@@ -30,21 +36,28 @@ type Filters = {
 };
 
 type Props = {
-    currentUserId:string; 
-    channelId:string; 
-    autocompleteUsersInChannel:(prefix: string, channelId: string) => Promise<ActionResult>; 
-    useChannelMentions:boolean; 
-    autocompleteGroups:Array<{ id: string }> | null; 
-    searchAssociatedGroupsForReference(prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>; 
-    priorityProfiles:UserProfile[];
-}
+    currentUserId: string;
+    channelId: string;
+    autocompleteUsersInChannel: (
+        prefix: string,
+        channelId: string
+    ) => Promise<ActionResult>;
+    useChannelMentions: boolean;
+    autocompleteGroups: Array<{ id: string }> | null;
+    searchAssociatedGroupsForReference: (
+        prefix: string,
+        teamId: string,
+        channelId: string | undefined
+    ) => Promise<{ data: any }>;
+    priorityProfiles: UserProfile[] | undefined;
+};
 
 type Results = {
     matchedPretext: string;
     terms: string[];
     items: any;
     component: React.ElementType;
-}
+};
 
 type ResultsCallback = (results: Results) => void;
 
@@ -52,21 +65,39 @@ type ResultsCallback = (results: Results) => void;
 // users in the channel and users not in the channel. It mixes together results from the local
 // store with results fetched from the server.
 export default class AtMentionProvider extends Provider {
-    data: null;
+    data: UserProfileWithLastViewAt;
     lastCompletedWord: string;
     lastPrefixWithNoResults: string;
     triggerCharacter: string;
-    getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
-    addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
+    getProfilesInChannel: (
+        state: GlobalState,
+        channelId: string,
+        filters?: Filters | undefined
+    ) => UserProfile[];
+    addLastViewAtToProfiles: (
+        state: GlobalState,
+        profiles: UserProfile[]
+    ) => UserProfileWithLastViewAt[];
 
-    currentUserId: any;
-    channelId: any;
-    autocompleteUsersInChannel: any;
-    useChannelMentions: any;
-    autocompleteGroups: any;
-    searchAssociatedGroupsForReference: any;
-    priorityProfiles: any;
-    
+    currentUserId: string;
+    channelId: string;
+    autocompleteUsersInChannel?: (
+        prefix: string,
+        channelId: string
+    ) => Promise<ActionResult<any, any>>;
+    useChannelMentions: boolean;
+    autocompleteGroups?: Array<{
+        id: string;
+    }> | null;
+    searchAssociatedGroupsForReference?: (
+        prefix: string,
+        teamId: string,
+        channelId: string | undefined
+    ) => Promise<{
+        data: any;
+    }>;
+    priorityProfiles?: UserProfile[];
+
     constructor(props: Props) {
         super();
 
@@ -78,17 +109,30 @@ export default class AtMentionProvider extends Provider {
         this.triggerCharacter = '@';
         this.getProfilesInChannel = makeGetProfilesInChannel();
         this.addLastViewAtToProfiles = makeAddLastViewAtToProfiles();
+
+        this.currentUserId = '';
+        this.channelId = '';
+        this.useChannelMentions = false;
     }
 
     // setProps gives the provider additional context for matching pretexts. Ideally this would
     // just be something akin to a connected component with access to the store itself.
-    setProps({ currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles }: Props) {
+    setProps({
+        currentUserId,
+        channelId,
+        autocompleteUsersInChannel,
+        useChannelMentions,
+        autocompleteGroups,
+        searchAssociatedGroupsForReference,
+        priorityProfiles,
+    }: Props) {
         this.currentUserId = currentUserId;
         this.channelId = channelId;
         this.autocompleteUsersInChannel = autocompleteUsersInChannel;
         this.useChannelMentions = useChannelMentions;
         this.autocompleteGroups = autocompleteGroups;
-        this.searchAssociatedGroupsForReference = searchAssociatedGroupsForReference;
+        this.searchAssociatedGroupsForReference =
+            searchAssociatedGroupsForReference;
         this.priorityProfiles = priorityProfiles;
     }
 
@@ -98,12 +142,12 @@ export default class AtMentionProvider extends Provider {
             return [];
         }
 
-        return ['here', 'channel', 'all'].filter((item) =>
-            item.startsWith(this.latestPrefix),
-        ).map((name) => ({
-            username: name,
-            type: Constants.MENTION_SPECIAL,
-        }));
+        return ['here', 'channel', 'all'].
+            filter((item) => item.startsWith(this.latestPrefix)).
+            map((name) => ({
+                username: name,
+                type: Constants.MENTION_SPECIAL,
+            }));
     }
 
     // retrieves the parts of the profile that should be checked
@@ -115,14 +159,26 @@ export default class AtMentionProvider extends Provider {
         }
 
         if (profile.username) {
-            const usernameSuggestions = getSuggestionsSplitByMultiple(profile.username.toLowerCase(), Constants.AUTOCOMPLETE_SPLIT_CHARACTERS);
+            const usernameSuggestions = getSuggestionsSplitByMultiple(
+                profile.username.toLowerCase(),
+                Constants.AUTOCOMPLETE_SPLIT_CHARACTERS,
+            );
             profileSuggestions.push(...usernameSuggestions);
         }
-        [profile.first_name, profile.last_name, profile.nickname].forEach((property) => {
-            const suggestions = getSuggestionsSplitBy(property.toLowerCase(), ' ');
-            profileSuggestions.push(...suggestions);
-        });
-        profileSuggestions.push(profile.first_name.toLowerCase() + ' ' + profile.last_name.toLowerCase());
+        [profile.first_name, profile.last_name, profile.nickname].forEach(
+            (property) => {
+                const suggestions = getSuggestionsSplitBy(
+                    property.toLowerCase(),
+                    ' ',
+                );
+                profileSuggestions.push(...suggestions);
+            },
+        );
+        profileSuggestions.push(
+            profile.first_name.toLowerCase() +
+                ' ' +
+                profile.last_name.toLowerCase(),
+        );
 
         return profileSuggestions;
     }
@@ -136,11 +192,17 @@ export default class AtMentionProvider extends Provider {
         }
 
         if (group.name) {
-            const groupnameSuggestions = getSuggestionsSplitByMultiple(group.name.toLowerCase(), Constants.AUTOCOMPLETE_SPLIT_CHARACTERS);
+            const groupnameSuggestions = getSuggestionsSplitByMultiple(
+                group.name.toLowerCase(),
+                Constants.AUTOCOMPLETE_SPLIT_CHARACTERS,
+            );
             groupSuggestions.push(...groupnameSuggestions);
         }
 
-        const suggestions = getSuggestionsSplitBy(group.display_name.toLowerCase(), ' ');
+        const suggestions = getSuggestionsSplitBy(
+            group.display_name.toLowerCase(),
+            ' ',
+        );
         groupSuggestions.push(...suggestions);
 
         groupSuggestions.push(group.display_name.toLowerCase());
@@ -161,7 +223,9 @@ export default class AtMentionProvider extends Provider {
         const prefixLower = this.latestPrefix.toLowerCase();
         const profileSuggestions = this.getProfileSuggestions(profile);
         return profileSuggestions.some((suggestion) =>
-            this.normalizeString(suggestion).startsWith(this.normalizeString(prefixLower)),
+            this.normalizeString(suggestion).startsWith(
+                this.normalizeString(prefixLower),
+            ),
         );
     }
 
@@ -173,14 +237,23 @@ export default class AtMentionProvider extends Provider {
 
         const prefixLower = this.latestPrefix.toLowerCase();
         const groupSuggestions = this.getGroupSuggestions(group);
-        return groupSuggestions.some((suggestion) => suggestion.startsWith(prefixLower));
+        return groupSuggestions.some((suggestion) =>
+            suggestion.startsWith(prefixLower),
+        );
     }
 
     getProfilesWithLastViewAtInChannel() {
         const state = store.getState();
 
-        const profilesInChannel = this.getProfilesInChannel(state, this.channelId, profilesInChannelOptions);
-        const profilesWithLastViewAtInChannel = this.addLastViewAtToProfiles(state, profilesInChannel);
+        const profilesInChannel = this.getProfilesInChannel(
+            state,
+            this.channelId,
+            profilesInChannelOptions,
+        );
+        const profilesWithLastViewAtInChannel = this.addLastViewAtToProfiles(
+            state,
+            profilesInChannel,
+        );
 
         return profilesWithLastViewAtInChannel;
     }
@@ -189,7 +262,9 @@ export default class AtMentionProvider extends Provider {
     localMembers() {
         const localMembers = this.getProfilesWithLastViewAtInChannel().
             filter((profile) => this.filterProfile(profile)).
-            map((profile) => this.createFromProfile(profile, Constants.MENTION_MEMBERS)).
+            map((profile) =>
+                this.createFromProfile(profile, Constants.MENTION_MEMBERS),
+            ).
             splice(0, 25);
 
         return localMembers;
@@ -202,7 +277,9 @@ export default class AtMentionProvider extends Provider {
 
         const priorityProfiles = this.priorityProfiles.
             filter((profile: UserProfile) => this.filterProfile(profile)).
-            map((profile: UserProfile) => this.createFromProfile(profile, Constants.MENTION_MEMBERS));
+            map((profile: UserProfile) =>
+                this.createFromProfile(profile, Constants.MENTION_MEMBERS),
+            );
 
         return priorityProfiles;
     }
@@ -215,7 +292,9 @@ export default class AtMentionProvider extends Provider {
 
         const localGroups = this.autocompleteGroups.
             filter((group: Group) => this.filterGroup(group)).
-            map((group: Group) => this.createFromGroup(group, Constants.MENTION_GROUPS)).
+            map((group: Group) =>
+                this.createFromGroup(group, Constants.MENTION_GROUPS),
+            ).
             sort((a: Group, b: Group) => a.name.localeCompare(b.name)).
             splice(0, 25);
 
@@ -230,7 +309,9 @@ export default class AtMentionProvider extends Provider {
 
         const remoteMembers = (this.data.users || []).
             filter((profile: UserProfile) => this.filterProfile(profile)).
-            map((profile: UserProfile) => this.createFromProfile(profile, Constants.MENTION_MEMBERS));
+            map((profile: UserProfile) =>
+                this.createFromProfile(profile, Constants.MENTION_MEMBERS),
+            );
 
         return remoteMembers;
     }
@@ -242,7 +323,9 @@ export default class AtMentionProvider extends Provider {
         }
         const remoteGroups = (this.data.groups || []).
             filter((group: Group) => this.filterGroup(group)).
-            map((group: Group) => this.createFromGroup(group, Constants.MENTION_GROUPS));
+            map((group: Group) =>
+                this.createFromGroup(group, Constants.MENTION_GROUPS),
+            );
 
         return remoteGroups;
     }
@@ -263,7 +346,7 @@ export default class AtMentionProvider extends Provider {
     }
 
     items() {
-        const priorityProfilesIds = {};
+        const priorityProfilesIds: { [key: string]: boolean } = {};
         const priorityProfiles = this.filterPriorityProfiles();
 
         priorityProfiles.forEach((member: UserProfile) => {
@@ -271,15 +354,20 @@ export default class AtMentionProvider extends Provider {
         });
 
         const specialMentions = this.specialMentions();
-        const localMembers = this.localMembers().filter((member) => !priorityProfilesIds[member.id]);
+        const localMembers = this.localMembers().filter(
+            (member) => !priorityProfilesIds[member.id],
+        );
 
-        const localUserIds = {};
+        const localUserIds: { [key: string]: boolean } = {};
 
         localMembers.forEach((member: UserProfile) => {
             localUserIds[member.id] = true;
         });
 
-        const remoteMembers = this.remoteMembers().filter((member: UserProfile) => !localUserIds[member.id] && !priorityProfilesIds[member.id]);
+        const remoteMembers = this.remoteMembers().filter(
+            (member: UserProfile) =>
+                !localUserIds[member.id] && !priorityProfilesIds[member.id],
+        );
 
         // comparator which prioritises users with usernames starting with search term
         const orderUsers = (a, b) => {
@@ -305,17 +393,21 @@ export default class AtMentionProvider extends Provider {
         };
 
         // Combine the local and remote members, sorting to mix the results together.
-        const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
+        const localAndRemoteMembers = localMembers.
+            concat(remoteMembers).
+            sort(orderUsers);
 
         // handle groups
         const localGroups = this.localGroups();
 
-        const localGroupIds = {};
+        const localGroupIds: { [key: string]: boolean } = {};
         localGroups.forEach((group: Group) => {
             localGroupIds[group.id] = true;
         });
 
-        const remoteGroups = this.remoteGroups().filter((group: Group) => !localGroupIds[group.id]);
+        const remoteGroups = this.remoteGroups().filter(
+            (group: Group) => !localGroupIds[group.id],
+        );
 
         // comparator which prioritises users with usernames starting with search term
         const orderGroups = (a, b) => {
@@ -335,13 +427,19 @@ export default class AtMentionProvider extends Provider {
         };
 
         // Combine the local and remote groups, sorting to mix the results together.
-        const localAndRemoteGroups = localGroups.concat(remoteGroups).sort(orderGroups);
+        const localAndRemoteGroups = localGroups.
+            concat(remoteGroups).
+            sort(orderGroups);
 
         const remoteNonMembers = this.remoteNonMembers().
             filter((member: UserProfile) => !localUserIds[member.id]).
             sort(orderUsers);
 
-        return priorityProfiles.concat(localAndRemoteMembers).concat(localAndRemoteGroups).concat(specialMentions).concat(remoteNonMembers);
+        return priorityProfiles.
+            concat(localAndRemoteMembers).
+            concat(localAndRemoteGroups).
+            concat(specialMentions).
+            concat(remoteNonMembers);
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
@@ -374,13 +472,19 @@ export default class AtMentionProvider extends Provider {
             return false;
         }
 
-        if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
+        if (
+            this.lastCompletedWord &&
+            captured[0].trim().startsWith(this.lastCompletedWord.trim())
+        ) {
             // It appears we're still matching a channel handle that we already completed
             return false;
         }
 
         const prefix = captured[1];
-        if (this.lastPrefixWithNoResults && prefix.startsWith(this.lastPrefixWithNoResults)) {
+        if (
+            this.lastPrefixWithNoResults &&
+            prefix.startsWith(this.lastPrefixWithNoResults)
+        ) {
             // Just give up since we know it won't return any results
             return false;
         }
@@ -394,16 +498,21 @@ export default class AtMentionProvider extends Provider {
                 return;
             }
 
-            this.updateMatches(resultCallback, this.items().concat([{
-                type: Constants.MENTION_MORE_MEMBERS,
-                loading: true,
-            }]));
+            this.updateMatches(
+                resultCallback,
+                this.items().concat([
+                    {
+                        type: Constants.MENTION_MORE_MEMBERS,
+                        loading: true,
+                    },
+                ]),
+            );
 
             showLoadingIndicator = null;
         }, 500);
 
         // Query the server for remote results to add to the local results.
-        this.autocompleteUsersInChannel(prefix).then(({ data }) => {
+        this.autocompleteUsersInChannel(prefix).then(({data}) => {
             if (showLoadingIndicator) {
                 clearTimeout(showLoadingIndicator);
             }
@@ -411,12 +520,14 @@ export default class AtMentionProvider extends Provider {
                 return;
             }
             this.data = data;
-            this.searchAssociatedGroupsForReference(prefix).then((groupsData) => {
-                if (this.data && groupsData && groupsData.data) {
-                    this.data.groups = groupsData.data;
-                }
-                this.updateMatches(resultCallback, this.items());
-            });
+            this.searchAssociatedGroupsForReference(prefix).then(
+                (groupsData) => {
+                    if (this.data && groupsData && groupsData.data) {
+                        this.data.groups = groupsData.data;
+                    }
+                    this.updateMatches(resultCallback, this.items());
+                },
+            );
         });
 
         return true;
