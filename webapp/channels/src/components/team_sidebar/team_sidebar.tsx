@@ -205,7 +205,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         const sortedTeams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
 
         const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
-        if (!this.props.alwaysShowTeamSidebar && currentProduct && !currentProduct.showTeamSidebar) {
+        if (currentProduct && !currentProduct.showTeamSidebar) {
             return null;
         }
 
