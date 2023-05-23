@@ -19,9 +19,11 @@ import JobsTable from './jobs';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting';
 import RadioSetting from './radio_setting';
+import {AdminConfig} from "@mattermost/types/lib/config";
+import { DeepPartial } from 'redux';
 
 export default class MessageExportSettings extends AdminSettings {
-    getConfigFromState = (config) => {
+        getConfigFromState = (config: { MessageExportSettings: { EnableExport: any; ExportFormat: any; DailyRunTime: any; GlobalRelaySettings: { CustomerType: any; SMTPUsername: any; SMTPPassword: any; EmailAddress: any; }; }; }) => {
         config.MessageExportSettings.EnableExport = this.state.enableComplianceExport;
         config.MessageExportSettings.ExportFormat = this.state.exportFormat;
         config.MessageExportSettings.DailyRunTime = this.state.exportJobStartTime;
@@ -37,12 +39,14 @@ export default class MessageExportSettings extends AdminSettings {
         }
         return config;
     };
+    state: any;
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config : DeepPartial<AdminConfig>) {
         const state = {
             enableComplianceExport: config.MessageExportSettings.EnableExport,
             exportFormat: config.MessageExportSettings.ExportFormat,
-            exportJobStartTime: config.MessageExportSettings.DailyRunTime,
+            exportJobStartTime: config.MessageExportSettings.DailyRunTime
+
         };
         if (config.MessageExportSettings.GlobalRelaySettings) {
             state.globalRelayCustomerType = config.MessageExportSettings.GlobalRelaySettings.CustomerType;
@@ -53,7 +57,7 @@ export default class MessageExportSettings extends AdminSettings {
         return state;
     }
 
-    getJobDetails = (job) => {
+    getJobDetails = (job: { data: { messages_exported: any; warning_count: number; export_type: string; }; }) => {
         if (job.data) {
             const message = [];
             if (job.data.messages_exported) {

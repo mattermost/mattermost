@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "babel-plugin-typescript-to-proptypes": "^2.1.0"
+  }
+}
