@@ -14,34 +14,48 @@ import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting';
 
 type Props = {
-  config: {
-    PasswordSettings: {
-      MinimumLength: number;
-      Lowercase: boolean;
-      Number: boolean;
-      Uppercase: boolean;
-      Symbol: boolean;
+    config: {
+        PasswordSettings: {
+            MinimumLength: number;
+            Lowercase: boolean;
+            Number: boolean;
+            Uppercase: boolean;
+            Symbol: boolean;
+        };
+        ServiceSettings: {
+            MaximumLoginAttempts: number;
+        };
+        ExperimentalSettings?: {
+            RestrictSystemAdmin: boolean;
+        };
     };
-    ServiceSettings: {
-      MaximumLoginAttempts: number;
-    };
-    ExperimentalSettings?: {
-      RestrictSystemAdmin: boolean;
-    };
-  };
-  isDisabled: boolean;
+    isDisabled: boolean;
 }
 
-type State = {
-  passwordMinimumLength: number;
-  passwordLowercase: boolean;
-  passwordNumber: boolean;
-  passwordUppercase: boolean;
-  passwordSymbol: boolean;
-  maximumLoginAttempts: number;
+type BaseState = {
+    saveNeeded: boolean;
+    saving: boolean;
+    serverError: string;
+    errorTooltip: boolean;
+};
+
+type State = BaseState & {
+    passwordMinimumLength: number;
+    passwordLowercase: boolean;
+    passwordNumber: boolean;
+    passwordUppercase: boolean;
+    passwordSymbol: boolean;
+    maximumLoginAttempts: number;
 }
+
+type Config = Props['config'];
 
 export default class PasswordSettings extends AdminSettings<Props, State> {
+    sampleErrorMsg: JSX.Element;
+    Lowercase = React.createRef<HTMLInputElement>();
+    Uppercase = React.createRef<HTMLInputElement>();
+    Number = React.createRef<HTMLInputElement>();
+    Symbol = React.createRef<HTMLInputElement>();
     constructor(props: Props) {
         super(props);
 
@@ -87,7 +101,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         this.sampleErrorMsg = (
             <FormattedMessage
                 id={sampleErrorMsgId}
-                default='Your password must contain between {min} and {max} characters.'
+                defaultMessage='Your password must contain between {min} and {max} characters.'
                 values={{
                     min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -96,19 +110,19 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         );
     }
 
-    getConfigFromState = (config) => {
-        config.PasswordSettings.MinimumLength = this.parseIntNonZero(this.state.passwordMinimumLength, Constants.MIN_PASSWORD_LENGTH);
+    getConfigFromState = (config: Config) => {
+        config.PasswordSettings.MinimumLength = this.parseIntNonZero(this.state.passwordMinimumLength.toString(), Constants.MIN_PASSWORD_LENGTH);
         config.PasswordSettings.Lowercase = this.state.passwordLowercase;
         config.PasswordSettings.Uppercase = this.state.passwordUppercase;
         config.PasswordSettings.Number = this.state.passwordNumber;
         config.PasswordSettings.Symbol = this.state.passwordSymbol;
 
-        config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts, Constants.MAXIMUM_LOGIN_ATTEMPTS_DEFAULT);
+        config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts.toString(), Constants.MAXIMUM_LOGIN_ATTEMPTS_DEFAULT);
 
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: Config) {
         return {
             passwordMinimumLength: config.PasswordSettings.MinimumLength,
             passwordLowercase: config.PasswordSettings.Lowercase,
@@ -124,7 +138,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
             return (
                 <FormattedMessage
                     id='user.settings.security.passwordMinLength'
-                    default='Invalid minimum length, cannot show preview.'
+                    defaultMessage='Invalid minimum length, cannot show preview.'
                 />
             );
         }
@@ -144,7 +158,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         return (
             <FormattedMessage
                 id={sampleErrorMsgId}
-                default='Your password must contain between {min} and {max} characters.'
+                defaultMessage='Your password must contain between {min} and {max} characters.'
                 values={{
                     min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -153,12 +167,12 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         );
     };
 
-    handlePasswordLengthChange = (id, value) => {
+    handlePasswordLengthChange = (id: string, value: boolean) => {
         this.handleChange(id, value);
     };
 
-    handleCheckboxChange = (id) => {
-        return ({target: {checked}}) => {
+    handleCheckboxChange = (id: string) => {
+        return ({target: {checked}}: {target: {checked: boolean}}) => {
             this.handleChange(id, checked);
         };
     };
@@ -178,6 +192,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                 <div>
                     <TextSetting
                         id='passwordMinimumLength'
+                        type='number'
                         label={
                             <FormattedMessage
                                 id='admin.password.minimumLength'
@@ -212,7 +227,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.lowercase}
+                                    ref={this.Lowercase}
                                     defaultChecked={this.state.passwordLowercase}
                                     name='admin.password.lowercase'
                                     disabled={this.props.isDisabled}
@@ -228,7 +243,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.uppercase}
+                                    ref={this.Uppercase}
                                     defaultChecked={this.state.passwordUppercase}
                                     name='admin.password.uppercase'
                                     disabled={this.props.isDisabled}
@@ -244,7 +259,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.number}
+                                    ref={this.Number}
                                     defaultChecked={this.state.passwordNumber}
                                     name='admin.password.number'
                                     disabled={this.props.isDisabled}
@@ -260,7 +275,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                             <label className='checkbox-inline'>
                                 <input
                                     type='checkbox'
-                                    ref={this.symbol}
+                                    ref={this.Symbol}
                                     defaultChecked={this.state.passwordSymbol}
                                     name='admin.password.symbol'
                                     disabled={this.props.isDisabled}
@@ -289,6 +304,7 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                 (
                     <TextSetting
                         id='maximumLoginAttempts'
+                        type='number'
                         label={
                             <FormattedMessage
                                 id='admin.service.attemptTitle'
