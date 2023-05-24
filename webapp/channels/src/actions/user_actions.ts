@@ -313,7 +313,7 @@ export const getGMsForLoading = (state: GlobalState) => {
 
 export async function loadProfilesForGM() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
+        const state = getState() as GlobalState;
         const newPreferences = [];
         const userIdsInChannels = Selectors.getUserIdsInChannels(state);
         const currentUserId = Selectors.getCurrentUserId(state);
