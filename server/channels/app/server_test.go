@@ -533,6 +533,12 @@ func TestOriginChecker(t *testing.T) {
 			SiteURL:      "http://test.com",
 			Pass:         false,
 		},
+		{
+			HeaderHost:   "null",
+			HeaderScheme: "",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
 	}
 
 	for i, tc := range tcs {

@@ -1159,6 +1159,9 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		if len(origin) == 0 {
 			return true
 		}
+		if origin[0] == "null" {
+			return false
+		}
 		u, err := url.Parse(origin[0])
 		if err != nil {
 			return false
