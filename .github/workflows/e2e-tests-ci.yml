@@ -1,10 +1,6 @@
 name: mattermost-e2e-tests
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - mono-repo*
+  workflow_dispatch:
 
 defaults:
   run:
