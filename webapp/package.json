@@ -11,6 +11,7 @@
     "run": "node scripts/run.js",
     "dev-server": "node scripts/dev-server.js",
     "test": "npm run test --workspaces --if-present",
+    "test-ci": "npm run test-ci --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",
     "check-types": "npm run check-types --workspaces --if-present",

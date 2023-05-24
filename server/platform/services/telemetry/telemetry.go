@@ -474,6 +474,11 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
+		"allow_persistent_notifications":                          *cfg.ServiceSettings.AllowPersistentNotifications,
+		"allow_persistent_notifications_for_guests":               *cfg.ServiceSettings.AllowPersistentNotificationsForGuests,
+		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
+		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
+		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 	})
