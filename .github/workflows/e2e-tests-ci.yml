@@ -1,4 +1,4 @@
-name: mattermost-e2e-tests
+name: E2E Tests
 on:
   workflow_dispatch:
 
