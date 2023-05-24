@@ -1163,7 +1163,16 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		if err != nil {
 			return false
 		}
-		return strings.EqualFold(u.Host, r.Host) && strings.EqualFold(u.Scheme, r.URL.Scheme)
+
+		// To maintain the case where siteURL is not set.
+		if *a.Config().ServiceSettings.SiteURL == "" {
+			return strings.EqualFold(u.Host, r.Host)
+		}
+		siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			return false
+		}
+		return strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
 	}
 }
 

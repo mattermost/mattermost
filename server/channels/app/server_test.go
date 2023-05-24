@@ -12,7 +12,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"path"
 	"strconv"
@@ -505,49 +504,43 @@ func TestOriginChecker(t *testing.T) {
 	})
 
 	tcs := []struct {
-		URLHost      string
-		URLScheme    string
+		SiteURL      string
 		HeaderScheme string
 		HeaderHost   string
 		Pass         bool
 	}{
 		{
 			HeaderHost:   "test.com",
-			URLHost:      "test.com",
-			URLScheme:    "https://",
 			HeaderScheme: "https://",
+			SiteURL:      "https://test.com",
 			Pass:         true,
 		},
 		{
 			HeaderHost:   "test.com",
-			URLHost:      "test.com",
-			URLScheme:    "https://",
 			HeaderScheme: "http://",
+			SiteURL:      "https://test.com",
 			Pass:         false,
 		},
 		{
 			HeaderHost:   "test.com",
-			URLHost:      "www.test.com",
-			URLScheme:    "https://",
 			HeaderScheme: "https://",
+			SiteURL:      "https://www.test.com",
 			Pass:         false,
 		},
 		{
 			HeaderHost:   "example.com",
-			URLHost:      "test.com",
-			URLScheme:    "https://",
 			HeaderScheme: "http://",
+			SiteURL:      "http://test.com",
 			Pass:         false,
 		},
 	}
 
 	for i, tc := range tcs {
-		u, err := url.Parse(fmt.Sprintf("%s%s", tc.URLScheme, tc.URLHost))
-		require.NoError(t, err)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = tc.SiteURL
+		})
 
 		r := &http.Request{
-			Host:   tc.URLHost,
-			URL:    u,
 			Header: http.Header{"Origin": []string{fmt.Sprintf("%s%s", tc.HeaderScheme, tc.HeaderHost)}},
 		}
 		res := th.App.OriginChecker()(r)
