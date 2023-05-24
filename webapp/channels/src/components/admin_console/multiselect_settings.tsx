@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
+
 import React from 'react';
 import ReactSelect from 'react-select';
 
@@ -9,30 +9,32 @@ import FormError from 'components/form_error';
 
 import Setting from './setting';
 
-export default class MultiSelectSetting extends React.PureComponent {
-    static propTypes = {
-        id: PropTypes.string.isRequired,
-        values: PropTypes.array.isRequired,
-        label: PropTypes.node.isRequired,
-        selected: PropTypes.array.isRequired,
-        onChange: PropTypes.func.isRequired,
-        disabled: PropTypes.bool,
-        setByEnv: PropTypes.bool.isRequired,
-        helpText: PropTypes.node,
-        noResultText: PropTypes.node,
-    };
+//removed "Proptypes" import and added interface 
 
-    static defaultProps = {
+interface Props {
+    id: string;
+    values:any[];
+    label: React.ReactNode;
+    selected: string[],
+    onChange(id: string, values:(string | number)[]): void
+    disabled: boolean;
+    setByEnv: boolean;
+    helpText: React.ReactNode;
+    noResultText: React.ReactNode;
+}
+
+export default class MultiSelectSetting extends React.PureComponent <Props> {
+      static defaultProps: Partial<Props> = {
         disabled: false,
     };
 
-    constructor(props) {
+    constructor(props:Props) {
         super(props);
 
         this.state = {error: false};
     }
 
-    handleChange = (newValue) => {
+    handleChange = (newValue: any[]) => { //not sure what data type value is
         const values = newValue.map((n) => {
             return n.value;
         });
@@ -42,7 +44,7 @@ export default class MultiSelectSetting extends React.PureComponent {
     };
 
     calculateValue = () => {
-        return this.props.selected.reduce((values, item) => {
+        return this.props.selected.reduce((values: any[], item) => {
             const found = this.props.values.find((e) => {
                 return e.value === item;
             });
@@ -53,7 +55,7 @@ export default class MultiSelectSetting extends React.PureComponent {
         }, []);
     };
 
-    getOptionLabel = ({text}) => text;
+    getOptionLabel = ({text}: {text:string}) => text; 
 
     render() {
         return (
