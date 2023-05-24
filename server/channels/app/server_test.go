@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path"
 	"strconv"
@@ -493,4 +494,63 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 	cancelTask(&taskMut, &task)
 	require.Nil(t, task)
 	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
+}
+
+func TestOriginChecker(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowCorsFrom = ""
+	})
+
+	tcs := []struct {
+		URLHost      string
+		URLScheme    string
+		HeaderScheme string
+		HeaderHost   string
+		Pass         bool
+	}{
+		{
+			HeaderHost:   "test.com",
+			URLHost:      "test.com",
+			URLScheme:    "https://",
+			HeaderScheme: "https://",
+			Pass:         true,
+		},
+		{
+			HeaderHost:   "test.com",
+			URLHost:      "test.com",
+			URLScheme:    "https://",
+			HeaderScheme: "http://",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "test.com",
+			URLHost:      "www.test.com",
+			URLScheme:    "https://",
+			HeaderScheme: "https://",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "example.com",
+			URLHost:      "test.com",
+			URLScheme:    "https://",
+			HeaderScheme: "http://",
+			Pass:         false,
+		},
+	}
+
+	for i, tc := range tcs {
+		u, err := url.Parse(fmt.Sprintf("%s%s", tc.URLScheme, tc.URLHost))
+		require.NoError(t, err)
+
+		r := &http.Request{
+			Host:   tc.URLHost,
+			URL:    u,
+			Header: http.Header{"Origin": []string{fmt.Sprintf("%s%s", tc.HeaderScheme, tc.HeaderHost)}},
+		}
+		res := th.App.OriginChecker()(r)
+		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
+	}
 }

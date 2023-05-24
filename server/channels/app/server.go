@@ -1152,7 +1152,19 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return nil
+
+	// Overriding the default origin checker
+	return func(r *http.Request) bool {
+		origin := r.Header["Origin"]
+		if len(origin) == 0 {
+			return true
+		}
+		u, err := url.Parse(origin[0])
+		if err != nil {
+			return false
+		}
+		return strings.EqualFold(u.Host, r.Host) && strings.EqualFold(u.Scheme, r.URL.Scheme)
+	}
 }
 
 func (s *Server) checkPushNotificationServerURL() {
