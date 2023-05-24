@@ -494,3 +494,62 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 	require.Nil(t, task)
 	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }
+
+func TestOriginChecker(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowCorsFrom = ""
+	})
+
+	tcs := []struct {
+		SiteURL      string
+		HeaderScheme string
+		HeaderHost   string
+		Pass         bool
+	}{
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "https://",
+			SiteURL:      "https://test.com",
+			Pass:         true,
+		},
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "http://",
+			SiteURL:      "https://test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "test.com",
+			HeaderScheme: "https://",
+			SiteURL:      "https://www.test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "example.com",
+			HeaderScheme: "http://",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
+		{
+			HeaderHost:   "null",
+			HeaderScheme: "",
+			SiteURL:      "http://test.com",
+			Pass:         false,
+		},
+	}
+
+	for i, tc := range tcs {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = tc.SiteURL
+		})
+
+		r := &http.Request{
+			Header: http.Header{"Origin": []string{fmt.Sprintf("%s%s", tc.HeaderScheme, tc.HeaderHost)}},
+		}
+		res := th.App.OriginChecker()(r)
+		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
+	}
+}
