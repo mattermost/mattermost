@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {Link, useLocation, useHistory} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
@@ -811,13 +811,21 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             </Link>
                                         </div>
                                     )}
-                                    <SaveButton
-                                        extraClasses='login-body-card-form-button-submit large'
-                                        saving={isWaiting}
-                                        onClick={preSubmit}
-                                        defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                        savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                    />
+                                    <form
+                                        onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                                            event.preventDefault();
+                                            preSubmit(event as unknown as React.MouseEvent);
+                                        }}
+                                    >
+                                        <SaveButton
+                                            extraClasses='login-body-card-form-button-submit large'
+                                            saving={isWaiting}
+                                            onClick={preSubmit}
+                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                        />
+                                    </form>
+
                                 </div>
                             )}
                             {enableBaseLogin && enableExternalSignup && (
