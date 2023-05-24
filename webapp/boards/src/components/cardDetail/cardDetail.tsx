@@ -49,6 +49,8 @@ import CardDetailProperties from './cardDetailProperties'
 import useImagePaste from './imagePaste'
 import AttachmentList from './attachment'
 
+import ItpTimeRecorder from 'src/components/itpTimeRecorder/itpTimeRecorder'
+
 import './cardDetail.scss'
 
 export const OnboardingBoardTitle = 'Welcome to Boards!'
@@ -297,6 +299,8 @@ const CardDetail = (props: Props): JSX.Element|null => {
                     views={props.views}
                     readonly={props.readonly}
                 />}
+
+<div><ItpTimeRecorder board={props.board} card={props.card}/></div>
 
                 {attachments.length !== 0 && <Fragment>
                     <hr/>
