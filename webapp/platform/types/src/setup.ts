@@ -3,6 +3,5 @@
 
 export type CompleteOnboardingRequest = {
     organization: string;
-    role?: string;
     install_plugins: string[];
 }
