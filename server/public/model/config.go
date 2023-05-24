@@ -2876,10 +2876,10 @@ func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
 		}
 	}
 	if s.DisableBoards == nil {
-		s.DisableBoards = NewBool(false)
+		s.DisableBoards = NewBool(true)
 	}
 	if s.DisablePlaybooks == nil {
-		s.DisablePlaybooks = NewBool(false)
+		s.DisablePlaybooks = NewBool(true)
 	}
 }
 
