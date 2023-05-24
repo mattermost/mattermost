@@ -8,7 +8,7 @@ import {IPropertyTemplate} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 import {Utils} from 'src/utils'
 
-import {PropertyTypeEnum, DatePropertyType} from 'src/properties/types'
+import {DatePropertyType, PropertyTypeEnum} from 'src/properties/types'
 
 import DateComponent, {createDatePropertyFromString} from './date'
 
@@ -45,6 +45,7 @@ export default class DateProperty extends DatePropertyType {
                 }
             }
         }
+
         return displayValue
     }
 
@@ -57,6 +58,7 @@ export default class DateProperty extends DatePropertyType {
         // date properties are stored as 12 pm UTC, convert to 12 am (00) UTC for calendar
         const dateFrom = dateProperty.from ? new Date(dateProperty.from + (dateProperty.includeTime ? 0 : timeZoneOffset(dateProperty.from))) : new Date()
         dateFrom.setHours(0, 0, 0, 0)
+
         return dateFrom
     }
 
@@ -68,6 +70,7 @@ export default class DateProperty extends DatePropertyType {
         const dateToNumber = dateProperty.to + (dateProperty.includeTime ? 0 : timeZoneOffset(dateProperty.to))
         const dateTo = new Date(dateToNumber)
         dateTo.setHours(0, 0, 0, 0)
+
         return dateTo
     }
 }

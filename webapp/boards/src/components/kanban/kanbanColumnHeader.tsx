@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
-import React, {useState, useEffect, useRef} from 'react'
+
+import React, {useEffect, useRef, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
-import {useDrop, useDrag} from 'react-dnd'
+import {useDrag, useDrop} from 'react-dnd'
 
 import {Constants, Permission} from 'src/constants'
 import {
+    Board,
+    BoardGroup,
     IPropertyOption,
     IPropertyTemplate,
-    Board,
-    BoardGroup
 } from 'src/blocks/board'
 import {BoardView} from 'src/blocks/boardView'
 import {Card} from 'src/blocks/card'
@@ -53,7 +53,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
     const intl = useIntl()
     const {board, activeView, group, groupByProperty} = props
     let readonly = props.readonly
-    if(!readonly){
+    if (!readonly) {
         readonly = !useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     }
 
@@ -95,6 +95,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
     const groupCalculation = props.activeView.fields.kanbanCalculations[props.group.option.id]
     const calculationValue = groupCalculation ? groupCalculation.calculation : defaultCalculation
     const calculationProperty = groupCalculation ? props.board.cardProperties.find((property) => property.id === groupCalculation.propertyId) || defaultProperty : defaultProperty
+
     return (
         <div
             key={group.option.id || 'empty'}

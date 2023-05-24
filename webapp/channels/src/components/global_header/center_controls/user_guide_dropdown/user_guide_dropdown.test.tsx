@@ -34,6 +34,7 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         },
         pluginMenuItems: [],
         isFirstAdmin: false,
+        onboardingFlowEnabled: false,
     };
 
     test('should match snapshot', () => {

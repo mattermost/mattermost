@@ -8,9 +8,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )

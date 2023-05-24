@@ -16,7 +16,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {selectLhsItem} from 'actions/views/lhs';
-import {GlobalState} from 'types/store';
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import {CardSizes, InsightsWidgetTypes, TimeFrame, TimeFrames} from '@mattermost/types/insights';
@@ -41,17 +40,20 @@ type SelectOption = {
 
 const Insights = () => {
     const dispatch = useDispatch();
-
-    // check if either of focalboard plugin or boards product is enabled
-    const focalboardPluginEnabled = useSelector((state: GlobalState) => state.plugins.plugins?.focalboard);
-    let focalboardProductEnabled = false;
     const products = useProducts();
-    if (products) {
-        focalboardProductEnabled = products.some((product) => product.pluginId === suitePluginIds.focalboard || product.pluginId === suitePluginIds.boards);
-    }
-    const focalboardEnabled = focalboardPluginEnabled || focalboardProductEnabled;
 
-    const playbooksEnabled = useSelector((state: GlobalState) => state.plugins.plugins?.playbooks);
+    let focalboardEnabled = false;
+    let playbooksEnabled = false;
+    if (products) {
+        products.forEach((product) => {
+            if (product.pluginId === suitePluginIds.boards) {
+                focalboardEnabled = true;
+            } else if (product.pluginId === suitePluginIds.playbooks) {
+                playbooksEnabled = true;
+            }
+        });
+    }
+
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
 

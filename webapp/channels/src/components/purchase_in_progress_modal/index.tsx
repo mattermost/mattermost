@@ -5,7 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {FormattedMessage} from 'react-intl';
 
-import {GenericModal, GenericModalProps} from '@mattermost/components';
+import {LegacyGenericModal, LegacyGenericModalProps} from '@mattermost/components';
 
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getUserByEmail} from 'mattermost-redux/selectors/entities/users';
@@ -48,7 +48,7 @@ export default function PurchaseInProgressModal(props: Props) {
         />
     );
     let actionToTake;
-    const genericModalProps: Partial<GenericModalProps> = {};
+    const genericModalProps: Partial<LegacyGenericModalProps> = {};
     if (sameUserAlreadyPurchasing) {
         description = (
             <FormattedMessage
@@ -76,7 +76,7 @@ export default function PurchaseInProgressModal(props: Props) {
         );
     }
     return (
-        <GenericModal
+        <LegacyGenericModal
             onExited={close}
             show={true}
             modalHeaderText={header}
@@ -98,6 +98,6 @@ export default function PurchaseInProgressModal(props: Props) {
                     </div>
                 }
             </div>
-        </GenericModal>
+        </LegacyGenericModal>
     );
 }

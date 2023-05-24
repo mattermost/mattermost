@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import {BlockIcons} from 'src/blockIcons'
@@ -36,7 +36,7 @@ const ViewTitle = (props: Props) => {
     const onHideDescription = useCallback(() => mutator.showBoardDescription(board.id, Boolean(board.showDescription), false), [board.id, board.showDescription])
 
     let readonly = props.readonly
-    if(!readonly){
+    if (!readonly) {
         readonly = !useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     }
 

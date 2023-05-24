@@ -17,11 +17,14 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {openModal} from 'actions/views/modals';
 
 import EditedPostItem from './edited_post_item';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 function mapStateToProps(state: GlobalState) {
     const selectedPostId = getSelectedPostId(state) || '';
+    const theme = getTheme(state);
 
     return {
+        theme,
         postCurrentVersion: getPost(state, selectedPostId),
     };
 }

@@ -6,8 +6,8 @@ package expirynotify
 import (
 	"time"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 const schedFreq = 10 * time.Minute

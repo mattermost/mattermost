@@ -15,6 +15,7 @@ import {ActionFunc} from 'mattermost-redux/types/actions';
 import {UserStatus} from '@mattermost/types/users';
 
 import GenericModal from 'components/generic_modal';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import Constants, {A11yCustomEventTypes, A11yFocusEventDetail, UserStatuses} from 'utils/constants';
 import Menu from 'components/widgets/menu/menu';
@@ -26,12 +27,15 @@ import {isKeyPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
 import Input from 'components/widgets/inputs/input/input';
 import DatePicker from 'components/date_picker';
+import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 type Props = {
     onExited: () => void;
     userId: string;
     currentDate: Date;
     locale: string;
+
+    theme: Theme;
     actions: {
         setStatus: (status: UserStatus) => ActionFunc;
     };
@@ -232,63 +236,65 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
         };
 
         return (
-            <GenericModal
-                ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
-                onExited={this.props.onExited}
-                modalHeaderText={modalHeaderText}
-                confirmButtonText={confirmButtonText}
-                handleConfirm={this.handleConfirm}
-                handleEnterKeyPress={this.handleConfirm}
-                id='dndCustomTimePickerModal'
-                className={'DndModal modal-overflow'}
-                tabIndex={-1}
-                keyboardEscape={false}
-            >
-                <div className='DndModal__content'>
-                    <DatePicker
-                        isPopperOpen={isPopperOpen}
-                        handlePopperOpenState={this.handlePopperOpenState}
-                        locale={this.props.locale}
-                        datePickerProps={dayPickerProps}
-                    >
-                        <Input
-                            value={this.formatDate(selectedDate)}
-                            readOnly={true}
-                            id='DndModal__calendar-input'
-                            className={classNames('DndModal__calendar-input', {'popper-open': isPopperOpen})}
-                            label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
-                            onClick={() => this.handlePopperOpenState(true)}
-                            tabIndex={-1}
-                            inputPrefix={inputIcon}
-                        />
-                    </DatePicker>
-                    <MenuWrapper
-                        id='dropdown-no-caret'
-                        stopPropagationOnToggle={true}
-                    >
-                        <button
-                            className='DndModal__input'
-                            type='button'
-                            ref={this.buttonRef}
+            <CompassThemeProvider theme={this.props.theme}>
+                <GenericModal
+                    ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
+                    onExited={this.props.onExited}
+                    modalHeaderText={modalHeaderText}
+                    confirmButtonText={confirmButtonText}
+                    handleConfirm={this.handleConfirm}
+                    handleEnterKeyPress={this.handleConfirm}
+                    id='dndCustomTimePickerModal'
+                    className={'DndModal modal-overflow'}
+                    tabIndex={-1}
+                    keyboardEscape={false}
+                >
+                    <div className='DndModal__content'>
+                        <DatePicker
+                            isPopperOpen={isPopperOpen}
+                            handlePopperOpenState={this.handlePopperOpenState}
+                            locale={this.props.locale}
+                            datePickerProps={dayPickerProps}
                         >
-                            <div className='DndModal__input__label'>
-                                <FormattedMessage
-                                    id='dnd_custom_time_picker_modal.time'
-                                    defaultMessage='Time'
-                                />
-                            </div>
-                            <i className='icon icon--no-spacing icon-clock-outline icon--xs icon-14'/>
-                            <span>{selectedTime}</span>
-                        </button>
-                        <Menu
-                            openLeft={false}
-                            ariaLabel={'Clear custom status after'}
+                            <Input
+                                value={this.formatDate(selectedDate)}
+                                readOnly={true}
+                                id='DndModal__calendar-input'
+                                className={classNames('DndModal__calendar-input', {'popper-open': isPopperOpen})}
+                                label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                                onClick={() => this.handlePopperOpenState(true)}
+                                tabIndex={-1}
+                                inputPrefix={inputIcon}
+                            />
+                        </DatePicker>
+                        <MenuWrapper
+                            id='dropdown-no-caret'
+                            stopPropagationOnToggle={true}
                         >
-                            {timeMenuItems}
-                        </Menu>
-                    </MenuWrapper>
-                </div>
-            </GenericModal>
+                            <button
+                                className='DndModal__input'
+                                type='button'
+                                ref={this.buttonRef}
+                            >
+                                <div className='DndModal__input__label'>
+                                    <FormattedMessage
+                                        id='dnd_custom_time_picker_modal.time'
+                                        defaultMessage='Time'
+                                    />
+                                </div>
+                                <i className='icon icon--no-spacing icon-clock-outline icon--xs icon-14'/>
+                                <span>{selectedTime}</span>
+                            </button>
+                            <Menu
+                                openLeft={false}
+                                ariaLabel={'Clear custom status after'}
+                            >
+                                {timeMenuItems}
+                            </Menu>
+                        </MenuWrapper>
+                    </div>
+                </GenericModal>
+            </CompassThemeProvider>
         );
     }
 }

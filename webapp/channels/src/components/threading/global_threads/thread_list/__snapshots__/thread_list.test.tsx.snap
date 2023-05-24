@@ -52,7 +52,6 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         >
           <Memo(Button)
             className="Button___large Button___icon"
-            disabled={false}
             id="threads-list__mark-all-as-read"
             marginTop={true}
             onClick={[Function]}

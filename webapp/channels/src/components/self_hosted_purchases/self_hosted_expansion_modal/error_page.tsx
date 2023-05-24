@@ -10,6 +10,8 @@ import PaymentFailedSvg from 'components/common/svg_images_components/payment_fa
 import IconMessage from 'components/purchase_modal/icon_message';
 
 import './error_page.scss';
+import {trackEvent} from 'actions/telemetry_actions';
+import {TELEMETRY_CATEGORIES} from 'utils/constants';
 
 interface Props {
     canRetry: boolean;
@@ -71,9 +73,15 @@ export default function SelfHostedExpansionErrorPage(props: Props) {
                 icon={icon}
                 error={true}
                 formattedButtonText={formattedButtonText}
-                buttonHandler={props.tryAgain}
+                buttonHandler={() => {
+                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'failure_try_again_clicked');
+                    props.tryAgain();
+                }}
                 formattedTertiaryButonText={tertiaryButtonText}
-                tertiaryButtonHandler={() => window.open(contactSupportLink, '_blank', 'noreferrer')}
+                tertiaryButtonHandler={() => {
+                    trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'failure_contact_support_clicked');
+                    window.open(contactSupportLink, '_blank', 'noreferrer');
+                }}
             />
         </div>
     );

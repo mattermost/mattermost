@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Board} from 'src/blocks/board'
@@ -67,6 +67,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const makeTemplateClicked = async () => {
         if (!card) {
             Utils.assertFailure('card')
+
             return
         }
 
@@ -89,6 +90,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const handleDeleteCard = async () => {
         if (!card) {
             Utils.assertFailure()
+
             return
         }
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: card.id})
@@ -111,6 +113,7 @@ const CardDialog = (props: Props): JSX.Element => {
         // so adding des
         if (card?.title === '' && card?.fields.contentOrder.length === 0) {
             handleDeleteCard()
+
             return
         }
 
@@ -151,7 +154,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 Utils.selectLocalFile(async (attachment) => {
                     const uploadingBlock = createBlock()
                     uploadingBlock.title = attachment.name
-                    uploadingBlock.fields.attachmentId = attachment.name
+                    uploadingBlock.fields.fileId = attachment.name
                     uploadingBlock.boardId = boardId
                     if (card) {
                         uploadingBlock.parentId = card.id
@@ -177,11 +180,11 @@ const CardDialog = (props: Props): JSX.Element => {
                             xhr.onload = () => {
                                 if (xhr.status === 200 && xhr.readyState === 4) {
                                     const json = JSON.parse(xhr.response)
-                                    const attachmentId = json.fileId
-                                    if (attachmentId) {
+                                    const fileId = json.fileId
+                                    if (fileId) {
                                         removeUploadingAttachment(uploadingBlock)
                                         const block = createAttachmentBlock()
-                                        block.fields.attachmentId = attachmentId || ''
+                                        block.fields.fileId = fileId || ''
                                         block.title = attachment.name
                                         sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.uploadSuccess', defaultMessage: 'Attachment uploaded.'}), severity: 'normal'})
                                         resolve(block)
@@ -266,6 +269,7 @@ const CardDialog = (props: Props): JSX.Element => {
         if (!isTemplate && !card?.limited) {
             return (<>{attachBtn()}{following ? unfollowBtn : followBtn}</>)
         }
+
         return (<>{attachBtn()}</>)
     }
 

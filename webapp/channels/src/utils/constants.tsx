@@ -29,16 +29,10 @@ import {t} from 'utils/i18n';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
-import githubCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/github.css';
-
-// eslint-disable-line import/order
-import monokaiCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/monokai.css';
-
-// eslint-disable-line import/order
-import solarizedDarkCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/base16/solarized-dark.css';
-
-// eslint-disable-line import/order
-import solarizedLightCSS from '!!file-loader?name=files/code_themes/[hash].[ext]!highlight.js/styles/base16/solarized-light.css'; // eslint-disable-line import/order
+import githubCSS from 'highlight.js/styles/github.css';
+import monokaiCSS from 'highlight.js/styles/monokai.css';
+import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
+import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text',
@@ -454,6 +448,7 @@ export const ModalIdentifiers = {
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
     DELINQUENCY_MODAL_DOWNGRADE: 'delinquency_modal_downgrade',
     CLOUD_LIMITS_DOWNGRADE: 'cloud_limits_downgrade',
+    PERSIST_NOTIFICATION_CONFIRM_MODAL: 'persist_notification_confirm_modal',
     AIR_GAPPED_SELF_HOSTED_PURCHASE: 'air_gapped_self_hosted_purchase',
     WORK_TEMPLATE: 'work_template',
     DOWNGRADE_MODAL: 'downgrade_modal',
@@ -657,6 +652,7 @@ export const SocketEvents = {
     DRAFT_CREATED: 'draft_created',
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
+    PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
 };
 
@@ -1009,8 +1005,14 @@ export const IgnoreChannelMentions = {
     DEFAULT: 'default',
 } as const;
 
+export const ChannelAutoFollowThreads = {
+    ON: 'on',
+    OFF: 'off',
+} as const;
+
 export const NotificationSections = {
     IGNORE_CHANNEL_MENTIONS: 'ignoreChannelMentions',
+    CHANNEL_AUTO_FOLLOW_THREADS: 'channelAutoFollowThreads',
     MARK_UNREAD: 'markUnread',
     DESKTOP: 'desktop',
     PUSH: 'push',
@@ -1136,7 +1138,6 @@ export const PermissionsScope = {
     [Permissions.INVITE_USER]: 'team_scope',
     [Permissions.INVITE_GUEST]: 'team_scope',
     [Permissions.ADD_USER_TO_TEAM]: 'team_scope',
-    [Permissions.USE_SLASH_COMMANDS]: 'channel_scope',
     [Permissions.MANAGE_SLASH_COMMANDS]: 'team_scope',
     [Permissions.MANAGE_OTHERS_SLASH_COMMANDS]: 'team_scope',
     [Permissions.CREATE_PUBLIC_CHANNEL]: 'team_scope',
@@ -1250,7 +1251,6 @@ export const DefaultRolePermissions = {
         Permissions.UPLOAD_FILE,
         Permissions.GET_PUBLIC_LINK,
         Permissions.CREATE_POST,
-        Permissions.USE_SLASH_COMMANDS,
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
         Permissions.DELETE_POST,
         Permissions.EDIT_POST,
@@ -1315,7 +1315,6 @@ export const DefaultRolePermissions = {
         Permissions.ADD_REACTION,
         Permissions.REMOVE_REACTION,
         Permissions.USE_CHANNEL_MENTIONS,
-        Permissions.USE_SLASH_COMMANDS,
         Permissions.READ_CHANNEL,
         Permissions.UPLOAD_FILE,
         Permissions.CREATE_POST,
@@ -1822,7 +1821,7 @@ export const Constants = {
         css: {name: 'CSS', extensions: ['css']},
         d: {name: 'D', extensions: ['d', 'di'], aliases: ['dlang']},
         dart: {name: 'Dart', extensions: ['dart']},
-        delphi: {name: 'Delphi', extensions: ['delphi', 'dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm']},
+        delphi: {name: 'Delphi', extensions: ['delphi', 'dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm'], aliases: ['pas', 'pascal']},
         diff: {name: 'Diff', extensions: ['diff', 'patch'], aliases: ['patch', 'udiff']},
         django: {name: 'Django', extensions: ['django', 'jinja'], aliases: ['jinja']},
         dockerfile: {name: 'Dockerfile', extensions: ['dockerfile', 'docker'], aliases: ['docker']},

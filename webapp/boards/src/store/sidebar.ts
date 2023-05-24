@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {
+    PayloadAction,
     createAsyncThunk,
     createSelector,
     createSlice,
-    PayloadAction
 } from '@reduxjs/toolkit'
 
 import {default as client} from 'src/octoClient'
@@ -151,6 +151,7 @@ const sidebarSlice = createSlice({
                 const category = categoryById.get(categoryId)
                 if (!category) {
                     Utils.logError('Category ID from updated category order not found in store. CategoryID: ' + categoryId)
+
                     return
                 }
                 newOrderedCategories.push(category)
@@ -166,6 +167,7 @@ const sidebarSlice = createSlice({
             const categoryIndex = state.categoryAttributes.findIndex((categoryBoards) => categoryBoards.id === action.payload.categoryID)
             if (categoryIndex < 0) {
                 Utils.logError('Category ID from updated category boards order not found in store. CategoryID: ' + action.payload.categoryID)
+
                 return
             }
 

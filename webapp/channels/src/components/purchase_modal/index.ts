@@ -19,8 +19,7 @@ import {GlobalState} from 'types/store';
 import {BillingDetails} from 'types/cloud/sku';
 
 import {isModalOpen} from 'selectors/views/modals';
-import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days} from 'selectors/cloud';
-import {isDevModeEnabled} from 'selectors/general';
+import {getCloudDelinquentInvoices, isCloudDelinquencyGreaterThan90Days, isCwsMockMode} from 'selectors/cloud';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -52,7 +51,7 @@ function mapStateToProps(state: GlobalState) {
         show: isModalOpen(state, ModalIdentifiers.CLOUD_PURCHASE),
         products,
         yearlyProducts,
-        isDevMode: isDevModeEnabled(state),
+        cwsMockMode: isCwsMockMode(state),
         contactSupportLink,
         invoices: getCloudDelinquentInvoices(state),
         isCloudDelinquencyGreaterThan90Days: isCloudDelinquencyGreaterThan90Days(state),
@@ -71,7 +70,7 @@ type Actions = {
     closeModal: () => void;
     openModal: <P>(modalData: ModalData<P>) => void;
     getCloudProducts: () => void;
-    completeStripeAddPaymentMethod: (stripe: Stripe, billingDetails: BillingDetails, isDevMode: boolean) => Promise<boolean | null>;
+    completeStripeAddPaymentMethod: (stripe: Stripe, billingDetails: BillingDetails, cwsMockMode: boolean) => Promise<boolean | null>;
     subscribeCloudSubscription: typeof subscribeCloudSubscription;
     getClientConfig: () => void;
     getCloudSubscription: () => void;

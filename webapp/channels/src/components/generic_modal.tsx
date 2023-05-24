@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GenericModal} from '@mattermost/components';
+import {LegacyGenericModal} from '@mattermost/components';
 
 import {t} from 'utils/i18n';
 
@@ -15,4 +15,4 @@ t('footer_pagination.count');
 t('footer_pagination.prev');
 t('footer_pagination.next');
 
-export default GenericModal;
+export default LegacyGenericModal;

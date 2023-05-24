@@ -3,10 +3,10 @@
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
 import {
-    createPatchesFromBoards,
-    createBoard,
     IPropertyTemplate,
-    createPatchesFromBoardsAndBlocks
+    createBoard,
+    createPatchesFromBoards,
+    createPatchesFromBoardsAndBlocks,
 } from './board'
 import {createBlock} from './block'
 

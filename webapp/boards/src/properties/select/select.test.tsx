@@ -176,7 +176,7 @@ describe('properties/select', () => {
     })
 
     // TODO fix this test
-    // eslint-disable-next-line no-only-tests/no-only-tests
+
     it.skip('can create new option', async () => {
         const propertyTemplate = selectPropertyTemplate()
         const initialOption = propertyTemplate.options[0]
@@ -195,7 +195,7 @@ describe('properties/select', () => {
         ))
 
         mockedMutator.insertPropertyOption.mockResolvedValue()
-        await user.click(screen.getByTestId(nonEditableSelectTestId))        
+        await user.click(screen.getByTestId(nonEditableSelectTestId))
         await user.type(screen.getByRole('combobox', {name: /value selector/i}), `${newOption}{Enter}`)
         expect(mockedMutator.insertPropertyOption).toHaveBeenCalledWith(board.id, board.cardProperties, propertyTemplate, expect.objectContaining({value: newOption}), 'add property option')
         expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, 'option-3')

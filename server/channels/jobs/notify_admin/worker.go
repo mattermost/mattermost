@@ -4,8 +4,8 @@
 package notify_admin
 
 import (
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 const (

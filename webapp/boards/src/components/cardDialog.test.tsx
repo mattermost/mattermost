@@ -93,7 +93,6 @@ describe('components/cardDialog', () => {
         jest.clearAllMocks()
     })
     test('should match snapshot', async () => {
-
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <CardDialog
@@ -324,7 +323,7 @@ describe('components/cardDialog', () => {
                 />
             </ReduxProvider>,
         ))
-    
+
         expect(container).toMatchSnapshot()
     })
 

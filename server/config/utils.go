@@ -10,10 +10,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 // marshalConfig converts the given configuration into JSON bytes for persistence.
@@ -179,9 +179,10 @@ func IsDatabaseDSN(dsn string) bool {
 		strings.HasPrefix(dsn, "postgresql://")
 }
 
-func isJSONMap(data string) bool {
+func isJSONMap(data []byte) bool {
 	var m map[string]any
-	return json.Unmarshal([]byte(data), &m) == nil
+	err := json.Unmarshal(data, &m)
+	return err == nil
 }
 
 func GetValueByPath(path []string, obj any) (any, bool) {

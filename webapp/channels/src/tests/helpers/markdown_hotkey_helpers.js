@@ -30,7 +30,7 @@ export function makeSelectionEvent(input, start, end) {
     };
 }
 
-function makeMarkdownHotkeyEvent(input, start, end, keycode, altKey = false) {
+function makeMarkdownHotkeyEvent(input, start, end, keycode, altKey = false, targetId = 'root') {
     return {
         preventDefault: jest.fn(),
         stopPropagation: jest.fn(),
@@ -42,6 +42,7 @@ function makeMarkdownHotkeyEvent(input, start, end, keycode, altKey = false) {
             selectionStart: start,
             selectionEnd: end,
             value: input,
+            id: targetId,
         },
     };
 }
@@ -66,6 +67,10 @@ export function makeItalicHotkeyEvent(input, start, end) {
     return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.I);
 }
 
+function makeLinkHotKeyWithoutAltKeyEvent(input, start, end, targetId) {
+    return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.K, false, targetId);
+}
+
 function makeLinkHotKeyEvent(input, start, end) {
     return makeMarkdownHotkeyEvent(input, start, end, Constants.KeyCodes.K, true);
 }
@@ -77,7 +82,7 @@ function makeLinkHotKeyEvent(input, start, end) {
  * @param  {function} getValue - single parameter for the React Component instance
  * NOTE: runs Jest tests
  */
-export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find, getValue, intlInjected = true) {
+export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find, getValue, intlInjected = true, targetId) {
     const shallowRender = intlInjected ? shallowWithIntl : shallow;
     test('component adds bold markdown', () => {
         // "Fafda" is selected with ctrl + B hotkey
@@ -141,6 +146,29 @@ export function testComponentForMarkdownHotkeys(generateInstance, initRefs, find
         find(instance).props().handleKeyDown?.(e);
         expect(getValue(instance)).toBe('Jalebi **Fafda & Sambharo');
         expect(setSelectionRange).toHaveBeenCalled();
+    });
+
+    test('component adds link markdown with hitting Ctrl + K when something is selected and event target has specific targetId', () => {
+        // "Fafda" is selected with ctrl + K hotkey
+        const input = 'Jalebi Fafda & Sambharo';
+        const e = makeLinkHotKeyWithoutAltKeyEvent(input, 7, 12, targetId);
+
+        const instance = shallowRender(generateInstance(input));
+
+        let selectionStart = -1;
+        let selectionEnd = -1;
+        const setSelectionRange = jest.fn((start, end) => {
+            selectionStart = start;
+            selectionEnd = end;
+        });
+        initRefs(instance, setSelectionRange);
+
+        find(instance).props().onKeyDown?.(e);
+        find(instance).props().handleKeyDown?.(e);
+        expect(getValue(instance)).toBe('Jalebi [Fafda](url) & Sambharo');
+        expect(setSelectionRange).toHaveBeenCalled();
+        expect(selectionStart).toBe(15);
+        expect(selectionEnd).toBe(18);
     });
 
     test('component adds link markdown when something is selected', () => {

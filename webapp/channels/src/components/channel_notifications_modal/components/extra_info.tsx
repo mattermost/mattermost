@@ -48,6 +48,15 @@ export default function ExtraInfo({section}: Props) {
                 />
             </span>
         );
+    case NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS:
+        return (
+            <span>
+                <FormattedMessage
+                    id='channel_notifications.channelAutoFollowThreads.help'
+                    defaultMessage='When enabled, you will auto-follow all new threads created in this channel unless you unfollow a thread explicitly.'
+                />
+            </span>
+        );
     default:
         return null;
     }

@@ -316,15 +316,19 @@ describe('components/signup/Signup', () => {
         expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
     });
 
-    it('should not show any newsletter related opt-in or text for cloud', async () => {
+    it('should show newsletter related opt-in or text for cloud', async () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'true'};
 
-        renderWithIntlAndStore(
+        const {container: signupContainer} = renderWithIntlAndStore(
             <BrowserRouter>
                 <Signup/>
             </BrowserRouter>, {});
 
-        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
+        screen.getByTestId('signup-body-card-form-check-newsletter');
+        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
+        expect(checkInput).toHaveAttribute('type', 'checkbox');
+
+        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
     });
 });

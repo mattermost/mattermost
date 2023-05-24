@@ -62,6 +62,7 @@ exports[`components/TextBox should match snapshot with additional, optional prop
         },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
+          "delayChannelAutocomplete": false,
           "disableDispatches": false,
           "forceDispatch": false,
           "lastCompletedWord": "",
@@ -174,6 +175,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
         },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
+          "delayChannelAutocomplete": false,
           "disableDispatches": false,
           "forceDispatch": false,
           "lastCompletedWord": "",
@@ -267,6 +269,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
         },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
+          "delayChannelAutocomplete": false,
           "disableDispatches": false,
           "forceDispatch": false,
           "lastCompletedWord": "",
@@ -360,6 +363,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
         },
         ChannelMentionProvider {
           "autocompleteChannels": [MockFunction],
+          "delayChannelAutocomplete": false,
           "disableDispatches": false,
           "forceDispatch": false,
           "lastCompletedWord": "",

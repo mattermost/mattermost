@@ -20,6 +20,10 @@ import (
 
 	fb_model "github.com/mattermost/mattermost-server/server/v8/boards/model"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
@@ -28,10 +32,6 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 // teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
@@ -956,9 +956,11 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:      team.Id,
-		ExcludeTeam: false,
+		TeamID:              team.Id,
+		ExcludeTeam:         false,
+		AppsCategoryEnabled: appsCategoryEnabled,
 	}
 	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(
@@ -1895,7 +1897,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.isPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1972,6 +1974,10 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
+	}
+
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByTeam([]string{team.Id}); err != nil {
+		return model.NewAppError("SoftDeleteTeam", "app.post_persistent_notification.delete_by_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	team.DeleteAt = model.GetMillis()

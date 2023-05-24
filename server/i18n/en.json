@@ -2376,6 +2376,30 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post allows maximum of {{.MaxRecipients}} recipients."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post must have minimum 1 recipient."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Persistent notification validation failed."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "User is not allowed to create priority post or persistent notification."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Only root posts are allowed to have priority."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistent notification posts must have the Urgent Priority."
+  },
+  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
@@ -4164,6 +4188,18 @@
     "translation": "Error fetching roles during validation."
   },
   {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating password recovery tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating password recovery tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating password recovery tokens"
+  },
+  {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Unable to get tokens by type when invalidating email verification tokens"
   },
@@ -5126,6 +5162,10 @@
   {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Could not decode gif."
   },
   {
     "id": "app.file_info.get_for_post.app_error",
@@ -6242,6 +6282,18 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Unable to delete the persistent notifications by channel."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Unable to delete the persistent notifications by team."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Failed to delete persistent notification post"
   },
   {
     "id": "app.post_prority.get_for_post.app_error",
@@ -8460,6 +8512,10 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Invalid channel-auto-follow-threads value."
+  },
+  {
     "id": "model.channel_member.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -8812,6 +8868,10 @@
     "translation": "Invalid listen address for service settings Must be set."
   },
   {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Unable to locate local socket file directory."
+  },
+  {
     "id": "model.config.is_valid.localization.available_locales.app_error",
     "translation": "Available Languages must contain Default Client Language."
   },
@@ -8882,6 +8942,18 @@
   {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Invalid total number of persistent notification per post. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Invalid frequency of persistent notifications. Must be at least two minutes."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -9082,10 +9154,6 @@
   {
     "id": "model.emoji.user_id.app_error",
     "translation": "Invalid creator id."
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Could not decode gif."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -10052,44 +10120,124 @@
     "translation": "Couldn't find the user."
   },
   {
-    "id": "worktemplate.category.companywide",
-    "translation": "Company-wide"
+    "id": "worktemplate.category.design",
+    "translation": "Design"
   },
   {
     "id": "worktemplate.category.devops",
     "translation": "DevOps"
   },
   {
+    "id": "worktemplate.category.engineering",
+    "translation": "Engineering"
+  },
+  {
     "id": "worktemplate.category.leadership",
     "translation": "Leadership"
+  },
+  {
+    "id": "worktemplate.category.marketing",
+    "translation": "Marketing"
+  },
+  {
+    "id": "worktemplate.category.other",
+    "translation": "Other"
   },
   {
     "id": "worktemplate.category.product_teams",
     "translation": "Product"
   },
   {
-    "id": "worktemplate.companywide.create_project.board",
+    "id": "worktemplate.category.project_management",
+    "translation": "Project Management"
+  },
+  {
+    "id": "worktemplate.category.qa",
+    "translation": "QA"
+  },
+  {
+    "id": "worktemplate.design.content_calendar.board",
+    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
+  },
+  {
+    "id": "worktemplate.design.content_calendar.channel",
+    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
+  },
+  {
+    "id": "worktemplate.design.create_project.board",
     "translation": "Use a Kanban board to define and track your project tasks and progress."
   },
   {
-    "id": "worktemplate.companywide.create_project.channel",
+    "id": "worktemplate.design.create_project.channel",
     "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
   },
   {
-    "id": "worktemplate.companywide.create_project.integration",
+    "id": "worktemplate.design.create_project.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+    "id": "worktemplate.design.feature_release.description.board",
+    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
+    "id": "worktemplate.design.feature_release.description.channel",
+    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+    "id": "worktemplate.design.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.design.feature_release.description.playbook",
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+  },
+  {
+    "id": "worktemplate.design.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
+    "id": "worktemplate.design.product_release.channel",
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
+  },
+  {
+    "id": "worktemplate.design.product_release.playbook",
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
+    "id": "worktemplate.design.sprint_planning.board",
+    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
+  },
+  {
+    "id": "worktemplate.design.sprint_planning.channel",
+    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
+  },
+  {
+    "id": "worktemplate.design.sprint_planning.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.devops.bug_bash.channel",
+    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
+  },
+  {
+    "id": "worktemplate.devops.bug_bash.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.devops.bug_bash.playbook",
+    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
+  },
+  {
+    "id": "worktemplate.devops.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.devops.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.devops.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
   },
   {
     "id": "worktemplate.devops.incident_resolution.description.board",
@@ -10116,6 +10264,102 @@
     "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
   },
   {
+    "id": "worktemplate.devops.sprint_planning.board",
+    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
+  },
+  {
+    "id": "worktemplate.devops.sprint_planning.channel",
+    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
+  },
+  {
+    "id": "worktemplate.devops.sprint_planning.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.engineering.bug_bash.channel",
+    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
+  },
+  {
+    "id": "worktemplate.engineering.bug_bash.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.engineering.bug_bash.playbook",
+    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
+  },
+  {
+    "id": "worktemplate.engineering.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.engineering.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.engineering.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.engineering.feature_release.description.board",
+    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+  },
+  {
+    "id": "worktemplate.engineering.feature_release.description.channel",
+    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+  },
+  {
+    "id": "worktemplate.engineering.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.engineering.feature_release.description.playbook",
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+  },
+  {
+    "id": "worktemplate.engineering.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+  },
+  {
+    "id": "worktemplate.engineering.goals_and_okrs.channel",
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
+  },
+  {
+    "id": "worktemplate.engineering.goals_and_okrs.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.engineering.sprint_planning.board",
+    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
+  },
+  {
+    "id": "worktemplate.engineering.sprint_planning.channel",
+    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
+  },
+  {
+    "id": "worktemplate.engineering.sprint_planning.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.leadership.content_calendar.board",
+    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
+  },
+  {
+    "id": "worktemplate.leadership.content_calendar.channel",
+    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
+  },
+  {
+    "id": "worktemplate.leadership.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.leadership.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.leadership.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
     "id": "worktemplate.leadership.goals_and_okrs.board",
     "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
   },
@@ -10126,6 +10370,126 @@
   {
     "id": "worktemplate.leadership.goals_and_okrs.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.leadership.incident_resolution.description.board",
+    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+  },
+  {
+    "id": "worktemplate.leadership.incident_resolution.description.channel",
+    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+  },
+  {
+    "id": "worktemplate.leadership.incident_resolution.description.playbook",
+    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
+  },
+  {
+    "id": "worktemplate.marketing.content_calendar.board",
+    "translation": "Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones."
+  },
+  {
+    "id": "worktemplate.marketing.content_calendar.channel",
+    "translation": "Share content ideas, trending posts, blog links, and mentions in a dedicated channel."
+  },
+  {
+    "id": "worktemplate.marketing.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.marketing.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.marketing.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.marketing.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+  },
+  {
+    "id": "worktemplate.marketing.goals_and_okrs.channel",
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
+  },
+  {
+    "id": "worktemplate.marketing.goals_and_okrs.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.marketing.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
+    "id": "worktemplate.marketing.product_release.channel",
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
+  },
+  {
+    "id": "worktemplate.marketing.product_release.playbook",
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
+    "id": "worktemplate.other.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.other.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.other.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.other.feature_release.description.board",
+    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+  },
+  {
+    "id": "worktemplate.other.feature_release.description.channel",
+    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+  },
+  {
+    "id": "worktemplate.other.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.other.feature_release.description.playbook",
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+  },
+  {
+    "id": "worktemplate.other.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+  },
+  {
+    "id": "worktemplate.other.goals_and_okrs.channel",
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
+  },
+  {
+    "id": "worktemplate.other.goals_and_okrs.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.other.incident_resolution.description.board",
+    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+  },
+  {
+    "id": "worktemplate.other.incident_resolution.description.channel",
+    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+  },
+  {
+    "id": "worktemplate.other.incident_resolution.description.playbook",
+    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
+  },
+  {
+    "id": "worktemplate.other.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
+    "id": "worktemplate.other.product_release.channel",
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
+  },
+  {
+    "id": "worktemplate.other.product_release.playbook",
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
   },
   {
     "id": "worktemplate.product_teams.bug_bash.channel",
@@ -10153,7 +10517,7 @@
   },
   {
     "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you're done, run a retrospective and make improvements for your next release."
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
   },
   {
     "id": "worktemplate.product_teams.goals_and_okrs.board",
@@ -10185,6 +10549,126 @@
   },
   {
     "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.project_management.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.project_management.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.project_management.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.project_management.feature_release.description.board",
+    "translation": "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+  },
+  {
+    "id": "worktemplate.project_management.feature_release.description.channel",
+    "translation": "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+  },
+  {
+    "id": "worktemplate.project_management.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.project_management.feature_release.description.playbook",
+    "translation": "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+  },
+  {
+    "id": "worktemplate.project_management.goals_and_okrs.board",
+    "translation": "Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board."
+  },
+  {
+    "id": "worktemplate.project_management.goals_and_okrs.channel",
+    "translation": "Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel."
+  },
+  {
+    "id": "worktemplate.project_management.goals_and_okrs.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.project_management.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
+    "id": "worktemplate.project_management.product_release.channel",
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
+  },
+  {
+    "id": "worktemplate.project_management.product_release.playbook",
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
+    "id": "worktemplate.project_management.product_roadmap.board",
+    "translation": "Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues."
+  },
+  {
+    "id": "worktemplate.project_management.product_roadmap.channel",
+    "translation": "Chat with your team about your customers' feedback, prioritization, and get aligned on progress together."
+  },
+  {
+    "id": "worktemplate.qa.bug_bash.channel",
+    "translation": "Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization."
+  },
+  {
+    "id": "worktemplate.qa.bug_bash.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.qa.bug_bash.playbook",
+    "translation": "Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time."
+  },
+  {
+    "id": "worktemplate.qa.create_project.board",
+    "translation": "Use a Kanban board to define and track your project tasks and progress."
+  },
+  {
+    "id": "worktemplate.qa.create_project.channel",
+    "translation": "Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel."
+  },
+  {
+    "id": "worktemplate.qa.create_project.integration",
+    "translation": "Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.qa.incident_resolution.description.board",
+    "translation": "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+  },
+  {
+    "id": "worktemplate.qa.incident_resolution.description.channel",
+    "translation": "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+  },
+  {
+    "id": "worktemplate.qa.incident_resolution.description.playbook",
+    "translation": "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
+  },
+  {
+    "id": "worktemplate.qa.product_release.board",
+    "translation": "Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due."
+  },
+  {
+    "id": "worktemplate.qa.product_release.channel",
+    "translation": "Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly."
+  },
+  {
+    "id": "worktemplate.qa.product_release.playbook",
+    "translation": "Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time."
+  },
+  {
+    "id": "worktemplate.qa.sprint_planning.board",
+    "translation": "Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments."
+  },
+  {
+    "id": "worktemplate.qa.sprint_planning.channel",
+    "translation": "Chat with your team in a channel that connects easily with your boards and integrations."
+  },
+  {
+    "id": "worktemplate.qa.sprint_planning.integration",
     "translation": "Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you."
   }
 ]

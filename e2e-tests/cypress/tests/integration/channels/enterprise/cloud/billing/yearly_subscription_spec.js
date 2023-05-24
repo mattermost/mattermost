@@ -142,7 +142,7 @@ describe('System Console - Subscriptions section', () => {
                 cy.get('.RHS').find('button').should('be.enabled');
 
                 // # Change the user seats field to a value smaller than the current number of users
-                const lessThanUserCount = count - 5;
+                const lessThanUserCount = 1;
                 cy.get('#input_UserSeats').clear().type(lessThanUserCount);
 
                 // * Ensure that the yearly, monthly, and yearly saving prices match the new user seats value entered

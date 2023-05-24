@@ -16,7 +16,7 @@ import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
 import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {Post} from '@mattermost/types/posts';
+import {ActivityEntry, Post} from '@mattermost/types/posts';
 import {GlobalState} from '@mattermost/types/store';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
@@ -285,7 +285,6 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
 
             // Assume that the last post is the oldest one
             const createAt = posts[posts.length - 1].create_at;
-
             const messages = posts.map((post) => post.message);
 
             return {
@@ -323,66 +322,30 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
     );
 }
 
-export const postTypePriority = {
-    [Posts.POST_TYPES.JOIN_TEAM]: 0,
-    [Posts.POST_TYPES.ADD_TO_TEAM]: 1,
-    [Posts.POST_TYPES.LEAVE_TEAM]: 2,
-    [Posts.POST_TYPES.REMOVE_FROM_TEAM]: 3,
-    [Posts.POST_TYPES.JOIN_CHANNEL]: 4,
-    [Posts.POST_TYPES.ADD_TO_CHANNEL]: 5,
-    [Posts.POST_TYPES.LEAVE_CHANNEL]: 6,
-    [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: 7,
-    [Posts.POST_TYPES.PURPOSE_CHANGE]: 8,
-    [Posts.POST_TYPES.HEADER_CHANGE]: 9,
-    [Posts.POST_TYPES.JOIN_LEAVE]: 10,
-    [Posts.POST_TYPES.DISPLAYNAME_CHANGE]: 11,
-    [Posts.POST_TYPES.CONVERT_CHANNEL]: 12,
-    [Posts.POST_TYPES.CHANNEL_DELETED]: 13,
-    [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: 14,
-    [Posts.POST_TYPES.ADD_REMOVE]: 15,
-    [Posts.POST_TYPES.EPHEMERAL]: 16,
-};
-
-export function comparePostTypes(a: typeof postTypePriority, b: typeof postTypePriority) {
-    return postTypePriority[a.postType] - postTypePriority[b.postType];
-}
-
-function extractUserActivityData(userActivities: any) {
+export function extractUserActivityData(userActivities: ActivityEntry[]) {
     const messageData: any[] = [];
     const allUserIds: string[] = [];
     const allUsernames: string[] = [];
-    Object.entries(userActivities).forEach(([postType, values]: [string, any]) => {
-        if (
-            postType === Posts.POST_TYPES.ADD_TO_TEAM ||
-            postType === Posts.POST_TYPES.ADD_TO_CHANNEL ||
-            postType === Posts.POST_TYPES.REMOVE_FROM_CHANNEL
-        ) {
-            Object.keys(values).map((key) => [key, values[key]]).forEach(([actorId, users]) => {
-                if (Array.isArray(users)) {
-                    throw new Error('Invalid Post activity data');
+    userActivities.forEach((activity) => {
+        if (isUsersRelatedPost(activity.postType)) {
+            const {postType, actorId, userIds, usernames} = activity;
+            if (usernames && userIds) {
+                messageData.push({postType, userIds: [...userIds], actorId: actorId[0]});
+                if (userIds.length > 0) {
+                    allUserIds.push(...userIds.filter((userId) => userId));
                 }
-                const {ids, usernames} = users;
-                messageData.push({postType, userIds: [...usernames, ...ids], actorId});
-                if (ids.length > 0) {
-                    allUserIds.push(...ids);
-                }
-
                 if (usernames.length > 0) {
-                    allUsernames.push(...usernames);
+                    allUsernames.push(...usernames.filter((username) => username));
                 }
-                allUserIds.push(actorId);
-            });
-        } else {
-            if (!Array.isArray(values)) {
-                throw new Error('Invalid Post activity data');
+                allUserIds.push(actorId[0]);
             }
-            messageData.push({postType, userIds: values});
-            allUserIds.push(...values);
+        } else {
+            const {postType, actorId} = activity;
+            const userIds = actorId;
+            messageData.push({postType, userIds});
+            allUserIds.push(...userIds);
         }
     });
-
-    messageData.sort(comparePostTypes);
-
     function reduceUsers(acc: string[], curr: string) {
         if (!acc.includes(curr)) {
             acc.push(curr);
@@ -396,69 +359,45 @@ function extractUserActivityData(userActivities: any) {
         messageData,
     };
 }
-
+function isUsersRelatedPost(postType: string) {
+    return (
+        postType === Posts.POST_TYPES.ADD_TO_TEAM ||
+        postType === Posts.POST_TYPES.ADD_TO_CHANNEL ||
+        postType === Posts.POST_TYPES.REMOVE_FROM_CHANNEL
+    );
+}
 export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
     if (systemPosts.length === 0) {
         return null;
     }
-
-    const userActivities = systemPosts.reduce((acc: any, post: Post) => {
+    const userActivities: ActivityEntry[] = [];
+    systemPosts.reverse().forEach((post: Post) => {
         const postType = post.type;
-        let userActivityProps = acc;
-        const combinedPostType = userActivityProps[postType as string];
+        const actorId = post.user_id;
 
-        if (
-            postType === Posts.POST_TYPES.ADD_TO_TEAM ||
-            postType === Posts.POST_TYPES.ADD_TO_CHANNEL ||
-            postType === Posts.POST_TYPES.REMOVE_FROM_CHANNEL
-        ) {
-            const userId = post.props.addedUserId || post.props.removedUserId;
-            const username = post.props.addedUsername || post.props.removedUsername;
-            if (combinedPostType) {
-                if (Array.isArray(combinedPostType[post.user_id])) {
-                    throw new Error('Invalid Post activity data');
-                }
-                const users = combinedPostType[post.user_id] || {ids: [], usernames: []};
-                if (userId) {
-                    if (!users.ids.includes(userId)) {
-                        users.ids.push(userId);
-                    }
-                } else if (username && !users.usernames.includes(username)) {
-                    users.usernames.push(username);
-                }
-                combinedPostType[post.user_id] = users;
-            } else {
-                const users = {
-                    ids: [] as string[],
-                    usernames: [] as string[],
-                };
+        // When combining removed posts, the actorId does not need to be the same for each post.
+        // All removed posts will be combined regardless of their respective actorIds.
+        const isRemovedPost = post.type === Posts.POST_TYPES.REMOVE_FROM_CHANNEL;
+        const userId = isUsersRelatedPost(postType) ? post.props.addedUserId || post.props.removedUserId : '';
+        const username = isUsersRelatedPost(postType) ? post.props.addedUsername || post.props.removedUsername : '';
+        const prevPost = userActivities[userActivities.length - 1];
+        const isSamePostType = prevPost && prevPost.postType === post.type;
+        const isSameActor = prevPost && prevPost.actorId[0] === post.user_id;
 
-                if (userId) {
-                    users.ids.push(userId);
-                } else if (username) {
-                    users.usernames.push(username);
-                }
-                userActivityProps[postType] = {
-                    [post.user_id]: users,
-                };
-            }
+        if (prevPost && isSamePostType && (isSameActor || isRemovedPost)) {
+            prevPost.userIds.push(userId);
+            prevPost.usernames.push(username);
+        } else if (isSamePostType && !isSameActor && !isUsersRelatedPost(postType)) {
+            prevPost.actorId.push(actorId);
         } else {
-            const propsUserId = post.user_id;
-
-            if (combinedPostType) {
-                if (!Array.isArray(combinedPostType)) {
-                    throw new Error('Invalid Post activity data');
-                }
-                if (!combinedPostType.includes(propsUserId)) {
-                    userActivityProps[postType] = [...combinedPostType, propsUserId];
-                }
-            } else {
-                userActivityProps = {...userActivityProps, [postType]: [propsUserId]};
-            }
+            userActivities.push({
+                actorId: [actorId],
+                userIds: [userId],
+                usernames: [username],
+                postType,
+            });
         }
-
-        return userActivityProps;
-    }, {});
+    });
 
     return extractUserActivityData(userActivities);
 }

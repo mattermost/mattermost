@@ -95,6 +95,7 @@ const CommentsList = (props: Props) => {
                 // Only modify _own_ comments, EXCEPT for Admins, which can delete _any_ comment
                 // NOTE: editing comments will exist in the future (in addition to deleting)
                 const canDeleteComment: boolean = canDeleteOthersComments || me?.id === comment.modifiedBy
+
                 return (
                     <Comment
                         key={comment.id}

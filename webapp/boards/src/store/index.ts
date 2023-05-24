@@ -6,7 +6,6 @@ import {configureStore} from '@reduxjs/toolkit'
 import {reducer as usersReducer} from './users'
 import {reducer as teamsReducer} from './teams'
 import {reducer as channelsReducer} from './channels'
-import {reducer as languageReducer} from './language'
 import {reducer as globalTemplatesReducer} from './globalTemplates'
 import {reducer as boardsReducer} from './boards'
 import {reducer as viewsReducer} from './views'
@@ -25,7 +24,6 @@ const store = configureStore({
         users: usersReducer,
         teams: teamsReducer,
         channels: channelsReducer,
-        language: languageReducer,
         globalTemplates: globalTemplatesReducer,
         boards: boardsReducer,
         views: viewsReducer,
