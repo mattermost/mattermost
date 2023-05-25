@@ -271,22 +271,20 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 />
                 <div className='more-modal__details'>
                     <div className='more-modal__name'>
-                        <span>
-                            {displayName}
+                        <span className='d-flex'>
+                            <span>{displayName}</span>
                             {option.is_bot && <BotTag/>}
                             {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
                             {displayName === option.username ?
                                 null :
                                 <span
-                                    className='ml-2 light'
-                                    style={{fontSize: '12px'}}
+                                    className='ml-2 light flex-auto'
                                 >
                                     {'@'}{option.username}
                                 </span>
                             }
                             <span
-                                style={{position: 'absolute', right: 20}}
-                                className='light'
+                                className='ml-2 light flex-auto'
                             >
                                 {userMapping[option.id]}
                             </span>
