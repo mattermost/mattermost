@@ -12,8 +12,6 @@ import {ActionFunc} from 'mattermost-redux/types/actions';
 import {GlobalState} from 'types/store';
 
 import UserSettingsNotifications, {Props} from './user_settings_notifications';
-import {suitePluginIds} from 'utils/constants';
-import semver from 'semver';
 import {isCallsEnabled} from 'selectors/calls';
 
 function mapStateToProps(state: GlobalState) {

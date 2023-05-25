@@ -6,9 +6,6 @@ import {Modal} from 'react-bootstrap';
 import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {GlobalState} from 'types/store';
-
-import {suitePluginIds} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
 import KeyboardShortcutSequence, {
