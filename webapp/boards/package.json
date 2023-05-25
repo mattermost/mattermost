@@ -1,14 +1,12 @@
 {
 	"name": "boards",
-	"version": "7.11.0",
+	"version": "8.0.0",
 	"private": true,
 	"description": "",
 	"scripts": {
 		"build": "webpack --mode=production",
 		"build:watch": "webpack --mode=production --watch",
-		"start:product": "webpack serve --mode=development",
-		"debug": "webpack --mode=none",
-		"debug:watch": "webpack --mode=development --watch",
+		"start:product": "webpack --mode=development --watch",
 		"check-lint": "eslint --ignore-pattern ../.git-ignore --ignore-pattern dist --ext js,jsx,tsx,ts . --quiet --cache",
 		"check-lint:fix": "npm run check-lint -- --fix",
 		"check-style": "stylelint **/*.scss",

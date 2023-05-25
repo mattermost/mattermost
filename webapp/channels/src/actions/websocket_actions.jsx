@@ -105,6 +105,7 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import store from 'stores/redux_store.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
@@ -233,7 +234,7 @@ export function reconnect() {
             // we can request for getPosts again when socket is connected
             dispatch(getPosts(currentChannelId));
         }
-        StatusActions.loadStatusesForChannelAndSidebar();
+        dispatch(StatusActions.loadStatusesForChannelAndSidebar());
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
         dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));
@@ -579,6 +580,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
+        break;
+    case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
+        dispatch(handlePersistentNotification(msg));
         break;
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
@@ -1722,10 +1726,17 @@ function handleDeleteDraftEvent(msg) {
     };
 }
 
+function handlePersistentNotification(msg) {
+    return async (doDispatch) => {
+        const post = JSON.parse(msg.data.post);
+
+        doDispatch(sendDesktopNotification(post, msg.data));
+    };
+}
+
 function handleHostedCustomerSignupProgressUpdated(msg) {
     return {
         type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
         data: msg.data.progress,
     };
 }
-

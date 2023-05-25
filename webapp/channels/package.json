@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "7.11.0",
+  "version": "8.0.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
@@ -178,7 +178,7 @@
     "jest-junit": "12.2.0",
     "jest-styled-components": "7.1.1",
     "jest-watch-typeahead": "0.6.4",
-    "mmjstool": "github:mattermost/mattermost-utilities#237c2194aa646021535c54e4aafed084807b93a6",
+    "mmjstool": "github:mattermost/mattermost-utilities#e65ab00f22628cbdee736fd2e4f192f07225e82d",
     "nock": "13.2.8",
     "prettier": "2.3.2",
     "react-router-enzyme-context": "1.2.0",
