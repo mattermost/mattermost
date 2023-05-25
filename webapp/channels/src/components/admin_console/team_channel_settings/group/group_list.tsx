@@ -40,7 +40,7 @@ const Header = () => {
     );
 };
 
-interface Props {
+export interface Props {
     data?: Group[];
     onPageChangedCallback?: () => void;
     total: number;
@@ -51,7 +51,7 @@ interface Props {
     };
     removeGroup: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;
-    type: string;
+    type?: string;
     team?: Team;
     channel?: Partial<Channel>;
     isDisabled?: boolean;

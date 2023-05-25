@@ -62,7 +62,7 @@ export const ChannelGroups: React.FunctionComponent<ChannelGroupsProps> = (props
             {channel.id && (
                 <GroupList
                     channel={channel}
-                    groups={groups}
+                    groups={groups as Group[]}
                     totalGroups={totalGroups}
                     onGroupRemoved={onGroupRemoved}
                     setNewGroupRole={setNewGroupRole}

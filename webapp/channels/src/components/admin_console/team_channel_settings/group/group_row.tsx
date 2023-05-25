@@ -19,7 +19,7 @@ interface GroupRowProps {
     group: Partial<Group>;
     removeGroup: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;
-    type: string;
+    type?: string;
     isDisabled?: boolean;
 }
 
