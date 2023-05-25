@@ -230,7 +230,7 @@ export function loadNewDMIfNeeded(channelId: string) {
                     {user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'},
                     {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: channelId, value: now.toString()},
                 ])(dispatch);
-                loadProfilesForDM();
+                dispatch(loadProfilesForDM());
                 return {data: true};
             }
             return {data: false};
@@ -260,7 +260,7 @@ export function loadNewGMIfNeeded(channelId: string) {
             const pref = getBool(state, Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
             if (pref === false) {
                 dispatch(savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}]));
-                loadProfilesForGM();
+                dispatch(loadProfilesForGM());
                 return {data: true};
             }
             return {data: false};
@@ -298,7 +298,10 @@ export function loadProfilesForGroupChannels(groupChannels: Channel[]) {
 }
 
 export async function loadProfilesForSidebar() {
-    await Promise.all([loadProfilesForDM(), loadProfilesForGM()]);
+    return async (dispatch: DispatchFunc) => {
+        await Promise.all([dispatch(loadProfilesForDM()), dispatch(loadProfilesForGM())]);
+        return { data: true}
+    }
 }
 
 export const getGMsForLoading = (state: GlobalState) => {
@@ -311,7 +314,7 @@ export const getGMsForLoading = (state: GlobalState) => {
     return channels;
 };
 
-export async function loadProfilesForGM() {
+export function loadProfilesForGM() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const newPreferences = [];
@@ -361,10 +364,12 @@ export async function loadProfilesForGM() {
         if (newPreferences.length > 0) {
             dispatch(savePreferences(currentUserId, newPreferences));
         }
+    
+        return {data: true};
     };
 }
 
-export async function loadProfilesForDM() {
+export function loadProfilesForDM() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const channels = getMyChannels(state);
@@ -415,6 +420,7 @@ export async function loadProfilesForDM() {
             await UserActions.getProfilesByIds(profilesToLoad)(dispatch, getState);
         }
         await loadCustomEmojisForCustomStatusesByUserIds(profileIds)(dispatch, getState);
+        return {data: true};
     };
 }
 
