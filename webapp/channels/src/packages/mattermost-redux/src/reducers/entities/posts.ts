@@ -222,7 +222,7 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                         // skip if the embed is the deleted post
                         continue;
                     }
-                    
+
                     // include everything else
                     newEmbeds.push(embed);
                 }
