@@ -5,10 +5,6 @@ on:
   schedule:
     - cron: '44 6 * * *'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
-
 # Declare default permissions as read only.
 permissions: read-all
 

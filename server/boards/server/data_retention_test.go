@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/localpermissions"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/mockstore"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 type TestHelperMockStore struct {

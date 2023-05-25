@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 )
 
 // this functions loads translations from filesystem if they are not

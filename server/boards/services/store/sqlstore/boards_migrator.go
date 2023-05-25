@@ -18,9 +18,9 @@ import (
 	embedded "github.com/mattermost/morph/sources/embedded"
 	"github.com/mgdelacroix/foundation"
 
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/db"
 	mmSqlStore "github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )

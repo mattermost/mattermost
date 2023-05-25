@@ -12,8 +12,8 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
+	model0 "github.com/mattermost/mattermost-server/server/public/model"
 	model "github.com/mattermost/mattermost-server/server/v8/boards/model"
-	model0 "github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 // MockStore is a mock of Store interface.

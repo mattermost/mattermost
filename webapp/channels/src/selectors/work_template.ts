@@ -23,3 +23,4 @@ export const areWorkTemplatesEnabled = createSelector(
     },
 );
 
+export const getWorkTemplateCategories = (state: GlobalState) => state.entities.worktemplates.categories;
