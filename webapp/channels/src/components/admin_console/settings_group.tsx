@@ -4,18 +4,16 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-export default class SettingsGroup extends React.PureComponent {
-    static get propTypes() {
-        return {
-            show: PropTypes.bool.isRequired,
-            header: PropTypes.node,
-            title: PropTypes.node,
-            subtitle: PropTypes.node,
-            children: PropTypes.node,
-            container: PropTypes.bool,
-        };
-    }
+interface SettingsGroupProps {
+    show: boolean;
+    header?: React.ReactNode;
+    title?: React.ReactNode;
+    subtitle?: React.ReactNode;
+    children?: React.ReactNode;
+    container?: boolean;
+}
 
+export default class SettingsGroup extends React.PureComponent<SettingsGroupProps> {
     static get defaultProps() {
         return {
             show: true,
