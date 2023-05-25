@@ -819,7 +819,7 @@ export type JobSettings = {
 
 export type ProductSettings = {
     EnablePublicSharedBoards: boolean;
-    DisablePlaybooks: boolean;
+    EnablePlaybooks: boolean;
 };
 
 export type PluginSettings = {
