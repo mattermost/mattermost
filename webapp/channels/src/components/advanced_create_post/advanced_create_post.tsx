@@ -1040,7 +1040,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
     handleUploadError = (err: string | ServerError, clientId?: string, channelId?: string) => {
         let serverError = err;
-        if (typeof serverError === 'string') {
+        if (typeof serverError === 'string' && serverError.length !== 0) {
             serverError = new Error(serverError);
         }
 

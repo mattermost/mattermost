@@ -199,17 +199,6 @@ const AdvanceTextEditor = ({
         setKeepEditorInFocus(true);
     }, []);
 
-    let serverErrorJsx = null;
-    if (serverError) {
-        serverErrorJsx = (
-            <MessageSubmitError
-                error={serverError}
-                submittedMessage={serverError.submittedMessage}
-                handleSubmit={handleSubmit}
-            />
-        );
-    }
-
     let attachmentPreview = null;
     if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
         attachmentPreview = (
@@ -551,12 +540,20 @@ const AdvanceTextEditor = ({
             <div
                 id='postCreateFooter'
                 role='form'
-                className={classNames('AdvancedTextEditor__footer', {
-                    'AdvancedTextEditor__footer--has-error': postError || serverError,
-                })}
+                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
             >
-                {postError && <label className={classNames('post-error', {errorClass})}>{postError}</label>}
-                {serverErrorJsx}
+                {postError && (
+                    <label className={classNames('post-error', {errorClass})}>
+                        {postError}
+                    </label>
+                )}
+                {serverError && (
+                    <MessageSubmitError
+                        error={serverError}
+                        submittedMessage={serverError.submittedMessage}
+                        handleSubmit={handleSubmit}
+                    />
+                )}
                 <MsgTyping
                     channelId={channelId}
                     postId={postId}
