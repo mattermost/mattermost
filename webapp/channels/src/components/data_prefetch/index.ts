@@ -23,11 +23,14 @@ import {GlobalState} from 'types/store';
 import {isCollapsedThreadsEnabled} from '../../packages/mattermost-redux/src/selectors/entities/preferences';
 
 import {trackPreloadedChannels} from './actions';
+import { loadProfilesForSidebar } from 'actions/user_actions';
+
 import DataPrefetch from './data_prefetch';
 
 type Actions = {
     prefetchChannelPosts: (channelId: string, delay?: number) => Promise<{data: PostList}>;
     trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
+    loadProfilesForSidebar: () => void;
 };
 
 enum Priority {
@@ -36,7 +39,7 @@ enum Priority {
     low
 }
 
-// function to return a queue obj with priotiy as key and array of channelIds as values.
+// function to return a queue obj with priority as key and array of channelIds as values.
 // high priority has channels with mentions
 // medium priority has channels with unreads
 const prefetchQueue = memoizeResult((
@@ -99,6 +102,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             prefetchChannelPosts,
             trackPreloadedChannels,
+            loadProfilesForSidebar
         }, dispatch),
     };
 }

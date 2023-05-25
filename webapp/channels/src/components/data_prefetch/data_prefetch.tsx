@@ -7,7 +7,6 @@ import PQueue from 'p-queue';
 import {Channel} from '@mattermost/types/channels';
 
 import {Constants} from 'utils/constants';
-import {loadProfilesForSidebar} from 'actions/user_actions';
 
 const queue = new PQueue({concurrency: 2});
 
@@ -23,6 +22,7 @@ type Props = {
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
         trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
+        loadProfilesForSidebar: () => void;
     };
 }
 
@@ -41,7 +41,7 @@ type Props = {
         In order to solve the above conditions the component looks for changes in selector unread channels.
         if there is a change in unreads selector, then component clears existing queue as it can be obselete
         i.e there can be new mentions and we need to prioritise instead of unreads so, contructs a new queue
-        with dispacthes of unreads posts for channels which do not have prefetched requests.
+        with dispatches of unreads posts for channels which do not have prefetched requests.
 
     * other changes:
         Adds current channel posts requests to be dispatched as soon as it is set in redux state instead of dispatching it from actions down the hierarchy. Otherwise couple of prefetching requests are sent before the postlist makes a request for posts.
@@ -54,7 +54,7 @@ export default class DataPrefetch extends React.PureComponent<Props> {
         const {currentChannelId, prefetchQueueObj, sidebarLoaded} = this.props;
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
             queue.add(async () => this.prefetchPosts(currentChannelId));
-            await loadProfilesForSidebar();
+            this.props.actions.loadProfilesForSidebar();
             this.prefetchData();
         } else if (prevProps.prefetchQueueObj !== prefetchQueueObj) {
             clearTimeout(this.prefetchTimeout);

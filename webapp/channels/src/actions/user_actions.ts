@@ -297,7 +297,7 @@ export function loadProfilesForGroupChannels(groupChannels: Channel[]) {
     };
 }
 
-export async function loadProfilesForSidebar() {
+export function loadProfilesForSidebar() {
     return async (dispatch: DispatchFunc) => {
         await Promise.all([dispatch(loadProfilesForDM()), dispatch(loadProfilesForGM())]);
         return { data: true}
