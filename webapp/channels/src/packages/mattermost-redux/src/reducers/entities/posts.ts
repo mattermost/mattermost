@@ -220,16 +220,17 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 for (const embed of otherPost.metadata.embeds) {
                     if (embed.type === 'permalink' && (embed.data as PostPreviewMetadata).post_id === post.id) {
                         // skip if the embed is the deleted post
-                    } else {
-                        // include everything else
-                        newEmbeds.push(embed);
+                        continue;
                     }
+                    
+                    // include everything else
+                    newEmbeds.push(embed);
                 }
 
                 // if newEmbeds changed, update post's embeds
                 if (newEmbeds.length !== otherPost.metadata.embeds.length) {
                     // Since otherPost refers to the post from store, its frozen un immutable.
-                    // That's why cloning it here and modifying required parts here this why.
+                    // That's why cloning it and modifying required parts here.
                     nextState[otherPost.id] = {
                         ...nextState[otherPost.id],
                         metadata: {
