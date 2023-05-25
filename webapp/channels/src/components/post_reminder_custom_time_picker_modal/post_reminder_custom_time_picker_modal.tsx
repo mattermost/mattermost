@@ -15,7 +15,7 @@ import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import Constants from 'utils/constants';
 
-import {PropsFromRedux} from './index';
+import type {PropsFromRedux} from './index';
 
 import './post_reminder_custom_time_picker_modal.scss';
 

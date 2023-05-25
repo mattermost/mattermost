@@ -9,8 +9,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 func (a *API) registerStatisticsRoutes(r *mux.Router) {

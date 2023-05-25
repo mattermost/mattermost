@@ -96,3 +96,5 @@ export enum Visibility {
     Public = 'public',
     Private = 'private',
 }
+
+export const CategoryOther = 'other'

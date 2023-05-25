@@ -1,7 +1,7 @@
 name: Artifacts generation and upload
 on:
   workflow_run:
-    workflows: ["Mattermost Build"]
+    workflows: ["Server CI Master", "Server CI PR"]
     types:
       - completed
 

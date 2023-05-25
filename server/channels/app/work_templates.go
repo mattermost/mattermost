@@ -6,10 +6,10 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 )
 
 func (a *App) GetWorkTemplateCategories(t i18n.TranslateFunc) ([]*model.WorkTemplateCategory, *model.AppError) {
@@ -29,8 +29,8 @@ func (a *App) GetWorkTemplateCategories(t i18n.TranslateFunc) ([]*model.WorkTemp
 	return modelCategories, nil
 }
 
-func (a *App) GetWorkTemplates(category string, featureFlags map[string]string, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
-	templates, err := worktemplates.ListByCategory(category)
+func (a *App) GetWorkTemplates(category string, featureFlags map[string]string, includeOnboardingTemplates bool, t i18n.TranslateFunc) ([]*model.WorkTemplate, *model.AppError) {
+	templates, err := worktemplates.ListByCategory(category, includeOnboardingTemplates)
 	if err != nil {
 		return nil, model.NewAppError("GetWorkTemplates", "app.worktemplates.get_templates.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

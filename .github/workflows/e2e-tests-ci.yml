@@ -5,9 +5,7 @@ on:
     branches:
       - master
       - mono-repo*
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 defaults:
   run:
     shell: bash

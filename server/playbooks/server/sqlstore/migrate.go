@@ -11,7 +11,7 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/morph"
 	"github.com/mattermost/morph/drivers"
 	"github.com/mattermost/morph/sources"
