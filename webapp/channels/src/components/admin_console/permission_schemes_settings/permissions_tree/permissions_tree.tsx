@@ -260,15 +260,15 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
 
             return true;
         });
-    }
+    };
 
     openPostTimeLimitModal = () => {
         this.setState({editTimeLimitModalIsVisible: true});
-    }
+    };
 
     closePostTimeLimitModal = () => {
         this.setState({editTimeLimitModalIsVisible: false});
-    }
+    };
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.config !== prevProps.config || this.props.license !== prevProps.license) {
@@ -281,7 +281,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
             return;
         }
         this.props.onToggle(this.props.role.name!, ids);
-    }
+    };
 
     render = () => {
         return (

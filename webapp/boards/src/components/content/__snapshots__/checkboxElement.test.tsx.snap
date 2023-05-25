@@ -15,7 +15,6 @@ exports[`components/content/checkboxElement should change title 1`] = `
       placeholder="Edit text..."
       spellcheck="true"
       title="new title"
-      type="text"
       value="new title"
     />
   </div>

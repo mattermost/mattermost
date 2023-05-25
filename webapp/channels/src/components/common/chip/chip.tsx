@@ -56,7 +56,7 @@ export default class Chip extends React.PureComponent<Props> {
     onClick = (e: React.MouseEvent) => {
         e.preventDefault();
         this.props.onClick?.();
-    }
+    };
 
     render() {
         return (

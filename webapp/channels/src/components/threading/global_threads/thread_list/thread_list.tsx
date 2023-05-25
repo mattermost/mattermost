@@ -8,7 +8,7 @@ import {isEmpty} from 'lodash';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
-import * as Utils from 'utils/utils';
+import * as Keyboard from 'utils/keyboard';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {getThreads, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -80,7 +80,7 @@ const ThreadList = ({
             return;
         }
         const comboKeyPressed = e.altKey || e.metaKey || e.shiftKey || e.ctrlKey;
-        if (comboKeyPressed || (!Utils.isKeyPressed(e, Constants.KeyCodes.DOWN) && !Utils.isKeyPressed(e, Constants.KeyCodes.UP))) {
+        if (comboKeyPressed || (!Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) && !Keyboard.isKeyPressed(e, Constants.KeyCodes.UP))) {
             return;
         }
 
@@ -94,7 +94,7 @@ const ThreadList = ({
         let threadIdToSelect = 0;
         if (selectedThreadId) {
             const selectedThreadIndex = data.indexOf(selectedThreadId);
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
                 if (selectedThreadIndex < data.length - 1) {
                     threadIdToSelect = selectedThreadIndex + 1;
                 }
@@ -104,7 +104,7 @@ const ThreadList = ({
                 }
             }
 
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.UP)) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP)) {
                 if (selectedThreadIndex > 0) {
                     threadIdToSelect = selectedThreadIndex - 1;
                 } else {
@@ -233,7 +233,6 @@ const ThreadList = ({
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
-                                disabled={!someUnread}
                                 className={'Button___large Button___icon'}
                                 onClick={handleOpenMarkAllAsReadModal}
                                 marginTop={true}

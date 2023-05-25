@@ -151,13 +151,13 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             pretext: suggestions.matchedPretext,
             hasSuggestions: suggestions.items.length > 0,
         });
-    }
+    };
 
     public render = (): JSX.Element => {
         const providers: SwitchChannelProvider[] = this.channelProviders;
 
         const header = (
-            <h1>
+            <h1 id='quickSwitchHeader'>
                 <FormattedMessage
                     id='quick_switch_modal.switchChannels'
                     defaultMessage='Find Channels'
@@ -190,8 +190,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 enforceFocus={false}
                 restoreFocus={false}
                 role='dialog'
-                aria-labelledby='quickSwitchModalLabel'
-                aria-describedby='quickSwitchHeader'
+                aria-labelledby='quickSwitchHeader'
+                aria-describedby='quickSwitchHeaderWithHint'
                 animation={false}
             >
                 <Modal.Header
@@ -201,7 +201,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 <Modal.Body>
                     <div
                         className='channel-switcher__header'
-                        id='quickSwitchHeader'
+                        id='quickSwitchHeaderWithHint'
                     >
                         {header}
                         <div
@@ -244,5 +244,5 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 </Modal.Body>
             </Modal>
         );
-    }
+    };
 }

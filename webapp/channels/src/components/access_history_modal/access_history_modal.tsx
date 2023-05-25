@@ -32,11 +32,11 @@ export default class AccessHistoryModal extends React.PureComponent<Props, State
 
     public onShow = () => { // public for testing
         this.props.actions.getUserAudits(this.props.currentUserId, 0, 200);
-    }
+    };
 
     public onHide = () => { // public for testing
         this.setState({show: false});
-    }
+    };
 
     public componentDidMount() {
         this.onShow();

@@ -26,18 +26,18 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/server/channels/web"
-	"github.com/mattermost/mattermost-server/v6/server/channels/wsapi"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v8/channels/web"
+	"github.com/mattermost/mattermost-server/server/v8/channels/wsapi"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 )
 
 type TestHelper struct {
@@ -71,10 +71,8 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
-	LogBuffer                *mlog.Buffer
-	TestLogger               *mlog.Logger
-	boardsProductEnvValue    string
-	playbooksDisableEnvValue string
+	LogBuffer  *mlog.Buffer
+	TestLogger *mlog.Logger
 }
 
 var mainHelper *testlib.MainHelper
@@ -95,7 +93,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	memoryConfig := &model.Config{}
+	memoryConfig := &model.Config{
+		SqlSettings: *mainHelper.GetSQLSettings(),
+	}
 	memoryConfig.SetDefaults()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
@@ -104,17 +104,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
-
-	// disable Boards through the feature flag
-	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
-	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
-	memoryConfig.FeatureFlags.BoardsProduct = false
-
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
-
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -153,15 +142,13 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:                      app.New(app.ServerConnector(s.Channels())),
-		Server:                   s,
-		ConfigStore:              configStore,
-		IncludeCacheLayer:        includeCache,
-		Context:                  request.EmptyContext(testLogger),
-		TestLogger:               testLogger,
-		LogBuffer:                buffer,
-		boardsProductEnvValue:    boardsProductEnvValue,
-		playbooksDisableEnvValue: playbooksDisableEnvValue,
+		App:               app.New(app.ServerConnector(s.Channels())),
+		Server:            s,
+		ConfigStore:       configStore,
+		IncludeCacheLayer: includeCache,
+		Context:           request.EmptyContext(testLogger),
+		TestLogger:        testLogger,
+		LogBuffer:         buffer,
 	}
 	th.Context.SetLogger(testLogger)
 
@@ -192,7 +179,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*cfg.PasswordSettings.Symbol = false
 		*cfg.PasswordSettings.Number = false
 
-		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
 	if err := th.Server.Start(); err != nil {
 		panic(err)
@@ -302,6 +289,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadBoardsMigrationsIfNeeded()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()
@@ -309,7 +297,8 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
+	setupOptions := []app.Option{app.SkipProductsInitialization()}
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, setupOptions)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -323,7 +312,8 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
+	setupOptions := []app.Option{app.SkipProductsInitialization()}
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, setupOptions)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -337,7 +327,8 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
+	setupOptions := append(options, app.SkipProductsInitialization())
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, setupOptions)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -386,17 +377,6 @@ func (th *TestHelper) ShutdownApp() {
 }
 
 func (th *TestHelper) TearDown() {
-	// reset board and playbooks product setting to original
-	if th.boardsProductEnvValue != "" {
-		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
-	}
-
-	if th.playbooksDisableEnvValue != "" {
-		os.Setenv("MM_DISABLE_PLAYBOOKS", th.playbooksDisableEnvValue)
-	} else {
-		os.Unsetenv("MM_DISABLE_PLAYBOOKS")
-	}
-
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()
@@ -502,6 +482,14 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
 
+	return th
+}
+
+func (th *TestHelper) DeleteBots() *TestHelper {
+	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
+	for _, bot := range preexistingBots {
+		th.App.PermanentDeleteBot(bot.UserId)
+	}
 	return th
 }
 
@@ -1103,12 +1091,6 @@ func CheckErrorMessage(tb testing.TB, err error, message string) {
 	require.True(tb, ok, "should have been a model.AppError")
 
 	require.Equalf(tb, message, appError.Message, "incorrect error message, actual: %s, expected: %s", appError.Id, message)
-}
-
-func CheckStartsWith(tb testing.TB, value, prefix, message string) {
-	tb.Helper()
-
-	require.True(tb, strings.HasPrefix(value, prefix), message, value)
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.

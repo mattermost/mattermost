@@ -8,6 +8,7 @@ import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import QuickInput from 'components/quick_input';
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -163,7 +164,7 @@ export default class SuggestionBox extends React.PureComponent {
         actions: PropTypes.shape({
             addMessageIntoHistory: PropTypes.func.isRequired,
         }).isRequired,
-    }
+    };
 
     static defaultProps = {
         listPosition: 'top',
@@ -180,7 +181,7 @@ export default class SuggestionBox extends React.PureComponent {
         listenForMentionKeyClick: false,
         forceSuggestionsWhenBlur: false,
         alignWithTextbox: false,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -261,7 +262,7 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         this.addTextAtCaret(insertText, '');
-    }
+    };
 
     getTextbox = () => {
         if (!this.inputRef.current) {
@@ -269,17 +270,17 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         return this.inputRef.current;
-    }
+    };
 
     handleEmitClearSuggestions = (delay = 0) => {
         setTimeout(() => {
             this.clear();
         }, delay);
-    }
+    };
 
     preventSuggestionListClose = () => {
         this.preventSuggestionListCloseFlag = true;
-    }
+    };
 
     handleFocusOut = (e) => {
         if (this.preventSuggestionListCloseFlag) {
@@ -351,14 +352,14 @@ export default class SuggestionBox extends React.PureComponent {
         if (this.props.onChange) {
             this.props.onChange(e);
         }
-    }
+    };
 
     handleCompositionStart = () => {
         this.composing = true;
         if (this.props.onComposition) {
             this.props.onComposition();
         }
-    }
+    };
 
     handleCompositionUpdate = (e) => {
         if (!e.data) {
@@ -373,14 +374,14 @@ export default class SuggestionBox extends React.PureComponent {
         if (this.props.onComposition) {
             this.props.onComposition();
         }
-    }
+    };
 
     handleCompositionEnd = () => {
         this.composing = false;
         if (this.props.onComposition) {
             this.props.onComposition();
         }
-    }
+    };
 
     addTextAtCaret = (term, matchedPretext) => {
         const textbox = this.getTextbox();
@@ -428,7 +429,7 @@ export default class SuggestionBox extends React.PureComponent {
                 Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
             }
         });
-    }
+    };
 
     replaceText = (term) => {
         const textbox = this.getTextbox();
@@ -443,7 +444,7 @@ export default class SuggestionBox extends React.PureComponent {
             // don't call handleChange or we'll get into an event loop
             this.props.onChange(e);
         }
-    }
+    };
 
     handleCompleteWord = (term, matchedPretext, e) => {
         let fixedTerm = term;
@@ -497,7 +498,7 @@ export default class SuggestionBox extends React.PureComponent {
 
         if (finish && this.props.onKeyPress) {
             let ke = e;
-            if (!e || Utils.isKeyPressed(e, Constants.KeyCodes.TAB)) {
+            if (!e || Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 ke = new KeyboardEvent('keydown', {
                     bubbles: true, cancelable: true, keyCode: 13,
                 });
@@ -517,15 +518,15 @@ export default class SuggestionBox extends React.PureComponent {
             }
         }
         return false;
-    }
+    };
 
     selectNext = () => {
         this.setSelectionByDelta(1);
-    }
+    };
 
     selectPrevious = () => {
         this.setSelectionByDelta(-1);
-    }
+    };
 
     setSelectionByDelta = (delta) => {
         let selectionIndex = this.state.terms.indexOf(this.state.selection);
@@ -549,7 +550,7 @@ export default class SuggestionBox extends React.PureComponent {
             selection: this.state.terms[selectionIndex],
             selectionIndex,
         });
-    }
+    };
 
     setSelection = (term) => {
         const selectionIndex = this.state.terms.indexOf(this.state.selection);
@@ -558,7 +559,7 @@ export default class SuggestionBox extends React.PureComponent {
             selection: term,
             selectionIndex,
         });
-    }
+    };
 
     clear = () => {
         if (!this.state.cleared) {
@@ -573,22 +574,22 @@ export default class SuggestionBox extends React.PureComponent {
             });
             this.handlePretextChanged('');
         }
-    }
+    };
 
     hasSuggestions = () => {
         return this.state.items.some((item) => !item.loading);
-    }
+    };
 
     handleKeyDown = (e) => {
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-            if (Utils.isKeyPressed(e, KeyCodes.UP)) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 this.selectPrevious();
                 e.preventDefault();
-            } else if (Utils.isKeyPressed(e, KeyCodes.DOWN)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
                 this.selectNext();
                 e.preventDefault();
-            } else if ((Utils.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Utils.isKeyPressed(e, KeyCodes.TAB))) {
+            } else if ((Keyboard.isKeyPressed(e, KeyCodes.ENTER) && !ctrlOrMetaKeyPressed) || (this.props.completeOnTab && Keyboard.isKeyPressed(e, KeyCodes.TAB))) {
                 let matchedPretext = '';
                 for (let i = 0; i < this.state.terms.length; i++) {
                     if (this.state.terms[i] === this.state.selection) {
@@ -611,7 +612,7 @@ export default class SuggestionBox extends React.PureComponent {
                     this.props.onKeyDown(e);
                 }
                 e.preventDefault();
-            } else if (Utils.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
                 this.clear();
                 this.setState({presentationType: 'text'});
                 e.preventDefault();
@@ -621,13 +622,13 @@ export default class SuggestionBox extends React.PureComponent {
         } else if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
         }
-    }
+    };
 
     handleSelect = (e) => {
         if (this.props.onSelect) {
             this.props.onSelect(e);
         }
-    }
+    };
 
     focusInputOnEscape = () => {
         if (this.inputRef.current) {
@@ -640,7 +641,7 @@ export default class SuggestionBox extends React.PureComponent {
                 },
             ));
         }
-    }
+    };
 
     handleReceivedSuggestions = (suggestions) => {
         let newComponents = [];
@@ -680,14 +681,14 @@ export default class SuggestionBox extends React.PureComponent {
         });
 
         return {selection, matchedPretext: suggestions.matchedPretext};
-    }
+    };
 
     handleReceivedSuggestionsAndComplete = (suggestions) => {
         const {selection, matchedPretext} = this.handleReceivedSuggestions(suggestions);
         if (selection) {
             this.handleCompleteWord(selection, matchedPretext);
         }
-    }
+    };
 
     nonDebouncedPretextChanged = (pretext, complete = false) => {
         const {alignWithTextbox} = this.props;
@@ -723,7 +724,7 @@ export default class SuggestionBox extends React.PureComponent {
         if (!handled) {
             this.clear();
         }
-    }
+    };
 
     debouncedPretextChanged = (pretext) => {
         clearTimeout(this.timeoutId);
@@ -733,11 +734,11 @@ export default class SuggestionBox extends React.PureComponent {
     handlePretextChanged = (pretext) => {
         this.pretext = pretext;
         this.debouncedPretextChanged(pretext);
-    }
+    };
 
     blur = () => {
         this.inputRef.current.blur();
-    }
+    };
 
     focus = () => {
         const input = this.inputRef.current;
@@ -750,7 +751,7 @@ export default class SuggestionBox extends React.PureComponent {
         input.focus();
 
         this.handleChange({target: this.inputRef.current});
-    }
+    };
 
     setContainerRef = (container) => {
         // Attach/detach event listeners that aren't supported by React
@@ -774,7 +775,7 @@ export default class SuggestionBox extends React.PureComponent {
         }
 
         return listPosition === 'bottom' && this.state.suggestionBoxAlgn.placementShift ? 'top' : listPosition;
-    }
+    };
 
     render() {
         const {

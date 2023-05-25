@@ -31,7 +31,7 @@ class TestModal extends React.PureComponent<TestModalProps, TestModalState> {
 
     hideModal = () => {
         this.setState({show: false});
-    }
+    };
 
     render() {
         return (

@@ -8,9 +8,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 const defaultS3Timeout = 60 * 1000 // 60 seconds
@@ -59,8 +59,8 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 	}
 
 	enablePublicSharedBoards := false
-	if mmconfig.PluginSettings.Plugins[PluginName][SharedBoardsName] == true {
-		enablePublicSharedBoards = true
+	if mmconfig.ProductSettings.EnablePublicSharedBoards != nil {
+		enablePublicSharedBoards = *mmconfig.ProductSettings.EnablePublicSharedBoards
 	}
 
 	enableBoardsDeletion := false
@@ -80,12 +80,8 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 		showFullName = *mmconfig.PrivacySettings.ShowFullName
 	}
 
-	serverRoot := baseURL + "/plugins/focalboard"
-	if mmconfig.FeatureFlags.BoardsProduct {
-		serverRoot = baseURL + "/boards"
-	}
 	return &config.Configuration{
-		ServerRoot:               serverRoot,
+		ServerRoot:               baseURL + "/boards",
 		Port:                     -1,
 		DBType:                   *mmconfig.SqlSettings.DriverName,
 		DBConfigString:           *mmconfig.SqlSettings.DataSource,

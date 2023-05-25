@@ -59,7 +59,7 @@ exports[`components/GenericModal should match snapshot for base case 1`] = `
           </h1>
         </div>
         <div
-          className="GenericModal__body"
+          className="GenericModal__body padding"
         />
       </ModalBody>
     </div>
@@ -126,11 +126,12 @@ exports[`components/GenericModal should match snapshot with both buttons 1`] = `
           </h1>
         </div>
         <div
-          className="GenericModal__body"
+          className="GenericModal__body padding"
         />
       </ModalBody>
       <ModalFooter
         bsClass="modal-footer"
+        className=""
         componentClass="div"
       >
         <button
@@ -218,11 +219,12 @@ exports[`components/GenericModal should match snapshot with disabled confirm but
           </h1>
         </div>
         <div
-          className="GenericModal__body"
+          className="GenericModal__body padding"
         />
       </ModalBody>
       <ModalFooter
         bsClass="modal-footer"
+        className=""
         componentClass="div"
       >
         <button

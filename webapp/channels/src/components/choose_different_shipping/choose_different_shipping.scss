@@ -1,10 +1,13 @@
+@import '../payment_form/mixins';
+
 .shipping-address-section {
     display: flex;
-    align-content: flex-start;
+    align-items: center;
     padding-bottom: 24px;
     font-weight: normal;
 
     button.no-style {
+        height: auto;
         padding-left: 0;
         border: none;
         background: transparent;
@@ -26,7 +29,6 @@
         padding-left: 12px;
         cursor: default;
         font-family: 'Open Sans', sans-serif;
-        vertical-align: middle;
     }
 
     .billing_address_btn_text {
@@ -34,4 +36,8 @@
         font-family: 'Open Sans', sans-serif;
         font-weight: bold;
     }
+}
+
+.PurchaseModal .shipping-address-section {
+    @include payment-form-padding;
 }

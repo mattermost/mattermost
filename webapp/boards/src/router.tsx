@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 import React, {useEffect, useMemo} from 'react'
 import {
-    Router,
     Redirect,
+    Router,
     Switch,
-    useRouteMatch,
-    useHistory,
     generatePath,
+    useHistory,
     useLocation,
+    useRouteMatch,
 } from 'react-router-dom'
-import {createBrowserHistory, History} from 'history'
+import {History, createBrowserHistory} from 'history'
 
 import {IAppWindow} from './types'
 import BoardPage from './pages/boardPage/boardPage'
@@ -18,9 +18,9 @@ import WelcomePage from './pages/welcome/welcomePage'
 import ErrorPage from './pages/errorPage'
 import {Utils} from './utils'
 import octoClient from './octoClient'
-import {setGlobalError, getGlobalError} from './store/globalError'
-import {useAppSelector, useAppDispatch} from './store/hooks'
-import {getFirstTeam, fetchTeams, Team} from './store/teams'
+import {getGlobalError, setGlobalError} from './store/globalError'
+import {useAppDispatch, useAppSelector} from './store/hooks'
+import {Team, fetchTeams, getFirstTeam} from './store/teams'
 import {UserSettings} from './userSettings'
 import FBRoute from './route'
 
@@ -84,6 +84,7 @@ function WorkspaceToTeamRedirect() {
             }
         })
     }, [])
+
     return null
 }
 

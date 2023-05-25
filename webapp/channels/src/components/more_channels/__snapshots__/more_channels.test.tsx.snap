@@ -1,15 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/MoreChannels should match snapshot and state 1`] = `
-<GenericModal
+<Modal
+  animation={true}
   aria-labelledby="moreChannelsModalLabel"
-  aria-modal={true}
-  autoCloseOnCancelButton={true}
-  autoCloseOnConfirmButton={false}
-  compassDesign={true}
-  enforceFocus={false}
-  headerButton={
-    <Memo(Connect(TeamPermissionGate))
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-modal--action"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="moreChannelsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="moreChannelsModalHeader"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="moreChannelsModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="More Channels"
+        id="more_channels.title"
+      />
+    </ModalTitle>
+    <Connect(TeamPermissionGate)
       permissions={
         Array [
           "create_public_channel",
@@ -18,30 +56,74 @@ exports[`components/MoreChannels should match snapshot and state 1`] = `
       teamId="team_id"
     >
       <button
-        aria-label="Create New Channel"
-        className="btn outlineButton"
-        id="createNewChannelButton"
+        className="btn btn-primary channel-create-btn"
+        id="createNewChannel"
         onClick={[Function]}
         type="button"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Create New Channel"
+        <MemoizedFormattedMessage
+          defaultMessage="Create Channel"
           id="more_channels.create"
         />
       </button>
-    </Memo(Connect(TeamPermissionGate))>
-  }
-  id="moreChannelsModal"
-  keyboardEscape={true}
-  modalHeaderText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Browse Channels"
-      id="more_channels.title"
+    </Connect(TeamPermissionGate)>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <SearchableChannelList
+      canShowArchivedChannels={true}
+      channels={
+        Array [
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "channel_id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        ]
+      }
+      channelsPerPage={50}
+      handleJoin={[Function]}
+      isSearch={false}
+      loading={false}
+      nextPage={[Function]}
+      noResultsText={
+        <Memo(Connect(TeamPermissionGate))
+          permissions={
+            Array [
+              "create_public_channel",
+              "create_private_channel",
+            ]
+          }
+          teamId="team_id"
+        >
+          <p
+            className="secondary-message"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Click 'Create New Channel' to make a new one"
+              id="more_channels.createClick"
+            />
+          </p>
+        </Memo(Connect(TeamPermissionGate))>
+      }
+      search={[Function]}
+      shouldShowArchivedChannels={false}
+      toggleArchivedChannels={[Function]}
     />
-  }
-  onExited={[Function]}
-  show={true}
->
-  <LoadingScreen />
-</GenericModal>
+  </ModalBody>
+</Modal>
 `;

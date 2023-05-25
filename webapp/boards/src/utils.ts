@@ -11,7 +11,7 @@ import {History} from 'history'
 import {IUser} from './user'
 
 import {Block} from './blocks/block'
-import {Board as BoardType, BoardMember, createBoard} from './blocks/board'
+import {BoardMember, Board as BoardType, createBoard} from './blocks/board'
 import {createBoardView} from './blocks/boardView'
 import {createCard} from './blocks/card'
 import {createCommentBlock} from './blocks/commentBlock'
@@ -35,7 +35,6 @@ export type CategoryOrder = string[]
 
 export type WSMessagePayloads = Block | Category | BoardCategoryWebsocketData[] | BoardType | BoardMember | null | CategoryOrder
 
-// eslint-disable-next-line no-shadow
 enum IDType {
     None = '7',
     Workspace = 'w',
@@ -60,6 +59,7 @@ export const ShowFullName = 'full_name'
 class Utils {
     static createGuid(idType: IDType): string {
         const data = Utils.randomArray(16)
+
         return idType + Utils.base32encode(data, false)
     }
 
@@ -79,6 +79,7 @@ class Utils {
             ret = IDType.View
             break
         }
+
         return ret
     }
 
@@ -112,6 +113,7 @@ class Utils {
                 displayName = fullName
             }
         }
+
         return displayName
     }
 
@@ -123,6 +125,7 @@ class Utils {
         } else if (user.lastname !== '') {
             return user.lastname
         }
+
         return ''
     }
 
@@ -136,6 +139,7 @@ class Utils {
                 rands[i] = Math.floor((Math.random() * 255))
             }
         }
+
         return rands
     }
 
@@ -163,6 +167,7 @@ class Utils {
                 output += '='
             }
         }
+
         return output
     }
 
@@ -172,18 +177,21 @@ class Utils {
         for (let i = 0; i < s.length; i++) {
             h = Math.imul(31, h) + s.charCodeAt(i) | 0
         }
+
         return h
     }
 
     static htmlToElement(html: string): HTMLElement {
         const template = document.createElement('template')
         template.innerHTML = html.trim()
+
         return template.content.firstChild as HTMLElement
     }
 
     static getElementById(elementId: string): HTMLElement {
         const element = document.getElementById(elementId)
         Utils.assert(element, `getElementById "${elementId}$`)
+
         return element!
     }
 
@@ -206,15 +214,18 @@ class Utils {
             if (context) {
                 context.font = fontDescriptor
                 const metrics = context.measureText(displayText)
+
                 return Math.ceil(metrics.width)
             }
         }
+
         return 0
     }
 
     static getFontAndPaddingFromCell = (cell: Element): {fontDescriptor: string, padding: number} => {
         const style = getComputedStyle(cell)
         const padding = Utils.getTotalHorizontalPadding(style)
+
         return Utils.getFontAndPaddingFromChildren(cell.children, padding)
     }
 
@@ -254,6 +265,7 @@ class Utils {
                 }
             }
         })
+
         return myResults
     }
 
@@ -267,6 +279,7 @@ class Utils {
             props.push(lineHeight ? `${fontSize} / ${lineHeight}` : fontSize)
         }
         props.push(fontFamily)
+
         return props.join(' ')
     }
 
@@ -310,6 +323,7 @@ class Utils {
 
     static htmlFromMarkdownWithRenderer(text: string, renderer: marked.Renderer): string {
         const html = marked(text.replace(/</g, '&lt;'), {renderer, breaks: true})
+
         return html.trim()
     }
 
@@ -322,15 +336,18 @@ class Utils {
             if (isChecked) {
                 ++checked
             }
+
             return ''
         }
         this.htmlFromMarkdownWithRenderer(text, renderer)
+
         return {total, checked}
     }
 
     // Date and Time
     private static yearOption(date: Date) {
         const isCurrentYear = date.getFullYear() === new Date().getFullYear()
+
         return isCurrentYear ? undefined : 'numeric'
     }
 
@@ -450,6 +467,7 @@ class Utils {
         illegalCharacters.forEach((character) => {
             sanitizedFilename = sanitizedFilename.replace(character, '')
         })
+
         return sanitizedFilename
     }
 
@@ -492,6 +510,7 @@ class Utils {
                 return false
             }
         }
+
         return true
     }
 
@@ -547,6 +566,7 @@ class Utils {
         if (absolute) {
             return window.location.origin + '/' + baseURL
         }
+
         return baseURL
     }
 
@@ -559,6 +579,7 @@ class Utils {
         if (absolute) {
             return window.location.origin + '/' + frontendBaseURL
         }
+
         return frontendBaseURL
     }
 
@@ -580,6 +601,7 @@ class Utils {
         } else if (message.categoryOrder) {
             return [message.categoryOrder, 'categoryOrder']
         }
+
         return [null, 'block']
     }
 
@@ -612,6 +634,7 @@ class Utils {
         // use if the value window.desktop.version is not set yet
         const regex = /Mattermost\/(\d+\.\d+\.\d+)/gm
         const match = regex.exec(window.navigator.appVersion)?.[1] || ''
+
         return match
     }
 
@@ -654,6 +677,7 @@ class Utils {
     static getReadToken(): string {
         const queryString = new URLSearchParams(window.location.search)
         const readToken = queryString.get('r') || ''
+
         return readToken
     }
 
@@ -715,6 +739,7 @@ class Utils {
         if (allowAlt) {
             return (Utils.isMac() && e.metaKey) || (!Utils.isMac() && e.ctrlKey)
         }
+
         return (Utils.isMac() && e.metaKey) || (!Utils.isMac() && e.ctrlKey && !e.altKey)
     }
 
@@ -722,6 +747,7 @@ class Utils {
         if (currentPath === '/team/:teamId/new/:channelId') {
             return '/team/:teamId/:boardId?/:viewId?/:cardId?'
         }
+
         return currentPath
     }
 
@@ -764,8 +790,10 @@ class Utils {
     static spaceSeparatedStringIncludes(item: string, spaceSeparated?: string): boolean {
         if (spaceSeparated) {
             const items = spaceSeparated?.split(' ')
+
             return items.includes(item)
         }
+
         return false
     }
 

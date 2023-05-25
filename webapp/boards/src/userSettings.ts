@@ -4,7 +4,6 @@
 import {notifySettingsChanged} from './nativeApp'
 import {Utils} from './utils'
 
-// eslint-disable-next-line no-shadow
 export enum UserSettingKey {
     Language = 'language',
     Theme = 'theme',
@@ -17,7 +16,6 @@ export enum UserSettingKey {
     RandomIcons = 'randomIcons',
     MobileWarningClosed = 'mobileWarningClosed',
     WelcomePageViewed = 'welcomePageViewed',
-    HideCloudMessage = 'hideCloudMessage',
     NameFormat = 'nameFormat'
 }
 
@@ -132,6 +130,7 @@ export class UserSettings {
         const prefixed = `emoji-mart.${key}`
         Utils.assert((Object as any).values(UserSettingKey).includes(prefixed))
         const json = UserSettings.get(prefixed as UserSettingKey)
+
         return json ? JSON.parse(json) : null
     }
 
@@ -147,14 +146,6 @@ export class UserSettings {
 
     static set mobileWarningClosed(newValue: boolean) {
         UserSettings.set(UserSettingKey.MobileWarningClosed, String(newValue))
-    }
-
-    static get hideCloudMessage(): boolean {
-        return localStorage.getItem(UserSettingKey.HideCloudMessage) === 'true'
-    }
-
-    static set hideCloudMessage(newValue: boolean) {
-        localStorage.setItem(UserSettingKey.HideCloudMessage, JSON.stringify(newValue))
     }
 
     static get nameFormat(): string | null {
@@ -174,6 +165,7 @@ function exportUserSettings(): string {
     const keys = Object.values(UserSettingKey)
     const settings = Object.fromEntries(keys.map((key) => [key, localStorage.getItem(key)]))
     settings.timestamp = `${Date.now()}`
+
     return JSON.stringify(settings)
 }
 
@@ -202,6 +194,7 @@ function importUserSettings(json: string): string[] {
             importedKeys.push(key)
         }
     }
+
     return importedKeys
 }
 

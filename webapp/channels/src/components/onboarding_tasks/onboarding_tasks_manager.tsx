@@ -65,7 +65,7 @@ const useGetTaskDetails = () => {
             svg: Newspaper,
             message: formatMessage({
                 id: 'onboardingTask.checklist.task_create_from_work_template',
-                defaultMessage: 'Create from a template - set up a channel with linked boards and playbooks.',
+                defaultMessage: 'Create from a template.',
             }),
         },
         [OnboardingTasksName.CHANNELS_TOUR]: {
@@ -388,7 +388,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
                 value: 'true',
             }];
             dispatch(savePreferences(currentUserId, preferences));
-            window.open('https://mattermost.com/download/', '_blank', 'noopener,noreferrer');
+            window.open('https://mattermost.com/download#desktop', '_blank', 'noopener,noreferrer');
             break;
         }
         case OnboardingTasksName.START_TRIAL: {

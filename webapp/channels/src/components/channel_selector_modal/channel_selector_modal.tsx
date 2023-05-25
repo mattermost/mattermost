@@ -44,8 +44,8 @@ type State = {
 const CHANNELS_PER_PAGE = 50;
 
 export default class ChannelSelectorModal extends React.PureComponent<Props, State> {
-    searchTimeoutId = 0
-    selectedItemRef = React.createRef<HTMLDivElement>()
+    searchTimeoutId = 0;
+    selectedItemRef = React.createRef<HTMLDivElement>();
 
     state: State = {
         values: [],
@@ -89,13 +89,13 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
     handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
-    }
+    };
 
     handleExit = () => {
         if (this.props.onModalDismissed) {
             this.props.onModalDismissed();
         }
-    }
+    };
 
     handleSubmit = (e: any) => {
         if (e) {
@@ -110,7 +110,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
             this.props.onChannelsSelected(this.state.values);
         }
         this.handleHide();
-    }
+    };
 
     addValue = (value: ChannelWithTeamDataValue) => {
         const values = [...this.state.values];
@@ -119,13 +119,13 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
         }
 
         this.setState({values});
-    }
+    };
 
     setChannelsLoadingState = (loadingState: boolean) => {
         this.setState({
             loadingChannels: loadingState,
         });
-    }
+    };
 
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
@@ -142,18 +142,18 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                 this.setChannelsLoadingState(false);
             });
         }
-    }
+    };
 
     handleDelete = (values: ChannelWithTeamDataValue[]) => {
         this.setState({values});
-    }
+    };
 
     search = (term: string, multiselectComponent: MultiSelect<ChannelWithTeamDataValue>) => {
         if (multiselectComponent.state.page !== 0) {
             multiselectComponent.setState({page: 0});
         }
         this.props.actions.setModalSearchTerm(term);
-    }
+    };
 
     renderOption = (
         option: ChannelWithTeamDataValue,
@@ -192,7 +192,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                 </div>
             </div>
         );
-    }
+    };
 
     renderValue(props: {data: ChannelWithTeamDataValue}) {
         return props.data.display_name + ' (' + props.data.team_display_name + ')';

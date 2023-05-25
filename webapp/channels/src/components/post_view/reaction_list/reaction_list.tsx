@@ -84,22 +84,22 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
     getTarget = (): HTMLButtonElement | null => {
         return this.addReactionButtonRef.current;
-    }
+    };
 
     handleEmojiClick = (emoji: Emoji): void => {
         this.setState({showEmojiPicker: false});
         const emojiName = isSystemEmoji(emoji) ? emoji.short_names[0] : emoji.name;
         this.props.actions.addReaction(this.props.post.id, emojiName);
-    }
+    };
 
     hideEmojiPicker = (): void => {
         this.setState({showEmojiPicker: false});
-    }
+    };
 
     toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-    }
+    };
 
     render(): React.ReactNode {
         const reactionsByName = new Map();

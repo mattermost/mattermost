@@ -6,8 +6,7 @@ import classNames from 'classnames';
 
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
-import {isMac} from 'utils/utils';
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp, isMac} from 'utils/user_agent';
 
 import './search_shortcut.scss';
 

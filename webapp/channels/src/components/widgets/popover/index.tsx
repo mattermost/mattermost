@@ -26,7 +26,7 @@ export default class Popover extends React.PureComponent<Props> {
         popoverStyle: 'info',
         popoverSize: 'sm',
 
-    }
+    };
     render() {
         const {placement, popoverSize, children, popoverStyle, title, id, onMouseOut, onMouseOver, className, style} = this.props;
         return (

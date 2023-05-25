@@ -6,7 +6,8 @@ import {FormattedMessage} from 'react-intl';
 import {Moment} from 'moment-timezone';
 
 import GenericModal from 'components/generic_modal';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
 
 import {toUTCUnix} from 'utils/datetime';
@@ -14,7 +15,7 @@ import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import Constants from 'utils/constants';
 
-import {PropsFromRedux} from './index';
+import type {PropsFromRedux} from './index';
 
 import './post_reminder_custom_time_picker_modal.scss';
 

@@ -773,7 +773,7 @@
     "tqAmbk": "Runs in progress",
     "Z1sgPO": "View finished runs",
     "RgQwWr": "Sort runs by",
-    "NNksk4": "Alphanumerically",
+    "NNksk4": "Alphabetically",
     "RC6rA2": "Recently created",
     "Q/t0//": "Finished runs",
     "AoNLta": "There are no finished runs linked to this channel",
@@ -833,5 +833,6 @@
     "OqWwvQ": "{user} unticked checklist item '\\{name}'\\",
     "8FzC0B": "{user} ticked off checklist item '\\{name}'\\",
     "DKiv0o": "{user} skipped checklist item '\\{name}'\\",
-    "3qPQMX": "{name} requested a status update"
+    "3qPQMX": "{name} requested a status update",
+    "9M92On": "Select channels"
 }

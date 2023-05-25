@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -9,7 +9,7 @@ import {Constants, Preferences} from 'utils/constants';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
+import {TourTip, useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
 
 const translate = {x: 2, y: 25};
 
@@ -17,6 +17,9 @@ const CRTThreadsPaneTutorialTip = () => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
+
+    const dimensions = useFollowElementDimensions('sidebar-right');
+
     const title = (
         <FormattedMessage
             id='tutorial_threads.threads_pane.title'
@@ -26,7 +29,7 @@ const CRTThreadsPaneTutorialTip = () => {
 
     const screen = (
         <p>
-            {formatMessage(
+            {formatMessage<ReactNode>(
                 {
                     id: 'tutorial_threads.threads_pane.description',
                     defaultMessage: 'Click the <b>Follow</b> button to be notified about replies and see it in your <b>Threads</b> view. Within a thread, the <b>New Messages</b> line shows you where you left off.',
@@ -60,7 +63,7 @@ const CRTThreadsPaneTutorialTip = () => {
         dispatch(savePreferences(currentUserId, preferences));
     };
 
-    const overlayPunchOut = useMeasurePunchouts(['rhsContainer'], []);
+    const overlayPunchOut = useMeasurePunchouts(['rhsContainer'], [dimensions?.width]);
 
     return (
         <TourTip

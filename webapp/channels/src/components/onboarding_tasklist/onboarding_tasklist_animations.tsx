@@ -3,7 +3,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import StatusIcon from '@mattermost/compass-components/components/status-icon';
+import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 
 const Animation = styled.div`
     position: absolute;

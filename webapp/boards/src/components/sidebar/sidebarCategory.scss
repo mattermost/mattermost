@@ -6,6 +6,10 @@
         margin-top: 0;
     }
 
+    .dialog {
+        color: rgba(var(--center-channel-color-rgb));
+    }
+
     .octo-sidebar-item {
         display: flex;
         flex-direction: row;

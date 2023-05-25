@@ -58,13 +58,13 @@ export default class AudioVideoPreview extends React.PureComponent<Props, State>
         this.setState({
             canPlay: true,
         });
-    }
+    };
 
     handleLoadError = () => {
         this.setState({
             canPlay: false,
         });
-    }
+    };
 
     stop = () => {
         if (this.videoRef.current) {
@@ -72,7 +72,7 @@ export default class AudioVideoPreview extends React.PureComponent<Props, State>
             video.pause();
             video.currentTime = 0;
         }
-    }
+    };
 
     render() {
         if (!this.state.canPlay) {

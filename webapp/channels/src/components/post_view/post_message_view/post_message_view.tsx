@@ -71,7 +71,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         this.setState((prevState) => {
             return {checkOverflow: prevState.checkOverflow + 1};
         });
-    }
+    };
 
     handleHeightReceived = (height: number) => {
         if (height > 0) {

@@ -12,6 +12,11 @@ import {LogObject} from '@mattermost/types/admin';
 export function getLogs(state: GlobalState) {
     return state.entities.admin.logs;
 }
+
+export function getPlainLogs(state: GlobalState) {
+    return state.entities.admin.plainLogs;
+}
+
 export const getAllLogs = createSelector(
     'getAllLogs',
     getLogs,

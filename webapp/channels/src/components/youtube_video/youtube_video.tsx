@@ -38,11 +38,11 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
     play = () => {
         this.setState({playing: true});
-    }
+    };
 
     stop = () => {
         this.setState({playing: false});
-    }
+    };
 
     render() {
         const {metadata, link} = this.props;

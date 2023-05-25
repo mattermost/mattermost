@@ -47,7 +47,7 @@ export function clearWorkTemplates(): ActionFunc {
 }
 
 // stores the linked product information in the state so it can be used to show the tourtip
-export function onExecuteSuccess(data: Record<string, number>): ActionFunc {
+export function onExecuteSuccess(data: Record<string, string | number>): ActionFunc {
     return async (dispatch) => {
         dispatch({type: WorkTemplatesType.EXECUTE_SUCCESS, data});
         return [];

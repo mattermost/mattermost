@@ -78,7 +78,7 @@ export default class PasswordSettings extends AdminSettings {
         config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts, Constants.MAXIMUM_LOGIN_ATTEMPTS_DEFAULT);
 
         return config;
-    }
+    };
 
     getStateFromConfig(config) {
         return {
@@ -123,17 +123,17 @@ export default class PasswordSettings extends AdminSettings {
                 }}
             />
         );
-    }
+    };
 
     handlePasswordLengthChange = (id, value) => {
         this.handleChange(id, value);
-    }
+    };
 
     handleCheckboxChange = (id) => {
         return ({target: {checked}}) => {
             this.handleChange(id, checked);
         };
-    }
+    };
 
     renderTitle() {
         return (
@@ -283,5 +283,5 @@ export default class PasswordSettings extends AdminSettings {
                 }
             </SettingsGroup>
         );
-    }
+    };
 }

@@ -3,7 +3,7 @@
 import React, {FC} from 'react'
 
 import 'emoji-mart/css/emoji-mart.css'
-import {Picker, BaseEmoji} from 'emoji-mart'
+import {BaseEmoji, Picker} from 'emoji-mart'
 
 import './emojiPicker.scss'
 

@@ -16,7 +16,7 @@ export default class LoadingWrapper extends React.PureComponent<Props> {
         loading: true,
         text: null,
         children: null,
-    }
+    };
 
     public render() {
         const {text, loading, children} = this.props;

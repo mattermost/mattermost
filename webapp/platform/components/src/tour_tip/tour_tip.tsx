@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import Tippy from '@tippyjs/react';
 import {Placement} from 'tippy.js';
@@ -90,9 +90,7 @@ export const TourTip = ({
     const FIRST_STEP_INDEX = 0;
     const triggerRef = useRef(null);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
-        if (handleJump) {
-            handleJump(event, jumpToStep);
-        }
+        handleJump?.(event, jumpToStep);
     };
 
     // This needs to be changed if root-portal node isn't available to maybe body

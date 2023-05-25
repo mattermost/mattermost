@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import Select from 'react-select'
-import {CSSObject} from '@emotion/serialize'
+import Select, {StylesConfig} from 'react-select'
 
 import {getSelectBaseStyle} from 'src/theme'
 
@@ -16,11 +15,11 @@ type Props = {
     value: string
 }
 
-const baseStyles = getSelectBaseStyle()
+const baseStyles = getSelectBaseStyle<ContentType>()
 
-const styles = {
+const styles: StylesConfig<ContentType> = {
     ...baseStyles,
-    control: (provided: CSSObject): CSSObject => ({
+    control: (provided) => ({
         ...provided,
         width: '100%',
         height: '100%',
@@ -29,12 +28,12 @@ const styles = {
         color: 'rgb(var(--center-channel-color-rgb))',
         flexDirection: 'row',
     }),
-    input: (provided: CSSObject): CSSObject => ({
+    input: (provided) => ({
         ...provided,
         background: 'rgb(var(--center-channel-bg-rgb))',
         color: 'rgb(var(--center-channel-color-rgb))',
     }),
-    menu: (provided: CSSObject): CSSObject => ({
+    menu: (provided) => ({
         ...provided,
         minWidth: '100%',
         width: 'max-content',
@@ -42,7 +41,7 @@ const styles = {
         left: '0',
         marginBottom: '0',
     }),
-    menuPortal: (provided: CSSObject): CSSObject => ({
+    menuPortal: (provided) => ({
         ...provided,
         zIndex: 999,
     }),
@@ -52,7 +51,7 @@ export default function RootInput(props: Props) {
     const [showMenu, setShowMenu] = useState(false)
 
     return (
-        <Select
+        <Select<ContentType>
             styles={styles}
             components={{DropdownIndicator: () => null, IndicatorSeparator: () => null}}
             className='RootInput'
@@ -62,8 +61,8 @@ export default function RootInput(props: Props) {
             menuPortalTarget={document.getElementById('focalboard-root-portal')}
             menuPosition={'fixed'}
             options={registry.list()}
-            getOptionValue={(ct: ContentType) => ct.slashCommand}
-            getOptionLabel={(ct: ContentType) => ct.slashCommand + ' Creates a new ' + ct.displayName + ' block.'}
+            getOptionValue={(ct) => ct.slashCommand}
+            getOptionLabel={(ct) => ct.slashCommand + ' Creates a new ' + ct.displayName + ' block.'}
             filterOption={(option: any, inputValue: string): boolean => {
                 return inputValue.startsWith(option.value) || option.value.startsWith(inputValue)
             }}
@@ -90,7 +89,7 @@ export default function RootInput(props: Props) {
                     props.onChange('')
                 }
             }}
-            onFocus={(e: React.FocusEvent) => {
+            onFocus={(e) => {
                 const target = e.currentTarget
                 target.scrollIntoView({block: 'center'})
             }}

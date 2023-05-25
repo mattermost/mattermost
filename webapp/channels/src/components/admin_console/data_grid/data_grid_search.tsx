@@ -32,7 +32,7 @@ class DataGridSearch extends React.PureComponent<Props, State> {
     static defaultProps = {
         placeholder: '',
         term: '',
-    }
+    };
 
     public constructor(props: Props) {
         super(props);
@@ -46,7 +46,7 @@ class DataGridSearch extends React.PureComponent<Props, State> {
         const term = e.target.value;
         this.setState({term});
         this.props.onSearch(term);
-    }
+    };
 
     resetSearch = () => {
         this.props.onSearch('');

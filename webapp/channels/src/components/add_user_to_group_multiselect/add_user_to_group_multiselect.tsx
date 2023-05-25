@@ -173,7 +173,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
             return '';
         }
         return option.username;
-    }
+    };
 
     renderOption = (option: UserProfileValue, isSelected: boolean, onAdd: (user: UserProfileValue) => void, onMouseMove: (user: UserProfileValue) => void) => {
         return (
@@ -241,5 +241,5 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
                 numRemainingText={numRemainingText}
             />
         );
-    }
+    };
 }

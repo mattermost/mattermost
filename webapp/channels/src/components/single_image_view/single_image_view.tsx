@@ -80,7 +80,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         if (this.mounted) {
             this.setState({loaded: true});
         }
-    }
+    };
 
     handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -94,15 +94,15 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 startIndex: 0,
             },
         });
-    }
+    };
 
     toggleEmbedVisibility = () => {
         this.props.actions.toggleEmbedVisibility(this.props.postId);
-    }
+    };
 
     getFilePublicLink = () => {
         return this.props.actions.getFilePublicLink(this.props.fileInfo.id);
-    }
+    };
 
     render() {
         const {fileInfo, compactDisplay, isInPermalink} = this.props;

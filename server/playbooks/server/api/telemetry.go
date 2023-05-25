@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/bot"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 )
 
 // TelemetryHandler is the API handler.

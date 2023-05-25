@@ -9,10 +9,10 @@ import {FormattedMessage} from 'react-intl'
 import {useMeasurePunchouts} from 'src/components/tutorial_tour_tip/hooks'
 import TourTipRenderer from 'src/components/onboardingTour/tourTipRenderer/tourTipRenderer'
 import {
+    FINISHED,
+    SidebarTourSteps,
     TOUR_BOARD,
     TOUR_SIDEBAR,
-    SidebarTourSteps,
-    FINISHED
 } from 'src/components/onboardingTour/index'
 import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import {

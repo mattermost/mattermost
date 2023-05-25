@@ -5,8 +5,6 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {SalesInquiryIssue} from 'selectors/cloud';
-
 import {CloudProducts} from 'utils/constants';
 import {anyUsageDeltaExceededLimit} from 'utils/limits';
 
@@ -33,7 +31,7 @@ const LimitReachedBanner = (props: Props) => {
 
     const hasDismissedBanner = useSelector(getHasDismissedSystemConsoleLimitReached);
 
-    const openSalesLink = useOpenSalesLink(props.product?.sku === CloudProducts.PROFESSIONAL ? SalesInquiryIssue.UpgradeEnterprise : undefined);
+    const [openSalesLink] = useOpenSalesLink();
     const openPricingModal = useOpenPricingModal();
     const saveBool = useSaveBool();
     if (hasDismissedBanner || !someLimitExceeded || !props.product || (props.product.sku !== CloudProducts.STARTER)) {

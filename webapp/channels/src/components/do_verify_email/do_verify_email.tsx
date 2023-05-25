@@ -15,7 +15,7 @@ import LoadingScreen from 'components/loading_screen';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {verifyUserEmail, getMe} from 'mattermost-redux/actions/users';
-import {getUseCaseOnboarding} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 
@@ -40,7 +40,7 @@ const DoVerifyEmail = () => {
     const token = params.get('token') ?? '';
 
     const loggedIn = Boolean(useSelector(getCurrentUserId));
-    const useCaseOnboarding = useSelector(getUseCaseOnboarding);
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
 
     const [verifyStatus, setVerifyStatus] = useState(VerifyStatus.PENDING);
     const [serverError, setServerError] = useState('');
@@ -52,7 +52,7 @@ const DoVerifyEmail = () => {
 
     const handleRedirect = () => {
         if (loggedIn) {
-            if (useCaseOnboarding) {
+            if (onboardingFlowEnabled) {
                 // need info about whether admin or not,
                 // and whether admin has already completed
                 // first time onboarding. Instead of fetching and orchestrating that here,
@@ -60,7 +60,6 @@ const DoVerifyEmail = () => {
                 history.push('/');
                 return;
             }
-
             redirectUserToDefaultTeam();
             return;
         }

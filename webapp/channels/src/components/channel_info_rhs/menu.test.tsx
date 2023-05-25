@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
+import {act, fireEvent, screen} from '@testing-library/react';
 
-import {Channel, ChannelStats} from '@mattermost/types/channels';
 import {renderWithIntl} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+
+import {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import Menu from './menu';
 
@@ -20,6 +21,7 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         },
     };
 
@@ -29,10 +31,11 @@ describe('channel_info_rhs/menu', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
+            getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {files_count: 3, pinnedpost_count: 12, member_count: 32}})),
         };
     });
 
-    test('should display notifications preferences', () => {
+    test('should display notifications preferences', async () => {
         const props = {...defaultProps};
         props.actions.openNotificationSettings = jest.fn();
 
@@ -42,13 +45,17 @@ describe('channel_info_rhs/menu', () => {
             />,
         );
 
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
         expect(screen.getByText('Notification Preferences')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Notification Preferences'));
 
         expect(props.actions.openNotificationSettings).toHaveBeenCalled();
     });
 
-    test('should NOT display notifications preferences in a DM', () => {
+    test('should NOT display notifications preferences in a DM', async () => {
         const props = {
             ...defaultProps,
             channel: {type: Constants.DM_CHANNEL} as Channel,
@@ -60,10 +67,14 @@ describe('channel_info_rhs/menu', () => {
             />,
         );
 
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
         expect(screen.queryByText('Notification Preferences')).not.toBeInTheDocument();
     });
 
-    test('should NOT display notifications preferences in an archived channel', () => {
+    test('should NOT display notifications preferences in an archived channel', async () => {
         const props = {
             ...defaultProps,
             isArchived: true,
@@ -75,10 +86,14 @@ describe('channel_info_rhs/menu', () => {
             />,
         );
 
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
         expect(screen.queryByText('Notification Preferences')).not.toBeInTheDocument();
     });
 
-    test('should display the number of files', () => {
+    test('should display the number of files', async () => {
         const props = {...defaultProps};
         props.actions.showChannelFiles = jest.fn();
 
@@ -88,6 +103,10 @@ describe('channel_info_rhs/menu', () => {
             />,
         );
 
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
         const fileItem = screen.getByText('Files');
         expect(fileItem).toBeInTheDocument();
         expect(fileItem.parentElement).toHaveTextContent('3');
@@ -96,7 +115,7 @@ describe('channel_info_rhs/menu', () => {
         expect(props.actions.showChannelFiles).toHaveBeenCalled();
     });
 
-    test('should display the pinned messages', () => {
+    test('should display the pinned messages', async () => {
         const props = {...defaultProps};
         props.actions.showPinnedPosts = jest.fn();
 
@@ -106,6 +125,10 @@ describe('channel_info_rhs/menu', () => {
             />,
         );
 
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
         const fileItem = screen.getByText('Pinned Messages');
         expect(fileItem).toBeInTheDocument();
         expect(fileItem.parentElement).toHaveTextContent('12');
@@ -114,7 +137,7 @@ describe('channel_info_rhs/menu', () => {
         expect(props.actions.showPinnedPosts).toHaveBeenCalled();
     });
 
-    test('should display members', () => {
+    test('should display members', async () => {
         const props = {...defaultProps};
         props.actions.showChannelMembers = jest.fn();
 
@@ -124,6 +147,10 @@ describe('channel_info_rhs/menu', () => {
             />,
         );
 
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
         const membersItem = screen.getByText('Members');
         expect(membersItem).toBeInTheDocument();
         expect(membersItem.parentElement).toHaveTextContent('32');
@@ -132,7 +159,7 @@ describe('channel_info_rhs/menu', () => {
         expect(props.actions.showChannelMembers).toHaveBeenCalled();
     });
 
-    test('should NOT display members in DM', () => {
+    test('should NOT display members in DM', async () => {
         const props = {
             ...defaultProps,
             channel: {type: Constants.DM_CHANNEL} as Channel,
@@ -143,6 +170,10 @@ describe('channel_info_rhs/menu', () => {
                 {...props}
             />,
         );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
 
         const membersItem = screen.queryByText('Members');
         expect(membersItem).not.toBeInTheDocument();

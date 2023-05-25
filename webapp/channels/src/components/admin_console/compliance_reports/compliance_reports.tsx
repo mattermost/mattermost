@@ -94,7 +94,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
         this.props.actions.getComplianceReports().then(
             () => this.setState({loadingReports: false}),
         );
-    }
+    };
 
     runReport = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
@@ -131,7 +131,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 this.props.actions.getComplianceReports();
             },
         );
-    }
+    };
 
     getDateTime(millis: number) {
         const date = new Date(millis);

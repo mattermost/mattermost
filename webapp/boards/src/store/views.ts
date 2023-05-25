@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction, createSelector} from '@reduxjs/toolkit'
+import {PayloadAction, createSelector, createSlice} from '@reduxjs/toolkit'
 import isEqual from 'lodash/isEqual'
 
 import {BoardView, createBoardView} from 'src/blocks/boardView'
@@ -53,6 +53,7 @@ const smartViewUpdate = (oldView: BoardView, newView: BoardView) => {
     if (isEqual(newView.fields.kanbanCalculations, oldView.fields.kanbanCalculations)) {
         newView.fields.kanbanCalculations = oldView.fields.kanbanCalculations
     }
+
     return newView
 }
 
@@ -118,6 +119,7 @@ export const getViewsByBoard = createSelector(
                 result[view.parentId] = [view]
             }
         })
+
         return result
     },
 )
@@ -133,6 +135,7 @@ export const getCurrentBoardViews = createSelector(
     getViews,
     (boardId, views) => {
         Utils.log(`getCurrentBoardViews boardId: ${boardId} views: ${views.length}`)
+
         return Object.values(views).filter((v) => v.boardId === boardId).sort((a, b) => a.title.localeCompare(b.title)).map((v) => createBoardView(v))
     },
 )
@@ -155,6 +158,7 @@ export const getCurrentViewGroupBy = createSelector(
         if (!currentView) {
             return undefined
         }
+
         return currentBoard.cardProperties.find((o) => o.id === currentView.fields.groupById)
     },
 )
@@ -169,6 +173,7 @@ export const getCurrentViewDisplayBy = createSelector(
         if (!currentView) {
             return undefined
         }
+
         return currentBoard.cardProperties.find((o) => o.id === currentView.fields.dateDisplayPropertyId)
     },
 )

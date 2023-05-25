@@ -3,7 +3,6 @@
 import React from 'react'
 
 import {render} from '@testing-library/react'
-import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import {FetchMock} from 'src/test/fetchMock'

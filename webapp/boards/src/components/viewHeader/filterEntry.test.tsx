@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
@@ -14,14 +13,14 @@ import {FilterClause} from 'src/blocks/filterClause'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import mutator from 'src/mutator'
 
 import FilterEntry from './filterEntry'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -71,7 +70,7 @@ describe('components/viewHeader/filterEntry', () => {
         board.cardProperties[0].options = [{id: 'Status', value: 'Status', color: ''}]
         activeView.fields.filter.filters = [statusFilter]
     })
-    test('return filterEntry', () => {
+    test('return filterEntry', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -85,11 +84,11 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
-    test('return filterEntry for boolean field', () => {
+    test('return filterEntry for boolean field', async () => {
         activeView.fields.filter.filters = [booleanFilter]
         const {container} = render(
             wrapIntl(
@@ -105,11 +104,11 @@ describe('components/viewHeader/filterEntry', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
-    test('return filterEntry for text field', () => {
+    test('return filterEntry for text field', async () => {
         activeView.fields.filter.filters = [textFilter]
         const {container} = render(
             wrapIntl(
@@ -125,11 +124,11 @@ describe('components/viewHeader/filterEntry', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
-    test('return filterEntry for date field', () => {
+    test('return filterEntry for date field', async () => {
         activeView.fields.filter.filters = [dateFilter]
         const {container} = render(
             wrapIntl(
@@ -145,11 +144,12 @@ describe('components/viewHeader/filterEntry', () => {
         )
         expect(container).toMatchSnapshot()
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
 
-    test('return filterEntry and click on status', () => {
+    test('return filterEntry and click on status', async () => {
+        jest.spyOn(console, 'error').mockImplementation()
         activeView.fields.filter.filters = [unknownFilter]
         const {container} = render(
             wrapIntl(
@@ -163,14 +163,15 @@ describe('components/viewHeader/filterEntry', () => {
                 </ReduxProvider>,
             ),
         )
+        expect(console.error).toBeCalled()
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonStatus = screen.getByRole('button', {name: 'Status'})
-        userEvent.click(buttonStatus)
+        await userEvent.click(buttonStatus)
         expect(mockedMutator.changeViewFilter).toBeCalledTimes(1)
     })
-    test('return filterEntry and click on includes', () => {
+    test('return filterEntry and click on includes', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -184,13 +185,13 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonIncludes = screen.getAllByRole('button', {name: 'includes'})[1]
-        userEvent.click(buttonIncludes)
+        await userEvent.click(buttonIncludes)
         expect(mockedConditionClicked).toBeCalledTimes(1)
     })
-    test('return filterEntry and click on doesn\'t include', () => {
+    test('return filterEntry and click on doesn\'t include', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -204,13 +205,13 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonNotInclude = screen.getByRole('button', {name: 'doesn\'t include'})
-        userEvent.click(buttonNotInclude)
+        await userEvent.click(buttonNotInclude)
         expect(mockedConditionClicked).toBeCalledTimes(1)
     })
-    test('return filterEntry and click on is empty', () => {
+    test('return filterEntry and click on is empty', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -224,13 +225,13 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonEmpty = screen.getByRole('button', {name: 'is empty'})
-        userEvent.click(buttonEmpty)
+        await userEvent.click(buttonEmpty)
         expect(mockedConditionClicked).toBeCalledTimes(1)
     })
-    test('return filterEntry and click on is not empty', () => {
+    test('return filterEntry and click on is not empty', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -244,13 +245,13 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonNotEmpty = screen.getByRole('button', {name: 'is not empty'})
-        userEvent.click(buttonNotEmpty)
+        await userEvent.click(buttonNotEmpty)
         expect(mockedConditionClicked).toBeCalledTimes(1)
     })
-    test('return filterEntry and click on delete', () => {
+    test('return filterEntry and click on delete', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -264,13 +265,13 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await act(() => userEvent.click(buttonElement))
         expect(container).toMatchSnapshot()
         const allButton = screen.getAllByRole('button')
-        userEvent.click(allButton[allButton.length - 1])
+        await act(() => userEvent.click(allButton[allButton.length - 1]))
         expect(mockedMutator.changeViewFilter).toBeCalledTimes(1)
     })
-    test('return filterEntry and click on different property type', () => {
+    test('return filterEntry and click on different property type', async () => {
         activeView.fields.filter.filters = [statusFilter]
         const {container} = render(
             wrapIntl(
@@ -285,16 +286,16 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonDate = screen.getByRole('button', {name: 'Property 3'})
-        userEvent.click(buttonDate)
+        await userEvent.click(buttonDate)
         expect(mockedMutator.changeViewFilter).toBeCalledWith(
             board.id, activeView.id,
             {operation: 'and', filters: [statusFilter]},
             {operation: 'and', filters: [dateFilter]})
     })
-    test('return filterEntry and click on different property type, but same filterOperation', () => {
+    test('return filterEntry and click on different property type, but same filterOperation', async () => {
         activeView.fields.filter.filters = [booleanFilter]
         const {container} = render(
             wrapIntl(
@@ -309,10 +310,10 @@ describe('components/viewHeader/filterEntry', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonDate = screen.getByRole('button', {name: 'Property 3'})
-        userEvent.click(buttonDate)
+        await userEvent.click(buttonDate)
         expect(mockedMutator.changeViewFilter).toBeCalledWith(
             board.id, activeView.id,
             {operation: 'and', filters: [booleanFilter]},

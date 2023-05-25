@@ -87,7 +87,7 @@ export default class PluginRegistry {
     supports = {
         globalAppBar: true,
         globalRhs: true,
-    }
+    };
 
     // Register a component at the root of the channel view of the app.
     // Accepts a React component. Returns a unique identifier.
@@ -208,7 +208,7 @@ export default class PluginRegistry {
     // Accepts the following:
     // - icon - React element to use as the button's icon
     // - action - a function called when the button is clicked, passed the channel and channel member as arguments
-    // - text - a localized string to use as the button's text
+    // - text - a localized string or React element  to use as the button's text
     registerChannelIntroButtonAction = reArg([
         'icon',
         'action',
@@ -220,8 +220,7 @@ export default class PluginRegistry {
     }: {
         icon: ReactResolvable;
         action: PluginComponent['action'];
-        tooltipText: string;
-        text: string;
+        text: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -966,7 +965,7 @@ export default class PluginRegistry {
         });
 
         return id;
-    })
+    });
 
     /**
      * INTERNAL: Subject to change without notice.
@@ -986,6 +985,7 @@ export default class PluginRegistry {
         'showTeamSidebar',
         'showAppBar',
         'wrapped',
+        'publicComponent',
     ], ({
         baseURL,
         switcherIcon,
@@ -997,6 +997,7 @@ export default class PluginRegistry {
         showTeamSidebar = false,
         showAppBar = false,
         wrapped = true,
+        publicComponent,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
@@ -1016,6 +1017,7 @@ export default class PluginRegistry {
                 showTeamSidebar,
                 showAppBar,
                 wrapped,
+                publicComponent,
             },
         });
 

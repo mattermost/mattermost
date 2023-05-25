@@ -120,7 +120,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
 
     public scrollToTop = (): void => {
         this.scrollbarsRef.current?.scrollToTop();
-    }
+    };
 
     componentDidMount() {
         this.focusSearchBar();
@@ -144,27 +144,27 @@ class SearchableUserList extends React.PureComponent<Props, State> {
 
         this.props.nextPage();
         this.scrollToTop();
-    }
+    };
 
     previousPage = (e: React.MouseEvent) => {
         e.preventDefault();
 
         this.props.previousPage();
         this.scrollToTop();
-    }
+    };
 
     focusSearchBar = () => {
         if (this.props.focusOnMount && this.filterRef.current) {
             this.filterRef.current.focus();
         }
-    }
+    };
 
     handleInput = (e: React.FormEvent<HTMLInputElement> | undefined) => {
         if (e) {
             this.props.onTermChange(e.currentTarget.value);
             this.props.search(e.currentTarget.value);
         }
-    }
+    };
 
     renderCount = (users: UserProfile[] | null | undefined) => {
         if (!users || !this.props.users) {
@@ -225,7 +225,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         }
 
         return null;
-    }
+    };
 
     render() {
         let nextButton;

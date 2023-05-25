@@ -630,9 +630,8 @@
         "onlyEquality": false
       }
     ],
-    "formatjs/no-id": 2,
+    "formatjs/no-multiple-whitespaces": 2,
     "formatjs/enforce-default-message": 2,
-    "formatjs/no-multiple-whitespaces": 1,
     "formatjs/no-multiple-plurals": 2,
     "formatjs/enforce-placeholders": 2,
     "formatjs/no-literal-string-in-jsx": 2,

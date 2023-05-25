@@ -1,0 +1,159 @@
+name: ESR Upgrade
+on:
+  workflow_call:
+    inputs:
+      db-dump-url:
+        required: true
+        type: string
+      initial-version:
+        required: true
+        type: string
+      final-version:
+        required: true
+        type: string
+env:
+  COMPOSE_PROJECT_NAME: ghactions
+  BUILD_IMAGE: mattermost/mattermost-enterprise-edition:${{ inputs.final-version }}
+  MYSQL_CONN_ARGS: -h localhost -P 3306 --protocol=tcp -ummuser -pmostest mattermost_test
+  DUMP_SERVER_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.server.sql
+  DUMP_SCRIPT_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.script.sql
+  MIGRATION_SCRIPT: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.up.sql
+  CLEANUP_SCRIPT:   esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.cleanup.sql
+  PREPROCESS_SCRIPT: esr.common.mysql.preprocess.sql
+  DIFF_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.diff
+jobs:
+  esr-upgrade-server:
+    runs-on: ubuntu-latest-8-cores
+    timeout-minutes: 30
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run docker compose
+        run: |
+          cd server/build
+          docker-compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --no-ansi ps
+      - name: Wait for docker compose
+        run: |
+          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - name: Initialize the database with the source DB dump
+        run: |
+          curl ${{ inputs.db-dump-url }} | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
+      - name: Common preprocessing of the DB dump
+        run: |
+          cd server/scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $PREPROCESS_SCRIPT
+      - name: Pull EE image
+        run: |
+          docker pull $BUILD_IMAGE
+      - name: Run migration through server
+        run: |
+          mkdir -p client/plugins
+          cd server/build
+          # Run the server in the background to trigger the migrations
+          docker run --name mmserver \
+            --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
+            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304" \
+            -v ~/work/mattermost-server:/mattermost-server \
+            -w /mattermost-server/mattermost-server \
+            $BUILD_IMAGE &
+          # In parallel, wait for the migrations to finish.
+          # To verify this, we check that the server has finished the startup job through the log line "Server is listening on"
+          until docker logs mmserver | grep "Server is listening on"; do\
+            echo "Waiting for migrations to finish..."; \
+            sleep 1; \
+            done;
+          # Make sure to stop the server. Also, redirect output to null;
+          # otherwise, the name of the container gets written to the console, which is weird
+          docker stop mmserver > /dev/null
+      - name: Cleanup DB
+        run : |
+          cd server/scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
+      - name: Dump upgraded database
+        run: |
+          # Use --skip-opt to have each INSERT into one line.
+          # Use --set-gtid-purged=OFF to suppress GTID-related statements.
+          docker exec -i ghactions_mysql_1 mysqldump \
+            --skip-opt --set-gtid-purged=OFF \
+            $MYSQL_CONN_ARGS > $DUMP_SERVER_NAME
+      - name: Cleanup dump and compress
+        run: |
+          # We skip the very last line, which simply contains the date of the dump
+          head -n -1 ${DUMP_SERVER_NAME} | gzip > ${DUMP_SERVER_NAME}.gz
+      - name: Upload dump
+        uses: actions/upload-artifact@v3
+        with:
+          name: upgraded-dump-server
+          path: ${{ env.DUMP_SERVER_NAME }}.gz
+  esr-upgrade-script:
+    runs-on: ubuntu-latest-8-cores
+    timeout-minutes: 30
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Run docker compose
+        run: |
+          cd server/build
+          docker-compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --no-ansi ps
+      - name: Wait for docker compose
+        run: |
+          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - name: Initialize the database with the source DB dump
+        run: |
+          curl ${{ inputs.db-dump-url }} | zcat | docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS
+      - name: Preprocess the DB dump
+        run: |
+          cd server/scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $PREPROCESS_SCRIPT
+      - name: Run migration through script
+        run : |
+          cd server/scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $MIGRATION_SCRIPT
+      - name: Cleanup DB
+        run : |
+          cd server/scripts/esrupgrades
+          docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
+      - name: Dump upgraded database
+        run: |
+          docker exec -i ghactions_mysql_1 mysqldump --skip-opt --set-gtid-purged=OFF $MYSQL_CONN_ARGS > $DUMP_SCRIPT_NAME
+      - name: Cleanup dump and compress
+        run: |
+          # We skip the very last line, which simply contains the date of the dump
+          head -n -1 ${DUMP_SCRIPT_NAME} | gzip > ${DUMP_SCRIPT_NAME}.gz
+      - name: Upload dump
+        uses: actions/upload-artifact@v3
+        with:
+          name: upgraded-dump-script
+          path: ${{ env.DUMP_SCRIPT_NAME }}.gz
+  esr-upgrade-diff:
+    runs-on: ubuntu-latest-8-cores
+    needs:
+      - esr-upgrade-server
+      - esr-upgrade-script
+    steps:
+      - name: Retrieve dumps
+        uses: actions/download-artifact@v3
+      - name: Diff dumps
+        run: |
+          gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz
+          gzip -d upgraded-dump-script/${DUMP_SCRIPT_NAME}.gz
+          diff upgraded-dump-server/$DUMP_SERVER_NAME upgraded-dump-script/$DUMP_SCRIPT_NAME > $DIFF_NAME
+      - name: Upload diff
+        if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
+        uses: actions/upload-artifact@v3
+        with:
+          name: dumps-diff
+          path: ${{ env.DIFF_NAME }}

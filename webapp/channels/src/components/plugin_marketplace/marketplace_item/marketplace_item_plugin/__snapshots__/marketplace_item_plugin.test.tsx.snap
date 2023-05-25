@@ -11,7 +11,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -78,7 +78,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
         to="/admin_console/plugins/plugin_id"
       >
         <button
-          className="btn btn-outline"
+          className="plugin-configure"
           onClick={[Function]}
         >
           <Memo(MemoizedFormattedMessage)
@@ -137,7 +137,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -202,7 +202,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -265,7 +265,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -328,7 +328,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -390,7 +390,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -463,7 +463,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -540,7 +540,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -605,7 +605,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
     }
     button={
       <button
-        className="btn btn-primary"
+        className="plugin-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -686,7 +686,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
         to="/admin_console/plugins/plugin_id"
       >
         <button
-          className="btn btn-outline"
+          className="plugin-configure"
           onClick={[Function]}
         >
           <Memo(MemoizedFormattedMessage)
@@ -751,7 +751,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
         to="/admin_console/plugins/plugin_id"
       >
         <button
-          className="btn btn-outline"
+          className="plugin-configure"
           onClick={[Function]}
         >
           <Memo(MemoizedFormattedMessage)

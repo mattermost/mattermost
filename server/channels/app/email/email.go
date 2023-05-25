@@ -11,22 +11,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/templates"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
 
 	"github.com/microcosm-cc/bluemonday"
 )
-
-const serverInactivityHours = 100
 
 // Returns category if enabled is true (default false)
 // If "" is returned when enabled is false, the category headers aren't attached to the email
@@ -946,48 +942,6 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	}
 
 	return token, nil
-}
-
-func (es *Service) SendLicenseInactivityEmail(email, name, locale, siteURL string) error {
-	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.server_inactivity_subject")
-	data := es.NewEmailTemplateData(locale)
-	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.server_inactivity_title")
-	data.Props["SubTitle"] = T("api.templates.server_inactivity_subtitle", map[string]any{"Name": name})
-	data.Props["InfoBullet"] = T("api.templates.server_inactivity_info_bullet")
-	data.Props["InfoBullet1"] = T("api.templates.server_inactivity_info_bullet1")
-	data.Props["InfoBullet2"] = T("api.templates.server_inactivity_info_bullet2")
-	data.Props["Info"] = T("api.templates.server_inactivity_info")
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-	data.Props["Button"] = T("api.templates.server_inactivity_button")
-	data.Props["SupportEmail"] = "feedback@mattermost.com"
-	data.Props["ButtonURL"] = siteURL
-	data.Props["Channels"] = T("Channels")
-	data.Props["Playbooks"] = T("Playbooks")
-	data.Props["Boards"] = T("Boards")
-
-	inactivityDurationHoursEnv := os.Getenv("MM_INACTIVITY_DURATION")
-	inactivityDurationHours, parseError := strconv.ParseFloat(inactivityDurationHoursEnv, 64)
-	if parseError != nil {
-		// default to 100 hours
-		inactivityDurationHours = serverInactivityHours
-	}
-
-	data.Props["FooterDisclaimer"] = T("api.templates.server_inactivity_footer_disclaimer", map[string]any{"Hours": inactivityDurationHours})
-
-	body, err := es.templatesContainer.RenderToString("inactivity_body", data)
-	if err != nil {
-		return err
-	}
-
-	if err := es.sendMail(email, subject, body, "LicenseInactivityEmail"); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {

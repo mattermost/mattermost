@@ -16,9 +16,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no binding, 
   components={Array []}
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -45,6 +47,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no binding, 
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -70,9 +73,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no bindings 
   components={Array []}
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -99,6 +104,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no bindings 
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -124,9 +130,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no extended 
   components={Array []}
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -153,6 +161,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no extended 
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -178,9 +187,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no extended 
   components={Array []}
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -207,6 +218,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with no extended 
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -306,9 +318,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one binding,
   components={Array []}
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -335,6 +349,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one binding,
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -454,9 +469,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended
   }
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -483,6 +500,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -547,9 +565,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended
   }
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -576,6 +596,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -642,9 +663,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended
   }
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -671,6 +694,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with one extended
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -723,9 +747,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with two bindings
   components={Array []}
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -752,6 +778,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with two bindings
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -876,9 +903,11 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with two extended
   }
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -905,6 +934,7 @@ exports[`plugins/MobileChannelHeaderPlug should match snapshot with two extended
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }

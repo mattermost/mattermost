@@ -5,12 +5,12 @@ import React, {useCallback} from 'react'
 import {FormattedMessage} from 'react-intl'
 
 import {
+    Board,
+    BoardGroup,
     IPropertyOption,
     IPropertyTemplate,
-    Board,
-    BoardGroup
 } from 'src/blocks/board'
-import {createBoardView, BoardView} from 'src/blocks/boardView'
+import {BoardView, createBoardView} from 'src/blocks/boardView'
 import {Card} from 'src/blocks/card'
 import {Constants, Permission} from 'src/constants'
 import mutator from 'src/mutator'
@@ -121,6 +121,7 @@ const Table = (props: Props): JSX.Element => {
         if (activeView.fields.groupById !== undefined) {
             const cardsById: { [key: string]: Card } = cards.reduce((acc: { [key: string]: Card }, card: Card): { [key: string]: Card } => {
                 acc[card.id] = card
+
                 return acc
             }, {})
             const draggedCards: Card[] = draggedCardIds.map((o: string) => cardsById[o])

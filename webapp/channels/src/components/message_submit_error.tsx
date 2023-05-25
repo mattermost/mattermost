@@ -41,7 +41,7 @@ class MessageSubmitError extends React.PureComponent<MessageSubmitErrorProps> {
                 </a>
             </React.Fragment>
         );
-    }
+    };
 
     public render(): JSX.Element | null {
         const error = this.props.error;

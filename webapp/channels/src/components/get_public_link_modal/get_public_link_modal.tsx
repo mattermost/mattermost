@@ -39,7 +39,7 @@ export default class GetPublicLinkModal extends React.PureComponent<Props, State
         this.setState({
             show: false,
         });
-    }
+    };
 
     public render() {
         return (

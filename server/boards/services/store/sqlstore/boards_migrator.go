@@ -18,11 +18,11 @@ import (
 	embedded "github.com/mattermost/morph/sources/embedded"
 	"github.com/mgdelacroix/foundation"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/db"
-	mmSqlStore "github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/db"
+	mmSqlStore "github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 var tablePrefix = "focalboard_"
@@ -231,6 +231,9 @@ func (bm *BoardsMigrator) MigrateToStep(step int) error {
 func (bm *BoardsMigrator) Interceptors() map[int]foundation.Interceptor {
 	return map[int]foundation.Interceptor{
 		18: bm.store.RunDeletedMembershipBoardsMigration,
+		35: func() error {
+			return bm.store.RunDeDuplicateCategoryBoardsMigration(35)
+		},
 	}
 }
 

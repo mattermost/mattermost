@@ -7,13 +7,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/server"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/server"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 )
 
 const (
@@ -222,11 +222,6 @@ func populateServices(boardsProd *boardsProduct, services map[product.ServiceKey
 }
 
 func (bp *boardsProduct) Start() error {
-	if !bp.configService.Config().FeatureFlags.BoardsProduct {
-		bp.logger.Info("Boards product disabled via feature flag")
-		return nil
-	}
-
 	bp.logger.Info("Starting boards service")
 
 	adapter := newServiceAPIAdapter(bp)

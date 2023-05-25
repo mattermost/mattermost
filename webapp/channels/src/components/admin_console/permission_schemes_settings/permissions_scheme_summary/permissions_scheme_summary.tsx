@@ -96,17 +96,17 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
                 onCancel={this.handleDeleteCanceled}
             />
         );
-    }
+    };
 
     stopPropagation = (e: React.MouseEvent<HTMLElement, MouseEvent>): void => {
         e.stopPropagation();
-    }
+    };
 
     handleDeleteCanceled = (): void => {
         this.setState({
             showConfirmModal: false,
         });
-    }
+    };
 
     handleDeleteConfirmed = async (): Promise<void> => {
         this.setState({deleting: true, serverError: undefined});
@@ -116,7 +116,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
         } else {
             this.setState({deleting: false, showConfirmModal: false});
         }
-    }
+    };
 
     delete = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
         e.stopPropagation();
@@ -124,11 +124,11 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
             return;
         }
         this.setState({showConfirmModal: true, serverError: undefined});
-    }
+    };
 
     goToEdit = (): void => {
         this.props.history.push('/admin_console/user_management/permissions/team_override_scheme/' + this.props.scheme.id);
-    }
+    };
 
     render = () => {
         const {scheme, isDisabled} = this.props;

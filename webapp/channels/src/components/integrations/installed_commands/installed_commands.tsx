@@ -40,11 +40,11 @@ type Props = {
 export default class InstalledCommands extends React.PureComponent<Props> {
     public regenCommandToken = (command: Command): void => {
         this.props.actions.regenCommandToken(command.id);
-    }
+    };
 
     public deleteCommand = (command: Command): void => {
         this.props.actions.deleteCommand(command.id);
-    }
+    };
 
     private commandCompare(a: Command, b: Command) {
         let nameA = a.display_name;

@@ -180,7 +180,8 @@ export default class Plugin {
             BackstageWrapped,
             GlobalHeaderCenter,
             GlobalHeaderRight,
-            enableTeamSidebar
+            enableTeamSidebar,
+            null
         );
 
         // RHS Registration

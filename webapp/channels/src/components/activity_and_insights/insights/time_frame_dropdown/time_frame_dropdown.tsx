@@ -4,8 +4,7 @@
 import React, {memo, useCallback} from 'react';
 
 import ReactSelect, {ValueType} from 'react-select';
-
-import Icon from '@mattermost/compass-components/foundations/icon/Icon';
+import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -57,10 +56,7 @@ const TimeFrameDropdown = (props: Props) => {
     const CustomDropwdown = () => {
         return (
             <span className='icon'>
-                <Icon
-                    size={12}
-                    glyph={'chevron-down'}
-                />
+                <ChevronDownIcon size={12}/>
             </span>
         );
     };

@@ -258,33 +258,33 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         } else {
             this.props.trackEvent('plugins', eventName);
         }
-    }
+    };
 
     showUpdateConfirmationModal = (): void => {
         this.setState({showUpdateConfirmationModal: true});
-    }
+    };
 
     hideUpdateConfirmationModal = (): void => {
         this.setState({showUpdateConfirmationModal: false});
-    }
+    };
 
     onInstall = (): void => {
         this.trackEvent('ui_marketplace_download');
         this.props.actions.installPlugin(this.props.id);
-    }
+    };
 
     onConfigure = (): void => {
         this.trackEvent('ui_marketplace_configure', false);
 
         this.props.actions.closeMarketplaceModal();
-    }
+    };
 
     onUpdate = (): void => {
         this.trackEvent('ui_marketplace_download_update');
 
         this.hideUpdateConfirmationModal();
         this.props.actions.installPlugin(this.props.id);
-    }
+    };
 
     getItemButton(): JSX.Element {
         if (this.props.installedVersion !== '' && !this.props.installing && !this.props.error) {
@@ -294,7 +294,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
                 >
                     <button
                         onClick={this.onConfigure}
-                        className='btn btn-outline'
+                        className='plugin-configure'
                     >
                         <FormattedMessage
                             id='marketplace_modal.list.configure'
@@ -325,7 +325,7 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         return (
             <button
                 onClick={this.onInstall}
-                className='btn btn-primary'
+                className='plugin-install always-show-enabled'
                 disabled={this.props.installing}
             >
                 <LoadingWrapper

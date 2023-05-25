@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:generate mockgen -copyright_file=../../../../copyright.txt -destination=mocks/mockpluginapi.go -package mocks github.com/mattermost/mattermost-server/v6/plugin API
+//go:generate mockgen -copyright_file=../../../../copyright.txt -destination=mocks/mockpluginapi.go -package mocks github.com/mattermost/mattermost-server/server/public/plugin API
 package mmpermissions
 
 import (
 	"database/sql"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -119,32 +119,32 @@ export default class Bot extends React.PureComponent<Props, State> {
 
     enableBot = (): void => {
         this.props.actions.enableBot(this.props.bot.user_id);
-    }
+    };
 
     disableBot = (): void => {
         this.props.actions.disableBot(this.props.bot.user_id);
-    }
+    };
 
     enableUserAccessToken = (id: string): void => {
         this.props.actions.enableUserAccessToken(id);
-    }
+    };
 
     disableUserAccessToken = (id: string): void => {
         this.props.actions.disableUserAccessToken(id);
-    }
+    };
 
     confirmRevokeToken = (id: string): void => {
         this.setState({confirmingId: id});
-    }
+    };
 
     revokeTokenConfirmed = (): void => {
         this.props.actions.revokeUserAccessToken(this.state.confirmingId);
         this.closeConfirm();
-    }
+    };
 
     closeConfirm = (): void => {
         this.setState({confirmingId: ''});
-    }
+    };
 
     openCreateToken = (): void => {
         this.setState({
@@ -153,7 +153,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                 description: '',
             },
         });
-    }
+    };
 
     closeCreateToken = (): void => {
         this.setState({
@@ -162,14 +162,14 @@ export default class Bot extends React.PureComponent<Props, State> {
                 description: '',
             },
         });
-    }
+    };
 
     handleUpdateDescription = (e: ChangeEvent<HTMLInputElement>): void => {
         const target = e.target as HTMLInputElement;
         this.setState({
             token: Object.assign({}, this.state.token, {description: target.value}),
         });
-    }
+    };
 
     handleCreateToken = async (e: SyntheticEvent): Promise<void> => {
         e.preventDefault();
@@ -190,7 +190,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         } else if (error) {
             this.setState({error: error.message});
         }
-    }
+    };
 
     public render(): JSX.Element | null {
         const username = this.props.bot.username || '';

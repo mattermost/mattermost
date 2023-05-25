@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import '@testing-library/jest-dom'
 import {act, render, screen} from '@testing-library/react'
 
-import React, {ReactNode, ReactElement} from 'react'
+import React, {ReactElement, ReactNode} from 'react'
 import {mocked} from 'jest-mock'
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -12,7 +11,7 @@ import userEvent from '@testing-library/user-event'
 
 import {Utils} from 'src/utils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import mutator from 'src/mutator'
 
@@ -29,9 +28,9 @@ jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
 beforeAll(mockDOM)
 
 describe('components/contentBlock', () => {
-    const mockedMutator = mocked(mutator, true)
-    const mockedUtils = mocked(Utils, true)
-    const mockedOcto = mocked(octoClient, true)
+    const mockedMutator = mocked(mutator)
+    const mockedUtils = mocked(Utils)
+    const mockedOcto = mocked(octoClient)
 
     mockedUtils.createGuid.mockReturnValue('test-id')
     mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
@@ -208,7 +207,7 @@ describe('components/contentBlock', () => {
             container = result.container
         })
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
 
         expect(container).toMatchSnapshot()
     })
@@ -227,9 +226,9 @@ describe('components/contentBlock', () => {
             ))
         })
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonMoveUp = screen.getByRole('button', {name: 'Move up'})
-        userEvent.click(buttonMoveUp)
+        await userEvent.click(buttonMoveUp)
         expect(mockedUtils.arrayMove).toBeCalledTimes(1)
         expect(mockedMutator.changeCardContentOrder).toBeCalledTimes(1)
     })
@@ -248,9 +247,9 @@ describe('components/contentBlock', () => {
             ))
         })
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonMoveUp = screen.getByRole('button', {name: 'Move down'})
-        userEvent.click(buttonMoveUp)
+        await userEvent.click(buttonMoveUp)
         expect(mockedUtils.arrayMove).toBeCalledTimes(1)
         expect(mockedMutator.changeCardContentOrder).toBeCalledTimes(1)
     })
@@ -269,9 +268,9 @@ describe('components/contentBlock', () => {
             ))
         })
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonMoveUp = screen.getByRole('button', {name: 'Delete'})
-        userEvent.click(buttonMoveUp)
+        await userEvent.click(buttonMoveUp)
         expect(mockedMutator.performAsUndoGroup).toBeCalledTimes(1)
     })
 
@@ -290,9 +289,9 @@ describe('components/contentBlock', () => {
             ))
         })
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonMoveUp = screen.getByRole('button', {name: 'Delete'})
-        userEvent.click(buttonMoveUp)
+        await userEvent.click(buttonMoveUp)
         expect(mockedMutator.performAsUndoGroup).toBeCalledTimes(1)
     })
 })

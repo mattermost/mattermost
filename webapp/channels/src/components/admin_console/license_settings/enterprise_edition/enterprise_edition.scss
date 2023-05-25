@@ -104,7 +104,7 @@
 
         .license-details-top {
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
             font-size: 14px;
             font-weight: 700;
             line-height: 24px;
@@ -114,10 +114,11 @@
                 color: #3f4350;
             }
 
-            span.expiration-days {
-                margin-left: auto;
-                color: var(--denim-status-online);
+            .add-seats-button {
+                border-radius: 4px;
+                font-family: 'Open Sans', sans-serif;
                 font-size: 12px;
+                font-weight: 600;
             }
         }
 
@@ -155,6 +156,20 @@
                     &--over-seats-purchased {
                         color: var(--error-text);
                         font-weight: 600;
+                    }
+                }
+
+                span.expiration-days {
+                    margin-left: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+
+                    &-warning {
+                        color: var(--sys-away-indicator);
+                    }
+
+                    &-danger {
+                        color: var(--dnd-indicator);
                     }
                 }
             }

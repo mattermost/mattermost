@@ -10,7 +10,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
     >
       <img
         class="comment-avatar"
-        src="data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\" style=\\"fill: rgb(192, 192, 192);\\"><rect width=\\"100\\" height=\\"100\\" /></svg>"
+        src="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="fill: rgb(192, 192, 192);"><rect width="100" height="100" /></svg>"
       />
       <div
         class="MarkdownEditor octo-editor newcomment "
@@ -34,7 +34,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
       >
         <img
           class="comment-avatar"
-          src="data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\" style=\\"fill: rgb(192, 192, 192);\\"><rect width=\\"100\\" height=\\"100\\" /></svg>"
+          src="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="fill: rgb(192, 192, 192);"><rect width="100" height="100" /></svg>"
         />
         <div
           class="comment-username"
@@ -80,7 +80,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
       >
         <img
           class="comment-avatar"
-          src="data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\" style=\\"fill: rgb(192, 192, 192);\\"><rect width=\\"100\\" height=\\"100\\" /></svg>"
+          src="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="fill: rgb(192, 192, 192);"><rect width="100" height="100" /></svg>"
         />
         <div
           class="comment-username"
@@ -138,7 +138,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
       >
         <img
           class="comment-avatar"
-          src="data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\" style=\\"fill: rgb(192, 192, 192);\\"><rect width=\\"100\\" height=\\"100\\" /></svg>"
+          src="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="fill: rgb(192, 192, 192);"><rect width="100" height="100" /></svg>"
         />
         <div
           class="comment-username"
@@ -170,7 +170,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
       >
         <img
           class="comment-avatar"
-          src="data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\" style=\\"fill: rgb(192, 192, 192);\\"><rect width=\\"100\\" height=\\"100\\" /></svg>"
+          src="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="fill: rgb(192, 192, 192);"><rect width="100" height="100" /></svg>"
         />
         <div
           class="comment-username"

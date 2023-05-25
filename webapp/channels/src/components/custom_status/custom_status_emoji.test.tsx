@@ -12,8 +12,8 @@ import mockStore from 'tests/test_store';
 
 import CustomStatusEmoji from './custom_status_emoji';
 
+jest.mock('mattermost-redux/selectors/entities/timezone');
 jest.mock('selectors/views/custom_status');
-jest.mock('selectors/general');
 
 describe('components/custom_status/custom_status_emoji', () => {
     const store = mockStore({});

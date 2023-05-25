@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import LocalizedIcon from 'components/localized_icon';
-import {TTNameMapToATStatusKey, TutorialTourName, WorkTemplateTourSteps} from 'components/tours/constant';
+import {TTNameMapToATStatusKey, TutorialTourName} from 'components/tours/constant';
 
 import {closeModal as closeModalAction} from 'actions/views/modals';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -195,18 +195,15 @@ const WorkTemplateModal = () => {
      * Creates the necessary data in the global store as long storing in DB preferences the tourtip information
      * @param template current used worktempplate
      */
-    const tourTipActions = async (template: WorkTemplate) => {
-        const linkedProductsCount = getContentCount(template, playbookTemplates);
+    const tourTipActions = async (template: WorkTemplate, firstChannelId: string) => {
+        const linkedProductsCount = getContentCount(template, playbookTemplates, firstChannelId);
 
         // stepValue and pluginId are used for showing the tourtip for the used template
-        let stepValue = 0;
         let pluginId;
         if (linkedProductsCount.playbooks) {
             pluginId = rhsPluggableIds.get(suitePluginIds.playbooks);
-            stepValue = WorkTemplateTourSteps.PLAYBOOKS_TOUR_TIP;
         } else {
             pluginId = rhsPluggableIds.get(suitePluginIds.boards);
-            stepValue = WorkTemplateTourSteps.BOARDS_TOUR_TIP;
         }
 
         if (!pluginId) {
@@ -219,17 +216,8 @@ const WorkTemplateModal = () => {
 
         // store the required preferences for the tourtip
         const tourCategory = TutorialTourName.WORK_TEMPLATE_TUTORIAL;
+
         const preferences = [
-
-            // here reset the step value to be able to show the tour again (if we dedide to show the tour only once, this must be removed)
-            {
-                user_id: currentUserId,
-                category: tourCategory,
-                name: currentUserId,
-                value: stepValue.toString(),
-            },
-
-            // this one is for defining the auto tour start for the tour tip
             {
                 user_id: currentUserId,
                 category: tourCategory,
@@ -237,7 +225,6 @@ const WorkTemplateModal = () => {
                 value: String(AutoTourStatus.ENABLED),
             },
         ];
-
         await dispatch(savePreferences(currentUserId, preferences));
 
         dispatch(showRHSPlugin(pluginId));
@@ -245,7 +232,12 @@ const WorkTemplateModal = () => {
 
     const execute = async (template: WorkTemplate, name = '', visibility: Visibility) => {
         const pbTemplates = [];
-        for (const item of template.content) {
+        for (const ctt in template.content) {
+            if (!Object.hasOwn(template.content, ctt)) {
+                continue;
+            }
+
+            const item = template.content[ctt];
             if (item.playbook) {
                 const pbTemplate = playbookTemplates.find((pb) => pb.title === item.playbook.template);
                 if (pbTemplate) {
@@ -254,11 +246,20 @@ const WorkTemplateModal = () => {
             }
         }
 
+        // remove non recommended integrations
+        const filteredTemplate = {...template};
+        filteredTemplate.content = template.content.filter((item) => {
+            if (!item.integration) {
+                return true;
+            }
+            return item.integration.recommended;
+        });
+
         const req: ExecuteWorkTemplateRequest = {
             team_id: teamId,
             name,
             visibility,
-            work_template: template,
+            work_template: filteredTemplate,
             playbook_templates: pbTemplates,
         };
 
@@ -285,7 +286,7 @@ const WorkTemplateModal = () => {
             dispatch(loadIfNecessaryAndSwitchToChannelById(firstChannelId));
         }
 
-        await tourTipActions(template);
+        await tourTipActions(template, firstChannelId);
 
         setIsCreating(false);
         closeModal();
@@ -311,7 +312,7 @@ const WorkTemplateModal = () => {
     let confirmButtonAction;
     switch (modalState) {
     case ModalState.Menu:
-        title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Start from a template'});
+        title = formatMessage({id: 'work_templates.menu.modal_title', defaultMessage: 'Create from a template'});
         break;
     case ModalState.Preview:
         title = formatMessage({id: 'work_templates.preview.modal_title', defaultMessage: 'Preview {useCase}'}, {useCase: selectedTemplate?.useCase});

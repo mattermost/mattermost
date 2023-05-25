@@ -46,7 +46,7 @@ export default class UserList extends React.PureComponent <Props> {
         actions: [],
         actionProps: {},
         rowComponentType: UserListRow,
-    }
+    };
     containerRef: React.RefObject<any>;
 
     constructor(props: Props) {
@@ -58,7 +58,7 @@ export default class UserList extends React.PureComponent <Props> {
         if (this.containerRef.current) {
             this.containerRef.current.scrollTop = 0;
         }
-    }
+    };
 
     render() {
         const users = this.props.users;

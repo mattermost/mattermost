@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import '@testing-library/jest-dom'
 import {render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -28,7 +27,7 @@ describe('/components/confirmAddUserForNotifications', () => {
         expect(result.container).toMatchSnapshot()
     })
 
-    it('confirm button click, run onConfirm Function once', () => {
+    it('confirm button click, run onConfirm Function once', async () => {
         const onConfirm = jest.fn()
 
         const result = render(
@@ -42,11 +41,11 @@ describe('/components/confirmAddUserForNotifications', () => {
                 />,
             ),
         )
-        userEvent.click(result.getByTitle('Add to board'))
+        await userEvent.click(result.getByTitle('Add to board'))
         expect(onConfirm).toBeCalledTimes(1)
     })
 
-    it('cancel button click runs onClose function', () => {
+    it('cancel button click runs onClose function', async () => {
         const onClose = jest.fn()
 
         const result = render(
@@ -60,7 +59,7 @@ describe('/components/confirmAddUserForNotifications', () => {
                 />,
             ),
         )
-        userEvent.click(result.getByTitle('Cancel'))
+        await userEvent.click(result.getByTitle('Cancel'))
         expect(onClose).toBeCalledTimes(1)
     })
 })

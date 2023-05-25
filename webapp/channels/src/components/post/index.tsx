@@ -4,7 +4,6 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
-import {showActionsDropdownPulsatingDot} from 'selectors/actions_menu';
 import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
@@ -13,9 +12,8 @@ import {
     get,
     getBool,
     isCollapsedThreadsEnabled,
-    onboardingTourTipsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeam, getCurrentTeamId, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {Emoji} from '@mattermost/types/emojis';
@@ -32,7 +30,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {GlobalState} from 'types/store';
 
 import {isArchivedChannel} from 'utils/channel_utils';
-import {areConsecutivePostsBySameUser, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
+import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
 
 import {ExtendedPost, removePost} from 'mattermost-redux/actions/posts';
@@ -50,7 +48,6 @@ interface OwnProps {
     post?: Post | UserActivityPost;
     previousPostId?: string;
     postId?: string;
-    teamId?: string;
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
 }
@@ -122,15 +119,13 @@ function makeMapStateToProps() {
         const config = getConfig(state);
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
-        const teamId = ownProps.teamId || getCurrentTeamId(state);
         const channel = state.entities.channels.channels[post.channel_id];
         const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
 
         const user = getUser(state, post.user_id);
         const isBot = Boolean(user && user.is_bot);
         const highlightedPostId = getHighlightedPostId(state);
-        const showActionsMenuPulsatingDot = showActionsDropdownPulsatingDot(state);
-        const tourTipsEnabled = onboardingTourTipsEnabled(state);
+
         const selectedCard = getSelectedPostCard(state);
 
         let emojis: Emoji[] = [];
@@ -151,6 +146,7 @@ function makeMapStateToProps() {
         }
 
         const currentTeam = getCurrentTeam(state);
+        const team = getTeam(state, channel.team_id);
         let teamName = currentTeam.name;
         let teamDisplayName = '';
 
@@ -162,7 +158,6 @@ function makeMapStateToProps() {
             !isDMorGM && // Not show for DM or GMs since they don't belong to a team
             memberships && Object.values(memberships).length > 1 // Not show if the user only belongs to one team
         ) {
-            const team = getTeam(state, channel.team_id);
             teamDisplayName = team?.display_name;
             teamName = team?.name || currentTeam.name;
         }
@@ -189,7 +184,6 @@ function makeMapStateToProps() {
             enablePostUsernameOverride,
             isEmbedVisible: isEmbedVisible(state, post.id),
             isReadOnly: false,
-            teamId,
             currentUserId: getCurrentUserId(state),
             isFirstReply: previousPost ? isFirstReply(post, previousPost) : false,
             hasReplies: getReplyCount(state, post) > 0,
@@ -203,8 +197,8 @@ function makeMapStateToProps() {
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT) === 'true',
             shouldShowActionsMenu: shouldShowActionsMenu(state, post),
-            showActionsMenuPulsatingDot,
-            tourTipsEnabled,
+            currentTeam,
+            team,
             shortcutReactToLastPostEmittedFrom,
             isBot,
             collapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
@@ -234,6 +228,7 @@ function makeMapStateToProps() {
             isPostPriorityEnabled: isPostPriorityEnabled(state),
             isCardOpen: selectedCard && selectedCard.id === post.id,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
+            canDelete: canDeletePost(state, post, channel),
         };
     };
 }

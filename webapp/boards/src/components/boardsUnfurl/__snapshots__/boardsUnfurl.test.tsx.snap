@@ -96,3 +96,9 @@ exports[`components/boardsUnfurl/BoardsUnfurl renders when limited 1`] = `
   </a>
 </div>
 `;
+
+exports[`components/boardsUnfurl/BoardsUnfurl test invalid card, invalid block 1`] = `<div />`;
+
+exports[`components/boardsUnfurl/BoardsUnfurl test invalid card, valid block 1`] = `<div />`;
+
+exports[`components/boardsUnfurl/BoardsUnfurl test no card 1`] = `<div />`;

@@ -8,11 +8,11 @@ import {createMemoryHistory} from 'history'
 import {match as routerMatch} from 'react-router-dom'
 
 import {
-    Utils,
     IDType,
     ShowFullName,
     ShowNicknameFullName,
-    ShowUsername
+    ShowUsername,
+    Utils,
 } from './utils'
 import {IUser} from './user'
 

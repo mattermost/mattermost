@@ -69,7 +69,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
 
     isSearching = (term: string, filters: ChannelSearchOpts) => {
         return term.length > 0 || Object.keys(filters).length > 0;
-    }
+    };
 
     getPaginationProps = () => {
         const {page, term, filters} = this.state;
@@ -78,7 +78,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         let endCount = (page + 1) * PAGE_SIZE;
         endCount = endCount > total ? total : endCount;
         return {startCount, endCount, total};
-    }
+    };
 
     loadPage = async (page = 0, term = '', filters = {}) => {
         this.setState({loading: true, term, filters});
@@ -93,7 +93,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
 
         await this.props.actions.getData(page, PAGE_SIZE, '', false, true);
         this.setState({page, loading: false});
-    }
+    };
 
     searchChannels = async (page = 0, term = '', filters = {}) => {
         let channels = [];
@@ -106,21 +106,21 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             searchErrored = false;
         }
         this.setState({page, loading: false, channels, total, searchErrored});
-    }
+    };
 
     searchChannelsDebounced = debounce((page, term, filters = {}) => this.searchChannels(page, term, filters), 300, false, () => {});
 
     nextPage = () => {
         this.loadPage(this.state.page + 1, this.state.term, this.state.filters);
-    }
+    };
 
     previousPage = () => {
         this.setState({page: this.state.page - 1});
-    }
+    };
 
     onSearch = async (term = '') => {
         this.loadPage(0, term, this.state.filters);
-    }
+    };
 
     getColumns = (): Column[] => {
         const name: JSX.Element = (
@@ -167,7 +167,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 fixed: true,
             },
         ];
-    }
+    };
 
     getRows = (): Row[] => {
         const {data} = this.props;
@@ -245,7 +245,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 onClick: () => getHistory().push(`/admin_console/user_management/channels/${channel.id}`),
             };
         });
-    }
+    };
 
     onFilter = (filterOptions: FilterOptions) => {
         const filters: ChannelSearchOpts = {};
@@ -285,7 +285,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             }
         }
         this.loadPage(0, this.state.term, filters);
-    }
+    };
 
     render = (): JSX.Element => {
         const {term, searchErrored} = this.state;
@@ -414,5 +414,5 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 />
             </div>
         );
-    }
+    };
 }

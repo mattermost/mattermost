@@ -62,6 +62,12 @@ export type ViewsState = {
         toastStatus: boolean;
     };
 
+    drafts: {
+        remotes: {
+            [storageKey: string]: boolean;
+        };
+    };
+
     rhs: RhsViewState;
 
     rhsSuppressed: boolean;
@@ -177,6 +183,10 @@ export type ViewsState = {
     };
 
     addChannelDropdown: {
+        isOpen: boolean;
+    };
+
+    addChannelCtaDropdown: {
         isOpen: boolean;
     };
 

@@ -62,7 +62,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
 
     deleteIncomingWebhook = (incomingWebhook: IncomingWebhook) => {
         this.props.actions.removeIncomingHook(incomingWebhook.id);
-    }
+    };
 
     incomingWebhookCompare = (a: IncomingWebhook, b: IncomingWebhook) => {
         let displayNameA = a.display_name;
@@ -78,7 +78,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
         const displayNameB = b.display_name;
 
         return displayNameA.localeCompare(displayNameB);
-    }
+    };
 
     incomingWebhooks = (filter: string) => this.props.incomingWebhooks.
         sort(this.incomingWebhookCompare).

@@ -181,11 +181,11 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
         if (sectionIndex > -1) {
             sectionsList.splice(sectionIndex, 1);
         }
-    }
+    };
 
     updatePermissions = (permissions: PermissionToUpdate[]) => {
         this.props.updatePermissions(permissions);
-    }
+    };
 
     setSectionVisible = (name: string, visible: boolean) => {
         const {visibleSections} = this.state;
@@ -195,7 +195,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                 [name]: visible,
             },
         });
-    }
+    };
 
     getRows = (permissionsMap: Record<string, boolean>, permissionsToUpdate: PermissionsToUpdate, visibleSections: Record<string, boolean>) => {
         const {isLicensedForCloud} = this.props;
@@ -257,7 +257,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                 />
             );
         });
-    }
+    };
 
     render() {
         const {role, permissionsToUpdate} = this.props;

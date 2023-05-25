@@ -61,7 +61,7 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
 
         this.setState({joinLeaveState: value});
         a11yFocus(e.currentTarget);
-    }
+    };
 
     public handleUpdateSection = (section?: string): void => {
         if (!section) {
@@ -69,7 +69,7 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
         }
 
         this.props.onUpdateSection(section);
-    }
+    };
 
     public handleSubmit = (): void => {
         const {actions, currentUserId, onUpdateSection} = this.props;
@@ -77,7 +77,7 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
         actions.savePreferences(currentUserId, [joinLeavePreference]);
 
         onUpdateSection();
-    }
+    };
 
     public render(): React.ReactNode {
         const {joinLeaveState} = this.state;

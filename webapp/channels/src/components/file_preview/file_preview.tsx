@@ -36,7 +36,7 @@ export default class FilePreview extends React.PureComponent<Props> {
 
     handleRemove = (id: string) => {
         this.props.onRemove?.(id);
-    }
+    };
 
     render() {
         const previews: ReactNode[] = [];

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef} from 'react'
+import React, {useRef, useState} from 'react'
 import Select from 'react-select'
-import {useIntl, FormattedMessage} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import {MemberRole} from 'src/blocks/board'
 
@@ -76,7 +76,7 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
             <p>
                 <FormattedMessage
                     id='person.add-user-to-board-warning'
-                    defaultMessage='{username} is not a member of the board, and will not receive any notifications about it.'
+                    defaultMessage="{username} isn't a member of the board, and won't receive any notifications about it."
                     values={{username: props.user.username}}
                 />
             </p>

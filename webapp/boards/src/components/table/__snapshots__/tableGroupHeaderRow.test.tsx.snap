@@ -325,7 +325,7 @@ exports[`should match snapshot, no groups 1`] = `
       </button>
       <span
         class="Label empty "
-        title="Items with an empty Property 1 property will go here. This column cannot be removed."
+        title="Items with an empty Property 1 property will go here. This column can't be removed."
       >
         No Property 1
       </span>

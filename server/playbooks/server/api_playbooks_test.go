@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"context"
@@ -13,17 +13,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPlaybooks(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 
@@ -267,8 +266,7 @@ func TestPlaybooks(t *testing.T) {
 }
 
 func TestCreateInvalidPlaybook(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 
@@ -369,8 +367,7 @@ func TestCreateInvalidPlaybook(t *testing.T) {
 }
 
 func TestPlaybooksRetrieval(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("get playbook", func(t *testing.T) {
@@ -387,8 +384,7 @@ func TestPlaybooksRetrieval(t *testing.T) {
 }
 
 func TestPlaybookUpdate(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("update playbook properties", func(t *testing.T) {
@@ -521,8 +517,7 @@ func TestPlaybookUpdate(t *testing.T) {
 }
 
 func TestPlaybookUpdateCrossTeam(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("update playbook properties not in team public playbook", func(t *testing.T) {
@@ -552,8 +547,7 @@ func TestPlaybookUpdateCrossTeam(t *testing.T) {
 }
 
 func TestPlaybooksSort(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 	e.SetE20Licence()
@@ -795,8 +789,7 @@ func TestPlaybooksSort(t *testing.T) {
 }
 
 func TestPlaybooksPaging(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 	e.SetE20Licence()
@@ -935,8 +928,7 @@ func getPlaybookIDsList(playbooks []client.Playbook) []string {
 }
 
 func TestPlaybooksPermissions(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("test no permissions to create", func(t *testing.T) {
@@ -1148,8 +1140,7 @@ func TestPlaybooksPermissions(t *testing.T) {
 }
 
 func TestPlaybooksConversions(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("public to private conversion", func(t *testing.T) {
@@ -1208,8 +1199,7 @@ func TestPlaybooksConversions(t *testing.T) {
 }
 
 func TestPlaybooksImportExport(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 	e.CreateBasicPublicPlaybook()
@@ -1237,8 +1227,7 @@ func TestPlaybooksImportExport(t *testing.T) {
 }
 
 func TestPlaybooksDuplicate(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 	e.SetE20Licence()
@@ -1259,8 +1248,7 @@ func TestPlaybooksDuplicate(t *testing.T) {
 }
 
 func TestAddPostToTimeline(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	dialogRequest := model.SubmitDialogRequest{
@@ -1307,8 +1295,7 @@ func TestAddPostToTimeline(t *testing.T) {
 }
 
 func TestPlaybookStats(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 	e.CreateBasicServer()
 	e.SetE20Licence()
@@ -1343,8 +1330,7 @@ func TestPlaybookStats(t *testing.T) {
 }
 
 func TestPlaybookGetAutoFollows(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	p1ID, err := e.PlaybooksAdminClient.Playbooks.Create(context.Background(), client.PlaybookCreateOptions{
@@ -1450,8 +1436,7 @@ func TestPlaybookGetAutoFollows(t *testing.T) {
 }
 
 func TestPlaybookChecklistCleanup(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("update playbook", func(t *testing.T) {

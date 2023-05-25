@@ -1,46 +1,46 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`block tests correctly generate patches from two blocks should add fields on the new fields added and remove it in the undo 1`] = `
-Array [
-  Object {
-    "deletedFields": Array [],
-    "updatedFields": Object {
+[
+  {
+    "deletedFields": [],
+    "updatedFields": {
       "newField": "new field",
     },
   },
-  Object {
-    "deletedFields": Array [
+  {
+    "deletedFields": [
       "newField",
     ],
-    "updatedFields": Object {},
+    "updatedFields": {},
   },
 ]
 `;
 
 exports[`block tests correctly generate patches from two blocks should generate two empty patches for the same block 1`] = `
-Array [
-  Object {
-    "deletedFields": Array [],
-    "updatedFields": Object {},
+[
+  {
+    "deletedFields": [],
+    "updatedFields": {},
   },
-  Object {
-    "deletedFields": Array [],
-    "updatedFields": Object {},
+  {
+    "deletedFields": [],
+    "updatedFields": {},
   },
 ]
 `;
 
 exports[`block tests correctly generate patches from two blocks should remove field on the new block added and add it again in the undo 1`] = `
-Array [
-  Object {
-    "deletedFields": Array [
+[
+  {
+    "deletedFields": [
       "test",
     ],
-    "updatedFields": Object {},
+    "updatedFields": {},
   },
-  Object {
-    "deletedFields": Array [],
-    "updatedFields": Object {
+  {
+    "deletedFields": [],
+    "updatedFields": {
       "test": "test",
     },
   },
@@ -48,16 +48,16 @@ Array [
 `;
 
 exports[`block tests correctly generate patches from two blocks should update propertie on the main object and revert it back on the undo 1`] = `
-Array [
-  Object {
-    "deletedFields": Array [],
+[
+  {
+    "deletedFields": [],
     "parentId": "new-parent-id",
-    "updatedFields": Object {},
+    "updatedFields": {},
   },
-  Object {
-    "deletedFields": Array [],
+  {
+    "deletedFields": [],
     "parentId": "old-parent-id",
-    "updatedFields": Object {},
+    "updatedFields": {},
   },
 ]
 `;

@@ -8,11 +8,13 @@ import {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow} from '@matt
 import {ClientLicense} from '@mattermost/types/config';
 
 import * as AdminActions from 'actions/admin_actions.jsx';
+
 import Constants from 'utils/constants';
 
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import {ActivatedUserCard} from 'components/analytics/activated_users_card';
 import TrueUpReview from 'components/analytics/true_up_review';
+import ExternalLink from 'components/external_link';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {GlobalState} from 'types/store';
 
@@ -27,7 +29,6 @@ import {
     formatPostDoughtnutData,
     synchronizeChartLabels,
 } from '../format';
-import ExternalLink from 'components/external_link';
 
 const StatTypes = Constants.StatTypes;
 
@@ -348,7 +349,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                 title={
                     <FormattedMessage
                         id='analytics.system.seatsPurchased'
-                        defaultMessage='Total paid users'
+                        defaultMessage='Licensed Seats'
                     />
                 }
                 icon='fa-users'
@@ -469,10 +470,12 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <FormattedAdminHeader
-                    id='analytics.system.title'
-                    defaultMessage='System Statistics'
-                />
+                <AdminHeader>
+                    <FormattedMessage
+                        id='analytics.system.title'
+                        defaultMessage='System Statistics'
+                    />
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         {banner}

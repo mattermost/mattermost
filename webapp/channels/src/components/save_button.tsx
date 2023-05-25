@@ -34,7 +34,7 @@ export default class SaveButton extends React.PureComponent<Props> {
                 defaultMessage='Saving'
             />
         ),
-    }
+    };
 
     public render() {
         const {

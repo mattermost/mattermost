@@ -13,17 +13,20 @@ import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import CloudFetchError from 'components/cloud_fetch_error';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {CloudLinks} from 'utils/constants';
+import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import ExternalLink from 'components/external_link';
 
 import BillingHistoryTable from './billing_history_table';
 
 import './billing_history.scss';
 
-const noBillingHistorySection = (
+interface NoBillingHistorySectionProps {
+    selfHosted: boolean;
+}
+export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => (
     <div className='BillingHistory__noHistory'>
         <EmptyBillingHistorySvg
             width={300}
@@ -36,8 +39,9 @@ const noBillingHistorySection = (
             />
         </div>
         <ExternalLink
+            data-testid='billingHistoryLink'
             location='billing_history'
-            href={CloudLinks.BILLING_DOCS}
+            href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
             className='BillingHistory__noHistory-link'
             onClick={() => trackEvent('cloud_admin', 'click_billing_history', {screen: 'billing'})}
         >
@@ -63,12 +67,15 @@ const BillingHistory = () => {
     }, [isCloud]);
     const billingHistoryTable = invoices && <BillingHistoryTable invoices={invoices}/>;
     const areInvoicesEmpty = Object.keys(invoices || {}).length === 0;
+
     return (
         <div className='wrapper--fixed BillingHistory'>
-            <FormattedAdminHeader
-                id='admin.billing.history.title'
-                defaultMessage='Billing History'
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id='admin.billing.history.title'
+                    defaultMessage='Billing History'
+                />
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     {invoicesError && <CloudFetchError/>}
@@ -81,7 +88,10 @@ const BillingHistory = () => {
                                         defaultMessage='Transactions'
                                     />
                                 </div>
-                                <div className='BillingHistory__cardHeaderText-bottom'>
+                                <div
+                                    data-testid='no-invoices'
+                                    className='BillingHistory__cardHeaderText-bottom'
+                                >
                                     <FormattedMessage
                                         id='admin.billing.history.allPaymentsShowHere'
                                         defaultMessage='All of your invoices will be shown here'
@@ -92,9 +102,7 @@ const BillingHistory = () => {
 
                         <div className='BillingHistory__cardBody'>
                             {invoices != null && (
-                                <>
-                                    {areInvoicesEmpty ? noBillingHistorySection : billingHistoryTable}
-                                </>
+                                areInvoicesEmpty ? <NoBillingHistorySection selfHosted={!isCloud}/> : billingHistoryTable
                             )}
                             {invoices == null && (
                                 <div className='BillingHistory__spinner'>

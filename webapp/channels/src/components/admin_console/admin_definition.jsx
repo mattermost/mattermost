@@ -224,6 +224,7 @@ export const it = {
 
 export const validators = {
     isRequired: (text, textDefault) => (value) => new ValidationResult(Boolean(value), text, textDefault),
+    minValue: (min, text, textDefault) => (value) => new ValidationResult((value >= min), text, textDefault),
 };
 
 const usesLegacyOauth = (config, state, license, enterpriseReady, consoleAccess, cloud) => {
@@ -2497,11 +2498,7 @@ const AdminDefinition = {
                             it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                             it.stateIsFalse('EmailSettings.SendEmailNotifications'),
                         ),
-
-                        // MM-50952
-                        // If the setting is hidden, then it is not being set in state so there is
-                        // nothing to validate, and validation would fail anyways and prevent saving
-                        validate: it.configIsFalse('ExperimentalSettings', 'RestrictSystemAdmin') && validators.isRequired(t('admin.environment.notifications.feedbackEmail.required'), '"Notification From Address" is required'),
+                        validate: validators.isRequired(t('admin.environment.notifications.feedbackEmail.required'), '"Notification From Address" is required'),
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_TEXT,
@@ -2826,6 +2823,132 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ServiceSettings.AllowPersistentNotifications',
+                        label: t('admin.posts.persistentNotifications.title'),
+                        label_default: 'Persistent Notifications',
+                        help_text: t('admin.posts.persistentNotifications.desc'),
+                        help_text_default: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.PersistentNotificationMaxRecipients',
+                        label: t('admin.posts.persistentNotificationsMaxRecipients.title'),
+                        label_default: 'Maximum number of recipients for persistent notifications',
+                        help_text: t('admin.posts.persistentNotificationsMaxRecipients.desc'),
+                        help_text_default: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
+                        label: t('admin.posts.persistentNotificationsInterval.title'),
+                        label_default: 'Frequency of persistent notifications',
+                        help_text: t('admin.posts.persistentNotificationsInterval.desc'),
+                        help_text_default: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                        validate: validators.minValue(2, t('admin.posts.persistentNotificationsInterval.minValue'), 'Frequency cannot not be set to less than 2 minutes'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.PersistentNotificationMaxCount',
+                        label: t('admin.posts.persistentNotificationsMaxCount.title'),
+                        label_default: 'Total number of persistent notification per post',
+                        help_text: t('admin.posts.persistentNotificationsMaxCount.desc'),
+                        help_text_default: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
+                        label: t('admin.posts.persistentNotificationsGuests.title'),
+                        label_default: 'Allow guests to send persistent notifications',
+                        help_text: t('admin.posts.persistentNotificationsGuests.desc'),
+                        help_text_default: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.',
+                        help_text_values: {
+                            link: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://mattermost.com/pl/message-priority/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        isHidden: it.any(
+                            it.configIsFalse('GuestAccountsSettings', 'Enable'),
+                            it.configIsFalse('FeatureFlags', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'PostPriority'),
+                            it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                        ),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
                         key: 'ServiceSettings.EnableLinkPreviews',
                         label: t('admin.customization.enableLinkPreviewsTitle'),
                         label_default: 'Enable website link previews:',
@@ -2873,7 +2996,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableSVGsTitle'),
                         label_default: 'Enable SVGs:',
                         help_text: t('admin.customization.enableSVGsDesc'),
-                        help_text_default: 'Enable previews for SVG file attachments and allow them to appear in messages.',
+                        help_text_default: 'Enable previews for SVG file attachments and allow them to appear in messages.\n\nEnabling SVGs is not recommended in environments where not all users are trusted.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -2882,7 +3005,7 @@ const AdminDefinition = {
                         label: t('admin.customization.enableLatexTitle'),
                         label_default: 'Enable Latex Rendering:',
                         help_text: t('admin.customization.enableLatexDesc'),
-                        help_text_default: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only.',
+                        help_text_default: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only.\n\nEnabling Latex is not recommended in environments where not all users are trusted.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                     },
                     {
@@ -5750,7 +5873,6 @@ const AdminDefinition = {
         sectionTitle: t('admin.sidebar.products'),
         sectionTitleDefault: 'Products',
         isHidden: it.any(
-            it.configIsFalse('FeatureFlags', 'BoardsProduct'),
             it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
         ),
         boards: {
@@ -6874,22 +6996,20 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.PatchPluginsReactDOM',
-                        label: t('admin.experimental.patchPluginsReactDOM.title'),
-                        label_default: 'Patch React DOM used by plugins:',
-                        help_text: t('admin.experimental.patchPluginsReactDOM.desc'),
-                        help_text_default: 'When true, client-side plugins will be patched to use the version of React DOM provided by the web app. This should only be enabled if plugins break after upgrading to Mattermost 7.6. The server must be restarted for this setting to take effect. See the <link>Important Upgrade Notes</link> for more information.',
-                        help_text_values: {
-                            link: (msg) => (
-                                <ExternalLink
-                                    location='admin_console'
-                                    href='https://docs.mattermost.com/upgrade/important-upgrade-notes.html'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        },
-                        isHidden: it.licensedForFeature('Cloud'),
+                        key: 'ExperimentalSettings.DisableRefetchingOnBrowserFocus',
+                        label: t('admin.experimental.disableRefetchingOnBrowserFocus.title'),
+                        label_default: 'Disable data refetching on browser refocus:',
+                        help_text: t('admin.experimental.disableRefetchingOnBrowserFocus.desc'),
+                        help_text_default: 'When true, Mattermost will not refetch channels and channel members when the browser regains focus. This may result in improved performance for users with many channels and channel members.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_BOOL,
+                        key: 'ExperimentalSettings.DelayChannelAutocomplete',
+                        label: t('admin.experimental.delayChannelAutocomplete.title'),
+                        label_default: 'Delay Channel Autocomplete:',
+                        help_text: t('admin.experimental.delayChannelAutocomplete.desc'),
+                        help_text_default: 'When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.',
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                     },
                 ],

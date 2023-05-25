@@ -38,7 +38,7 @@ export interface TermsOfServiceProps {
         ) => {data: UpdateMyTermsOfServiceStatusResponse};
     };
     emojiMap: EmojiMap;
-    useCaseOnboarding: boolean;
+    onboardingFlowEnabled: boolean;
 }
 
 interface TermsOfServiceState {
@@ -111,7 +111,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                 const redirectTo = query.get('redirect_to');
                 if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                     getHistory().push(redirectTo);
-                } else if (this.props.useCaseOnboarding) {
+                } else if (this.props.onboardingFlowEnabled) {
                     // need info about whether admin or not,
                     // and whether admin has already completed
                     // first time onboarding. Instead of fetching and orchestrating that here,

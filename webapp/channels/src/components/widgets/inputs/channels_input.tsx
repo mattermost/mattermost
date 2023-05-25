@@ -57,7 +57,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         };
     }
 
-    getOptionValue = (channel: Channel) => channel.id
+    getOptionValue = (channel: Channel) => channel.id;
 
     handleInputChange = (inputValue: string, action: InputActionMeta) => {
         if (action.action === 'input-blur' && inputValue !== '') {
@@ -72,7 +72,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         if (action.action !== 'input-blur' && action.action !== 'menu-close') {
             this.props.onInputChange(inputValue);
         }
-    }
+    };
 
     optionsLoader = (_input: string, callback: (options: Channel[]) => void) => {
         const customCallback = (options: Channel[]) => {
@@ -83,7 +83,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         if (result && result.then) {
             result.then(customCallback);
         }
-    }
+    };
 
     loadingMessage = () => {
         const text = (
@@ -95,7 +95,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
 
         // faking types due to longstanding mismatches in react-select & @types/react-select
         return (<LoadingSpinner text={text}/> as unknown as string);
-    }
+    };
 
     NoOptionsMessage = (props: Record<string, any>) => {
         const inputValue = props.selectProps.inputValue;
@@ -128,14 +128,14 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
                 <span className='channel-name'>{channel.name}</span>
             </React.Fragment>
         );
-    }
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onChange = (value: Channel[], _meta: ActionMeta<Channel>) => {
         if (this.props.onChange) {
             this.props.onChange(value);
         }
-    }
+    };
 
     MultiValueRemove = ({children, innerProps}: {children: React.ReactNode | React.ReactNodeArray; innerProps: Record<string, any>}) => (
         <div {...innerProps}>
@@ -151,7 +151,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
 
     onFocus = () => {
         this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'custom'});
-    }
+    };
 
     render() {
         return (

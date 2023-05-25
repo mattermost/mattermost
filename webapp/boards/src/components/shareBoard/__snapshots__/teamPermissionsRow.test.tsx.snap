@@ -15,7 +15,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
         class="ml-3"
       >
         <strong>
-          Everyone at Test Team Team
+          Everyone at Test Team team
         </strong>
       </div>
     </div>
@@ -228,7 +228,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
         class="ml-3"
       >
         <strong>
-          Everyone at Test Team Team
+          Everyone at Test Team team
         </strong>
       </div>
     </div>

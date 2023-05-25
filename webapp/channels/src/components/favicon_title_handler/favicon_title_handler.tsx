@@ -132,7 +132,7 @@ export class FaviconTitleHandlerClass extends React.PureComponent<Props> {
         } else {
             document.title = formatMessage({id: 'sidebar.team_select', defaultMessage: '{siteName} - Join a team'}, {siteName: currentSiteName || 'Mattermost'});
         }
-    }
+    };
 
     updateFavicon = (badgeStatus: BadgeStatus) => {
         if (!(UserAgent.isFirefox() || UserAgent.isChrome())) {
@@ -177,7 +177,7 @@ export class FaviconTitleHandlerClass extends React.PureComponent<Props> {
             link96x96!.href = getFavicon(faviconDefault96x96);
         }
         }
-    }
+    };
 
     render() {
         return null;

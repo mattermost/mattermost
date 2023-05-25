@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 )
 
 const (
@@ -33,7 +33,6 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, ss) })
 	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
-	t.Run("GetLastSessionRowCreateAt", func(t *testing.T) { testSessionStoreGetLastSessionRowCreateAt(t, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, ss) })
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, ss) })
@@ -45,23 +44,6 @@ func testSessionStoreSave(t *testing.T, ss store.Store) {
 
 	_, err := ss.Session().Save(s1)
 	require.NoError(t, err)
-}
-
-func testSessionStoreGetLastSessionRowCreateAt(t *testing.T, ss store.Store) {
-	s1 := &model.Session{}
-	s1.UserId = model.NewId()
-	_, err := ss.Session().Save(s1)
-	require.NoError(t, err)
-
-	latestSessionUserid := model.NewId()
-	s2 := &model.Session{}
-	s2.UserId = latestSessionUserid
-	latestSession, err := ss.Session().Save(s2)
-	require.NoError(t, err)
-
-	createAt, err := ss.Session().GetLastSessionRowCreateAt()
-	require.NoError(t, err)
-	assert.Equal(t, latestSession.CreateAt, createAt)
 }
 
 func testSessionGet(t *testing.T, ss store.Store) {

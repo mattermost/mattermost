@@ -51,7 +51,8 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
 
     const [integrations, setIntegrations] = useState<Integration[]>();
 
-    const plugins: MarketplacePlugin[] = useSelector((state: GlobalState) => state.views.marketplace.plugins);
+    const marketplacePlugins: MarketplacePlugin[] = useSelector((state: GlobalState) => state.views.marketplace.plugins);
+    const loadedPlugins = useSelector((state: GlobalState) => state.plugins.plugins);
 
     const [illustrationDetails, setIllustrationDetails] = useState<IllustrationAnimations>(() => {
         const defaultIllustration = getTemplateDefaultIllustration(template);
@@ -116,7 +117,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
             if (c.playbook) {
                 playbooks.push(c.playbook);
             }
-            if (c.integration) {
+            if (c.integration && c.integration.recommended) {
                 availableIntegrations.push(c.integration);
             }
         });
@@ -130,13 +131,14 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
         const intg =
             availableIntegrations?.
                 flatMap((integration) => {
-                    return plugins.reduce((acc: Integration[], curr) => {
+                    return marketplacePlugins.reduce((acc: Integration[], curr) => {
                         if (curr.manifest.id === integration.id) {
+                            const installed = Boolean(loadedPlugins[integration.id]);
                             acc.push({
                                 ...integration,
                                 name: curr.manifest.name,
                                 icon: curr.icon_data,
-                                installed: curr.installed_version !== '',
+                                installed,
                             });
 
                             return acc;
@@ -149,7 +151,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
         if (intg?.length) {
             setIntegrations(intg);
         }
-    }, [plugins, availableIntegrations, pluginsEnabled]);
+    }, [marketplacePlugins, availableIntegrations, loadedPlugins, pluginsEnabled]);
 
     // building accordion items
     const accordionItemsData: AccordionItemType[] = [];
@@ -204,7 +206,7 @@ const Preview = ({template, className, pluginsEnabled}: PreviewProps) => {
             )],
         });
     }
-    if (integrations?.length && pluginsEnabled) {
+    if (pluginsEnabled && integrations?.length) {
         accordionItemsData.push({
             id: 'integrations',
             icon: <i className='icon-power-plug-outline'/>,
@@ -303,6 +305,7 @@ const StyledPreview = styled(Preview)`
         width: 387px;
         height: 416px;
         padding-right: 32px;
+        margin-top: 17px;
     }
 
     strong {

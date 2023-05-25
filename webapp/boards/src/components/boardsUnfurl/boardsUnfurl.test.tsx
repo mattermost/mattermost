@@ -16,12 +16,14 @@ import {createBoard} from 'src/blocks/board'
 import octoClient from 'src/octoClient'
 import {wrapIntl} from 'src/testUtils'
 
+import {createBoardView} from 'src/blocks/boardView'
+
 import BoardsUnfurl from './boardsUnfurl'
 
 jest.mock('src/octoClient')
 jest.mock('src/utils')
-const mockedOctoClient = mocked(octoClient, true)
-const mockedUtils = mocked(Utils, true)
+const mockedOctoClient = mocked(octoClient)
+const mockedUtils = mocked(Utils)
 mockedUtils.createGuid = jest.requireActual('src/utils').Utils.createGuid
 mockedUtils.blockTypeToIDType = jest.requireActual('src/utils').Utils.blockTypeToIDType
 mockedUtils.displayDateTime = jest.requireActual('src/utils').Utils.displayDateTime
@@ -111,6 +113,120 @@ describe('components/boardsUnfurl/BoardsUnfurl', () => {
             const result = render(component)
             container = result.container
         })
+
+        expect(container).toMatchSnapshot()
+    })
+
+    it('test no card', async () => {
+        const mockStore = configureStore([])
+        const store = mockStore({
+            language: {
+                value: 'en',
+            },
+            teams: {
+                allTeams: [team],
+                current: team,
+            },
+        })
+
+        const board = {...createBoard(), title: 'test board'}
+
+        // mockedOctoClient.getBoard.mockResolvedValueOnce(board)
+
+        const component = (
+            <ReduxProvider store={store}>
+                {wrapIntl(
+                    <BoardsUnfurl
+                        embed={{data: JSON.stringify({workspaceID: 'foo', cardID: '', boardID: board.id, readToken: 'abc', originalPath: '/test'})}}
+                    />,
+                )}
+            </ReduxProvider>
+        )
+
+        let container: Element | DocumentFragment | null = null
+
+        await act(async () => {
+            const result = render(component)
+            container = result.container
+        })
+        expect(container).toMatchSnapshot()
+    })
+
+    it('test invalid card, valid block', async () => {
+        const mockStore = configureStore([])
+        const store = mockStore({
+            language: {
+                value: 'en',
+            },
+            teams: {
+                allTeams: [team],
+                current: team,
+            },
+        })
+
+        const cards = [{...createBoardView(), title: 'test view', updateAt: 12345}]
+        const board = {...createBoard(), title: 'test board'}
+
+        mockedOctoClient.getBlocksWithBlockID.mockResolvedValueOnce(cards)
+        mockedOctoClient.getBoard.mockResolvedValueOnce(board)
+
+        const component = (
+            <ReduxProvider store={store}>
+                {wrapIntl(
+                    <BoardsUnfurl
+                        embed={{data: JSON.stringify({workspaceID: 'foo', cardID: cards[0].id, boardID: board.id, readToken: 'abc', originalPath: '/test'})}}
+                    />,
+                )}
+            </ReduxProvider>
+        )
+
+        let container: Element | DocumentFragment | null = null
+
+        await act(async () => {
+            const result = render(component)
+            container = result.container
+        })
+        expect(mockedOctoClient.getBoard).toBeCalledWith(board.id)
+        expect(mockedOctoClient.getBlocksWithBlockID).toBeCalledWith(cards[0].id, board.id, 'abc')
+
+        expect(container).toMatchSnapshot()
+    })
+
+    it('test invalid card, invalid block', async () => {
+        const mockStore = configureStore([])
+        const store = mockStore({
+            language: {
+                value: 'en',
+            },
+            teams: {
+                allTeams: [team],
+                current: team,
+            },
+        })
+
+        const board = {...createBoard(), title: 'test board'}
+
+        mockedOctoClient.getBlocksWithBlockID.mockResolvedValueOnce([])
+        mockedOctoClient.getBoard.mockResolvedValueOnce(board)
+
+        const component = (
+            <ReduxProvider store={store}>
+                {wrapIntl(
+                    <BoardsUnfurl
+                        embed={{data: JSON.stringify({workspaceID: 'foo', cardID: 'invalidCard', boardID: board.id, readToken: 'abc', originalPath: '/test'})}}
+                    />,
+                )}
+            </ReduxProvider>
+        )
+
+        let container: Element | DocumentFragment | null = null
+
+        await act(async () => {
+            const result = render(component)
+            container = result.container
+        })
+        expect(mockedOctoClient.getBoard).toBeCalledWith(board.id)
+        expect(mockedOctoClient.getBlocksWithBlockID).toBeCalledWith('invalidCard', board.id, 'abc')
 
         expect(container).toMatchSnapshot()
     })

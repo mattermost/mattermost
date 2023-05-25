@@ -31,10 +31,11 @@ export function getTemplateDefaultIllustration(template: WorkTemplate): string {
     return '';
 }
 
-export const getContentCount = (template: WorkTemplate, playbookTemplates: PlaybookTemplateType[]) => {
+export const getContentCount = (template: WorkTemplate, playbookTemplates: PlaybookTemplateType[], channelId: string) => {
     const res = {
         playbooks: 0,
         boards: 0,
+        channelId,
     };
     for (const item of template.content) {
         if (item.playbook) {

@@ -54,11 +54,11 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
 
             this.props.actions.removePost(post);
         }
-    }
+    };
 
     expand = () => {
         this.setState({expanded: true});
-    }
+    };
 
     generateAtMentions(usernames = [] as string[]) {
         if (usernames.length === 1) {

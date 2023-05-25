@@ -114,7 +114,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
 
     enableChannelProvider = () => {
         this.suggestionProviders[0].disableDispatches = false;
-    }
+    };
 
     focusTextbox = () => {
         if (this.channelSearchBox == null) {
@@ -126,30 +126,30 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
             textbox.focus();
             placeCaretAtEnd(textbox);
         }
-    }
+    };
 
     onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({text: e.target.value, selectedChannelId: null});
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     onExited = () => {
         this.props.onExited();
-    }
+    };
 
     setSearchBoxRef = (input: SuggestionBoxComponent) => {
         this.channelSearchBox = input;
         this.focusTextbox();
-    }
+    };
 
     handleSubmitError = (error: {message: string}) => {
         if (error) {
             this.setState({submitError: error.message, saving: false});
         }
-    }
+    };
 
     didSelectChannel = (selection: {channel: Channel}) => {
         const channel = selection.channel;
@@ -165,7 +165,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
         this.props.actions.getChannelMember(channel.id, userId).then(() => {
             this.setState({checkingForMembership: false});
         });
-    }
+    };
 
     handleSubmit = (e: FormEvent) => {
         if (e && e.preventDefault) {
@@ -192,7 +192,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                 this.onHide();
             }
         });
-    }
+    };
 
     isUserMemberOfChannel = (channelId: string | null) => {
         const user = this.props.user;
@@ -207,7 +207,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
         }
 
         return Boolean(memberships[channelId][user.id]);
-    }
+    };
 
     render() {
         const user = this.props.user;

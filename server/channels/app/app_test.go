@@ -11,16 +11,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 )
 
-/* Temporarily comment out until MM-11108
+/* TODO: Temporarily comment out until MM-11108
 func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		a, err := New()
 		require.NoError(t, err)
-		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 		serverErr := a.StartServer()
 		require.NoError(t, serverErr)
 		a.Srv().Shutdown()
@@ -37,10 +40,29 @@ func init() {
 }
 
 func TestUnitUpdateConfig(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockLicenseStore := mocks.LicenseStore{}
+	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
+
 	prev := *th.App.Config().ServiceSettings.SiteURL
+
+	require.False(t, th.App.IsConfigReadOnly())
 
 	var called int32
 	th.App.AddConfigListener(func(old, current *model.Config) {
@@ -97,7 +119,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionGetPublicLink.Id,
 			model.PermissionCreatePost.Id,
 			model.PermissionUseChannelMentions.Id,
-			model.PermissionUseSlashCommands.Id,
 			model.PermissionManagePublicChannelProperties.Id,
 			model.PermissionDeletePublicChannel.Id,
 			model.PermissionManagePrivateChannelProperties.Id,

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"context"
@@ -11,17 +11,16 @@ import (
 	"testing"
 
 	"github.com/graph-gophers/graphql-go"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGraphQLRunList(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("list by participantOrFollower", func(t *testing.T) {
@@ -206,8 +205,7 @@ func TestGraphQLRunList(t *testing.T) {
 }
 
 func TestGraphQLChangeRunParticipants(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	user3, _, err := e.ServerAdminClient.CreateUser(&model.User{
@@ -669,8 +667,7 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 }
 
 func TestGraphQLChangeRunOwner(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	// create a third user to test change owner
@@ -713,8 +710,7 @@ func TestGraphQLChangeRunOwner(t *testing.T) {
 }
 
 func TestSetRunFavorite(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -800,8 +796,7 @@ func TestSetRunFavorite(t *testing.T) {
 }
 
 func TestResolverFavorites(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -833,8 +828,7 @@ func TestResolverFavorites(t *testing.T) {
 }
 
 func TestResolverPlaybooks(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -860,8 +854,7 @@ func TestResolverPlaybooks(t *testing.T) {
 }
 
 func TestUpdateRun(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createRun := func() *client.PlaybookRun {
@@ -977,8 +970,7 @@ func TestUpdateRun(t *testing.T) {
 }
 
 func TestUpdateRunTaskActions(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("task actions mutation create and update", func(t *testing.T) {
@@ -1071,8 +1063,7 @@ func TestUpdateRunTaskActions(t *testing.T) {
 }
 
 func TestBadGraphQLRequest(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	testRunsQuery := `

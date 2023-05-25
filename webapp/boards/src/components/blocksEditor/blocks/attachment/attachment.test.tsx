@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {mocked} from 'jest-mock'
 
 import octoClient from 'src/octoClient'
@@ -13,7 +13,7 @@ jest.mock('src/octoClient')
 
 describe('components/blocksEditor/blocks/attachment', () => {
     test('should match Display snapshot', async () => {
-        const mockedOcto = mocked(octoClient, true)
+        const mockedOcto = mocked(octoClient)
         mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
         const Component = AttachmentBlock.Display
         const {container} = render(

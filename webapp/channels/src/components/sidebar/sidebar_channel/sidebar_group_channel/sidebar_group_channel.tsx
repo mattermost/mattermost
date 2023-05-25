@@ -39,13 +39,13 @@ export default class SidebarGroupChannel extends React.PureComponent<Props, Stat
         if (this.props.active) {
             getHistory().push(`/${this.props.currentTeamName}/channels/${this.props.redirectChannel}`);
         }
-    }
+    };
 
     getIcon = () => {
         return (
             <div className='status status--group'>{this.props.membersCount}</div>
         );
-    }
+    };
 
     render() {
         const {channel, currentTeamName} = this.props;

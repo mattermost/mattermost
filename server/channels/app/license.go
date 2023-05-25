@@ -10,9 +10,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 )
 
 const (
@@ -36,6 +36,51 @@ func (w *licenseWrapper) GetLicense() *model.License {
 	return w.srv.License()
 }
 
+func (w *licenseWrapper) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
+	if *w.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	}
+
+	requester, err := w.srv.userService.GetUser(requesterID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return model.NewAppError("RequestTrialLicense", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return model.NewAppError("RequestTrialLicense", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	if w.srv.Cloud.ValidateBusinessEmail(requesterID, trialRequest.ContactEmail) != nil {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.business-email", nil, "", http.StatusBadRequest)
+	}
+
+	// Create a new struct only using the fields from the request that are allowed to be set by the client
+	sanitizedRequest := &model.TrialLicenseRequest{
+		ServerID:              w.srv.TelemetryId(),
+		Name:                  requester.GetDisplayName(model.ShowFullName),
+		Email:                 requester.Email,
+		SiteName:              *w.srv.platform.Config().TeamSettings.SiteName,
+		SiteURL:               *w.srv.platform.Config().ServiceSettings.SiteURL,
+		Users:                 trialRequest.Users,
+		TermsAccepted:         trialRequest.TermsAccepted,
+		ReceiveEmailsAccepted: trialRequest.ReceiveEmailsAccepted,
+		ContactName:           trialRequest.ContactName,
+		ContactEmail:          trialRequest.ContactEmail,
+		CompanyName:           trialRequest.CompanyName,
+		CompanySize:           trialRequest.CompanySize,
+		CompanyCountry:        trialRequest.CompanyCountry,
+	}
+
+	if !sanitizedRequest.IsValid() {
+		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+	}
+
+	return w.srv.platform.RequestTrialLicense(sanitizedRequest)
+}
+
+// DEPRECATED - use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
 func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	if *w.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"io"
 	"net/url"
 	"strconv"
@@ -13,8 +14,8 @@ import (
 
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -205,4 +206,41 @@ func ResetReadTimeout(dataSource string) (string, error) {
 	}
 	config.ReadTimeout = 0
 	return config.FormatDSN(), nil
+}
+
+func SanitizeDataSource(driverName, dataSource string) (string, error) {
+	switch driverName {
+	case model.DatabaseDriverPostgres:
+		u, err := url.Parse(dataSource)
+		if err != nil {
+			return "", err
+		}
+		u.User = url.UserPassword("****", "****")
+		params := u.Query()
+		params.Del("user")
+		params.Del("password")
+		u.RawQuery = params.Encode()
+		return u.String(), nil
+	case model.DatabaseDriverMysql:
+		cfg, err := mysql.ParseDSN(dataSource)
+		if err != nil {
+			return "", err
+		}
+		cfg.User = "****"
+		cfg.Passwd = "****"
+		return cfg.FormatDSN(), nil
+	default:
+		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	}
+}
+
+const maxTokenSize = 50
+
+// trimInput limits the string to a max size to prevent clogging up disk space
+// while logging
+func trimInput(input string) string {
+	if len(input) > maxTokenSize {
+		input = input[:maxTokenSize] + "..."
+	}
+	return input
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {IntlProvider} from 'react-intl'
-import React from 'react'
+import {IntlProvider, createIntl} from 'react-intl'
+import React, {} from 'react'
 import {DndProvider} from 'react-dnd'
 import {HTML5Backend} from 'react-dnd-html5-backend'
 import configureStore, {MockStoreEnhanced} from 'redux-mock-store'
@@ -9,9 +9,29 @@ import {Middleware} from 'redux'
 
 import {DragDropContext, Droppable} from 'react-beautiful-dnd'
 
+import userEvent from '@testing-library/user-event'
+
+import {render} from '@testing-library/react'
+
+import defaultMessages from 'i18n/en.json'
+
 import {Block} from './blocks/block'
 
-export const wrapIntl = (children?: React.ReactNode): JSX.Element => <IntlProvider locale='en'>{children}</IntlProvider>
+type SetupOpts = {user?: Parameters<typeof userEvent.setup>[0], render?: Parameters<typeof render>[1]}
+export function setup(element: Parameters<typeof render>[0], opts: SetupOpts = {}) {
+    return {
+        user: userEvent.setup(opts.user),
+        ...render(element, opts.render),
+    }
+}
+
+export const defaultIntl = createIntl({
+    locale: 'en',
+    defaultLocale: 'en',
+    messages: defaultMessages,
+})
+
+export const wrapIntl = (children?: React.ReactNode): JSX.Element => <IntlProvider {...defaultIntl}>{children}</IntlProvider>
 export const wrapDNDIntl = (children?: React.ReactNode): JSX.Element => {
     return (
         <DndProvider backend={HTML5Backend}>
@@ -57,6 +77,7 @@ export function mockDOM(): void {
                 [Symbol.iterator]: jest.fn(),
             }
         }
+
         return range
     }
 }
@@ -78,6 +99,7 @@ export function mockMatchMedia(result: {matches: boolean}): void {
 
 export function mockStateStore(middleware: Middleware[], state: unknown): MockStoreEnhanced<unknown, unknown> {
     const mockStore = configureStore(middleware)
+
     return mockStore(state)
 }
 
@@ -86,6 +108,7 @@ export type BlocksById<BlockType> = {[key: string]: BlockType}
 export function blocksById<BlockType extends Block>(blocks: BlockType[]): BlocksById<BlockType> {
     return blocks.reduce((res, block) => {
         res[block.id] = block
+
         return res
     }, {} as BlocksById<BlockType>)
 }

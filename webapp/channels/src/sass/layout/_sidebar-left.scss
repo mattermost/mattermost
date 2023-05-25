@@ -178,6 +178,46 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
+        &__inviteMembersLhsButton,
+        &__addChannelsCtaLhsButton {
+            display: flex;
+            padding: 6px 0;
+            margin-left: 15px;
+            color: rgba(var(--sidebar-text-rgb), 0.72);
+            line-height: 20px;
+            list-style: none;
+
+            i {
+                font-size: 20px;
+            }
+
+            span {
+                align-self: flex-end;
+                margin-top: -2px;
+                margin-left: 5px;
+            }
+
+            &--untouched {
+                color: var(--sidebar-unread-text);
+                font-weight: $font-weight--semibold;
+
+                i::before {
+                    font-weight: $font-weight--semibold;
+                }
+            }
+        }
+
+        &__addChannelsCtaLhsButton {
+            border: none;
+            margin-left: 0;
+            background: none;
+
+            li {
+                display: flex;
+                margin-left: 15px;
+            }
+        }
+
         .AddChannelDropdown_dropdownButton,
         .SidebarChannelNavigator_inviteUsers,
         .SidebarChannelNavigator_jumpToButton,
@@ -700,37 +740,24 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    .SidebarChannelNavigator_inviteMembersLhsButton {
-        display: flex;
-        padding: 6px 0;
-        margin-left: 15px;
-        color: rgba(var(--sidebar-text-rgb), 0.72);
-        line-height: 20px;
-        list-style: none;
+    .AddChannelsCtaDropdown .dropdown-menu {
+        min-width: 210px !important;
+        margin-left: 20px;
 
-        i {
-            font-size: 20px;
-        }
+        .MenuItem button span {
+            color: rgba(var(--center-channel-color-rgb), 0.9);
 
-        span {
-            align-self: flex-end;
-            margin-top: -2px;
-            margin-left: 5px;
-        }
-
-        &--untouched {
-            color: var(--sidebar-unread-text);
-            font-weight: $font-weight--semibold;
-
-            i::before {
-                font-weight: $font-weight--semibold;
+            i {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
             }
         }
     }
 
-    #introTextInvite {
+    #introTextInvite,
+    #addChannelsCta {
         display: flex;
         width: 100%;
+        margin-top: -6px;
 
         &:hover {
             background-color: var(--sidebar-text-hover-bg);

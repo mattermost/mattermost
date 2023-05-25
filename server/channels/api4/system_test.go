@@ -21,9 +21,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
 )
 
 func TestGetPing(t *testing.T) {
@@ -892,6 +892,7 @@ func TestCompleteOnboarding(t *testing.T) {
 
 	req := &model.CompleteOnboardingRequest{
 		InstallPlugins: []string{"testplugin2"},
+		Organization:   "my-org",
 	}
 
 	t.Run("as a regular user", func(t *testing.T) {

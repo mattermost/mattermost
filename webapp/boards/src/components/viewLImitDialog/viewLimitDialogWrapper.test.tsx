@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 import React from 'react'
 
-import {render, waitFor} from '@testing-library/react'
-
-import '@testing-library/jest-dom'
+import {act, render, waitFor} from '@testing-library/react'
 
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -23,7 +21,7 @@ import client from 'src/octoClient'
 import ViewLimitModalWrapper from './viewLimitDialogWrapper'
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(client, true)
+const mockedOctoClient = mocked(client)
 
 describe('components/viewLimitDialog/ViewL]imitDialog', () => {
     const board: Board = {
@@ -84,7 +82,7 @@ describe('components/viewLimitDialog/ViewL]imitDialog', () => {
         expect(notifyBtn).toBeDefined()
         expect(notifyBtn).not.toBeNull()
         expect(notifyBtn!.textContent).toBe('Notify Admin')
-        userEvent.click(notifyBtn as Element)
+        await act(() => userEvent.click(notifyBtn as Element))
         await waitFor(() => expect(container.querySelector('.ViewLimitSuccessNotify')).toBeInTheDocument())
         expect(container).toMatchSnapshot()
     })

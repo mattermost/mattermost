@@ -7,25 +7,26 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	mmapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/product/pluginapi/cluster"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/api"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/bot"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/command"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/enterprise"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/metrics"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/scheduler"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/telemetry"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	mmapp "github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/product/pluginapi/cluster"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/api"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/command"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/enterprise"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/metrics"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/scheduler"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/telemetry"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -53,12 +54,10 @@ const (
 
 const ServerKey product.ServiceKey = "server"
 
-// These credentials for Rudder need to be populated at build-time,
-// passing the following flags to the go build command:
-// -ldflags "-X main.rudderDataplaneURL=<url> -X main.rudderWriteKey=<write_key>"
-var (
-	rudderDataplaneURL string
-	rudderWriteKey     string
+// These credentials for Rudder need to be replaced at build-time.
+const (
+	rudderDataplaneURL = "placeholder_rudder_dataplane_url"
+	rudderWriteKey     = "placeholder_playbooks_rudder_key"
 )
 
 var errServiceTypeAssert = errors.New("type assertion failed")
@@ -157,229 +156,9 @@ func newPlaybooksProduct(services map[product.ServiceKey]interface{}) (product.P
 		return nil, err
 	}
 
-	logger := logrus.StandardLogger()
-	ConfigureLogrus(logger, playbooks.logger)
-
 	playbooks.server = services[ServerKey].(*mmapp.Server)
 
 	playbooks.serviceAdapter = newServiceAPIAdapter(playbooks)
-	botID, err := playbooks.serviceAdapter.EnsureBot(&model.Bot{
-		Username:    "playbooks",
-		DisplayName: "Playbooks",
-		Description: "Playbooks bot.",
-		OwnerId:     "playbooks",
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to ensure bot")
-	}
-
-	playbooks.config = config.NewConfigService(playbooks.serviceAdapter)
-	err = playbooks.config.UpdateConfiguration(func(c *config.Configuration) {
-		c.BotUserID = botID
-		c.AdminLogLevel = "debug"
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed save bot to config")
-	}
-
-	playbooks.handler = api.NewHandler(playbooks.config)
-
-	if rudderDataplaneURL == "" || rudderWriteKey == "" {
-		logrus.Warn("Rudder credentials are not set. Disabling analytics.")
-		playbooks.telemetryClient = &telemetry.NoopTelemetry{}
-	} else {
-		diagnosticID := playbooks.serviceAdapter.GetDiagnosticID()
-		serverVersion := playbooks.serviceAdapter.GetServerVersion()
-		playbooks.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, model.BuildHashPlaybooks, serverVersion)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed init telemetry client")
-		}
-	}
-
-	toggleTelemetry := func() {
-		diagnosticsFlag := playbooks.serviceAdapter.GetConfig().LogSettings.EnableDiagnostics
-		telemetryEnabled := diagnosticsFlag != nil && *diagnosticsFlag
-
-		if telemetryEnabled {
-			if err = playbooks.telemetryClient.Enable(); err != nil {
-				logrus.WithError(err).Error("Telemetry could not be enabled")
-			}
-			return
-		}
-
-		if err = playbooks.telemetryClient.Disable(); err != nil {
-			logrus.WithError(err).Error("Telemetry could not be disabled")
-		}
-	}
-
-	toggleTelemetry()
-	playbooks.config.RegisterConfigChangeListener(toggleTelemetry)
-
-	apiClient := sqlstore.NewClient(playbooks.serviceAdapter)
-	playbooks.bot = bot.New(playbooks.serviceAdapter, playbooks.config.GetConfiguration().BotUserID, playbooks.config, playbooks.telemetryClient)
-	scheduler := cluster.GetJobOnceScheduler(playbooks.serviceAdapter)
-
-	sqlStore, err := sqlstore.New(apiClient, scheduler)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed creating the SQL store")
-	}
-
-	playbooks.playbookRunStore = sqlstore.NewPlaybookRunStore(apiClient, sqlStore)
-	playbooks.playbookStore = sqlstore.NewPlaybookStore(apiClient, sqlStore)
-	statsStore := sqlstore.NewStatsStore(apiClient, sqlStore)
-	playbooks.userInfoStore = sqlstore.NewUserInfoStore(sqlStore)
-	channelActionStore := sqlstore.NewChannelActionStore(apiClient, sqlStore)
-	categoryStore := sqlstore.NewCategoryStore(apiClient, sqlStore)
-
-	playbooks.handler = api.NewHandler(playbooks.config)
-
-	playbooks.playbookService = app.NewPlaybookService(playbooks.playbookStore, playbooks.bot, playbooks.telemetryClient, playbooks.serviceAdapter, playbooks.metricsService)
-
-	keywordsThreadIgnorer := app.NewKeywordsThreadIgnorer()
-	playbooks.channelActionService = app.NewChannelActionsService(playbooks.serviceAdapter, playbooks.bot, playbooks.config, channelActionStore, playbooks.playbookService, keywordsThreadIgnorer, playbooks.telemetryClient)
-	playbooks.categoryService = app.NewCategoryService(categoryStore, playbooks.serviceAdapter, playbooks.telemetryClient)
-
-	playbooks.licenseChecker = enterprise.NewLicenseChecker(playbooks.serviceAdapter)
-
-	playbooks.playbookRunService = app.NewPlaybookRunService(
-		playbooks.playbookRunStore,
-		playbooks.bot,
-		playbooks.config,
-		scheduler,
-		playbooks.telemetryClient,
-		playbooks.telemetryClient,
-		playbooks.serviceAdapter,
-		playbooks.playbookService,
-		playbooks.channelActionService,
-		playbooks.licenseChecker,
-		playbooks.metricsService,
-	)
-
-	if err = scheduler.SetCallback(playbooks.playbookRunService.HandleReminder); err != nil {
-		logrus.WithError(err).Error("JobOnceScheduler could not add the playbookRunService's HandleReminder")
-	}
-	if err = scheduler.Start(); err != nil {
-		logrus.WithError(err).Error("JobOnceScheduler could not start")
-	}
-
-	// Migrations use the scheduler, so they have to be run after playbookRunService and scheduler have started
-	mutex, err := cluster.NewMutex(playbooks.serviceAdapter, "IR_dbMutex")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed creating cluster mutex")
-	}
-	mutex.Lock()
-	if err = sqlStore.RunMigrations(); err != nil {
-		mutex.Unlock()
-		return nil, errors.Wrapf(err, "failed to run migrations")
-	}
-	mutex.Unlock()
-
-	playbooks.permissions = app.NewPermissionsService(
-		playbooks.playbookService,
-		playbooks.playbookRunService,
-		playbooks.serviceAdapter,
-		playbooks.config,
-		playbooks.licenseChecker,
-	)
-
-	// register collections and topics.
-	// TODO bump the minimum server version
-	if err = playbooks.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeStatus); err != nil {
-		logrus.WithError(err).WithField("collection_type", CollectionTypeRun).WithField("topic_type", TopicTypeStatus).Warnf("failed to register collection and topic")
-	}
-	if err = playbooks.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeTask); err != nil {
-		logrus.WithError(err).WithField("collection_type", CollectionTypeRun).WithField("topic_type", TopicTypeTask).Warnf("failed to register collection and topic")
-	}
-
-	api.NewGraphQLHandler(
-		playbooks.handler.APIRouter,
-		playbooks.playbookService,
-		playbooks.playbookRunService,
-		playbooks.categoryService,
-		playbooks.serviceAdapter,
-		playbooks.config,
-		playbooks.permissions,
-		playbooks.playbookStore,
-		playbooks.licenseChecker,
-	)
-	api.NewPlaybookHandler(
-		playbooks.handler.APIRouter,
-		playbooks.playbookService,
-		playbooks.serviceAdapter,
-		playbooks.config,
-		playbooks.permissions,
-	)
-	api.NewPlaybookRunHandler(
-		playbooks.handler.APIRouter,
-		playbooks.playbookRunService,
-		playbooks.playbookService,
-		playbooks.permissions,
-		playbooks.licenseChecker,
-		playbooks.serviceAdapter,
-		playbooks.bot,
-		playbooks.config,
-	)
-	api.NewStatsHandler(
-		playbooks.handler.APIRouter,
-		playbooks.serviceAdapter,
-		statsStore,
-		playbooks.playbookService,
-		playbooks.permissions,
-		playbooks.licenseChecker,
-	)
-	api.NewBotHandler(
-		playbooks.handler.APIRouter,
-		playbooks.serviceAdapter, playbooks.bot,
-		playbooks.config,
-		playbooks.playbookRunService,
-		playbooks.userInfoStore,
-	)
-	api.NewTelemetryHandler(
-		playbooks.handler.APIRouter,
-		playbooks.playbookRunService,
-		playbooks.serviceAdapter,
-		playbooks.telemetryClient,
-		playbooks.playbookService,
-		playbooks.telemetryClient,
-		playbooks.telemetryClient,
-		playbooks.telemetryClient,
-		playbooks.permissions,
-	)
-	api.NewSignalHandler(
-		playbooks.handler.APIRouter,
-		playbooks.serviceAdapter,
-		playbooks.playbookRunService,
-		playbooks.playbookService,
-		keywordsThreadIgnorer,
-	)
-	api.NewSettingsHandler(
-		playbooks.handler.APIRouter,
-		playbooks.serviceAdapter,
-		playbooks.config,
-	)
-	api.NewActionsHandler(
-		playbooks.handler.APIRouter,
-		playbooks.channelActionService,
-		playbooks.serviceAdapter,
-		playbooks.permissions,
-	)
-	api.NewCategoryHandler(
-		playbooks.handler.APIRouter,
-		playbooks.serviceAdapter,
-		playbooks.categoryService,
-		playbooks.playbookService,
-		playbooks.playbookRunService,
-	)
-
-	isTestingEnabled := false
-	flag := playbooks.serviceAdapter.GetConfig().ServiceSettings.EnableTesting
-	if flag != nil {
-		isTestingEnabled = *flag
-	}
-
-	if err = command.RegisterCommands(playbooks.serviceAdapter.RegisterCommand, isTestingEnabled); err != nil {
-		return nil, errors.Wrapf(err, "failed register commands")
-	}
 
 	return playbooks, nil
 }
@@ -531,6 +310,228 @@ func (pp *playbooksProduct) setProductServices(services map[product.ServiceKey]i
 }
 
 func (pp *playbooksProduct) Start() error {
+	logger := logrus.StandardLogger()
+	ConfigureLogrus(logger, pp.logger)
+
+	botID, err := pp.serviceAdapter.EnsureBot(&model.Bot{
+		Username:    "playbooks",
+		DisplayName: "Playbooks",
+		Description: "Playbooks bot.",
+		OwnerId:     "playbooks",
+	})
+	if err != nil {
+		return errors.Wrapf(err, "failed to ensure bot")
+	}
+
+	pp.config = config.NewConfigService(pp.serviceAdapter)
+	err = pp.config.UpdateConfiguration(func(c *config.Configuration) {
+		c.BotUserID = botID
+		c.AdminLogLevel = "debug"
+	})
+	if err != nil {
+		return errors.Wrapf(err, "failed save bot to config")
+	}
+
+	pp.handler = api.NewHandler(pp.config)
+
+	if strings.HasPrefix(rudderWriteKey, "placeholder_") {
+		logrus.Warn("Rudder credentials are not set. Disabling analytics.")
+		pp.telemetryClient = &telemetry.NoopTelemetry{}
+	} else {
+		logrus.Info("Rudder credentials are set. Enabling analytics.")
+		diagnosticID := pp.serviceAdapter.GetDiagnosticID()
+		serverVersion := pp.serviceAdapter.GetServerVersion()
+		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, model.BuildHash, serverVersion)
+		if err != nil {
+			return errors.Wrapf(err, "failed init telemetry client")
+		}
+	}
+
+	toggleTelemetry := func() {
+		diagnosticsFlag := pp.serviceAdapter.GetConfig().LogSettings.EnableDiagnostics
+		telemetryEnabled := diagnosticsFlag != nil && *diagnosticsFlag
+
+		if telemetryEnabled {
+			if err = pp.telemetryClient.Enable(); err != nil {
+				logrus.WithError(err).Error("Telemetry could not be enabled")
+			}
+			return
+		}
+
+		if err = pp.telemetryClient.Disable(); err != nil {
+			logrus.WithError(err).Error("Telemetry could not be disabled")
+		}
+	}
+
+	toggleTelemetry()
+	pp.config.RegisterConfigChangeListener(toggleTelemetry)
+
+	apiClient := sqlstore.NewClient(pp.serviceAdapter)
+	pp.bot = bot.New(pp.serviceAdapter, pp.config.GetConfiguration().BotUserID, pp.config, pp.telemetryClient)
+	scheduler := cluster.GetJobOnceScheduler(pp.serviceAdapter)
+
+	sqlStore, err := sqlstore.New(apiClient, scheduler)
+	if err != nil {
+		return errors.Wrapf(err, "failed creating the SQL store")
+	}
+
+	pp.playbookRunStore = sqlstore.NewPlaybookRunStore(apiClient, sqlStore)
+	pp.playbookStore = sqlstore.NewPlaybookStore(apiClient, sqlStore)
+	statsStore := sqlstore.NewStatsStore(apiClient, sqlStore)
+	pp.userInfoStore = sqlstore.NewUserInfoStore(sqlStore)
+	channelActionStore := sqlstore.NewChannelActionStore(apiClient, sqlStore)
+	categoryStore := sqlstore.NewCategoryStore(apiClient, sqlStore)
+
+	pp.handler = api.NewHandler(pp.config)
+
+	pp.playbookService = app.NewPlaybookService(pp.playbookStore, pp.bot, pp.telemetryClient, pp.serviceAdapter, pp.metricsService)
+
+	keywordsThreadIgnorer := app.NewKeywordsThreadIgnorer()
+	pp.channelActionService = app.NewChannelActionsService(pp.serviceAdapter, pp.bot, pp.config, channelActionStore, pp.playbookService, keywordsThreadIgnorer, pp.telemetryClient)
+	pp.categoryService = app.NewCategoryService(categoryStore, pp.serviceAdapter, pp.telemetryClient)
+
+	pp.licenseChecker = enterprise.NewLicenseChecker(pp.serviceAdapter)
+
+	pp.playbookRunService = app.NewPlaybookRunService(
+		pp.playbookRunStore,
+		pp.bot,
+		pp.config,
+		scheduler,
+		pp.telemetryClient,
+		pp.telemetryClient,
+		pp.serviceAdapter,
+		pp.playbookService,
+		pp.channelActionService,
+		pp.licenseChecker,
+		pp.metricsService,
+	)
+
+	if err = scheduler.SetCallback(pp.playbookRunService.HandleReminder); err != nil {
+		logrus.WithError(err).Error("JobOnceScheduler could not add the playbookRunService's HandleReminder")
+	}
+	if err = scheduler.Start(); err != nil {
+		logrus.WithError(err).Error("JobOnceScheduler could not start")
+	}
+
+	// Migrations use the scheduler, so they have to be run after playbookRunService and scheduler have started
+	mutex, err := cluster.NewMutex(pp.serviceAdapter, "IR_dbMutex")
+	if err != nil {
+		return errors.Wrapf(err, "failed creating cluster mutex")
+	}
+	mutex.Lock()
+	if err = sqlStore.RunMigrations(); err != nil {
+		mutex.Unlock()
+		return errors.Wrapf(err, "failed to run migrations")
+	}
+	mutex.Unlock()
+
+	pp.permissions = app.NewPermissionsService(
+		pp.playbookService,
+		pp.playbookRunService,
+		pp.serviceAdapter,
+		pp.config,
+		pp.licenseChecker,
+	)
+
+	// register collections and topics.
+	// TODO bump the minimum server version
+	if err = pp.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeStatus); err != nil {
+		logrus.WithError(err).WithField("collection_type", CollectionTypeRun).WithField("topic_type", TopicTypeStatus).Warnf("failed to register collection and topic")
+	}
+	if err = pp.serviceAdapter.RegisterCollectionAndTopic(CollectionTypeRun, TopicTypeTask); err != nil {
+		logrus.WithError(err).WithField("collection_type", CollectionTypeRun).WithField("topic_type", TopicTypeTask).Warnf("failed to register collection and topic")
+	}
+
+	api.NewGraphQLHandler(
+		pp.handler.APIRouter,
+		pp.playbookService,
+		pp.playbookRunService,
+		pp.categoryService,
+		pp.serviceAdapter,
+		pp.config,
+		pp.permissions,
+		pp.playbookStore,
+		pp.licenseChecker,
+	)
+	api.NewPlaybookHandler(
+		pp.handler.APIRouter,
+		pp.playbookService,
+		pp.serviceAdapter,
+		pp.config,
+		pp.permissions,
+	)
+	api.NewPlaybookRunHandler(
+		pp.handler.APIRouter,
+		pp.playbookRunService,
+		pp.playbookService,
+		pp.permissions,
+		pp.licenseChecker,
+		pp.serviceAdapter,
+		pp.bot,
+		pp.config,
+	)
+	api.NewStatsHandler(
+		pp.handler.APIRouter,
+		pp.serviceAdapter,
+		statsStore,
+		pp.playbookService,
+		pp.permissions,
+		pp.licenseChecker,
+	)
+	api.NewBotHandler(
+		pp.handler.APIRouter,
+		pp.serviceAdapter, pp.bot,
+		pp.config,
+		pp.playbookRunService,
+		pp.userInfoStore,
+	)
+	api.NewTelemetryHandler(
+		pp.handler.APIRouter,
+		pp.playbookRunService,
+		pp.serviceAdapter,
+		pp.telemetryClient,
+		pp.playbookService,
+		pp.telemetryClient,
+		pp.telemetryClient,
+		pp.telemetryClient,
+		pp.permissions,
+	)
+	api.NewSignalHandler(
+		pp.handler.APIRouter,
+		pp.serviceAdapter,
+		pp.playbookRunService,
+		pp.playbookService,
+		keywordsThreadIgnorer,
+	)
+	api.NewSettingsHandler(
+		pp.handler.APIRouter,
+		pp.serviceAdapter,
+		pp.config,
+	)
+	api.NewActionsHandler(
+		pp.handler.APIRouter,
+		pp.channelActionService,
+		pp.serviceAdapter,
+		pp.permissions,
+	)
+	api.NewCategoryHandler(
+		pp.handler.APIRouter,
+		pp.serviceAdapter,
+		pp.categoryService,
+		pp.playbookService,
+		pp.playbookRunService,
+	)
+
+	isTestingEnabled := false
+	flag := pp.serviceAdapter.GetConfig().ServiceSettings.EnableTesting
+	if flag != nil {
+		isTestingEnabled = *flag
+	}
+
+	if err = command.RegisterCommands(pp.serviceAdapter.RegisterCommand, isTestingEnabled); err != nil {
+		return errors.Wrapf(err, "failed register commands")
+	}
+
 	if err := pp.hooksService.RegisterHooks(playbooksProductName, pp); err != nil {
 		return fmt.Errorf("failed to register hooks: %w", err)
 	}
@@ -568,7 +569,7 @@ func (pp *playbooksProduct) Stop() error {
 func newMetricsInstance() *metrics.Metrics {
 	// Init metrics
 	instanceInfo := metrics.InstanceInfo{
-		Version:        model.BuildHashPlaybooks,
+		Version:        model.BuildHash,
 		InstallationID: os.Getenv("MM_CLOUD_INSTALLATION_ID"),
 	}
 	return metrics.NewMetrics(instanceInfo)
@@ -581,7 +582,7 @@ func (pp *playbooksProduct) runMetricsServer() {
 	// Run server to expose metrics
 	go func() {
 		err := pp.metricsServer.Run()
-		if err != nil {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logrus.WithError(err).Error("Metrics server could not be started")
 		}
 	}()

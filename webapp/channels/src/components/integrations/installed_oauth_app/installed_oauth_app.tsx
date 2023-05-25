@@ -79,12 +79,12 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             e.preventDefault();
         }
         this.setState({clientSecret: this.props.oauthApp.client_secret});
-    }
+    };
 
     handleHideClientSecret = (e: React.MouseEvent): void => {
         e.preventDefault();
         this.setState({clientSecret: FAKE_SECRET});
-    }
+    };
 
     handleRegenerate = (e: React.MouseEvent): void => {
         e.preventDefault();
@@ -98,11 +98,11 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                 }
             },
         );
-    }
+    };
 
     handleDelete = (): void => {
         this.props.onDelete(this.props.oauthApp);
-    }
+    };
 
     render(): React.ReactNode {
         const {oauthApp, creatorName} = this.props;

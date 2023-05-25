@@ -38,8 +38,10 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     render(): React.ReactNode {
         if (this.state.hasError) {
             this.handleError()
+
             return <span>{this.msg}</span>
         }
+
         return this.props.children
     }
 }

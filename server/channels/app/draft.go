@@ -9,10 +9,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 )
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
@@ -36,33 +36,6 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, true)
-	var notFoundErr *store.ErrNotFound
-	if dErr != nil && !errors.As(dErr, &notFoundErr) {
-		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, dErr.Error(), http.StatusInternalServerError)
-	}
-
-	var err *model.AppError
-	if dt == nil {
-		dt, err = a.CreateDraft(c, draft, connectionID)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		dt, err = a.UpdateDraft(c, draft, connectionID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return dt, nil
-}
-
-func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -83,7 +56,7 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	dt, nErr := a.Srv().Store().Draft().Save(draft)
+	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -91,46 +64,6 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
-	draftJSON, jsonErr := json.Marshal(dt)
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
-	}
-	message.Add("draft", string(draftJSON))
-	a.Publish(message)
-
-	return dt, nil
-}
-
-func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
-	}
-
-	// Check that channel exists and has not been deleted
-	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
-	if errCh != nil {
-		err := model.NewAppError("UpdateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, errCh.Error(), http.StatusBadRequest)
-		return nil, err
-	}
-
-	if channel.DeleteAt != 0 {
-		err := model.NewAppError("UpdateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
-	}
-
-	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
-	if nErr != nil {
-		return nil, model.NewAppError("UpdateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-
-	dt, nErr := a.Srv().Store().Draft().Update(draft)
-	if nErr != nil {
-		return nil, model.NewAppError("UpdateDraft", "app.draft.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
-
-	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
-
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))

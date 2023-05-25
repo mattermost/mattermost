@@ -79,7 +79,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
             backButton = (
                 <Link to='/'>
                     <FormattedMessage
-                        id='error.generic.link'
+                        id='error.generic.siteLink'
                         defaultMessage='Back to {siteName}'
                         values={{
                             siteName: this.props.siteName,
@@ -123,7 +123,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
             backButton = (
                 <Link to='/'>
                     <FormattedMessage
-                        id='error.generic.link'
+                        id='error.generic.siteLink'
                         defaultMessage='Back to {siteName}'
                         values={{
                             siteName: this.props.siteName,

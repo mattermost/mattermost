@@ -3,22 +3,22 @@
 ######################
 id: "product_teams/feature_release:v1"
 category: product_teams
-useCase: Manage feature release
+useCase: Feature Development
 illustration: /static/worktemplates/product_teams/feature_release/feature_release.png
 visibility: public
 description:
     channel:
         id: "worktemplate.product_teams.feature_release.description.channel"
-        defaultMessage: "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+        defaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
     board:
         id: "worktemplate.product_teams.feature_release.description.board"
-        defaultMessage: "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way."
+        defaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
     playbook:
         id: "worktemplate.product_teams.feature_release.description.playbook"
-        defaultMessage: "Create transparent workflows across development teams to ensure your feature development process is seamless."
+        defaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
     integration:
         id: "worktemplate.product_teams.feature_release.description.integration"
-        defaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+        defaultMessage: "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
         illustration: "/static/worktemplates/integrations.png"
 content:
   - channel:
@@ -45,8 +45,34 @@ content:
       illustration: "/static/worktemplates/playbooks/product_release.png"
   - integration:
       id: jira
+      recommended: true
   - integration:
       id: github
+      recommended: true
+---
+id: 'product_teams/product_roadmap:v1'
+category: product_teams
+useCase: Create a product roadmap
+illustration: /static/worktemplates/product_teams/product_roadmap/product_roadmap.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.product_teams.product_roadmap.channel
+    defaultMessage: Chat with your team about your customers' feedback, prioritization, and get aligned on progress together.
+  board:
+    id: worktemplate.product_teams.product_roadmap.board
+    defaultMessage: Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues.
+content:
+  - channel:
+      id: channel-1674851139450
+      illustration: /static/worktemplates/product_teams/product_roadmap/channel.png
+      name: Product Roadmap
+  - board:
+      id: board-1674851139759
+      template: b728c6ca730e2cfc229741c5a4712b65
+      name: Product Roadmap
+      illustration: /static/worktemplates/boards/roadmap.png
+      channel: channel-1674851139450
 ---
 id: 'product_teams/goals_and_okrs:v1'
 category: product_teams
@@ -57,21 +83,15 @@ description:
   channel:
     id: worktemplate.product_teams.goals_and_okrs.channel
     defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
+      Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.
   board:
     id: worktemplate.product_teams.goals_and_okrs.board
     defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.product_teams.goals_and_okrs.integration
     defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.
     illustration: /static/worktemplates/integrations.png
 content:
   - channel:
@@ -92,7 +112,7 @@ content:
       channel: channel-1674845108569
   - integration:
       id: zoom
-
+      recommended: true
 ---
 id: 'product_teams/bug_bash:v1'
 category: product_teams
@@ -103,23 +123,15 @@ description:
   channel:
     id: worktemplate.product_teams.bug_bash.channel
     defaultMessage: >-
-      Get organized and bash all the bugs with  this project! Build momentum and
-      measure progress using included Playbook, Board, and Channel.
-  board:
-    id: worktemplate.product_teams.bug_bash.board
-    defaultMessage: >-
-      Get organized and bash all the bugs with  this project! Build momentum and
-      measure progress using included Playbook, Board, and Channel.
+      Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization.
   playbook:
     id: worktemplate.product_teams.bug_bash.playbook
     defaultMessage: >-
-      Get organized and bash all the bugs with  this project! Build momentum and
-      measure progress using included Playbook, Board, and Channel.
+      Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time.
   integration:
     id: worktemplate.product_teams.bug_bash.integration
     defaultMessage: >-
-      Get organized and bash all the bugs with  this project! Build momentum and
-      measure progress using included Playbook, Board, and Channel.
+      Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you.
     illustration: /static/worktemplates/integrations.png
 content:
   - playbook:
@@ -134,6 +146,7 @@ content:
       playbook: playbook-1674844017943
   - integration:
       id: jira
+      recommended: true
 ---
 id: 'product_teams/sprint_planning:v1'
 category: product_teams
@@ -144,24 +157,15 @@ description:
   channel:
     id: worktemplate.product_teams.sprint_planning.channel
     defaultMessage: >-
-      Use a Project to make sprint planning a breeze. The channel keeps the
-      conversation and questions focused. The sprint plan keeps everyone on task
-      for the week and the Retrospective board brings the team together to
-      continuously improve.
+      Chat with your team in a channel that connects easily with your boards and integrations.
   board:
     id: worktemplate.product_teams.sprint_planning.board
     defaultMessage: >-
-      Use a Project to make sprint planning a breeze. The channel keeps the
-      conversation and questions focused. The sprint plan keeps everyone on task
-      for the week and the Retrospective board brings the team together to
-      continuously improve.
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
   integration:
     id: worktemplate.product_teams.sprint_planning.integration
     defaultMessage: >-
-      Use a Project to make sprint planning a breeze. The channel keeps the
-      conversation and questions focused. The sprint plan keeps everyone on task
-      for the week and the Retrospective board brings the team together to
-      continuously improve.
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you.
     illustration: /static/worktemplates/integrations.png
 content:
   - channel:
@@ -176,30 +180,19 @@ content:
       channel: channel-1674850783500
   - integration:
       id: zoom
+      recommended: true
 ---
-id: 'product_teams/product_roadmap:v1'
+id: 'product_teams/quick_start:v1'
 category: product_teams
-useCase: Create a product roadmap
-illustration: /static/worktemplates/product_teams/product_roadmap/product_roadmap.png
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/product_teams/quick_start/quick_start.png
 visibility: public
-description:
-  channel:
-    id: worktemplate.product_teams.product_roadmap.channel
-    defaultMessage: Description of why the channel(s) are needed
-  board:
-    id: worktemplate.product_teams.product_roadmap.board
-    defaultMessage: Description of why the board(s) are needed
+onboardingOnly: true
 content:
   - channel:
-      id: channel-1674851139450
-      illustration: /static/worktemplates/product_teams/product_roadmap/channel.png
-      name: Product Roadmap
-  - board:
-      id: board-1674851139759
-      template: b728c6ca730e2cfc229741c5a4712b65
-      name: Product Roadmap
-      illustration: /static/worktemplates/boards/roadmap.png
-      channel: channel-1674851139450
+      id: channel-qs
+      illustration: /static/worktemplates/product_teams/quick_start/channel.png
+      name: Quick Start
 ---
 ######################
 # DEVOPS
@@ -212,13 +205,13 @@ visibility: public
 description:
     channel:
         id: "worktemplate.devops.incident_resolution.description.channel"
-        defaultMessage: "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+        defaultMessage: "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
     board:
         id: "worktemplate.devops.incident_resolution.description.board"
-        defaultMessage: "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+        defaultMessage: "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
     playbook:
         id: "worktemplate.devops.incident_resolution.description.playbook"
-        defaultMessage: "When everything is going wrong, having a repeatable process is the key to making sure everything is made right as quickly as possible. This Project combines everything Mattermost offers to ensure the fires are put out and stakeholders informed along the way."
+        defaultMessage: "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
 content:
   - playbook:
       id: irpb
@@ -245,100 +238,55 @@ visibility: public
 description:
   channel:
     id: worktemplate.devops.product_release.channel
-    defaultMessage: Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page.
+    defaultMessage: Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.
   board:
     id: worktemplate.devops.product_release.board
-    defaultMessage: Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page.
+    defaultMessage: Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.
   playbook:
     id: worktemplate.devops.product_release.playbook
-    defaultMessage: Don’t miss a step during a product release with this Project. Assign tasks from the Playbook checklist and hit milestones with the Board. Use Channels to keep everyone on the same page.
+    defaultMessage: Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.
 content:
   - playbook:
       id: playbook-1674851385983
       template: Product Release
       name: Product Release
       illustration: /static/worktemplates/playbooks/product_release.png
-  - channel:
-      id: channel-1674851385983
-      illustration: /static/worktemplates/devops/product_release/channel.png
-      name: Product Release
-      playbook: playbook-1674851385983
   - board:
       id: board-1674851386432
       template: a4ec399ab4f2088b1051c3cdf1dde4c3
       name: Product Release
       illustration: /static/worktemplates/boards/project_tasks.png
       channel: channel-1674851385983
----
-######################
-# COMPANY WIDE
-######################
-id: 'companywide/goals_and_okrs:v1'
-category: companywide
-useCase: Set goals and OKR's
-illustration: /static/worktemplates/companywide/goals_and_okrs/goals_and_okrs.png
-visibility: public
-description:
-  channel:
-    id: worktemplate.companywide.goals_and_okrs.channel
-    defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
-  board:
-    id: worktemplate.companywide.goals_and_okrs.board
-    defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
-  integration:
-    id: worktemplate.companywide.goals_and_okrs.integration
-    defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
-    illustration: /static/worktemplates/integrations.png
-content:
   - channel:
-      id: channel-1674845108569
-      illustration: /static/worktemplates/companywide/goals_and_okrs/channel.png
-      name: Goals and OKR
-  - board:
-      id: board-1674845139258
-      template: 7ba22ccfdfac391d63dea5c4b8cde0de
-      name: Goals and OKR
-      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
-      channel: channel-1674845108569
-  - integration:
-      id: zoom
+      id: channel-1674851385983
+      illustration: /static/worktemplates/devops/product_release/channel.png
+      name: Product Release
+      playbook: playbook-1674851385983
 ---
-id: 'companywide/create_project:v1'
-category: companywide
-useCase: Create a project
-illustration: /static/worktemplates/companywide/create_project/create_project.svg
+id: 'devops/create_project:v1'
+category: devops
+useCase: Project Management
+illustration: /static/worktemplates/devops/create_project/create_project.png
 visibility: public
 description:
   channel:
-    id: worktemplate.companywide.create_project.channel
+    id: worktemplate.devops.create_project.channel
     defaultMessage: >-
-      Plan a Roadmap using this Project Board and collaborate on topic in the
-      channel created with this template.
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
   board:
-    id: worktemplate.companywide.create_project.board
+    id: worktemplate.devops.create_project.board
     defaultMessage: >-
-      Plan a Roadmap using this Project Board and collaborate on topic in the
-      channel created with this template.
+      Use a Kanban board to define and track your project tasks and progress.
   integration:
-    id: worktemplate.companywide.create_project.integration
+    id: worktemplate.devops.create_project.integration
     defaultMessage: >-
-      Plan a Roadmap using this Project Board and collaborate on topic in the
-      channel created with this template.
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
     illustration: /static/worktemplates/integrations.png
 content:
   - channel:
       id: channel-1674851940114
       illustration: >-
-        /static/worktemplates/companywide/create_project/channel.png
+        /static/worktemplates/devops/create_project/channel.png
       name: Create Project
   - board:
       id: board-1674851940548
@@ -348,10 +296,93 @@ content:
       channel: channel-1674851940114
   - integration:
       id: jira
+      recommended: true
   - integration:
       id: github
+      recommended: true
   - integration:
       id: zoom
+      recommended: true
+---
+id: 'devops/sprint_planning:v1'
+category: devops
+useCase: Plan sprints
+illustration: /static/worktemplates/devops/sprint_planning/sprint_planning.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.devops.sprint_planning.channel
+    defaultMessage: >-
+      Chat with your team in a channel that connects easily with your boards and integrations.
+  board:
+    id: worktemplate.devops.sprint_planning.board
+    defaultMessage: >-
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
+  integration:
+    id: worktemplate.devops.sprint_planning.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674850783500
+      illustration: /static/worktemplates/devops/sprint_planning/channel.png
+      name: Sprint planning
+  - board:
+      id: board-1674850783973
+      template: 99b74e26d2f5d0a9b346d43c0a7bfb09
+      name: Sprint planning
+      illustration: /static/worktemplates/boards/sprint_planner.png
+      channel: channel-1674850783500
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'devops/bug_bash:v1'
+category: devops
+useCase: Run a bug bash
+illustration: /static/worktemplates/devops/bug_bash/bug_bash.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.devops.bug_bash.channel
+    defaultMessage: >-
+      Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization.
+  playbook:
+    id: worktemplate.devops.bug_bash.playbook
+    defaultMessage: >-
+      Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time.
+  integration:
+    id: worktemplate.devops.bug_bash.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - playbook:
+      id: playbook-1674844017943
+      template: Bug Bash
+      name: Bug Bash
+      illustration: /static/worktemplates/playbooks/bug_bash.png
+  - channel:
+      id: channel-1674844017943
+      illustration: /static/worktemplates/devops/bug_bash/channel.png
+      name: Bug Bash
+      playbook: playbook-1674844017943
+  - integration:
+      id: jira
+      recommended: true
+---
+id: 'devops/quick_start:v1'
+category: devops
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/devops/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/devops/quick_start/channel.png
+      name: Quick Start
 ---
 ######################
 # Leadership
@@ -365,21 +396,15 @@ description:
   channel:
     id: worktemplate.leadership.goals_and_okrs.channel
     defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
+      Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.
   board:
     id: worktemplate.leadership.goals_and_okrs.board
     defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
   integration:
     id: worktemplate.leadership.goals_and_okrs.integration
     defaultMessage: >-
-      Clear focus is essential to team success and with this Project you can
-      document the team’s goals and OKR’s as well as post updates in the
-      dedicated channel.
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.
     illustration: /static/worktemplates/integrations.png
 content:
   - channel:
@@ -394,4 +419,1267 @@ content:
       channel: channel-1674845108569
   - integration:
       id: zoom
-
+      recommended: true
+---
+id: 'leadership/create_project:v1'
+category: leadership
+useCase: Project Management
+illustration: /static/worktemplates/leadership/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.leadership.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.leadership.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.leadership.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/leadership/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'leadership/incident_resolution:v1'
+category: leadership
+useCase: Resolve incidents
+illustration: /static/worktemplates/leadership/incident_resolution/incident_resolution.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.leadership.incident_resolution.description.channel"
+        defaultMessage: "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+    board:
+        id: "worktemplate.leadership.incident_resolution.description.board"
+        defaultMessage: "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+    playbook:
+        id: "worktemplate.leadership.incident_resolution.description.playbook"
+        defaultMessage: "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
+content:
+  - playbook:
+      id: irpb
+      template: Incident Resolution
+      name: Incident Resolution
+      illustration: /static/worktemplates/playbooks/incident_resolution.png
+  - channel:
+      id: irc
+      illustration: /static/worktemplates/leadership/incident_resolution/channel.png
+      name: Incident Resolution
+      playbook: irpb
+  - board:
+      id: irb
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Incident Resolution
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: irc
+---
+id: 'leadership/content_calendar:v1'
+category: leadership
+useCase: Content Calendar
+illustration: /static/worktemplates/leadership/content_calendar/content_calendar.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.leadership.content_calendar.channel
+    defaultMessage: >-
+      Share content ideas, trending posts, blog links, and mentions in a dedicated channel.
+  board:
+    id: worktemplate.leadership.content_calendar.board
+    defaultMessage: >-
+      Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.
+content:
+  - channel:
+      id: channel-ct
+      illustration: /static/worktemplates/leadership/content_calendar/channel.png
+      name: Content Calendar
+  - board:
+      id: board-ct
+      template: c75fbd659d2258b5183af2236d176ab4
+      name: Content Calendar
+      illustration: /static/worktemplates/boards/content_calendar.png
+      channel: channel-ct
+---
+id: 'leadership/quick_start:v1'
+category: leadership
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/leadership/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/leadership/quick_start/channel.png
+      name: Quick Start
+---
+######################
+# Engineering
+######################
+id: "engineering/feature_release:v1"
+category: engineering
+useCase: Feature Development
+illustration: /static/worktemplates/engineering/feature_release/feature_release.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.engineering.feature_release.description.channel"
+        defaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+    board:
+        id: "worktemplate.engineering.feature_release.description.board"
+        defaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+    playbook:
+        id: "worktemplate.engineering.feature_release.description.playbook"
+        defaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+    integration:
+        id: "worktemplate.engineering.feature_release.description.integration"
+        defaultMessage: "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+        illustration: "/static/worktemplates/integrations.png"
+content:
+  - channel:
+      id: feature-release
+      name: Feature Release
+      playbook: product-release-playbook
+      illustration: "/static/worktemplates/engineering/feature_release/channel.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "54fcf9c610f0ac5e4c522c0657c90602"
+      name: Meeting Agenda
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/meeting_agenda.png"
+  - board:
+      id: "board-project-task"
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
+      name: Project Task
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/project_tasks.png"
+  - playbook:
+      template: "Product Release"
+      name: "Feature release"
+      id: product-release-playbook
+      illustration: "/static/worktemplates/playbooks/product_release.png"
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+---
+id: 'engineering/bug_bash:v1'
+category: engineering
+useCase: Run a bug bash
+illustration: /static/worktemplates/engineering/bug_bash/bug_bash.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.engineering.bug_bash.channel
+    defaultMessage: >-
+      Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization.
+  playbook:
+    id: worktemplate.engineering.bug_bash.playbook
+    defaultMessage: >-
+      Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time.
+  integration:
+    id: worktemplate.engineering.bug_bash.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - playbook:
+      id: playbook-1674844017943
+      template: Bug Bash
+      name: Bug Bash
+      illustration: /static/worktemplates/playbooks/bug_bash.png
+  - channel:
+      id: channel-1674844017943
+      illustration: /static/worktemplates/engineering/bug_bash/channel.png
+      name: Bug Bash
+      playbook: playbook-1674844017943
+  - integration:
+      id: jira
+      recommended: true
+---
+id: 'engineering/sprint_planning:v1'
+category: engineering
+useCase: Plan sprints
+illustration: /static/worktemplates/engineering/sprint_planning/sprint_planning.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.engineering.sprint_planning.channel
+    defaultMessage: >-
+      Chat with your team in a channel that connects easily with your boards and integrations.
+  board:
+    id: worktemplate.engineering.sprint_planning.board
+    defaultMessage: >-
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
+  integration:
+    id: worktemplate.engineering.sprint_planning.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674850783500
+      illustration: /static/worktemplates/engineering/sprint_planning/channel.png
+      name: Sprint planning
+  - board:
+      id: board-1674850783973
+      template: 99b74e26d2f5d0a9b346d43c0a7bfb09
+      name: Sprint planning
+      illustration: /static/worktemplates/boards/sprint_planner.png
+      channel: channel-1674850783500
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'engineering/goals_and_okrs:v1'
+category: engineering
+useCase: Set goals and OKR's
+illustration: /static/worktemplates/engineering/goals_and_okrs/goals_and_okrs.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.engineering.goals_and_okrs.channel
+    defaultMessage: >-
+      Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.
+  board:
+    id: worktemplate.engineering.goals_and_okrs.board
+    defaultMessage: >-
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
+  integration:
+    id: worktemplate.engineering.goals_and_okrs.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674845108569
+      illustration: /static/worktemplates/engineering/goals_and_okrs/channel.png
+      name: Goals and OKR
+  - board:
+      id: board-1674845139258
+      template: 7ba22ccfdfac391d63dea5c4b8cde0de
+      name: Goals and OKR
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
+      channel: channel-1674845108569
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'engineering/create_project:v1'
+category: engineering
+useCase: Project Management
+illustration: /static/worktemplates/engineering/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.engineering.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.engineering.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.engineering.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/engineering/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'engineering/quick_start:v1'
+category: engineering
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/engineering/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/engineering/quick_start/channel.png
+      name: Quick Start
+---
+######################
+# PROJECT MANAGEMENT
+######################
+id: 'project_management/create_project:v1'
+category: project_management
+useCase: Project Management
+illustration: /static/worktemplates/project_management/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.project_management.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.project_management.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.project_management.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/project_management/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'project_management/goals_and_okrs:v1'
+category: project_management
+useCase: Set goals and OKR's
+illustration: /static/worktemplates/project_management/goals_and_okrs/goals_and_okrs.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.project_management.goals_and_okrs.channel
+    defaultMessage: >-
+      Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.
+  board:
+    id: worktemplate.project_management.goals_and_okrs.board
+    defaultMessage: >-
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
+  integration:
+    id: worktemplate.project_management.goals_and_okrs.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674845108569
+      illustration: /static/worktemplates/project_management/goals_and_okrs/channel.png
+      name: Goals and OKR
+  - board:
+      id: board-1674845139258
+      template: 7ba22ccfdfac391d63dea5c4b8cde0de
+      name: Goals and OKR
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
+      channel: channel-1674845108569
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'project_management/product_roadmap:v1'
+category: project_management
+useCase: Create a product roadmap
+illustration: /static/worktemplates/project_management/product_roadmap/product_roadmap.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.project_management.product_roadmap.channel
+    defaultMessage: Chat with your team about your customers' feedback, prioritization, and get aligned on progress together.
+  board:
+    id: worktemplate.project_management.product_roadmap.board
+    defaultMessage: Use the Product Roadmap board to manage user feedback, assign resources, view deliverables in a calendar view, and prioritize issues.
+content:
+  - channel:
+      id: channel-1674851139450
+      illustration: /static/worktemplates/project_management/product_roadmap/channel.png
+      name: Product Roadmap
+  - board:
+      id: board-1674851139759
+      template: b728c6ca730e2cfc229741c5a4712b65
+      name: Product Roadmap
+      illustration: /static/worktemplates/boards/roadmap.png
+      channel: channel-1674851139450
+---
+id: 'project_management/product_release:v1'
+category: project_management
+useCase: Prepare a product release
+illustration: /static/worktemplates/project_management/product_release/product_release.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.project_management.product_release.channel
+    defaultMessage: Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.
+  board:
+    id: worktemplate.project_management.product_release.board
+    defaultMessage: Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.
+  playbook:
+    id: worktemplate.project_management.product_release.playbook
+    defaultMessage: Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.
+content:
+  - playbook:
+      id: playbook-1674851385983
+      template: Product Release
+      name: Product Release
+      illustration: /static/worktemplates/playbooks/product_release.png
+  - board:
+      id: board-1674851386432
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Product Release
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851385983
+  - channel:
+      id: channel-1674851385983
+      illustration: /static/worktemplates/project_management/product_release/channel.png
+      name: Product Release
+      playbook: playbook-1674851385983
+---
+id: "project_management/feature_release:v1"
+category: project_management
+useCase: Feature Development
+illustration: /static/worktemplates/project_management/feature_release/feature_release.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.project_management.feature_release.description.channel"
+        defaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+    board:
+        id: "worktemplate.project_management.feature_release.description.board"
+        defaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+    playbook:
+        id: "worktemplate.project_management.feature_release.description.playbook"
+        defaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+    integration:
+        id: "worktemplate.project_management.feature_release.description.integration"
+        defaultMessage: "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+        illustration: "/static/worktemplates/integrations.png"
+content:
+  - channel:
+      id: feature-release
+      name: Feature Release
+      playbook: product-release-playbook
+      illustration: "/static/worktemplates/project_management/feature_release/channel.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "54fcf9c610f0ac5e4c522c0657c90602"
+      name: Meeting Agenda
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/meeting_agenda.png"
+  - board:
+      id: "board-project-task"
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
+      name: Project Task
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/project_tasks.png"
+  - playbook:
+      template: "Product Release"
+      name: "Feature release"
+      id: product-release-playbook
+      illustration: "/static/worktemplates/playbooks/product_release.png"
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+---
+id: 'project_management/quick_start:v1'
+category: project_management
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/project_management/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/project_management/quick_start/channel.png
+      name: Quick Start
+---
+######################
+# MARKETING
+######################
+id: 'marketing/content_calendar:v1'
+category: marketing
+useCase: Content Calendar
+illustration: /static/worktemplates/marketing/content_calendar/content_calendar.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.marketing.content_calendar.channel
+    defaultMessage: >-
+      Share content ideas, trending posts, blog links, and mentions in a dedicated channel.
+  board:
+    id: worktemplate.marketing.content_calendar.board
+    defaultMessage: >-
+      Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.
+content:
+  - channel:
+      id: channel-ct
+      illustration: /static/worktemplates/marketing/content_calendar/channel.png
+      name: Content Calendar
+  - board:
+      id: board-ct
+      template: c75fbd659d2258b5183af2236d176ab4
+      name: Content Calendar
+      illustration: /static/worktemplates/boards/content_calendar.png
+      channel: channel-ct
+---
+id: 'marketing/create_project:v1'
+category: marketing
+useCase: Project Management
+illustration: /static/worktemplates/marketing/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.marketing.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.marketing.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.marketing.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/marketing/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'marketing/product_release:v1'
+category: marketing
+useCase: Prepare a product release
+illustration: /static/worktemplates/marketing/product_release/product_release.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.marketing.product_release.channel
+    defaultMessage: Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.
+  board:
+    id: worktemplate.marketing.product_release.board
+    defaultMessage: Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.
+  playbook:
+    id: worktemplate.marketing.product_release.playbook
+    defaultMessage: Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.
+content:
+  - playbook:
+      id: playbook-1674851385983
+      template: Product Release
+      name: Product Release
+      illustration: /static/worktemplates/playbooks/product_release.png
+  - board:
+      id: board-1674851386432
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Product Release
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851385983
+  - channel:
+      id: channel-1674851385983
+      illustration: /static/worktemplates/marketing/product_release/channel.png
+      name: Product Release
+      playbook: playbook-1674851385983
+---
+id: 'marketing/goals_and_okrs:v1'
+category: marketing
+useCase: Set goals and OKR's
+illustration: /static/worktemplates/marketing/goals_and_okrs/goals_and_okrs.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.marketing.goals_and_okrs.channel
+    defaultMessage: >-
+      Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.
+  board:
+    id: worktemplate.marketing.goals_and_okrs.board
+    defaultMessage: >-
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
+  integration:
+    id: worktemplate.marketing.goals_and_okrs.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674845108569
+      illustration: /static/worktemplates/marketing/goals_and_okrs/channel.png
+      name: Goals and OKR
+  - board:
+      id: board-1674845139258
+      template: 7ba22ccfdfac391d63dea5c4b8cde0de
+      name: Goals and OKR
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
+      channel: channel-1674845108569
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'marketing/quick_start:v1'
+category: marketing
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/marketing/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/marketing/quick_start/channel.png
+      name: Quick Start
+---
+######################
+# DESIGN
+######################
+id: 'design/create_project:v1'
+category: design
+useCase: Project Management
+illustration: /static/worktemplates/design/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.design.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.design.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.design.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/design/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'design/sprint_planning:v1'
+category: design
+useCase: Plan sprints
+illustration: /static/worktemplates/design/sprint_planning/sprint_planning.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.design.sprint_planning.channel
+    defaultMessage: >-
+      Chat with your team in a channel that connects easily with your boards and integrations.
+  board:
+    id: worktemplate.design.sprint_planning.board
+    defaultMessage: >-
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
+  integration:
+    id: worktemplate.design.sprint_planning.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674850783500
+      illustration: /static/worktemplates/design/sprint_planning/channel.png
+      name: Sprint planning
+  - board:
+      id: board-1674850783973
+      template: 99b74e26d2f5d0a9b346d43c0a7bfb09
+      name: Sprint planning
+      illustration: /static/worktemplates/boards/sprint_planner.png
+      channel: channel-1674850783500
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: "design/feature_release:v1"
+category: design
+useCase: Feature Development
+illustration: /static/worktemplates/design/feature_release/feature_release.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.design.feature_release.description.channel"
+        defaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+    board:
+        id: "worktemplate.design.feature_release.description.board"
+        defaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+    playbook:
+        id: "worktemplate.design.feature_release.description.playbook"
+        defaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+    integration:
+        id: "worktemplate.design.feature_release.description.integration"
+        defaultMessage: "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+        illustration: "/static/worktemplates/integrations.png"
+content:
+  - channel:
+      id: feature-release
+      name: Feature Release
+      playbook: product-release-playbook
+      illustration: "/static/worktemplates/design/feature_release/channel.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "54fcf9c610f0ac5e4c522c0657c90602"
+      name: Meeting Agenda
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/meeting_agenda.png"
+  - board:
+      id: "board-project-task"
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
+      name: Project Task
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/project_tasks.png"
+  - playbook:
+      template: "Product Release"
+      name: "Feature release"
+      id: product-release-playbook
+      illustration: "/static/worktemplates/playbooks/product_release.png"
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+---
+id: 'design/product_release:v1'
+category: design
+useCase: Prepare a product release
+illustration: /static/worktemplates/design/product_release/product_release.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.design.product_release.channel
+    defaultMessage: Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.
+  board:
+    id: worktemplate.design.product_release.board
+    defaultMessage: Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.
+  playbook:
+    id: worktemplate.design.product_release.playbook
+    defaultMessage: Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.
+content:
+  - playbook:
+      id: playbook-1674851385983
+      template: Product Release
+      name: Product Release
+      illustration: /static/worktemplates/playbooks/product_release.png
+  - board:
+      id: board-1674851386432
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Product Release
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851385983
+  - channel:
+      id: channel-1674851385983
+      illustration: /static/worktemplates/design/product_release/channel.png
+      name: Product Release
+      playbook: playbook-1674851385983
+---
+id: 'design/content_calendar:v1'
+category: design
+useCase: Content Calendar
+illustration: /static/worktemplates/design/content_calendar/content_calendar.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.design.content_calendar.channel
+    defaultMessage: >-
+      Share content ideas, trending posts, blog links, and mentions in a dedicated channel.
+  board:
+    id: worktemplate.design.content_calendar.board
+    defaultMessage: >-
+      Use the Content Calendar boad to track ideas, plan your content themes, manage the creation process, and set milestones.
+content:
+  - channel:
+      id: channel-ct
+      illustration: /static/worktemplates/design/content_calendar/channel.png
+      name: Content Calendar
+  - board:
+      id: board-ct
+      template: c75fbd659d2258b5183af2236d176ab4
+      name: Content Calendar
+      illustration: /static/worktemplates/boards/content_calendar.png
+      channel: channel-ct
+---
+id: 'design/quick_start:v1'
+category: design
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/design/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/design/quick_start/channel.png
+      name: Quick Start
+---
+######################
+# QA
+######################
+id: 'qa/bug_bash:v1'
+category: qa
+useCase: Run a bug bash
+illustration: /static/worktemplates/qa/bug_bash/bug_bash.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.qa.bug_bash.channel
+    defaultMessage: >-
+      Plan and manage bug reports and resolutions in a single channel, that’s easily accessible to your team and organization.
+  playbook:
+    id: worktemplate.qa.bug_bash.playbook
+    defaultMessage: >-
+      Use checklists to assign testing areas and automated tasks to run a comprehensive bug bash process. Use a retrospective to review your process and improve it for next time.
+  integration:
+    id: worktemplate.qa.bug_bash.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Jira, to track your bug bash progress. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - playbook:
+      id: playbook-1674844017943
+      template: Bug Bash
+      name: Bug Bash
+      illustration: /static/worktemplates/playbooks/bug_bash.png
+  - channel:
+      id: channel-1674844017943
+      illustration: /static/worktemplates/qa/bug_bash/channel.png
+      name: Bug Bash
+      playbook: playbook-1674844017943
+  - integration:
+      id: jira
+      recommended: true
+---
+id: 'qa/incident_resolution:v1'
+category: qa
+useCase: Resolve incidents
+illustration: /static/worktemplates/qa/incident_resolution/incident_resolution.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.qa.incident_resolution.description.channel"
+        defaultMessage: "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+    board:
+        id: "worktemplate.qa.incident_resolution.description.board"
+        defaultMessage: "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+    playbook:
+        id: "worktemplate.qa.incident_resolution.description.playbook"
+        defaultMessage: "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
+content:
+  - playbook:
+      id: irpb
+      template: Incident Resolution
+      name: Incident Resolution
+      illustration: /static/worktemplates/playbooks/incident_resolution.png
+  - channel:
+      id: irc
+      illustration: /static/worktemplates/qa/incident_resolution/channel.png
+      name: Incident Resolution
+      playbook: irpb
+  - board:
+      id: irb
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Incident Resolution
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: irc
+---
+id: 'qa/sprint_planning:v1'
+category: qa
+useCase: Plan sprints
+illustration: /static/worktemplates/qa/sprint_planning/sprint_planning.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.qa.sprint_planning.channel
+    defaultMessage: >-
+      Chat with your team in a channel that connects easily with your boards and integrations.
+  board:
+    id: worktemplate.qa.sprint_planning.board
+    defaultMessage: >-
+      Track your team's progress toward weekly goals with sprint breakdowns, prioritization, owner assignment, and comments.
+  integration:
+    id: worktemplate.qa.sprint_planning.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674850783500
+      illustration: /static/worktemplates/qa/sprint_planning/channel.png
+      name: Sprint planning
+  - board:
+      id: board-1674850783973
+      template: 99b74e26d2f5d0a9b346d43c0a7bfb09
+      name: Sprint planning
+      illustration: /static/worktemplates/boards/sprint_planner.png
+      channel: channel-1674850783500
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'qa/create_project:v1'
+category: qa
+useCase: Project Management
+illustration: /static/worktemplates/qa/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.qa.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.qa.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.qa.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/qa/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'qa/product_release:v1'
+category: qa
+useCase: Prepare a product release
+illustration: /static/worktemplates/qa/product_release/product_release.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.qa.product_release.channel
+    defaultMessage: Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.
+  board:
+    id: worktemplate.qa.product_release.board
+    defaultMessage: Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.
+  playbook:
+    id: worktemplate.qa.product_release.playbook
+    defaultMessage: Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.
+content:
+  - playbook:
+      id: playbook-1674851385983
+      template: Product Release
+      name: Product Release
+      illustration: /static/worktemplates/playbooks/product_release.png
+  - board:
+      id: board-1674851386432
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Product Release
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851385983
+  - channel:
+      id: channel-1674851385983
+      illustration: /static/worktemplates/qa/product_release/channel.png
+      name: Product Release
+      playbook: playbook-1674851385983
+---
+id: 'qa/quick_start:v1'
+category: qa
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/qa/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/qa/quick_start/channel.png
+      name: Quick Start
+---
+######################
+# OTHER
+######################
+id: 'other/create_project:v1'
+category: other
+useCase: Project Management
+illustration: /static/worktemplates/other/create_project/create_project.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.other.create_project.channel
+    defaultMessage: >-
+      Chat with your team about your new project and decide how you’re going to structure it, in a collaborative channel.
+  board:
+    id: worktemplate.other.create_project.board
+    defaultMessage: >-
+      Use a Kanban board to define and track your project tasks and progress.
+  integration:
+    id: worktemplate.other.create_project.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674851940114
+      illustration: >-
+        /static/worktemplates/other/create_project/channel.png
+      name: Create Project
+  - board:
+      id: board-1674851940548
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Create Project
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851940114
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'other/product_release:v1'
+category: other
+useCase: Prepare a product release
+illustration: /static/worktemplates/other/product_release/product_release.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.other.product_release.channel
+    defaultMessage: Chat with your team about daily milestones, any blockers, and changes to deliverables, easily and quickly.
+  board:
+    id: worktemplate.other.product_release.board
+    defaultMessage: Use the Product Release board to support your release timeframe and process, ensuring everyone knows which tasks are due.
+  playbook:
+    id: worktemplate.other.product_release.playbook
+    defaultMessage: Create repeatable workflows that are easy to follow and implement so product releases are reliable and on time.
+content:
+  - playbook:
+      id: playbook-1674851385983
+      template: Product Release
+      name: Product Release
+      illustration: /static/worktemplates/playbooks/product_release.png
+  - board:
+      id: board-1674851386432
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Product Release
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: channel-1674851385983
+  - channel:
+      id: channel-1674851385983
+      illustration: /static/worktemplates/other/product_release/channel.png
+      name: Product Release
+      playbook: playbook-1674851385983
+---
+id: 'other/goals_and_okrs:v1'
+category: other
+useCase: Set goals and OKR's
+illustration: /static/worktemplates/other/goals_and_okrs/goals_and_okrs.png
+visibility: public
+description:
+  channel:
+    id: worktemplate.other.goals_and_okrs.channel
+    defaultMessage: >-
+      Chat about your goals and progress with your team, async or real-time, and stay up to date with changes in a single channel.
+  board:
+    id: worktemplate.other.goals_and_okrs.board
+    defaultMessage: >-
+      Track your team's progress toward organizational goals with the Goals and OKR board. Keep meetings on track with the Meeting Agenda board.
+  integration:
+    id: worktemplate.other.goals_and_okrs.integration
+    defaultMessage: >-
+      Increase productivity in your channel by integrating your most commonly used tools, such as Zoom, to facilitate easy collaboration. These will be downloaded for you.
+    illustration: /static/worktemplates/integrations.png
+content:
+  - channel:
+      id: channel-1674845108569
+      illustration: /static/worktemplates/other/goals_and_okrs/channel.png
+      name: Goals and OKR
+  - board:
+      id: board-1674845139258
+      template: 7ba22ccfdfac391d63dea5c4b8cde0de
+      name: Goals and OKR
+      illustration: /static/worktemplates/boards/company_goal_and_okrs.png
+      channel: channel-1674845108569
+  - board:
+      id: board-1674845175528
+      template: 54fcf9c610f0ac5e4c522c0657c90602
+      name: Meeting Agenda
+      illustration: /static/worktemplates/boards/meeting_agenda.png
+      channel: channel-1674845108569
+  - integration:
+      id: zoom
+      recommended: true
+---
+id: 'other/incident_resolution:v1'
+category: other
+useCase: Resolve incidents
+illustration: /static/worktemplates/other/incident_resolution/incident_resolution.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.other.incident_resolution.description.channel"
+        defaultMessage: "Chat with your team about priorities, add stakeholders, provide updates, and work toward a resolution in a single channel."
+    board:
+        id: "worktemplate.other.incident_resolution.description.board"
+        defaultMessage: "Use the Incident Resolution board to support repeatable processes and assign defined tasks across the team."
+    playbook:
+        id: "worktemplate.other.incident_resolution.description.playbook"
+        defaultMessage: "Use checklists and automation to bring in key team members, and share how your incident is tracking toward resolution."
+content:
+  - playbook:
+      id: irpb
+      template: Incident Resolution
+      name: Incident Resolution
+      illustration: /static/worktemplates/playbooks/incident_resolution.png
+  - channel:
+      id: irc
+      illustration: /static/worktemplates/other/incident_resolution/channel.png
+      name: Incident Resolution
+      playbook: irpb
+  - board:
+      id: irb
+      template: a4ec399ab4f2088b1051c3cdf1dde4c3
+      name: Incident Resolution
+      illustration: /static/worktemplates/boards/project_tasks.png
+      channel: irc
+---
+id: "other/feature_release:v1"
+category: other
+useCase: Feature Development
+illustration: /static/worktemplates/other/feature_release/feature_release.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.other.feature_release.description.channel"
+        defaultMessage: "Chat with your team about any release blockers and changes in a channel that connects easily with your boards, playbooks and other integrations."
+    board:
+        id: "worktemplate.other.feature_release.description.board"
+        defaultMessage: "Keep meetings on track with the Meeting Agenda board. Manage your workload with the Project Tasks board."
+    playbook:
+        id: "worktemplate.other.feature_release.description.playbook"
+        defaultMessage: "Boost cross-functional team collaboration with task checklists and automation that support your feature development process. When you’re done, run a retrospective and make improvements for your next release."
+    integration:
+        id: "worktemplate.other.feature_release.description.integration"
+        defaultMessage: "Increase productivity in your channel by integrating your most commonly used tools to support your feature release, such as GitHub. These will be downloaded for you."
+        illustration: "/static/worktemplates/integrations.png"
+content:
+  - channel:
+      id: feature-release
+      name: Feature Release
+      playbook: product-release-playbook
+      illustration: "/static/worktemplates/other/feature_release/channel.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "54fcf9c610f0ac5e4c522c0657c90602"
+      name: Meeting Agenda
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/meeting_agenda.png"
+  - board:
+      id: "board-project-task"
+      template: "a4ec399ab4f2088b1051c3cdf1dde4c3"
+      name: Project Task
+      channel: feature-release
+      illustration: "/static/worktemplates/boards/project_tasks.png"
+  - playbook:
+      template: "Product Release"
+      name: "Feature release"
+      id: product-release-playbook
+      illustration: "/static/worktemplates/playbooks/product_release.png"
+  - integration:
+      id: jira
+      recommended: true
+  - integration:
+      id: github
+      recommended: true
+---
+id: 'other/quick_start:v1'
+category: other
+useCase: Quick Start FIXME
+illustration: /static/worktemplates/other/quick_start/quick_start.png
+visibility: public
+onboardingOnly: true
+content:
+  - channel:
+      id: channel-qs
+      illustration: /static/worktemplates/other/quick_start/channel.png
+      name: Quick Start

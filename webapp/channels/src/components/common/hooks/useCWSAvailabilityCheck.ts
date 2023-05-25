@@ -8,14 +8,16 @@ import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 export default function useCWSAvailabilityCheck() {
-    const [canReachCWS, setCanReachCWS] = useState(false);
+    const [canReachCWS, setCanReachCWS] = useState<boolean | undefined>(undefined);
     const config = useSelector(getConfig);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     useEffect(() => {
         if (!isEnterpriseReady) {
             return;
         }
-        Client4.cwsAvailabilityCheck().then(() => setCanReachCWS(true));
+        Client4.cwsAvailabilityCheck().then(() => {
+            setCanReachCWS(true);
+        }).catch(() => setCanReachCWS(false));
     }, [isEnterpriseReady]);
 
     return canReachCWS;

@@ -4,10 +4,28 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
+import ChannelSelect from 'components/channel_select';
+
 import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
+import {Team} from '@mattermost/types/teams';
 
 describe('components/integrations/AbstractIncomingWebhook', () => {
-    const team = {name: 'team_name'};
+    const team: Team = {id: 'team_id',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        display_name: 'team_name',
+        name: 'team_name',
+        description: 'team_description',
+        email: 'team_email',
+        type: 'I',
+        company_name: 'team_company_name',
+        allowed_domains: 'team_allowed_domains',
+        invite_id: 'team_invite_id',
+        allow_open_invite: false,
+        scheme_id: 'team_scheme_id',
+        group_constrained: false,
+    };
     const header = {id: 'header_id', defaultMessage: 'Header'};
     const footer = {id: 'footer_id', defaultMessage: 'Footer'};
     const loading = {id: 'loading_id', defaultMessage: 'Loading'};
@@ -16,6 +34,15 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         display_name: 'testIncomingWebhook',
         channel_id: '88cxd9wpzpbpfp8pad78xj75pr',
         description: 'testing',
+        id: 'test_id',
+        team_id: 'test_team_id',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        user_id: 'test_user_id',
+        username: '',
+        icon_url: '',
+        channel_locked: false,
     };
     const enablePostUsernameOverride = true;
     const enablePostIconOverride = true;
@@ -104,7 +131,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         };
 
         const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        wrapper.find('#channelId').simulate('change', evt);
+        wrapper.find(ChannelSelect).simulate('change', evt);
 
         expect(wrapper.state('channelId')).toBe(newChannelId);
     });

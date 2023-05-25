@@ -17,12 +17,13 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
@@ -63,6 +64,11 @@ func (ps *PlatformService) UpdateConfig(f func(*model.Config)) {
 	if _, _, err := ps.configStore.Set(updated); err != nil {
 		ps.logger.Error("Failed to update config", mlog.Err(err))
 	}
+}
+
+// IsConfigReadOnly returns true if the underlying configstore is readonly.
+func (ps *PlatformService) IsConfigReadOnly() bool {
+	return ps.configStore.IsReadOnly()
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
@@ -115,14 +121,14 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
 	var err error
-	dsn := *logSettings.AdvancedLoggingConfig
 	var logConfigSrc config.LogConfigSrc
-	if dsn != "" {
+	dsn := logSettings.GetAdvancedLoggingConfig()
+	if !utils.IsEmptyJSON(dsn) {
 		logConfigSrc, err = config.NewLogConfigSrc(dsn, ps.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
+		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)

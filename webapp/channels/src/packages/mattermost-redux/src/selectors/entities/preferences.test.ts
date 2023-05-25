@@ -732,3 +732,41 @@ describe('shouldShowUnreadsCategory', () => {
         expect(Selectors.shouldShowUnreadsCategory(state)).toBe(true);
     });
 });
+
+describe('get feature flags', () => {
+    test('should check the value of feature flag AppsSidebarCategory', () => {
+        let state = {
+            entities: {
+                general: {
+                    config: {},
+                },
+            },
+        } as GlobalState;
+
+        expect(Selectors.appsSidebarCategoryEnabled(state)).toBe(false);
+
+        state = {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagAppsSidebarCategory: 'false',
+                    },
+                },
+            },
+        } as GlobalState;
+
+        expect(Selectors.appsSidebarCategoryEnabled(state)).toBe(false);
+
+        state = {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagAppsSidebarCategory: 'true',
+                    },
+                },
+            },
+        } as GlobalState;
+
+        expect(Selectors.appsSidebarCategoryEnabled(state)).toBe(true);
+    });
+});

@@ -26,6 +26,10 @@ import {GlobalState} from 'types/store';
 import {openModal} from 'actions/views/modals';
 import {makeFetchBindings, postEphemeralCallResponseForPost, handleBindingClick, openAppsModal} from 'actions/apps';
 
+import {Permissions} from 'mattermost-redux/constants';
+import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+
 import ActionsMenu from './actions_menu';
 import {makeGetPostOptionBinding} from './selectors';
 
@@ -65,6 +69,10 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         pluginMenuItems: state.plugins.components.PostDropdownMenu,
         teamId: getCurrentTeamId(state),
         isMobileView: getIsMobileView(state),
+        canOpenMarketplace: (
+            isMarketplaceEnabled(state) &&
+            haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
+        ),
     };
 }
 

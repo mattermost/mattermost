@@ -1,280 +1,269 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import debounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useRef, useState, ReactNode} from 'react';
 import {Tabs, Tab, SelectCallback} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
+import debounce from 'lodash/debounce';
 
-import {PluginStatusRedux} from '@mattermost/types/plugins';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import {MagnifyIcon} from '@mattermost/compass-icons/components';
 
-import FullScreenModal from 'components/widgets/modals/full_screen_modal';
-import RootPortal from 'components/root_portal';
-import QuickInput from 'components/quick_input';
-import LocalizedInput from 'components/localized_input/localized_input';
-import PluginIcon from 'components/widgets/icons/plugin_icon';
-import LoadingScreen from 'components/loading_screen';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import {FooterPagination} from '@mattermost/components';
+import {getPluginStatuses} from 'mattermost-redux/actions/admin';
+import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
+import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
+import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
+import {closeModal} from 'actions/views/modals';
+
+import GenericModal from 'components/generic_modal';
+import LoadingScreen from 'components/loading_screen';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
+
+import {getListing, getInstalledListing} from 'selectors/views/marketplace';
+import {isModalOpen} from 'selectors/views/modals';
+import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
 
 import './marketplace_modal.scss';
-import MarketplaceList from './marketplace_list/marketplace_list';
+
+import MarketplaceList, {ITEMS_PER_PAGE} from './marketplace_list/marketplace_list';
 
 const MarketplaceTabs = {
-    ALL_LISTING: 'allListing',
+    ALL_LISTING: 'all',
     INSTALLED_LISTING: 'installed',
 };
 
 const SEARCH_TIMEOUT_MILLISECONDS = 200;
 
-type AllListingProps = {
-    listing: Array<MarketplacePlugin | MarketplaceApp>;
-};
+const linkConsole = (msg: string): ReactNode => (
+    <Link to='/admin_console/plugins/plugin_management'>
+        {msg}
+    </Link>
+);
 
-// AllListing renders the contents of the all listing tab.
-export const AllListing = ({listing}: AllListingProps): JSX.Element => {
-    if (listing.length === 0) {
-        return (
-            <div className='no_plugins_div'>
-                <br/>
-                <PluginIcon className='icon__plugin'/>
-                <div className='mt-3 light'>
-                    <FormattedMessage
-                        id='marketplace_modal.no_plugins'
-                        defaultMessage='There are no plugins available at this time.'
-                    />
-                </div>
-            </div>
-        );
-    }
+export type OpenedFromType = 'actions_menu' | 'app_bar' | 'channel_header' | 'command' | 'open_plugin_install_post' | 'product_menu';
 
-    return <MarketplaceList listing={listing}/>;
-};
-
-type InstalledListingProps = {
-    installedItems: Array<MarketplacePlugin | MarketplaceApp>;
-    changeTab: SelectCallback;
-};
-
-// InstalledListing renders the contents of the installed listing tab.
-export const InstalledListing = ({installedItems, changeTab}: InstalledListingProps): JSX.Element => {
-    if (installedItems.length === 0) {
-        return (
-            <div className='no_plugins_div'>
-                <br/>
-                <PluginIcon className='icon__plugin'/>
-                <div className='mt-3 light'>
-                    <FormattedMessage
-                        id='marketplace_modal.no_plugins_installed'
-                        defaultMessage='You do not have any plugins installed.'
-                    />
-                </div>
-                <button
-                    className='mt-5 style--none color--link'
-                    onClick={() => changeTab(MarketplaceTabs.ALL_LISTING)}
-                    data-testid='Install-Plugins-button'
-                >
-                    <FormattedMessage
-                        id='marketplace_modal.install_plugins'
-                        defaultMessage='Install Plugins'
-                    />
-                </button>
-            </div>
-        );
-    }
-
-    return <MarketplaceList listing={installedItems}/>;
-};
-
-export type MarketplaceModalProps = {
-    show: boolean;
-    listing: Array<MarketplacePlugin | MarketplaceApp>;
-    installedListing: Array<MarketplacePlugin | MarketplaceApp>;
-    siteURL: string;
-    pluginStatuses?: Record<string, PluginStatusRedux>;
-    firstAdminVisitMarketplaceStatus: boolean;
-    actions: {
-        closeModal: () => void;
-        fetchListing(localOnly?: boolean): Promise<{error?: Error}>;
-        filterListing(filter: string): Promise<{error?: Error}>;
-        setFirstAdminVisitMarketplaceStatus(): Promise<void>;
-        getPluginStatuses(): Promise<void>;
-    };
-};
-
-type MarketplaceModalState = {
-    tabKey: unknown;
-    loading: boolean;
-    serverError?: Error;
-    filter: string;
-};
-
-// MarketplaceModal is the marketplace modal.
-export default class MarketplaceModal extends React.PureComponent<MarketplaceModalProps, MarketplaceModalState> {
-    private filterRef: React.RefObject<HTMLInputElement>;
-
-    constructor(props: MarketplaceModalProps) {
-        super(props);
-
-        this.state = {
-            tabKey: MarketplaceTabs.ALL_LISTING,
-            loading: true,
-            serverError: undefined,
-            filter: '',
-        };
-
-        this.filterRef = React.createRef();
-    }
-
-    componentDidMount(): void {
-        trackEvent('plugins', 'ui_marketplace_opened');
-
-        this.fetchListing();
-        this.props.actions.getPluginStatuses();
-        if (!this.props.firstAdminVisitMarketplaceStatus) {
-            trackEvent('plugins', 'ui_first_admin_visit_marketplace_status');
-
-            this.props.actions.setFirstAdminVisitMarketplaceStatus();
-        }
-
-        this.filterRef.current?.focus();
-    }
-
-    componentDidUpdate(prevProps: MarketplaceModalProps): void {
-        // Automatically refresh the component when a plugin is installed or uninstalled.
-        if (this.props.pluginStatuses !== prevProps.pluginStatuses) {
-            this.fetchListing();
-        }
-    }
-
-    fetchListing = async (): Promise<void> => {
-        const {error} = await this.props.actions.fetchListing();
-        this.setState({loading: false, serverError: error});
-    }
-
-    close = (): void => {
-        trackEvent('plugins', 'ui_marketplace_closed');
-        this.props.actions.closeModal();
-    }
-
-    changeTab: SelectCallback = (tabKey: any): void => {
-        this.setState({tabKey});
-    }
-
-    onInput = (): void => {
-        if (this.filterRef.current) {
-            this.setState({filter: this.filterRef.current.value});
-
-            this.debouncedSearch();
-        }
-    }
-
-    handleClearSearch = (): void => {
-        if (this.filterRef.current) {
-            this.filterRef.current.value = '';
-            this.setState({filter: this.filterRef.current.value}, this.doSearch);
-        }
-    }
-
-    doSearch = async (): Promise<void> => {
-        trackEvent('plugins', 'ui_marketplace_search', {filter: this.state.filter});
-
-        const {error} = await this.props.actions.filterListing(this.state.filter);
-
-        this.setState({serverError: error});
-    }
-
-    debouncedSearch = debounce(this.doSearch, SEARCH_TIMEOUT_MILLISECONDS);
-
-    render(): JSX.Element {
-        const input = (
-            <div className='filter-row filter-row--full'>
-                <div className='col-sm-12'>
-                    <QuickInput
-                        id='searchMarketplaceTextbox'
-                        ref={this.filterRef}
-                        className='form-control filter-textbox search_input'
-                        placeholder={{id: t('marketplace_modal.search'), defaultMessage: 'Search Marketplace'}}
-                        inputComponent={LocalizedInput}
-                        onInput={this.onInput}
-                        value={this.state.filter}
-                        clearable={true}
-                        onClear={this.handleClearSearch}
-                    />
-                </div>
-            </div>
-        );
-
-        let errorBanner = null;
-        if (this.state.serverError) {
-            errorBanner = (
-                <div
-                    className='error-bar'
-                    id='error_bar'
-                >
-                    <div className='error-bar__content'>
-                        <FormattedMarkdownMessage
-                            id='app.plugin.marketplace_plugins.app_error'
-                            defaultMessage='Error connecting to the marketplace server. Please check your settings in the [System Console]({siteURL}/admin_console/plugins/plugin_management).'
-                            values={{siteURL: this.props.siteURL}}
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <RootPortal>
-                <FullScreenModal
-                    show={this.props.show}
-                    onClose={this.close}
-                    ariaLabel={localizeMessage('marketplace_modal.title', 'Marketplace')}
-                >
-                    {errorBanner}
-                    <div
-                        className='modal-marketplace'
-                        id='modal_marketplace'
-                    >
-                        <h1>
-                            <strong>
-                                <FormattedMessage
-                                    id='marketplace_modal.title'
-                                    defaultMessage='Marketplace'
-                                />
-                            </strong>
-                        </h1>
-                        {input}
-                        <Tabs
-                            id='marketplaceTabs'
-                            className='tabs'
-                            defaultActiveKey={MarketplaceTabs.ALL_LISTING}
-                            activeKey={this.state.tabKey}
-                            onSelect={this.changeTab}
-                            unmountOnExit={true}
-                        >
-                            <Tab
-                                eventKey={MarketplaceTabs.ALL_LISTING}
-                                title={localizeMessage('marketplace_modal.tabs.all_listing', 'All')}
-                            >
-                                {this.state.loading ? <LoadingScreen/> : <AllListing listing={this.props.listing}/>}
-                            </Tab>
-                            <Tab
-                                eventKey={MarketplaceTabs.INSTALLED_LISTING}
-                                title={localizeMessage('marketplace_modal.tabs.installed_listing', 'Installed') + ` (${this.props.installedListing.length})`}
-                            >
-                                <InstalledListing
-                                    installedItems={this.props.installedListing}
-                                    changeTab={this.changeTab}
-                                />
-                            </Tab>
-                        </Tabs>
-                    </div>
-                </FullScreenModal>
-            </RootPortal>
-        );
-    }
+type MarketplaceModalProps = {
+    openedFrom: OpenedFromType;
 }
+
+const MarketplaceModal = ({
+    openedFrom,
+}: MarketplaceModalProps) => {
+    const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
+    const listRef = useRef<HTMLDivElement>(null);
+
+    const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.PLUGIN_MARKETPLACE));
+    const listing = useSelector(getListing);
+    const installedListing = useSelector(getInstalledListing);
+    const pluginStatuses = useSelector((state: GlobalState) => state.entities.admin.pluginStatuses);
+    const hasFirstAdminVisitedMarketplace = useSelector(getFirstAdminVisitMarketplaceStatus);
+
+    const [tabKey, setTabKey] = useState(MarketplaceTabs.ALL_LISTING);
+    const [filter, setFilter] = useState('');
+    const [page, setPage] = useState(0);
+    const [hasLoaded, setHasLoaded] = useState(false);
+    const [loading, setLoading] = React.useState(true);
+    const [serverError, setServerError] = React.useState(false);
+
+    const doFetchListing = useCallback(async () => {
+        const {error} = await dispatch(fetchListing()) as ActionResult;
+
+        if (error) {
+            setServerError(true);
+        }
+
+        setLoading(false);
+    }, []);
+
+    const doSearch = useCallback(async () => {
+        trackEvent('plugins', 'ui_marketplace_search', {filter});
+
+        const {error} = await dispatch(filterListing(filter)) as ActionResult;
+
+        if (error) {
+            setServerError(true);
+        }
+    }, [filter]);
+
+    const debouncedSearch = debounce(doSearch, SEARCH_TIMEOUT_MILLISECONDS);
+
+    useEffect(() => {
+        async function doFetch() {
+            await dispatch(getPluginStatuses());
+            await doFetchListing();
+            setHasLoaded(true);
+        }
+
+        trackEvent('plugins', 'ui_marketplace_opened', {from: openedFrom});
+
+        if (!hasFirstAdminVisitedMarketplace) {
+            trackEvent('plugins', 'ui_first_admin_visit_marketplace_status');
+            dispatch(setFirstAdminVisitMarketplaceStatus());
+        }
+
+        doFetch();
+    }, []);
+
+    useEffect(() => {
+        if (hasLoaded) {
+            doFetchListing();
+        }
+    }, [pluginStatuses]);
+
+    useEffect(() => {
+        if (hasLoaded) {
+            debouncedSearch();
+            setPage(0);
+        }
+    }, [filter]);
+
+    const scrollListToTop = useCallback(() => {
+        if (listRef.current) {
+            listRef.current.scrollTop = 0;
+        }
+    }, []);
+
+    const handleOnClose = () => {
+        trackEvent('plugins', 'ui_marketplace_closed');
+        dispatch(closeModal(ModalIdentifiers.PLUGIN_MARKETPLACE));
+    };
+
+    const handleChangeTab: SelectCallback = useCallback((tabKey) => {
+        setTabKey(tabKey);
+        setPage(0);
+        scrollListToTop();
+    }, [scrollListToTop]);
+
+    const handleOnChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setFilter(event.target.value);
+    }, []);
+
+    const handleOnClear = useCallback(() => {
+        setFilter('');
+    }, []);
+
+    const handleOnNextPage = useCallback(() => {
+        setPage(page + 1);
+        scrollListToTop();
+    }, [page, scrollListToTop]);
+
+    const handleOnPreviousPage = useCallback(() => {
+        setPage(page - 1);
+        scrollListToTop();
+    }, [page, scrollListToTop]);
+
+    const handleNoResultsButtonClick = useCallback(() => {
+        handleChangeTab(MarketplaceTabs.ALL_LISTING);
+    }, [handleChangeTab]);
+
+    const getHeaderInput = useCallback(() => (
+        <Input
+            id='searchMarketplaceTextbox'
+            name='searchMarketplaceTextbox'
+            containerClassName='marketplace-modal-search'
+            inputClassName='search_input'
+            type='text'
+            inputSize={SIZE.LARGE}
+            inputPrefix={<MagnifyIcon size={24}/>}
+            placeholder={formatMessage({id: 'marketplace_modal.search', defaultMessage: 'Search marketplace'})}
+            useLegend={false}
+            autoFocus={true}
+            clearable={true}
+            value={filter}
+            onChange={handleOnChange}
+            onClear={handleOnClear}
+        />
+    ), [filter, handleOnChange, handleOnClear]);
+
+    const getFooterContent = useCallback(() => (
+        <FooterPagination
+            page={page}
+            total={tabKey === MarketplaceTabs.ALL_LISTING ? listing.length : installedListing.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onNextPage={handleOnNextPage}
+            onPreviousPage={handleOnPreviousPage}
+        />
+    ), [installedListing.length, listing.length, page, handleOnNextPage, handleOnPreviousPage, tabKey]);
+
+    return (
+        <GenericModal
+            id='marketplace-modal'
+            className='marketplace-modal'
+            modalHeaderText={formatMessage({id: 'marketplace_modal.title', defaultMessage: 'App Marketplace'})}
+            ariaLabel={formatMessage({id: 'marketplace_modal.title', defaultMessage: 'App Marketplace'})}
+            errorText={serverError ? (
+                formatMessage(
+                    {
+                        id: 'marketplace_modal.app_error',
+                        defaultMessage: 'Error connecting to the marketplace server. Please check your settings in the <linkConsole>System Console</linkConsole>.',
+                    },
+                    {linkConsole},
+                )
+            ) : undefined}
+            show={show}
+            compassDesign={true}
+            bodyPadding={false}
+            footerDivider={true}
+            onExited={handleOnClose}
+            footerContent={getFooterContent()}
+            headerInput={getHeaderInput()}
+        >
+            <Tabs
+                id='marketplaceTabs'
+                className='tabs'
+                defaultActiveKey={MarketplaceTabs.ALL_LISTING}
+                activeKey={tabKey}
+                onSelect={handleChangeTab}
+                unmountOnExit={true}
+            >
+                <Tab
+                    eventKey={MarketplaceTabs.ALL_LISTING}
+                    title={formatMessage({id: 'marketplace_modal.tabs.all_listing', defaultMessage: 'All'})}
+                >
+                    {loading ? (
+                        <LoadingScreen className='loading'/>
+                    ) : (
+                        <MarketplaceList
+                            listRef={listRef}
+                            listing={listing}
+                            page={page}
+                            filter={filter}
+                            noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
+                        />
+                    )}
+                </Tab>
+                <Tab
+                    eventKey={MarketplaceTabs.INSTALLED_LISTING}
+                    title={formatMessage(
+                        {id: 'marketplace_modal.tabs.installed_listing', defaultMessage: 'Installed ({count})'},
+                        {count: installedListing.length},
+                    )}
+                >
+                    <MarketplaceList
+                        listRef={listRef}
+                        listing={installedListing}
+                        page={page}
+                        filter={filter}
+                        noResultsMessage={formatMessage({
+                            id: 'marketplace_modal.no_plugins_installed',
+                            defaultMessage: 'No plugins installed found',
+                        })}
+                        noResultsAction={{
+                            label: formatMessage({id: 'marketplace_modal.install_plugins', defaultMessage: 'Install plugins'}),
+                            onClick: handleNoResultsButtonClick,
+                        }}
+                    />
+                </Tab>
+            </Tabs>
+        </GenericModal>
+    );
+};
+
+export default MarketplaceModal;

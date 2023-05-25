@@ -16,7 +16,7 @@ class FilterCheckbox extends React.PureComponent<Props> {
         e.stopPropagation();
         const {checked, name, updateOption} = this.props;
         updateOption(!checked, name);
-    }
+    };
 
     render() {
         const {name, checked, label} = this.props;

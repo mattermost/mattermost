@@ -10,7 +10,7 @@ import {uniqWith} from 'lodash';
 import {Post} from '@mattermost/types/posts';
 import {MarketplacePlugin} from '@mattermost/types/marketplace';
 
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Markdown from 'components/markdown';
 
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
@@ -301,6 +301,7 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
                                 className='color--link'
                                 modalId={ModalIdentifiers.PLUGIN_MARKETPLACE}
                                 dialogType={MarketplaceModal}
+                                dialogProps={{openedFrom: 'open_plugin_install_post'}}
                             >
                                 {text}
                             </ToggleModalButton>

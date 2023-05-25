@@ -12,9 +12,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/morph/models"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 // EnsureSchemaMigrationFormat checks the schema migrations table
@@ -27,7 +27,7 @@ func (s *SQLStore) EnsureSchemaMigrationFormat() error {
 	}
 
 	if !migrationNeeded {
-		s.logger.Info("Schema migration table is correct format")
+		s.logger.Info("Schema migration table is in correct format")
 		return nil
 	}
 
@@ -126,7 +126,7 @@ func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
 	case model.MysqlDBType:
 		query = query.Where(sq.Eq{"TABLE_SCHEMA": s.schemaName})
 	case model.PostgresDBType:
-		query = query.Where(sq.Eq{"TABLE_SCHEMA": "current_schema()"})
+		query = query.Where("table_schema = current_schema()")
 	}
 
 	rows, err := query.Query()

@@ -213,9 +213,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
                     content="name"
                     intl={
                       Object {
+                        "$t": [Function],
                         "defaultFormats": Object {},
                         "defaultLocale": "en",
                         "defaultRichTextElements": undefined,
+                        "fallbackOnEmptyString": true,
                         "formatDate": [Function],
                         "formatDateTimeRange": [Function],
                         "formatDateToParts": [Function],
@@ -242,6 +244,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
                         "locale": "en",
                         "messages": Object {},
                         "onError": [Function],
+                        "onWarn": [Function],
                         "textComponent": "span",
                         "timeZone": "Etc/UTC",
                         "wrapRichTextChunksInFragment": undefined,
@@ -457,9 +460,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                     content="name"
                     intl={
                       Object {
+                        "$t": [Function],
                         "defaultFormats": Object {},
                         "defaultLocale": "en",
                         "defaultRichTextElements": undefined,
+                        "fallbackOnEmptyString": true,
                         "formatDate": [Function],
                         "formatDateTimeRange": [Function],
                         "formatDateToParts": [Function],
@@ -486,6 +491,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                         "locale": "en",
                         "messages": Object {},
                         "onError": [Function],
+                        "onWarn": [Function],
                         "textComponent": "span",
                         "timeZone": "Etc/UTC",
                         "wrapRichTextChunksInFragment": undefined,
@@ -603,9 +609,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                       id="sharedTooltip"
                       intl={
                         Object {
+                          "$t": [Function],
                           "defaultFormats": Object {},
                           "defaultLocale": "en",
                           "defaultRichTextElements": undefined,
+                          "fallbackOnEmptyString": true,
                           "formatDate": [Function],
                           "formatDateTimeRange": [Function],
                           "formatDateToParts": [Function],
@@ -632,6 +640,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                           "locale": "en",
                           "messages": Object {},
                           "onError": [Function],
+                          "onWarn": [Function],
                           "textComponent": "span",
                           "timeZone": "Etc/UTC",
                           "wrapRichTextChunksInFragment": undefined,
@@ -834,9 +843,11 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                     content="name"
                     intl={
                       Object {
+                        "$t": [Function],
                         "defaultFormats": Object {},
                         "defaultLocale": "en",
                         "defaultRichTextElements": undefined,
+                        "fallbackOnEmptyString": true,
                         "formatDate": [Function],
                         "formatDateTimeRange": [Function],
                         "formatDateToParts": [Function],
@@ -863,6 +874,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
                         "locale": "en",
                         "messages": Object {},
                         "onError": [Function],
+                        "onWarn": [Function],
                         "textComponent": "span",
                         "timeZone": "Etc/UTC",
                         "wrapRichTextChunksInFragment": undefined,

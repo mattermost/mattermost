@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IntlShape} from 'react-intl';
+import {IntlShape, useIntl} from 'react-intl';
+
+import {useMemo} from 'react';
+
+import {useSelector} from 'react-redux';
 
 import {createSelector} from 'reselect';
 
@@ -16,12 +20,15 @@ import {get, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mat
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetDisplayName, getCurrentUserId, getUser, UserMentionKey, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
+
+import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import {Channel} from '@mattermost/types/channels';
 import {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import {ServerError} from '@mattermost/types/errors';
 import {Group} from '@mattermost/types/groups';
-import {Post} from '@mattermost/types/posts';
+import {Post, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
 import {Reaction} from '@mattermost/types/reactions';
 import {UserProfile} from '@mattermost/types/users';
 
@@ -36,14 +43,14 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {GlobalState} from 'types/store';
 
 import Constants, {PostListRowListIds, Preferences} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
 import {isMobile} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
-import * as Emoticons from './emoticons';
 import EmojiMap from './emoji_map';
+import * as Emoticons from './emoticons';
 
 const CHANNEL_SWITCH_IGNORE_ENTER_THRESHOLD_MS = 500;
 
@@ -230,7 +237,7 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
     }
 
     // Focus if it is an attempted paste
-    if (Utils.cmdOrCtrlPressed(e) && Utils.isKeyPressed(e, Constants.KeyCodes.V)) {
+    if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.V)) {
         return true;
     }
 
@@ -251,7 +258,7 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
 
     // Do not focus when pressing space on link elements
     const spaceKeepFocusTags = ['BUTTON', 'A'];
-    if (Utils.isKeyPressed(e, Constants.KeyCodes.SPACE) && spaceKeepFocusTags.includes(activeElement.tagName)) {
+    if (Keyboard.isKeyPressed(e, Constants.KeyCodes.SPACE) && spaceKeepFocusTags.includes(activeElement.tagName)) {
         return false;
     }
 
@@ -305,7 +312,7 @@ export function postMessageOnKeyPress(
     }
 
     // Only ENTER sends, unless shift or alt key pressed.
-    if (!Utils.isKeyPressed(event, Constants.KeyCodes.ENTER) || event.shiftKey || event.altKey) {
+    if (!Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER) || event.shiftKey || event.altKey) {
         return {allowSending: false};
     }
 
@@ -443,27 +450,41 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
     );
 }
 
-export function makeCreateAriaLabelForPost(): (state: GlobalState, post: Post) => (intl: IntlShape) => string {
-    const getReactionsForPost = makeGetUniqueReactionsToPost();
-    const getDisplayName = makeGetDisplayName();
-    const getMentionsFromMessage = makeGetMentionsFromMessage();
+export function usePostAriaLabel(post: Post | undefined) {
+    const intl = useIntl();
 
-    return createSelector(
-        'makeCreateAriaLabelForPost',
-        (state: GlobalState, post: Post) => post,
-        (state: GlobalState, post: Post) => getDisplayName(state, post.user_id),
-        (state: GlobalState, post: Post) => getReactionsForPost(state, post.id),
-        (state: GlobalState, post: Post) => get(state, Preferences.CATEGORY_FLAGGED_POST, post.id, null) != null,
-        getEmojiMap,
-        (state: GlobalState, post: Post) => getMentionsFromMessage(state, post),
-        (state: GlobalState) => getTeammateNameDisplaySetting(state),
-        (post, author, reactions, isFlagged, emojiMap, mentions, teammateNameDisplaySetting) => {
-            return (intl: IntlShape) => createAriaLabelForPost(post, author, isFlagged, reactions ?? {}, intl, emojiMap, mentions, teammateNameDisplaySetting);
-        },
-    );
+    const getDisplayName = useMemo(makeGetDisplayName, []);
+    const getReactionsForPost = useMemo(makeGetReactionsForPost, []);
+    const getMentionsFromMessage = useMemo(makeGetMentionsFromMessage, []);
+
+    const createAriaLabelMemoized = memoizeResult(createAriaLabelForPost);
+
+    return useSelector((state: GlobalState) => {
+        if (!post) {
+            return '';
+        }
+
+        const authorDisplayName = getDisplayName(state, post.user_id);
+        const reactions = getReactionsForPost(state, post?.id);
+        const isFlagged = get(state, Preferences.CATEGORY_FLAGGED_POST, post.id, null) != null;
+        const emojiMap = getEmojiMap(state);
+        const mentions = getMentionsFromMessage(state, post);
+        const teammateNameDisplaySetting = getTeammateNameDisplaySetting(state);
+
+        return createAriaLabelMemoized(
+            post,
+            authorDisplayName,
+            isFlagged,
+            reactions,
+            intl,
+            emojiMap,
+            mentions,
+            teammateNameDisplaySetting,
+        );
+    });
 }
 
-export function createAriaLabelForPost(post: Post, author: string, isFlagged: boolean, reactions: Record<string, Reaction>, intl: IntlShape, emojiMap: EmojiMap, mentions: Record<string, UserProfile>, teammateNameDisplaySetting: string): string {
+export function createAriaLabelForPost(post: Post, author: string, isFlagged: boolean, reactions: Record<string, Reaction> | undefined, intl: IntlShape, emojiMap: EmojiMap, mentions: Record<string, UserProfile>, teammateNameDisplaySetting: string): string {
     const {formatMessage, formatTime, formatDate} = intl;
 
     let message = post.state === Posts.POST_DELETED ? formatMessage({
@@ -717,4 +738,42 @@ export function mentionsMinusSpecialMentionsInText(message: string) {
     }
 
     return mentions;
+}
+
+function isUserProfile(entity: UserProfile | Group): entity is UserProfile {
+    return (entity as UserProfile).username !== undefined;
+}
+
+export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState, message: Post['message']) => number {
+    return createSelector(
+        'getUserOrGroupMentionCountFromMessage',
+        (_state: GlobalState, message: Post['message']) => message,
+        getUsersByUsername,
+        getAllGroupsForReferenceByName,
+        (message, users, groups) => {
+            let count = 0;
+            const markdownCleanedText = formatWithRenderer(message, new MentionableRenderer());
+            const mentions = new Set(markdownCleanedText.match(Constants.MENTIONS_REGEX) || []);
+            mentions.forEach((mention) => {
+                const data = {...groups, ...users};
+                const userOrGroup = getUserOrGroupFromMentionName(data, mention.substring(1));
+
+                if (userOrGroup) {
+                    if (isUserProfile(userOrGroup)) {
+                        count++;
+                    } else {
+                        count += userOrGroup.member_count;
+                    }
+                }
+            });
+            return count;
+        },
+    );
+}
+
+export function hasRequestedPersistentNotifications(priority?: PostPriorityMetadata) {
+    return (
+        priority?.priority === PostPriority.URGENT &&
+        priority?.persistent_notifications
+    );
 }

@@ -4,13 +4,13 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 )
 
 type Option func(s *Server) error
@@ -98,6 +98,17 @@ func SetLogger(logger *mlog.Logger) Option {
 func SkipPostInitialization() Option {
 	return func(s *Server) error {
 		s.skipPostInit = true
+
+		return nil
+	}
+}
+
+// SkipProductsInitialization is intended for testing only, in cases
+// where we're mocking components like the store and products cannot
+// be initialized correctly
+func SkipProductsInitialization() Option {
+	return func(s *Server) error {
+		s.skipProductsInit = true
 
 		return nil
 	}

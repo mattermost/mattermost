@@ -8,7 +8,6 @@ interface IUser {
     nickname: string
     firstname: string
     lastname: string
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     props: Record<string, any>
     create_at: number
     update_at: number
@@ -60,4 +59,8 @@ export {
     UserConfigPatch,
     parseUserProps,
     UserPreference,
+}
+
+export function isUser(x: Record<string, any>): x is IUser {
+    return Boolean(x?.username)
 }

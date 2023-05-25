@@ -110,7 +110,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
     handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
-    }
+    };
 
     handleResponse = (err?: ServerError) => {
         let addError = null;
@@ -122,7 +122,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
             saving: false,
             addError,
         });
-    }
+    };
 
     handleSubmit = async () => {
         const groupIDs = this.state.values.map((v) => v.id);
@@ -147,7 +147,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 this.handleHide();
             }
         }));
-    }
+    };
 
     addValue = (value: GroupValue) => {
         const values = Object.assign([], this.state.values);
@@ -157,13 +157,13 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
         }
 
         this.setState({values});
-    }
+    };
 
     setGroupsLoadingState = (loadingState: boolean) => {
         this.setState({
             loadingGroups: loadingState,
         });
-    }
+    };
 
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
@@ -172,15 +172,15 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 this.setGroupsLoadingState(false);
             });
         }
-    }
+    };
 
     handleDelete = (values: GroupValue[]) => {
         this.setState({values});
-    }
+    };
 
     search = (term: string) => {
         this.props.actions.setModalSearchTerm(term);
-    }
+    };
 
     renderOption = (option: GroupValue, isSelected: boolean, onAdd: (value: GroupValue) => void, onMouseMove?: (value: GroupValue) => void) => {
         const rowSelected = isSelected ? 'more-modal__row--selected' : '';
@@ -222,7 +222,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 </div>
             </div>
         );
-    }
+    };
 
     renderValue(props: { data: Partial<Value> }) {
         return props.data.display_name;

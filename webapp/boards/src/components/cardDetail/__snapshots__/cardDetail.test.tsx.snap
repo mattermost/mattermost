@@ -171,7 +171,7 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
       <p
         class="CardDetail__limited-body"
       >
-        Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.
+        Upgrade to our Professional or Enterprise plan.
         <br />
         <a
           class="CardDetail__limited-link"
@@ -480,7 +480,7 @@ exports[`components/cardDetail/CardDetail should show add properties tour tip 1`
         <div
           class="tutorial-tour-tip__body"
         >
-          Add various properties to cards to make them more powerful!
+          Add various properties to cards to make them more powerful.
         </div>
         <div
           class="tutorial-tour-tip__image"

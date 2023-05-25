@@ -113,20 +113,20 @@ export class SearchBar extends Component<Props, State> {
         }
         this.props.saveSearchBarText(searchText);
         this.props.handleSearchTextChange(searchText);
-    }
+    };
 
     handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         this.triggerSearch(this.searchInputRef.current?.value || '');
         this.searchInputRef.current?.blur();
-    }
+    };
 
     triggerSearch = (searchText: string) => {
         const {onSearch} = this.props;
         this.props.searchTextUpdate(this.parseSearchText(searchText));
         onSearch?.();
         this.props.saveSearchScrollPosition?.(0);
-    }
+    };
 
     handleChange = (event: ChangeEvent<HTMLInputElement>) => {
         clearTimeout(this.searchTimeout);
@@ -145,7 +145,7 @@ export class SearchBar extends Component<Props, State> {
                 this.triggerSearch(searchText);
             }, 500);
         }
-    }
+    };
 
     focusInput = () => this.setState({inputFocused: true});
     blurInput = () => this.setState({inputFocused: false});
@@ -166,7 +166,7 @@ export class SearchBar extends Component<Props, State> {
         }) : [];
 
         return Boolean(filteredTags.length);
-    }
+    };
 
     clearSearchHandle = () => {
         const {action, onTrending, onCategories} = this.props;
@@ -176,7 +176,7 @@ export class SearchBar extends Component<Props, State> {
         } else {
             onTrending?.();
         }
-    }
+    };
 
     shouldComponentUpdate(nextProps: Props, nextState: State) {
         return ((!nextProps.searchBarText && this.props.searchBarText) ||

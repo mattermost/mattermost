@@ -26,7 +26,7 @@ export default class RadioSetting extends React.PureComponent<Props> {
 
     private handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         this.props.onChange(this.props.id, e.target.value);
-    }
+    };
 
     public render(): JSX.Element {
         return (

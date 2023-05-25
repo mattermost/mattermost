@@ -2,16 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {act, render} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
-
-import '@testing-library/jest-dom'
 
 import {mocked} from 'jest-mock'
 
 import {TextBlock} from 'src/blocks/textBlock'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {Utils} from 'src/utils'
 
@@ -22,7 +20,7 @@ import TextElement from './textElement'
 jest.mock('src/utils')
 jest.mock('src/mutator')
 jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
-const mockedUtils = mocked(Utils, true)
+const mockedUtils = mocked(Utils)
 mockedUtils.createGuid.mockReturnValue('test-id')
 const defaultBlock: TextBlock = {
     id: 'test-id',

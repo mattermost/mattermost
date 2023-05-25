@@ -3,7 +3,7 @@
 
 import React, {useState, useEffect} from 'react';
 
-import ThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme';
+import ThemeProvider, {lightTheme} from '@mattermost/compass-components/utilities/theme'; // eslint-disable-line no-restricted-imports
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 

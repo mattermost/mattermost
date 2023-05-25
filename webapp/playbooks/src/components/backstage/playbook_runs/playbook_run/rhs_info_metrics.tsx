@@ -122,6 +122,7 @@ const Value = ({metricValue, metricType, editable}: ValueProps) => {
     if (metricValue === null) {
         return (
             <ValuePlaceholder>
+                {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                 {editable ? formatMessage({defaultMessage: 'Add value...'}) : '-'}
             </ValuePlaceholder>
         );

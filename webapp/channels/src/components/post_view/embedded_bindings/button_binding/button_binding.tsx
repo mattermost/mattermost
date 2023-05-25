@@ -99,7 +99,7 @@ export class ButtonBinding extends React.PureComponent<Props, State> {
             this.props.actions.postEphemeralCallResponseForPost(callResp, errorMessage, post);
         }
         }
-    }
+    };
 
     render() {
         const {binding} = this.props;

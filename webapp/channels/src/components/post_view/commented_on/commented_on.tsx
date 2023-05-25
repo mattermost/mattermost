@@ -38,7 +38,7 @@ export default class CommentedOn extends PureComponent<Props> {
         }
 
         return message;
-    }
+    };
 
     render() {
         const message = this.makeCommentedOnMessage();

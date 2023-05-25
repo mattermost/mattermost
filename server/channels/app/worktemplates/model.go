@@ -6,9 +6,9 @@ import (
 	"errors"
 	"net/http"
 
-	pbclient "github.com/mattermost/mattermost-plugin-playbooks/client"
+	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 type ExecutionRequest struct {

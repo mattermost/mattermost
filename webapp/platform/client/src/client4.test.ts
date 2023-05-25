@@ -68,6 +68,24 @@ describe('ClientError', () => {
         expect(copy.status_code).toEqual(error.status_code);
         expect(copy.url).toEqual(error.url);
     });
+
+    test('cause should be preserved when provided', () => {
+        const cause = new Error('the original error');
+        const error = new ClientError('https://example.com', {
+            message: 'This is a message',
+            server_error_id: 'test.app_error',
+            status_code: 418,
+            url: 'https://example.com/api/v4/error',
+        }, cause);
+
+        const copy = {...error};
+
+        expect(copy.message).toEqual(error.message);
+        expect(copy.server_error_id).toEqual(error.server_error_id);
+        expect(copy.status_code).toEqual(error.status_code);
+        expect(copy.url).toEqual(error.url);
+        expect(error.cause).toEqual(cause);
+    });
 });
 
 describe('trackEvent', () => {
