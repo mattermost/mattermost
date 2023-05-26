@@ -16,7 +16,7 @@ type Props = {
         hostname: string;
         ipaddress: string;
     }>;
-    reload: () => void;
+    reload: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }
 
 type Style = {

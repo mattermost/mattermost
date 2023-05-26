@@ -3,13 +3,20 @@
 
 import React from 'react';
 
+import {ClusterInfo} from '@mattermost/types/admin';
 import {getClusterStatus} from 'actions/admin_actions.jsx';
 import LoadingScreen from '../loading_screen';
 
 import ClusterTable from './cluster_table';
 
-export default class ClusterTableContainer extends React.PureComponent {
-    constructor(props) {
+interface ClusterTableContainerState {
+    clusterInfos: ClusterInfo[] | null;
+}
+
+export default class ClusterTableContainer extends React.PureComponent<{}, ClusterTableContainerState> {
+    interval: NodeJS.Timer | null;
+
+    constructor(props: {}) {
         super(props);
 
         this.interval = null;
@@ -21,7 +28,7 @@ export default class ClusterTableContainer extends React.PureComponent {
 
     load = () => {
         getClusterStatus(
-            (data) => {
+            (data: ClusterInfo[]) => {
                 this.setState({
                     clusterInfos: data,
                 });
@@ -43,7 +50,7 @@ export default class ClusterTableContainer extends React.PureComponent {
         }
     }
 
-    reload = (e) => {
+    reload = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         if (e) {
             e.preventDefault();
         }
