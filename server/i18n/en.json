@@ -2376,6 +2376,30 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post allows maximum of {{.MaxRecipients}} recipients."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Persistent notification post must have minimum 1 recipient."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Persistent notification validation failed."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "User is not allowed to create priority post or persistent notification."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Only root posts are allowed to have priority."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistent notification posts must have the Urgent Priority."
+  },
+  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
@@ -4162,6 +4186,18 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Error fetching roles during validation."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating password recovery tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating password recovery tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating password recovery tokens"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
@@ -6246,6 +6282,18 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Unable to delete the persistent notifications by channel."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Unable to delete the persistent notifications by team."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Failed to delete persistent notification post"
   },
   {
     "id": "app.post_prority.get_for_post.app_error",
@@ -8896,6 +8944,18 @@
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
   },
   {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Invalid total number of persistent notification per post. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Invalid frequency of persistent notifications. Must be at least two minutes."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Invalid memory store size for rate limit settings. Must be a positive number."
   },
@@ -9977,7 +10037,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
