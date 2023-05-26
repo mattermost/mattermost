@@ -17,7 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/imports"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
@@ -39,7 +41,7 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
-	preferences, err := a.Srv().Store.Preference().GetCategory(userID, category)
+	preferences, err := a.Srv().Store().Preference().GetCategory(userID, category)
 	require.NoErrorf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
 	found := false
 	for _, preference := range preferences {
@@ -68,13 +70,13 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
+	result, err := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
 	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, expectedCount int64) {
-	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
+	count, err := a.Srv().Store().Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.NoError(t, err, "Failed to get channel count.")
 }
@@ -238,7 +240,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "` + testImage + `"}], "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}
 {"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username + `"]}}
-{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}}`
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}`
 
 		err, line := th.App.BulkImport(th.Context, strings.NewReader(data6), nil, false, 2)
 		require.Nil(t, err, "BulkImport should have succeeded")
@@ -266,7 +268,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userID)
+	fileInfos, err := th.App.Srv().Store().FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	return fileInfos
 }
@@ -275,7 +277,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	postID := files[0].PostId
 	require.NotNil(t, postID)
 
-	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postID})
+	posts, err := th.App.Srv().Store().Post().GetPostsByIds([]string{postID})
 	require.NoError(t, err)
 
 	require.Len(t, posts, 1)
@@ -285,6 +287,9 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestProcessAttachments(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	c := request.EmptyContext(logger)
+
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
 			{
@@ -333,10 +338,11 @@ func TestProcessAttachments(t *testing.T) {
 				Path: model.NewString("somedir/file.jpg"),
 			},
 		}
-		err := processAttachments(&line, "", nil)
+
+		err := processAttachments(c, &line, "", nil)
 		require.NoError(t, err)
 		require.Equal(t, expected, line.Post.Attachments)
-		err = processAttachments(&line2, "", nil)
+		err = processAttachments(c, &line2, "", nil)
 		require.NoError(t, err)
 		require.Equal(t, expected, line2.DirectPost.Attachments)
 	})
@@ -352,27 +358,27 @@ func TestProcessAttachments(t *testing.T) {
 		}
 
 		t.Run("post attachments", func(t *testing.T) {
-			err := processAttachments(&line, "/tmp", nil)
+			err := processAttachments(c, &line, "/tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, line.Post.Attachments)
 		})
 
 		t.Run("direct post attachments", func(t *testing.T) {
-			err := processAttachments(&line2, "/tmp", nil)
+			err := processAttachments(c, &line2, "/tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, line2.DirectPost.Attachments)
 		})
 
 		t.Run("profile image", func(t *testing.T) {
 			expected := "/tmp/profile.jpg"
-			err := processAttachments(&userLine, "/tmp", nil)
+			err := processAttachments(c, &userLine, "/tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, *userLine.User.ProfileImage)
 		})
 
 		t.Run("emoji", func(t *testing.T) {
 			expected := "/tmp/emoji.png"
-			err := processAttachments(&emojiLine, "/tmp", nil)
+			err := processAttachments(c, &emojiLine, "/tmp", nil)
 			require.NoError(t, err)
 			require.Equal(t, expected, *emojiLine.Emoji.Image)
 		})
@@ -383,11 +389,11 @@ func TestProcessAttachments(t *testing.T) {
 			filesMap := map[string]*zip.File{
 				"/tmp/file.jpg": nil,
 			}
-			err := processAttachments(&line, "", filesMap)
+			err := processAttachments(c, &line, "", filesMap)
 			require.Error(t, err)
 
 			filesMap["/tmp/somedir/file.jpg"] = nil
-			err = processAttachments(&line, "", filesMap)
+			err = processAttachments(c, &line, "", filesMap)
 			require.NoError(t, err)
 		})
 
@@ -395,11 +401,11 @@ func TestProcessAttachments(t *testing.T) {
 			filesMap := map[string]*zip.File{
 				"/tmp/file.jpg": nil,
 			}
-			err := processAttachments(&line2, "", filesMap)
+			err := processAttachments(c, &line2, "", filesMap)
 			require.Error(t, err)
 
 			filesMap["/tmp/somedir/file.jpg"] = nil
-			err = processAttachments(&line2, "", filesMap)
+			err = processAttachments(c, &line2, "", filesMap)
 			require.NoError(t, err)
 		})
 
@@ -407,11 +413,11 @@ func TestProcessAttachments(t *testing.T) {
 			filesMap := map[string]*zip.File{
 				"/tmp/file.jpg": nil,
 			}
-			err := processAttachments(&userLine, "", filesMap)
+			err := processAttachments(c, &userLine, "", filesMap)
 			require.Error(t, err)
 
 			filesMap["/tmp/profile.jpg"] = nil
-			err = processAttachments(&userLine, "", filesMap)
+			err = processAttachments(c, &userLine, "", filesMap)
 			require.NoError(t, err)
 		})
 
@@ -419,11 +425,11 @@ func TestProcessAttachments(t *testing.T) {
 			filesMap := map[string]*zip.File{
 				"/tmp/file.jpg": nil,
 			}
-			err := processAttachments(&emojiLine, "", filesMap)
+			err := processAttachments(c, &emojiLine, "", filesMap)
 			require.Error(t, err)
 
 			filesMap["/tmp/emoji.png"] = nil
-			err = processAttachments(&emojiLine, "", filesMap)
+			err = processAttachments(c, &emojiLine, "", filesMap)
 			require.NoError(t, err)
 		})
 	})

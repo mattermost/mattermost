@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -21,10 +22,10 @@ type webSocketHandler struct {
 	handlerFunc func(*model.WebSocketRequest) (map[string]any, *model.AppError)
 }
 
-func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
+func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSocketRequest) {
 	mlog.Debug("Websocket request", mlog.String("action", r.Action))
 
-	hub := wh.app.GetHubForUserId(conn.UserId)
+	hub := wh.app.Srv().Platform().GetHubForUserId(conn.UserId)
 	if hub == nil {
 		return
 	}

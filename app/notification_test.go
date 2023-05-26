@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -189,7 +188,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	t.Run("1-mention", func(t *testing.T) {
 		for i, user := range users {
 			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
-				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
+				channelUnread, appErr2 := th.Server.Store().Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
 				require.NoError(t, appErr2)
 				assert.Equal(t, int64(1), channelUnread.MentionCount)
 			})
@@ -209,7 +208,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	t.Run("2-mentions", func(t *testing.T) {
 		for i, user := range users {
 			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
-				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
+				channelUnread, appErr2 := th.Server.Store().Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
 				require.NoError(t, appErr2)
 				assert.Equal(t, int64(2), channelUnread.MentionCount)
 			})
@@ -2734,8 +2733,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		}()
 
 		// Enable CRT
-		os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -2769,7 +2767,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(c1.TeamId, threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
 		require.Nil(t, appErr)
 		// Then: with notifications set to "all" we should
 		// not see a mention badge

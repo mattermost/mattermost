@@ -17,9 +17,9 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/markdown"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
@@ -31,13 +31,7 @@ type linkMetadataCache struct {
 	Permalink *model.Permalink
 }
 
-const LinkCacheSize = 10000
-const LinkCacheDuration = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
-
-var linkCache = cache.NewLRU(cache.LRUOptions{
-	Size: LinkCacheSize,
-})
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -46,7 +40,7 @@ func (s *Server) initPostMetadata() {
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
 			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
-			linkCache.Purge()
+			platform.PurgeLinkCache()
 		}
 	})
 }
@@ -62,9 +56,23 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, false, false)
+		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, false, false, false)
 
 		list.Posts[id] = post
+	}
+
+	if a.isPostPriorityEnabled() {
+		priority, _ := a.GetPriorityForPostList(list)
+		acknowledgements, _ := a.GetAcknowledgementsForPostList(list)
+
+		for _, id := range list.Order {
+			if _, ok := priority[id]; ok {
+				list.Posts[id].Metadata.Priority = priority[id]
+			}
+			if _, ok := acknowledgements[id]; ok {
+				list.Posts[id].Metadata.Acknowledgements = acknowledgements[id]
+			}
+		}
 	}
 
 	return list
@@ -72,7 +80,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
-func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
+func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	prop, ok := post.GetProps()[model.PostPropsOverrideIconEmoji]
 	if !ok || prop == nil {
 		return
@@ -89,20 +97,20 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 
 	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
-	if emojiURL, err := a.GetEmojiStaticURL(emojiName); err == nil {
+	if emojiURL, err := a.GetEmojiStaticURL(c, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
 		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
+func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	a.OverrideIconURLIfEmoji(post)
+	a.OverrideIconURLIfEmoji(c, post)
 	if post.Metadata == nil {
 		post.Metadata = &model.PostMetadata{}
 	}
@@ -115,7 +123,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 	}
 
 	// Emojis and reaction counts
-	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
+	if emojis, reactions, err := a.getEmojisAndReactionsForPost(c, post); err != nil {
 		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
@@ -123,17 +131,33 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 	}
 
 	// Files
-	if fileInfos, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
+	if fileInfos, _, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
 		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
 
+	if includePriority && a.isPostPriorityEnabled() && post.RootId == "" {
+		// Post's Priority if any
+		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
+			mlog.Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		} else {
+			post.Metadata.Priority = priority
+		}
+
+		// Post's acknowledgements if any
+		if acknowledgements, err := a.GetAcknowledgementsForPost(post.Id); err != nil {
+			mlog.Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		} else {
+			post.Metadata.Acknowledgements = acknowledgements
+		}
+	}
+
 	return post
 }
 
-func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
-	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
+func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
+	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost, includePriority)
 	post = a.getEmbedsAndImages(c, post, isNewPost)
 	return post
 }
@@ -210,15 +234,15 @@ func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.Pos
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
-		return nil, nil
+		return nil, 0, nil
 	}
 
 	return a.GetFileInfosForPost(post.Id, fromMaster, false)
 }
 
-func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
+func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
 	var reactions []*model.Reaction
 	if post.HasReactions {
 		var err *model.AppError
@@ -228,7 +252,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 		}
 	}
 
-	emojis, err := a.getCustomEmojisForPost(post, reactions)
+	emojis, err := a.getCustomEmojisForPost(c, post, reactions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -401,7 +425,7 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 	return names
 }
 
-func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		// Only custom emoji are returned
 		return []*model.Emoji{}, nil
@@ -413,7 +437,7 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 		return []*model.Emoji{}, nil
 	}
 
-	return a.GetMultipleEmojiByName(names)
+	return a.GetMultipleEmojiByName(c, names)
 }
 
 func (a *App) isLinkAllowedForPreview(link string) bool {
@@ -568,7 +592,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 		} else {
 			// referencedPost does not contain a permalink: we get its metadata
-			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false)
+			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 		}
 	} else {
@@ -642,7 +666,7 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
 	var cached linkMetadataCache
-	err := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
+	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
 		return nil, nil, nil, false
 	}
@@ -651,7 +675,7 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	linkMetadata, err := a.Srv().Store.LinkMetadata().Get(requestURL, timestamp)
+	linkMetadata, err := a.Srv().Store().LinkMetadata().Get(requestURL, timestamp)
 	if err != nil {
 		return nil, nil, false
 	}
@@ -684,7 +708,7 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LinkMetadataTypeNone
 	}
 
-	_, err := a.Srv().Store.LinkMetadata().Save(metadata)
+	_, err := a.Srv().Store().LinkMetadata().Save(metadata)
 	if err != nil {
 		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
@@ -697,7 +721,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		Permalink: permalink,
 	}
 
-	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LinkCacheDuration)
+	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {

@@ -48,12 +48,7 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 	return info, nil
 }
 
-func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil
-	}
-
+func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader) *model.AppError {
 	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
@@ -67,7 +62,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
@@ -98,6 +93,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
 			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
+		r.CloseWithError(err) // always returns nil
 		return err
 	}
 
@@ -127,11 +123,6 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 }
 
 func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
-	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
-			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
-	}
-
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)
@@ -156,7 +147,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 		}
 	}
 
-	us, storeErr := a.Srv().Store.UploadSession().Save(us)
+	us, storeErr := a.Srv().Store().UploadSession().Save(us)
 	if storeErr != nil {
 		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
@@ -164,8 +155,8 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 	return us, nil
 }
 
-func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store.UploadSession().Get(uploadId)
+func (a *App) GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError) {
+	us, err := a.Srv().Store().UploadSession().Get(c.Context(), uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -181,7 +172,7 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 }
 
 func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError) {
-	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
+	uss, err := a.Srv().Store().UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
@@ -189,7 +180,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	return uss, nil
 }
 
-func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
 	a.ch.uploadLockMapMut.Lock()
@@ -212,7 +203,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	if storedSession, err := a.GetUploadSession(us.Id); err != nil {
+	c.SetContext(WithMaster(c.Context()))
+	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
@@ -252,7 +244,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 	if written > 0 {
 		us.FileOffset += written
-		if storeErr := a.Srv().Store.UploadSession().Update(us); storeErr != nil {
+		if storeErr := a.Srv().Store().UploadSession().Update(us); storeErr != nil {
 			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
@@ -298,8 +290,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		}
 
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
-		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 		imgData, fileErr := a.ReadFile(uploadPath)
 		if fileErr != nil {
 			return nil, fileErr
@@ -314,7 +306,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 
 	var storeErr error
-	if info, storeErr = a.Srv().Store.FileInfo().Save(info); storeErr != nil {
+	if info, storeErr = a.Srv().Store().FileInfo().Save(info); storeErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &appErr):
@@ -335,7 +327,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 
 	// delete upload session
-	if storeErr := a.Srv().Store.UploadSession().Delete(us.Id); storeErr != nil {
+	if storeErr := a.Srv().Store().UploadSession().Delete(us.Id); storeErr != nil {
 		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 

@@ -3125,7 +3125,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "A GitLab Általános Szerződési Feltételei frissültek. Kérjük, látogassa meg a gitlab.com webhelyet, hogy elfogadja őket, majd próbáljon meg újra bejelentkezni a Mattermost-ba."
+    "translation": "A GitLab Általános Szerződési Feltételei frissültek. Kérjük, látogassa meg a {{.URL}} webhelyet, hogy elfogadja őket, majd próbáljon meg újra bejelentkezni a Mattermost-ba."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -3290,14 +3290,6 @@
   {
     "id": "model.upload_session.is_valid.id.app_error",
     "translation": "Érvénytelen érték a Id -nak"
-  },
-  {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Nem sikerült feldolgozni az üzenet export munka ExportFromTimestamp értékét."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "Nem sikerült feldolgozni az üzenet export BatchSize értékét."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -4114,10 +4106,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "Nem sikerült lekérni a feltöltést."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Nem sikerült feltölteni a fájlt. A fájl túl nagy."
   },
   {
     "id": "app.upload.create.save.app_error",
@@ -5469,15 +5457,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Sikertelen fizetés"
+    "translation": "A fizetési művelet nem sikerült"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost Cloudra"
+    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost {{.Plan}} csomagra"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "A Mattermost Cloud zavartalan előfizetésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
+    "translation": "A Mattermost {{.Plan}} zavartalan elérésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5794,14 +5782,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "A meghívás csatornáinak a meghívó csapat részének kell lenniük."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "A vendég fiókok le vannak tiltva"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9172,10 +9152,6 @@
     "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Az Ön {{.WorkspaceName}} munkaterülete mostantól a megemelt verziót használja. A számlázás {{.Date}} napon kezdődik"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "Ön mostantól a megemelt verziót használja!"
   },
@@ -9192,10 +9168,6 @@
     "translation": "Ezt az egyszeri e-mailt azért kapta, mert a Mattermost szervere több mint {{.Hours}} órán keresztül inaktív volt. Ezt az e-mailt a Mattermost szervere automatikusan generálta."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "HIba történt a webhorogról az előfizetés frissítése közben."
-  },
-  {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
@@ -9210,10 +9182,6 @@
   {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Nem kérdezhető le a csapatok száma"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Elérte az engedélyezett integrációk maximális számát {{.NumIntegrations}}. Korlátlan számú integráció telepítéséhez frissítsen valamelyik fizetős csomagunkra."
   },
   {
     "id": "app.post.analytics_teams_count.app_error",
@@ -9354,5 +9322,49 @@
   {
     "id": "api.templates.delinquency_30.subject",
     "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Nem sikerült elküldeni az értesítési bejegyzést."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Nem sikerült elmenteni az értesítési beállításokat."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Hiba a művelet végrehajtása közben."
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Nem sikerült lekérni a jelenlegi előfizetési csomag nevét"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktív bővítmények és integrációk"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Hiányzó kötelező mezők a késedelmes e-mail küldéséhez."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nem sikerült lekérni a fájlt, mivel az meghaladta a felhőcsomag határértékét."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nem sikerült lekérni a felhasználó jelvény számlálóját."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "csoport név létezik mint lefoglalt név"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Nem lehet eltávolítani egy archivált csatornában lévő jóváhagyást."
   }
 ]

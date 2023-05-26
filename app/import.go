@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +25,7 @@ type ReactionImportData = imports.ReactionImportData // part of the app interfac
 const (
 	importMultiplePostsThreshold = 1000
 	maxScanTokenSize             = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
+	statusUpdateAfterLines       = 8192
 )
 
 func stopOnError(c request.CTX, err imports.LineImportWorkerError) bool {
@@ -41,7 +41,7 @@ func stopOnError(c request.CTX, err imports.LineImportWorkerError) bool {
 	}
 }
 
-func processAttachmentPaths(files *[]imports.AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
+func processAttachmentPaths(c request.CTX, files *[]imports.AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
 	if files == nil {
 		return nil
 	}
@@ -61,20 +61,20 @@ func processAttachmentPaths(files *[]imports.AttachmentImportData, basePath stri
 	return nil
 }
 
-func processAttachments(line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
+func processAttachments(c request.CTX, line *imports.LineImportData, basePath string, filesMap map[string]*zip.File) error {
 	var ok bool
 	switch line.Type {
 	case "post", "direct_post":
 		var replies []imports.ReplyImportData
 		if line.Type == "direct_post" {
-			if err := processAttachmentPaths(line.DirectPost.Attachments, basePath, filesMap); err != nil {
+			if err := processAttachmentPaths(c, line.DirectPost.Attachments, basePath, filesMap); err != nil {
 				return err
 			}
 			if line.DirectPost.Replies != nil {
 				replies = *line.DirectPost.Replies
 			}
 		} else {
-			if err := processAttachmentPaths(line.Post.Attachments, basePath, filesMap); err != nil {
+			if err := processAttachmentPaths(c, line.Post.Attachments, basePath, filesMap); err != nil {
 				return err
 			}
 			if line.Post.Replies != nil {
@@ -82,7 +82,7 @@ func processAttachments(line *imports.LineImportData, basePath string, filesMap 
 			}
 		}
 		for _, reply := range replies {
-			if err := processAttachmentPaths(reply.Attachments, basePath, filesMap); err != nil {
+			if err := processAttachmentPaths(c, reply.Attachments, basePath, filesMap); err != nil {
 				return err
 			}
 		}
@@ -112,6 +112,15 @@ func processAttachments(line *imports.LineImportData, basePath string, filesMap 
 }
 
 func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+	workerID := model.NewId()
+	processedLines := uint64(0)
+
+	c.Logger().Info("Started new bulk import worker", mlog.String("bulk_import_worker_id", workerID))
+	defer func() {
+		wg.Done()
+		c.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
+	}()
+
 	postLines := []imports.LineImportWorkerData{}
 	directPostLines := []imports.LineImportWorkerData{}
 	for line := range lines {
@@ -143,6 +152,11 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
+
+		processedLines++
+		if processedLines%statusUpdateAfterLines == 0 {
+			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
+		}
 	}
 
 	if len(postLines) > 0 {
@@ -155,7 +169,6 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
-	wg.Done()
 }
 
 func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
@@ -177,8 +190,8 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 	lineNumber := 0
 
-	a.Srv().Store.LockToMaster()
-	defer a.Srv().Store.UnlockFromMaster()
+	a.Srv().Store().LockToMaster()
+	defer a.Srv().Store().UnlockFromMaster()
 
 	errorsChan := make(chan imports.LineImportWorkerError, (2*workers)+1) // size chosen to ensure it never gets filled up completely.
 	var wg sync.WaitGroup
@@ -194,15 +207,17 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	}
 
 	for scanner.Scan() {
-		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
 		lineNumber++
+		if lineNumber%statusUpdateAfterLines == 0 {
+			c.Logger().Info("Reader progress", mlog.Int("processed_lines", lineNumber))
+		}
 
 		var line imports.LineImportData
-		if err := decoder.Decode(&line); err != nil {
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
 		}
 
-		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
+		if err := processAttachments(c, &line, importPath, attachedFiles); err != nil {
 			c.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err))
 		}
 
@@ -222,6 +237,12 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		if line.Type != lastLineType {
 			// Only clear the worker queue if is not the first data entry
 			if lineNumber != 2 {
+				c.Logger().Info(
+					"Finished parsing segment, waiting for workers to finish",
+					mlog.String("old_segment", lastLineType),
+					mlog.String("new_segment", line.Type),
+				)
+
 				// Changing type. Clear out the worker queue before continuing.
 				close(linesChan)
 				wg.Wait()
@@ -234,6 +255,13 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 					}
 				}
 			}
+
+			c.Logger().Info(
+				"Starting workers for new segment",
+				mlog.String("old_segment", lastLineType),
+				mlog.String("new_segment", line.Type),
+				mlog.Int("workers", workers),
+			)
 
 			// Set up the workers and channel for this type.
 			lastLineType = line.Type
@@ -290,7 +318,7 @@ func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importScheme(line.Scheme, dryRun)
+		return a.importScheme(c, line.Scheme, dryRun)
 	case line.Type == "team":
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
@@ -315,7 +343,7 @@ func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importEmoji(line.Emoji, dryRun)
+		return a.importEmoji(c, line.Emoji, dryRun)
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}

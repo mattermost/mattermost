@@ -29,10 +29,10 @@
                 </ul>
             </mj-raw>
           </mj-text>
-          <mj-button padding-bottom="30px" align="left" href="{{.Props.SiteURL}}/admin_console/billing/subscription">
+          <mj-button color="#1C58D9" padding-bottom="30px" align="left" href="{{.Props.SiteURL}}/admin_console/billing/subscription">
             {{.Props.LimitsDocs}}
           </mj-button>
-          <mj-button href="{{.Props.SiteURL}}/admin_console/billing/subscription" padding="0px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="Open Sans, sans-serif">
+          <mj-button href="{{.Props.SiteURL}}/admin_console/billing/subscription" padding="0px" padding-bottom="24px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="Open Sans, sans-serif">
             {{.Props.Button}}
           </mj-button>
         </mj-column>

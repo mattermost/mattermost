@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -56,7 +58,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(tb, false)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -95,10 +97,12 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	}
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.GetMetrics(), s.Cluster, s.CacheProvider)
+		var st localcachelayer.LocalCacheStore
+		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider())
 		if err != nil {
 			panic(err)
 		}
+		s.SetStore(st)
 	}
 
 	a := app.New(app.ServerConnector(s.Channels()))
@@ -123,7 +127,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
 
-	s.Store.MarkSystemRanUnitTests()
+	s.Store().MarkSystemRanUnitTests()
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
@@ -278,7 +282,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, app.NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"
@@ -356,6 +360,65 @@ func TestStatic(t *testing.T) {
 	assert.Equalf(t, resp.StatusCode, http.StatusOK, "couldn't get static files %v", resp.StatusCode)
 }
 */
+
+func TestStaticFilesCaching(t *testing.T) {
+	th := Setup(t).InitPlugins()
+	defer th.TearDown()
+
+	wd, _ := os.Getwd()
+	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
+	fakeMainBundleName := "main.1234ab.js"
+	fakeRootHTML := `<html>
+<head>
+	<title>Mattermost</title>
+</head>
+</html>`
+	fakeMainBundle := `module.exports = 'main';`
+	fakeRemoteEntry := `module.exports = 'remote';`
+
+	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/remote_entry.js", []byte(fakeRemoteEntry), 0600)
+	require.NoError(t, err)
+
+	err = os.MkdirAll("./client/products/boards", 0777)
+	require.NoError(t, err)
+	err = os.WriteFile("./client/products/boards/remote_entry.js", []byte(fakeRemoteEntry), 0600)
+	require.NoError(t, err)
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRootHTML, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/"+fakeMainBundleName, nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeMainBundle, res.Body.String())
+	require.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/remote_entry.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRemoteEntry, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	req, _ = http.NewRequest("GET", "/static/products/boards/remote_entry.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	require.Equal(t, http.StatusOK, res.Code)
+	require.Equal(t, fakeRemoteEntry, res.Body.String())
+	require.Equal(t, []string{"no-cache, max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+}
 
 func TestCheckClientCompatability(t *testing.T) {
 	//Browser Name, UA String, expected result (if the browser should fail the test false and if it should pass the true)

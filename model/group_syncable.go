@@ -144,9 +144,7 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			Alias: (*Alias)(syncable),
 		})
 	default:
-		return nil, &json.MarshalerError{
-			Err: fmt.Errorf("unknown syncable type: %s", syncable.Type),
-		}
+		return nil, fmt.Errorf("unknown syncable type: %s", syncable.Type)
 	}
 }
 

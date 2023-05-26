@@ -13,31 +13,44 @@ import (
 
 func (api *API) InitInsights() {
 	// Reactions
-	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
 
 	// Channels
-	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(getTopChannelsForUserSince)).Methods("GET")
 
 	// Threads
-	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(getTopThreadsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(getTopThreadsForUserSince)).Methods("GET")
 
 	// user DMs
-	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopDMsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(getTopDMsForUserSince)).Methods("GET")
 
 	// Inactive channels
-	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(getTopInactiveChannelsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(getTopInactiveChannelsForUserSince)).Methods("GET")
 
 	// New teammembers
-	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getNewTeamMembersSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(getNewTeamMembersSince)).Methods("GET")
 }
 
 // Top Reactions
 
 func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -60,7 +73,11 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topReactionList, appErr := c.App.GetTopReactionsForTeamSince(c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -72,16 +89,20 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	js, err := json.Marshal(topReactionList)
-	if err != nil {
-		c.Err = model.NewAppError("getTopReactionsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topReactionList); err != nil {
+		c.Err = model.NewAppError("getTopReactionsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// guest user check
+	permissionErr := rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -109,7 +130,11 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topReactionList, appErr := c.App.GetTopReactionsForUserSince(c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -121,18 +146,27 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	js, err := json.Marshal(topReactionList)
-	if err != nil {
-		c.Err = model.NewAppError("getTopReactionsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topReactionList); err != nil {
+		c.Err = model.NewAppError("getTopReactionsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top Channels
 
 func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -156,7 +190,11 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topChannels, appErr := c.App.GetTopChannelsForTeamSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -174,16 +212,20 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, err := json.Marshal(topChannels)
-	if err != nil {
-		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// guest user check
+	permissionErr := rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -212,7 +254,11 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topChannels, appErr := c.App.GetTopChannelsForUserSince(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -230,17 +276,26 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, jsonErr := json.Marshal(topChannels)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top Threads
 func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -264,7 +319,11 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topThreads, appErr := c.App.GetTopThreadsForTeamSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -276,16 +335,20 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, jsonError := json.Marshal(topThreads)
-	if jsonError != nil {
-		c.Err = model.NewAppError("getTopThreadsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topThreads); err != nil {
+		c.Err = model.NewAppError("getTopThreadsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// guest user check
+	permissionErr := rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// restrict users with no access to team
@@ -313,7 +376,11 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topThreads, appErr := c.App.GetTopThreadsForUserSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -325,24 +392,32 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, jsonErr := json.Marshal(topThreads)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	if err := json.NewEncoder(w).Encode(topThreads); err != nil {
+		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top DMs
 func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// guest user check
+	permissionErr := rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topDMs, err := c.App.GetTopDMsForUserSince(user.Id, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -355,18 +430,27 @@ func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, jsonErr := json.Marshal(topDMs)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopDMsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(topDMs); err != nil {
+		c.Err = model.NewAppError("getTopDMsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top Channels
 
 func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -390,7 +474,11 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topChannels, err := c.App.GetTopInactiveChannelsForTeamSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -411,6 +499,13 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 // top inactive channels
 
 func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// guest user check
+	permissionErr := rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -439,7 +534,11 @@ func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	topChannels, err := c.App.GetTopInactiveChannelsForUserSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -479,6 +578,18 @@ func postCountByDurationViewModel(c *Context, topChannelList *model.TopChannelLi
 }
 
 func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -501,7 +612,11 @@ func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	loc := user.GetTimezoneLocation()
-	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	ntms, count, err := c.App.GetNewTeamMembersSince(c.AppContext, c.Params.TeamId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
@@ -515,11 +630,8 @@ func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	ntms.TotalCount = count
 
-	js, jsonErr := json.Marshal(ntms)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getNewTeamembersForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(ntms); err != nil {
+		c.Err = model.NewAppError("getNewTeamembersForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }

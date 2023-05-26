@@ -648,15 +648,15 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[kullanıcıadı] ~[kanal]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Kullanıcı adı ya da kanal eksik."
+    "translation": "Kullanıcı adı ve/veya kanal eksik."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kullanıcı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
+    "translation": "{{.User}} kullanıcısı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -668,7 +668,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için kanal kısaltması kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltmasını](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kullanın."
   },
   {
     "id": "api.command_invite.success",
@@ -999,7 +999,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Emoji eklenemedi. Görsel boyutu 1 MB değerinden küçük olmalıdır."
+    "translation": "Emoji eklenemedi. Görsel 512 KiB boyutundan küçük olmalıdır."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -2725,7 +2725,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Takım adında ayrılmış bir sözcük var."
+    "translation": "Takım adında sistem kullanımına ayrılmış bir sözcük var."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
@@ -5577,7 +5577,7 @@
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "aynı adlı bir grup zaten ayrılmış bir ad olarak var"
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
@@ -5654,14 +5654,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Lisansınızda konuk hesaplarını kullanma özelliği yok"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -5849,11 +5841,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 100+"
+    "translation": "Sürüm 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 44+"
+    "translation": "Sürüm 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5865,7 +5857,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -6612,14 +6604,6 @@
     "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
   },
   {
-    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
-  },
-  {
-    "id": "ent.jobs.do_job.batch_size.parse_error",
-    "translation": "İleti dışa aktarma görevinde BatchSize değeri çözümlenemedi."
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Küme API uç noktası bulunamadı."
   },
@@ -6741,7 +6725,7 @@
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": "Belirtilen tarihten sonraki ileti sayıları hesaplanamadı."
+    "translation": "Belirtilen tarihten sonraki ileti sayıları belirlenemedi."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
@@ -6790,10 +6774,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} boyutları ({{.Width}} x {{.Height}} piksel) sınırını aşıyor."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Dosya yüklenemedi. Dosya çok büyük."
   },
   {
     "id": "app.team.get_by_scheme.app_error",
@@ -8792,7 +8772,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Mattermost Enterprise sürümünün deneme süresi sona ermiş olduğundan artık kullanılamaz. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
+    "translation": "Yeni deneme lisansı kullanılamadı. Bu Mattermost kopyasında daha önce deneme lisansı kullanmışsınız. Deneme sürenizi uzatmak istiyorsanız [satış ekibimizle](https://mattermost.com/contact-us/) görüşebilirsiniz."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
@@ -9183,10 +9163,6 @@
     "translation": "Üst tarifeye geçtiniz!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "{{.WorkspaceName}} çalışma alanınız üst tarifeye geçirildi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost üst tarifeye geçme onayı"
   },
@@ -9199,20 +9175,12 @@
     "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Son aramalar alınırken sorun çıktı"
   },
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Kullanabileceğiniz en fazla {{.NumIntegrations}} bütünleştirme sınırına ulaştınız. Sınırsız bütünleştirme için ücretli tarifelerimizden birine geçin."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
@@ -9324,7 +9292,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "ek olarak, Cloud Starter tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
+    "translation": "ek olarak, Cloud Free tarifesinin sınırlamaları nedeniyle verileriniz arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9348,15 +9316,15 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Starter alt tarifesine geçebilirsiniz."
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da Cloud Free alt tarifesine geçebilirsiniz."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Çalışma alanınız Cloud Starter alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
+    "translation": "Çalışma alanınız Cloud Free alt tarifesine geçirilecek. Ödemeyi yapana kadar {{.Plan}} tarifenizin özellikleri kilitlenecek. Ayrıca çalışma alanınızın bazı verileri arşive kaldırılabilir."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Bu son uyarıdır. Mattermost Cloud çalışma alanınızın {{.DelinquencyDate}} tarihindeki ödemesini alamadık"
+    "translation": "Bu son uyarıdır. Mattermost Cloud çalışma alanınızın ödemesini {{.DelinquencyDate}} tarihinden beri alamadık."
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
@@ -9367,8 +9335,8 @@
     "translation": "Mattermost {{.Plan}} tarifeniz 15 gün sonra alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Cloud Starter alt tarifesine geç"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9380,7 +9348,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Son ödemenizi alamadık"
+    "translation": "Son ödemenizi alamadık."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9392,7 +9360,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Starter alt tarifesine geçebilirsiniz."
+    "translation": "Hemen ödeme bilgilerinizi güncelleyebilir ya da aşağıdan Cloud Free alt tarifesine geçebilirsiniz."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9408,7 +9376,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "{{.DelinquencyDate}} tarihli ödenmemiş faturaların ödemesini alamadık. Çalışma alanınızın alt tarifeye geçirilme riski var."
+    "translation": "{{.DelinquencyDate}} tarihinden beri ödenmemiş faturaların ödemesini alamadık. Çalışma alanınızın alt tarifeye geçirilme riski var."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9424,7 +9392,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Starter alt tarifesine geçirilme riski var."
+    "translation": "Bizde kayıtlı kredi kartı bilgilerinizi kullanarak ödeme alamadık. Çalışma alanınızın Cloud Free alt tarifesine geçirilme riski var."
   },
   {
     "id": "api.templates.delinquency_60.subtitle1",
@@ -9435,8 +9403,8 @@
     "translation": "İşlem yapılması gerekli: Çalışma alanı 30 gün sonra alt tarifeye geçirilecek"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Cloud Starter alt tarifesine geç"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Cloud Free alt tarifesine geç"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9496,7 +9464,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Mattermost {{.Plan}} tarifenizin ödeme süresi geçmiş."
+    "translation": "Mattermost {{.Plan}} tarifenizin ödeme süresi geçmiş"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9537,5 +9505,225 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "Kullanıcının nişan sayısını alamadık."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Görev yürütülürken sorun çıktı."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Erişilebilen son dosya alınırken sorun çıktı"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından dosya alınamadı."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konuk hesapları devre dışı bırakılmış"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Zaman aralığı geçersiz."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Konu türü zaten var."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Derleme türü zaten var."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Taslaklar özelliği devre dışı."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Taslak silinmiş kanala kaydedilemedi"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "kullanıcı group-teams ve group-channels üzerine eklenemedi"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalda onay veremezsiniz."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Bir onayı, verilmesinden 5 dakika geçtikten sonra kaldıramazsınız."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Arşivlenmiş bir kanaldaki bir onayı kaldıramazsınız."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Özellik geliştirme sürecinizin sorunsuz olmasını sağlamak için geliştirme ekipleri arasında şeffaf iş akışları oluşturun."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Bir Jira botu ve Github botu ile bütünleştirerek kanalınızdaki üretkenliği artırın. Bu botlar sizin için indirilir."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Panolarınıza, senaryolarınıza ve uygulama botlarınıza kolayca bağlanan bir özellik yayını kanalında ekibinizle sohbet edin."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Ayaküstü gibi yinelenen toplantılar için toplantı gündemi panosu kalıbımızı ve yol boyunca görevlerin ilerleyişini yönetmek için proje görevleri panomuzu kullanın."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Ürün takımları"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Kök kodu geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Özellikler geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Öncelik geçersiz"
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "İleti geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Dosya kodları geçersiz."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Kanal kodu geçersiz."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "İleti kodu geçersiz."
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Çalışma kalıpları alınamadı"
+  },
+  {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Çalışma kalıbı kategorileri alınamadı"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "İletinin önceliği alınamadı"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Taslak güncellenemedi."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Kullanıcının taslakları alınamadı."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Taslak kaydedilemedi."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Taslağın dosyaları alınamadı."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Taslak alınamadı."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Taslaklar özelliği devre dışı."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Taslak silinemedi."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "İletilerin önceliği alınamadı"
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Belirtilen tarihten sonraki acil iletilerin sayısı belirlenemedi."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "İletinin onayı kaydedilemedi."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "İletinin onayı alınamadı."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Onay alınamadı."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Onay silinemedi."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "bir LDAP kullanıcısı değil"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Dosya yüklenemedi. Dosya çok büyük."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Doğrulama sırasında roller alınırken sorun çıktı."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "Faturanızı görüntüleyin"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "{{.WorkspaceName}} çalışma alanınız yükseltildi."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
+    "translation": "{{.WorkspaceName}} çalışma alanınız güncellendi. Faturanız {{.Date}} tarihinden başlayarak hesaplanacak"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal kişisel barındırma hesabı açmak için kullanılamaz."
   }
 ]

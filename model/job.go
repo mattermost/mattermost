@@ -28,6 +28,7 @@ const (
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
 	JobTypeLastAccessiblePost           = "last_accessible_post"
+	JobTypeLastAccessibleFile           = "last_accessible_file"
 	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
 	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
 
@@ -59,6 +60,7 @@ var AllJobTypes = [...]string{
 	JobTypeCloud,
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
+	JobTypeLastAccessibleFile,
 }
 
 type Job struct {
@@ -97,12 +99,13 @@ func (j *Job) IsValid() *AppError {
 	}
 
 	switch j.Status {
-	case JobStatusPending:
-	case JobStatusInProgress:
-	case JobStatusSuccess:
-	case JobStatusError:
-	case JobStatusCancelRequested:
-	case JobStatusCanceled:
+	case JobStatusPending,
+		JobStatusInProgress,
+		JobStatusSuccess,
+		JobStatusError,
+		JobStatusWarning,
+		JobStatusCancelRequested,
+		JobStatusCanceled:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

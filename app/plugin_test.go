@@ -78,7 +78,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 		ExpireAt: 0,
 	}
 
-	_, nErr := th.App.Srv().Store.Plugin().SaveOrUpdate(kv)
+	_, nErr := th.App.Srv().Store().Plugin().SaveOrUpdate(kv)
 	assert.NoError(t, nErr)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
@@ -1056,17 +1056,6 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 
 	appErr = th.App.EnablePlugin("testplugin")
 	checkNoError(t, appErr)
-
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkError(t, appErr)
-	require.Equal(t, "app.install_integration.reached_max_limit.error", appErr.Id)
-
-	th.App.Srv().RemoveLicense()
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkNoError(t, appErr)
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkError(t, appErr)
 
 	// Let enable succeed if a CWS error occurs
 	cloud = &mocks.CloudInterface{}

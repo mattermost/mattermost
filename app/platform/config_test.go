@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
@@ -49,11 +50,10 @@ func TestConfigListener(t *testing.T) {
 }
 
 func TestConfigSave(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
 	cm := &mocks.ClusterInterface{}
-	th.Service.SetCluster(cm)
+	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
+	th := SetupWithCluster(t, cm)
+	defer th.TearDown()
 
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
 		oldCfg := th.Service.Config()
@@ -62,7 +62,6 @@ func TestConfigSave(t *testing.T) {
 
 		sanitizedOldCfg := th.Service.configStore.RemoveEnvironmentOverrides(oldCfg)
 		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
-
 		cm.On("ConfigChanged", sanitizedOldCfg, sanitizedNewCfg, true).Return(nil)
 
 		_, _, appErr := th.Service.SaveConfig(newCfg, true)
@@ -70,5 +69,32 @@ func TestConfigSave(t *testing.T) {
 
 		updatedCfg := th.Service.Config()
 		assert.Equal(t, "http://newhost.me", *updatedCfg.ServiceSettings.SiteURL)
+	})
+
+	t.Run("do not restart the metrics server on a different type of config change", func(t *testing.T) {
+		th := Setup(t, StartMetrics())
+		defer th.TearDown()
+
+		metricsMock := &mocks.MetricsInterface{}
+		metricsMock.On("IncrementWebsocketEvent", mock.AnythingOfType("string")).Return()
+		metricsMock.On("IncrementWebSocketBroadcastBufferSize", mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+		metricsMock.On("DecrementWebSocketBroadcastBufferSize", mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+		metricsMock.On("Register").Return()
+		th.Service.metricsIFace = metricsMock
+
+		// Change a random config setting
+		cfg := th.Service.Config().Clone()
+		cfg.ThemeSettings.EnableThemeSelection = model.NewBool(!*cfg.ThemeSettings.EnableThemeSelection)
+		th.Service.SaveConfig(cfg, false)
+		metricsMock.AssertNumberOfCalls(t, "Register", 0)
+
+		// Disable metrics
+		cfg.MetricsSettings.Enable = model.NewBool(false)
+		th.Service.SaveConfig(cfg, false)
+
+		// Change the metrics setting
+		cfg.MetricsSettings.Enable = model.NewBool(true)
+		th.Service.SaveConfig(cfg, false)
+		metricsMock.AssertNumberOfCalls(t, "Register", 1)
 	})
 }
