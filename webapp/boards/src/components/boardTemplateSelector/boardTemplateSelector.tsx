@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
-    useEffect,
-    useState,
     useCallback,
-    useMemo
+    useEffect,
+    useMemo,
+    useState,
 } from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 import {useHistory, useRouteMatch} from 'react-router-dom'
@@ -18,8 +18,8 @@ import CloseIcon from 'src/widgets/icons/close'
 import Button from 'src/widgets/buttons/button'
 import octoClient from 'src/octoClient'
 import mutator from 'src/mutator'
-import {getTemplates, getCurrentBoardId} from 'src/store/boards'
-import {getCurrentTeam, Team} from 'src/store/teams'
+import {getCurrentBoardId, getTemplates} from 'src/store/boards'
+import {Team, getCurrentTeam} from 'src/store/teams'
 import {fetchGlobalTemplates, getGlobalTemplates} from 'src/store/globalTemplates'
 import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'

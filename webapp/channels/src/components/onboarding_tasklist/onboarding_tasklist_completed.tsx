@@ -49,7 +49,7 @@ const CompletedWrapper = styled.div`
     &.fade-exit-done {
         transform: scale(1);
     }
-    .start-trial-btn {
+    .start-trial-btn, .got-it-button {
         padding: 13px 20px;
         background: var(--button-bg);
         border-radius: 4px;
@@ -223,7 +223,10 @@ const Completed = (props: Props): JSX.Element => {
                         </>
 
                     ) : (
-                        <button onClick={dismissAction}>
+                        <button
+                            onClick={dismissAction}
+                            className='got-it-button'
+                        >
                             <FormattedMessage
                                 id={'collapsed_reply_threads_modal.confirm'}
                                 defaultMessage='Got it'
@@ -239,7 +242,7 @@ const Completed = (props: Props): JSX.Element => {
                                     link: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location='onboarding_tasklist_completed'
-                                            href='https://mattermost.com/download/#desktop'
+                                            href='https://mattermost.com/download#desktop'
                                         >
                                             {msg}
                                         </ExternalLink>

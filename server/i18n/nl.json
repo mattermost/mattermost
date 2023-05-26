@@ -9865,5 +9865,185 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Ongeldig zakelijk e-mailadres voor proefperiode"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Playbook Uitvoering"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Nieuwe taak toevoegen"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Taak toevoegen"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Naam"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Omschrijving"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Playbook uitvoeren"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Uitvoering starten"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Naam van de uitvoering"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Eigenaar** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Je hebt 0 toegewezen taken."
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "one": "Je hebt {{.Count}} taak toegewezen gekregen die nu verloopt:",
+      "other": "Je hebt {{.Count}} taken toegewezen gekregen die nu verlopen:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "one": "Je hebt {{.Count}} toegewezen taak:",
+      "other": "Je hebt {{.Count}} toegewezen taken:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Jouw toegewezen taken"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Verliep gisteren"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Verliep {{.Count}} dagen geleden"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "one": "Verloopt binnen {{.Count}} dag",
+      "other": "Verloopt binnen {{.Count}} dagen"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "one": "Je hebt **{.Count}} taak toegewezen gekregen die verloopt na vandaag**.",
+      "other": "Je hebt **{.Count}} taken toegewezen gekregen die verlopen na vandaag**."
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "one": "Je hebt {{.Count}} uitvoering lopen:",
+      "other": "Je hebt {{.Count}} uitvoeringen lopen:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "one": "Je hebt {{.Count}} uitvoering die een statusupdate nodig hebben:",
+      "other": "Je hebt {{.Count}} uitvoeringen die een statusupdate nodig hebben:"
+    }
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "De installatie van plugin {{.Id}} wordt overgeslagen omdat de bestaande versie gelijk is of nieuwer."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} staat op de lijst met geblokkeerde apps. Sommige plugins worden geblokkeerd omdat ze nu ingebouwd zijn in deze versie van Mattermost."
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Samenvatting"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Toevoegen aan de uitvoeringstijdlijn"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Herinnering voor de volgende update"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "one": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanaal.",
+      "other": "Geef een update aan de belanghebbenden. Dit bericht zal verstuurd worden naar {{.Count}} kanalen."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Markeer ook de uitvoering als beëindigd"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Uitvoering beëindigen"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Wijziging sinds laatste update"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} heeft de statusupdates voor [{{.RunName}}]({{.RunURL}}) uitgeschakeld"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here - @{{.Name}} vroeg een statusupdate aan voor [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} is een deelnemer aan de uitvoering en wil lid worden van dit kanaal. Elk lid van het kanaal kan hen uitnodigen.\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Bevestig beëindigen uitvoering"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Uitvoering beëindigen"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "one": "Er is **{.Count}} openstaande taak**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemers wilt beëindigen?",
+      "other": "Er is **{.Count}} openstaande taken**. Weet je zeker dat je de uitvoering *{.RunName}}* voor alle deelnemer wilt beëindigen?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Toevoegen aan de uitvoeringstijdlijn"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Korte samenvatting weergeven in de tijdlijn"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Maximaal 64 tekens"
   }
 ]

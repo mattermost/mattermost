@@ -13,7 +13,7 @@ import {
     BaseTourSteps,
     CardTourSteps,
     TOUR_BASE,
-    TOUR_CARD
+    TOUR_CARD,
 } from 'src/components/onboardingTour/index'
 import TourTipRenderer from 'src/components/onboardingTour/tourTipRenderer/tourTipRenderer'
 import {OnboardingBoardTitle, OnboardingCardTitle} from 'src/components/cardDetail/cardDetail'

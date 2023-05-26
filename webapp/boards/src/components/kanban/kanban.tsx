@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
+
 import React, {
     useCallback,
-    useState,
+    useEffect,
     useMemo,
-    useEffect
+    useState,
 } from 'react'
 import {FormattedMessage} from 'react-intl'
 
@@ -17,14 +17,14 @@ import {Position} from 'src/components/cardDetail/cardDetailContents'
 
 import {
     Board,
+    BoardGroup,
     IPropertyOption,
     IPropertyTemplate,
-    BoardGroup
 } from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 import {BoardView} from 'src/blocks/boardView'
 import mutator from 'src/mutator'
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 import Button from 'src/widgets/buttons/button'
 import {Constants, Permission} from 'src/constants'
 
@@ -114,6 +114,7 @@ const Kanban = (props: Props) => {
         cardOrder = cardOrder.filter((id) => !setOfIds.has(id))
         const lastCardIndex = cardOrder.indexOf(lastCardId)
         cardOrder.splice(lastCardIndex + 1, 0, ...cardIds)
+
         return cardOrder
     }, [activeView, visibleGroups])
 
@@ -130,6 +131,7 @@ const Kanban = (props: Props) => {
             await mutator.performAsUndoGroup(async () => {
                 const cardsById: { [key: string]: Card } = cards.reduce((acc: { [key: string]: Card }, c: Card): { [key: string]: Card } => {
                     acc[c.id] = c
+
                     return acc
                 }, {})
                 const draggedCards: Card[] = draggedCardIds.map((o: string) => cardsById[o]).filter((c) => c)
@@ -186,6 +188,7 @@ const Kanban = (props: Props) => {
         // Update dstCard order
         const cardsById: { [key: string]: Card } = cards.reduce((acc: { [key: string]: Card }, card: Card): { [key: string]: Card } => {
             acc[card.id] = card
+
             return acc
         }, {})
         const draggedCards: Card[] = draggedCardIds.map((o: string) => cardsById[o]).filter((c) => c)
@@ -223,6 +226,7 @@ const Kanban = (props: Props) => {
 
     if (!groupByProperty) {
         Utils.assertFailure('Board views must have groupByProperty set')
+
         return <div/>
     }
 

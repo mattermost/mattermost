@@ -1,12 +1,14 @@
 {
   "name": "@mattermost/components",
-  "version": "7.4.0",
+  "version": "8.0.0",
+  "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "styles": "dist/index.esm.css",
   "scripts": {
     "build": "rollup -c",
     "run": "rollup -c --watch",
+    "test": "cross-env TZ=Etc/UTC jest",
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
@@ -45,8 +47,10 @@
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
-    "@mui/base": "5.0.0-alpha.116",
-    "@mui/material": "5.11.7",
+    "@mui/base": "5.0.0-alpha.127",
+    "@mui/material": "5.11.16",
+    "@mui/styled-engine-sc": "5.11.11",
+    "@mui/system": "5.11.16",
     "@tippyjs/react": "^4.2.6",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
@@ -57,5 +61,8 @@
     "shallow-equals": "^1.0.0",
     "styled-components": "^5.3.5",
     "tippy.js": "^6.3.7"
+  },
+  "dependencies": {
+    "color-blend": "4.0.0"
   }
 }

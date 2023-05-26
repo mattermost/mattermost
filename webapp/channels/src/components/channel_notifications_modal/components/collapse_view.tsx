@@ -10,13 +10,14 @@ import SectionTitle from './section_title';
 
 type Props = {
     ignoreChannelMentions?: string;
+    channelAutoFollowThreads?: string;
     onExpandSection: (section: string) => void;
     globalNotifyLevel?: string;
     memberNotifyLevel: string;
     section: string;
 }
 
-export default function CollapseView({onExpandSection, globalNotifyLevel, memberNotifyLevel, section, ignoreChannelMentions}: Props) {
+export default function CollapseView({onExpandSection, globalNotifyLevel, memberNotifyLevel, section, ignoreChannelMentions, channelAutoFollowThreads}: Props) {
     return (
         <SettingItemMin
             title={<SectionTitle section={section}/>}
@@ -24,6 +25,7 @@ export default function CollapseView({onExpandSection, globalNotifyLevel, member
                 <Describe
                     section={section}
                     ignoreChannelMentions={ignoreChannelMentions}
+                    channelAutoFollowThreads={channelAutoFollowThreads}
                     memberNotifyLevel={memberNotifyLevel}
                     globalNotifyLevel={globalNotifyLevel}
                     isCollapsed={true}

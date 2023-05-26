@@ -29,7 +29,7 @@ describe('components/rhsChannelBoardItem', () => {
                 myBoardMemberships: {
                     [board.id]: {userId: 'user_id_1', schemeAdmin: true},
                 },
-            }
+            },
         }
         board.updateAt = 1657311058157
         board.title = 'Test board'
@@ -37,7 +37,7 @@ describe('components/rhsChannelBoardItem', () => {
         const store = mockStateStore([], state)
         const {container} = render(wrapIntl(
             <ReduxProvider store={store}>
-                <RHSChannelBoardItem board={board} />
+                <RHSChannelBoardItem board={board}/>
             </ReduxProvider>
         ))
         expect(container).toMatchSnapshot()
@@ -57,7 +57,7 @@ describe('components/rhsChannelBoardItem', () => {
                 myBoardMemberships: {
                     [board.id]: {userId: 'user_id_1', schemeAdmin: true},
                 },
-            }
+            },
         }
         board.id = 'test_id'
         board.title = 'New board'
@@ -66,7 +66,7 @@ describe('components/rhsChannelBoardItem', () => {
         const store = mockStateStore([], state)
         const {container} = render(wrapIntl(
             <ReduxProvider store={store}>
-                <RHSChannelBoardItem board={board} />
+                <RHSChannelBoardItem board={board}/>
             </ReduxProvider>
         ))
 

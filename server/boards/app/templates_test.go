@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
 )
 
 func TestApp_initializeTemplates(t *testing.T) {

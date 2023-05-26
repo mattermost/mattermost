@@ -37,7 +37,7 @@ export default class CommentedOnFilesMessage extends React.PureComponent<Props> 
         }
 
         return (
-            <span>
+            <span data-testid='fileInfo'>
                 {this.props.fileInfos[0].name}
                 {plusMore}
             </span>

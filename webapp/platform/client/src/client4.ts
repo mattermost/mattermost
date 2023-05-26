@@ -154,7 +154,7 @@ const HEADER_USER_AGENT = 'User-Agent';
 export const HEADER_X_CLUSTER_ID = 'X-Cluster-Id';
 const HEADER_X_CSRF_TOKEN = 'X-CSRF-Token';
 export const HEADER_X_VERSION_ID = 'X-Version-Id';
-
+const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
 export const DEFAULT_LIMIT_BEFORE = 30;
@@ -3020,6 +3020,13 @@ export default class Client4 {
         return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs/query`,
             {method: 'post', body: JSON.stringify(logFilter)},
+        );
+    };
+
+    getPlainLogs = (page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+        return this.doFetch<string[]>(
+            `${this.getBaseRoute()}/logs${buildQueryString({page, logs_per_page: perPage})}`,
+            {method: 'get'},
         );
     };
 

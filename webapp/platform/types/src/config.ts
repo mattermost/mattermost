@@ -30,6 +30,7 @@ export type ClientConfig = {
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;
     CWSURL: string;
+    CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
@@ -196,6 +197,11 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    AllowPersistentNotifications: string;
+    PersistentNotificationMaxRecipients: string;
+    PersistentNotificationIntervalMinutes: string;
+    AllowPersistentNotificationsForGuests: string;
+    DelayChannelAutocomplete: 'true' | 'false';
 };
 
 export type License = {
@@ -370,6 +376,11 @@ export type ServiceSettings = {
     EnableCustomGroups: boolean;
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
+    AllowPersistentNotifications: boolean;
+    AllowPersistentNotificationsForGuests: boolean;
+    PersistentNotificationIntervalMinutes: number;
+    PersistentNotificationMaxCount: number;
+    PersistentNotificationMaxRecipients: number;
 };
 
 export type TeamSettings = {
@@ -728,8 +739,8 @@ export type ExperimentalSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
-    PatchPluginsReactDOM: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
+    DelayChannelAutocomplete: boolean;
 };
 
 export type AnalyticsSettings = {

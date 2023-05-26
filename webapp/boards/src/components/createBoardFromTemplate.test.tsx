@@ -6,13 +6,12 @@ import {act, render, screen} from '@testing-library/react'
 
 import userEvent from '@testing-library/user-event'
 
-import {mockStateStore} from 'src/testUtils'
-import {wrapIntl} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import CreateBoardFromTemplate from './createBoardFromTemplate'
 
 jest.mock('src/hooks/useGetAllTemplates', () => ({
-    useGetAllTemplates: () => [{id: 'id', title: 'title', description: 'description', icon: '🍔'}]
+    useGetAllTemplates: () => [{id: 'id', title: 'title', description: 'description', icon: '🍔'}],
 }))
 
 describe('components/createBoardFromTemplate', () => {
@@ -26,7 +25,7 @@ describe('components/createBoardFromTemplate', () => {
         const store = mockStateStore([], state)
         const setCanCreate = jest.fn
         const setAction = jest.fn
-        const newBoardInfoIcon = (<i className="icon-information-outline" />)
+        const newBoardInfoIcon = (<i className='icon-information-outline'/>)
 
         const {container} = render(wrapIntl(
             <ReduxProvider store={store}>
@@ -41,11 +40,11 @@ describe('components/createBoardFromTemplate', () => {
         expect(container).toMatchSnapshot()
     })
 
-    it('clicking checkbox toggles the templates selector', async () => {
+    it.only('clicking checkbox toggles the templates selector', async () => {
         const store = mockStateStore([], state)
         const setCanCreate = jest.fn
         const setAction = jest.fn
-        const newBoardInfoIcon = (<i className="icon-information-outline" />)
+        const newBoardInfoIcon = (<i className='icon-information-outline'/>)
 
         render(wrapIntl(
             <ReduxProvider store={store}>

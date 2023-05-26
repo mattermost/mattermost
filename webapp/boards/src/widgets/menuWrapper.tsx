@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {
+    useCallback,
+    useEffect,
     useRef,
     useState,
-    useEffect,
-    useCallback
 } from 'react'
 
 import './menuWrapper.scss'
@@ -31,7 +31,7 @@ const MenuWrapper = (props: Props) => {
     const close = useCallback((): void => {
         if (open) {
             setOpen(false)
-            props.onToggle && props.onToggle(false)
+            props.onToggle?.(false)
         }
     }, [props.onToggle, open])
 
@@ -69,7 +69,7 @@ const MenuWrapper = (props: Props) => {
             e.stopPropagation()
         }
         setOpen(!open)
-        props.onToggle && props.onToggle(!open)
+        props.onToggle?.(!open)
     }, [props.onToggle, open, props.disabled])
 
     useEffect(() => {
@@ -78,6 +78,7 @@ const MenuWrapper = (props: Props) => {
             document.addEventListener('click', closeOnBlur, true)
             document.addEventListener('keyup', keyboardClose, true)
         }
+
         return () => {
             if (open) {
                 document.removeEventListener('menuItemClicked', close, true)

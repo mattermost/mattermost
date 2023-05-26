@@ -238,30 +238,32 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         return usernames;
     };
 
-    getUsernamesByIds = (userIds: string[] = []): string[] => {
+    getUsernamesByIds = (userIds: string | string[] = []): string[] => {
+        const userIdsArray = Array.isArray(userIds) ? userIds : [userIds];
         const {currentUserId, currentUsername} = this.props;
         const allUsernames = this.getAllUsernames();
 
         const {formatMessage} = this.props.intl;
         const someone = formatMessage({id: t('channel_loader.someone'), defaultMessage: 'Someone'});
 
-        const usernames = userIds.
+        const usernames = userIdsArray.
             filter((userId) => {
                 return userId !== currentUserId && userId !== currentUsername;
             }).
             map((userId) => {
                 return allUsernames[userId] ? `@${allUsernames[userId]}` : someone;
-            }).filter((username) => {
+            }).
+            filter((username) => {
                 return username && username !== '';
             });
 
-        if (userIds.includes(currentUserId)) {
+        if (userIdsArray.includes(currentUserId)) {
             usernames.unshift(allUsernames[currentUserId]);
-        } else if (userIds.includes(currentUsername)) {
+        } else if (userIdsArray.includes(currentUsername)) {
             usernames.unshift(allUsernames[currentUsername]);
         }
 
-        return usernames;
+        return Array.from(new Set(usernames));
     };
 
     renderFormattedMessage(postType: string, userIds: string[], actorId?: string): JSX.Element {
@@ -328,7 +330,6 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
             </React.Fragment>
         );
     }
-
     render(): JSX.Element {
         const {
             currentUserId,
@@ -336,7 +337,6 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         } = this.props;
 
         const content = [];
-        const removedUserIds = [];
         for (const message of messageData) {
             const {
                 postType,
@@ -356,17 +356,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                 }
             }
 
-            if (postType === REMOVE_FROM_CHANNEL) {
-                removedUserIds.push(...userIds);
-                continue;
-            }
-
             content.push(this.renderMessage(postType, userIds, actorId));
-        }
-
-        if (removedUserIds.length > 0) {
-            const uniqueRemovedUserIds = removedUserIds.filter((id, index, arr) => arr.indexOf(id) === index);
-            content.push(this.renderMessage(REMOVE_FROM_CHANNEL, uniqueRemovedUserIds, currentUserId));
         }
 
         return (

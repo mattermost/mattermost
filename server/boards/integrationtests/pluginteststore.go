@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 var errTestStore = errors.New("plugin test store error")

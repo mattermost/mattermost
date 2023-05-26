@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 import React, {useRef} from 'react'
 import {
+    DragElementWrapper,
+    DragPreviewOptions,
+    DragSourceOptions,
     useDrag,
     useDrop,
-    DragElementWrapper,
-    DragSourceOptions,
-    DragPreviewOptions
 } from 'react-dnd'
 
 import {IContentBlockWithCords} from 'src/blocks/contentBlock'
@@ -43,6 +43,7 @@ export function useSortable<T>(itemType: string, item: T, enabled: boolean, hand
     const ref = useRef<HTMLDivElement>(null)
     const [isDragging, isOver, drag, drop] = useSortableBase(itemType, item, enabled, handler)
     drop(drag(ref))
+
     return [isDragging, isOver, ref]
 }
 
@@ -52,5 +53,6 @@ export function useSortableWithGrip(itemType: string, item: ISortableWithGripIte
     const [isDragging, isOver, drag, drop, preview] = useSortableBase(itemType, item as IContentBlockWithCords, enabled, handler)
     drag(ref)
     drop(preview(previewRef))
+
     return [isDragging, isOver, ref, previewRef]
 }

@@ -15,10 +15,9 @@ require (
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
-	github.com/francoispqt/gojay v1.2.13
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/getsentry/sentry-go v0.20.0
-	github.com/go-sql-driver/mysql v1.7.0
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
@@ -31,18 +30,16 @@ require (
 	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
-	github.com/hashicorp/go-hclog v1.5.0
-	github.com/hashicorp/go-plugin v1.4.9
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94
 	github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80
-	github.com/lib/pq v1.10.7
+	github.com/lib/pq v1.10.9
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gziphandler v0.0.1
-	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
-	github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e
+	github.com/mattermost/mattermost-server/server/public v0.0.0-00010101000000-000000000000
+	github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
 	github.com/mgdelacroix/foundation v0.0.0-20220812143423-0bfc18f73538
@@ -53,7 +50,6 @@ require (
 	github.com/oklog/run v1.1.0
 	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/reflog/dateconstraints v0.2.1
@@ -78,11 +74,10 @@ require (
 	github.com/yuin/goldmark v1.5.4
 	golang.org/x/crypto v0.8.0
 	golang.org/x/image v0.7.0
-	golang.org/x/net v0.9.0
+	golang.org/x/net v0.10.0
 	golang.org/x/oauth2 v0.7.0
-	golang.org/x/sync v0.1.0
-	golang.org/x/text v0.9.0
-	golang.org/x/tools v0.8.0
+	golang.org/x/sync v0.2.0
+	golang.org/x/tools v0.9.1
 	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -124,6 +119,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fatih/set v0.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
@@ -134,6 +130,8 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/hashicorp/go-hclog v1.5.0 // indirect
+	github.com/hashicorp/go-plugin v1.4.9 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
@@ -148,6 +146,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
@@ -161,6 +160,7 @@ require (
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/otiai10/gosseract/v2 v2.4.0 // indirect
+	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
@@ -194,7 +194,8 @@ require (
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
@@ -205,11 +206,11 @@ require (
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
 	modernc.org/ccgo/v3 v3.16.13 // indirect
-	modernc.org/libc v1.22.3 // indirect
+	modernc.org/libc v1.22.6 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect
 	modernc.org/opt v0.1.3 // indirect
-	modernc.org/sqlite v1.21.1 // indirect
+	modernc.org/sqlite v1.22.1 // indirect
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
@@ -224,3 +225,5 @@ exclude (
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 	github.com/willf/bitset v1.2.0
 )
+
+replace github.com/mattermost/mattermost-server/server/public => ./public

@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect} from 'react'
+import React, {useEffect, useRef} from 'react'
 import {marked} from 'marked'
 
 import {BlockInputProps, ContentType} from 'src/components/blocksEditor/blocks/types'
@@ -23,6 +23,7 @@ const Checkbox: ContentType<ValueType> = {
     Display: (props: BlockInputProps<ValueType>) => {
         const renderer = new marked.Renderer()
         const html = marked(props.value.value || '', {renderer, breaks: true})
+
         return (
             <div className='CheckboxView'>
                 <input
@@ -46,6 +47,7 @@ const Checkbox: ContentType<ValueType> = {
         useEffect(() => {
             ref.current?.focus()
         }, [])
+
         return (
             <div className='Checkbox'>
                 <input

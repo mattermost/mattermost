@@ -130,6 +130,7 @@ describe('components/boardsUnfurl/BoardsUnfurl', () => {
         })
 
         const board = {...createBoard(), title: 'test board'}
+
         // mockedOctoClient.getBoard.mockResolvedValueOnce(board)
 
         const component = (

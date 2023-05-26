@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
@@ -41,8 +41,17 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 			Value: request.Organization,
 		})
 		if err != nil {
-			// don't block onboarding because of that.
 			a.Log().Error("failed to save organization name", mlog.Err(err))
+		}
+	}
+
+	if request.Role != "" {
+		err := a.Srv().Store().System().SaveOrUpdate(&model.System{
+			Name:  model.SystemFirstAdminRole,
+			Value: request.Role,
+		})
+		if err != nil {
+			a.Log().Error("failed to save first admin role", mlog.Err(err))
 		}
 	}
 
@@ -54,7 +63,6 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 	pluginContext := pluginContext(c)
 
 	for _, pluginID := range request.InstallPlugins {
-
 		go func(id string) {
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,

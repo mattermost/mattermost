@@ -9,9 +9,7 @@ import {Overlay} from 'react-bootstrap';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {Team, TeamMembership} from '@mattermost/types/teams';
-
 import {UserProfile} from '@mattermost/types/users';
-
 import {ServerError} from '@mattermost/types/errors';
 
 import {adminResetMfa, adminResetEmail} from 'actions/admin_actions.jsx';
@@ -30,11 +28,11 @@ import SaveButton from 'components/save_button';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
 import Tooltip from 'components/tooltip';
-
 import TeamList from 'components/admin_console/system_user_detail/team_list';
 import EmailIcon from 'components/widgets/icons/email_icon';
 import AtIcon from 'components/widgets/icons/at_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './system_user_detail.scss';
 
@@ -365,7 +363,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
 
         return (
             <div className='SystemUserDetail wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/users'
@@ -376,7 +374,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                             defaultMessage='User Configuration'
                         />
                     </div>
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <AdminUserCard

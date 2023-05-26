@@ -24,6 +24,7 @@ class UndoManager {
         if (this.index < 0) {
             return 0
         }
+
         return this.commands[this.index].checkpoint
     }
 
@@ -58,6 +59,7 @@ class UndoManager {
         }
 
         this.isExecuting = false
+
         return this
     }
 
@@ -70,6 +72,7 @@ class UndoManager {
     ): Promise<any> {
         const value = await redo()
         this.registerUndo({undo, redo}, description, groupId, value, isDiscardable)
+
         return value
     }
 

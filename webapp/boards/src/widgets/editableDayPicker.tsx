@@ -33,6 +33,7 @@ const displayDate = (date: Date | undefined, intl: IntlShape): string | undefine
     if (date === undefined) {
         return undefined
     }
+
     return Utils.displayDate(date, intl)
 }
 
@@ -57,6 +58,7 @@ function EditableDayPicker(props: Props): JSX.Element {
         if (str === inputValue) {
             return value
         }
+
         return MomentLocaleUtils.parseDate(str, format, withLocale)
     }
 

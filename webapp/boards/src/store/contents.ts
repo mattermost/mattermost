@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction, createSelector} from '@reduxjs/toolkit'
+import {PayloadAction, createSelector, createSlice} from '@reduxjs/toolkit'
 
 import {ContentBlock} from 'src/blocks/contentBlock'
 
 import {getCards, getTemplates} from './cards'
-import {loadBoardData, initialReadOnlyLoad} from './initialLoad'
+import {initialReadOnlyLoad, loadBoardData} from './initialLoad'
 
 import {RootState} from './index'
 
@@ -26,6 +26,7 @@ const contentsSlice = createSlice({
                     state.contents[content.id] = content
                     if (!state.contentsByCard[content.parentId]) {
                         state.contentsByCard[content.parentId] = [content]
+
                         return
                     }
                     for (let i = 0; i < state.contentsByCard[content.parentId].length; i++) {
@@ -42,6 +43,7 @@ const contentsSlice = createSlice({
                     const parentId = state.contents[content.id]?.parentId
                     if (!state.contentsByCard[parentId]) {
                         delete state.contents[content.id]
+
                         return
                     }
                     for (let i = 0; i < state.contentsByCard[parentId].length; i++) {
@@ -122,6 +124,7 @@ export function getCardContents(cardId: string): (state: RootState) => Array<Con
                     }
                 }
             }
+
             return result
         },
     )
@@ -130,6 +133,7 @@ export function getCardContents(cardId: string): (state: RootState) => Array<Con
 export function getLastCardContent(cardId: string): (state: RootState) => ContentBlock|undefined {
     return (state: RootState): ContentBlock|undefined => {
         const contents = state.contents?.contentsByCard && state.contents?.contentsByCard[cardId]
+
         return contents?.[contents?.length - 1]
     }
 }
