@@ -88,7 +88,7 @@ type Props = {
     hideEmojiPicker: () => void;
     toggleAdvanceTextEditor: () => void;
     handleUploadProgress: (filePreviewInfo: FilePreviewInfo) => void;
-    handleUploadError: (err: string | ServerError, clientId?: string, channelId?: string) => void;
+    handleUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string) => void;
     handleFileUploadComplete: (fileInfos: FileInfo[], clientIds: string[], channelId: string, rootId?: string) => void;
     handleUploadStart: (clientIds: string[], channelId: string) => void;
     handleFileUploadChange: () => void;
@@ -198,17 +198,6 @@ const AdvanceTextEditor = ({
     const handleFocus = useCallback(() => {
         setKeepEditorInFocus(true);
     }, []);
-
-    let serverErrorJsx = null;
-    if (serverError) {
-        serverErrorJsx = (
-            <MessageSubmitError
-                error={serverError}
-                submittedMessage={serverError.submittedMessage}
-                handleSubmit={handleSubmit}
-            />
-        );
-    }
 
     let attachmentPreview = null;
     if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
@@ -551,12 +540,20 @@ const AdvanceTextEditor = ({
             <div
                 id='postCreateFooter'
                 role='form'
-                className={classNames('AdvancedTextEditor__footer', {
-                    'AdvancedTextEditor__footer--has-error': postError || serverError,
-                })}
+                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
             >
-                {postError && <label className={classNames('post-error', {errorClass})}>{postError}</label>}
-                {serverErrorJsx}
+                {postError && (
+                    <label className={classNames('post-error', {errorClass})}>
+                        {postError}
+                    </label>
+                )}
+                {serverError && (
+                    <MessageSubmitError
+                        error={serverError}
+                        submittedMessage={serverError.submittedMessage}
+                        handleSubmit={handleSubmit}
+                    />
+                )}
                 <MsgTyping
                     channelId={channelId}
                     postId={postId}
