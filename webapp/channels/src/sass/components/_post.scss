@@ -2179,12 +2179,18 @@
 }
 
 .post-row__padding {
-    &.bottom > div:not(.post) {
-        padding-bottom: 1em;
+    &.bottom {
+        .new-separator,
+        .Separator {
+            padding-bottom: 1em;
+        }
     }
 
-    &.top > div:not(.post) {
-        padding-top: 1em;
+    &.top {
+        .new-separator,
+        .Separator {
+            padding-top: 1em;
+        }
     }
 
     &.top .post {
