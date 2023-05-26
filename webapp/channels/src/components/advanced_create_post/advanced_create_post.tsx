@@ -1038,34 +1038,32 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.handleDraftChange(draft, true);
     };
 
-    handleUploadError = (err: string | ServerError, clientId?: string, channelId?: string) => {
-        let serverError = err;
-        if (typeof serverError === 'string' && serverError.length !== 0) {
-            serverError = new Error(serverError);
-        }
+    handleUploadError = (uploadError: string | ServerError | null, clientId?: string, channelId?: string) => {
+        if (clientId && channelId) {
+            const draft = {...this.draftsForChannel[channelId]!};
 
-        if (!channelId || !clientId) {
-            this.setState({serverError});
-            return;
-        }
+            if (draft.uploadsInProgress) {
+                const index = draft.uploadsInProgress.indexOf(clientId);
 
-        const draft = {...this.draftsForChannel[channelId]!};
-
-        if (draft.uploadsInProgress) {
-            const index = draft.uploadsInProgress.indexOf(clientId);
-
-            if (index !== -1) {
-                const uploadsInProgress = draft.uploadsInProgress.filter((item, itemIndex) => index !== itemIndex);
-                const modifiedDraft = {
-                    ...draft,
-                    uploadsInProgress,
-                };
-                this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId);
-                this.draftsForChannel[channelId] = modifiedDraft;
+                if (index !== -1) {
+                    const uploadsInProgress = draft.uploadsInProgress.filter((item, itemIndex) => index !== itemIndex);
+                    const modifiedDraft = {
+                        ...draft,
+                        uploadsInProgress,
+                    };
+                    this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId);
+                    this.draftsForChannel[channelId] = modifiedDraft;
+                }
             }
         }
 
-        this.setState({serverError});
+        if (typeof uploadError === 'string') {
+            if (uploadError.length !== 0) {
+                this.setState({serverError: new Error(uploadError)});
+            }
+        } else {
+            this.setState({serverError: uploadError});
+        }
     };
 
     removePreview = (id: string) => {

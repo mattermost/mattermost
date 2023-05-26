@@ -9,7 +9,7 @@ import {ServerError} from '@mattermost/types/errors';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 
 interface Props {
-    error: ServerError | null;
+    error: ServerError;
     handleSubmit: MouseEventHandler<HTMLAnchorElement>;
     submittedMessage?: string;
 }
