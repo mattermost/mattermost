@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {mount} from 'enzyme';
-import {screen} from '@testing-library/react';
 
 import {Provider} from 'react-redux';
 
@@ -11,7 +10,7 @@ import {DeepPartial} from 'redux';
 
 import mockStore from 'tests/test_store';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 
 import {GlobalState} from 'types/store';
 
