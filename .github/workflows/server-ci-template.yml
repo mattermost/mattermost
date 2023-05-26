@@ -67,6 +67,8 @@ jobs:
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
+      - name: Setup go.work
+        run: make setup-go-work
       - name: Run golangci
         run: make golangci-lint
 
