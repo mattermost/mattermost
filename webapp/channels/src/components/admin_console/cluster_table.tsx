@@ -1,46 +1,52 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, {CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import * as Utils from 'utils/utils';
 import statusGreen from 'images/status_green.png';
 import statusYellow from 'images/status_yellow.png';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
-export default class ClusterTable extends React.PureComponent {
-    static propTypes = {
-        clusterInfos: PropTypes.array.isRequired,
-        reload: PropTypes.func.isRequired,
-    };
+type Props = {
+    clusterInfos: Array<{
+        version: string;
+        config_hash: string;
+        hostname: string;
+        ipaddress: string;
+    }>;
+    reload: () => void;
+}
 
+type Style = {
+    clusterTable: CSSProperties;
+    clusterCell: CSSProperties;
+    warning: CSSProperties;
+}
+
+export default class ClusterTable extends React.PureComponent<Props> {
     render() {
-        var versionMismatch = (
+        let versionMismatch = (
             <img
                 alt='version mismatch'
                 className='cluster-status'
                 src={statusGreen}
             />
         );
-
-        var configMismatch = (
+        let configMismatch = (
             <img
                 alt='config mismatch'
                 className='cluster-status'
                 src={statusGreen}
             />
         );
-
-        var versionMismatchWarning = (
+        let versionMismatchWarning = (
             <div/>
         );
-
-        var version = '';
-        var configHash = '';
-        var singleItem = false;
+        let version = '';
+        let configHash = '';
+        let singleItem = false;
 
         if (this.props.clusterInfos.length) {
             version = this.props.clusterInfos[0].version;
@@ -84,8 +90,8 @@ export default class ClusterTable extends React.PureComponent {
             return null;
         });
 
-        var items = this.props.clusterInfos.map((clusterInfo) => {
-            var status = null;
+        const items = this.props.clusterInfos.map((clusterInfo) => {
+            let status = null;
 
             if (clusterInfo.hostname === '') {
                 clusterInfo.hostname = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
@@ -191,7 +197,8 @@ export default class ClusterTable extends React.PureComponent {
     }
 }
 
-const style = {
+const style: Style = {
     clusterTable: {margin: 10, marginBottom: 30},
     clusterCell: {whiteSpace: 'nowrap'},
+    warning: {marginBottom: 10},
 };
