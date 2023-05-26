@@ -120,7 +120,7 @@ export type Props = {
     /**
      * Function to be called when upload fails
      */
-    onUploadError: (err: string | ServerError, clientId?: string, channelId?: string, currentRootId?: string) => void;
+    onUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string, currentRootId?: string) => void;
 
     /**
      * Function to be called when file upload starts
@@ -222,13 +222,13 @@ export class FileUpload extends PureComponent<Props, State> {
 
     pluginUploadFiles = (files: File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
         this.uploadFiles(files);
     };
 
     checkPluginHooksAndUploadFiles = (files: FileList | File[]) => {
         // clear any existing errors
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         let sortedFiles = Array.from(files).sort((a, b) => a.name.localeCompare(b.name, this.props.locale, {numeric: true}));
 
@@ -335,7 +335,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
         const droppedFiles = e.dataTransfer.files;
@@ -460,7 +460,7 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
-        this.props.onUploadError('');
+        this.props.onUploadError(null);
 
         const items = [];
         for (let i = 0; i < e.clipboardData.items.length; i++) {
