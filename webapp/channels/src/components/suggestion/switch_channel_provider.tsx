@@ -529,7 +529,7 @@ export default class SwitchChannelProvider extends Provider {
         });
     }
 
-    userWrappedChannel(user: UserProfile, channel: ChannelItem): WrappedChannel {
+    userWrappedChannel(user: UserProfile, channel?: ChannelItem): WrappedChannel {
         let displayName = '';
         const currentUserId = getCurrentUserId(getState());
 
@@ -666,10 +666,6 @@ export default class SwitchChannelProvider extends Provider {
             const channelName = Utils.getDirectChannelName(currentUserId, user.id);
             const channel = getChannelByName(state, channelName);
 
-            if (!channel) {
-                continue;
-            }
-
             const wrappedChannel = this.userWrappedChannel(user, channel);
 
             if (channel && members[channel.id]) {
@@ -678,9 +674,11 @@ export default class SwitchChannelProvider extends Provider {
                 continue;
             }
 
-            const unread = allUnreadChannelIdsSet.has(channel?.id) && !isChannelMuted(members[channel.id]);
-            if (unread) {
-                wrappedChannel.unread = true;
+            if (channel) {
+                const unread = allUnreadChannelIdsSet.has(channel.id) && !isChannelMuted(members[channel.id]);
+                if (unread) {
+                    wrappedChannel.unread = true;
+                }
             }
 
             completedChannels[user.id] = true;
