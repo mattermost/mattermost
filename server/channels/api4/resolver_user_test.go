@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"os"
 	"sort"
 	"testing"
 	"time"
@@ -17,9 +16,6 @@ import (
 )
 
 func TestGraphQLUser(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

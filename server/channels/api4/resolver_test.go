@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +14,6 @@ import (
 )
 
 func TestGraphQLConfig(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-
 	th := Setup(t)
 	th.LoginBasicWithGraphQL()
 	defer th.TearDown()
@@ -46,9 +42,6 @@ func TestGraphQLConfig(t *testing.T) {
 }
 
 func TestGraphQLLicense(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-
 	th := Setup(t)
 	th.LoginBasicWithGraphQL()
 	defer th.TearDown()
@@ -77,9 +70,6 @@ func TestGraphQLLicense(t *testing.T) {
 }
 
 func TestGraphQLChannelsLeft(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -146,9 +136,6 @@ func TestGraphQLChannelsLeft(t *testing.T) {
 }
 
 func TestGraphQLRolesLoader(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

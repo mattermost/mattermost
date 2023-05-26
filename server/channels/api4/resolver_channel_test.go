@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,8 +14,6 @@ import (
 )
 
 func TestGraphQLChannels(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -386,8 +383,6 @@ func TestGraphQLChannels(t *testing.T) {
 }
 
 func TestGetPrettyDNForUsers(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
 	t.Run("nickname_full_name", func(t *testing.T) {
 		users := []*model.User{
 			{

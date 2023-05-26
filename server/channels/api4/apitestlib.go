@@ -812,16 +812,12 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
-	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithGraphQL()
-	}
+	th.LoginBasicWithGraphQL()
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
-	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithGraphQL()
-	}
+	th.LoginBasicWithGraphQL()
 }
 
 func (th *TestHelper) LoginTeamAdmin() {

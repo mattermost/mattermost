@@ -94,7 +94,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.UseCaseOnboarding = true
-	f.GraphQL = false
+	f.GraphQL = true
 	f.InsightsEnabled = true
 	f.CommandPalette = false
 	f.CallsEnabled = true

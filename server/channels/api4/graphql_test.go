@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -12,9 +11,6 @@ import (
 )
 
 func TestGraphQLPayload(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

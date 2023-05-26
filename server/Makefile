@@ -47,7 +47,6 @@ ifeq ($(BUILD_NUMBER),)
 endif
 
 ifeq ($(BUILD_NUMBER),dev)
-	export MM_FEATUREFLAGS_GRAPHQL = true
 	GOTAGS += "testlicensekey"
 endif
 
