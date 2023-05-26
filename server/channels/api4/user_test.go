@@ -3517,7 +3517,7 @@ func TestAttachDeviceId(t *testing.T) {
 
 				sessions, appErr := th.App.GetSessions(th.BasicUser.Id)
 				require.Nil(t, appErr)
-				assert.Equal(t, deviceId, sessions[0].DeviceId, "Missing device Id")
+				assert.Equal(t, deviceId, sessions[len(sessions)-1].DeviceId, "Missing device Id")
 			})
 		}
 	})
