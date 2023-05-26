@@ -1,37 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
+import React, {PureComponent,ReactNode} from 'react';
 
-export default class InfiniteScroll extends PureComponent {
-    static propTypes = {
-        children: PropTypes.array,
-        element: PropTypes.string,
-        hasMore: PropTypes.bool,
-        initialLoad: PropTypes.bool,
-        loader: PropTypes.object,
-        loadMore: PropTypes.func.isRequired,
-        pageStart: PropTypes.number,
-        threshold: PropTypes.number,
-        useWindow: PropTypes.bool,
-        isReverse: PropTypes.bool,
-        containerHeight: PropTypes.number,
-        scrollPosition: PropTypes.number,
-    };
 
-    static defaultProps = {
-        element: 'div',
-        hasMore: false,
-        initialLoad: true,
-        pageStart: 0,
-        threshold: 250,
-        useWindow: true,
-        isReverse: false,
-        containerHeight: null,
-        scrollPosition: null,
-    };
+type Props = {
+        children?: any[],
+        element?: string,
+        hasMore?: boolean,
+        initialLoad?: boolean,
+        loader?: object,
+        loadMore: (page:number)=>void,
+        pageStart?: number,
+        threshold?: number,
+        useWindow?: boolean,
+        isReverse?: boolean,
+        containerHeight?: number,
+        scrollPosition?: number
+};
 
+export default class InfiniteScroll extends PureComponent<Props> {
+    pageLoaded : number = 0
+    scrollComponent: HTMLElement | null = null;
+    defaultLoader: ReactNode | undefined;
     componentDidMount() {
         this.pageLoaded = this.props.pageStart;
         this.attachScrollListener();
@@ -59,7 +50,7 @@ export default class InfiniteScroll extends PureComponent {
             ...props
         } = this.props;
 
-        props.ref = (node) => {
+        props.ref = (node:HTMLElement) => {
             this.scrollComponent = node;
         };
 
@@ -68,11 +59,11 @@ export default class InfiniteScroll extends PureComponent {
         return React.createElement(element, elementProps, children, hasMore && (loader || this.defaultLoader));
     }
 
-    calculateTopPosition(el) {
+    calculateTopPosition(el:HTMLElement|null):number {
         if (!el) {
             return 0;
         }
-        return el.offsetTop + this.calculateTopPosition(el.offsetParent);
+        return el.offsetTop + this.calculateTopPosition(el.offsetParent as HTMLElement);
     }
 
     setScrollPosition() {
@@ -92,12 +83,12 @@ export default class InfiniteScroll extends PureComponent {
             if (this.props.isReverse) {
                 offset = scrollTop;
             } else {
-                offset = this.calculateTopPosition(el) + (el.offsetHeight - scrollTop - window.innerHeight);
+                offset = this.calculateTopPosition(el) + (el?.offsetHeight?? - scrollTop - window.innerHeight);
             }
         } else if (this.props.isReverse) {
-            offset = el.parentNode.scrollTop;
+            offset = (el?.parentNode as HTMLElement)?.scrollTop;
         } else {
-            offset = el.scrollHeight - el.parentNode.scrollTop - el.parentNode.clientHeight;
+            offset = el?.scrollHeight?? - (el?.parentNode as HTMLElement)?.scrollTop - (el?.parentNode as HTMLElement)?.clientHeight;
         }
 
         if (offset < Number(this.props.threshold)) {
@@ -115,9 +106,9 @@ export default class InfiniteScroll extends PureComponent {
             return;
         }
 
-        let scrollEl = window;
+        let scrollEl : Window|HTMLElement = window
         if (this.props.useWindow === false) {
-            scrollEl = this.scrollComponent.parentNode;
+            scrollEl = this.scrollComponent?.parentNode as HTMLElement;
         }
 
         scrollEl.addEventListener('scroll', this.scrollListener);
@@ -129,9 +120,9 @@ export default class InfiniteScroll extends PureComponent {
     }
 
     detachScrollListener() {
-        var scrollEl = window;
+        var scrollEl : Window|HTMLElement = window;
         if (this.props.useWindow === false) {
-            scrollEl = this.scrollComponent.parentNode;
+            scrollEl = this.scrollComponent?.parentNode as HTMLElement; 
         }
 
         scrollEl.removeEventListener('scroll', this.scrollListener);
@@ -143,7 +134,7 @@ export default class InfiniteScroll extends PureComponent {
     }
 
     // Set a defaut loader for all your `InfiniteScroll` components
-    setDefaultLoader(loader) {
+    setDefaultLoader(loader:object) {
         this.defaultLoader = loader;
     }
 }
