@@ -15,10 +15,6 @@ interface Props {
 }
 
 function MessageSubmitError(props: Props) {
-    if (!props.error) {
-        return null;
-    }
-
     if (isErrorInvalidSlashCommand(props.error)) {
         const slashCommand = props.submittedMessage?.split(' ')[0];
 
