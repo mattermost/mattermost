@@ -2254,7 +2254,7 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 		}
 	}
 
-	if !originalChannel.IsGroupOrDirect() {
+	if !originalChannel.IsGroupOrDirect() && !targetChannel.IsGroupOrDirect() {
 		// DM and GM channels are "teamless" so it doesn't make sense to check
 		// the MoveThreadToAnotherTeamEnable config when dealing with those.
 		if !*config.MoveThreadToAnotherTeamEnable && targetChannel.TeamId != originalChannel.TeamId {
@@ -2381,6 +2381,20 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, err.Error(), http.StatusBadRequest)
 	}
 
+	var targetTeam *model.Team
+
+	if targetChannel.IsGroupOrDirect() {
+		if !originalChannel.IsGroupOrDirect() {
+			targetTeam, appErr = a.GetTeam(originalChannel.TeamId)
+		}
+	} else {
+		targetTeam, appErr = a.GetTeam(targetChannel.TeamId)
+	}
+
+	if appErr != nil {
+		return appErr
+	}
+  
 	// Begin creating the new thread.
 	c.Logger().Info("Wrangler is moving a thread", mlog.String("user_id", user.Id), mlog.String("original_post_id", wpl.RootPost().Id), mlog.String("original_channel_id", originalChannel.Id))
 
