@@ -10,7 +10,6 @@ import {
     openGroupChannelToUserIds,
     loadChannelsForCurrentUser, fetchChannelsAndMembers,
 } from 'actions/channel_actions';
-import {loadProfilesForSidebar} from 'actions/user_actions';
 import {CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE} from 'actions/channel_queries';
 
 import {Channel} from '@mattermost/types/channels';
@@ -136,7 +135,9 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 jest.mock('actions/user_actions', () => ({
     loadNewDMIfNeeded: jest.fn(),
     loadNewGMIfNeeded: jest.fn(),
-    loadProfilesForSidebar: jest.fn(),
+    loadProfilesForSidebar: () => ({
+        type: 'MOCK_PROFILES_FOR_SIDEBAR',
+    }),
 }));
 
 describe('Actions.Channel', () => {
@@ -146,11 +147,13 @@ describe('Actions.Channel', () => {
         const expectedActions = [{
             type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS',
             args: ['team-id'],
+        }, 
+        {
+            type: 'MOCK_PROFILES_FOR_SIDEBAR',
         }];
 
         await testStore.dispatch(loadChannelsForCurrentUser());
         expect(testStore.getActions()).toEqual(expectedActions);
-        expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
     });
 
     test('searchMoreChannels', async () => {

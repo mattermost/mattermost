@@ -615,7 +615,7 @@ describe('Actions.User', () => {
         const testStore = mockStore(state);
         store.getState.mockImplementation(testStore.getState);
 
-        await UserActions.loadProfilesForGM();
+        await testStore.dispatch(UserActions.loadProfilesForGM());
         expect(UserActions.queue.onEmpty).toHaveBeenCalled();
         expect(UserActions.queue.add).toHaveBeenCalled();
     });
