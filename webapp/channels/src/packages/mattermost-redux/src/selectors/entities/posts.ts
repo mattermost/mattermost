@@ -835,8 +835,7 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
     );
 }
 
-export function getTeamIdFromPost(state: GlobalState, postId: Post['id']): Team['id'] | undefined {
-    const post = getPost(state, postId);
+export function getTeamIdFromPost(state: GlobalState, post: Post): Team['id'] | undefined {
     const channel = getChannel(state, post.channel_id);
 
     if (!channel) {
