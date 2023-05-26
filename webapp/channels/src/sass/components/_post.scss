@@ -2179,8 +2179,12 @@
 }
 
 .post-row__padding {
+    &.bottom > div:not(.post) {
+        padding-bottom: 1em;
+    }
+
     &.top > div:not(.post) {
-        padding-top: 0;
+        padding-top: 1em;
     }
 
     &.top .post {
