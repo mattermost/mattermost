@@ -835,12 +835,12 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
     );
 }
 
-export function getTeamIdFromPost(state: GlobalState, postId: Post['id']): Team['id'] {
+export function getTeamIdFromPost(state: GlobalState, postId: Post['id']): Team['id'] | undefined {
     const post = getPost(state, postId);
     const channel = getChannel(state, post.channel_id);
 
     if (!channel) {
-        return '';
+        return undefined;
     }
 
     if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
