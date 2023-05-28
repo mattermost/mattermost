@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/timezones"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
 )
 

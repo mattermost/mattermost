@@ -37,6 +37,11 @@ const CategoryButton = styled.button`
     background: none;
     text-align: left;
 
+    &:hover {
+        background: rgba(var(--denim-button-bg-rgb), 0.04);
+        cursor: pointer;
+    }
+
     &.selected {
         background: rgba(var(--denim-button-bg-rgb), 0.04);
         font-weight: 600;

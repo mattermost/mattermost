@@ -8,9 +8,10 @@ import {useHistory} from 'react-router-dom';
 import IconMessage from 'components/purchase_modal/icon_message';
 import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
 
-import {ConsolePages} from 'utils/constants';
+import {ConsolePages, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import './success_page.scss';
+import {trackEvent} from 'actions/telemetry_actions';
 
 interface Props {
     onClose: () => void;
@@ -34,6 +35,7 @@ export default function SelfHostedExpansionSuccessPage(props: Props) {
                     <a
                         href='#'
                         onClick={() => {
+                            trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_EXPANSION, 'success_screen_closed');
                             history.push(ConsolePages.BILLING_HISTORY);
                             props.onClose();
                         }}

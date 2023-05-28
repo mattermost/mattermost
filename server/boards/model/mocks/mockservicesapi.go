@@ -13,8 +13,8 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	mux "github.com/gorilla/mux"
-	model "github.com/mattermost/mattermost-server/server/v8/model"
-	mlog "github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	model "github.com/mattermost/mattermost-server/server/public/model"
+	mlog "github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 // MockServicesAPI is a mock of ServicesAPI interface.

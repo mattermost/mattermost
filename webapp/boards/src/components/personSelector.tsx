@@ -140,6 +140,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                         u.nickname.toLowerCase().includes(value.toLowerCase())
                 })
             }
+
             return returnUsers
         }
         const excludeBots = true
@@ -153,6 +154,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                 usersOutsideBoard.push(u)
             }
         }
+
         return [
             {label: intl.formatMessage({id: 'PersonProperty.board-members', defaultMessage: 'Board members'}), options: usersInsideBoard},
             {label: intl.formatMessage({id: 'PersonProperty.non-board-members', defaultMessage: 'Not board members'}), options: usersOutsideBoard},

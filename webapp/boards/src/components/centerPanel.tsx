@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
+
 import React, {
-    useState,
     useCallback,
     useEffect,
-    useMemo
+    useMemo,
+    useState,
 } from 'react'
 import {useIntl} from 'react-intl'
 import {useHotkeys} from 'react-hotkeys-hook'
@@ -15,32 +15,32 @@ import {ClientConfig} from 'src/config/clientConfig'
 import {Block} from 'src/blocks/block'
 import {BlockIcons} from 'src/blockIcons'
 import {Card, createCard} from 'src/blocks/card'
-import {Board, IPropertyTemplate, BoardGroup} from 'src/blocks/board'
+import {Board, BoardGroup, IPropertyTemplate} from 'src/blocks/board'
 import {BoardView} from 'src/blocks/boardView'
 import {CardFilter} from 'src/cardFilter'
 import mutator from 'src/mutator'
 import {Utils} from 'src/utils'
 import {UserSettings} from 'src/userSettings'
 import {
-    getCurrentCard,
     addCard as addCardAction,
     addTemplate as addTemplateAction,
-    showCardHiddenWarning
+    getCurrentCard,
+    showCardHiddenWarning,
 } from 'src/store/cards'
 import {getCardLimitTimestamp} from 'src/store/limits'
 import {updateView} from 'src/store/views'
 import {getVisibleAndHiddenGroups} from 'src/boardUtils'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from 'src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 
 import {getClientConfig} from 'src/store/clientConfig'
 
 import './centerPanel.scss'
 
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 
 import {
-    getMe,
     getBoardUsers,
+    getMe,
     getOnboardingTourCategory,
     getOnboardingTourStarted,
     getOnboardingTourStep,
@@ -72,7 +72,7 @@ import {
     BoardTourSteps,
     FINISHED,
     TOUR_BOARD,
-    TOUR_CARD
+    TOUR_CARD,
 } from './onboardingTour'
 import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
 
@@ -393,6 +393,7 @@ const CenterPanel = (props: Props) => {
                 defaultMessage: 'No {propertyName}',
             }, {propertyName: groupByProperty?.name})
         }
+
         return intl.formatMessage({id: 'centerPanel.unknown-user', defaultMessage: 'Unknown user'})
     }
 
@@ -408,6 +409,7 @@ const CenterPanel = (props: Props) => {
                 })
             }
         }
+
         return {visible: vg, hidden: hg}
     }, [cards, activeView.fields.visibleOptionIds, activeView.fields.hiddenOptionIds, groupByProperty, boardUsers])
 

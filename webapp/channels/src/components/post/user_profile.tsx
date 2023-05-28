@@ -95,7 +95,11 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 />
             );
 
-            botIndicator = (<BotTag/>);
+            // user profile component checks and add bot tag in case webhook is from bot account, but if webhook is from user account we need this.
+
+            if (!isBot) {
+                botIndicator = (<BotTag/>);
+            }
         } else if (isFromAutoResponder) {
             userProfile = (
                 <span className='auto-responder'>

@@ -21,7 +21,7 @@ import * as GlobalActions from 'actions/global_actions';
 import * as PostActions from 'actions/post_actions';
 
 import {isUrlSafe, getSiteURL} from 'utils/url';
-import {localizeMessage, getUserIdFromChannelName, localizeAndFormatMessage} from 'utils/utils';
+import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 import * as UserAgent from 'utils/user_agent';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getHistory} from 'utils/browser_history';
@@ -34,7 +34,6 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 
 import {GlobalState} from 'types/store';
 
-import {t} from 'utils/i18n';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import WorkTemplateModal from 'components/work_templates';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -194,14 +193,22 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                     case AppCallResponseTypes.NAVIGATE:
                         return {data: true};
                     default:
-                        return createErrorMessage(localizeAndFormatMessage(
-                            t('apps.error.responses.unknown_type'),
-                            'App response type not supported. Response type: {type}.',
-                            {type: callResp.type},
+                        return createErrorMessage(intlShim.formatMessage(
+                            {
+                                id: 'apps.error.responses.unknown_type',
+                                defaultMessage: 'App response type not supported. Response type: {type}.',
+                            },
+                            {
+                                type: callResp.type,
+                            },
                         ));
                     }
                 } catch (err: any) {
-                    return createErrorMessage(err.message || localizeMessage('apps.error.unknown', 'Unknown error occurred.'));
+                    const message = err.message || intlShim.formatMessage({
+                        id: 'apps.error.unknown',
+                        defaultMessage: 'Unknown error occurred.',
+                    });
+                    return createErrorMessage(message);
                 }
             }
         }

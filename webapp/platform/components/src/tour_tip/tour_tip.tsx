@@ -8,7 +8,6 @@ import {Placement} from 'tippy.js';
 import classNames from 'classnames';
 
 import {PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
-import {useClickOutsideRef} from '../common/hooks/useClickOutsideRef';
 
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/light-border.css';

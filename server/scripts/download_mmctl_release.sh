@@ -15,13 +15,14 @@ fi
 
 BIN_PATH=${2:-bin}
 
-# strip whitespace
+
+## If pattern release-X.Y exist in branch name we parse the release branch and we fallback to masterx
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
-then
-  RELEASE_TO_DOWNLOAD=$(echo $THIS_BRANCH | grep -Eo 'release-([0-9](\.){0,1})\.([0-9](\.){0,1})')
+RELEASE_PATTERN='release-[0-9]+\.[0-9]+(\.[0-9]+)?'
+if [[ $THIS_BRANCH =~ $RELEASE_PATTERN ]]; then
+  RELEASE_TO_DOWNLOAD=$(echo $THIS_BRANCH | grep -Eo 'release-([0-9]+)?\.([0-9]+)?')
 else
-  RELEASE_TO_DOWNLOAD=master
+  RELEASE_TO_DOWNLOAD="master"
 fi
 
 echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$RELEASE_TO_DOWNLOAD";

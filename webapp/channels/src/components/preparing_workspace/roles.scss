@@ -1,0 +1,47 @@
+@import 'utils/mixins';
+
+$btn-margin-right: 24px;
+
+.plugins-skip-btn {
+    margin-left: 8px;
+}
+
+.Roles__input {
+    width: calc(100% - $btn-margin-right);
+    padding: 10px 16px;
+    border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    font-size: 16px;
+
+    &:active,
+    &:focus {
+        border: 2px solid var(--button-bg);
+    }
+}
+
+.Roles-body {
+    .PreparingWorkspacePageBody {
+        max-width: 600px;
+    }
+
+    .Roles-list {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .role-button {
+        @include secondary-button;
+        @include button-large;
+
+        border-color: rgba(63, 67, 80, 0.16);
+        margin-right: $btn-margin-right;
+        margin-bottom: 24px;
+        color: #3f4350;
+
+        &.active {
+            background: rgba(var(--denim-button-bg-rgb), 0.16);
+        }
+    }
+}
+
+@include simple-in-and-out("Roles");

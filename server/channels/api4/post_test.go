@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -21,13 +22,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -209,6 +210,178 @@ func TestCreatePost(t *testing.T) {
 	rpost, _, err = th.SystemAdminClient.CreatePost(post)
 	require.NoError(t, err)
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+}
+
+func TestCreatePostForPriority(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+	})
+
+	t.Run("should return forbidden when post-priority is disabled", func(t *testing.T) {
+		originalPrioritySetting := *th.App.Config().ServiceSettings.PostPriority
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = false
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = originalPrioritySetting
+		})
+
+		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewString("urgent"),
+			},
+		}}
+
+		_, resp, err := client.CreatePost(post)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should return badRequest when priority is set for reply post", func(t *testing.T) {
+		rootPost := &model.Post{ChannelId: th.BasicChannel.Id, Message: "root"}
+
+		post, resp, err := client.CreatePost(rootPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		replyPost := &model.Post{RootId: post.Id, ChannelId: th.BasicChannel.Id, Message: "reply", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewString("urgent"),
+			},
+		}}
+		_, resp, err = client.CreatePost(replyPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("should return statusNotImplemented when min. pro. license not available", func(t *testing.T) {
+		th.App.Srv().RemoveLicense()
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		//  for Acknowledment
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:     model.NewString("urgent"),
+				RequestedAck: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		//  for Persistent Notification
+		p2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("urgent"),
+				PersistentNotifications: model.NewBool(true),
+			},
+		}}
+		_, resp, err = client.CreatePost(p2)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("should return forbidden when persistent notification not enabled", func(t *testing.T) {
+		originalSetting := *th.App.Config().ServiceSettings.AllowPersistentNotifications
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowPersistentNotifications = false
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowPersistentNotifications = originalSetting
+		})
+
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("urgent"),
+				PersistentNotifications: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should return badRequest when post is not urgent for persistent notification", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("important"),
+				PersistentNotifications: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("should return forbidden when persistent notification is disabled for guest users", func(t *testing.T) {
+		originalSetting := *th.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowPersistentNotificationsForGuests = originalSetting
+		})
+
+		appErr := th.App.DemoteUserToGuest(th.Context, th.BasicUser)
+		require.Nil(t, appErr)
+		defer th.App.PromoteGuestToUser(th.Context, th.BasicUser, th.SystemAdminUser.Id)
+
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("urgent"),
+				PersistentNotifications: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should create priority post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewString("important"),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("should create acknowledge post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:     model.NewString(""),
+				RequestedAck: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("should create persistent notification post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("urgent"),
+				RequestedAck:            model.NewBool(false),
+				PersistentNotifications: model.NewBool(true),
+			},
+		}}
+		_, resp, err := client.CreatePost(p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {

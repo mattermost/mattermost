@@ -4,7 +4,7 @@ import {fireEvent, render, screen} from '@testing-library/react'
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 

@@ -64,6 +64,7 @@ export interface Playbook {
 }
 export interface Integration {
     id: string;
+    recommended: boolean;
     name?: string;
     icon?: string;
     installed?: boolean;
@@ -95,3 +96,5 @@ export enum Visibility {
     Public = 'public',
     Private = 'private',
 }
+
+export const CategoryOther = 'other'

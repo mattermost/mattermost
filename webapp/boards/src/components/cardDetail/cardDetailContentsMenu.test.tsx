@@ -6,7 +6,7 @@ import {Provider as ReduxProvider} from 'react-redux'
 
 import userEvent from '@testing-library/user-event'
 
-import {wrapIntl, mockStateStore, setup} from 'src/testUtils'
+import {mockStateStore, setup, wrapIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 

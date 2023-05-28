@@ -55,7 +55,7 @@ export const noBillingHistory = (
     </div>
 );
 
-export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void, daysLeftOnTrial: number) => (
+export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void, daysLeftOnTrial: number, reverseTrial: boolean) => (
     <div className='UpgradeMattermostCloud'>
         <div className='UpgradeMattermostCloud__image'>
             <UpgradeSvg
@@ -104,10 +104,21 @@ export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void
             onClick={() => onUpgradeMattermostCloud('billing_summary_free_trial_upgrade_button')}
             className='UpgradeMattermostCloud__upgradeButton'
         >
-            <FormattedMessage
-                id='admin.billing.subscription.cloudTrial.subscribeButton'
-                defaultMessage='Upgrade Now'
-            />
+            {
+                reverseTrial ? (
+                    <FormattedMessage
+                        id='admin.billing.subscription.cloudTrial.purchaseButton'
+                        defaultMessage='Purchase Now'
+                    />
+
+                ) : (
+                    <FormattedMessage
+                        id='admin.billing.subscription.cloudTrial.subscribeButton'
+                        defaultMessage='Upgrade Now'
+                    />
+                )
+
+            }
         </button>
     </div>
 );

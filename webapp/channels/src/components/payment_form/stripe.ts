@@ -22,7 +22,7 @@ function devConfirmCardSetup(confirmCardSetup: ConfirmCardSetupType): ConfirmCar
     };
 }
 
-export const getConfirmCardSetup = (isDevMode?: boolean) => (isDevMode ? devConfirmCardSetup : prodConfirmCardSetup);
+export const getConfirmCardSetup = (isCwsMockMode?: boolean) => (isCwsMockMode ? devConfirmCardSetup : prodConfirmCardSetup);
 
 export const STRIPE_CSS_SRC = 'https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,600i&display=swap';
 //eslint-disable-next-line no-process-env

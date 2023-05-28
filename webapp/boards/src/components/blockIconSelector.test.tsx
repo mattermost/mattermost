@@ -6,7 +6,6 @@ import {fireEvent, render, screen} from '@testing-library/react'
 
 import userEvent from '@testing-library/user-event'
 
-
 import {mocked} from 'jest-mock'
 
 import mutator from 'src/mutator'

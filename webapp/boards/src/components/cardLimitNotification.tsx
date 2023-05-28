@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import AlertIcon from 'src/widgets/icons/alert'
 
-import {useAppSelector, useAppDispatch} from 'src/store/hooks'
+import {useAppDispatch, useAppSelector} from 'src/store/hooks'
 import {IUser, UserConfigPatch} from 'src/user'
 import {
+    getCardHiddenWarningSnoozeUntil,
+    getCardLimitSnoozeUntil,
     getMe,
     patchProps,
-    getCardLimitSnoozeUntil,
-    getCardHiddenWarningSnoozeUntil
 } from 'src/store/users'
-import {getCurrentBoardHiddenCardsCount, getCardHiddenWarning} from 'src/store/cards'
+import {getCardHiddenWarning, getCurrentBoardHiddenCardsCount} from 'src/store/cards'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 import CheckIcon from 'src/widgets/icons/check'
 import NotificationBox from 'src/widgets/notificationBox/notificationBox'
@@ -103,10 +103,12 @@ const CardLimitNotification = (props: Props) => {
     useEffect(() => {
         if (!show) {
             const interval = setInterval(() => setTime(Date.now()), checkSnoozeInterval)
+
             return () => {
                 clearInterval(interval)
             }
         }
+
         return () => null
     }, [show])
 

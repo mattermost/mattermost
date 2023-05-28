@@ -250,10 +250,10 @@ export default class SearchableChannelList extends React.PureComponent {
             channelDropdown = (
                 <div className='more-modal__dropdown'>
                     <MenuWrapper id='channelsMoreDropdown'>
-                        <a>
+                        <button className='style--none'>
                             <span>{this.props.shouldShowArchivedChannels ? localizeMessage('more_channels.show_archived_channels', 'Show: Archived Channels') : localizeMessage('more_channels.show_public_channels', 'Show: Public Channels')}</span>
                             <span className='caret'/>
-                        </a>
+                        </button>
                         <Menu
                             openLeft={false}
                             ariaLabel={localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}

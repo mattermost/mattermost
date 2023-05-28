@@ -61,6 +61,7 @@ export type Props = {
     currentTeamId: string;
     preview?: boolean;
     autocompleteGroups: Array<{ id: string }> | null;
+    delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
         autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
@@ -113,7 +114,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
                 priorityProfiles: this.props.priorityProfiles,
             }),
-            new ChannelMentionProvider(props.actions.autocompleteChannels),
+            new ChannelMentionProvider(props.actions.autocompleteChannels, props.delayChannelAutocomplete),
             new EmoticonProvider(),
         );
 
@@ -175,6 +176,16 @@ export default class Textbox extends React.PureComponent<Props> {
                         teamId: this.props.currentTeamId,
                         channelId: this.props.channelId,
                         rootId: this.props.rootId,
+                    });
+                }
+            }
+        }
+
+        if (this.props.delayChannelAutocomplete !== prevProps.delayChannelAutocomplete) {
+            for (const provider of this.suggestionProviders) {
+                if (provider instanceof ChannelMentionProvider) {
+                    provider.setProps({
+                        delayChannelAutocomplete: this.props.delayChannelAutocomplete,
                     });
                 }
             }

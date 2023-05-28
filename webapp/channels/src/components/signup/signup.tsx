@@ -17,7 +17,7 @@ import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
 import {createUser, loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -25,6 +25,7 @@ import {GlobalState} from 'types/store';
 
 import {getGlobalItem} from 'selectors/storage';
 
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -101,8 +102,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         TermsOfServiceLink,
         PrivacyPolicyLink,
     } = config;
-    const {IsLicensed, Cloud} = useSelector(getLicense);
+    const {IsLicensed} = useSelector(getLicense);
     const loggedIn = Boolean(useSelector(getCurrentUserId));
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const usedBefore = useSelector((state: GlobalState) => (!inviteId && !loggedIn && token ? getGlobalItem(state, token, null) : undefined));
     const graphQLEnabled = useSelector(isGraphQLEnabled);
 
@@ -111,7 +113,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     const isLicensed = IsLicensed === 'true';
-    const isCloud = Cloud === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const noAccounts = NoAccounts === 'true';
     const enableSignUpWithEmail = EnableSignUpWithEmail === 'true';
@@ -308,7 +309,15 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             } else if (inviteId) {
                 getInviteInfo(inviteId);
             } else if (loggedIn) {
-                history.push('/');
+                if (onboardingFlowEnabled) {
+                    // need info about whether admin or not,
+                    // and whether admin has already completed
+                    // first tiem onboarding. Instead of fetching and orchestrating that here,
+                    // let the default root component handle it.
+                    history.push('/');
+                } else {
+                    redirectUserToDefaultTeam();
+                }
             }
         }
 
@@ -451,12 +460,14 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
         if (redirectTo) {
             history.push(redirectTo);
-        } else {
+        } else if (onboardingFlowEnabled) {
             // need info about whether admin or not,
             // and whether admin has already completed
             // first tiem onboarding. Instead of fetching and orchestrating that here,
             // let the default root component handle it.
             history.push('/');
+        } else {
+            redirectUserToDefaultTeam();
         }
     };
 
@@ -579,10 +590,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const handleReturnButtonOnClick = () => history.replace('/');
 
     const getNewsletterCheck = () => {
-        if (isCloud) {
-            return null;
-        }
-
         if (canReachCWS) {
             return (
                 <CheckInput

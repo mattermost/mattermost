@@ -4,20 +4,19 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {
+    act,
+    fireEvent,
     render,
     screen,
-    fireEvent,
-    act
 } from '@testing-library/react'
 
 import {
     mockDOM,
-    wrapDNDIntl,
     mockStateStore,
-    setup
+    setup,
+    wrapDNDIntl,
 } from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
-
 
 import {BlockData} from './blocks/types'
 import BlocksEditor from './blocksEditor'
@@ -119,7 +118,6 @@ describe('components/blocksEditor/blocksEditor', () => {
             await user.type(screen.getByRole('textbox'), 'test')
             await user.keyboard('{Enter}')
         })
-
 
         expect(onBlockCreated).toBeCalledWith(expect.objectContaining({value: 'test'}))
     })

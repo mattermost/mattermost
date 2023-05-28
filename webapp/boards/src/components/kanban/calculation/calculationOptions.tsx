@@ -47,8 +47,8 @@ export const KanbanCalculationOptions = (props: Props): JSX.Element => {
             return
         }
 
-        (optionsByType.get(property.type) || []).
-            forEach((typeOption) => {
+        (optionsByType.get(property.type) || [])
+            .forEach((typeOption) => {
                 options.push({
                     ...typeOption,
                     cardProperties: props.cardProperties,

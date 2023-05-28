@@ -4,7 +4,7 @@ import React, {
     forwardRef,
     useImperativeHandle,
     useLayoutEffect,
-    useRef
+    useRef,
 } from 'react'
 
 import './editable.scss'
@@ -91,6 +91,7 @@ export function useEditable(
     if (props.validator) {
         error = !props.validator(value || '')
     }
+
     return {
         className: 'Editable ' + (error ? 'error ' : '') + (readonly ? 'readonly ' : '') + (className || ''),
         placeholder: placeholderText,

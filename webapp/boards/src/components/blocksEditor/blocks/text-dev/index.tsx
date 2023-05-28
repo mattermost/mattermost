@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect} from 'react'
+import React, {useEffect, useRef} from 'react'
 
 import {BlockInputProps, ContentType} from 'src/components/blocksEditor/blocks/types'
 import {Utils} from 'src/utils'
@@ -16,6 +16,7 @@ const Text: ContentType = {
     editable: true,
     Display: (props: BlockInputProps) => {
         const html: string = Utils.htmlFromMarkdown(props.value || '')
+
         return (
             <div
                 dangerouslySetInnerHTML={{__html: html}}
@@ -28,6 +29,7 @@ const Text: ContentType = {
         useEffect(() => {
             ref.current?.focus()
         }, [])
+
         return (
             <input
                 ref={ref}

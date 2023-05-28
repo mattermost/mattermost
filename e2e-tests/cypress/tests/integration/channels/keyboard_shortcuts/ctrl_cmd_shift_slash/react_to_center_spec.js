@@ -191,7 +191,9 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         Cypress._.times(3, () => {
             doReactToLastMessageShortcut('CENTER');
             cy.get('#emojiPicker').should('exist');
-            cy.get('body').click();
+
+            // # Click anywhere to close emoji picker
+            cy.get('#channelHeaderInfo').click();
             cy.get('#emojiPicker').should('not.exist');
         });
 

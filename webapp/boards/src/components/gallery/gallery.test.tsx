@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapDNDIntl, mockStateStore, blocksById} from 'src/testUtils'
+import {blocksById, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
