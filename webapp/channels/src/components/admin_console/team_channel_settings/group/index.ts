@@ -11,7 +11,6 @@ import List from './group_list';
 import {GlobalState} from 'types/store';
 
 type Actions = {
-
     getData(): Promise<Group[]>;
 }
 type OwnProps = {
@@ -37,7 +36,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
             getData: () => getGroups(),
-
         }, dispatch),
     };
 }
