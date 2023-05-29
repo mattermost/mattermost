@@ -44,15 +44,7 @@ type fileInfoWithChannelID struct {
 	Archived        bool
 }
 
-// Find the end of the term and include the wildcard if it exists
-// because we will put a wildcard at the end of the term regardless of whether a wildcard exists or not
-var wildcardRegExpForFileSearch = regexp.MustCompile(`\*?$`)
-
-// Find all characters between quotes
-var exactPhraseRegExpForFileSearch = regexp.MustCompile(`"[^"]+"`)
-
-// In excludedTerms case, we don't put a wildcard after the term.
-var wildcardRegExpForPostgresExcludedTerms = regexp.MustCompile(`\*($| )`)
+var wildcardRegExpForPostgres = regexp.MustCompile(`\*($| )`)
 
 func (fi fileInfoWithChannelID) ToModel() *model.FileInfo {
 	return &model.FileInfo{
@@ -614,50 +606,41 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 			}
 		}
 
-		terms := params.Terms
+		// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+		// Add asterisk character after each term of the normalTerms to perform wildcard search
+		wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+		exactPhraseTerms := params.GetExactPhraseTerms()
 		excludedTerms := params.ExcludedTerms
 
 		// these chars have special meaning and can be treated as spaces
 		for _, c := range fs.specialSearchChars() {
-			terms = strings.Replace(terms, c, " ", -1)
+			wildcardAddedNormalTerms = strings.Replace(wildcardAddedNormalTerms, c, " ", -1)
+			exactPhraseTerms = strings.Replace(exactPhraseTerms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
-		if terms == "" && excludedTerms == "" {
+		if wildcardAddedNormalTerms == "" && exactPhraseTerms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
 			// replace a term only if there is a wildcard at the end of the word
-			excludedTerms = wildcardRegExpForPostgresExcludedTerms.ReplaceAllLiteralString(excludedTerms, ":* ")
+			excludedTerms = wildcardRegExpForPostgres.ReplaceAllLiteralString(excludedTerms, ":* ")
+
+			if wildcardAddedNormalTerms != "" {
+				wildcardAddedNormalTerms = wildcardRegExpForPostgres.ReplaceAllLiteralString(wildcardAddedNormalTerms, ":* ")
+			}
 
 			excludeClause := ""
 			if excludedTerms != "" {
 				excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 			}
 
-			exactPhraseTerms := []string{}
-
-			// Since we will put wildcard on the rest of the terms,
-			// we will get exactPhraseTerms first and then remove the matching terms
-			for _, term := range exactPhraseRegExpForFileSearch.FindAllString(terms, -1) {
-				quoteRemovedTerm := strings.Trim(term, "\"")
-				exactPhraseTerms = append(exactPhraseTerms, strings.Fields(quoteRemovedTerm)...)
-			}
-
-			terms = exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(terms, "")
-
-			wildcardAddedTerms := strings.Fields(terms)
-
-			for index, term := range wildcardAddedTerms {
-				// A wildcard is attached to the end of every word
-				// regardless of whether or not a wildcard exists
-				wildcardAddedTerms[index] = wildcardRegExpForFileSearch.ReplaceAllLiteralString(term, ":*")
-			}
+			parsedTerms := strings.TrimSpace(wildcardAddedNormalTerms + " " + exactPhraseTerms)
 
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = "(" + strings.Join(append(wildcardAddedTerms, exactPhraseTerms...), " | ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(strings.Fields(parsedTerms), " | ") + ")" + excludeClause
 			} else {
-				queryTerms = "(" + strings.Join(append(wildcardAddedTerms, exactPhraseTerms...), " & ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(strings.Fields(parsedTerms), " & ") + ")" + excludeClause
 			}
 
 			query = query.Where(sq.Or{
@@ -667,31 +650,22 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 			})
 		} else if fs.DriverName() == model.DatabaseDriverMysql {
 			var err error
-			terms, err = removeMysqlStopWordsFromTerms(terms)
+
+			wildcardAddedNormalTerms, err = removeMysqlStopWordsFromTerms(wildcardAddedNormalTerms)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
 			}
 
-			if terms == "" {
+			exactPhraseTerms, err = removeMysqlStopWordsFromTerms(exactPhraseTerms)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to remove Mysql stop-words from terms")
+			}
+
+			if wildcardAddedNormalTerms == "" && exactPhraseTerms == "" {
 				return model.NewFileInfoList(), nil
 			}
 
-			exactPhraseTerms := []string{}
-
-			// Since we will put wildcard on the rest of the terms,
-			// we will get exactPhraseTerms first and then remove the matching terms
-			exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExpForFileSearch.FindAllString(terms, -1)...)
-			terms = exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(terms, "")
-
-			wildcardAddedTerms := strings.Fields(terms)
-
-			// A wildcard is attached to the end of every word
-			// regardless of whether or not a wildcard exists
-			for index, term := range wildcardAddedTerms {
-				wildcardAddedTerms[index] = wildcardRegExpForFileSearch.ReplaceAllLiteralString(term, "*")
-			}
-
-			parsedTerms := append(wildcardAddedTerms, exactPhraseTerms...)
+			parsedTerms := strings.TrimSpace(wildcardAddedNormalTerms + " " + exactPhraseTerms)
 
 			excludeClause := ""
 			if excludedTerms != "" {
@@ -700,10 +674,10 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = strings.Join(parsedTerms, " ") + excludeClause
+				queryTerms = parsedTerms + excludeClause
 			} else {
 				splitTerms := []string{}
-				for _, t := range parsedTerms {
+				for _, t := range strings.Fields(parsedTerms) {
 					splitTerms = append(splitTerms, "+"+t)
 				}
 				queryTerms = strings.Join(splitTerms, " ") + excludeClause

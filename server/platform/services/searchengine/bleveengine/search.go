@@ -717,24 +717,14 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 		if params.Terms != "" {
 			terms := []string{}
 
-			// Since we will put wildcard on the rest of the terms,
-			// we will get exactPhraseTerms first and then remove the matching terms
-			exactPhraseTerms := exactPhraseRegExpForFileSearch.FindAllString(params.Terms, -1)
-			params.Terms = exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(params.Terms, "")
+			// Separate Terms into exactPhraseTerms(quoted string) and normalTerms(non-quoted string)
+			// Add asterisk character after each term of the normalTerms to perform wildcard search
+			wildcardAddedNormalTerms := params.GetWildcardAddedNormalTerms()
+			exactPhraseTerms := params.GetExactPhraseTerms()
 
-			wildcardAddedTerms := strings.Fields(params.Terms)
+			parsedTerms := strings.TrimSpace(wildcardAddedNormalTerms + " " + exactPhraseTerms)
 
-			// A wildcard is attached to the end of every word
-			// regardless of whether or not a wildcard exists
-			for index, term := range wildcardAddedTerms {
-				if !strings.HasPrefix(term, "*") {
-					wildcardAddedTerms[index] = wildcardRegExpForFileSearch.ReplaceAllLiteralString(term, "*")
-				}
-			}
-
-			parsedTerms := append(wildcardAddedTerms, exactPhraseTerms...)
-
-			for _, term := range parsedTerms {
+			for _, term := range strings.Fields(parsedTerms) {
 				if strings.HasSuffix(term, "*") {
 					nameQ := bleve.NewWildcardQuery(term)
 					nameQ.SetField("Name")

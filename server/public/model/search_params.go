@@ -13,6 +13,11 @@ import (
 var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
 var searchTermPuncEnd = regexp.MustCompile(`[^\pL\d\s*"]+$`)
 
+// Regexp to match any quoted string. It is used in the file search
+// logic to avoid adding a wildcard at the end of the quoted search
+// terms, which need to be matched literally.
+var exactPhraseRegExpForFileSearch = regexp.MustCompile(`"[^"]+"`)
+
 type SearchParams struct {
 	Terms                  string   `json:"terms,omitempty"`
 	ExcludedTerms          string   `json:"excluded_terms,omitempty"`
@@ -107,6 +112,32 @@ func (p *SearchParams) GetExcludedDateMillis() (int64, int64) {
 	}
 
 	return GetStartOfDayMillis(date, p.TimeZoneOffset), GetEndOfDayMillis(date, p.TimeZoneOffset)
+}
+
+// Returns only the quoted terms in Terms
+func (p *SearchParams) GetExactPhraseTerms() string {
+	exactPhraseTerms := strings.Join(exactPhraseRegExpForFileSearch.FindAllString(p.Terms, -1), " ")
+
+	return exactPhraseTerms
+}
+
+// Returns only the non-quoted terms in Terms with an asterisk character at the end
+func (p *SearchParams) GetWildcardAddedNormalTerms() string {
+	// Filter the quoted terms
+	normalTerms := exactPhraseRegExpForFileSearch.ReplaceAllLiteralString(p.Terms, "")
+
+	result := []string{}
+
+	for _, term := range strings.Fields(normalTerms) {
+		if !strings.HasSuffix(term, "*") {
+			term = term + "*"
+		}
+		result = append(result, term)
+	}
+
+	wildcardAddedNormalTerms := strings.Join(result, " ")
+
+	return wildcardAddedNormalTerms
 }
 
 var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on", "ext"}
