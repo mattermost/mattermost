@@ -43,7 +43,7 @@ type Props = {
 export class TeamIcon extends React.PureComponent<Props> {
     public static defaultProps = {
         size: 'sm' as const,
-    }
+    };
 
     public render() {
         const {content, url, size, withHover, className} = this.props;

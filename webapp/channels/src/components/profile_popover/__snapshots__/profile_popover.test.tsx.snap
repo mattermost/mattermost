@@ -79,7 +79,7 @@ exports[`components/ProfilePopover should disable start call button when user is
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -424,7 +424,7 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -690,7 +690,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -1039,7 +1039,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -1406,7 +1406,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -1728,7 +1728,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -2122,7 +2122,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -2471,7 +2471,7 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -2757,7 +2757,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
       >
         <MemoizedFormattedMessage
           defaultMessage="Last online {timestamp}"
-          id="channel_header.lastActive"
+          id="channel_header.lastOnline"
           values={
             Object {
               "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -3491,9 +3491,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
       hide={[MockFunction]}
       intl={
         Object {
+          "$t": [Function],
           "defaultFormats": Object {},
           "defaultLocale": "en",
           "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
           "formatDate": [Function],
           "formatDateTimeRange": [Function],
           "formatDateToParts": [Function],
@@ -3520,6 +3522,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
           "locale": "en",
           "messages": Object {},
           "onError": [Function],
+          "onWarn": [Function],
           "textComponent": "span",
           "timeZone": "Etc/UTC",
           "wrapRichTextChunksInFragment": undefined,
@@ -3750,7 +3753,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                   >
                     <FormattedMessage
                       defaultMessage="Last online {timestamp}"
-                      id="channel_header.lastActive"
+                      id="channel_header.lastOnline"
                       values={
                         Object {
                           "timestamp": <Memo(Connect(injectIntl(Timestamp)))
@@ -3804,9 +3807,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
                               hourCycle="h12"
                               intl={
                                 Object {
+                                  "$t": [Function],
                                   "defaultFormats": Object {},
                                   "defaultLocale": "en",
                                   "defaultRichTextElements": undefined,
+                                  "fallbackOnEmptyString": true,
                                   "formatDate": [Function],
                                   "formatDateTimeRange": [Function],
                                   "formatDateToParts": [Function],
@@ -3833,6 +3838,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                   "locale": "en",
                                   "messages": Object {},
                                   "onError": [Function],
+                                  "onWarn": [Function],
                                   "textComponent": "span",
                                   "timeZone": "Etc/UTC",
                                   "wrapRichTextChunksInFragment": undefined,
@@ -4076,9 +4082,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
                               id="addToChannelTooltip"
                               intl={
                                 Object {
+                                  "$t": [Function],
                                   "defaultFormats": Object {},
                                   "defaultLocale": "en",
                                   "defaultRichTextElements": undefined,
+                                  "fallbackOnEmptyString": true,
                                   "formatDate": [Function],
                                   "formatDateTimeRange": [Function],
                                   "formatDateToParts": [Function],
@@ -4105,6 +4113,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                   "locale": "en",
                                   "messages": Object {},
                                   "onError": [Function],
+                                  "onWarn": [Function],
                                   "textComponent": "span",
                                   "timeZone": "Etc/UTC",
                                   "wrapRichTextChunksInFragment": undefined,

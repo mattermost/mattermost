@@ -19,7 +19,7 @@ Cypress.Commands.add('uiOpenProfileModal', (section = '') => {
 
 Cypress.Commands.add('verifyAccountNameSettings', (firstname, lastname) => {
     // # Go to Profile
-    cy.uiOpenProfileModal();
+    cy.uiOpenProfileModal('Profile Settings');
 
     // * Check name value
     cy.get('#nameDesc').should('have.text', `${firstname} ${lastname}`);

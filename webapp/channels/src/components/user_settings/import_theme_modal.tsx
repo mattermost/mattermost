@@ -32,7 +32,7 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
 
     private handleOnHide = () => {
         this.setState({show: false});
-    }
+    };
 
     private handleSubmit = (e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
@@ -100,7 +100,7 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
         this.props.callback?.(theme as Theme);
 
         this.handleOnHide();
-    }
+    };
 
     private static isInputValid(text: string) {
         if (text.length === 0) {
@@ -152,7 +152,7 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
                 ),
             });
         }
-    }
+    };
 
     render() {
         return (

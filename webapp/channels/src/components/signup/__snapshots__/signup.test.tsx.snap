@@ -58,6 +58,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
+              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -75,6 +76,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
+              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -87,9 +89,32 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               error=""
               info="Must be 5-64 characters long."
               inputSize="large"
+              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />
+            <div
+              className="newsletter"
+            >
+              <span
+                className="interested"
+              >
+                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
+              </span>
+              <span
+                className="link"
+              >
+                Sign up at 
+                <ExternalLink
+                  href="https://mattermost.com/security-updates/"
+                  key=".1"
+                  location="signup"
+                >
+                  https://mattermost.com/security-updates/
+                </ExternalLink>
+                .
+              </span>
+            </div>
             <SaveButton
               btnClass="btn-primary"
               defaultMessage="Create account"
@@ -206,6 +231,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="email"
+              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Email address"
               type="text"
@@ -223,6 +249,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               disabled={false}
               inputSize="large"
               name="name"
+              onBlur={[Function]}
               onChange={[Function]}
               placeholder="Choose a Username"
               type="text"
@@ -235,9 +262,32 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               error=""
               info="Must be 5-64 characters long."
               inputSize="large"
+              onBlur={[Function]}
               onChange={[Function]}
               value=""
             />
+            <div
+              className="newsletter"
+            >
+              <span
+                className="interested"
+              >
+                Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
+              </span>
+              <span
+                className="link"
+              >
+                Sign up at 
+                <ExternalLink
+                  href="https://mattermost.com/security-updates/"
+                  key=".1"
+                  location="signup"
+                >
+                  https://mattermost.com/security-updates/
+                </ExternalLink>
+                .
+              </span>
+            </div>
             <SaveButton
               btnClass="btn-primary"
               defaultMessage="Create account"

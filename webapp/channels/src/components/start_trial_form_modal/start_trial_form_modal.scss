@@ -1,0 +1,175 @@
+.StartTrialFormModal {
+    &.error {
+        display: none !important;
+    }
+
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 512px;
+        height: 660px;
+        border: 1 px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: auto;
+        border-radius: 8px;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        .close {
+            &:hover,
+            &:active,
+            &:focus,
+            &:active:focus {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                opacity: 1;
+            }
+
+            top: 26px;
+            right: 26px;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+            font-family:
+                'Open Sans',
+                sans-serif;
+            font-size: 32px;
+            font-weight: 400;
+        }
+
+        .title {
+            font-family: Metropolis, sans-serif;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 28px;
+            text-align: left;
+        }
+
+        .description {
+            margin: 0 auto;
+            margin-top: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-family: 'Open Sans';
+            font-size: 14px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 16px;
+            text-align: left;
+        }
+
+        display: block;
+        min-height: 48px;
+        padding-top: 26px;
+        padding-bottom: 0;
+        padding-left: 32px;
+        border: 0;
+        background: var(--center-channel-bg) !important;
+        border-radius: 8px;
+        color: var(--center-channel-color);
+    }
+
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        flex-direction: column;
+        padding-top: 32px;
+        padding-right: 32px;
+        padding-bottom: 26px;
+        padding-left: 32px;
+
+        .disclaimer {
+            width: 100%;
+            height: 32px;
+            margin: 0;
+            margin-top: 36px;
+            margin-bottom: 32px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-family: 'Open Sans';
+            font-size: 12px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 16px;
+            text-align: left;
+        }
+
+        .email_input {
+            margin-top: 36px;
+        }
+
+        .company_name_input {
+            margin-top: 36px;
+        }
+
+        .DropdownInput {
+            margin-top: 36px;
+
+            .DropDown__menu {
+                z-index: 999;
+                max-height: 124px;
+            }
+
+            .DropDown__menu-list {
+                z-index: 999;
+                max-height: 124px;
+            }
+        }
+
+        .Input___error {
+            height: 100%;
+            font-weight: 600;
+            line-height: 16px;
+
+            .icon.error.icon-alert-circle-outline {
+                width: 16px;
+                height: 16px;
+                margin-right: 4px;
+                font-size: 16px;
+            }
+        }
+
+        .countries-section {
+            z-index: 999;
+            max-height: 164px;
+        }
+
+        .buttons {
+            margin-top: 32px;
+            text-align: right;
+
+            .confirm-btn {
+                &:hover,
+                &:active,
+                &:focus,
+                &:active:focus {
+                    background:
+                        linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)),
+                        var(--button-bg);
+                }
+
+                height: 40px;
+                flex: none;
+                padding: 12px 20px;
+                border: none;
+                margin-left: 8px;
+                background: var(--button-bg);
+                border-radius: 4px;
+                color: var(--sys-button-color);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 14px;
+            }
+        }
+    }
+
+    .modal-centered {
+        text-align: center;
+    }
+}

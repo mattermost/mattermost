@@ -128,6 +128,74 @@
         margin-bottom: 111px;
         gap: 48px;
 
+        .BlankCard {
+            position: relative;
+            width: 280px;
+
+            .image {
+                margin-top: 8px;
+            }
+
+            hr {
+                border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            }
+
+            .description {
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb) 0.16);
+                text-align: left;
+
+                .title {
+                    margin-top: 24px;
+                    margin-bottom: 8px;
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: 20px;
+
+                    .questions {
+                        margin-right: 2px;
+                        color: var(--center-channel-color);
+                    }
+
+                    .contact {
+                        color: var(--denim-button-bg);
+                    }
+                }
+
+                .content {
+                    margin-bottom: 25px;
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+            }
+
+            .self-hosted-interest {
+                padding: 8px;
+                margin-top: 24px;
+                background: rgba(var(--denim-button-bg-rgb), 0.08);
+                border-radius: 8px;
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 20px;
+
+                .interested {
+                    margin-right: 2px;
+                    color: var(--center-channel-color);
+                }
+
+                .learn {
+                    color: var(--denim-button-bg);
+                }
+            }
+        }
+
         .PlanCard {
             position: relative;
             width: 280px;
@@ -180,6 +248,7 @@
                         text-align: center;
 
                         h3 {
+                            margin-top: 32px;
                             color: var(--center-channel-color);
                             font-family: 'Metropolis';
                             font-size: 24px;
@@ -210,6 +279,32 @@
                             font-weight: 400;
                             line-height: 24px;
                         }
+
+                        .plan_rate {
+                            margin-bottom: 0;
+                        }
+
+                        .building_img {
+                            padding-top: 0;
+                        }
+
+                        .building_img__expanded {
+                            padding-top: 14px;
+                        }
+
+                        .billed_annually {
+                            font-family: 'Open sans', sans-serif;
+                            font-size: 16px;
+                        }
+                    }
+
+                    .plan_price_rate_section__expanded {
+                        height: 244px;
+
+                        span,
+                        p {
+                            margin-bottom: 45px;
+                        }
                     }
 
                     .contact_sales_cta {
@@ -218,8 +313,17 @@
                         text-align: center;
                     }
 
+                    .contact_sales_cta__reduced {
+                        height: 32px;
+                        margin-top: 0;
+                    }
+
                     .plan_limits_cta {
                         height: 21px;
+                    }
+
+                    .plan_limits_cta__expanded {
+                        height: 32px;
                     }
 
                     .plan_buttons {
@@ -306,6 +410,10 @@
                                 }
                             }
                         }
+
+                        .plan_briefing_content__reduced {
+                            margin-top: 0;
+                        }
                     }
                 }
 
@@ -354,6 +462,11 @@
                         margin-left: 20px;
                     }
                 }
+            }
+
+            .bottom__round {
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 8px;
             }
         }
     }

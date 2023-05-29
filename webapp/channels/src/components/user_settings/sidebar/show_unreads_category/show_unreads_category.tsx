@@ -69,7 +69,7 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
             checked: e.target.value === 'true',
         });
         a11yFocus(e.target);
-    }
+    };
 
     handleSubmit = async () => {
         this.setState({isSaving: true});
@@ -84,7 +84,7 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
         this.setState({isSaving: false});
 
         this.props.updateSection('');
-    }
+    };
 
     renderDescription = () => {
         if (this.props.showUnreadsCategory) {
@@ -102,7 +102,7 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                 defaultMessage='Off'
             />
         );
-    }
+    };
 
     componentDidUpdate(prevProps: Props) {
         if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {

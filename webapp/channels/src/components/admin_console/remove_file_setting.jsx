@@ -35,7 +35,7 @@ export default class RemoveFileSetting extends Setting {
         this.props.onSubmit(this.props.id, () => {
             this.setState({removing: false});
         });
-    }
+    };
 
     render() {
         return (

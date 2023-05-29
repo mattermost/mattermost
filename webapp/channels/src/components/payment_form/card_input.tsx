@@ -66,7 +66,7 @@ class CardInput extends React.PureComponent<Props, State> {
         if (onFocus) {
             onFocus();
         }
-    }
+    };
 
     private onBlur = () => {
         const {onBlur} = this.props;
@@ -77,14 +77,14 @@ class CardInput extends React.PureComponent<Props, State> {
         if (onBlur) {
             onBlur();
         }
-    }
+    };
 
     private onChange = (event: StripeCardElementChangeEvent) => {
         this.setState({error: '', empty: event.empty, complete: event.complete});
         if (this.props.onCardInputChange) {
             this.props.onCardInputChange(event);
         }
-    }
+    };
 
     private validateInput = () => {
         const {required} = this.props;
@@ -99,7 +99,7 @@ class CardInput extends React.PureComponent<Props, State> {
         }
 
         this.setState({error});
-    }
+    };
 
     private renderError(error: string) {
         if (!error) {

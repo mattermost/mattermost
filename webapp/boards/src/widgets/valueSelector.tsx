@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 import React from 'react'
 import {useIntl} from 'react-intl'
-import {ActionMeta, OnChangeValue} from 'react-select'
+import {ActionMeta, OnChangeValue, StylesConfig} from 'react-select'
 import {FormatOptionLabelMeta} from 'react-select/base'
 import CreatableSelect from 'react-select/creatable'
-
-import {CSSObject} from '@emotion/serialize'
 
 import {IPropertyOption} from 'src/blocks/board'
 import {Constants} from 'src/constants'
@@ -53,6 +51,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
         if (!isMulti) {
             className += ' Label-no-margin'
         }
+
         return (
             <Label
                 color={option.color}
@@ -70,6 +69,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
             </Label>
         )
     }
+
     return (
         <div
             className='value-menu-option'
@@ -105,50 +105,50 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
     )
 }
 
-const valueSelectorStyle = {
+const valueSelectorStyle: StylesConfig<IPropertyOption> = {
     ...getSelectBaseStyle(),
-    option: (provided: CSSObject, state: {isFocused: boolean}): CSSObject => ({
+    option: (provided, state: {isFocused: boolean}) => ({
         ...provided,
         background: state.isFocused ? 'rgba(var(--center-channel-color-rgb), 0.1)' : 'rgb(var(--center-channel-bg-rgb))',
         color: state.isFocused ? 'rgb(var(--center-channel-color-rgb))' : 'rgb(var(--center-channel-color-rgb))',
         padding: '8px',
     }),
-    control: (): CSSObject => ({
+    control: () => ({
         border: 0,
         width: '100%',
         margin: '0',
     }),
-    valueContainer: (provided: CSSObject): CSSObject => ({
+    valueContainer: (provided) => ({
         ...provided,
         padding: '0 8px',
         overflow: 'unset',
     }),
-    singleValue: (provided: CSSObject): CSSObject => ({
+    singleValue: (provided) => ({
         ...provided,
         position: 'static',
         top: 'unset',
         transform: 'unset',
     }),
-    placeholder: (provided: CSSObject): CSSObject => ({
+    placeholder: (provided) => ({
         ...provided,
         color: 'rgba(var(--center-channel-color-rgb), 0.4)',
     }),
-    multiValue: (provided: CSSObject): CSSObject => ({
+    multiValue: (provided) => ({
         ...provided,
         margin: 0,
         padding: 0,
         backgroundColor: 'transparent',
     }),
-    multiValueLabel: (provided: CSSObject): CSSObject => ({
+    multiValueLabel: (provided) => ({
         ...provided,
         display: 'flex',
         paddingLeft: 0,
         padding: 0,
     }),
-    multiValueRemove: (): CSSObject => ({
+    multiValueRemove: () => ({
         display: 'none',
     }),
-    menu: (provided: CSSObject): CSSObject => ({
+    menu: (provided) => ({
         ...provided,
         width: 'unset',
         background: 'rgb(var(--center-channel-bg-rgb))',
@@ -158,6 +158,7 @@ const valueSelectorStyle = {
 
 function ValueSelector(props: Props): JSX.Element {
     const intl = useIntl()
+
     return (
         <CreatableSelect
             noOptionsMessage={() => intl.formatMessage({id: 'ValueSelector.noOptions', defaultMessage: 'No options. Start typing to add the first one!'})}

@@ -11,17 +11,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/app"
+	"github.com/mattermost/mattermost-server/server/v8/boards/app"
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/audit"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/audit"
 
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
 )
 
 // FileUploadResponse is the response to a file upload
@@ -143,6 +143,12 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 		// move file to team location
 		// nothing to do if there is an error
 		_ = a.app.MoveFile(board.ChannelID, board.TeamID, boardID, filename)
+	}
+
+	if err != nil {
+		// if err is still not nil then it is an error other than `not found` so we must
+		// return the error to the requestor.  fileReader and Fileinfo are nil in this case.
+		a.errorResponse(w, r, err)
 	}
 
 	defer fileReader.Close()
@@ -306,7 +312,7 @@ func (a *API) handleUploadFile(w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("teamID", board.TeamID)
 	auditRec.AddMeta("filename", handle.Filename)
 
-	fileID, err := a.app.SaveFile(file, board.TeamID, boardID, handle.Filename)
+	fileID, err := a.app.SaveFile(file, board.TeamID, boardID, handle.Filename, board.IsTemplate)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return

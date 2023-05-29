@@ -49,7 +49,7 @@ export default class Contents extends React.PureComponent<Props> {
             dialogType: CustomStatusModal,
         };
         this.props.actions.openModal(customStatusInputModalData);
-    }
+    };
 
     render() {
         if (!this.props.currentUser) {

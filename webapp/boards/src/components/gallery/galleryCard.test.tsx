@@ -12,7 +12,7 @@ import {mocked} from 'jest-mock'
 
 import {MockStoreEnhanced} from 'redux-mock-store'
 
-import {wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -29,9 +29,9 @@ jest.mock('src/utils')
 jest.mock('src/octoClient')
 
 describe('src/components/gallery/GalleryCard', () => {
-    const mockedMutator = mocked(mutator, true)
-    const mockedUtils = mocked(Utils, true)
-    const mockedOcto = mocked(octoClient, true)
+    const mockedMutator = mocked(mutator)
+    const mockedUtils = mocked(Utils)
+    const mockedOcto = mocked(octoClient)
     mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
 
     const board = TestBlockFactory.createBoard()
@@ -94,7 +94,7 @@ describe('src/components/gallery/GalleryCard', () => {
             }
             store = mockStateStore([], state)
         })
-        test('should match snapshot', () => {
+        test('should match snapshot', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -112,10 +112,10 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
-        test('return GalleryCard and click on it', () => {
+        test('return GalleryCard and click on it', async () => {
             const mockedOnClick = jest.fn()
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -134,10 +134,10 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const galleryCardElement = container.querySelector('.GalleryCard')
-            userEvent.click(galleryCardElement!)
+            await userEvent.click(galleryCardElement!)
             expect(mockedOnClick).toBeCalledTimes(1)
         })
-        test('return GalleryCard and delete card', () => {
+        test('return GalleryCard and delete card', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -155,13 +155,13 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             const buttonDelete = screen.getByRole('button', {name: 'Delete'})
-            userEvent.click(buttonDelete)
+            await userEvent.click(buttonDelete)
             expect(container).toMatchSnapshot()
         })
 
-        test('return GalleryCard and duplicate card', () => {
+        test('return GalleryCard and duplicate card', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -179,14 +179,14 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             const buttonDuplicate = screen.getByRole('button', {name: 'Duplicate'})
-            userEvent.click(buttonDuplicate)
+            await userEvent.click(buttonDuplicate)
             expect(container).toMatchSnapshot()
             expect(mockedMutator.duplicateCard).toBeCalledTimes(1)
             expect(mockedMutator.duplicateCard).toBeCalledWith(card.id, board.id)
         })
-        test('return GalleryCard and copy link', () => {
+        test('return GalleryCard and copy link', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -204,13 +204,13 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             const buttonCopyLink = screen.getByRole('button', {name: 'Copy link'})
-            userEvent.click(buttonCopyLink)
+            await userEvent.click(buttonCopyLink)
             expect(container).toMatchSnapshot()
             expect(mockedUtils.copyTextToClipboard).toBeCalledTimes(1)
         })
-        test('return GalleryCard and cancel', () => {
+        test('return GalleryCard and cancel', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -228,9 +228,9 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             const buttonCancel = screen.getByRole('button', {name: 'Cancel'})
-            userEvent.click(buttonCancel)
+            await userEvent.click(buttonCancel)
             expect(container).toMatchSnapshot()
         })
     })
@@ -294,10 +294,8 @@ describe('src/components/gallery/GalleryCard', () => {
                     />
                 </ReduxProvider>,
             ))
-            await act(async () => {
-                const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-                userEvent.click(buttonElement)
-            })
+            const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
+            await act(() => userEvent.click(buttonElement))
             expect(container).toMatchSnapshot()
         })
     })
@@ -366,10 +364,8 @@ describe('src/components/gallery/GalleryCard', () => {
                     />
                 </ReduxProvider>,
             ))
-            await act(async () => {
-                const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-                userEvent.click(buttonElement)
-            })
+            const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
+            await act(() => userEvent.click(buttonElement))
             expect(container).toMatchSnapshot()
         })
     })
@@ -416,7 +412,7 @@ describe('src/components/gallery/GalleryCard', () => {
             }
             store = mockStateStore([], state)
         })
-        test('should match snapshot', () => {
+        test('should match snapshot', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -434,7 +430,7 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard with content readonly', () => {
@@ -502,7 +498,7 @@ describe('src/components/gallery/GalleryCard', () => {
             }
             store = mockStateStore([], state)
         })
-        test('should match snapshot', () => {
+        test('should match snapshot', async () => {
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <GalleryCard
@@ -520,7 +516,7 @@ describe('src/components/gallery/GalleryCard', () => {
                 </ReduxProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-            userEvent.click(buttonElement)
+            await userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard with contents readonly', () => {

@@ -35,7 +35,7 @@ type CustomMenuProps = {
 class CustomMenu extends React.PureComponent<CustomMenuProps> {
     handleRootClose = () => {
         this.props.onClose();
-    }
+    };
 
     render() {
         const {
@@ -73,7 +73,7 @@ class CustomToggle extends React.PureComponent<CustomToggleProps> {
         if (this.props.onClick) {
             this.props.onClick(e);
         }
-    }
+    };
 
     render() {
         const {children} = this.props;
@@ -121,7 +121,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
     public static defaultProps: Partial<ChannelHeaderPlugProps> = {
         components: [],
         appBindings: [],
-    }
+    };
 
     private disableButtonsClosingRHS = false;
 
@@ -144,11 +144,11 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
 
     toggleDropdown = (dropdownOpen: boolean) => {
         this.setState({dropdownOpen});
-    }
+    };
 
     onClose = () => {
         this.toggleDropdown(false);
-    }
+    };
 
     fireAction = (action: (channel: Channel, channelMember?: ChannelMembership) => void) => {
         if (this.disableButtonsClosingRHS) {
@@ -156,12 +156,12 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
         }
 
         action(this.props.channel, this.props.channelMember);
-    }
+    };
 
     fireActionAndClose = (action: (channel: Channel, channelMember?: ChannelMembership) => void) => {
         action(this.props.channel, this.props.channelMember);
         this.onClose();
-    }
+    };
 
     createComponentButton = (plug: PluginComponent) => {
         return (
@@ -176,7 +176,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                 pluginId={plug.pluginId}
             />
         );
-    }
+    };
 
     onBindingClick = async (binding: AppBinding) => {
         if (this.disableButtonsClosingRHS) {
@@ -228,7 +228,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
             this.props.actions.postEphemeralCallResponseForChannel(callResp, errorMessage, channel.id);
         }
         }
-    }
+    };
 
     createAppBindingButton = (binding: AppBinding) => {
         return (
@@ -248,7 +248,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                 tooltipText={binding.label}
             />
         );
-    }
+    };
 
     createDropdown = (plugs: PluginComponent[], appBindings: AppBinding[]) => {
         const componentItems = plugs.filter((plug) => plug.action).map((plug) => {
@@ -338,7 +338,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                 </Dropdown>
             </div>
         );
-    }
+    };
 
     render() {
         const components = this.props.components || [];

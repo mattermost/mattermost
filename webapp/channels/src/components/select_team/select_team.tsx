@@ -116,7 +116,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             ),
             );
         }
-    }
+    };
 
     handleTeamClick = async (team: Team) => {
         const {siteURL, currentUserRoles} = this.props;

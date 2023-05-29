@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/api4"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 )
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react'
+import React, {ReactNode, useState} from 'react'
 import {useIntl} from 'react-intl'
 
 import MenuWrapper from 'src/widgets/menuWrapper'
@@ -12,10 +12,10 @@ import CompassIcon from 'src/widgets/icons/compassIcon'
 
 import {
     Board,
-    createBoard,
     BoardTypeOpen,
     BoardTypePrivate,
-    MemberRole
+    MemberRole,
+    createBoard,
 } from 'src/blocks/board'
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentTeam} from 'src/store/teams'
@@ -52,19 +52,22 @@ const TeamPermissionsRow = (): JSX.Element => {
         }
     }
 
-    let currentRoleName = intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})
-    if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Admin) {
-        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})
-    } else if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Editor) {
-        if (board.isTemplate) {
+    let currentRoleName = intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})
+    if (board.type === BoardTypeOpen) {
+        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})
+        if (board.minimumRole === MemberRole.Editor) {
+            if (board.isTemplate) {
+                currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
+            } else {
+                currentRoleName = intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})
+            }
+        } else if (board.minimumRole === MemberRole.Commenter) {
+            currentRoleName = intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})
+        } else if (board.minimumRole === MemberRole.Viewer) {
             currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
-        } else {
-            currentRoleName = intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})
         }
-    } else if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Commenter) {
-        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})
-    } else if (board.type === BoardTypeOpen && board.minimumRole === MemberRole.Viewer) {
-        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})
+    } else {
+        currentRoleName = intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})
     }
 
     const confirmationDialog = (
@@ -74,7 +77,7 @@ const TeamPermissionsRow = (): JSX.Element => {
                     id: 'shareBoard.confirm-change-team-role.title',
                     defaultMessage: 'Change minimum board role',
                 }),
-                subText: intl.formatMessage({
+                subText: intl.formatMessage<ReactNode>({
                     id: 'shareBoard.confirm-change-team-role.body',
                     defaultMessage: 'Everyone on this board with a lower permission than the "{role}" role will <b>now be promoted to {role}</b>. Are you sure you want to change the minimum role for the board?',
                 }, {
@@ -99,7 +102,7 @@ const TeamPermissionsRow = (): JSX.Element => {
                     icon='mattermost'
                     className='user-item__img'
                 />
-                <div className='ml-3'><strong>{intl.formatMessage({id: 'ShareBoard.teamPermissionsText', defaultMessage: 'Everyone at {teamName} Team'}, {teamName: team?.title})}</strong></div>
+                <div className='ml-3'><strong>{intl.formatMessage({id: 'ShareBoard.teamPermissionsText', defaultMessage: 'Everyone at {teamName} team'}, {teamName: team?.title})}</strong></div>
             </div>
             <div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardType]}>

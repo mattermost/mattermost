@@ -21,7 +21,7 @@ describe('Keyboard Shortcuts', () => {
         // # Type CTRL/CMD+SHIFT+A to open 'Settings'
         cy.uiGetPostTextBox().cmdOrCtrlShortcut('{shift}A');
 
-        // * Ensure account settings modal is open
+        // * Ensure profile settings modal is open
         cy.get('#accountSettingsModal').should('be.visible');
 
         cy.uiClose();

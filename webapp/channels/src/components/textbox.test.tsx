@@ -16,6 +16,7 @@ describe('components/TextBox', () => {
             {id: 'id1'},
             {id: 'id2'},
         ],
+        delayChannelAutocomplete: false,
         autocompleteGroups: [
             {id: 'gid1'},
             {id: 'gid2'},

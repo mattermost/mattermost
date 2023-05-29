@@ -11,11 +11,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
 )
 
 func (api *API) InitLicense() {
@@ -210,11 +210,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var trialRequest struct {
-		Users                 int  `json:"users"`
-		TermsAccepted         bool `json:"terms_accepted"`
-		ReceiveEmailsAccepted bool `json:"receive_emails_accepted"`
-	}
+	var trialRequest *model.TrialLicenseRequest
 
 	b, readErr := io.ReadAll(r.Body)
 	if readErr != nil {
@@ -223,8 +219,16 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	json.Unmarshal(b, &trialRequest)
 
-	if err := c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted); err != nil {
-		c.Err = err
+	var appErr *model.AppError
+	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
+	if !trialRequest.IsLegacy() {
+		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext.Session().UserId, trialRequest)
+	} else {
+		appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
+	}
+
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -347,17 +351,20 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Do not send true-up review data if the user has already requested one for the quarter.
-	// And only send a true-up review via as a one-time telemetry request if telemetry is disabled.
+	// True-up is only enabled when telemetry is disabled.
+	// When telemetry is enabled, we already have all the data necessary for true-up reviews to be completed.
 	telemetryEnabled := c.App.Config().LogSettings.EnableDiagnostics
 	if telemetryEnabled != nil && !*telemetryEnabled {
-		// Send telemetry data
-		c.App.Srv().GetTelemetryService().SendTelemetry(model.TrueUpReviewTelemetryName, profileMap)
-
-		// Update the review status to reflect the completion.
-		status.Completed = true
-		c.App.Srv().Store().TrueUpReview().Update(status)
+		err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
+		if err != nil {
+			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
+
+	// Update the review status to reflect the completion.
+	status.Completed = true
+	c.App.Srv().Store().TrueUpReview().Update(status)
 
 	// Encode to string rather than byte[] otherwise json.Marshal will encode it further.
 	encodedData := b64.StdEncoding.EncodeToString(profileMapJson)
@@ -366,6 +373,7 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}{Content: encodedData}
 	response, _ := json.Marshal(responseContent)
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(response)
 }
 

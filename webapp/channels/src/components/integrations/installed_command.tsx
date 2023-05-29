@@ -66,11 +66,11 @@ export default class InstalledCommand extends React.PureComponent<Props> {
         e.preventDefault();
 
         this.props.onRegenToken(this.props.command);
-    }
+    };
 
     handleDelete = () => {
         this.props.onDelete(this.props.command);
-    }
+    };
 
     render() {
         const command = this.props.command;

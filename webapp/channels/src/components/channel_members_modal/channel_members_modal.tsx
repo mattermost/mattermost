@@ -51,7 +51,7 @@ export default class ChannelMembersModal extends React.PureComponent<Props, Stat
 
     handleHide = () => {
         this.setState({show: false});
-    }
+    };
 
     onAddNewMembersButton = () => {
         const {channel, actions} = this.props;
@@ -63,7 +63,7 @@ export default class ChannelMembersModal extends React.PureComponent<Props, Stat
         });
 
         this.handleHide();
-    }
+    };
 
     render() {
         const channelIsArchived = this.props.channel.delete_at !== 0;

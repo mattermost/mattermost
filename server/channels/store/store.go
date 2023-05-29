@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 )
 
 type StoreResult struct {
@@ -72,10 +72,7 @@ type Store interface {
 	// GetInternalMasterDB allows access to the raw master DB
 	// handle for the multi-product architecture.
 	GetInternalMasterDB() *sql.DB
-	// GetInternalReplicaDBs allows access to the raw replica DB
-	// handles for the multi-product architecture.
 	GetInternalReplicaDB() *sql.DB
-	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -87,6 +84,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	PostPersistentNotification() PostPersistentNotificationStore
 	TrueUpReview() TrueUpReviewStore
 }
 
@@ -200,6 +198,7 @@ type ChannelStore interface {
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
 	GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
+	GetBotChannelsByUser(userID string, opts ChannelSearchOpts) (model.ChannelList, error)
 	GetAllChannelMembersById(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
@@ -274,13 +273,13 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
 	CreateInitialSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
-	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
+	GetSidebarCategoriesForTeamForUser(userID, teamID string, options ...*SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
-	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
+	GetSidebarCategory(categoryID string, options ...*SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)
 	GetSidebarCategoryOrder(userID, teamID string) ([]string, error)
-	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
+	CreateSidebarCategory(userID, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userID, teamID string, categoryOrder []string) error
-	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
+	UpdateSidebarCategories(userID, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarCategory(categoryID string) error
@@ -347,6 +346,7 @@ type ThreadStore interface {
 	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error)
+	DeleteMembershipsForChannel(userID, channelID string) error
 
 	// Insights - threads
 	GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error)
@@ -564,6 +564,7 @@ type OAuthStore interface {
 	GetAuthData(code string) (*model.AuthData, error)
 	RemoveAuthData(code string) error
 	RemoveAuthDataByClientId(clientId string, userId string) error
+	RemoveAuthDataByUserId(userId string) error
 	PermanentDeleteAuthDataByUser(userID string) error
 	SaveAccessData(accessData *model.AccessData) (*model.AccessData, error)
 	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error)
@@ -985,11 +986,10 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
-	Save(d *model.Draft) (*model.Draft, error)
+	Upsert(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
-	Update(d *model.Draft) (*model.Draft, error)
 }
 
 type PostAcknowledgementStore interface {
@@ -998,6 +998,16 @@ type PostAcknowledgementStore interface {
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
 	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+}
+
+type PostPersistentNotificationStore interface {
+	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
+	GetSingle(postID string) (*model.PostPersistentNotifications, error)
+	UpdateLastActivity(postIds []string) error
+	Delete(postIds []string) error
+	DeleteExpired(maxSentCount int16) error
+	DeleteByChannel(channelIds []string) error
+	DeleteByTeam(teamIds []string) error
 }
 
 type TrueUpReviewStore interface {
@@ -1093,8 +1103,9 @@ type PostReminderMetadata struct {
 // SidebarCategorySearchOpts contains the options for a graphQL query
 // to get the sidebar categories.
 type SidebarCategorySearchOpts struct {
-	TeamID      string
-	ExcludeTeam bool
+	TeamID              string
+	ExcludeTeam         bool
+	AppsCategoryEnabled bool
 }
 
 // Ensure store service adapter implements `product.StoreService`

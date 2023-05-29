@@ -3140,10 +3140,6 @@
     "translation": "Не вдається розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Еластичний пошук не запускається"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Не вдалося створити масовий процесор Elasticsearch"
   },
@@ -6848,10 +6844,6 @@
     "translation": "Повернутися до {{.SiteName}}"
   },
   {
-    "id": "Channels",
-    "translation": "Канали"
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Подія Webhook не оброблена. Або вона відсутня, або недійсна."
   },
@@ -6878,14 +6870,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Ви не можете видалити підтвердження в заархівованому каналі."
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Сценарії"
-  },
-  {
-    "id": "Boards",
-    "translation": "Дошки"
   },
   {
     "id": "api.command_remote.invite.help",

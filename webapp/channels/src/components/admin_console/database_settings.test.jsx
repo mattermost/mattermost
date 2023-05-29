@@ -7,8 +7,14 @@ import {shallow} from 'enzyme';
 import DatabaseSettings from 'components/admin_console/database_settings.jsx';
 
 jest.mock('actions/admin_actions.jsx', () => {
+    const pingFn = () => {
+        return jest.fn(() => {
+            return {ActiveSearchBackend: 'none'};
+        });
+    };
     return {
         recycleDatabaseConnection: jest.fn(),
+        ping: pingFn,
     };
 });
 

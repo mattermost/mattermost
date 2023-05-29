@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {mocked} from 'jest-mock'
-import '@testing-library/jest-dom'
 
 import userEvent from '@testing-library/user-event'
 
@@ -15,12 +14,12 @@ import {FilterClause} from 'src/blocks/filterClause'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import mutator from 'src/mutator'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import FilterComponenet from './filterComponent'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -51,7 +50,7 @@ describe('components/viewHeader/filterComponent', () => {
         board.cardProperties[0].options = [{id: 'Status', value: 'Status', color: ''}]
         activeView.fields.filter.filters = [filter]
     })
-    test('return filterComponent', () => {
+    test('return filterComponent', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -64,10 +63,10 @@ describe('components/viewHeader/filterComponent', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('return filterComponent and add Filter', () => {
+    test('return filterComponent and add Filter', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -80,14 +79,15 @@ describe('components/viewHeader/filterComponent', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await act(() => userEvent.click(buttonElement))
         expect(container).toMatchSnapshot()
         const buttonAdd = screen.getByText('+ Add filter')
-        userEvent.click(buttonAdd)
+        await act(() => userEvent.click(buttonAdd))
         expect(mockedMutator.changeViewFilter).toBeCalledTimes(1)
     })
 
-    test('return filterComponent and filter by status', () => {
+    test('return filterComponent and filter by status', async () => {
+        jest.spyOn(console, 'error').mockImplementation()
         activeView.fields.filter.filters = [unknownFilter]
         const {container} = render(
             wrapIntl(
@@ -100,15 +100,16 @@ describe('components/viewHeader/filterComponent', () => {
                 </ReduxProvider>,
             ),
         )
+        expect(console.error).toBeCalled()
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonStatus = screen.getByRole('button', {name: 'Status'})
-        userEvent.click(buttonStatus)
+        await userEvent.click(buttonStatus)
         expect(mockedMutator.changeViewFilter).toBeCalledTimes(1)
     })
 
-    test('return filterComponent and click is empty', () => {
+    test('return filterComponent and click is empty', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -121,10 +122,10 @@ describe('components/viewHeader/filterComponent', () => {
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
         const buttonNotInclude = screen.getByRole('button', {name: 'is empty'})
-        userEvent.click(buttonNotInclude)
+        await userEvent.click(buttonNotInclude)
         expect(mockedMutator.changeViewFilter).toBeCalledTimes(1)
     })
 })

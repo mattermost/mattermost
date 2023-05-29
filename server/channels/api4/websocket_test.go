@@ -14,9 +14,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
@@ -424,10 +424,14 @@ func TestWebSocketUpgrade(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	buffer := &mlog.Buffer{}
+	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+	require.NoError(t, err)
+
 	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
 	resp, err := http.Get(url)
 	require.NoError(t, err)
 	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
 	require.NoError(t, th.TestLogger.Flush())
-	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
+	testlib.AssertLog(t, buffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
 }

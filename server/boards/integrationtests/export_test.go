@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 )
 
 func TestExportBoard(t *testing.T) {
@@ -62,7 +62,7 @@ func TestExportBoard(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, boardsImported, 1)
 		boardImported := boardsImported[0]
-		blocksImported, err := th.Server.App().GetBlocksForBoard(boardImported.ID)
+		blocksImported, err := th.Server.App().GetBlocks(model.QueryBlocksOptions{BoardID: boardImported.ID})
 		require.NoError(t, err)
 		require.Len(t, blocksImported, 1)
 		require.Equal(t, block.Title, blocksImported[0].Title)

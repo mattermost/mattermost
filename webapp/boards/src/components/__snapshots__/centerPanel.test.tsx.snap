@@ -317,7 +317,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -982,7 +982,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
         >
           <span
             class="Label empty "
-            title="Items with an empty name property will go here. This column cannot be removed."
+            title="Items with an empty name property will go here. This column can't be removed."
           >
             No name
           </span>
@@ -1580,7 +1580,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -2102,7 +2102,7 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -2639,7 +2639,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -3298,7 +3298,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -3957,7 +3957,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -4616,7 +4616,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -5275,7 +5275,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -5934,7 +5934,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -6593,7 +6593,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -7252,7 +7252,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -7911,7 +7911,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>
@@ -8802,7 +8802,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
         >
           <span
             class="Label empty "
-            title="Items with an empty name property will go here. This column cannot be removed."
+            title="Items with an empty name property will go here. This column can't be removed."
           >
             No name
           </span>
@@ -9322,7 +9322,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
         >
           <span
             class="Label empty "
-            title="Items with an empty name property will go here. This column cannot be removed."
+            title="Items with an empty name property will go here. This column can't be removed."
           >
             No name
           </span>
@@ -9886,7 +9886,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 </button>
                 <span
                   class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
+                  title="Items with an empty name property will go here. This column can't be removed."
                 >
                   No name
                 </span>

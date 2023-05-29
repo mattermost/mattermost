@@ -21,8 +21,8 @@ class Archiver {
     private static exportArchive(prom: Promise<Response>): void {
         // TODO:  don't download whole archive before presenting SaveAs dialog.
         prom.then((response) => {
-            response.blob().
-                then((blob) => {
+            response.blob()
+                .then((blob) => {
                     const link = document.createElement('a')
                     link.style.display = 'none'
 

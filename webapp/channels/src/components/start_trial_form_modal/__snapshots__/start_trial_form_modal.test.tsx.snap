@@ -1,0 +1,392 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/start_trial_form_modal/start_trial_form_modal should match snapshot 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop in"
+      />
+      <div
+        class="fade StartTrialFormModal in modal"
+        id="StartTrialFormModal"
+        role="dialog"
+        style="display: block; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <div
+              class="modal-header"
+            >
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+              <div
+                class="title"
+              >
+                Start Trial
+              </div>
+              <div
+                class="description"
+              >
+                Just a few quick items to help us tailor your trial experience.
+              </div>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="Input_container"
+              >
+                <fieldset
+                  class="Input_fieldset name_input"
+                >
+                  <legend
+                    class="Input_legend"
+                  />
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      class="Input form-control large"
+                      id="input_name"
+                      name="name"
+                      placeholder="Name"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </fieldset>
+              </div>
+              <div
+                class="Input_container"
+              >
+                <fieldset
+                  class="Input_fieldset email_input Input_fieldset___error Input_fieldset___legend"
+                >
+                  <legend
+                    class="Input_legend Input_legend___focus"
+                  >
+                    Business Email
+                  </legend>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      class="Input form-control large Input__focus"
+                      id="input_email"
+                      name="email"
+                      placeholder="Business Email"
+                      type="text"
+                      value="test@mattermost.com"
+                    />
+                  </div>
+                </fieldset>
+                <div
+                  class="Input___customMessage Input___error"
+                >
+                  <i
+                    class="icon error icon-alert-circle-outline"
+                  />
+                  <span>
+                    Please enter a valid business email address.
+                  </span>
+                </div>
+              </div>
+              <div
+                class="Input_container"
+              >
+                <fieldset
+                  class="Input_fieldset company_name_input"
+                >
+                  <legend
+                    class="Input_legend"
+                  />
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      class="Input form-control large"
+                      id="input_company_name"
+                      name="company_name"
+                      placeholder="Company Name"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </fieldset>
+              </div>
+              <div
+                class="DropdownInput Input_container"
+                data-testid=""
+              >
+                <fieldset
+                  class="Input_fieldset company_size_dropdown"
+                >
+                  <legend
+                    class="Input_legend"
+                  />
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <div
+                      class="Input company_size_dropdown css-2b097c-container"
+                      id="DropdownInput_company_size_dropdown"
+                    >
+                      <div
+                        class="DropdownInput__controlContainer"
+                      >
+                        <div
+                          class="DropDown__control css-1nr98fh-control"
+                        >
+                          <div
+                            class="DropDown__value-container css-1hwfws3"
+                          >
+                            <div
+                              class="DropDown__placeholder css-1wa3eu0-placeholder"
+                            >
+                              Company Size
+                            </div>
+                            <div
+                              class="css-1ed09z3-Input"
+                            >
+                              <div
+                                class="DropDown__input"
+                                style="display: inline-block;"
+                              >
+                                <input
+                                  aria-autocomplete="list"
+                                  autocapitalize="none"
+                                  autocomplete="off"
+                                  autocorrect="off"
+                                  id="react-select-2-input"
+                                  spellcheck="false"
+                                  style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
+                                  tabindex="0"
+                                  type="text"
+                                  value=""
+                                />
+                                <div
+                                  style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="DropdownInput__indicatorsContainer"
+                          >
+                            <div
+                              class="DropDown__indicators css-1hb7zxy-IndicatorsContainer"
+                            >
+                              <i
+                                class="icon icon-chevron-down"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+              <div
+                class="countries-section"
+              >
+                <div
+                  class="DropdownInput Input_container"
+                  data-testid=""
+                >
+                  <fieldset
+                    class="Input_fieldset"
+                  >
+                    <legend
+                      class="Input_legend"
+                    />
+                    <div
+                      class="Input_wrapper"
+                    >
+                      <div
+                        class="Input css-2b097c-container"
+                        id="DropdownInput_country_dropdown"
+                      >
+                        <div
+                          class="DropdownInput__controlContainer"
+                        >
+                          <div
+                            class="DropDown__control css-1nr98fh-control"
+                          >
+                            <div
+                              class="DropDown__value-container css-1hwfws3"
+                            >
+                              <div
+                                class="DropDown__placeholder css-1wa3eu0-placeholder"
+                              >
+                                Country
+                              </div>
+                              <div
+                                class="css-1ed09z3-Input"
+                              >
+                                <div
+                                  class="DropDown__input"
+                                  style="display: inline-block;"
+                                >
+                                  <input
+                                    aria-autocomplete="list"
+                                    autocapitalize="none"
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    id="react-select-3-input"
+                                    spellcheck="false"
+                                    style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
+                                    tabindex="0"
+                                    type="text"
+                                    value=""
+                                  />
+                                  <div
+                                    style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="DropdownInput__indicatorsContainer"
+                            >
+                              <div
+                                class="DropDown__indicators css-1hb7zxy-IndicatorsContainer"
+                              >
+                                <i
+                                  class="icon icon-chevron-down"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+              <div
+                class="disclaimer"
+              >
+                By selecting Start trial, I agree to the 
+                <a
+                  href="https://mattermost.com/software-evaluation-agreement/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  location="start_trial_form_modal"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Mattermost Software Evaluation Agreement
+                </a>
+                , 
+                <a
+                  href="https://mattermost.com/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=start_trial_form_modal&uid=user1&sid=test123"
+                  location="start_trial_form_modal"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Privacy Policy
+                </a>
+                , and receiving product emails.
+              </div>
+              <div
+                class="buttons"
+              >
+                <button
+                  class="confirm-btn btn btn-default"
+                  disabled=""
+                  type="button"
+                >
+                  Start trial
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;

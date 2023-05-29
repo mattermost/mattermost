@@ -18,19 +18,19 @@ declare namespace Cypress {
     interface Chainable {
 
         /**
-         * Open the account settings modal
+         * Open the profile settings modal
          * @param {string} section - such as `'General'`, `'Security'`, `'Notifications'`, `'Display'`, `'Sidebar'` and `'Advanced'`
          * @return the "#accountSettingsModal"
          *
          * @example
-         *   cy.uiOpenProfileModal().within(() => {
+         *   cy.uiOpenProfileModal('Profile Settings').within(() => {
          *       // Do something here
          *   });
          */
-        uiOpenProfileModal(section?: string): Chainable<JQuery<HTMLElement>>;
+        uiOpenProfileModal(section: string): Chainable<JQuery<HTMLElement>>;
 
         /**
-         * Close the account settings modal given that the modal itself is opened.
+         * Close the profile settings modal given that the modal itself is opened.
          *
          * @example
          *   cy.uiCloseAccountSettingsModal();
@@ -38,7 +38,7 @@ declare namespace Cypress {
         uiCloseAccountSettingsModal(): Chainable;
 
         /**
-         * Navigate to account settings and verify the user's first, last name
+         * Navigate to profile settings and verify the user's first, last name
          * @param {String} firstname - expected user firstname
          * @param {String} lastname - expected user lastname
          */

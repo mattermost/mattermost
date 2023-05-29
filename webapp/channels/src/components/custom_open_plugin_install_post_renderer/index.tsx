@@ -10,7 +10,7 @@ import {uniqWith} from 'lodash';
 import {Post} from '@mattermost/types/posts';
 import {MarketplacePlugin} from '@mattermost/types/marketplace';
 
-import MarketplaceModal from 'components/plugin_marketplace';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Markdown from 'components/markdown';
 
 import {getUsers} from 'mattermost-redux/selectors/entities/users';

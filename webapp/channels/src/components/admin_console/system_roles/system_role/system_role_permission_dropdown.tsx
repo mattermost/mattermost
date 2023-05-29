@@ -37,7 +37,7 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
             permissions.push({name: section.name, value});
         }
         this.props.updatePermissions(permissions);
-    }
+    };
 
     renderOption = (label: JSX.Element, description: JSX.Element) => {
         return (
@@ -50,7 +50,7 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
                 </div>
             </div>
         );
-    }
+    };
 
     render() {
         const {isDisabled, section} = this.props;

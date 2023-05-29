@@ -15,7 +15,7 @@ class TeamFilterCheckbox extends React.PureComponent<Props> {
     toggleOption = () => {
         const {checked, id, updateOption} = this.props;
         updateOption(!checked, id);
-    }
+    };
 
     render() {
         const {

@@ -32,7 +32,7 @@ describe('Profile > Profile Settings > Profile Picture', () => {
             and('not.include', customImageMatch);
 
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Click "Edit" to the right of "Profile Picture"
         cy.get('#pictureEdit').should('be.visible').click();
@@ -51,7 +51,7 @@ describe('Profile > Profile Settings > Profile Picture', () => {
             and('include', customImageMatch);
 
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Click "Edit" to the right of "Profile Picture"
         cy.get('#pictureEdit').should('be.visible').click();
@@ -75,7 +75,7 @@ describe('Profile > Profile Settings > Profile Picture', () => {
 
     it('MM-T2077 Profile picture: non image file shows error', () => {
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Click "Edit" to the right of "Profile Picture"
         cy.get('#pictureEdit').should('be.visible').click();

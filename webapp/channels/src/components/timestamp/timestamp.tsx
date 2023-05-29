@@ -175,7 +175,7 @@ class Timestamp extends PureComponent<Props, State> {
         second: 'numeric',
         hourCycle: 'h12',
         timeZoneName: 'short',
-    }
+    };
     nextUpdate: ReturnType<typeof setTimeout> | null = null;
     mounted = false;
 

@@ -9,71 +9,45 @@
 // Stage: @prod
 // Group: @playbooks
 
-import {onlyOn} from '@cypress/skip-test';
-
-describe('channels > App Bar', () => {
+describe('channels > App Bar', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
-    let testPlaybook;
-    let appBarEnabled;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
             testTeam = team;
             testUser = user;
-
-            // # Login as testUser
-            cy.apiLogin(testUser);
-
-            // # Create a playbook
-            cy.apiCreateTestPlaybook({
-                teamId: testTeam.id,
-                title: 'Playbook',
-                userId: testUser.id,
-            }).then((playbook) => {
-                testPlaybook = playbook;
-
-                // # Start a playbook run
-                cy.apiRunPlaybook({
-                    teamId: testTeam.id,
-                    playbookId: testPlaybook.id,
-                    playbookRunName: 'Playbook Run',
-                    ownerUserId: testUser.id,
-                });
-            });
-
-            cy.apiGetConfig(true).then(({config}) => {
-                appBarEnabled = config.EnableAppBar === 'true';
-            });
         });
     });
 
     beforeEach(() => {
-        // # Size the viewport to show the RHS without covering posts.
-        cy.viewport('macbook-13');
-
-        // # Login as testUser
-        cy.apiLogin(testUser);
+        cy.apiAdminLogin();
     });
 
     describe('App Bar disabled', () => {
         it('should not show the Playbook App Bar icon', () => {
-            onlyOn(!appBarEnabled);
+            cy.apiUpdateConfig({ExperimentalSettings: {EnableAppBar: false}});
+
+            // # Login as testUser
+            cy.apiLogin(testUser);
 
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
             // * Verify App Bar icon is not showing
-            cy.get('#channel_view').within(() => {
-                cy.getPlaybooksAppBarIcon().should('not.exist');
-            });
+            cy.get('.app-bar').should('not.exist');
         });
     });
 
     describe('App Bar enabled', () => {
-        it('should show the Playbook App Bar icon', () => {
-            onlyOn(appBarEnabled);
+        beforeEach(() => {
+            cy.apiUpdateConfig({ExperimentalSettings: {EnableAppBar: true}});
 
+            // # Login as testUser
+            cy.apiLogin(testUser);
+        });
+
+        it('should show the Playbook App Bar icon', () => {
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
@@ -82,8 +56,6 @@ describe('channels > App Bar', () => {
         });
 
         it('should show "Playbooks" tooltip for Playbook App Bar icon', () => {
-            onlyOn(appBarEnabled);
-
             // # Navigate directly to a non-playbook run channel
             cy.visit(`/${testTeam.name}/channels/town-square`);
 

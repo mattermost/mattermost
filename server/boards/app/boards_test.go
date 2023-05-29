@@ -6,14 +6,14 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 func TestAddMemberToBoard(t *testing.T) {

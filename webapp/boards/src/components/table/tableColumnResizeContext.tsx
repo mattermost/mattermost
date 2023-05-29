@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
-    createContext,
     ReactElement,
     ReactNode,
+    createContext,
     useCallback,
     useContext,
-    useMemo
+    useMemo,
 } from 'react'
 
 import {Constants} from 'src/constants'
@@ -26,6 +26,7 @@ export function useColumnResize(): ColumnResizeContextType {
     if (!context) {
         throw new Error('ColumnResizeContext is not available!')
     }
+
     return context
 }
 
@@ -69,8 +70,10 @@ export const ColumnResizeProvider = (props: ColumnResizeProviderProps): ReactEle
             const iter = columns.get(columnId)?.values()
             if (iter) {
                 const {value, done} = iter.next()
+
                 return done ? value : iter.next().value
             }
+
             return undefined
         },
         width: (columnId) => {

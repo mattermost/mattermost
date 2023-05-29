@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
@@ -59,6 +59,7 @@ type Props = {
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
+    cloudFreeDeprecated: boolean;
 }
 
 type State = {
@@ -97,7 +98,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 callerCTA: 'feature_discovery_subscribe_button',
             },
         });
-    }
+    };
 
     contactSalesFunc = () => {
         const {customer, isCloud} = this.props;
@@ -107,7 +108,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         const companyName = customer?.name || '';
         const utmMedium = isCloud ? 'in-product-cloud' : 'in-product';
         goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, 'mattermost', utmMedium);
-    }
+    };
 
     renderPostTrialCta = () => {
         const {
@@ -164,7 +165,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
             </div>
         );
-    }
+    };
 
     renderStartTrial = (learnMoreURL: string, gettingTrialError: React.ReactNode) => {
         const {
@@ -195,16 +196,28 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         // if all conditions are set for being able to request a cloud trial, then show the cta start cloud trial button
             if (canRequestCloudFreeTrial) {
                 ctaPrimaryButton = (
-                    <CloudStartTrialButton
-                        message={Utils.localizeAndFormatMessage(
-                            'admin.ldap_feature_discovery.call_to_action.primary.cloudFree',
-                            'Try free for {trialLength} days',
-                            {trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS},
-                        )}
+                    <FeatureDiscoveryCloudStartTrialButton
                         telemetryId={`start_cloud_trial_from_${this.props.featureName}`}
                         extraClass='btn btn-primary'
                     />
                 );
+                if (this.props.cloudFreeDeprecated) {
+                    ctaPrimaryButton = (
+                        <button
+                            className='btn btn-primary'
+                            data-testid='featureDiscovery_primaryCallToAction'
+                            onClick={() => {
+                                trackEvent(TELEMETRY_CATEGORIES.SELF_HOSTED_ADMIN, 'click_enterprise_contact_sales_feature_discovery');
+                                this.contactSalesFunc();
+                            }}
+                        >
+                            <FormattedMessage
+                                id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
+                                defaultMessage='Contact sales'
+                            />
+                        </button>
+                    );
+                }
             } else if (hadPrevCloudTrial) {
                 // if it is cloud, but this account already had a free trial, then the cta button must be Upgrade now
                 ctaPrimaryButton = (
@@ -259,7 +272,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                     />
                 </ExternalLink>
                 {gettingTrialError}
-                {(!this.props.isCloud || canRequestCloudFreeTrial) && <p className='trial-legal-terms'>
+                {((!this.props.isCloud || canRequestCloudFreeTrial) && !this.props.cloudFreeDeprecated) && <p className='trial-legal-terms'>
                     {canRequestCloudFreeTrial ? (
                         <FormattedMessage
                             id='admin.feature_discovery.trial-request.accept-terms.cloudFree'
@@ -317,7 +330,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 </p>}
             </>
         );
-    }
+    };
 
     render() {
         const {
@@ -421,4 +434,23 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             </div>
         );
     }
+}
+
+function FeatureDiscoveryCloudStartTrialButton(props: Omit<React.ComponentProps<typeof CloudStartTrialButton>, 'message'>) {
+    const message = useIntl().formatMessage(
+        {
+            id: 'admin.ldap_feature_discovery.call_to_action.primary.cloudFree',
+            defaultMessage: 'Try free for {trialLength} days',
+        },
+        {
+            trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
+        },
+    );
+
+    return (
+        <CloudStartTrialButton
+            {...props}
+            message={message}
+        />
+    );
 }

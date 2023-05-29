@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('Task Inbox >', () => {
+describe('Task Inbox >', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
 

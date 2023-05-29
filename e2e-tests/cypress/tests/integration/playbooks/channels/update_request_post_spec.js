@@ -11,7 +11,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-describe('channels > update request post', () => {
+describe('channels > update request post', {testIsolation: true}, () => {
     let testTeam;
     let testParticipant;
     let testChannelMemberOnly;

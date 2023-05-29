@@ -9,7 +9,7 @@ import {act} from 'react-dom/test-utils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import CardDetailContents from './cardDetailContents'
 import {CardDetailProvider} from './cardDetailContext'

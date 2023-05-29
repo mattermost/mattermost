@@ -3,6 +3,10 @@
         margin-top: calc(50vh - 240px);
     }
 
+    .modal-body {
+        overflow: visible;
+    }
+
     .Input___error {
         &.group-error {
             position: absolute;

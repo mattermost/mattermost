@@ -11,7 +11,7 @@
 
 import {stubClipboard} from '../../../utils';
 
-describe('playbooks > overview', () => {
+describe('playbooks > overview', {testIsolation: true}, () => {
     let testTeam;
     let testOtherTeam;
     let testUser;

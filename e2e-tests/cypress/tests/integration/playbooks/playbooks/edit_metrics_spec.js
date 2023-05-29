@@ -11,7 +11,7 @@
 
 /* eslint-disable no-only-tests/no-only-tests */
 
-describe('playbooks > edit_metrics', () => {
+describe('playbooks > edit_metrics', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
 
@@ -290,7 +290,7 @@ describe('playbooks > edit_metrics', () => {
         });
 
         describe('delete metric', () => {
-            it.skip('verifies when clicking delete button; saved metrics have different confirmation text; deleted metrics are deleted', () => {
+            it('verifies when clicking delete button; saved metrics have different confirmation text; deleted metrics are deleted', () => {
                 // # Visit the selected playbook
                 cy.visit(`/playbooks/playbooks/${testPlaybook.id}`);
 

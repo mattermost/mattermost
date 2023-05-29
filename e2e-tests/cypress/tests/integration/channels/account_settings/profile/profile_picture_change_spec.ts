@@ -6,7 +6,7 @@
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
-describe('Account Settings', () => {
+describe('Profile Settings', () => {
     beforeEach(() => {
         cy.apiAdminLogin().apiInitSetup({loginAfter: true}).its('user').as('user');
     });
@@ -21,7 +21,7 @@ describe('Account Settings', () => {
         getProfilePictureId().as('idOld');
 
         // # Open Profile > Profile Settings > Profile Picture > Edit
-        cy.uiOpenProfileModal().findByRole('button', {name: /picture edit/i}).click();
+        cy.uiOpenProfileModal('Profile Settings').findByRole('button', {name: /picture edit/i}).click();
 
         // # Click the X to remove the old profile picture but do not click save
         cy.findByRole('button', {name: /remove profile picture/i}).click();
@@ -74,7 +74,7 @@ function verifyProfilePictureDoesNotUpdateAfterCancel() {
     });
 
     // # Open Profile > Profile Settings > Profile Picture > Edit
-    cy.uiOpenProfileModal().findByRole('button', {name: /picture edit/i}).click();
+    cy.uiOpenProfileModal('Profile Settings').findByRole('button', {name: /picture edit/i}).click();
 
     // # Select a new profile picture
     cy.findByTestId('uploadPicture').attachFile('png-image-file.png');

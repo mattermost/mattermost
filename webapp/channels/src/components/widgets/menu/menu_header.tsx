@@ -11,6 +11,9 @@ type Props = {
     onClick?: () => void;
 }
 
+/**
+ * @deprecated Use the "webapp/channels/src/components/menu" instead.
+ */
 export default class MenuHeader extends React.PureComponent<Props> {
     public render() {
         const {children, onClick} = this.props;

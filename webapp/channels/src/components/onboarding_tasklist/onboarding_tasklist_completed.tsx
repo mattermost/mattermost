@@ -49,7 +49,7 @@ const CompletedWrapper = styled.div`
     &.fade-exit-done {
         transform: scale(1);
     }
-    .start-trial-btn, button {
+    .start-trial-btn, .got-it-button {
         padding: 13px 20px;
         background: var(--button-bg);
         border-radius: 4px;
@@ -100,6 +100,24 @@ const CompletedWrapper = styled.div`
         margin-top: 24px;
         width: 200px;
         font-size: 12px;
+    }
+
+    .style-link {
+        border: none;
+        background: none !important;
+        color: var(--button-bg) !important;
+    }
+
+    .no-thanks-link {
+        display: inline-block;
+        min-width: fit-content;
+        margin-top: 18px;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 20px;
+        &:hover {
+            text-decoration: underline;
+        }
     }
 `;
 
@@ -181,7 +199,7 @@ const Completed = (props: Props): JSX.Element => {
                             </span>
                             {isCloud ? (
                                 <CloudStartTrialButton
-                                    message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Try free for 30 days'})}
+                                    message={formatMessage({id: 'trial_btn.free.tryFreeFor30Days', defaultMessage: 'Start trial'})}
                                     telemetryId={'start_cloud_trial_after_completing_steps'}
                                     extraClass={'btn btn-primary'}
                                     afterTrialRequest={dismissAction}
@@ -193,10 +211,22 @@ const Completed = (props: Props): JSX.Element => {
                                     onClick={dismissAction}
                                 />
                             )}
+                            <button
+                                onClick={dismissAction}
+                                className={'no-thanks-link style-link'}
+                            >
+                                <FormattedMessage
+                                    id={'onboardingTask.checklist.no_thanks'}
+                                    defaultMessage='No, thanks'
+                                />
+                            </button>
                         </>
 
                     ) : (
-                        <button onClick={dismissAction}>
+                        <button
+                            onClick={dismissAction}
+                            className='got-it-button'
+                        >
                             <FormattedMessage
                                 id={'collapsed_reply_threads_modal.confirm'}
                                 defaultMessage='Got it'
@@ -212,7 +242,7 @@ const Completed = (props: Props): JSX.Element => {
                                     link: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location='onboarding_tasklist_completed'
-                                            href='https://mattermost.com/download/#desktop'
+                                            href='https://mattermost.com/download#desktop'
                                         >
                                             {msg}
                                         </ExternalLink>

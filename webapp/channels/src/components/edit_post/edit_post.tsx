@@ -10,6 +10,7 @@ import {Post} from '@mattermost/types/posts';
 import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
@@ -220,7 +221,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         actions.unsetEditingPost();
     };
 
-    const handleAutomatedRefocusAndExit = () => handleRefocusAndExit(editingPost.refocusId || null);
+    const handleAutomatedRefocusAndExit = () => {
+        draftRef.current = {
+            ...draftRef.current,
+            message: '',
+        };
+        handleRefocusAndExit(editingPost.refocusId || null);
+    };
 
     const handleEdit = async () => {
         if (!editingPost.post || isSaveDisabled()) {
@@ -302,13 +309,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         const {ctrlSend, codeBlockOnCtrlEnter} = rest;
 
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const ctrlKeyCombo = Utils.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
-        const ctrlAltCombo = Utils.cmdOrCtrlPressed(e, true) && e.altKey;
+        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
+        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
         const ctrlEnterKeyCombo =
             (ctrlSend || codeBlockOnCtrlEnter) &&
-            Utils.isKeyPressed(e, KeyCodes.ENTER) &&
+            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
-        const markdownLinkKey = Utils.isKeyPressed(e, KeyCodes.K);
+        const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
@@ -316,7 +323,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             setEditText(Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>));
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
-        } else if (Utils.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
+        } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
             handleAutomatedRefocusAndExit();
         } else if (ctrlAltCombo && markdownLinkKey) {
             applyHotkeyMarkdown({
@@ -325,14 +332,14 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
-        } else if (ctrlKeyCombo && Utils.isKeyPressed(e, KeyCodes.B)) {
+        } else if (ctrlKeyCombo && Keyboard.isKeyPressed(e, KeyCodes.B)) {
             applyHotkeyMarkdown({
                 markdownMode: 'bold',
                 selectionStart: e.currentTarget.selectionStart,
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
-        } else if (ctrlKeyCombo && Utils.isKeyPressed(e, KeyCodes.I)) {
+        } else if (ctrlKeyCombo && Keyboard.isKeyPressed(e, KeyCodes.I)) {
             applyHotkeyMarkdown({
                 markdownMode: 'italic',
                 selectionStart: e.currentTarget.selectionStart,

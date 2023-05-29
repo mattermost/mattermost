@@ -17,14 +17,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/testlib"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	fmocks "github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	fmocks "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
@@ -1433,6 +1433,10 @@ func TestPushNotificationRace(t *testing.T) {
 
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
+	// Playbooks DB job requires a plugin mock
+	pluginStore := mocks.PluginStore{}
+	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	mockStore.On("Plugin").Return(&pluginStore)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get",
 		mock.AnythingOfType("string"),
@@ -1445,10 +1449,12 @@ func TestPushNotificationRace(t *testing.T) {
 		Router:   mux.NewRouter(),
 	}
 	var err error
-	s.platform, err = platform.New(platform.ServiceConfig{
-		ConfigStore: memoryStore,
-	}, platform.SetFileStore(&fmocks.FileBackend{}))
-	s.SetStore(mockStore)
+	s.platform, err = platform.New(
+		platform.ServiceConfig{
+			ConfigStore: memoryStore,
+		},
+		platform.SetFileStore(&fmocks.FileBackend{}),
+		platform.StoreOverride(mockStore))
 	require.NoError(t, err)
 	serviceMap := map[product.ServiceKey]any{
 		ServerKey:            s,

@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('playbook tour points', () => {
+describe('playbook tour points', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testSysadmin;

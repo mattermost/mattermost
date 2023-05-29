@@ -39,7 +39,7 @@ export default class MultiSelectSetting extends React.PureComponent {
 
         this.props.onChange(this.props.id, values);
         this.setState({error: false});
-    }
+    };
 
     calculateValue = () => {
         return this.props.selected.reduce((values, item) => {

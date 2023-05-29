@@ -33,7 +33,7 @@ const ItemButton = styled.button`
 `;
 
 const Wrapper = styled.div`
-    cursor: pointer;
+    cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.1);
@@ -113,7 +113,8 @@ function ToggleItem({
 }: ToggleProps) {
     return (
         <Wrapper
-            onClick={onClick}
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
             role='button'
         >
             <ToggleMain>

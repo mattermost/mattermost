@@ -4,7 +4,6 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mockStateStore, wrapIntl} from 'src/testUtils'
@@ -47,7 +46,7 @@ describe('components/viewHeader/ViewHeaderSearch', () => {
         )
         expect(container).toMatchSnapshot()
     })
-    test('search text after input', () => {
+    test('search text after input', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -56,7 +55,7 @@ describe('components/viewHeader/ViewHeaderSearch', () => {
             ),
         )
         const elementSearchText = screen.getByPlaceholderText('Search cards')
-        userEvent.type(elementSearchText, 'Hello')
+        await userEvent.type(elementSearchText, 'Hello')
         expect(container).toMatchSnapshot()
     })
 })

@@ -195,7 +195,7 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
             <>
                 <ListModal
                     show={!this.state.showConfirmModal}
-                    titleText={formatMessage({id: 'groups', defaultMessage: '{team} Groups'}, {team: this.props.team.display_name})}
+                    titleText={formatMessage({id: 'team_groups', defaultMessage: '{team} Groups'}, {team: this.props.team.display_name})}
                     searchPlaceholderText={formatMessage({id: 'manage_team_groups_modal.search_placeholder', defaultMessage: 'Search groups'})}
                     renderRow={this.renderRow}
                     loadItems={this.loadItems}

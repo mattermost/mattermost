@@ -15,15 +15,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 )
 
 const (
@@ -196,6 +196,21 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
 
+	// Validate recipients counts in case it's not DM
+	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
+		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			if maxRecipients := *a.Config().ServiceSettings.PersistentNotificationMaxRecipients; len(mentions.Mentions) > maxRecipients {
+				return model.NewAppError("CreatePost", "api.post.post_priority.max_recipients_persistent_notification_post.request_error", map[string]any{"MaxRecipients": maxRecipients}, "", http.StatusBadRequest)
+			} else if len(mentions.Mentions) == 0 {
+				return model.NewAppError("CreatePost", "api.post.post_priority.min_recipients_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	post.SanitizeProps()
 
 	var pchan chan store.StoreResult
@@ -277,10 +292,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		if err != nil {
 			c.Logger().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
 		}
-	}
-
-	if !a.isPostPriorityEnabled() && post.GetPriority() != nil {
-		post.Metadata.Priority = nil
 	}
 
 	var metadata *model.PostMetadata
@@ -373,6 +384,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
+
+	if rpost.RootId != "" {
+		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
+			return nil, appErr
+		}
+	}
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -546,6 +563,16 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = post.Clone()
+		sanitizedPost.Metadata = nil
+	}
+	post = sanitizedPost
 
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
@@ -1290,6 +1317,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	postJSON, err := json.Marshal(post)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1798,7 +1831,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		}
 
 		var urgentCount int
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1838,7 +1871,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if a.isPostPriorityEnabled() {
+			if a.IsPostPriorityEnabled() {
 				priority, err := a.GetPriorityForPost(post.Id)
 				if err != nil {
 					return 0, 0, 0, err
@@ -1874,7 +1907,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			}
 		}
 
-		if a.isPostPriorityEnabled() {
+		if a.IsPostPriorityEnabled() {
 			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1905,6 +1938,12 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	if mentioned, ok := mentionedByThread[post.RootId]; ok {
 		// We've already figured out if the user was mentioned by this thread
 		return mentioned
+	}
+
+	if _, ok := otherPosts[post.RootId]; !ok {
+		mlog.Warn("Can't determine the comment mentions as the rootPost is past the cloud plan's limit", mlog.String("rootPostID", post.RootId), mlog.String("commentID", post.Id))
+
+		return false
 	}
 
 	// Whether or not the user was mentioned because they started the thread
@@ -2276,8 +2315,4 @@ func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThrea
 		topThread.Post = sanitizedPost
 	}
 	return topThreadList, nil
-}
-
-func (a *App) isPostPriorityEnabled() bool {
-	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }

@@ -4,9 +4,11 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
 <AtMentionSuggestion
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -33,6 +35,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }
@@ -113,9 +116,11 @@ exports[`at mention suggestion Should not display nick name of the signed in use
 <AtMentionSuggestion
   intl={
     Object {
+      "$t": [Function],
       "defaultFormats": Object {},
       "defaultLocale": "en",
       "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
       "formatDate": [Function],
       "formatDateTimeRange": [Function],
       "formatDateToParts": [Function],
@@ -142,6 +147,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
       "locale": "en",
       "messages": Object {},
       "onError": [Function],
+      "onWarn": [Function],
       "textComponent": "span",
       "timeZone": "Etc/UTC",
     }

@@ -16,6 +16,9 @@ describe('Profile > Profile Settings > Position', () => {
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
             // # Visit off-topic channel
             cy.visit(offTopicUrl);
+
+            // # Post message in the main channel
+            cy.postMessage('hello from master hacker');
         });
     });
 
@@ -23,19 +26,20 @@ describe('Profile > Profile Settings > Position', () => {
         const position = 'Master hacker';
 
         // # Open 'Profile' modal and view the default 'Profile Settings'
-        cy.uiOpenProfileModal().within(() => {
+        cy.uiOpenProfileModal('Profile Settings').within(() => {
             // # Open 'Position' setting
             cy.findByRole('heading', {name: 'Position'}).should('be.visible').click();
 
             // # Enter new 'Position'
-            cy.findByRole('textbox', {name: 'Position'}).should('be.visible').type(position);
+            cy.findByRole('textbox', {name: 'Position'}).
+                should('be.visible').
+                and('be.focused').
+                type(position).
+                should('have.value', position);
 
             // # Save and close the modal
             cy.uiSaveAndClose();
         });
-
-        // # Post message in the main channel
-        cy.postMessage('hello from master hacker');
 
         // # Click on the profile image
         cy.get('.profile-icon > img').as('profileIconForPopover').click();
@@ -48,7 +52,7 @@ describe('Profile > Profile Settings > Position', () => {
         const longPosition = 'Master Hacker II'.repeat(8);
 
         // # Open 'Profile' modal and view the default 'Profile Settings'
-        cy.uiOpenProfileModal().within(() => {
+        cy.uiOpenProfileModal('Profile Settings').within(() => {
             const minPositionHeader = () => cy.findByRole('heading', {name: 'Position'});
             const maxPositionInput = () => cy.findByRole('textbox', {name: 'Position'});
 

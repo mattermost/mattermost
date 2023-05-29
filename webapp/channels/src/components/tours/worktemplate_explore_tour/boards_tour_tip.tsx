@@ -4,13 +4,16 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
+
 import OnboardingWorkTemplateTourTip from './worktemplate_explore_tour_tip';
 import {useShowTourTip} from './useShowTourTip';
 
 export const BoardsTourTip = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
-
     const {playbooksCount, boardsCount, showBoardsTour} = useShowTourTip();
+    const dimensions = useFollowElementDimensions('sidebar-right');
+    const overlayPunchOut = useMeasurePunchouts(['sidebar-right'], [dimensions?.width]);
 
     if (!showBoardsTour) {
         return null;
@@ -50,13 +53,14 @@ export const BoardsTourTip = (): JSX.Element | null => {
     return (
         <OnboardingWorkTemplateTourTip
             pulsatingDotPlacement={'left'}
-            pulsatingDotTranslate={{x: 10, y: -140}}
+            pulsatingDotTranslate={{x: 10, y: -350}}
             title={title}
             screen={screen}
+            overlayPunchOut={overlayPunchOut}
             singleTip={playbooksCount === 0}
-            overlayPunchOut={null}
             placement='left-start'
             showOptOut={false}
+            interactivePunchOut={true}
         />
     );
 };

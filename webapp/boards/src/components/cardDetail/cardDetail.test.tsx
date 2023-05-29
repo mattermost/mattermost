@@ -26,7 +26,7 @@ import CardDetail from './cardDetail'
 global.fetch = FetchMock.fn
 jest.mock('src/octoClient')
 
-const mockedOctoClient = mocked(octoClient, true)
+const mockedOctoClient = mocked(octoClient)
 
 beforeEach(() => {
     FetchMock.fn.mockReset()
@@ -299,7 +299,7 @@ describe('components/cardDetail/CardDetail', () => {
         expect(nextBtn).toBeDefined()
         expect(nextBtn).not.toBeNull()
         await act(async () => {
-            userEvent.click(nextBtn!)
+            await userEvent.click(nextBtn!)
         })
         expect(mockedOctoClient.patchUserConfig).toBeCalledWith(
             'user_id_1',
@@ -408,7 +408,7 @@ describe('components/cardDetail/CardDetail', () => {
         expect(nextBtn).toBeDefined()
         expect(nextBtn).not.toBeNull()
         await act(async () => {
-            userEvent.click(nextBtn!)
+            await userEvent.click(nextBtn!)
         })
         expect(mockedOctoClient.patchUserConfig).toBeCalledWith(
             'user_id_1',
@@ -521,7 +521,7 @@ describe('components/cardDetail/CardDetail', () => {
         expect(nextBtn).toBeDefined()
         expect(nextBtn).not.toBeNull()
         await act(async () => {
-            userEvent.click(nextBtn!)
+            await userEvent.click(nextBtn!)
         })
         expect(mockedOctoClient.patchUserConfig).toBeCalledWith(
             'user_id_1',

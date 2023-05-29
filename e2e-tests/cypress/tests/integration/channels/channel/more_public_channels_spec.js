@@ -49,8 +49,8 @@ describe('more public channels', () => {
         // # Go to town square
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
-        // # Go to LHS and click 'Browse Channels'
-        cy.uiBrowseOrCreateChannel('Browse Channels').click();
+        // # Go to LHS and click 'Browse channels'
+        cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         // * Assert that the moreChannelsModel is visible
         cy.findByRole('dialog', {name: 'More Channels'}).should('be.visible').within(() => {
@@ -82,8 +82,8 @@ describe('more public channels', () => {
         // # Go to town square
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
-        // # Go to LHS and click 'Browse Channels'
-        cy.uiBrowseOrCreateChannel('Browse Channels').click();
+        // # Go to LHS and click 'Browse channels'
+        cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         // * Assert the moreChannelsModel is visible
         cy.findByRole('dialog', {name: 'More Channels'}).should('be.visible').within(() => {

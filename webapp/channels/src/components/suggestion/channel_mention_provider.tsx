@@ -17,6 +17,8 @@ import {Constants} from 'utils/constants';
 import Provider from './provider';
 import Suggestion from './suggestion.jsx';
 
+export const MIN_CHANNEL_LINK_LENGTH = 2;
+
 export type Results = {
     matchedPretext: string;
     terms: string[];
@@ -81,12 +83,14 @@ export class ChannelMentionSuggestion extends Suggestion {
 }
 
 export default class ChannelMentionProvider extends Provider {
-    lastPrefixTrimmed: string;
-    lastPrefixWithNoResults: string;
-    lastCompletedWord: string;
+    private lastPrefixTrimmed: string;
+    private lastPrefixWithNoResults: string;
+    private lastCompletedWord: string;
     triggerCharacter: string;
+    private delayChannelAutocomplete: boolean;
     autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
-    constructor(channelSearchFunc: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>) {
+
+    constructor(channelSearchFunc: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>, delayChannelAutocomplete: boolean) {
         super();
 
         this.lastPrefixTrimmed = '';
@@ -95,6 +99,11 @@ export default class ChannelMentionProvider extends Provider {
         this.triggerCharacter = '~';
 
         this.autocompleteChannels = channelSearchFunc;
+        this.delayChannelAutocomplete = delayChannelAutocomplete;
+    }
+
+    setProps(props: {delayChannelAutocomplete: boolean}) {
+        this.delayChannelAutocomplete = props.delayChannelAutocomplete;
     }
 
     handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
@@ -113,6 +122,10 @@ export default class ChannelMentionProvider extends Provider {
         }
 
         const prefix = captured[2];
+
+        if (this.delayChannelAutocomplete && prefix.length < MIN_CHANNEL_LINK_LENGTH) {
+            return false;
+        }
 
         if (this.lastPrefixTrimmed && prefix.trim() === this.lastPrefixTrimmed) {
             // Don't keep searching if the user keeps typing spaces

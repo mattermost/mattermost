@@ -17,12 +17,12 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 )
 
 type SqlPostStore struct {
@@ -221,6 +221,10 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	if err = s.savePostsPriority(transaction, posts); err != nil {
 		return nil, -1, errors.Wrap(err, "failed to save PostPriority")
+	}
+
+	if err = s.savePostsPersistentNotifications(transaction, posts); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to save posts persistent notifications")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -1982,7 +1986,9 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 
 	for _, c := range s.specialSearchChars() {
-		terms = strings.Replace(terms, c, " ", -1)
+		if !params.IsHashtag {
+			terms = strings.Replace(terms, c, " ", -1)
+		}
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
 
@@ -2007,7 +2013,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
 			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
 		} else {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
+			tsVectorSearchQuery := strings.Join(strings.Fields(terms), " & ")
+			if params.IsHashtag {
+				tsVectorSearchQuery = terms
+			}
+
+			termsClause = "(" + tsVectorSearchQuery + ")" + excludeClause
 		}
 
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
@@ -2041,6 +2052,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 
 		searchClause := fmt.Sprintf("MATCH (%s) AGAINST (? IN BOOLEAN MODE)", searchType)
+
+		if params.IsHashtag {
+			termsClause = "\"" + termsClause + "\""
+		}
+
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	}
 
@@ -2075,7 +2091,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	var posts []*model.Post
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
-		mlog.Warn("Query error searching posts.", mlog.Err(err))
+		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
@@ -2985,6 +3001,20 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
 			}
 			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapper, posts []*model.Post) error {
+	for _, post := range posts {
+		if priority := post.GetPriority(); priority != nil && priority.PersistentNotifications != nil && *priority.PersistentNotifications {
+			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt, SentCount) VALUES (:PostId, :CreateAt, :LastSentAt, :DeleteAt, :SentCount)`, &model.PostPersistentNotifications{
+				PostId:   post.Id,
+				CreateAt: post.CreateAt,
+			}); err != nil {
 				return err
 			}
 		}

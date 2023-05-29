@@ -19,7 +19,7 @@ import (
 	"golang.org/x/tools/imports"
 	"gopkg.in/yaml.v3"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/worktemplates"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
 )
 
 type WorkTemplateWithMD5 struct {
@@ -43,6 +43,8 @@ func main() {
 		log.Fatal(errors.Wrap(err, "failed to read categories.yaml"))
 	}
 
+	illustrations := []string{}
+
 	h := md5.New()
 
 	cats := []WorkTemplateCategoryWithMD5{} // meow
@@ -53,6 +55,7 @@ func main() {
 
 	// validate categories
 	categoryIds := map[string]struct{}{}
+	lastCategory := ""
 	for id := range cats {
 		cat := cats[id]
 
@@ -67,11 +70,15 @@ func main() {
 		if cat.Name == "" {
 			log.Fatal(errors.New("category name cannot be empty"))
 		}
+		lastCategory = cat.ID
 		categoryIds[cat.ID] = struct{}{}
 
 		h.Write([]byte(cat.ID))
 		cats[id].MD5 = fmt.Sprintf("%x", h.Sum(nil))
 		h.Reset()
+	}
+	if lastCategory != "other" {
+		log.Fatal(errors.New("category 'other' must exist AND be the last category"))
 	}
 
 	dat, err = getFileContent("templates.yaml")
@@ -105,6 +112,33 @@ func main() {
 			MD5:          fmt.Sprintf("%x", h.Sum(nil)),
 		})
 		h.Reset()
+
+		// add illustrations to the list
+		illustrations = append(illustrations, t.Illustration)
+		if t.Description.Channel != nil && t.Description.Channel.Illustration != "" {
+			illustrations = append(illustrations, t.Description.Channel.Illustration)
+		}
+		if t.Description.Board != nil && t.Description.Board.Illustration != "" {
+			illustrations = append(illustrations, t.Description.Board.Illustration)
+		}
+		if t.Description.Integration != nil && t.Description.Integration.Illustration != "" {
+			illustrations = append(illustrations, t.Description.Integration.Illustration)
+		}
+		if t.Description.Playbook != nil && t.Description.Playbook.Illustration != "" {
+			illustrations = append(illustrations, t.Description.Playbook.Illustration)
+		}
+
+		for i := range t.Content {
+			if t.Content[i].Channel != nil && t.Content[i].Channel.Illustration != "" {
+				illustrations = append(illustrations, t.Content[i].Channel.Illustration)
+			}
+			if t.Content[i].Board != nil && t.Content[i].Board.Illustration != "" {
+				illustrations = append(illustrations, t.Content[i].Board.Illustration)
+			}
+			if t.Content[i].Playbook != nil && t.Content[i].Playbook.Illustration != "" {
+				illustrations = append(illustrations, t.Content[i].Playbook.Illustration)
+			}
+		}
 	}
 
 	code := bytes.NewBuffer(nil)
@@ -145,6 +179,15 @@ func main() {
 		translationHelper(t.Description.Channel)
 		translationHelper(t.Description.Integration)
 		translationHelper(t.Description.Playbook)
+	}
+
+	fmt.Println("Missing illustrations:")
+	for _, illustration := range illustrations {
+		// check if file exists
+		illusPath := path.Join("../../../../webapp/channels/src/images", illustration[8:])
+		if _, err := os.Stat(illusPath); os.IsNotExist(err) {
+			fmt.Println("\t" + illusPath)
+		}
 	}
 }
 

@@ -13,10 +13,12 @@ import {
 
 import {UserProfile} from '@mattermost/types/users';
 import {StatusOK} from '@mattermost/types/client4';
+
 import store from 'stores/redux_store.jsx';
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
+
 import ConfirmModal from 'components/confirm_modal';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
@@ -24,27 +26,27 @@ const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../
 
 const holders = defineMessages({
     profile: {
-        id: t('user.settings.modal.profile'),
+        id: 'user.settings.modal.profile',
         defaultMessage: 'Profile',
     },
     security: {
-        id: t('user.settings.modal.security'),
+        id: 'user.settings.modal.security',
         defaultMessage: 'Security',
     },
     notifications: {
-        id: t('user.settings.modal.notifications'),
+        id: 'user.settings.modal.notifications',
         defaultMessage: 'Notifications',
     },
     display: {
-        id: t('user.settings.modal.display'),
+        id: 'user.settings.modal.display',
         defaultMessage: 'Display',
     },
     sidebar: {
-        id: t('user.settings.modal.sidebar'),
+        id: 'user.settings.modal.sidebar',
         defaultMessage: 'Sidebar',
     },
     advanced: {
-        id: t('user.settings.modal.advanced'),
+        id: 'user.settings.modal.advanced',
         defaultMessage: 'Advanced',
     },
     checkEmail: {
@@ -52,15 +54,15 @@ const holders = defineMessages({
         defaultMessage: 'Check your email at {email} to verify the address. Cannot find the email?',
     },
     confirmTitle: {
-        id: t('user.settings.modal.confirmTitle'),
+        id: 'user.settings.modal.confirmTitle',
         defaultMessage: 'Discard Changes?',
     },
     confirmMsg: {
-        id: t('user.settings.modal.confirmMsg'),
+        id: 'user.settings.modal.confirmMsg',
         defaultMessage: 'You have unsaved changes, are you sure you want to discard them?',
     },
     confirmBtns: {
-        id: t('user.settings.modal.confirmBtns'),
+        id: 'user.settings.modal.confirmBtns',
         defaultMessage: 'Yes, Discard',
     },
 });
@@ -128,7 +130,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 this.setState({resendStatus: 'failure'});
             }
         });
-    }
+    };
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeyDown);
@@ -146,11 +148,11 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.A)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.A)) {
             e.preventDefault();
             this.handleHide();
         }
-    }
+    };
 
     // Called when the close button is pressed on the main modal
     handleHide = () => {
@@ -162,7 +164,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         this.setState({
             show: false,
         });
-    }
+    };
 
     // called after the dialog is fully hidden and faded out
     handleHidden = () => {
@@ -171,7 +173,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             active_section: '',
         });
         this.props.onExited();
-    }
+    };
 
     // Called to hide the settings pane when on mobile
     handleCollapse = () => {
@@ -182,7 +184,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             active_tab: '',
             active_section: '',
         });
-    }
+    };
 
     handleConfirm = () => {
         this.setState({
@@ -197,7 +199,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             this.afterConfirm();
             this.afterConfirm = null;
         }
-    }
+    };
 
     handleCancelConfirmation = () => {
         this.setState({
@@ -206,7 +208,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         });
 
         this.afterConfirm = null;
-    }
+    };
 
     showConfirmModal = (afterConfirm: () => void) => {
         if (afterConfirm) {
@@ -222,7 +224,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             showConfirmModal: true,
             enforceFocus: false,
         });
-    }
+    };
 
     // Called by settings tabs when their close button is pressed
     closeModal = () => {
@@ -231,7 +233,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else {
             this.handleHide();
         }
-    }
+    };
 
     // Called by settings tabs when their back button is pressed
     collapseModal = () => {
@@ -240,7 +242,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else {
             this.handleCollapse();
         }
-    }
+    };
 
     updateTab = (tab?: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
@@ -251,7 +253,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 active_section: '',
             });
         }
-    }
+    };
 
     updateSection = (section?: string, skipConfirm?: boolean) => {
         if (!skipConfirm && this.requireConfirm) {
@@ -261,7 +263,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 active_section: section ?? '',
             });
         }
-    }
+    };
 
     render() {
         const {formatMessage} = this.props.intl;

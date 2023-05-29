@@ -26,7 +26,7 @@ export const InvitePeopleTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['showMoreChannels', 'invitePeople'], [], {y: -8, height: 16, x: 0, width: 0});
+    const overlayPunchOut = useMeasurePunchouts(['invitePeople'], [], {y: -8, height: 16, x: 0, width: 0});
 
     return (
         <OnboardingTourTip

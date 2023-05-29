@@ -53,7 +53,7 @@ describe('System Scheme', () => {
         cy.findByTestId('systemScheme-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click on `Reset to defaults`
-        cy.findByTestId('resetPermissionsToDefault').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('resetPermissionsToDefault').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Confirm the dialog
         cy.get('#confirmModalButton').click().wait(TIMEOUTS.TWO_SEC);
@@ -78,10 +78,10 @@ describe('System Scheme', () => {
         cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('not.have.class', 'checked');
 
         // # Click on `Reset to defaults`
-        cy.findByTestId('resetPermissionsToDefault').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('resetPermissionsToDefault').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Confirm the dialog
-        cy.get('#confirmModalButton').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#confirmModalButton').scrollIntoView().click().wait(TIMEOUTS.HALF_SEC);
 
         // # Save changes
         cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);

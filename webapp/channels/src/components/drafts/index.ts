@@ -22,6 +22,7 @@ function makeMapStateToProps() {
         return {
             displayName: displayUsername(user, getTeammateNameDisplaySetting(state)),
             drafts: getDrafts(state),
+            draftRemotes: state.views.drafts.remotes,
             status,
             user,
             localDraftsAreEnabled: localDraftsAreEnabled(state),

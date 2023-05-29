@@ -18,16 +18,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/stretchr/testify/mock"
+
 	"github.com/dyatlov/go-opengraph/opengraph"
 	ogimage "github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/imageproxy"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/imageproxy"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
@@ -1311,6 +1315,49 @@ func TestGetImagesForPost(t *testing.T) {
 		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
+
+	t.Run("should not process OpenGraph image that's a Mattermost permalink", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		ogURL := "https://example.com/index.html"
+		imageURL := th.App.GetSiteURL() + "/pl/qwertyuiopasdfghjklzxcvbnm"
+
+		post := &model.Post{
+			Id: "qwertyuiopasdfghjklzxcvbnm",
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedOpengraph,
+						URL:  ogURL,
+						Data: &opengraph.OpenGraph{
+							Images: []*ogimage.Image{
+								{
+									URL: imageURL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetSingle", "qwertyuiopasdfghjklzxcvbnm", false).RunFn = func(args mock.Arguments) {
+			assert.Fail(t, "should not have tried to process Mattermost permalink in OG image URL")
+		}
+
+		mockLinkMetadataStore := mocks.LinkMetadataStore{}
+		mockLinkMetadataStore.On("Get", mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("mock resource", "mock ID"))
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("LinkMetadata").Return(&mockLinkMetadataStore)
+
+		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		assert.Equal(t, 0, len(images))
+		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
@@ -2538,6 +2585,18 @@ func TestParseLinkMetadata(t *testing.T) {
 
 	t.Run("image", func(t *testing.T) {
 		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		assert.NoError(t, err)
+
+		assert.Nil(t, og)
+		assert.Equal(t, &model.PostImage{
+			Format: "png",
+			Width:  408,
+			Height: 336,
+		}, dimensions)
+	})
+
+	t.Run("image with no content-type given", func(t *testing.T) {
+		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)

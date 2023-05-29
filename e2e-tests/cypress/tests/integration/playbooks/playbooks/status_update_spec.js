@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('playbooks > edit status update', () => {
+describe('playbooks > edit status update', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

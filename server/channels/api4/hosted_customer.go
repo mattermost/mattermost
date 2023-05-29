@@ -10,15 +10,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
 )
 
 // APIs for self-hosted workspaces to communicate with the backing customer & payments system.
@@ -32,16 +31,19 @@ func (api *API) InitHostedCustomer() {
 	api.BaseRoutes.HostedCustomer.Handle("/customer", api.APISessionRequired(selfHostedCustomer)).Methods("POST")
 	// POST /api/v4/hosted_customer/confirm
 	api.BaseRoutes.HostedCustomer.Handle("/confirm", api.APISessionRequired(selfHostedConfirm)).Methods("POST")
+	// POST /api.v4/hosted_customer/confirm-expand
+	api.BaseRoutes.HostedCustomer.Handle("/confirm-expand", api.APISessionRequired(selfHostedConfirmExpand)).Methods("POST")
 	// GET /api/v4/hosted_customer/invoices
 	api.BaseRoutes.HostedCustomer.Handle("/invoices", api.APISessionRequired(selfHostedInvoices)).Methods("GET")
 	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
 	api.BaseRoutes.HostedCustomer.Handle("/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(selfHostedInvoicePDF)).Methods("GET")
+
+	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods(http.MethodPost)
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
-	cloud := c.App.Cloud()
-	if cloud == nil {
-		c.Err = model.NewAppError(where, "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
+	ensured := ensureCloudInterface(c, where)
+	if !ensured {
 		return
 	}
 
@@ -171,6 +173,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = userErr
 		return
 	}
+
 	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm, user.Email)
 	if err != nil {
 		if confirmResponse != nil {
@@ -184,9 +187,8 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
-	// dealing with an AppError
-	if !(reflect.ValueOf(err).Kind() == reflect.Ptr && reflect.ValueOf(err).IsNil()) {
+	license, appErr := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
+	if appErr != nil {
 		if confirmResponse != nil {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
@@ -293,4 +295,111 @@ func selfHostedInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
 		w,
 		r,
 	)
+}
+
+func handleSubscribeToNewsletter(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.handleSubscribeToNewsletter"
+	ensured := ensureCloudInterface(c, where)
+	if !ensured {
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	req := new(model.SubscribeNewsletterRequest)
+	err = json.Unmarshal(bodyBytes, req)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	req.ServerID = c.App.Srv().TelemetryId()
+
+	if err := c.App.Cloud().SubscribeToNewsletter("", req); err != nil {
+		c.Err = model.NewAppError(where, "api.server.cws.subscribe_to_newsletter.app_error", nil, "CWS Server failed to subscribe to newsletter.", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func selfHostedConfirmExpand(c *Context, w http.ResponseWriter, r *http.Request) {
+	const where = "Api4.selfHostedConfirmExpand"
+
+	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
+
+	if !checkSelfHostedPurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	var confirm model.SelfHostedConfirmPaymentMethodRequest
+	err = json.Unmarshal(bodyBytes, &confirm)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = userErr
+		return
+	}
+
+	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedExpansion(confirm, user.Email)
+	if err != nil {
+		if confirmResponse != nil {
+			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
+		}
+
+		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+			return
+		}
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	license, appErr := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
+	// dealing with an AppError
+	if appErr != nil {
+		if confirmResponse != nil {
+			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
+		}
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	clientResponse, err := json.Marshal(model.SelfHostedSignupConfirmClientResponse{
+		License:  utils.GetClientLicense(license),
+		Progress: confirmResponse.Progress,
+	})
+	if err != nil {
+		if confirmResponse != nil {
+			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
+		}
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	go func() {
+		err := c.App.Cloud().ConfirmSelfHostedSignupLicenseApplication()
+		if err != nil {
+			c.Logger.Warn("Unable to confirm license application", mlog.Err(err))
+		}
+	}()
+
+	_, _ = w.Write(clientResponse)
 }

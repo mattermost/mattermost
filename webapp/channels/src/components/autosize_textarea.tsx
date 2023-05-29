@@ -61,7 +61,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
 
             this.props.onHeightChange?.(height, parseInt(style.maxHeight || '0', 10));
         }
-    }
+    };
 
     private recalculatePadding = () => {
         if (!this.referenceRef.current || !this.textarea) {
@@ -74,7 +74,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         if (paddingRight && paddingRight !== this.referenceRef.current.style.paddingRight) {
             this.referenceRef.current.style.paddingRight = paddingRight;
         }
-    }
+    };
 
     private recalculateWidth = () => {
         if (!this.measuringRef) {
@@ -87,7 +87,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
                 this.props.onWidthChange?.(width);
             });
         }
-    }
+    };
 
     private setTextareaRef = (textarea: HTMLTextAreaElement) => {
         if (this.props.forwardedRef) {
@@ -99,7 +99,7 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
         }
 
         this.textarea = textarea;
-    }
+    };
 
     render() {
         const props = {...this.props};
@@ -128,6 +128,8 @@ export class AutosizeTextarea extends React.PureComponent<Props> {
             rows: 0,
             height: 0,
         };
+
+        Reflect.deleteProperty(otherProps, 'onWidthChange');
 
         if (this.height <= 0) {
             // Set an initial number of rows so that the textarea doesn't appear too large when its first rendered

@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('channels > rhs > title', () => {
+describe('channels > rhs > title', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testPlaybook;

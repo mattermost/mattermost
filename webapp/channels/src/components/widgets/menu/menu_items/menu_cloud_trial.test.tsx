@@ -205,7 +205,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
         };
         const store = mockStore(state);
         const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        console.log(wrapper.debug());
         expect(wrapper.find('.open-learn-more-trial-modal').exists()).toEqual(true);
     });
 

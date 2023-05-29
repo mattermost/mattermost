@@ -32,10 +32,10 @@ const w = (window as any)
 const oldBaseURL = w.baseURL
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(octoClient, true)
+const mockedOctoClient = mocked(octoClient)
 
 beforeEach(() => {
     jest.resetAllMocks()
@@ -134,7 +134,7 @@ describe('pages/welcome', () => {
         render(component)
         const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
         expect(exploreButton).toBeDefined()
-        userEvent.click(exploreButton)
+        await userEvent.click(exploreButton)
         await waitFor(() => {
             expect(history.replace).toBeCalledWith('/team/team_id_1')
             expect(mockedMutator.patchUserConfig).toBeCalledTimes(1)
@@ -235,7 +235,7 @@ describe('pages/welcome', () => {
         render(component)
         const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
         expect(exploreButton).toBeDefined()
-        userEvent.click(exploreButton)
+        await userEvent.click(exploreButton)
         await waitFor(() => {
             expect(history.replace).toBeCalledWith('123')
             expect(mockedMutator.patchUserConfig).toBeCalledTimes(1)
@@ -261,7 +261,7 @@ describe('pages/welcome', () => {
         render(component)
         const exploreButton = screen.getByText('Take a tour')
         expect(exploreButton).toBeDefined()
-        userEvent.click(exploreButton)
+        await userEvent.click(exploreButton)
         await waitFor(() => expect(mockedOctoClient.prepareOnboarding).toBeCalledTimes(1))
         await waitFor(() => expect(history.replace).toBeCalledWith('/team/team_id_1/board_id_1'))
     })
@@ -285,7 +285,7 @@ describe('pages/welcome', () => {
         render(component)
         const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
         expect(exploreButton).toBeDefined()
-        userEvent.click(exploreButton)
+        await userEvent.click(exploreButton)
         await waitFor(() => expect(history.replace).toBeCalledWith('/team/team_id_1'))
     })
 })

@@ -1,1 +1,10 @@
-/plugin/ @mattermost/toolkit
+/.github/workflows/channels-ci.yml @mattermost/web-platform
+/webapp/package.json @mattermost/web-platform
+/webapp/channels/package.json @mattermost/web-platform
+/webapp/Makefile @mattermost/web-platform
+/webapp/package-lock.json @mattermost/web-platform
+/webapp/platform/*/package.json @mattermost/web-platform
+/webapp/scripts @mattermost/web-platform
+/server/channels/db/migrations @mattermost/server-platform
+/server/boards/services/store/sqlstore/migrations @mattermost/server-platform
+/server/playbooks/server/sqlstore/migrations @mattermost/server-platform

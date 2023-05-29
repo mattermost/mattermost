@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('playbooks > list pagination', () => {
+describe('playbooks > list pagination', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     const ExtraPlaybooks = 20;

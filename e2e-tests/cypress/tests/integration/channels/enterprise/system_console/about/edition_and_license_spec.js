@@ -105,7 +105,7 @@ function verifyCreatePublicChannel(teamName, testUsers) {
         cy.visit(`/${teamName}/channels/town-square`);
 
         // # Click on create new channel at LHS
-        cy.uiBrowseOrCreateChannel('Create New Channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel').click();
 
         cy.findByRole('dialog', {name: 'Create a new channel'}).within(() => {
             // * Verify if creating a public channel is disabled or not

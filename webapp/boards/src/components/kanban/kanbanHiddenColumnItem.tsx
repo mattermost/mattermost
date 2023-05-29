@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
+
 import React from 'react'
-import {IntlShape} from 'react-intl'
+import {useIntl} from 'react-intl'
 import {useDrop} from 'react-dnd'
 
 import mutator from 'src/mutator'
@@ -19,13 +19,13 @@ import Button from 'src/widgets/buttons/button'
 type Props = {
     activeView: BoardView
     group: BoardGroup
-    intl: IntlShape
     readonly: boolean
     onDrop: (card: Card) => void
 }
 
 export default function KanbanHiddenColumnItem(props: Props): JSX.Element {
-    const {activeView, intl, group} = props
+    const intl = useIntl()
+    const {activeView, group} = props
     const hiddenCardGroupId = 'hidden-card-group-id'
 
     const [{isOver}, drop] = useDrop(() => ({

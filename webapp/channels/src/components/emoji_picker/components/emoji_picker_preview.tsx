@@ -18,7 +18,7 @@ function EmojiPickerPreview({emoji}: Props) {
         return (
             <div className='emoji-picker__preview emoji-picker__preview-placeholder'>
                 <FormattedMessage
-                    id='emoji_picker.emojiPicker'
+                    id='emoji_picker.emojiPicker.previewPlaceholder'
                     defaultMessage='Select an Emoji'
                 />
             </div>

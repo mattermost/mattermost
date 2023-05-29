@@ -88,7 +88,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
 
     public closeFilters = () => {
         this.setState({showFilters: false});
-    }
+    };
 
     public componentDidMount() {
         this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE).then(() => {
@@ -222,7 +222,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                 </div>
             </div>
         );
-    }
+    };
 
     public renderRows(): JSX.Element | JSX.Element[] {
         if (this.state.loading) {
@@ -437,7 +437,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE, {q: ''}).then(() => {
             this.setState({loading: false});
         });
-    }
+    };
 
     public render(): JSX.Element {
         const startCount = (this.state.page * LDAP_GROUPS_PAGE_SIZE) + 1;

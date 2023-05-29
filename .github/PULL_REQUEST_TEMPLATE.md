@@ -19,6 +19,18 @@ If this pull request addresses a Help Wanted ticket, please link the relevant Gi
 Otherwise, link the JIRA ticket.
 -->
 
+#### Screenshots
+<!--
+If the PR includes UI changes, include screenshots/GIFs.
+
+For an easier comparison of UI changes a table (template below) can be used.
+
+|  before  |  after  |
+|----|----|
+| <insert before screenshot here> | <insert after screenshot here> |
+
+-->
+
 #### Release Note
 <!--
 Add a release note for each of the following conditions:

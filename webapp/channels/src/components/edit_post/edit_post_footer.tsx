@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 
-import {isMac} from 'utils/utils';
+import {isMac} from 'utils/user_agent';
 import {GlobalState} from 'types/store';
 
 type Props = {

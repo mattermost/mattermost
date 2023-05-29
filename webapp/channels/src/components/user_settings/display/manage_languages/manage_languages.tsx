@@ -10,7 +10,7 @@ import SettingItemMax from 'components/setting_item_max';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import * as I18n from 'i18n/i18n.jsx';
-import {isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
 import Constants from 'utils/constants';
 
 import {UserProfile} from '@mattermost/types/users';

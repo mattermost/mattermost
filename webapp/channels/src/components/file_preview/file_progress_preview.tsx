@@ -20,7 +20,7 @@ type Props = {
 export default class FileProgressPreview extends React.PureComponent<Props> {
     handleRemove = () => {
         this.props.handleRemove(this.props.clientId);
-    }
+    };
 
     render() {
         let percent = 0;

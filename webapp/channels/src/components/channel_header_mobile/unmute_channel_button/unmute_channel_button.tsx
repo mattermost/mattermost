@@ -28,7 +28,7 @@ export default class UnmuteChannelButton extends React.PureComponent<Props> {
         } = this.props;
 
         updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL} as ChannelNotifyProps);
-    }
+    };
 
     render(): JSX.Element {
         return (

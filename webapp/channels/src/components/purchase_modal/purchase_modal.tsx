@@ -111,7 +111,7 @@ type CardProps = {
 type Props = {
     customer: CloudCustomer | undefined;
     show: boolean;
-    isDevMode: boolean;
+    cwsMockMode: boolean;
     products: Record<string, Product> | undefined;
     yearlyProducts: Record<string, Product>;
     contactSalesLink: string;
@@ -137,7 +137,7 @@ type Props = {
         completeStripeAddPaymentMethod: (
             stripe: Stripe,
             billingDetails: BillingDetails,
-            isDevMode: boolean
+            cwsMockMode: boolean
         ) => Promise<boolean | null>;
         subscribeCloudSubscription: (
             productId: string,
@@ -424,11 +424,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             totalOwed += invoice.total;
         });
         return `$${totalOwed / 100}`;
-    }
+    };
 
     onPaymentInput = (billing: BillingDetails) => {
         this.setState({billingDetails: billing}, this.isFormComplete);
-    }
+    };
 
     isFormComplete = () => {
         let paymentInfoIsValid = areBillingDetailsValid(this.state.billingDetails) && this.state.cardInputComplete;
@@ -436,7 +436,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             paymentInfoIsValid = paymentInfoIsValid && areShippingDetailsValid(this.state.shippingAddress);
         }
         this.setState({paymentInfoIsValid});
-    }
+    };
 
     handleShippingSameAsBillingChange(value: boolean) {
         this.setState({billingSameAsShipping: value}, this.isFormComplete);
@@ -444,7 +444,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
 
     onShippingInput = (address: Address) => {
         this.setState({shippingAddress: {...this.state.shippingAddress, ...address}}, this.isFormComplete);
-    }
+    };
 
     handleCardInputChange = (event: StripeCardElementChangeEvent) => {
         this.setState({
@@ -452,7 +452,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 areBillingDetailsValid(this.state.billingDetails) && event.complete,
         });
         this.setState({cardInputComplete: event.complete});
-    }
+    };
 
     handleSubmitClick = async (callerInfo: string) => {
         const update = {
@@ -462,7 +462,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             processing: true,
         } as unknown as Pick<State, keyof State>;
         this.setState(update);
-    }
+    };
 
     confirmSwitchToAnnual = () => {
         const {customer} = this.props;
@@ -487,11 +487,11 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 },
             },
         });
-    }
+    };
 
     setIsUpgradeFromTrialToFalse = () => {
         this.setState({isUpgradeFromTrial: false});
-    }
+    };
 
     openPricingModal = (callerInfo: string) => {
         this.props.actions.openModal({
@@ -534,7 +534,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 {text}
             </ExternalLink>
         );
-    }
+    };
 
     learnMoreLink = () => {
         return (
@@ -555,7 +555,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </ExternalLink>
         );
-    }
+    };
 
     editPaymentInfoHandler = () => {
         this.setState((prevState: State) => {
@@ -564,7 +564,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 editPaymentInfo: !prevState.editPaymentInfo,
             };
         });
-    }
+    };
 
     paymentFooterText = () => {
         const normalPaymentText = (
@@ -633,7 +633,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
             payment = prorratedPaymentText;
         }
         return payment;
-    }
+    };
 
     getPlanNameFromProductName = (productName: string): string => {
         if (productName.length > 0) {
@@ -642,7 +642,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return productName;
-    }
+    };
 
     getShippingAddressForProcessing = (): Address => {
         if (this.state.billingSameAsShipping) {
@@ -657,7 +657,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
         }
 
         return this.state.shippingAddress as Address;
-    }
+    };
 
     handleViewBreakdownClick = () => {
         this.props.actions.openModal({
@@ -667,7 +667,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 invoices: this.props.invoices,
             },
         });
-    }
+    };
 
     purchaseScreenCard = () => {
         if (this.props.isDelinquencyModal) {
@@ -730,7 +730,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                         this.state.selectedProduct ? this.state.selectedProduct.name : '',
                     )}
                     price={yearlyProductMonthlyPrice}
-                    rate={formatMessage({id: 'pricing_modal.rate.userPerMonth', defaultMessage: 'USD per user/month {br}<b>(billed annually)</b>'}, {
+                    rate={formatMessage({id: 'pricing_modal.rate.seatPerMonth', defaultMessage: 'USD per seat/month {br}<b>(billed annually)</b>'}, {
                         br: <br/>,
                         b: (chunks: React.ReactNode | React.ReactNodeArray) => (
                             <span style={{fontSize: '14px'}}>
@@ -792,7 +792,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 />
             </>
         );
-    }
+    };
 
     purchaseScreen = () => {
         const title = (
@@ -916,7 +916,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                 <div className='RHS'>{this.purchaseScreenCard()}</div>
             </div>
         );
-    }
+    };
 
     render() {
         if (this.props.isComplianceBlocked) {
@@ -939,9 +939,6 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                             <IconMessage
                                 title={t(
                                     'admin.billing.subscription.complianceScreenFailed.title',
-                                )}
-                                subtitle={t(
-                                    'admin.billing.subscription.complianceScreenFailed.subtitle',
                                 )}
                                 icon={
                                     <ComplianceScreenFailedSvg
@@ -1009,7 +1006,7 @@ class PurchaseModal extends React.PureComponent<Props, State> {
                                             this.props.actions.
                                                 subscribeCloudSubscription
                                         }
-                                        isDevMode={this.props.isDevMode}
+                                        cwsMockMode={this.props.cwsMockMode}
                                         onClose={() => {
                                             this.props.actions.getCloudSubscription();
                                             this.props.actions.closeModal();

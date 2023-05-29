@@ -53,7 +53,7 @@ describe('Feature discovery cloud', () => {
 
     const testForTrialButton = () => {
         cy.get('#start_cloud_trial_btn').should('exist');
-        cy.get('#start_cloud_trial_btn').contains('Try free for 30 days');
+        cy.get('#start_cloud_trial_btn').contains('Start trial');
     };
 
     const testForUpgradeToProfessionalOption = () => {

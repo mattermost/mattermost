@@ -70,7 +70,7 @@ export class Categories extends PureComponent<Props> {
         if (gfycats.length) {
             trackEvent('gfycat', 'views', {context: 'category_list', count: gfycats.length});
         }
-    }
+    };
 
     componentWillUnmount() {
         this.props.saveSearchScrollPosition(0);
@@ -86,7 +86,7 @@ export class Categories extends PureComponent<Props> {
             }
             return '';
         }) : [];
-    }
+    };
 
     loadMore = () => this.props.requestCategoriesList();
 

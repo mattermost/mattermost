@@ -96,23 +96,23 @@ class Filter extends React.PureComponent<Props, State> {
 
     componentDidMount = () => {
         document.addEventListener('mousedown', this.handleClickOutside);
-    }
+    };
 
     componentWillUnmount = () => {
         document.removeEventListener('mousedown', this.handleClickOutside);
-    }
+    };
 
     handleClickOutside = (event: MouseEvent) => {
         if (this.filterRef?.current?.contains(event.target as Node)) {
             return;
         }
         this.hidePopover();
-    }
+    };
 
     hidePopover = () => {
         this.setState({show: false});
         this.buttonRef?.current?.blur();
-    }
+    };
 
     togglePopover = () => {
         if (this.state.show) {
@@ -121,7 +121,7 @@ class Filter extends React.PureComponent<Props, State> {
         }
 
         this.setState({show: true});
-    }
+    };
 
     updateValues = async (values: FilterValues, optionKey: string) => {
         const options = {
@@ -134,12 +134,12 @@ class Filter extends React.PureComponent<Props, State> {
             },
         };
         this.setState({options, optionsModified: true});
-    }
+    };
 
     onFilter = () => {
         this.props.onFilter(this.state.options);
         this.setState({optionsModified: false, show: false, filterCount: this.calculateFilterCount()});
-    }
+    };
 
     calculateFilterCount = () => {
         const options = this.state.options;
@@ -155,11 +155,11 @@ class Filter extends React.PureComponent<Props, State> {
             });
         });
         return filterCount;
-    }
+    };
 
     resetFilters = () => {
         this.setState({options: {...this.props.options}}, this.onFilter);
-    }
+    };
 
     renderFilterOptions = () => {
         const {keys, options} = this.state;
@@ -176,7 +176,7 @@ class Filter extends React.PureComponent<Props, State> {
                 />
             );
         });
-    }
+    };
 
     render() {
         const filters = this.renderFilterOptions();

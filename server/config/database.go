@@ -25,9 +25,9 @@ import (
 
 	"github.com/mattermost/morph"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
@@ -407,7 +407,10 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
-	return stripPassword(ds.originalDsn, ds.driverName)
+	// This is called during the running of MM, so we expect the parsing of DSN
+	// to be successful.
+	sanitized, _ := sqlstore.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	return sanitized
 }
 
 // Close cleans up resources associated with the store.

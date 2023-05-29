@@ -45,6 +45,7 @@ export function isSubPrefix(text: string): boolean {
             return true
         }
     }
+
     return false
 }
 
@@ -58,6 +59,7 @@ export function getBySlashCommandPrefix(slashCommandPrefix: string): ContentType
             return ct
         }
     }
+
     return null
 }
 

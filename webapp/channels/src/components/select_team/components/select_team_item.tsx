@@ -25,7 +25,7 @@ export default class SelectTeamItem extends React.PureComponent<Props> {
     handleTeamClick = (e: MouseEvent): void => {
         e.preventDefault();
         this.props.onTeamClick(this.props.team);
-    }
+    };
 
     renderDescriptionTooltip = (): ReactNode => {
         const team = this.props.team;
@@ -50,7 +50,7 @@ export default class SelectTeamItem extends React.PureComponent<Props> {
                 <TeamInfoIcon className='icon icon--info'/>
             </OverlayTrigger>
         );
-    }
+    };
 
     render() {
         const {canJoinPublicTeams, canJoinPrivateTeams, loading, team} = this.props;

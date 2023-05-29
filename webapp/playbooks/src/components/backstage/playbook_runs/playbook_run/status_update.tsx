@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {ReactNode, useState} from 'react';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -425,7 +425,7 @@ const useRequestUpdateButton = ({type, onClick, disabled = false}: {disabled: bo
         <Tooltip
             id={'request-update-button-tooltip'}
             placement={'bottom'}
-            content={formatMessage(
+            content={formatMessage<ReactNode>(
                 {defaultMessage: '<title>Professional feature</title>\n<body>This is a paid feature, available with a free 30-day trial</body>'},
                 {
                     title: (el) => <div>{el}</div>,

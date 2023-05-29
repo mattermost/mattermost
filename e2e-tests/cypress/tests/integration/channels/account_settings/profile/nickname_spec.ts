@@ -27,7 +27,7 @@ describe('Settings > Sidebar > General', () => {
 
     it('MM-T3848 No nickname is present', () => {
         // # Open 'Profile' modal and view the default 'Profile'
-        cy.uiOpenProfileModal().within(() => {
+        cy.uiOpenProfileModal('Profile Settings').within(() => {
             // # Open 'Nickname' setting
             cy.uiGetHeading('Nickname').click();
 
@@ -56,7 +56,7 @@ describe('Settings > Sidebar > General', () => {
         const newNickname = 'victor_nick';
 
         // # Open 'Profile' modal and view the default 'Profile Settings'
-        cy.uiOpenProfileModal().within(() => {
+        cy.uiOpenProfileModal('Profile Settings').within(() => {
             // # Open 'Nickname' setting
             cy.uiGetHeading('Nickname').click();
 
@@ -133,7 +133,7 @@ describe('Settings > Sidebar > General', () => {
 
     it('MM-T2061 Nickname should reset on cancel of edit', () => {
         // # Open 'Profile' modal and view the default 'Profile Settings'
-        cy.uiOpenProfileModal().within(() => {
+        cy.uiOpenProfileModal('Profile Settings').within(() => {
             // # Open 'Nickname' setting
             cy.uiGetHeading('Nickname').click();
 
@@ -156,7 +156,7 @@ describe('Settings > Sidebar > General', () => {
 
     it('MM-T2062 Clear nickname and save', () => {
         // # Open 'Profile' modal and view the default 'Profile Settings'
-        cy.uiOpenProfileModal().within(() => {
+        cy.uiOpenProfileModal('Profile Settings').within(() => {
             // # Open 'Nickname' setting
             cy.uiGetHeading('Nickname').click();
 

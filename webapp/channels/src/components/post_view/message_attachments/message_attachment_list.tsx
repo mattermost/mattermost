@@ -36,7 +36,7 @@ type Props = {
 export default class MessageAttachmentList extends React.PureComponent<Props> {
     static defaultProps = {
         imagesMetadata: {},
-    }
+    };
 
     render() {
         const content = [] as JSX.Element[];

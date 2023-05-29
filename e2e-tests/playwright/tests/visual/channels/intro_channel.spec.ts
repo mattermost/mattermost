@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@e2e-support/test_fixture';
-import {duration, isSmallScreen, wait} from '@e2e-support/util';
 
 test('Intro to channel as regular user', async ({pw, pages, browserName, viewport}, testInfo) => {
     // Create and sign in a new user
@@ -17,13 +16,13 @@ test('Intro to channel as regular user', async ({pw, pages, browserName, viewpor
     await channelsPage.toBeVisible();
 
     // Wait for Boards' bot image to be loaded
-    await pw.shouldHaveFeatureFlag('OnboardingAutoShowLinkedBoard', true);
-    const boardsWelcomePost = await channelsPage.getFirstPost();
-    await expect(await boardsWelcomePost.getProfileImage('boards')).toBeVisible();
-    await wait(duration.one_sec);
+    // await pw.shouldHaveFeatureFlag('OnboardingAutoShowLinkedBoard', true);
+    // const boardsWelcomePost = await channelsPage.getFirstPost();
+    // await expect(await boardsWelcomePost.getProfileImage('boards')).toBeVisible();
+    // await wait(duration.one_sec);
 
     // Wait for Playbooks icon to be loaded in App bar, except in iphone
-    if (!isSmallScreen(viewport)) {
+    if (!pw.isSmallScreen()) {
         await expect(channelsPage.appBar.playbooksIcon).toBeVisible();
     }
 

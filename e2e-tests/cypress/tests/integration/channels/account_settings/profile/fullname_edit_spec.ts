@@ -23,7 +23,7 @@ describe('Profile > Profile Settings > Full Name', () => {
 
     it('MM-T2043 Enter first name', () => {
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Click "Edit" to the right of "Full Name"
         cy.get('#nameEdit').should('be.visible').click();
@@ -46,7 +46,7 @@ describe('Profile > Profile Settings > Full Name', () => {
 
     it('MM-T2042 Full Name starting blank stays blank', () => {
         // # Go to Profile
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Click "Edit" to the right of "Full Name"
         cy.get('#nameEdit').should('be.visible').click();

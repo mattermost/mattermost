@@ -334,7 +334,7 @@ describe('Pricing modal', () => {
 
         // * Check that enterprise card action button shows Try free for 30 days
         cy.get('#pricingModal').should('be.visible');
-        cy.get('#start_cloud_trial_btn').contains('Try free for 30 days');
+        cy.get('#start_cloud_trial_btn').contains('Start trial');
     });
 
     it('should open pricing modal when Upgrade button clicked while in enterprise trial sku', () => {
@@ -365,7 +365,7 @@ describe('Pricing modal', () => {
 
         // * Check that enterprise card action button is disabled
         cy.get('#enterprise > .bottom > .bottom_container').should('be.visible');
-        cy.get('#start_cloud_trial_btn').contains('Try free for 30 days');
+        cy.get('#start_cloud_trial_btn').contains('Start trial');
         cy.get('#enterprise > .bottom > .bottom_container').should('be.visible');
         cy.get('#start_cloud_trial_btn').should('be.disabled');
     });

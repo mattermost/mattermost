@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Board} from 'src/blocks/board'
@@ -67,6 +67,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const makeTemplateClicked = async () => {
         if (!card) {
             Utils.assertFailure('card')
+
             return
         }
 
@@ -89,6 +90,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const handleDeleteCard = async () => {
         if (!card) {
             Utils.assertFailure()
+
             return
         }
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: card.id})
@@ -97,7 +99,7 @@ const CardDialog = (props: Props): JSX.Element => {
     }
 
     const confirmDialogProps: ConfirmationDialogBoxProps = {
-        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete'}),
         confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
         onConfirm: handleDeleteCard,
         onClose: () => {
@@ -111,6 +113,7 @@ const CardDialog = (props: Props): JSX.Element => {
         // so adding des
         if (card?.title === '' && card?.fields.contentOrder.length === 0) {
             handleDeleteCard()
+
             return
         }
 
@@ -151,7 +154,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 Utils.selectLocalFile(async (attachment) => {
                     const uploadingBlock = createBlock()
                     uploadingBlock.title = attachment.name
-                    uploadingBlock.fields.attachmentId = attachment.name
+                    uploadingBlock.fields.fileId = attachment.name
                     uploadingBlock.boardId = boardId
                     if (card) {
                         uploadingBlock.parentId = card.id
@@ -161,7 +164,7 @@ const CardDialog = (props: Props): JSX.Element => {
                     dispatch(updateAttachments([attachmentBlock]))
                     if (attachment.size > clientConfig.maxFileSize) {
                         removeUploadingAttachment(uploadingBlock)
-                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: 'Unable to upload the file. Attachment size limit reached.'}), severity: 'normal'})
+                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: "This file couldn't be uploaded as the file size limit has been reached."}), severity: 'normal'})
                     } else {
                         sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.upload', defaultMessage: 'Attachment uploading.'}), severity: 'normal'})
                         const xhr = await octoClient.uploadAttachment(boardId, attachment)
@@ -177,17 +180,17 @@ const CardDialog = (props: Props): JSX.Element => {
                             xhr.onload = () => {
                                 if (xhr.status === 200 && xhr.readyState === 4) {
                                     const json = JSON.parse(xhr.response)
-                                    const attachmentId = json.fileId
-                                    if (attachmentId) {
+                                    const fileId = json.fileId
+                                    if (fileId) {
                                         removeUploadingAttachment(uploadingBlock)
                                         const block = createAttachmentBlock()
-                                        block.fields.attachmentId = attachmentId || ''
+                                        block.fields.fileId = fileId || ''
                                         block.title = attachment.name
-                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.uploadSuccess', defaultMessage: 'Attachment uploaded successfull.'}), severity: 'normal'})
+                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.uploadSuccess', defaultMessage: 'Attachment uploaded.'}), severity: 'normal'})
                                         resolve(block)
                                     } else {
                                         removeUploadingAttachment(uploadingBlock)
-                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: 'Unable to upload the file. Attachment size limit reached.'}), severity: 'normal'})
+                                        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.failed', defaultMessage: "This file couldn't be uploaded as the file size limit has been reached."}), severity: 'normal'})
                                     }
                                 }
                             }
@@ -217,7 +220,7 @@ const CardDialog = (props: Props): JSX.Element => {
         }
         const description = intl.formatMessage({id: 'AttachmentBlock.DeleteAction', defaultMessage: 'delete'})
         await mutator.deleteBlock(block, description)
-        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.delete', defaultMessage: 'Attachment Deleted Successfully.'}), severity: 'normal'})
+        sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.delete', defaultMessage: 'Attachment deleted.'}), severity: 'normal'})
     }, [card?.boardId, card?.id, card?.fields.contentOrder])
 
     const attachBtn = (): React.ReactNode => {
@@ -266,6 +269,7 @@ const CardDialog = (props: Props): JSX.Element => {
         if (!isTemplate && !card?.limited) {
             return (<>{attachBtn()}{following ? unfollowBtn : followBtn}</>)
         }
+
         return (<>{attachBtn()}</>)
     }
 

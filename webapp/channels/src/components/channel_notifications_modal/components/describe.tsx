@@ -4,18 +4,19 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
+import {ChannelAutoFollowThreads, IgnoreChannelMentions, NotificationLevels, NotificationSections} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 type Props = {
     globalNotifyLevel?: string;
     ignoreChannelMentions?: string;
+    channelAutoFollowThreads?: string;
     memberNotifyLevel: string;
     section: string;
     isCollapsed?: boolean;
 }
 
-export default function Describe({section, isCollapsed, memberNotifyLevel, globalNotifyLevel, ignoreChannelMentions}: Props) {
+export default function Describe({section, isCollapsed, memberNotifyLevel, globalNotifyLevel, ignoreChannelMentions, channelAutoFollowThreads}: Props) {
     if (memberNotifyLevel === NotificationLevels.DEFAULT && globalNotifyLevel) {
         t('channel_notifications.levels.default');
         t('channel_notifications.levels.all');
@@ -67,6 +68,26 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
         return (
             <FormattedMessage
                 id='channel_notifications.ignoreChannelMentions.off.title'
+                defaultMessage='Off'
+            />
+        );
+    } else if (
+        section === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS &&
+        channelAutoFollowThreads === ChannelAutoFollowThreads.ON
+    ) {
+        return (
+            <FormattedMessage
+                id='channel_notifications.channelAutoFollowThreads.on.title'
+                defaultMessage='On'
+            />
+        );
+    } else if (
+        section === NotificationSections.CHANNEL_AUTO_FOLLOW_THREADS &&
+        channelAutoFollowThreads === ChannelAutoFollowThreads.OFF
+    ) {
+        return (
+            <FormattedMessage
+                id='channel_notifications.channelAutoFollowThreads.off.title'
                 defaultMessage='Off'
             />
         );

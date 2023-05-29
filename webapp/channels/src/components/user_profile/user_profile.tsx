@@ -52,17 +52,17 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
         overwriteImage: '',
         overwriteName: '',
         colorize: false,
-    }
+    };
 
     hideProfilePopover = (): void => {
         if (this.overlay) {
             this.overlay.hide();
         }
-    }
+    };
 
     setOverlaynRef = (ref: BaseOverlayTrigger): void => {
         this.overlay = ref;
-    }
+    };
 
     render(): React.ReactNode {
         const {

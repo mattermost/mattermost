@@ -6,9 +6,9 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 // StoreAPI is the interface exposing the underlying database, provided by pluginapi

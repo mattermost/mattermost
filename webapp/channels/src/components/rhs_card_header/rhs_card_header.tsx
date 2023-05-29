@@ -52,7 +52,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
         default:
             break;
         }
-    }
+    };
 
     render(): React.ReactNode {
         let back;

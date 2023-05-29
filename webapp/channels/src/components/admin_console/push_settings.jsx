@@ -22,13 +22,13 @@ const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
 export default class PushSettings extends AdminSettings {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
-    }
+    };
 
     handleAgreeChange = (e) => {
         this.setState({
             agree: e.target.checked,
         });
-    }
+    };
 
     handleDropdownChange = (id, value) => {
         if (id === 'pushNotificationServerType') {
@@ -54,7 +54,7 @@ export default class PushSettings extends AdminSettings {
         }
 
         this.handleChange(id, value);
-    }
+    };
 
     getConfigFromState = (config) => {
         config.EmailSettings.SendPushNotifications = this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_OFF;
@@ -62,7 +62,7 @@ export default class PushSettings extends AdminSettings {
         config.TeamSettings.MaxNotificationsPerChannel = this.state.maxNotificationsPerChannel;
 
         return config;
-    }
+    };
 
     getStateFromConfig(config) {
         let pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
@@ -318,5 +318,5 @@ export default class PushSettings extends AdminSettings {
                 />
             </SettingsGroup>
         );
-    }
+    };
 }

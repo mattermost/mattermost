@@ -72,17 +72,17 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         if (!this.state.navigating && !this.state.rememberChecked) {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
         }
-    }
+    };
 
     checkLandingPreferenceBrowser = () => {
         const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
         return landingPreference && landingPreference === LandingPreferenceTypes.BROWSER;
-    }
+    };
 
     checkLandingPreferenceApp = () => {
         const landingPreference = BrowserStore.getLandingPreference(this.props.siteUrl);
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
-    }
+    };
 
     handleChecked = () => {
         // If it was checked, and now we're unchecking it, clear the preference
@@ -90,7 +90,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
         }
         this.setState({rememberChecked: !this.state.rememberChecked});
-    }
+    };
 
     setPreference = (pref: string, clearIfNotChecked?: boolean) => {
         if (!this.state.rememberChecked) {
@@ -110,18 +110,18 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         default:
             break;
         }
-    }
+    };
 
     openMattermostApp = () => {
         this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP);
         this.setState({redirectPage: true});
         window.location.href = this.state.nativeLocation;
-    }
+    };
 
     openInBrowser = () => {
         this.setPreference(LandingPreferenceTypes.BROWSER);
         window.location.href = this.state.location;
-    }
+    };
 
     renderSystemDialogMessage = () => {
         const isMobile = UserAgent.isMobile();
@@ -141,7 +141,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                 defaultMessage='View in Desktop App'
             />
         );
-    }
+    };
 
     renderGoNativeAppMessage = () => {
         return (
@@ -170,7 +170,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                 {this.renderSystemDialogMessage()}
             </a>
         );
-    }
+    };
 
     getDownloadLink = () => {
         if (UserAgent.isIosWeb()) {
@@ -180,11 +180,11 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         }
 
         return this.props.desktopAppLink;
-    }
+    };
 
     handleBrandImageError = () => {
         this.setState({brandImageError: true});
-    }
+    };
 
     renderCheckboxIcon = () => {
         if (this.state.rememberChecked) {
@@ -194,7 +194,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         }
 
         return null;
-    }
+    };
 
     renderGraphic = () => {
         const isMobile = UserAgent.isMobile();
@@ -208,7 +208,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return (
             <img src={desktopImg}/>
         );
-    }
+    };
 
     renderDownloadLinkText = () => {
         const isMobile = UserAgent.isMobile();
@@ -228,7 +228,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                 defaultMessage={'Don\'t have the Desktop App?'}
             />
         );
-    }
+    };
 
     renderDownloadLinkSection = () => {
         const downloadLink = this.getDownloadLink();
@@ -262,7 +262,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         }
 
         return null;
-    }
+    };
 
     renderDialogHeader = () => {
         const downloadLink = this.getDownloadLink();
@@ -343,7 +343,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                 </div>
             </div>
         );
-    }
+    };
 
     renderDialogBody = () => {
         if (this.state.redirectPage) {
@@ -396,7 +396,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                 {this.renderDownloadLinkSection()}
             </div>
         );
-    }
+    };
 
     renderHeader = () => {
         let header = (
@@ -430,7 +430,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         }
 
         return header;
-    }
+    };
 
     render() {
         const isMobile = UserAgent.isMobile();

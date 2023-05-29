@@ -25,7 +25,7 @@ export default class BleveSettings extends AdminSettings {
         config.BleveSettings.EnableAutocomplete = this.state.enableAutocomplete;
 
         return config;
-    }
+    };
 
     getStateFromConfig(config) {
         return {
@@ -55,17 +55,17 @@ export default class BleveSettings extends AdminSettings {
         }
 
         this.handleChange(id, value);
-    }
+    };
 
     handleSaved = () => {
         this.setState({
             canPurgeAndIndex: this.state.enableIndexing && this.state.indexDir !== '',
         });
-    }
+    };
 
     canSave = () => {
         return this.state.canSave;
-    }
+    };
 
     getExtraInfo(job) {
         if (job.status === JobStatuses.IN_PROGRESS) {
@@ -246,5 +246,5 @@ export default class BleveSettings extends AdminSettings {
                 />
             </SettingsGroup>
         );
-    }
+    };
 }

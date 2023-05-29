@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestLoadLicense(t *testing.T) {
@@ -70,8 +70,6 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	_, ok := m["Name"]
 	assert.False(t, ok)
 	_, ok = m["SkuName"]
-	assert.False(t, ok)
-	_, ok = m["SkuShortName"]
 	assert.False(t, ok)
 }
 

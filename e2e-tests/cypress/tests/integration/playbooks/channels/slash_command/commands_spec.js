@@ -11,7 +11,7 @@
 
 import {switchToChannel} from '../../../channels/mark_as_unread/helpers';
 
-describe('channels > slash command > owner', () => {
+describe('channels > slash command > owner', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testUser2;

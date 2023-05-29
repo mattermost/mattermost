@@ -140,10 +140,10 @@ function createCategoryFromSidebarMenu() {
     const categoryName = `category-${getRandomId()}`;
 
     // # Click on the sidebar menu dropdown
-    cy.findByLabelText('Add Channel Dropdown').click();
+    cy.uiGetLHSAddChannelButton().click();
 
     // # Click on create category link
-    cy.findByText('Create New Category').should('be.visible').click();
+    cy.findByText('Create new category').should('be.visible').click();
 
     // # Verify that Create Category modal has shown up.
     // # Wait for a while until the modal has fully loaded, especially during first-time access.

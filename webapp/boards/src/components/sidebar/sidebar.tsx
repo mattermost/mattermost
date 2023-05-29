@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useCallback, useEffect, useState} from 'react'
-import {DragDropContext, Droppable, DropResult} from 'react-beautiful-dnd'
+import {DragDropContext, DropResult, Droppable} from 'react-beautiful-dnd'
 
 import {loadTheme} from 'src/theme'
 import IconButton from 'src/widgets/buttons/iconButton'
@@ -56,6 +56,7 @@ type Props = {
 
 function getWindowDimensions() {
     const {innerWidth: width, innerHeight: height} = window
+
     return {
         width,
         height,
@@ -110,6 +111,7 @@ const Sidebar = (props: Props) => {
         }
 
         window.addEventListener('resize', handleResize)
+
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
@@ -143,6 +145,7 @@ const Sidebar = (props: Props) => {
         const boardsCategory = sidebarCategories.find((c) => c.name === 'Boards')
         if (!boardsCategory) {
             Utils.logError('Boards category not found for user')
+
             return
         }
 
@@ -155,6 +158,7 @@ const Sidebar = (props: Props) => {
         }
 
         websocketClient.addOnChange(onCategoryReorderHandler, 'categoryOrder')
+
         return () => {
             websocketClient.removeOnChange(onCategoryReorderHandler, 'categoryOrder')
         }
@@ -214,6 +218,7 @@ const Sidebar = (props: Props) => {
             const toSidebarCategory = sidebarCategories.find((category) => category.id === toCategoryID)
             if (!toSidebarCategory) {
                 Utils.logError(`toCategoryID not found in list of sidebar categories. toCategoryID: ${toCategoryID}`)
+
                 return
             }
 
@@ -232,11 +237,13 @@ const Sidebar = (props: Props) => {
 
             if (!toSidebarCategory) {
                 Utils.logError(`toCategoryID not found in list of sidebar categories. toCategoryID: ${toCategoryID}`)
+
                 return
             }
 
             if (!fromSidebarCategory) {
                 Utils.logError(`fromCategoryID not found in list of sidebar categories. fromCategoryID: ${fromCategoryID}`)
+
                 return
             }
 
@@ -261,12 +268,14 @@ const Sidebar = (props: Props) => {
         if (!team || !destination) {
             setDraggedItemID('')
             setIsCategoryBeingDragged(false)
+
             return
         }
 
         if (destination.droppableId === source.droppableId && destination.index === source.index) {
             setDraggedItemID('')
             setIsCategoryBeingDragged(false)
+
             return
         }
 
@@ -337,6 +346,7 @@ const Sidebar = (props: Props) => {
                 sortedBoards.push(b)
             }
         })
+
         return sortedBoards
     }
 

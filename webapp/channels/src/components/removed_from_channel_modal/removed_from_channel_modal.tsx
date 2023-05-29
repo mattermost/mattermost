@@ -25,7 +25,7 @@ export default class RemovedFromChannelModal extends React.PureComponent<Props, 
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     render() {
         let channelName: JSX.Element | string;

@@ -199,7 +199,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
             break;
         }
         }
-    }
+    };
 
     private handleBackSpace = (e: KeyboardEvent): void => {
         const excludedElements = ['input', 'textarea'];
@@ -207,7 +207,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         if (e.which === BACKSPACE_CHAR && !(excludedElements.includes((e.target as HTMLElement).tagName.toLowerCase()))) {
             e.preventDefault();
         }
-    }
+    };
 
     private handleBeforeUnload = (): void => {
         // remove the event listener to prevent getting stuck in a loop
@@ -216,5 +216,5 @@ export default class LoggedIn extends React.PureComponent<Props> {
             this.props.actions.viewChannel('', this.props.currentChannelId || '');
         }
         WebSocketActions.close();
-    }
+    };
 }

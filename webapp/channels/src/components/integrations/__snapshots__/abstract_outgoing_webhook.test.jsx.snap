@@ -10,7 +10,7 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
     >
       <MemoizedFormattedMessage
         defaultMessage="Outgoing Webhooks"
-        id="installed_outgoing_webhooks.header"
+        id="add_outgoing_webhook.header"
       />
     </Link>
     <MemoizedFormattedMessage

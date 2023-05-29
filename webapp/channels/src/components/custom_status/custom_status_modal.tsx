@@ -11,6 +11,7 @@ import {useRouteMatch} from 'react-router-dom';
 import {setCustomStatus, unsetCustomStatus, removeRecentCustomStatus} from 'mattermost-redux/actions/users';
 import {setCustomStatusInitialisationState} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
@@ -20,12 +21,12 @@ import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import RenderEmoji from 'components/emoji/render_emoji';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
-import {getCurrentUserTimezone} from 'selectors/general';
 import {GlobalState} from 'types/store';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {A11yCustomEventTypes, A11yFocusEventDetail, Constants, ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
-import {isKeyPressed, localizeMessage} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import {localizeMessage} from 'utils/utils';
 
 import CustomStatusSuggestion from 'components/custom_status/custom_status_suggestion';
 import ExpiryMenu from 'components/custom_status/expiry_menu';
@@ -115,7 +116,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     const [duration, setDuration] = useState<CustomStatusDuration>(initialDuration === undefined ? defaultDuration : initialDuration);
     const isStatusSet = Boolean(emoji || text);
     const firstTimeModalOpened = useSelector(showStatusDropdownPulsatingDot);
-    const timezone = useSelector(getCurrentUserTimezone);
+    const timezone = useSelector(getCurrentTimezone);
     const inCustomEmojiPath = useRouteMatch('/:team/emoji');
 
     const currentTime = getCurrentMomentForTimezone(timezone);

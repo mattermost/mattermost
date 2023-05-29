@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// This is based on "packages/client/src/client4.ts". Modified for node client.
+// This is based on "webapp/platform/client/src/client4.ts". Modified for node client.
 // Update should be made in comparison with the base Client4.
 
 import fs from 'node:fs';
@@ -134,7 +134,7 @@ export default class Client extends Client4 {
 
     // *****************************************************************************
     // Boards client
-    // based on https://github.com/mattermost/focalboard/blob/main/webapp/src/octoClient.ts
+    // based on "webapp/boards/src/octoClient.ts"
     // *****************************************************************************
 
     async patchUserConfig(userID: string, patch: UserConfigPatch): Promise<UserPreference[] | undefined> {
@@ -167,8 +167,9 @@ async function makeClient(userRequest?: UserRequest, useCache = true): Promise<C
 
         const userProfile = await client.login(userRequest.username, userRequest.password);
         const user = {...userProfile, password: userRequest.password};
-        const config = await client.getClientConfigOld();
-        client.setUseBoardsProduct(config.FeatureFlagBoardsProduct === 'true');
+
+        // Manually do until boards as product is consistent in all the codebase.
+        client.setUseBoardsProduct(true);
 
         if (useCache) {
             clients[cacheKey] = {client, user};

@@ -10,18 +10,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 )
 
 var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
@@ -33,7 +33,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		} else {
-			mlog.Error("Could not get cluster info")
+			c.Logger().Error("Could not get cluster info")
 		}
 	}
 
@@ -56,7 +56,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (s *Server) QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
 	serverName := "default"
@@ -66,7 +66,7 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			serverName = info.Hostname
 		} else {
-			mlog.Error("Could not get cluster info")
+			c.Logger().Error("Could not get cluster info")
 		}
 	}
 
@@ -111,12 +111,12 @@ func AddLocalLogs(logData map[string][]string, s *Server, page, perPage int, ser
 	return nil
 }
 
-func (a *App) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
-	return a.Srv().QueryLogs(page, perPage, logFilter)
+func (a *App) QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	return a.Srv().QueryLogs(c, page, perPage, logFilter)
 }
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogs(page, perPage)
+func (a *App) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogs(c, page, perPage)
 }
 
 func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
@@ -146,15 +146,15 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 
 }
 
-func (a *App) RecycleDatabaseConnection() {
-	mlog.Info("Attempting to recycle database connections.")
+func (a *App) RecycleDatabaseConnection(c request.CTX) {
+	c.Logger().Info("Attempting to recycle database connections.")
 
 	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
 	// This allows in gradually closing connections as they expire. In future, we can think
 	// of exposing this as a param from the REST api.
 	a.Srv().Store().RecycleDBConnections(10 * time.Second)
 
-	mlog.Info("Finished recycling database connections.")
+	c.Logger().Info("Finished recycling database connections.")
 }
 
 func (a *App) TestSiteURL(siteURL string) *model.AppError {

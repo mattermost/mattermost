@@ -36,7 +36,7 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
 
     handleConfirm = () => {
         this.props.actions.deleteCategory(this.props.category.id);
-    }
+    };
 
     render() {
         return (

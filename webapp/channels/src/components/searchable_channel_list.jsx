@@ -122,7 +122,7 @@ export default class SearchableChannelList extends React.PureComponent {
                 </div>
             </div>
         );
-    }
+    };
 
     nextPage = (e) => {
         e.preventDefault();
@@ -130,13 +130,13 @@ export default class SearchableChannelList extends React.PureComponent {
         this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT_MILLISECONDS);
         this.props.nextPage(this.state.page + 1);
         this.channelListScroll.current?.scrollTo({top: 0});
-    }
+    };
 
     previousPage = (e) => {
         e.preventDefault();
         this.setState({page: this.state.page - 1});
         this.channelListScroll.current?.scrollTo({top: 0});
-    }
+    };
 
     doSearch = () => {
         const term = this.filter.current.value;
@@ -144,13 +144,13 @@ export default class SearchableChannelList extends React.PureComponent {
         if (term === '') {
             this.setState({page: 0});
         }
-    }
+    };
     toggleArchivedChannelsOn = () => {
         this.props.toggleArchivedChannels(true);
-    }
+    };
     toggleArchivedChannelsOff = () => {
         this.props.toggleArchivedChannels(false);
-    }
+    };
 
     render() {
         const channels = this.props.channels;
@@ -250,10 +250,10 @@ export default class SearchableChannelList extends React.PureComponent {
             channelDropdown = (
                 <div className='more-modal__dropdown'>
                     <MenuWrapper id='channelsMoreDropdown'>
-                        <a>
+                        <button className='style--none'>
                             <span>{this.props.shouldShowArchivedChannels ? localizeMessage('more_channels.show_archived_channels', 'Show: Archived Channels') : localizeMessage('more_channels.show_public_channels', 'Show: Public Channels')}</span>
                             <span className='caret'/>
-                        </a>
+                        </button>
                         <Menu
                             openLeft={false}
                             ariaLabel={localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}

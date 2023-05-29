@@ -62,7 +62,7 @@ const verifyMetricInput = (index, title, target, description, placeholder) => {
 
 const getRetro = () => cy.findByTestId('run-retrospective-section');
 
-describe('runs > run details page', () => {
+describe('runs > run details page', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testViewerUser;

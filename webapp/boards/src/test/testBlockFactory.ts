@@ -5,7 +5,7 @@ import {
     Board,
     IPropertyOption,
     IPropertyTemplate,
-    createBoard
+    createBoard,
 } from 'src/blocks/board'
 import {BoardView, createBoardView} from 'src/blocks/boardView'
 import {Card, createCard} from 'src/blocks/card'
@@ -123,6 +123,7 @@ class TestBlockFactory {
         card.title = 'title'
         card.fields.icon = 'i'
         card.fields.properties.property1 = 'value1'
+
         return card
     }
 
@@ -132,6 +133,7 @@ class TestBlockFactory {
         if (isContent) {
             card.fields.contentOrder.push(block.id)
         }
+
         return block
     }
 
@@ -145,24 +147,28 @@ class TestBlockFactory {
     static createText(card: Card): TextBlock {
         const block = this.addToCard(createTextBlock(), card)
         block.title = 'title'
+
         return block
     }
 
     static createImage(card: Card): ImageBlock {
         const block = this.addToCard(createImageBlock(), card)
         block.fields.fileId = 'fileId'
+
         return block
     }
 
     static createDivider(card: Card): DividerBlock {
         const block = this.addToCard(createDividerBlock(), card)
         block.title = 'title'
+
         return block
     }
 
     static createCheckbox(card: Card): CheckboxBlock {
         const block = this.addToCard(createCheckboxBlock(), card)
         block.title = 'title'
+
         return block
     }
 

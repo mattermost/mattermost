@@ -44,19 +44,19 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
     private jumpToConv = (e: MouseEvent) => {
         e.stopPropagation();
         getHistory().push(`/${this.props.teamName}/pl/${this.props.fileInfo.post_id}`);
-    }
+    };
 
     private copyLink = () => {
         copyToClipboard(`${getSiteURL()}/${this.props.teamName}/pl/${this.props.fileInfo.post_id}`);
-    }
+    };
 
     private stopPropagation = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.stopPropagation();
-    }
+    };
 
     private keepOpen = (open: boolean) => {
         this.setState({keepOpen: open});
-    }
+    };
 
     private renderPluginItems = () => {
         const {fileInfo} = this.props;
@@ -85,7 +85,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                 {pluginItems}
             </>
         );
-    }
+    };
 
     private showPreview = () => {
         this.props.actions.openModal({
@@ -97,7 +97,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                 startIndex: 0,
             },
         });
-    }
+    };
 
     public render(): React.ReactNode {
         const {fileInfo, channelDisplayName, channelType} = this.props;

@@ -76,11 +76,11 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
     componentDidMount = async () => {
         await this.props.actions.getProfiles(0, USERS_PER_PAGE * 2);
         this.setUsersLoadingState(false);
-    }
+    };
 
     setUsersLoadingState = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
 
     search = async (term: string) => {
         this.setUsersLoadingState(true);
@@ -93,17 +93,17 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
             await this.props.actions.getProfiles(0, USERS_PER_PAGE * 2);
         }
         this.setState({loading: false, searchResults, term});
-    }
+    };
 
     handleHide = () => {
         this.setState({show: false});
-    }
+    };
 
     handleExit = () => {
         if (this.props.onExited) {
             this.props.onExited();
         }
-    }
+    };
 
     renderOption = (option: UserProfileValue, isSelected: boolean, onAdd: (user: UserProfileValue) => void, onMouseMove: (user: UserProfileValue) => void) => {
         let rowSelected = '';
@@ -137,15 +137,15 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                 </div>
             </div>
         );
-    }
+    };
 
     renderValue = (value: { data: UserProfileValue }): string => {
         return value.data?.username || '';
-    }
+    };
 
     renderAriaLabel = (option: UserProfileValue): string => {
         return option?.username || '';
-    }
+    };
 
     handleAdd = (value: UserProfileValue) => {
         const values: UserProfileValue[] = [...this.state.values];
@@ -153,11 +153,11 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
             values.push(value);
         }
         this.setState({values});
-    }
+    };
 
     handleDelete = (values: UserProfileValue[]) => {
         this.setState({values});
-    }
+    };
 
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
@@ -171,7 +171,7 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
     handleSubmit = () => {
         this.props.onAddCallback(this.state.values);
         this.handleHide();
-    }
+    };
 
     render = (): JSX.Element => {
         const numRemainingText = (
@@ -265,5 +265,5 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                 </Modal.Body>
             </Modal>
         );
-    }
+    };
 }

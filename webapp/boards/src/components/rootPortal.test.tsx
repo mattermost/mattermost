@@ -3,14 +3,13 @@
 
 import React from 'react'
 import {render} from '@testing-library/react'
-import '@testing-library/jest-dom'
 
 import RootPortal from './rootPortal'
 
 describe('components/RootPortal', () => {
     beforeEach(() => {
         // Quick fix to disregard console error when unmounting a component
-        console.error = jest.fn()
+        // console.error = jest.fn()
     })
 
     test('should match snapshot', () => {

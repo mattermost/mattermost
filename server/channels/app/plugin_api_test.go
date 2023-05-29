@@ -25,13 +25,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/plugin/utils"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -92,7 +92,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 		return app.NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
 	require.Equal(t, len(pluginCodes), len(pluginIDs))
@@ -143,7 +143,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -304,7 +304,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIGetUsers(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -759,7 +759,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_load_configuration_plugin", "main.go")
 
@@ -794,7 +794,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_load_configuration_defaults_plugin", "main.go")
 
@@ -830,7 +830,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/v6/plugin"
+      "github.com/mattermost/mattermost-server/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -849,7 +849,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginIDs := []string{"pluginid1", "pluginid2", "pluginid3"}
@@ -937,7 +937,7 @@ func TestInstallPlugin(t *testing.T) {
 			return app.NewPluginAPI(c, manifest)
 		}
 
-		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, false, app.Log(), nil)
+		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
 		require.NoError(t, err)
 
 		app.ch.SetPluginsEnvironment(env)
@@ -982,7 +982,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/public/plugin"
 		)
 
 		type configuration struct {
@@ -1160,7 +1160,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 
 func TestBasicAPIPlugins(t *testing.T) {
 	defaultSchema := getDefaultPluginSettingsSchema()
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot read find app folder")
 	dirs, err := os.ReadDir(testFolder)
 	require.NoError(t, err, "Cannot read test folder %v", testFolder)
@@ -1171,7 +1171,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 				mainPath := path.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
-				th := Setup(t).InitBasic()
+				th := Setup(t).InitBasic().DeleteBots()
 				defer th.TearDown()
 				setDefaultPluginConfig(th, dir.Name())
 				err = pluginAPIHookTest(t, th, mainPath, dir.Name(), defaultSchema)
@@ -1498,7 +1498,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/server/public/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1539,8 +1539,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v6/plugin"
-			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost-server/server/public/model"
 			"bytes"
 			"net/http"
 			"io"
@@ -1632,7 +1632,7 @@ func TestAPIMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, false, th.App.Log(), metricsMock)
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
 		require.NoError(t, err)
 
 		th.App.ch.SetPluginsEnvironment(env)
@@ -1644,8 +1644,8 @@ func TestAPIMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v6/model"
-		"github.com/mattermost/mattermost-server/v6/plugin"
+		"github.com/mattermost/mattermost-server/server/public/model"
+		"github.com/mattermost/mattermost-server/server/public/plugin"
 	)
 
 	type MyPlugin struct {
@@ -1746,7 +1746,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_http_hijack_plugin", "main.go")
 
@@ -1781,7 +1781,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	testFolder, found := fileutils.FindDir("mattermost-server/server/channels/app/plugin_api_tests")
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
 	require.True(t, found, "Cannot find tests folder")
 	fullPath := path.Join(testFolder, "manual.test_http_upgrade_websocket_plugin", "main.go")
 
@@ -2044,7 +2044,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
     import (
 	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost-server/v6/plugin"
+      "github.com/mattermost/mattermost-server/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -2079,7 +2079,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 		return th.App.NewPluginAPI(th.Context, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	th.App.ch.SetPluginsEnvironment(env)
@@ -2112,8 +2112,8 @@ func TestPluginUploadsAPI(t *testing.T) {
 		  "fmt"
 			"bytes"
 
-      "github.com/mattermost/mattermost-server/v6/model"
-      "github.com/mattermost/mattermost-server/v6/plugin"
+      "github.com/mattermost/mattermost-server/server/public/model"
+      "github.com/mattermost/mattermost-server/server/public/plugin"
     )
 
     type TestPlugin struct {
@@ -2179,7 +2179,7 @@ func TestPluginUploadsAPI(t *testing.T) {
 	newPluginAPI := func(manifest *model.Manifest) plugin.API {
 		return th.App.NewPluginAPI(th.Context, manifest)
 	}
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, false, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	th.App.ch.SetPluginsEnvironment(env)

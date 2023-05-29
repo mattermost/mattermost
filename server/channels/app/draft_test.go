@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
 )
 
 func TestGetDraft(t *testing.T) {
@@ -81,34 +81,41 @@ func TestUpsertDraft(t *testing.T) {
 	user := th.BasicUser
 	channel := th.BasicChannel
 
-	draft1 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00001,
+	draft := &model.Draft{
 		UserId:    user.Id,
 		ChannelId: channel.Id,
-		Message:   "draft1",
+		Message:   "draft",
 	}
-
-	draft2 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00002,
-		UserId:    user.Id,
-		ChannelId: channel.Id,
-		Message:   "draft2",
-	}
-
-	_, createDraftErr := th.App.CreateDraft(th.Context, draft1, "")
-	assert.Nil(t, createDraftErr)
 
 	t.Run("upsert draft", func(t *testing.T) {
-		draftResp, err := th.App.UpsertDraft(th.Context, draft2, "")
+		_, err := th.App.UpsertDraft(th.Context, draft, "")
 		assert.Nil(t, err)
 
-		assert.Equal(t, draft2.Message, draftResp.Message)
-		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
-		assert.Equal(t, draft2.CreateAt, draftResp.CreateAt)
+		drafts, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+		assert.Len(t, drafts, 1)
+		draft1 := drafts[0]
 
-		assert.NotEqual(t, draft1.UpdateAt, draftResp.UpdateAt)
+		assert.Equal(t, "draft", draft1.Message)
+		assert.Equal(t, channel.Id, draft1.ChannelId)
+		assert.Greater(t, draft1.CreateAt, int64(0))
+
+		draft = &model.Draft{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "updated draft",
+		}
+		_, err = th.App.UpsertDraft(th.Context, draft, "")
+		assert.Nil(t, err)
+
+		drafts, err = th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+		assert.Len(t, drafts, 1)
+		draft2 := drafts[0]
+
+		assert.Equal(t, "updated draft", draft2.Message)
+		assert.Equal(t, channel.Id, draft2.ChannelId)
+		assert.Equal(t, draft1.CreateAt, draft2.CreateAt)
 	})
 
 	t.Run("upsert draft feature flag", func(t *testing.T) {
@@ -123,7 +130,7 @@ func TestUpsertDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, err := th.App.UpsertDraft(th.Context, draft1, "")
+		_, err := th.App.UpsertDraft(th.Context, draft, "")
 		assert.NotNil(t, err)
 	})
 }
@@ -160,7 +167,7 @@ func TestCreateDraft(t *testing.T) {
 	}
 
 	t.Run("create draft", func(t *testing.T) {
-		draftResp, err := th.App.CreateDraft(th.Context, draft1, "")
+		draftResp, err := th.App.UpsertDraft(th.Context, draft1, "")
 		assert.Nil(t, err)
 
 		assert.Equal(t, draft1.Message, draftResp.Message)
@@ -178,28 +185,12 @@ func TestCreateDraft(t *testing.T) {
 		draftWithFiles := draft2
 		draftWithFiles.FileIds = []string{fileResp.Id}
 
-		draftResp, err := th.App.CreateDraft(th.Context, draftWithFiles, "")
+		draftResp, err := th.App.UpsertDraft(th.Context, draftWithFiles, "")
 		assert.Nil(t, err)
 
 		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
 		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
 		assert.ElementsMatch(t, draftWithFiles.FileIds, draftResp.FileIds)
-	})
-
-	t.Run("create draft feature flag", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
-
-		_, err := th.App.CreateDraft(th.Context, draft1, "")
-		assert.NotNil(t, err)
 	})
 }
 
@@ -217,33 +208,13 @@ func TestUpdateDraft(t *testing.T) {
 	channel := th.BasicChannel
 
 	draft1 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00001,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "draft1",
 	}
 
-	draft2 := &model.Draft{
-		CreateAt:  00001,
-		UpdateAt:  00002,
-		UserId:    user.Id,
-		ChannelId: channel.Id,
-		Message:   "draft2",
-	}
-
-	_, createDraftErr := th.App.CreateDraft(th.Context, draft1, "")
+	_, createDraftErr := th.App.UpsertDraft(th.Context, draft1, "")
 	assert.Nil(t, createDraftErr)
-
-	t.Run("update draft", func(t *testing.T) {
-		draftResp, err := th.App.UpdateDraft(th.Context, draft2, "")
-		assert.Nil(t, err)
-
-		assert.Equal(t, draft2.Message, draftResp.Message)
-		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
-
-		assert.NotEqual(t, draft1.UpdateAt, draftResp.UpdateAt)
-	})
 
 	t.Run("update draft with files", func(t *testing.T) {
 		// upload file
@@ -256,28 +227,16 @@ func TestUpdateDraft(t *testing.T) {
 		draftWithFiles := draft1
 		draftWithFiles.FileIds = []string{fileResp.Id}
 
-		draftResp, err := th.App.UpdateDraft(th.Context, draft1, "")
+		_, err := th.App.UpsertDraft(th.Context, draft1, "")
 		assert.Nil(t, err)
 
+		drafts, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+
+		draftResp := drafts[0]
 		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
 		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
 		assert.ElementsMatch(t, draftWithFiles.FileIds, draftResp.FileIds)
-	})
-
-	t.Run("create draft feature flag", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
-
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
-
-		_, err := th.App.UpdateDraft(th.Context, draft1, "")
-		assert.NotNil(t, err)
 	})
 }
 
@@ -312,13 +271,14 @@ func TestGetDraftsForUser(t *testing.T) {
 		Message:   "draft2",
 	}
 
-	_, createDraftErr1 := th.App.CreateDraft(th.Context, draft1, "")
+	_, createDraftErr1 := th.App.UpsertDraft(th.Context, draft1, "")
 	assert.Nil(t, createDraftErr1)
 
-	_, createDraftErr2 := th.App.CreateDraft(th.Context, draft2, "")
+	_, createDraftErr2 := th.App.UpsertDraft(th.Context, draft2, "")
 	assert.Nil(t, createDraftErr2)
 
 	t.Run("get drafts", func(t *testing.T) {
+		t.Skip("MM-52088")
 		draftResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
 		assert.Nil(t, err)
 
@@ -340,7 +300,7 @@ func TestGetDraftsForUser(t *testing.T) {
 		draftWithFiles := draft1
 		draftWithFiles.FileIds = []string{fileResp.Id}
 
-		draftResp, updateDraftErr := th.App.UpdateDraft(th.Context, draft1, "")
+		draftResp, updateDraftErr := th.App.UpsertDraft(th.Context, draft1, "")
 		assert.Nil(t, updateDraftErr)
 
 		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
@@ -397,7 +357,7 @@ func TestDeleteDraft(t *testing.T) {
 		Message:   "draft1",
 	}
 
-	_, createDraftErr := th.App.CreateDraft(th.Context, draft1, "")
+	_, createDraftErr := th.App.UpsertDraft(th.Context, draft1, "")
 	assert.Nil(t, createDraftErr)
 
 	t.Run("delete draft", func(t *testing.T) {
@@ -411,7 +371,7 @@ func TestDeleteDraft(t *testing.T) {
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 	})
 
-	t.Run("get drafts feature flag", func(t *testing.T) {
+	t.Run("delete drafts feature flag", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
 		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
 		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")

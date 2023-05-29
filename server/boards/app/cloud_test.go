@@ -12,10 +12,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	mockservicesapi "github.com/mattermost/mattermost-server/v6/server/boards/model/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	mockservicesapi "github.com/mattermost/mattermost-server/server/v8/boards/model/mocks"
 )
 
 func TestIsCloud(t *testing.T) {

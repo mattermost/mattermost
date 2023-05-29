@@ -8,8 +8,8 @@ import {NotificationLevels} from 'utils/constants';
 
 import DesktopNotificationSettings from './desktop_notification_settings';
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
+jest.mock('utils/notification_sounds', () => {
+    const original = jest.requireActual('utils/notification_sounds');
     return {
         ...original,
         hasSoundOptions: jest.fn(() => true),

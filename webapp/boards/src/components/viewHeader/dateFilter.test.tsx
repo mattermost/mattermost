@@ -7,19 +7,17 @@ import userEvent from '@testing-library/user-event'
 import {IntlProvider} from 'react-intl'
 import {mocked} from 'jest-mock'
 
-import '@testing-library/jest-dom'
-
 import {wrapIntl} from 'src/testUtils'
 import mutator from 'src/mutator'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {createFilterClause, FilterClause} from 'src/blocks/filterClause'
+import {FilterClause, createFilterClause} from 'src/blocks/filterClause'
 import {createFilterGroup} from 'src/blocks/filterGroup'
 
 import DateFilter from './dateFilter'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 // create Dates for specific days for this year.
 const June15 = new Date(Date.UTC(new Date().getFullYear(), 5, 15, 12))
@@ -115,7 +113,7 @@ describe('components/viewHeader/dateFilter', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('handles calendar click event', () => {
+    test('handles calendar click event', async () => {
         activeView.fields.filter = createFilterGroup()
         activeView.fields.filter.filters = [emptyFilterClause]
 
@@ -126,16 +124,16 @@ describe('components/viewHeader/dateFilter', () => {
                     filter={emptyFilterClause}
                 />,
             )
-        expect(component).toMatchSnapshot()
-        const {getByText, getByTitle} = render(component)
+        const {container, getByText, getByTitle} = render(component)
+        expect(container).toMatchSnapshot()
 
         const dayDisplay = getByText('Empty')
-        userEvent.click(dayDisplay)
+        await userEvent.click(dayDisplay)
 
         const day = getByText('15')
         const modal = getByTitle('Close').children[0]
-        userEvent.click(day)
-        userEvent.click(modal)
+        await userEvent.click(day)
+        await userEvent.click(modal)
 
         const newFilterGroup = createFilterGroup(activeView.fields.filter)
         const date = new Date()
@@ -146,7 +144,7 @@ describe('components/viewHeader/dateFilter', () => {
         expect(mockedMutator.changeViewFilter).toHaveBeenCalledWith(board.id, activeView.id, activeView.fields.filter, newFilterGroup)
     })
 
-    test('handle clear', () => {
+    test('handle clear', async () => {
         const todayFilterClause = createFilterClause(emptyFilterClause)
         todayFilterClause.values = [June15.getTime().toString()]
         activeView.fields.filter = createFilterGroup()
@@ -164,12 +162,12 @@ describe('components/viewHeader/dateFilter', () => {
 
         // open modal
         const dayDisplay = getByText('June 15')
-        userEvent.click(dayDisplay)
+        await userEvent.click(dayDisplay)
 
         const clear = getByText('Clear')
         const modal = getByTitle('Close').children[0]
-        userEvent.click(clear)
-        userEvent.click(modal)
+        await userEvent.click(clear)
+        await userEvent.click(modal)
 
         const newFilterGroup = createFilterGroup(activeView.fields.filter)
         const v = newFilterGroup.filters[0] as FilterClause
@@ -177,7 +175,7 @@ describe('components/viewHeader/dateFilter', () => {
         expect(mockedMutator.changeViewFilter).toHaveBeenCalledWith(board.id, activeView.id, activeView.fields.filter, newFilterGroup)
     })
 
-    test('set via text input', () => {
+    test('set via text input', async () => {
         activeView.fields.filter = createFilterGroup()
         activeView.fields.filter.filters = [emptyFilterClause]
 
@@ -194,14 +192,14 @@ describe('components/viewHeader/dateFilter', () => {
 
         // open modal
         const dayDisplay = getByText('Empty')
-        userEvent.click(dayDisplay)
+        await userEvent.click(dayDisplay)
 
         const input = getByPlaceholderText('MM/DD/YYYY')
-        userEvent.type(input, '{selectall}{delay}07/15/2021{enter}')
+        await userEvent.type(input, '{selectall}{delay}07/15/2021{enter}')
 
         const July15 = new Date(Date.UTC(2021, 6, 15, 12))
         const modal = getByTitle('Close').children[0]
-        userEvent.click(modal)
+        await userEvent.click(modal)
 
         const newFilterGroup = createFilterGroup(activeView.fields.filter)
         const v = newFilterGroup.filters[0] as FilterClause
@@ -209,7 +207,7 @@ describe('components/viewHeader/dateFilter', () => {
         expect(mockedMutator.changeViewFilter).toHaveBeenCalledWith(board.id, activeView.id, activeView.fields.filter, newFilterGroup)
     })
 
-    test('handles `Today` button click event', () => {
+    test('handles `Today` button click event', async () => {
         const component =
             wrapIntl(
                 <DateFilter
@@ -232,12 +230,12 @@ describe('components/viewHeader/dateFilter', () => {
 
         // open modal
         const dayDisplay = getByText('Empty')
-        userEvent.click(dayDisplay)
+        await userEvent.click(dayDisplay)
 
         const day = getByText('Today')
         const modal = getByTitle('Close').children[0]
-        userEvent.click(day)
-        userEvent.click(modal)
+        await userEvent.click(day)
+        await userEvent.click(modal)
 
         const newFilterGroup = createFilterGroup(activeView.fields.filter)
         const v = newFilterGroup.filters[0] as FilterClause

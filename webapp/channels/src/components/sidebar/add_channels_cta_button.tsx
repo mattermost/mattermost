@@ -80,7 +80,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 <Menu.ItemAction
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse Channels'})}
+                    icon={<i className='icon-globe'/>}
+                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'})}
                 />
             );
         }
@@ -91,7 +92,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 <Menu.ItemAction
                     id='showNewChannel'
                     onClick={showNewChannelModal}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create New Channel'})}
+                    icon={<i className='icon-plus'/>}
+                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create new channel'})}
                 />
             );
         }
@@ -106,8 +108,28 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
         );
     };
 
-    const trackOpen = (opened: boolean) => {
-        openAddChannelsCtaOpen(opened);
+    const addChannelsButton = (btnCallback?: () => void) => {
+        const handleClick = () => btnCallback?.();
+        return (
+            <button
+                className={buttonClass}
+                id={'addChannelsCta'}
+                aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                onClick={handleClick}
+            >
+                <li
+                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.addChannelsCta', defaultMessage: 'Add channels'})}
+                >
+                    <i className='icon-plus-box'/>
+                    <span>
+                        {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
+                    </span>
+                </li>
+            </button>
+        );
+    };
+
+    const storePreferencesAndTrackEvent = () => {
         trackEvent('ui', 'add_channels_cta_button_clicked');
         if (!touchedAddChannelsCtaButton) {
             dispatch(savePreferences(
@@ -122,26 +144,26 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
         }
     };
 
+    const trackOpen = (opened: boolean) => {
+        openAddChannelsCtaOpen(opened);
+        storePreferencesAndTrackEvent();
+    };
+
+    if (!canCreateChannel) {
+        const browseChannelsAction = () => {
+            showMoreChannelsModal();
+            storePreferencesAndTrackEvent();
+        };
+        return addChannelsButton(browseChannelsAction);
+    }
+
     return (
         <MenuWrapper
             className='AddChannelsCtaDropdown'
             onToggle={trackOpen}
             open={isAddChannelCtaOpen}
         >
-            <button
-                className={buttonClass}
-                id={'addChannelsCta'}
-                aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channels Dropdown'})}
-            >
-                <li
-                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.addChannelsCta', defaultMessage: 'Add channels'})}
-                >
-                    <i className='icon-plus-box'/>
-                    <span>
-                        {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
-                    </span>
-                </li>
-            </button>
+            {addChannelsButton()}
             <Menu
                 id='AddChannelCtaDropdown'
                 ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channels Dropdown'})}

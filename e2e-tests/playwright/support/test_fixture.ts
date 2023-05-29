@@ -1,14 +1,9 @@
-import {test as base, Browser} from '@playwright/test';
+import {test as base, Browser, ViewportSize} from '@playwright/test';
 
 import {TestBrowser} from './browser_context';
-import {
-    shouldHaveBoardsEnabled,
-    shouldHaveCallsEnabled,
-    shouldHaveFeatureFlag,
-    shouldSkipInSmallScreen,
-    shouldRunInLinux,
-} from './flag';
+import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldSkipInSmallScreen, shouldRunInLinux} from './flag';
 import {initSetup, getAdminClient} from './server';
+import {isSmallScreen} from './util';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
@@ -21,9 +16,10 @@ type ExtendedFixtures = {
 };
 
 export const test = base.extend<ExtendedFixtures>({
-    pw: async ({browser}, use) => {
-        const pw = new PlaywrightExtended(browser);
+    pw: async ({browser, viewport}, use) => {
+        const pw = new PlaywrightExtended(browser, viewport);
         await use(pw);
+        await pw.testBrowser.close();
     },
     // eslint-disable-next-line no-empty-pattern
     pages: async ({}, use) => {
@@ -36,7 +32,6 @@ class PlaywrightExtended {
     readonly testBrowser: TestBrowser;
 
     // ./flag
-    readonly shouldHaveBoardsEnabled;
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
     readonly shouldSkipInSmallScreen;
@@ -54,15 +49,17 @@ class PlaywrightExtended {
     // ./ui/pages
     readonly pages;
 
+    // ./util
+    readonly isSmallScreen;
+
     // ./visual
     readonly matchSnapshot;
 
-    constructor(browser: Browser) {
+    constructor(browser: Browser, viewport: ViewportSize | null) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
 
         // ./flag
-        this.shouldHaveBoardsEnabled = shouldHaveBoardsEnabled;
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldSkipInSmallScreen = shouldSkipInSmallScreen;
@@ -79,6 +76,9 @@ class PlaywrightExtended {
 
         // ./ui/pages
         this.pages = pages;
+
+        // ./util
+        this.isSmallScreen = () => isSmallScreen(viewport);
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

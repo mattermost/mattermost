@@ -15,8 +15,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/client"
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/client"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 type Clients struct {
@@ -581,6 +581,35 @@ func TestPermissionsGetBoard(t *testing.T) {
 		ttCases[9].totalResults = 1
 		ttCases[25].expectedStatusCode = http.StatusOK
 		ttCases[25].totalResults = 1
+		runTestCases(t, ttCases, testData, clients)
+	})
+}
+
+func TestPermissionsGetBoardPublic(t *testing.T) {
+	ttCases := []TestCase{
+		{"/boards/{PRIVATE_BOARD_ID}?read_token=invalid", methodGet, "", userAnon, http.StatusUnauthorized, 0},
+		{"/boards/{PRIVATE_BOARD_ID}?read_token=valid", methodGet, "", userAnon, http.StatusUnauthorized, 1},
+		{"/boards/{PRIVATE_BOARD_ID}?read_token=invalid", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
+		{"/boards/{PRIVATE_BOARD_ID}?read_token=valid", methodGet, "", userTeamMember, http.StatusForbidden, 1},
+	}
+	t.Run("plugin", func(t *testing.T) {
+		th := SetupTestHelperPluginMode(t)
+		defer th.TearDown()
+		cfg := th.Server.Config()
+		cfg.EnablePublicSharedBoards = false
+		th.Server.UpdateAppConfig()
+		clients := setupClients(th)
+		testData := setupData(t, th)
+		runTestCases(t, ttCases, testData, clients)
+	})
+	t.Run("local", func(t *testing.T) {
+		th := SetupTestHelperLocalMode(t)
+		defer th.TearDown()
+		cfg := th.Server.Config()
+		cfg.EnablePublicSharedBoards = false
+		th.Server.UpdateAppConfig()
+		clients := setupLocalClients(th)
+		testData := setupData(t, th)
 		runTestCases(t, ttCases, testData, clients)
 	})
 }
@@ -3350,7 +3379,7 @@ func TestPermissionsGetFile(t *testing.T) {
 		clients := setupClients(th)
 		testData := setupData(t, th)
 
-		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png")
+		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png", false)
 		require.NoError(t, err)
 
 		ttCases := ttCasesF()
@@ -3365,7 +3394,7 @@ func TestPermissionsGetFile(t *testing.T) {
 		clients := setupLocalClients(th)
 		testData := setupData(t, th)
 
-		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png")
+		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png", false)
 		require.NoError(t, err)
 
 		ttCases := ttCasesF()

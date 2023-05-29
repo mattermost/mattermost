@@ -39,7 +39,6 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
       className="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
       key="more-actions-button"
-      onClick={[Function]}
       type="button"
     >
       <i
@@ -107,7 +106,6 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
       className="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
       key="more-actions-button"
-      onClick={[Function]}
       type="button"
     >
       <i
@@ -194,7 +192,6 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
       className="post-menu__item post-menu__item--active"
       id="center_actions_button_post_id_1"
       key="more-actions-button"
-      onClick={[Function]}
       type="button"
     >
       <i

@@ -8,7 +8,18 @@ exports[`components/blocksEditor/rootInput should match Display snapshot 1`] = `
     <span
       class="css-1f43avz-a11yText-A11yText"
       id="react-select-2-live-region"
-    />
+    >
+      <span
+        id="aria-selection"
+      >
+        option , selected.
+      </span>
+      <span
+        id="aria-context"
+      >
+          Select is focused ,type to refine list, press Down to open the menu, 
+      </span>
+    </span>
     <span
       aria-atomic="false"
       aria-live="polite"
@@ -16,7 +27,7 @@ exports[`components/blocksEditor/rootInput should match Display snapshot 1`] = `
       class="css-1f43avz-a11yText-A11yText"
     />
     <div
-      class=" css-4bb158-control"
+      class=" css-1x912dq-control"
     >
       <div
         class=" css-30zlo3-ValueContainer"
@@ -60,7 +71,18 @@ exports[`components/blocksEditor/rootInput should match Input snapshot 1`] = `
     <span
       class="css-1f43avz-a11yText-A11yText"
       id="react-select-3-live-region"
-    />
+    >
+      <span
+        id="aria-selection"
+      >
+        option , selected.
+      </span>
+      <span
+        id="aria-context"
+      >
+          Select is focused ,type to refine list, press Down to open the menu, 
+      </span>
+    </span>
     <span
       aria-atomic="false"
       aria-live="polite"
@@ -68,7 +90,7 @@ exports[`components/blocksEditor/rootInput should match Input snapshot 1`] = `
       class="css-1f43avz-a11yText-A11yText"
     />
     <div
-      class=" css-4bb158-control"
+      class=" css-1x912dq-control"
     >
       <div
         class=" css-30zlo3-ValueContainer"
@@ -118,9 +140,18 @@ exports[`components/blocksEditor/rootInput should match Input snapshot with menu
       aria-live="polite"
       aria-relevant="additions text"
       class="css-1f43avz-a11yText-A11yText"
-    />
+    >
+      <span
+        id="aria-selection"
+      />
+      <span
+        id="aria-context"
+      >
+        option /title Creates a new Title block. focused, 1 of 11. 11 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+      </span>
+    </span>
     <div
-      class=" css-4bb158-control"
+      class=" css-1x912dq-control"
     >
       <div
         class=" css-30zlo3-ValueContainer"
@@ -161,7 +192,7 @@ exports[`components/blocksEditor/rootInput should match Input snapshot with menu
       />
     </div>
     <div
-      class=" css-1aj7brc"
+      class=" css-u0i6pk-MenuPortal"
     >
       <div
         class=" css-1rsmi4x-menu"

@@ -4,10 +4,9 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {GlobalState} from '@mattermost/types/store';
 import {useSelector} from 'react-redux';
 import {Team} from '@mattermost/types/teams';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import Scrollbars from 'react-custom-scrollbars';
 
-import {OVERLAY_DELAY} from 'src/constants';
+import Tooltip from 'src/components/widgets/tooltip';
 
 import {renderThumbVertical, renderTrackHorizontal, renderView} from 'src/components/rhs/rhs_shared';
 
@@ -38,26 +37,32 @@ interface SidebarProps {
     headerDropdown: React.ReactNode;
 }
 
-const teamNameSelector = (teamId: string) => (state: GlobalState): Team => getTeam(state, teamId);
+const selectTeam = (teamId: string) => (state: GlobalState): Team => getTeam(state, teamId);
 
 const Sidebar = (props: SidebarProps) => {
-    const team = useSelector(teamNameSelector(props.team_id));
+    const team = useSelector(selectTeam(props.team_id));
+
+    const teamName = (
+        <TeamName>
+            {team?.display_name}
+        </TeamName>
+    );
 
     return (
         <SidebarComponent>
             <Header>
-                <OverlayTrigger
-                    placement='bottom'
-                    delay={OVERLAY_DELAY}
-                    shouldUpdatePosition={true}
-                    overlay={
-                        <Tooltip id='team-name__tooltip'>{team?.description?.length ? team.description : 'No team is selected'}</Tooltip>
-                    }
-                >
-                    <TeamName>
-                        {team?.display_name?.length ? team.display_name : 'All Teams'}
-                    </TeamName>
-                </OverlayTrigger>
+                {team?.description ? (
+                    <Tooltip
+                        id='team-name__tooltip'
+                        content={team?.description}
+                        placement='bottom'
+                        shouldUpdatePosition={true}
+                    >
+                        {teamName}
+                    </Tooltip>
+                ) : (
+                    teamName
+                )}
                 {props.headerDropdown}
             </Header>
             <Scrollbars

@@ -45,7 +45,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
         if (this.props.active) {
             getHistory().push(`/${this.props.currentTeamName}/channels/${this.props.redirectChannel}`);
         }
-    }
+    };
 
     getIcon = () => {
         const {channel, teammate} = this.props;
@@ -79,7 +79,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
                 statusClass={`DirectChannel__status-icon ${className}`}
             />
         );
-    }
+    };
 
     render() {
         const {channel, teammate, currentTeamName} = this.props;

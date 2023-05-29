@@ -29,7 +29,7 @@ export default class ClusterSettings extends AdminSettings {
         config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort, 8074);
         config.ClusterSettings.StreamingPort = this.parseIntNonZero(this.state.StreamingPort, 8075);
         return config;
-    }
+    };
 
     getStateFromConfig(config) {
         const settings = config.ClusterSettings;
@@ -62,7 +62,7 @@ export default class ClusterSettings extends AdminSettings {
         });
 
         this.handleChange(id, value);
-    }
+    };
 
     renderSettings = () => {
         const licenseEnabled = this.props.license.IsLicensed === 'true' && this.props.license.Cluster === 'true';
@@ -309,7 +309,7 @@ export default class ClusterSettings extends AdminSettings {
                 />
             </SettingsGroup>
         );
-    }
+    };
 }
 
 const style = {

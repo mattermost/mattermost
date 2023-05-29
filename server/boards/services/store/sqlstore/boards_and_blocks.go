@@ -8,7 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 )
 
 type BlockDoesntBelongToBoardsErr struct {
@@ -166,7 +166,7 @@ func (s *SQLStore) duplicateBoard(db sq.BaseRunner, boardID string, userID strin
 	}
 
 	bab.Boards = []*model.Board{board}
-	blocks, err := s.getBlocksForBoard(db, boardID)
+	blocks, err := s.getBlocks(db, model.QueryBlocksOptions{BoardID: boardID})
 	if err != nil {
 		return nil, nil, err
 	}

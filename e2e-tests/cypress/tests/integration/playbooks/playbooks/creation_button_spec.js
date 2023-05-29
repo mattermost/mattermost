@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('playbooks > creation button', () => {
+describe('playbooks > creation button', {testIsolation: true}, () => {
     let testSysadmin;
     let testTeam;
     let testUser;

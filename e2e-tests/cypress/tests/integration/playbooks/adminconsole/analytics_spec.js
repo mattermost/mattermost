@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('admin console', () => {
+describe('admin console', {testIsolation: true}, () => {
     let testUser;
     let testTeam;
     let testPlaybook;

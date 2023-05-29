@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render} from '@testing-library/react'
+import {render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {Provider as ReduxProvider} from 'react-redux'
 import thunk from 'redux-thunk'
@@ -15,8 +15,6 @@ import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 import {MemberRole} from 'src/blocks/board'
 
 import TeamPermissionsRow from './teamPermissionsRow'
-
-jest.useFakeTimers()
 
 const boardId = '1'
 
@@ -73,28 +71,23 @@ describe('src/components/shareBoard/teamPermissionsRow', () => {
     })
 
     test('should match snapshot in plugin mode', async () => {
-        let container: Element | undefined
         const store = mockStateStore([thunk], state)
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <TeamPermissionsRow/>
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(
+            wrapDNDIntl(
+                <ReduxProvider store={store}>
+                    <TeamPermissionsRow/>
+                </ReduxProvider>),
+            {wrapper: MemoryRouter},
+        )
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot in template', async () => {
-        let container: Element | undefined
         const testState = {
             ...state,
             boards: {
@@ -106,20 +99,17 @@ describe('src/components/shareBoard/teamPermissionsRow', () => {
             },
         }
         const store = mockStateStore([thunk], testState)
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <TeamPermissionsRow/>
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(
+            wrapDNDIntl(
+                <ReduxProvider store={store}>
+                    <TeamPermissionsRow/>
+                </ReduxProvider>),
+            {wrapper: MemoryRouter},
+        )
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })

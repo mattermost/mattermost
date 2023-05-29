@@ -22,8 +22,6 @@ describe('New Channel modal with Boards enabled', () => {
             cy.apiLogin(sysadmin);
             cy.visit(`/${testTeam.name}/channels/town-square`);
         });
-
-        cy.shouldHaveFeatureFlag('BoardsProduct', true);
     });
 
     it('MM-T5141 New Channel is created with an associated Board', () => {

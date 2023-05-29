@@ -79,7 +79,7 @@ const Command = (props: CommandProps) => {
                 }
             }}
         >
-            {props.command_last_run ? 'Rerun' : 'Run'}
+            {props.command_last_run ? formatMessage({defaultMessage: 'Rerun'}) : formatMessage({defaultMessage: 'Run'})}
         </Run>
     );
 

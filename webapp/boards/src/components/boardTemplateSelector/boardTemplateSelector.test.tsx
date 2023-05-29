@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {
+    act,
     render,
     screen,
-    act,
     waitFor,
-    within
+    within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -20,7 +20,7 @@ import {MemoryRouter, Router} from 'react-router-dom'
 
 import Mutator from 'src/mutator'
 import {Team} from 'src/store/teams'
-import {createBoard, Board} from 'src/blocks/board'
+import {Board, createBoard} from 'src/blocks/board'
 import {IUser} from 'src/user'
 import {mockDOM, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
@@ -50,11 +50,11 @@ jest.mock('src/mutator')
 jest.mock('src/utils')
 
 jest.mock('src/telemetry/telemetryClient')
-const mockedTelemetry = mocked(TelemetryClient, true)
+const mockedTelemetry = mocked(TelemetryClient)
 
 describe('components/boardTemplateSelector/boardTemplateSelector', () => {
-    const mockedMutator = mocked(Mutator, true)
-    const mockedOctoClient = mocked(client, true)
+    const mockedMutator = mocked(Mutator)
+    const mockedOctoClient = mocked(client)
     const team1: Team = {
         id: 'team-1',
         title: 'Team 1',
@@ -194,7 +194,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             ), {wrapper: MemoryRouter})
             expect(container).toMatchSnapshot()
         })
-        test('return BoardTemplateSelector and click close call the onClose callback', () => {
+        test('return BoardTemplateSelector and click close call the onClose callback', async () => {
             const onClose = jest.fn()
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -204,10 +204,10 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             ), {wrapper: MemoryRouter})
             const divCloseButton = container.querySelector('div.toolbar .CloseIcon')
             expect(divCloseButton).not.toBeNull()
-            userEvent.click(divCloseButton!)
+            await userEvent.click(divCloseButton!)
             expect(onClose).toBeCalledTimes(1)
         })
-        test('return BoardTemplateSelector and click new template', () => {
+        test('return BoardTemplateSelector and click new template', async () => {
             render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
@@ -216,7 +216,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             ), {wrapper: MemoryRouter})
             const divNewTemplate = screen.getByText('Create new template').parentElement
             expect(divNewTemplate).not.toBeNull()
-            userEvent.click(divNewTemplate!)
+            await userEvent.click(divNewTemplate!)
             expect(mockedMutator.addEmptyBoardTemplate).toBeCalledTimes(1)
         })
         test('return BoardTemplateSelector and click empty board', async () => {
@@ -230,9 +230,9 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                 ,
             ), {wrapper: MemoryRouter})
 
-            const divEmptyboard = screen.getByText('Create empty board').parentElement
+            const divEmptyboard = screen.getByText('Create an empty board').parentElement
             expect(divEmptyboard).not.toBeNull()
-            userEvent.click(divEmptyboard!)
+            await userEvent.click(divEmptyboard!)
             expect(mockedMutator.addEmptyBoard).toBeCalledTimes(1)
             await waitFor(() => expect(mockedMutator.updateBoard).toBeCalledWith(newBoard, newBoard, 'linked channel'))
         })
@@ -247,17 +247,13 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             ), {wrapper: MemoryRouter, container: document.body.appendChild(root)})
             const deleteIcon = screen.getByText(template1Title).parentElement?.querySelector('.DeleteIcon')
             expect(deleteIcon).not.toBeNull()
-            act(() => {
-                userEvent.click(deleteIcon!)
-            })
+            await act(() => userEvent.click(deleteIcon!))
 
             const {getByText} = within(root)
             const deleteConfirm = getByText('Delete')
             expect(deleteConfirm).not.toBeNull()
 
-            await act(async () => {
-                await userEvent.click(deleteConfirm!)
-            })
+            await act(() => userEvent.click(deleteConfirm!))
 
             expect(mockedMutator.deleteBoard).toBeCalledTimes(1)
         })
@@ -273,7 +269,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             ))
             const editIcon = screen.getByText(template1Title).parentElement?.querySelector('.EditIcon')
             expect(editIcon).not.toBeNull()
-            userEvent.click(editIcon!)
+            await userEvent.click(editIcon!)
         })
         test('return BoardTemplateSelector and click to add board from template', async () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
@@ -288,15 +284,12 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const divBoardToSelect = screen.getByText(template1Title).parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            await userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+
+            await userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), '1', team1.id))
@@ -319,15 +312,12 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const divBoardToSelect = screen.getByText(template1Title).parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            await userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+
+            await userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), '1', team1.id))
@@ -347,15 +337,13 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const divBoardToSelect = screen.getByText(globalTemplateTitle).parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            await userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+
+            await userEvent.click(useTemplateButton!)
+
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
             await waitFor(() => expect(mockedTelemetry.trackEvent).toBeCalledWith('boards', 'createBoardViaTemplate', {boardTemplateId: 'template_id_global'}))
@@ -374,15 +362,12 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const divBoardToSelect = screen.getByText('Welcome to Boards!').parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            await userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+
+            await userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toBeCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), '2', team1.id))

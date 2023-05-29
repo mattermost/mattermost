@@ -3080,10 +3080,6 @@
     "translation": "Misslyckades att skapa Elasticsearch bulk processor."
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch är redan startat."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Kunde inte avkoda sökresultaten"
   },
@@ -8971,18 +8967,6 @@
     "translation": "Misslyckades att tolka onboarding-anropet."
   },
   {
-    "id": "Playbooks",
-    "translation": "Playbooks"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanaler"
-  },
-  {
-    "id": "Boards",
-    "translation": "Boards"
-  },
-  {
     "id": "api.custom_groups.no_remote_id",
     "translation": "remote_id måste vara tomt för anpassade grupper"
   },
@@ -9069,42 +9053,6 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Det går inte att få fram antalet filer i kanalen"
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Öka produktiviteten med dessa fantastiska funktioner"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hej {{.Name}}, vi ser att din Mattermost-server samlat lite damm. Ta en titt på några funktioner som kan hjälpa till att lätta på arbetsbördan för ditt team."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Öppna Mattermost för att öka teamets produktivitet!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Hantera uppgifter med hjälp av "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Hantera arbetsflöden med "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Gäståtkomst till specificerade "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Kom och kolla in det!"
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Du fick det här engångsmejlet eftersom din Mattermost-server har varit inaktiv i mer än {{.Hours}} timmar. Det här e-postmeddelandet genererades automatiskt av din Mattermost-server."
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Öppna Mattermost"
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9523,10 +9471,6 @@
     "translation": "Ogiltigt tidsintervall."
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Plugin {{.Name}} kan inte aktiveras i produktionsläge."
-  },
-  {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "Samlingstypen finns redan."
   },
@@ -9583,24 +9527,8 @@
     "translation": "Du kan inte ta bort en bekräftelse i en arkiverad kanal."
   },
   {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Skapa transparenta arbetsflöden mellan utvecklingsteamen för att säkerställa att utvecklingsprocessen för funktioner är smidig."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Öka produktiviteten i kanalen genom att integrera en Jira-bot och en Github-bot. Dessa kommer att laddas ner åt dig."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Chatta med ditt team i kanalen för kommande leveranser, som enkelt kan anslutas till dina tavlor, playbooks och app-bottar."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Använd vår mall för mötesagenda för återkommande möten exempelvis standup och vår Projekt-board för projektuppgifter och att hantera uppgifternas framskridande."
-  },
-  {
     "id": "worktemplate.category.product_teams",
-    "translation": "Produkt-team"
+    "translation": "Produkt"
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
@@ -9653,10 +9581,6 @@
   {
     "id": "app.post_prority.get_for_post.app_error",
     "translation": "Det går inte att få fram inläggets prioritet"
-  },
-  {
-    "id": "app.draft.update.app_error",
-    "translation": "Kunde inte uppdatera utkastet."
   },
   {
     "id": "app.draft.save.app_error",
@@ -9823,120 +9747,12 @@
     "translation": "Arbetsmallar är inaktiverade."
   },
   {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Använd ett projekt för att göra sprintplaneringen enkel. Kanalen håller konversationen och frågorna fokuserade. Sprintplanen håller alla på uppgiften för veckan och retrospektivtavlan samlar teamet för att kontinuerligt förbättra sig."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Använd ett projekt för att göra sprintplaneringen enkel. Kanalen håller konversationen och frågorna fokuserade. Sprintplanen håller alla på uppgiften för veckan och retrospektivtavlan samlar teamet för att kontinuerligt förbättra sig."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Använd ett projekt för att göra sprintplaneringen enkel. Kanalen håller konversationen och frågorna fokuserade. Sprintplanen håller alla på uppgiften för veckan och retrospektivtavlan samlar teamet för att kontinuerligt förbättra sig."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Beskrivning av varför kanalen/kanalerna behövs"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Beskrivning av varför tavlan/tavlorna behövs"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Bli organiserad och kläm åt alla buggar med det här projektet! Skapa framdrift och mät framstegen med hjälp av den medföljande Playbook, Board och Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Bli organiserad och kläm åt alla buggar med det här projektet! Skapa framdrift och mät framstegen med hjälp av den medföljande Playbook, Board och Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Bli organiserad och kläm åt alla buggar med det här projektet! Skapa framdrift och mät framstegen med hjälp av den medföljande Playbook, Board och Channel."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Bli organiserad och kläm åt alla buggar med det här projektet! Skapa framdrift och mät framstegen med hjälp av den medföljande Playbook, Board och Channel."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Med det här projektet kan du inte missa något steg under en produktlansering. Tilldela uppgifter från checklistan i Playbook och uppnå milstolpar med Board. Använd Channel för att se till att alla har samma information."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Med det här projektet kan du inte missa något steg under en produktlansering. Tilldela uppgifter från checklistan i Playbook och uppnå milstolpar med Board. Använd Channel för att se till att alla har samma information."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Med det här projektet kan du inte missa något steg under en produktlansering. Tilldela uppgifter från checklistan i Playbook och uppnå milstolpar med Board. Använd Channel för att se till att alla har samma information."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "När saker är på väg att gå fel är en återupprepningsbar process en nyckel för att kunna rätta till så snabbt som möjligt. Det här projektet kombinerar allt som Mattermost erbjuder för att se till att bränderna släcks och att intressenterna informeras på vägen."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "När saker är på väg att gå fel är en återupprepningsbar process en nyckel för att kunna rätta till så snabbt som möjligt. Det här projektet kombinerar allt som Mattermost erbjuder för att se till att bränderna släcks och att intressenterna informeras på vägen."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "När saker är på väg att gå fel är en återupprepningsbar process en nyckel för att kunna rätta till så snabbt som möjligt. Det här projektet kombinerar allt som Mattermost erbjuder för att se till att bränderna släcks och att intressenterna informeras på vägen."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Tydligt fokus är viktigt för att teamet ska lyckas och med det här projektet kan du dokumentera teamets mål och OKR:er samt lägga upp uppdateringar i den särskilda kanalen."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Planera en roadmap med hjälp av projekttavlan och samarbeta i ämnet i kanalen som skapats från den här mallen."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Planera en roadmap med hjälp av projekttavlan och samarbeta i ämnet i kanalen som skapats från den här mallen."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Planera en roadmap med hjälp av projekttavlan och samarbeta i ämnet i kanalen som skapats från den här mallen."
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "Ledarskap"
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -10013,5 +9829,277 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Kunde inte rensa oauth-information."
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Statusuppdatering"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Uppdatera status"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Påminnelse om nästa uppdatering"
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "one": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanal.",
+      "other": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanaler."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Markera även körningen som avslutad"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Slutför körningen"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Förändring sedan den senaste uppdateringen"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{{.Username}} inaktiverade statusuppdateringarna för [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here - @{{.Name}} begärde en statusuppdatering för [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} är en deltagare i en körning och vill gå med i den här kanalen. Alla medlemmar i kanalen kan bjuda in dem.\n"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Bekräfta att avsluta körningen"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Slutför körningen"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "one": "Det finns **{{.Count}} utestående uppgift**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?",
+      "other": "Det finns **{{.Count}} utestående uppgifter**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?"
+    }
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Lägg till i tidslinjen för körning"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Kort sammanfattning som visas i tidslinjen"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Max 64 tecken"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Sammanfattning"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Lägg till i tidslinjen för körning"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Kör Playbook"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Lägg till en ny uppgift"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Lägg till en uppgift"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Namn"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Beskrivning"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Kör playbook"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Starta körning"
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Namn på körning"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Ägare** {{.Username}}"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Du har 0 tilldelade uppgifter."
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "one": "Du har {{.Count}} tilldelad uppgift som nu är förfallen:",
+      "other": "Du har {{.Count}} tilldelade uppgifter som nu är förfallna:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "one": "Du har {{.Count}} tilldelad uppgift:",
+      "other": "Du har {{.Count}} tilldelade uppgifter:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Dina tilldelade uppgifter"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Skulle utförts igår"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Försenad {{.Count}} dagar"
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "one": "Ska utföras inom {{.Count}} dag",
+      "other": "Ska utföras inom {{.Count}} dagar"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Ska utföras idag"
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "one": "Du har **{{.Count}} tilldelad uppgift som ska utföras idag**.",
+      "other": "Du har **{{.Count}} tilldelade uppgifter som ska utföras idag**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Använd `/playbook todo` för att se alla dina uppgifter."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Du har 0 pågående körningar."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "one": "Du har {{.Count}} körning som för närvarande pågår:",
+      "other": "Du har {{.Count}} körningar som för närvarande pågår:"
+    }
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Körningar som pågår"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Du har 0 försenade körningar."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "one": "Du har {{.Count}} körning som borde ha fått en statusuppdatering:",
+      "other": "Du har {{.Count}} körningar som borde ha fått en statusuppdatering:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Status om förseningar"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Kunde inte utföra kommandot."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Chatta med ditt team om prioriteringar, lägg till intressenter, ge uppdateringar och arbeta mot en lösning i en och samma kanal."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Använd Incident Resolution tavlan för att stödja upprepbara processer och fördela definierade uppgifter i hela teamet."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg, exempelvis Zoom, för att underlätta samarbetet. Dessa kommer att laddas ner åt dig."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Chatta om dina mål och framsteg med ditt team, asynkront eller i realtid, och håll dig uppdaterad om förändringar i en och samma kanal."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Håll koll på teamets steg mot de organisatoriska målen med OKR-tavlan. Håll möten på rätt spår med hjälp av Mötesagenda-tavlan."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg. Dessa kommer att laddas ner åt dig."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Chatta med ditt team om ditt nya projekt och bestäm hur ni ska strukturera det i en samarbetskanal."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Använd en Kanban-tavla för att definiera och hålla koll på dina uppgifter och framsteg i projekt."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Felaktigt värde för bytes licensen laddas upp."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch-versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Plugin {{.Id}} finns på blocklistan. Vissa plugins är blockerade eftersom de är inbyggda i den här versionen av Mattermost."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server misslyckades med att prenumerera på nyhetsbrev."
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Har inte skickat in en korrekt granskningsprofil till CWS."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Felaktig företagsmejl för prova på-period"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Fel: inget organisationsnamn har angetts för egen onboarding."
   }
 ]

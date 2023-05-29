@@ -95,7 +95,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1465_1 Verify Label & Tab behavior in section links', () => {
         // * Verify aria-label and tab support in section of Account settings modal
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
         cy.findByRole('tab', {name: 'profile settings'}).should('be.visible').focus().should('be.focused');
         ['profile settings', 'security'].forEach((text) => {
             // * Verify aria-label on each tab and it supports navigating to the next tab with arrow keys
@@ -114,9 +114,10 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1465_2 Verify Accessibility Support in each section in Settings and Profile Dialog', () => {
         cy.visit(url);
+        cy.postMessage('hello');
 
-        // # Open account settings modal
-        cy.uiOpenProfileModal();
+        // # Open profile settings modal
+        cy.uiOpenProfileModal('Profile Settings');
 
         // * Verify if the focus goes to the individual fields in Profile section
         cy.findByRole('tab', {name: 'profile settings'}).click().tab();
@@ -149,6 +150,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1481 Verify Correct Radio button behavior in Settings and Profile', () => {
         cy.visit(url);
+        cy.postMessage('hello');
         cy.uiOpenSettingsModal();
 
         cy.get('#notificationsButton').click();
@@ -160,7 +162,8 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1482 Input fields in Settings and Profile should read labels', () => {
         cy.visit(url);
-        cy.uiOpenProfileModal();
+        cy.postMessage('hello');
+        cy.uiOpenProfileModal('Profile Settings');
 
         accountSettings.profile.forEach((section) => {
             if (section.type === 'text') {
@@ -178,6 +181,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1485 Language dropdown should read labels', () => {
         cy.visit(url);
+        cy.postMessage('hello');
         cy.uiOpenSettingsModal();
 
         cy.get('#displayButton').click();
@@ -216,9 +220,10 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1488 Profile Picture should read labels', () => {
         cy.visit(url);
+        cy.postMessage('hello');
 
         // # Go to Edit Profile picture
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
         cy.get('#pictureEdit').click();
 
         // * Verify image alt in profile image
@@ -269,9 +274,10 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
     it('MM-T1496 Security Settings screen should read labels', () => {
         cy.visit(url);
+        cy.postMessage('hello');
 
         // # Go to Security Settings
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
         cy.get('#securityButton').click();
 
         // * Check Tab behavior in MFA section

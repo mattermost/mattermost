@@ -195,7 +195,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
         >
           <span
             class="Label empty "
-            title="Items with an empty name property will go here. This column cannot be removed."
+            title="Items with an empty name property will go here. This column can't be removed."
           >
             No name
           </span>

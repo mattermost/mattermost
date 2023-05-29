@@ -47,7 +47,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
 
     handleHide = () => {
         this.setState({show: false});
-    }
+    };
 
     handleInvitePeople = () => {
         const {actions} = this.props;
@@ -58,7 +58,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
         });
 
         this.handleHide();
-    }
+    };
 
     render() {
         let teamDisplayName = '';

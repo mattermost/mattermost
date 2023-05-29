@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`/components/viewMenu should match snapshot 1`] = `
-Object {
+{
   "asFragment": [Function],
   "baseElement": <body>
     <div>
@@ -530,7 +530,7 @@ Object {
 `;
 
 exports[`/components/viewMenu should match snapshot, read only 1`] = `
-Object {
+{
   "asFragment": [Function],
   "baseElement": <body>
     <div>

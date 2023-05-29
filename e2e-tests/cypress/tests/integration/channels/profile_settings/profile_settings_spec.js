@@ -22,7 +22,7 @@ describe('Profile Settings', () => {
     });
 
     it('MM-T2044 Clear fields, values revert', () => {
-        cy.uiOpenProfileModal();
+        cy.uiOpenProfileModal('Profile Settings');
 
         // # Click "Edit" to the right of "Full Name"
         cy.get('#nameEdit').should('be.visible').click();

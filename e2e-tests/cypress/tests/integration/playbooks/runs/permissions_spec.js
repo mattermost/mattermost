@@ -13,7 +13,7 @@
 
 import {getRandomId} from '../../../utils';
 
-describe('runs > permissions', () => {
+describe('runs > permissions', {testIsolation: true}, () => {
     let testTeam;
     let testUser;
     let testOtherTeam;
@@ -160,9 +160,7 @@ describe('runs > permissions', () => {
         });
 
         describe('should be visible', () => {
-            // XXX: Skipping this test, since public playbooks currently have no members. This will
-            // likely change in the future, so keeping the skeleton.
-            it.skip('to playbook members', () => {
+            it('to playbook members', () => {
                 assertRunIsVisible(run, playbookMember);
             });
 
@@ -242,9 +240,7 @@ describe('runs > permissions', () => {
         });
 
         describe('should be visible', () => {
-            // XXX: Skipping this test, since public playbooks currently have no members. This will
-            // likely change in the future.
-            it.skip('to playbook members', () => {
+            it('to playbook members', () => {
                 assertRunIsVisible(run, playbookMember);
             });
 
@@ -332,10 +328,9 @@ describe('runs > permissions', () => {
                 assertRunIsVisible(run, runParticipant);
             });
 
-            // Skipping this test, since followers cannot follow a run with a private channel from
-            // a private playbook. (But leaving it for clarity in the code.)
-            it.skip('to run followers', () => {
-                assertRunIsVisible(run, runFollower);
+            // Followers cannot follow a run with a private channel from a private playbook
+            it('to run followers', () => {
+                assertRunIsNotVisible(run, runFollower);
             });
 
             it('to admins in the team', () => {
@@ -414,10 +409,9 @@ describe('runs > permissions', () => {
                 assertRunIsVisible(run, runParticipant);
             });
 
-            // Skipping this test, since followers cannot follow a run with a private channel from
-            // a private playbook. (But leaving it for clarity in the code.)
-            it.skip('to run followers', () => {
-                assertRunIsVisible(run, runFollower);
+            // Followers cannot follow a run with a private channel from a private playbook
+            it('to run followers', () => {
+                assertRunIsNotVisible(run, runFollower);
             });
 
             it('to admins in the team', () => {

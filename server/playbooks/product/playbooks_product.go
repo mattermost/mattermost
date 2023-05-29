@@ -10,23 +10,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	mmapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/product/pluginapi/cluster"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/api"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/bot"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/command"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/enterprise"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/metrics"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/scheduler"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/telemetry"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	mmapp "github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/product/pluginapi/cluster"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/api"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/command"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/enterprise"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/metrics"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/scheduler"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/telemetry"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -341,7 +341,7 @@ func (pp *playbooksProduct) Start() error {
 		logrus.Info("Rudder credentials are set. Enabling analytics.")
 		diagnosticID := pp.serviceAdapter.GetDiagnosticID()
 		serverVersion := pp.serviceAdapter.GetServerVersion()
-		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, model.BuildHashPlaybooks, serverVersion)
+		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, model.BuildHash, serverVersion)
 		if err != nil {
 			return errors.Wrapf(err, "failed init telemetry client")
 		}
@@ -569,7 +569,7 @@ func (pp *playbooksProduct) Stop() error {
 func newMetricsInstance() *metrics.Metrics {
 	// Init metrics
 	instanceInfo := metrics.InstanceInfo{
-		Version:        model.BuildHashPlaybooks,
+		Version:        model.BuildHash,
 		InstallationID: os.Getenv("MM_CLOUD_INSTALLATION_ID"),
 	}
 	return metrics.NewMetrics(instanceInfo)

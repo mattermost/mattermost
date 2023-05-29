@@ -69,7 +69,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         this.setState({
             error,
         });
-    }
+    };
 
     handleSystemAdminChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.name === 'systemadmin') {
@@ -115,7 +115,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         } else if (!UserUtils.hasPostAllPublicRole(roles) && UserUtils.hasPostAllPublicRole(oldRoles)) {
             trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
         }
-    }
+    };
 
     handleSave = async () => {
         this.setState({error: null});
@@ -146,7 +146,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 />,
             );
         }
-    }
+    };
 
     renderContents = () => {
         const {user} = this.props;
@@ -335,7 +335,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 </div>
             </div>
         );
-    }
+    };
 
     render() {
         return (

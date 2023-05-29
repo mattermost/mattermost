@@ -20,7 +20,7 @@ export default class UserGridRemove extends React.PureComponent<Props> {
             return;
         }
         this.props.removeUser(this.props.user);
-    }
+    };
 
     public render = (): JSX.Element => {
         const {isDisabled} = this.props;
@@ -39,5 +39,5 @@ export default class UserGridRemove extends React.PureComponent<Props> {
                 </a>
             </div>
         );
-    }
+    };
 }

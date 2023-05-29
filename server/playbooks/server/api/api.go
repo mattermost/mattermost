@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 )
 
 // MaxRequestSize is the size limit for any incoming request
@@ -91,16 +91,10 @@ func HandleErrorWithCode(logger logrus.FieldLogger, w http.ResponseWriter, code 
 
 // ReturnJSON writes the given pointerToObject as json with the provided httpStatus
 func ReturnJSON(w http.ResponseWriter, pointerToObject interface{}, httpStatus int) {
-	jsonBytes, err := json.Marshal(pointerToObject)
-	if err != nil {
-		logrus.WithError(err).Error("Unable to marshal JSON")
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpStatus)
 
-	if _, err = w.Write(jsonBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(pointerToObject); err != nil {
 		logrus.WithError(err).Warn("Unable to write to http.ResponseWriter")
 		return
 	}

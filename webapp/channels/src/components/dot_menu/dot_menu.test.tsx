@@ -146,7 +146,6 @@ describe('components/dot_menu/DotMenu', () => {
         threadReplyCount: 0,
         userId: 'user_id_1',
         isMilitaryTime: false,
-        showForwardPostNewLabel: false,
     };
 
     test('should match snapshot, on Center', () => {
@@ -172,32 +171,6 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             canEdit: true,
             canDelete: true,
-        };
-        const wrapper = renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, show "New" badge on forward post', () => {
-        const props = {
-            ...baseProps,
-            showForwardPostNewLabel: true,
-        };
-        const wrapper = renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, hide "New" badge on forward post', () => {
-        const props = {
-            ...baseProps,
-            showForwardPostNewLabel: false,
         };
         const wrapper = renderWithIntlAndStore(
             <DotMenu {...props}/>,

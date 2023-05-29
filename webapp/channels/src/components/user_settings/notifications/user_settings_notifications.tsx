@@ -184,7 +184,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
 
     static defaultProps = {
         activeSection: '',
-    }
+    };
 
     constructor(props: Props) {
         super(props);
@@ -245,7 +245,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                     this.setState({serverError: err.message, isSaving: false});
                 }
             });
-    }
+    };
 
     handleCancel = (): void => this.setState(getNotificationsStateFromProps(this.props));
 
@@ -263,27 +263,27 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         const data: {[key: string]: string | boolean } = {};
         data[key] = value;
         this.setState((prevState) => ({...prevState, ...data}));
-    }
+    };
 
     handleNotifyPushThread = (e: ChangeEvent<HTMLInputElement>): void => {
         const pushThreads = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
         this.setState({pushThreads});
-    }
+    };
 
     handleNotifyCommentsRadio = (notifyCommentsLevel: UserNotifyProps['comments'], e?: React.ChangeEvent): void => {
         this.setState({notifyCommentsLevel});
         a11yFocus(e?.currentTarget as HTMLElement);
-    }
+    };
 
     handlePushRadio = (pushActivity: UserNotifyProps['push'], e?: React.ChangeEvent): void => {
         this.setState({pushActivity});
         a11yFocus(e?.currentTarget as HTMLElement);
-    }
+    };
 
     handlePushStatusRadio = (pushStatus: UserNotifyProps['push_status'], e?: React.ChangeEvent): void => {
         this.setState({pushStatus});
         a11yFocus(e?.currentTarget as HTMLElement);
-    }
+    };
 
     handleEmailRadio = (enableEmail: UserNotifyProps['email']): void => this.setState({enableEmail});
 
@@ -304,14 +304,14 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         } else {
             this.setState({customKeys: '', customKeysChecked: false});
         }
-    }
+    };
 
     onCustomChange = (): void => {
         if (this.customCheckRef.current) {
             this.customCheckRef.current.checked = true;
         }
         this.updateCustomMentionKeys();
-    }
+    };
 
     createPushNotificationSection = () => {
         const active = this.props.activeSection === 'push';
@@ -612,7 +612,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                 max={max}
             />
         );
-    }
+    };
 
     createKeysSection = () => {
         const serverError = this.state.serverError;
@@ -793,7 +793,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                 max={max}
 
             />);
-    }
+    };
 
     createCommentsSection = () => {
         const serverError = this.state.serverError;
@@ -924,7 +924,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                 areAllSectionsInactive={this.props.activeSection === ''}
             />
         );
-    }
+    };
 
     createAutoResponderSection = () => {
         if (this.props.enableAutoResponder) {
@@ -972,7 +972,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         }
 
         return null;
-    }
+    };
 
     render() {
         const autoResponderSection = this.createAutoResponderSection();

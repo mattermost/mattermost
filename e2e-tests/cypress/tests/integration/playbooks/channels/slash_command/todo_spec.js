@@ -9,7 +9,7 @@
 // Stage: @prod
 // Group: @playbooks
 
-describe('channels > slash command > todo', () => {
+describe('channels > slash command > todo', {testIsolation: true}, () => {
     let team1;
     let team2;
     let testUser;

@@ -21,6 +21,7 @@ describe('components/drafts/drafts_row', () => {
         user: {} as UserProfile,
         status: {} as UserStatus['status'],
         displayName: 'test',
+        isRemote: false,
     };
 
     it('should match snapshot for channel draft', () => {

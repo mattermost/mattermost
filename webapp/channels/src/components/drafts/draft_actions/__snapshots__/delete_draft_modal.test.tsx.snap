@@ -1,9 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/drafts/draft_actions/delete_draft_modal should have called onConfirm 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
+  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, delete"
   enforceFocus={true}
@@ -38,13 +39,14 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
       }
     }
   />
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`components/drafts/draft_actions/delete_draft_modal should have called onExited 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
+  bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, delete"
   enforceFocus={true}
@@ -79,7 +81,7 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
       }
     }
   />
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`components/drafts/draft_actions/delete_draft_modal should match snapshot 1`] = `

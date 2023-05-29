@@ -52,7 +52,7 @@ export default class DoughnutChart extends React.PureComponent<Props> {
         } else {
             this.chart = new Chart(ctx, {type: 'doughnut', data: dataCopy, options: {}});
         }
-    }
+    };
 
     public render(): JSX.Element {
         let content;

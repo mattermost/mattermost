@@ -741,24 +741,26 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .AddChannelsCtaDropdown .dropdown-menu {
+        min-width: 210px !important;
         margin-left: 20px;
+
+        .MenuItem button span {
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+
+            i {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+        }
     }
 
     #introTextInvite,
     #addChannelsCta {
         display: flex;
         width: 100%;
+        margin-top: -6px;
 
         &:hover {
             background-color: var(--sidebar-text-hover-bg);
-        }
-    }
-
-    #AddChannelCtaDropdown {
-        position: fixed;
-
-        ul {
-            min-width: 232px !important;
         }
     }
 

@@ -145,4 +145,42 @@ describe('Edit Message', () => {
             cy.get(postText).should('have.text', `${secondMessage} Another new message Edited`);
         });
     });
+
+    it('MM-T5416 should discard any changes made after cancelling the edit and opening the edit textbox again should display the original message', () => {
+        const message = 'World!';
+        cy.postMessage(message);
+
+        // * Verify message is sent and not pending
+        cy.getLastPostId().then((postId) => {
+            const postText = `#postMessageText_${postId}`;
+            cy.get(postText).should('have.text', message);
+
+            // # Open edit textbox
+            cy.uiGetPostTextBox().type('{uparrow}');
+
+            // * Edit Post Input should appear, and edit the post
+            cy.get('#edit_textbox').should('be.visible');
+
+            // * Press the escape key to cancel
+            cy.get('#edit_textbox').should('have.text', message).type(' Another new message{esc}');
+            cy.get('#edit_textbox').should('not.exist');
+
+            // * Check that the message wasn't edited
+            cy.get(postText).should('have.text', message);
+        });
+
+        cy.getLastPostId().then((postId) => {
+            const postText = `#postMessageText_${postId}`;
+            cy.get(postText).should('have.text', message);
+
+            // # Open edit textbox again
+            cy.uiGetPostTextBox().type('{uparrow}');
+
+            // * Edit Post Input should appear, and edit the post
+            cy.get('#edit_textbox').should('be.visible');
+
+            // * Opening the edit textbox again after previously cancelling the edit should contain the original message.
+            cy.get('#edit_textbox').should('have.text', message);
+        });
+    });
 });

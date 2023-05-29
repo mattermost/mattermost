@@ -14,6 +14,7 @@ const GuestBadge = (props: Props) => {
     if (!props.show) {
         return null
     }
+
     return (
         <div className='GuestBadge'>
             <div className='GuestBadge__box'>

@@ -77,11 +77,11 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
         if (result.data) {
             this.onHide();
         }
-    }
+    };
 
     handleEntered = () => {
         this.deletePostBtn?.current?.focus();
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
@@ -97,7 +97,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                 element.focus();
             }
         }
-    }
+    };
 
     render() {
         let commentWarning: React.ReactNode = '';

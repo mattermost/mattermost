@@ -11,7 +11,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-describe('runs > task actions', () => {
+describe('runs > task actions', {testIsolation: true}, () => {
     let testPlaybook;
     let testTeam;
     let testUser;

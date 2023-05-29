@@ -3,7 +3,6 @@
   "properties": {
     "GomodMainOnly": true,
     "GomodExcludes": "_tests/|[-_]generators?$|^plugin/checker$",
-    "NpmExcludes": "/e2e$",
     "GradlePath": "./gradlew:../gradlew"
   },
   "filters": [

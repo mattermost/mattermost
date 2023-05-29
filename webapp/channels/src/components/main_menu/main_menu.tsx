@@ -9,7 +9,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import * as GlobalActions from 'actions/global_actions';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {Constants, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/utils';
+import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import InvitationModal from 'components/invitation_modal';
@@ -98,17 +98,17 @@ export class MainMenu extends React.PureComponent<Props> {
             e.preventDefault();
             this.props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
         }
-    }
+    };
 
     handleEmitUserLoggedOutEvent = (): void => {
         GlobalActions.emitUserLoggedOutEvent();
-    }
+    };
 
     getFlagged = (e: Event): void => {
         e.preventDefault();
         this.props.actions.showFlaggedPosts();
         this.props.actions.closeRhsMenu();
-    }
+    };
 
     searchMentions = (e: Event): void => {
         e.preventDefault();
@@ -119,7 +119,7 @@ export class MainMenu extends React.PureComponent<Props> {
             this.props.actions.closeRhsMenu();
             this.props.actions.showMentions();
         }
-    }
+    };
 
     render() {
         const {

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl, WrappedComponentProps} from 'react-intl';
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -43,17 +43,17 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
             modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
             dialogType: KeyboardShortcutsModal,
         });
-    }
+    };
 
     buttonToggleState = (menuActive: boolean) => {
         this.setState({
             buttonActive: menuActive,
         });
-    }
+    };
 
     askTheCommunityClick = () => {
         trackEvent('ui', 'help_ask_the_community');
-    }
+    };
 
     renderDropdownItems = (): React.ReactNode => {
         const {
@@ -102,7 +102,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 {pluginItems}
             </Menu.Group>
         );
-    }
+    };
 
     render() {
         const {intl} = this.props;

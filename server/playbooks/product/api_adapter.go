@@ -14,12 +14,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 )
 
 // normalizeAppError returns a truly nil error if appErr is nil

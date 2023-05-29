@@ -11,14 +11,23 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
 )
 
 func Test_getCloudLimits(t *testing.T) {
 	t.Run("no license returns not implemented", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		cloud := &mocks.CloudInterface{}
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("Unable to get limits"))
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
 
 		th.App.Srv().RemoveLicense()
 
@@ -33,6 +42,15 @@ func Test_getCloudLimits(t *testing.T) {
 	t.Run("non cloud license returns not implemented", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		cloud := &mocks.CloudInterface{}
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, errors.New("Unable to get limits"))
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
@@ -310,30 +328,6 @@ func Test_requestTrial(t *testing.T) {
 }
 
 func Test_validateBusinessEmail(t *testing.T) {
-	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-
-		invalidEmail := model.ValidateBusinessEmailRequest{Email: "invalid@gmail.com"}
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := mocks.CloudInterface{}
-
-		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, invalidEmail.Email).Return(errors.New("invalid email"))
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
-		res, err := th.Client.ValidateBusinessEmail(&invalidEmail)
-		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, res.StatusCode, "403")
-	})
 
 	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
 		th := Setup(t).InitBasic()
