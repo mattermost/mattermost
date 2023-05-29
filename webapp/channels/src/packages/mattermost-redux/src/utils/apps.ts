@@ -101,7 +101,7 @@ function cleanBindingRec(binding: AppBinding, topLocation: string, depth: number
     });
 }
 
-export function validateBindings(bindings: AppBinding[] = []): AppBinding[] {
+export function validateBindings(bindings: AppBinding[] | null = []): AppBinding[] {
     if (!bindings || (bindings.length && bindings.length === 0)) {
         return [];
     }
