@@ -83,7 +83,7 @@ describe('components/MoreChannels', () => {
             openModal: jest.fn(),
             closeModal: jest.fn(),
             closeRightHandSide: jest.fn(),
-            setGlobalItem: jest.fn()
+            setGlobalItem: jest.fn(),
         },
     };
 

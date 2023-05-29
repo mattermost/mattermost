@@ -21,19 +21,19 @@ describe('components/SearchableChannelList', () => {
         shouldShowArchivedChannels: false,
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,
-        noResultsText: <>{"no channel found"}</>
+        noResultsText: <>{'no channel found'}</>,
     };
 
     test('should match init snapshot', () => {
         const wrapper = shallow(
-            <SearchableChannelList {...baseProps} />,
+            <SearchableChannelList {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should set page to 0 when starting search', () => {
         const wrapper = shallow(
-            <SearchableChannelList {...baseProps} />,
+            <SearchableChannelList {...baseProps}/>,
         );
 
         wrapper.setState({page: 10});
