@@ -144,7 +144,6 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                     id={'more_channels.joined'}
                     defaultMessage={'Joined'}
                 />
-                <span className='dot'/>
             </div>
         ) : null;
 
