@@ -53,16 +53,6 @@ export default class PostReaction extends React.PureComponent<Props, State> {
         this.props.toggleEmojiPicker();
     };
 
-    toggleEmojiPicker = (e?: React.ChangeEvent<HTMLInputElement>): void => {
-        /** getElementsByClassName('close emoji-picker__header-close-button') allows user to select the close button of EmojiPicker modal on  mobile version
-         * that avoids closing it when we click on Add Reaction on mobile version
-         * for the CSS selector look at emoji_picker_header.tsx
-         */
-        if (!e?.target.getElementsByClassName('close emoji-picker__header-close-button').length) {
-            this.props.toggleEmojiPicker();
-        }
-    };
-
     render() {
         const {
             channelId,
@@ -89,7 +79,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                     <EmojiPickerOverlay
                         show={showEmojiPicker}
                         target={this.props.getDotMenuRef}
-                        onHide={this.toggleEmojiPicker}
+                        onHide={this.props.toggleEmojiPicker}
                         onEmojiClick={this.handleAddEmoji}
                         topOffset={TOP_OFFSET}
                         spaceRequiredAbove={spaceRequiredAbove}

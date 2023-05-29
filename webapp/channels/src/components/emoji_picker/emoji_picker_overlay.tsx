@@ -11,6 +11,8 @@ import {Constants} from 'utils/constants';
 import {Emoji} from '@mattermost/types/emojis';
 
 import EmojiPickerTabs from './emoji_picker_tabs';
+import {getIsMobileView} from 'selectors/views/browser';
+import store from 'stores/redux_store.jsx';
 
 type Props = {
     show: boolean;
@@ -83,12 +85,13 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
 
         const calculatedRightOffset = typeof rightOffset === 'undefined' ? this.emojiPickerPosition(target(), show) : rightOffset;
         const placement = this.getPlacement(target(), spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show);
+        const isNotMobileView = !getIsMobileView(store.getState());
 
         return (
             <Overlay
                 show={show}
                 placement={placement}
-                rootClose={true}
+                rootClose={isNotMobileView}
                 container={this.props.container}
                 onHide={this.props.onHide}
                 target={target}
