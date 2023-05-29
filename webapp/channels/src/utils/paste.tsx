@@ -13,11 +13,11 @@ type FormatCodeOptions = {
     selectionEnd: number | null;
 };
 
-export function parseTable(html: string): HTMLTableElement | null {
+export function parseHtmlTable(html: string): HTMLTableElement | null {
     return new DOMParser().parseFromString(html, 'text/html').querySelector('table');
 }
 
-export function getTable(clipboardData: DataTransfer): HTMLTableElement | null {
+export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | null {
     if (Array.from(clipboardData.types).indexOf('text/html') === -1) {
         return null;
     }
@@ -28,7 +28,7 @@ export function getTable(clipboardData: DataTransfer): HTMLTableElement | null {
         return null;
     }
 
-    const table = parseTable(html);
+    const table = parseHtmlTable(html);
     if (!table) {
         return null;
     }
@@ -75,7 +75,7 @@ export function formatMarkdownMessage(clipboardData: DataTransfer, message?: str
     service.use(tables);
     let markdownFormattedMessage = service.turndown(html).trim();
 
-    const table = getTable(clipboardData);
+    const table = getHtmlTable(clipboardData);
 
     if (table && isHeaderlessTable(table)) {
         markdownFormattedMessage += '\n';

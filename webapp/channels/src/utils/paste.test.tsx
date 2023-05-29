@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseTable, getTable, formatMarkdownMessage, formatGithubCodePaste} from './paste';
+import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste} from './paste';
 
 const validClipboardData: any = {
     items: [1],
@@ -11,16 +11,16 @@ const validClipboardData: any = {
     },
 };
 
-const validTable: any = parseTable(validClipboardData.getData());
+const validTable: any = parseHtmlTable(validClipboardData.getData());
 
-describe('Paste.getTable', () => {
+describe('Paste.getHtmlTable', () => {
     test('returns false without html in the clipboard', () => {
         const badClipboardData: any = {
             items: [1],
             types: ['text/plain'],
         };
 
-        expect(getTable(badClipboardData)).toBe(null);
+        expect(getHtmlTable(badClipboardData)).toBe(null);
     });
 
     test('returns false without table in the clipboard', () => {
@@ -30,11 +30,11 @@ describe('Paste.getTable', () => {
             getData: () => '<p>There is no table here</p>',
         };
 
-        expect(getTable(badClipboardData)).toBe(null);
+        expect(getHtmlTable(badClipboardData)).toBe(null);
     });
 
     test('returns table from valid clipboard data', () => {
-        expect(getTable(validClipboardData)).toEqual(validTable);
+        expect(getHtmlTable(validClipboardData)).toEqual(validTable);
     });
 });
 

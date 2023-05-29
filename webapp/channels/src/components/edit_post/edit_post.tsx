@@ -14,7 +14,7 @@ import * as Keyboard from 'utils/keyboard';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
-    getTable,
+    getHtmlTable,
     hasHtmlLink,
     isGitHubCodeBlock,
 } from 'utils/paste';
@@ -163,7 +163,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
 
         const hasLinks = hasHtmlLink(clipboardData);
-        const table = getTable(clipboardData);
+        const table = getHtmlTable(clipboardData);
         if (!table && !hasLinks) {
             return;
         }
