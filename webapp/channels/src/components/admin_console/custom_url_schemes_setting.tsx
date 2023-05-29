@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import PropTypes from 'prop-types';
-import React, {ChangeEvent, Component} from 'react';
+import React, {ChangeEvent, PureComponent} from 'react';
 
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
@@ -11,7 +11,7 @@ import LocalizedInput from 'components/localized_input/localized_input';
 
 import Setting from './setting';
 
-type CustomURLSchemesSettingProps = {
+type Props = {
     id: string;
     value: string[];
     onChange: (id: string, valueAsArray: string[]) => void;
@@ -19,12 +19,12 @@ type CustomURLSchemesSettingProps = {
     setByEnv: boolean;
 }
 
-type CustomURLSchemesSettingState = {
+type State = {
     value: string;
 }
 
 export default class CustomURLSchemesSetting extends
-    Component<CustomURLSchemesSettingProps, CustomURLSchemesSettingState> {
+    PureComponent<Props, State> {
     static get propTypes() {
         return {
             id: PropTypes.string.isRequired,
@@ -35,7 +35,7 @@ export default class CustomURLSchemesSetting extends
         };
     }
 
-    constructor(props: CustomURLSchemesSettingProps) {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
