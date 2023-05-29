@@ -3,7 +3,7 @@
 
 package markdown
 
-var (
+const (
 	// Assuming 64k maxSize of a post which can be stored in DB.
 	// Allow scanning upto twice(arbitrary value) the post size.
 	maxLen = 1024 * 64 * 2

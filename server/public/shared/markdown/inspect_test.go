@@ -12,7 +12,8 @@ import (
 )
 
 func TestInspect(t *testing.T) {
-	markdown := `
+	t.Run("", func(t *testing.T) {
+		markdown := `
 [foo]: bar
 - a
   > [![]()]()
@@ -20,37 +21,77 @@ func TestInspect(t *testing.T) {
 - d
 `
 
-	visited := []string{}
-	level := 0
-	Inspect(markdown, func(blockOrInline any) bool {
-		if blockOrInline == nil {
-			level--
-		} else {
-			visited = append(visited, strings.Repeat(" ", level*4)+strings.TrimPrefix(fmt.Sprintf("%T", blockOrInline), "*markdown."))
-			level++
-		}
-		return true
+		visited := []string{}
+		level := 0
+		Inspect(markdown, func(blockOrInline any) bool {
+			if blockOrInline == nil {
+				level--
+			} else {
+				visited = append(visited, strings.Repeat(" ", level*4)+strings.TrimPrefix(fmt.Sprintf("%T", blockOrInline), "*markdown."))
+				level++
+			}
+			return true
+		})
+
+		assert.Equal(t, []string{
+			"Document",
+			"    Paragraph",
+			"    List",
+			"        ListItem",
+			"            Paragraph",
+			"                Text",
+			"            BlockQuote",
+			"                Paragraph",
+			"                    InlineLink",
+			"                        InlineImage",
+			"                    SoftLineBreak",
+			"                    ReferenceLink",
+			"                        ReferenceImage",
+			"                            Text",
+			"        ListItem",
+			"            Paragraph",
+			"                Text",
+		}, visited)
 	})
 
-	assert.Equal(t, []string{
-		"Document",
-		"    Paragraph",
-		"    List",
-		"        ListItem",
-		"            Paragraph",
-		"                Text",
-		"            BlockQuote",
-		"                Paragraph",
-		"                    InlineLink",
-		"                        InlineImage",
-		"                    SoftLineBreak",
-		"                    ReferenceLink",
-		"                        ReferenceImage",
-		"                            Text",
-		"        ListItem",
-		"            Paragraph",
-		"                Text",
-	}, visited)
+	t.Run("visit nodes when len is smaller than maxLen", func(t *testing.T) {
+		n := maxLen / 5
+		markdown := strings.Repeat(`![`, n) + strings.Repeat(`]()`, n)
+
+		visited := []string{}
+		level := 0
+		Inspect(markdown, func(blockOrInline any) bool {
+			if blockOrInline == nil {
+				level--
+			} else {
+				visited = append(visited, strings.Repeat(" ", level*4)+strings.TrimPrefix(fmt.Sprintf("%T", blockOrInline), "*markdown."))
+				level++
+			}
+			return true
+		})
+
+		assert.NotEmpty(t, visited)
+	})
+
+	t.Run("do not visit any nodes when len is greater than maxLen", func(t *testing.T) {
+		n := (maxLen / 5) + 1
+		markdown := strings.Repeat(`![`, n) + strings.Repeat(`]()`, n)
+
+		visited := []string{}
+		level := 0
+		Inspect(markdown, func(blockOrInline any) bool {
+			if blockOrInline == nil {
+				level--
+			} else {
+				visited = append(visited, strings.Repeat(" ", level*4)+strings.TrimPrefix(fmt.Sprintf("%T", blockOrInline), "*markdown."))
+				level++
+			}
+			return true
+		})
+
+		assert.Empty(t, visited)
+	})
+
 }
 
 var counterSink int
