@@ -26,7 +26,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	}
 
 	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("deleteReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
@@ -37,6 +37,12 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 			return nil, appErr
 		default:
 			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	if post.RootId == "" {
+		if appErr := a.ResolvePersistentNotification(c, post, reaction.UserId); appErr != nil {
+			return nil, appErr
 		}
 	}
 

@@ -1116,8 +1116,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }
     };
 
-    handleUploadError = (err: string | ServerError | null, clientId: string | number = -1, _?: string, rootId = '') => {
-        if (clientId !== -1) {
+    handleUploadError = (uploadError: string | ServerError | null, clientId?: string, _?: string, rootId = '') => {
+        if (clientId) {
             const draft = {...this.draftsForPost[rootId]!};
             const uploadsInProgress = [...draft.uploadsInProgress];
 
@@ -1137,16 +1137,13 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             }
         }
 
-        let serverError = err;
-        if (typeof serverError === 'string') {
-            serverError = new Error(serverError);
-        }
-
-        this.setState({serverError}, () => {
-            if (serverError && this.props.scrollToBottom) {
-                this.props.scrollToBottom();
+        if (typeof uploadError === 'string') {
+            if (uploadError.length !== 0) {
+                this.setState({serverError: new Error(uploadError)});
             }
-        });
+        } else {
+            this.setState({serverError: uploadError});
+        }
     };
 
     removePreview = (id: string) => {
