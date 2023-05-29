@@ -11,8 +11,7 @@
 // Group: @channels @channel
 
 function verifyNoChannelToJoinMessage(isVisible) {
-    cy.findByText('No more channels to join').should(isVisible ? 'be.visible' : 'not.exist');
-    cy.findByText('Click \'Create New Channel\' to make a new one').should(isVisible ? 'be.visible' : 'not.exist');
+    cy.findByText('No public channels').should(isVisible ? 'be.visible' : 'not.exist');
 }
 
 describe('more public channels', () => {
@@ -53,7 +52,10 @@ describe('more public channels', () => {
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         // * Assert that the moreChannelsModel is visible
-        cy.findByRole('dialog', {name: 'More Channels'}).should('be.visible').within(() => {
+        cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').within(() => {
+            // # Click hide joined checkbox
+            cy.findByText('Hide Joined').should('be.visible').click();
+
             // * Assert that the moreChannelsList is visible and the number of channels is 31
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 31);
 
@@ -86,9 +88,9 @@ describe('more public channels', () => {
         cy.uiBrowseOrCreateChannel('Browse channels').click();
 
         // * Assert the moreChannelsModel is visible
-        cy.findByRole('dialog', {name: 'More Channels'}).should('be.visible').within(() => {
-            // * Assert the moreChannelsList does have one child
-            cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 1);
+        cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').within(() => {
+            // # Click hide joined checkbox
+            cy.findByText('Hide Joined').should('be.visible').click();
 
             // * Assert that the "No more channels to join" message is visible
             verifyNoChannelToJoinMessage(true);

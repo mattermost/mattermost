@@ -68,13 +68,13 @@ describe('Channel sidebar', () => {
         cy.get('.AddChannelDropdown .MenuItem:contains(Browse channels) button').should('be.visible').click();
 
         // * Verify that the more channels modal is visible
-        cy.get('.more-modal').should('be.visible');
+        cy.get('#moreChannelsModal').should('be.visible');
 
         // Click the Off-Topic channel
-        cy.get('.more-modal button:contains(Off-Topic)').should('be.visible').click();
+        cy.findByText('Off-Topic').should('be.visible').click();
 
         // Verify that new channel is in the sidebar and is active
-        cy.get('.more-modal').should('not.exist');
+        cy.get('#moreChannelsModal').should('not.exist');
         cy.url().should('include', `/${teamName}/channels/off-topic`);
         cy.get('#channelHeaderTitle').should('contain', 'Off-Topic');
         cy.get('.SidebarChannel.active:contains(Off-Topic)').should('be.visible');
