@@ -13,7 +13,7 @@ import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
 
-import AdminSettings, { BaseProps, BaseState } from './admin_settings';
+import AdminSettings, {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import TextSetting from './text_setting';
 import JobsTable from './jobs';
@@ -21,16 +21,16 @@ import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group.jsx';
 
 type Props = BaseProps & {
-    config: AdminConfig
+    config: AdminConfig;
 };
 
 type State = BaseState & {
-    indexDir: string,
-    enableIndexing: boolean,
-    enableSearching: boolean,
-    enableAutocomplete: boolean
-    canSave: boolean,
-    canPurgeAndIndex: boolean
+    indexDir: string;
+    enableIndexing: boolean;
+    enableSearching: boolean;
+    enableAutocomplete: boolean;
+    canSave: boolean;
+    canPurgeAndIndex: boolean;
 };
 
 export default class BleveSettings extends AdminSettings<Props, State> {
@@ -41,7 +41,6 @@ export default class BleveSettings extends AdminSettings<Props, State> {
             config.BleveSettings.EnableSearching = this.state.enableSearching;
             config.BleveSettings.EnableAutocomplete = this.state.enableAutocomplete;
         }
-        
         return config;
     };
 
