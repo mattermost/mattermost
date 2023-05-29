@@ -7,7 +7,7 @@ import {shallow} from 'enzyme';
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import MoreChannels, {Props} from 'components/more_channels/more_channels';
-import SearchableChannelList from 'components/searchable_channel_list.jsx';
+import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
@@ -94,7 +94,6 @@ describe('components/MoreChannels', () => {
 
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.state('searchedChannels')).toEqual([]);
-        expect(wrapper.state('show')).toEqual(true);
         expect(wrapper.state('shouldShowArchivedChannels')).toEqual(false);
         expect(wrapper.state('search')).toEqual(false);
         expect(wrapper.state('serverError')).toBeNull();
@@ -204,7 +203,6 @@ describe('components/MoreChannels', () => {
         process.nextTick(() => {
             expect(getHistory().push).toHaveBeenCalledTimes(1);
             expect(callback).toHaveBeenCalledTimes(1);
-            expect(wrapper.state('show')).toEqual(false);
             done();
         });
     });
@@ -242,7 +240,7 @@ describe('components/MoreChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledWith('fail', false);
+        expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledWith('fail', false, false);
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -269,7 +267,7 @@ describe('components/MoreChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledWith('channel', false);
+        expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledWith('channel', false, false);
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
@@ -296,7 +294,7 @@ describe('components/MoreChannels', () => {
 
         jest.runOnlyPendingTimers();
         expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledTimes(1);
-        expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledWith('channel', true);
+        expect(wrapper.instance().props.actions.searchMoreChannels).toHaveBeenCalledWith('channel', true, false);
         process.nextTick(() => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);

@@ -11,25 +11,29 @@ describe('components/SearchableChannelList', () => {
         channels: [],
         isSearch: false,
         channelsPerPage: 10,
-        nextPage: () => {}, // eslint-disable-line no-empty-function
-        search: () => {}, // eslint-disable-line no-empty-function
-        handleJoin: () => {}, // eslint-disable-line no-empty-function
+        nextPage: jest.fn(),
+        search: jest.fn(),
+        handleJoin: jest.fn(),
         loading: true,
-        toggleArchivedChannels: () => {}, // eslint-disable-line no-empty-function
+        toggleArchivedChannels: jest.fn(),
+        closeModal: jest.fn(),
+        hideJoinedChannelsPreference: jest.fn(),
         shouldShowArchivedChannels: false,
         canShowArchivedChannels: false,
+        rememberHideJoinedChannelsChecked: false,
+        noResultsText: <>{"no channel found"}</>
     };
 
     test('should match init snapshot', () => {
         const wrapper = shallow(
-            <SearchableChannelList {...baseProps}/>,
+            <SearchableChannelList {...baseProps} />,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should set page to 0 when starting search', () => {
         const wrapper = shallow(
-            <SearchableChannelList {...baseProps}/>,
+            <SearchableChannelList {...baseProps} />,
         );
 
         wrapper.setState({page: 10});

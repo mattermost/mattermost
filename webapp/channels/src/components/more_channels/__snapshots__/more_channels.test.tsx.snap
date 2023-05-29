@@ -1,53 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/MoreChannels should match snapshot and state 1`] = `
-<Modal
-  animation={true}
+<LegacyGenericModal
   aria-labelledby="moreChannelsModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal more-modal more-modal--action"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  id="moreChannelsModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[Function]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="dialog"
-  show={true}
->
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-    id="moreChannelsModalHeader"
-  >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="moreChannelsModalLabel"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="More Channels"
-        id="more_channels.title"
-      />
-    </ModalTitle>
-    <Connect(TeamPermissionGate)
+  aria-modal={true}
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={false}
+  bodyPadding={false}
+  compassDesign={true}
+  enforceFocus={false}
+  headerButton={
+    <Memo(Connect(TeamPermissionGate))
       permissions={
         Array [
           "create_public_channel",
@@ -56,74 +19,101 @@ exports[`components/MoreChannels should match snapshot and state 1`] = `
       teamId="team_id"
     >
       <button
-        className="btn btn-primary channel-create-btn"
-        id="createNewChannel"
+        aria-label="Create New Channel"
+        className="btn outlineButton"
+        id="createNewChannelButton"
         onClick={[Function]}
         type="button"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Create Channel"
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Create New Channel"
           id="more_channels.create"
         />
       </button>
-    </Connect(TeamPermissionGate)>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <SearchableChannelList
-      canShowArchivedChannels={true}
-      channels={
-        Array [
-          Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "channel_id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          },
-        ]
-      }
-      channelsPerPage={50}
-      handleJoin={[Function]}
-      isSearch={false}
-      loading={false}
-      nextPage={[Function]}
-      noResultsText={
+    </Memo(Connect(TeamPermissionGate))>
+  }
+  id="moreChannelsModal"
+  keyboardEscape={true}
+  modalHeaderText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Browse Channels"
+      id="more_channels.title"
+    />
+  }
+  onExited={[Function]}
+  show={true}
+>
+  <SearchableChannelList
+    canShowArchivedChannels={true}
+    channels={
+      Array [
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        },
+      ]
+    }
+    channelsPerPage={50}
+    closeModal={[MockFunction]}
+    handleJoin={[Function]}
+    hideJoinedChannelsPreference={[Function]}
+    isSearch={false}
+    loading={false}
+    myChannelMemberships={Object {}}
+    nextPage={[Function]}
+    noResultsText={
+      <React.Fragment>
+        <p
+          className="secondary-message"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Try searching different keywords, checking for typos or adjusting the filters."
+            id="more_channels.searchError"
+          />
+        </p>
         <Memo(Connect(TeamPermissionGate))
           permissions={
             Array [
               "create_public_channel",
-              "create_private_channel",
             ]
           }
           teamId="team_id"
         >
-          <p
-            className="secondary-message"
+          <button
+            aria-label="Create New Channel"
+            className="btn primaryButton"
+            id="createNewChannelButton"
+            onClick={[Function]}
+            type="button"
           >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Click 'Create New Channel' to make a new one"
-              id="more_channels.createClick"
+            <i
+              className="icon-plus"
             />
-          </p>
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Create New Channel"
+              id="more_channels.create"
+            />
+          </button>
         </Memo(Connect(TeamPermissionGate))>
-      }
-      search={[Function]}
-      shouldShowArchivedChannels={false}
-      toggleArchivedChannels={[Function]}
-    />
-  </ModalBody>
-</Modal>
+      </React.Fragment>
+    }
+    rememberHideJoinedChannelsChecked={false}
+    search={[Function]}
+    shouldShowArchivedChannels={false}
+    toggleArchivedChannels={[Function]}
+  />
+</LegacyGenericModal>
 `;
