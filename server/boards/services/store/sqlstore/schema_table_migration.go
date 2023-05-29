@@ -27,7 +27,7 @@ func (s *SQLStore) EnsureSchemaMigrationFormat() error {
 	}
 
 	if !migrationNeeded {
-		s.logger.Info("Schema migration table is correct format")
+		s.logger.Info("Schema migration table is in correct format")
 		return nil
 	}
 

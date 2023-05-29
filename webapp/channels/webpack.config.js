@@ -3,6 +3,7 @@
 
 /* eslint-disable no-console, no-process-env */
 
+const fs = require('fs');
 const path = require('path');
 
 const url = require('url');
@@ -28,9 +29,6 @@ const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
 const targetIsEslint = NPM_TARGET === 'check' || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
-
-const boardsDevServerUrl = process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006';
-const playbooksDevServerUrl = process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007';
 
 const STANDARD_EXCLUDE = [
     /node_modules/,
@@ -280,16 +278,34 @@ var config = {
     ],
 };
 
+if (DEV) {
+    config.plugins.push({
+        apply: (compiler) => {
+            compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
+                const boardsDist = path.resolve(__dirname, '../boards/dist');
+                const boardsSymlink = './dist/products/boards';
+                const playbooksDist = path.resolve(__dirname, '../playbooks/dist');
+                const playbooksSymlink = './dist/products/playbooks';
+
+                fs.mkdir('./dist/products', () => {
+                    if (!fs.existsSync(boardsSymlink)) {
+                        fs.symlinkSync(boardsDist, boardsSymlink, 'dir');
+                    }
+                    if (!fs.existsSync(playbooksSymlink)) {
+                        fs.symlinkSync(playbooksDist, playbooksSymlink, 'dir');
+                    }
+                });
+            });
+        },
+    });
+}
+
 function generateCSP() {
     let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
 
     if (DEV) {
         // react-hot-loader and development source maps require eval
         csp += ' \'unsafe-eval\'';
-
-        csp += ' ' + boardsDevServerUrl;
-
-        csp += ' ' + playbooksDevServerUrl;
     }
 
     return csp;
@@ -321,42 +337,19 @@ async function initializeModuleFederation() {
 
     async function getRemoteContainers() {
         const products = [
-            {name: 'boards', baseUrl: boardsDevServerUrl},
-            {name: 'playbooks', baseUrl: playbooksDevServerUrl},
+            {name: 'boards'},
+            {name: 'playbooks'},
         ];
 
         const remotes = {};
-
-        if (process.env.MM_DONT_INCLUDE_PRODUCTS) {
-            console.warn('Skipping initialization of products');
-        } else if (DEV) {
-            // For development, we use Webpack dev servers for each product
-            for (const product of products) {
-                remotes[product.name] = `${product.name}@${product.baseUrl}/remote_entry.js`;
-            }
-        } else {
-            // For production, hardcode the URLs of product containers to be based on the web app URL
-            for (const product of products) {
-                remotes[product.name] = `${product.name}@[window.basename]/static/products/${product.name}/remote_entry.js?bt=${buildTimestamp}`;
-            }
-        }
-
-        const aliases = {};
-
         for (const product of products) {
-            if (remotes[product.name]) {
-                continue;
-            }
-
-            // Add false aliases to prevent Webpack from trying to resolve the missing modules
-            aliases[product.name] = false;
-            aliases[`${product.name}/manifest`] = false;
+            remotes[product.name] = `${product.name}@[window.basename]/static/products/${product.name}/remote_entry.js?bt=${buildTimestamp}`;
         }
 
-        return {remotes, aliases};
+        return {remotes};
     }
 
-    const {remotes, aliases} = await getRemoteContainers();
+    const {remotes} = await getRemoteContainers();
 
     const moduleFederationPluginOptions = {
         name: 'mattermost_webapp',
@@ -403,11 +396,6 @@ async function initializeModuleFederation() {
 
     // Add this plugin to perform the substitution of window.basename when loading remote containers
     config.plugins.push(new ExternalTemplateRemotesPlugin());
-
-    config.resolve.alias = {
-        ...config.resolve.alias,
-        ...aliases,
-    };
 
     config.plugins.push(new webpack.DefinePlugin({
         REMOTE_CONTAINERS: JSON.stringify(remotes),

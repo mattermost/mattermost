@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "7.11.0",
+  "version": "8.0.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
@@ -178,7 +178,7 @@
     "jest-junit": "12.2.0",
     "jest-styled-components": "7.1.1",
     "jest-watch-typeahead": "0.6.4",
-    "mmjstool": "github:mattermost/mattermost-utilities#1d21e35ca6296ef7b6379b0f214b86ffa6404213",
+    "mmjstool": "github:mattermost/mattermost-utilities#e65ab00f22628cbdee736fd2e4f192f07225e82d",
     "nock": "13.2.8",
     "prettier": "2.3.2",
     "react-router-enzyme-context": "1.2.0",
@@ -217,6 +217,6 @@
     "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
-    "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
+    "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }
 }

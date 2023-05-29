@@ -6003,6 +6003,9 @@ func TestGetThreadsForUser(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
 	t.Run("empty", func(t *testing.T) {
 		client := th.Client
 
@@ -6096,47 +6099,84 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Greater(t, uss.Threads[0].Post.DeleteAt, int64(0))
 	})
 
+	t.Run("throw error when post-priority service-setting is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = false
+			cfg.FeatureFlags.PostPriority = true
+		})
+
+		client := th.Client
+
+		_, resp, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "testMsg",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("throw error when post-priority is set for a reply", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			cfg.FeatureFlags.PostPriority = true
+		})
+
+		client := th.Client
+
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		rpost, resp, err := client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = client.CreatePost(&model.Post{
+			RootId:    rpost.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "testReply",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("isUrgent, 1 thread", func(t *testing.T) {
-		testCases := []struct {
-			featureEnabled bool
-			expected       bool
-		}{
-			{featureEnabled: true, expected: true},
-			{featureEnabled: false, expected: false},
-		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			cfg.FeatureFlags.PostPriority = true
+		})
 
-		for _, tc := range testCases {
-			func() {
-				th.App.UpdateConfig(func(cfg *model.Config) {
-					*cfg.ServiceSettings.PostPriority = tc.featureEnabled
-					cfg.FeatureFlags.PostPriority = true
-				})
+		client := th.Client
 
-				client := th.Client
+		rpost, resp, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "testMsg",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 
-				rpost, resp, err := client.CreatePost(&model.Post{
-					ChannelId: th.BasicChannel.Id,
-					Message:   "testMsg",
-					Metadata: &model.PostMetadata{
-						Priority: &model.PostPriority{
-							Priority: model.NewString(model.PostPriorityUrgent),
-						},
-					},
-				})
-				require.NoError(t, err)
-				CheckCreatedStatus(t, resp)
-				_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-				require.NoError(t, err)
-				CheckCreatedStatus(t, resp)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-				defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
-
-				uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-				require.NoError(t, err)
-				require.Len(t, uss.Threads, 1)
-				require.Equal(t, uss.Threads[0].IsUrgent, tc.expected)
-			}()
-		}
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 1)
+		require.Equal(t, true, uss.Threads[0].IsUrgent)
 	})
 
 	t.Run("paged, 30 threads", func(t *testing.T) {
@@ -6876,9 +6916,10 @@ func TestSingleThreadGet(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.PostPriority = false
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		*cfg.ServiceSettings.PostPriority = true
 		cfg.FeatureFlags.PostPriority = true
