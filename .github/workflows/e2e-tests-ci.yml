@@ -1,27 +1,29 @@
 name: E2E Tests
 on:
   workflow_dispatch:
-    inputs:
-      payload:
-        description: "The triggerer payload"
-        required: true
-        type: string
 
 defaults:
   run:
     shell: bash
+
 jobs:
-  expose-incoming-variables:
+  update-initial-status:
     runs-on: ubuntu-22.04
-    outputs:
-      repository_full_name: ${{ env.TRIGGERER_REPO_FULL_NAME }}
-      commit_sha: ${{ env.TRIGGERER_COMMIT_SHA }}
     steps:
-      - uses: mattermost/actions/release/expose-events-vars@f04d8cc6fbd215659c3406974a74f7167c00803a
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          payload: ${{ inputs.payload }}
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.sha }}
+          context: ci/e2e-tests
+          description: E2E tests for mattermost server app
+          status: pending
+
   cypress-check:
     runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests/cypress
@@ -34,15 +36,18 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: 'e2e-tests/cypress/package-lock.json'
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/cypress/npm-install
         run: |
           npm ci
       - name: ci/cypress/npm-check
         run: |
           npm run check
+
   playwright-check:
     runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests/playwright
@@ -55,7 +60,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: 'e2e-tests/playwright/package-lock.json'
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         # requires build of client and types
@@ -67,6 +72,7 @@ jobs:
       - name: ci/playwright/npm-check
         run: |
           npm run check
+
   smoketests:
     runs-on: ubuntu-22.04
     needs:
@@ -78,9 +84,6 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-        with:
-          repository: ${{ needs.expose-incoming-variables.outputs.repository_full_name }}
-          ref: ${{ needs.expose-incoming-variables.outputs.commit_sha }}
       - name: ci/e2e-smoketests
         run: |
           make
@@ -88,3 +91,19 @@ jobs:
           CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
           echo "Cypress run completed with $CYPRESS_FAILURES failures"
           [ "$CYPRESS_FAILURES" = "0" ]
+
+  update-final-status:
+    runs-on: ubuntu-22.04
+    if: always()
+    needs:
+      - smoketests
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.sha }}
+          context: ci/e2e-tests
+          description: E2E tests for mattermost server app
+          status: ${{ job.status }}
