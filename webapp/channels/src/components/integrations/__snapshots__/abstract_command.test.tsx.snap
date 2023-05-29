@@ -43,7 +43,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="display_name"
@@ -76,7 +76,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <input
             className="form-control"
             id="description"
-            maxLength="128"
+            maxLength={128}
             onChange={[Function]}
             type="text"
             value="description"
@@ -177,7 +177,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <LocalizedInput
             className="form-control"
             id="url"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             placeholder={
               Object {
@@ -258,7 +258,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <LocalizedInput
             className="form-control"
             id="username"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             placeholder={
               Object {
@@ -297,7 +297,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <LocalizedInput
             className="form-control"
             id="iconUrl"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             placeholder={
               Object {
@@ -367,7 +367,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <LocalizedInput
             className="form-control"
             id="autocompleteHint"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             placeholder={
               Object {
@@ -406,7 +406,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           <LocalizedInput
             className="form-control"
             id="description"
-            maxLength="128"
+            maxLength={128}
             onChange={[Function]}
             placeholder={
               Object {
@@ -462,7 +462,9 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             id="Footer"
           />
         </SpinnerButton>
-        renderExtra
+        <div>
+          renderExtra
+        </div>
       </div>
     </form>
   </div>
@@ -512,7 +514,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="display_name"
@@ -545,7 +547,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <input
             className="form-control"
             id="description"
-            maxLength="128"
+            maxLength={128}
             onChange={[Function]}
             type="text"
             value="description"
@@ -646,7 +648,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <LocalizedInput
             className="form-control"
             id="url"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             placeholder={
               Object {
@@ -727,7 +729,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <LocalizedInput
             className="form-control"
             id="username"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             placeholder={
               Object {
@@ -766,7 +768,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <LocalizedInput
             className="form-control"
             id="iconUrl"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             placeholder={
               Object {
@@ -836,7 +838,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <LocalizedInput
             className="form-control"
             id="autocompleteHint"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             placeholder={
               Object {
@@ -875,7 +877,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           <LocalizedInput
             className="form-control"
             id="description"
-            maxLength="128"
+            maxLength={128}
             onChange={[Function]}
             placeholder={
               Object {
@@ -934,7 +936,9 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             id="Footer"
           />
         </SpinnerButton>
-        renderExtra
+        <div>
+          renderExtra
+        </div>
       </div>
     </form>
   </div>
