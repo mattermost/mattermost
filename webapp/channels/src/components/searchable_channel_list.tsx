@@ -159,7 +159,7 @@ export default class SearchableChannelList extends React.PureComponent<Props, St
                 aria-label={channelPurposeContainerAriaLabel}
             >
                 {membershipIndicator}
-                {channel.purpose.length > 0 && <span className='dot'/>}
+                {(channel.purpose.length > 0 && membershipIndicator) ? <span className='dot'/> : null}
                 <span className='more-modal__description'>{channel.purpose}</span>
             </div>
         );
