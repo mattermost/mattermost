@@ -32,11 +32,11 @@ import {
     mentionsMinusSpecialMentionsInText,
     hasRequestedPersistentNotifications,
 } from 'utils/post_utils';
-import {getTable, hasHtmlLink, formatMarkdownMessage, formatGithubCodePaste, isGitHubCodeBlock, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
+import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, formatGithubCodePaste, isGitHubCodeBlock, isHttpProtocol, isHttpsProtocol, formatMarkdownLinkMessage} from 'utils/paste';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
-import {applyLinkMarkdown, ApplyLinkMarkdownOptions, applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyLinkMarkdown, applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -919,74 +919,38 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = draft;
     };
 
-    pasteHandler = (e: ClipboardEvent) => {
-        /**
-         * casting HTMLInputElement on the EventTarget was necessary here
-         * since the ClipboardEvent type is not generic
-         */
-        if (!e.clipboardData || !e.clipboardData.items || ((e.target as TextboxElement)?.id !== 'post_textbox')) {
+    pasteHandler = (event: ClipboardEvent) => {
+        const {clipboardData, target} = event;
+
+        if (!clipboardData || !clipboardData.items || !target || ((target as TextboxElement)?.id !== 'post_textbox')) {
             return;
         }
 
-        const {clipboardData} = e;
+        const {selectionStart, selectionEnd} = target as TextboxElement;
 
-        const target = e.target as TextboxElement;
-
-        const {selectionStart, selectionEnd, value} = target;
-
-        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
         const clipboardText = clipboardData.getData('text/plain');
         const isClipboardTextURL = isHttpProtocol(clipboardText) || isHttpsProtocol(clipboardText);
+        const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
         const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
-
         const hasLinks = hasHtmlLink(clipboardData);
-        let table = getTable(clipboardData);
+        const table = getHtmlTable(clipboardData);
 
         if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
             return;
         }
 
-        e.preventDefault();
+        event.preventDefault();
 
         if (shouldApplyLinkMarkdown) {
-            this.applyLinkMarkdownWhenPaste({
-                selectionStart,
-                selectionEnd,
-                message: value,
-                url: clipboardText,
-            });
-
-            return;
+            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message: this.state.message, clipboardData});
+            document.execCommand('insertText', false, formattedLink);
+        } else if (table && isGitHubCodeBlock(table.className)) {
+            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message: this.state.message, clipboardData});
+            document.execCommand('insertText', false, formattedCodeBlock);
+        } else {
+            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, this.state.message, this.state.caretPosition);
+            document.execCommand('insertText', false, formattedMarkdown);
         }
-
-        table = table as HTMLTableElement;
-
-        const message = this.state.message;
-        if (table && isGitHubCodeBlock(table.className)) {
-            const selectionStart = (e.target as any).selectionStart;
-            const selectionEnd = (e.target as any).selectionEnd;
-            const {formattedMessage, formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            const newCaretPosition = this.state.caretPosition + formattedCodeBlock.length;
-            this.setMessageAndCaretPostion(formattedMessage, newCaretPosition);
-            return;
-        }
-
-        const originalSize = message.length;
-        const formattedMessage = formatMarkdownMessage(clipboardData, message.trim(), this.state.caretPosition);
-        const newCaretPosition = formattedMessage.length - (originalSize - this.state.caretPosition);
-        this.setMessageAndCaretPostion(formattedMessage, newCaretPosition);
-        this.handlePostPasteDraft(formattedMessage);
-    };
-
-    handlePostPasteDraft = (message: string) => {
-        const draft = {
-            ...this.props.draft,
-            message,
-        };
-
-        const channelId = this.props.currentChannel.id;
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId);
-        this.draftsForChannel[channelId] = draft;
     };
 
     handleFileUploadChange = () => {
@@ -1400,24 +1364,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }, () => {
             const textbox = this.textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
-
-            const draft = {
-                ...this.props.draft,
-                message: this.state.message,
-            };
-
-            this.handleDraftChange(draft);
-        });
-    };
-
-    applyLinkMarkdownWhenPaste = (params: ApplyLinkMarkdownOptions) => {
-        const res = applyLinkMarkdown(params);
-
-        this.setState({
-            message: res.message,
-        }, () => {
-            const textbox = this.textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionEnd + 1, res.selectionEnd + 1);
 
             const draft = {
                 ...this.props.draft,

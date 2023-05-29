@@ -6,7 +6,7 @@ import {tables} from '@guyplusplus/turndown-plugin-gfm';
 
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
 
-type FormatCodeOptions = {
+type FormatMarkdownParams = {
     message: string;
     clipboardData: DataTransfer;
     selectionStart: number | null;
@@ -67,33 +67,37 @@ function isHeaderlessTable(table: HTMLTableElement): boolean {
     return table.querySelectorAll('th').length === 0;
 }
 
-export function formatMarkdownMessage(clipboardData: DataTransfer, message?: string, caretPosition?: number): string {
+export function formatMarkdownMessage(clipboardData: DataTransfer, message?: string, caretPosition?: number): {formattedMessage: string; formattedMarkdown: string} {
     const html = clipboardData.getData('text/html');
 
-    //TODO@michel: Instantiate turndown service in a central file instead
+    //TODO : Instantiate turndown service in a central file instead
     const service = new TurndownService({emDelimiter: '*'}).remove('style');
     service.use(tables);
-    let markdownFormattedMessage = service.turndown(html).trim();
+    let formattedMarkdown = service.turndown(html).trim();
 
     const table = getHtmlTable(clipboardData);
 
     if (table && isHeaderlessTable(table)) {
-        markdownFormattedMessage += '\n';
+        formattedMarkdown += '\n';
     }
+
+    let formattedMessage: string;
 
     if (!message) {
-        return markdownFormattedMessage;
+        formattedMessage = formattedMarkdown;
+    } else if (typeof caretPosition === 'undefined') {
+        formattedMessage = `${message}\n\n${formattedMarkdown}`;
+    } else {
+        const newMessage = [message.slice(0, caretPosition) + '\n', formattedMarkdown, message.slice(caretPosition)];
+        formattedMessage = newMessage.join('');
     }
-    if (typeof caretPosition === 'undefined') {
-        return `${message}\n\n${markdownFormattedMessage}`;
-    }
-    const newMessage = [message.slice(0, caretPosition) + '\n', markdownFormattedMessage, message.slice(caretPosition)];
-    return newMessage.join('\n');
+
+    return {formattedMessage, formattedMarkdown};
 }
 
-export function formatGithubCodePaste({message, clipboardData, selectionStart, selectionEnd}: FormatCodeOptions): {formattedMessage: string; formattedCodeBlock: string} {
-    const textSelected = selectionStart !== selectionEnd;
-    const {firstPiece, lastPiece} = textSelected ? splitMessageBasedOnTextSelection(selectionStart ?? message.length, selectionEnd ?? message.length, message) : splitMessageBasedOnCaretPosition(selectionStart ?? message.length, message);
+export function formatGithubCodePaste({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): {formattedMessage: string; formattedCodeBlock: string} {
+    const isTextSelected = selectionStart !== selectionEnd;
+    const {firstPiece, lastPiece} = isTextSelected ? splitMessageBasedOnTextSelection(selectionStart ?? message.length, selectionEnd ?? message.length, message) : splitMessageBasedOnCaretPosition(selectionStart ?? message.length, message);
 
     // Add new lines if content exists before or after the cursor.
     const requireStartLF = firstPiece === '' ? '' : '\n';
@@ -102,4 +106,22 @@ export function formatGithubCodePaste({message, clipboardData, selectionStart, s
     const formattedMessage = `${firstPiece}${formattedCodeBlock}${lastPiece}`;
 
     return {formattedMessage, formattedCodeBlock};
+}
+
+/**
+ * Formats the selected text with the copied link to markdown link format.
+ * @caution This function assumes that the clipboardData contains a link.
+ */
+export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): string {
+    const isTextSelected = selectionStart !== selectionEnd;
+
+    let selectedText = '';
+    if (isTextSelected) {
+        selectedText = message.slice(selectionStart || 0, selectionEnd || 0);
+    }
+
+    const url = clipboardData.getData('text/plain');
+    const markdownLink = `[${selectedText}](${url})`;
+
+    return markdownLink;
 }

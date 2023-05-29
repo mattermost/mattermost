@@ -178,7 +178,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             message = formattedMessage;
             newCaretPosition = selectionRange.start + formattedCodeBlock.length;
         } else {
-            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition);
+            message = formatMarkdownMessage(clipboardData, editText.trim(), newCaretPosition).formattedMessage;
             newCaretPosition = message.length - (editText.length - newCaretPosition);
         }
 

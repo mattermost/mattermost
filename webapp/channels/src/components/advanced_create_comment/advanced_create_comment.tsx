@@ -27,7 +27,7 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
+import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
@@ -440,7 +440,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
 
         const hasLinks = hasHtmlLink(clipboardData);
-        let table = getTable(clipboardData);
+        let table = getHtmlTable(clipboardData);
         if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
             return;
         }
@@ -473,7 +473,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
             this.setCaretPosition(newCaretPosition);
         } else {
             const originalSize = draft.message.length;
-            message = formatMarkdownMessage(clipboardData, draft.message.trim(), this.state.caretPosition);
+            message = formatMarkdownMessage(clipboardData, draft.message.trim(), this.state.caretPosition).formattedMessage;
             const newCaretPosition = message.length - (originalSize - caretPosition);
             this.setCaretPosition(newCaretPosition);
         }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste} from './paste';
+import {parseHtmlTable, getHtmlTable, formatMarkdownMessage, formatGithubCodePaste, formatMarkdownLinkMessage} from './paste';
 
 const validClipboardData: any = {
     items: [1],
@@ -42,7 +42,7 @@ describe('Paste.formatMarkdownMessage', () => {
     const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
 
     test('returns a markdown table when valid html table provided', () => {
-        expect(formatMarkdownMessage(validClipboardData)).toBe(`${markdownTable}\n`);
+        expect(formatMarkdownMessage(validClipboardData).formattedMessage).toBe(`${markdownTable}\n`);
     });
 
     test('returns a markdown table when valid html table with headers provided', () => {
@@ -54,7 +54,7 @@ describe('Paste.formatMarkdownMessage', () => {
             },
         };
 
-        expect(formatMarkdownMessage(tableHeadersClipboardData)).toBe(markdownTable);
+        expect(formatMarkdownMessage(tableHeadersClipboardData).formattedMessage).toBe(markdownTable);
     });
 
     test('removes style contents and additional whitespace around tables', () => {
@@ -66,13 +66,13 @@ describe('Paste.formatMarkdownMessage', () => {
             },
         };
 
-        expect(formatMarkdownMessage(styleClipboardData)).toBe(markdownTable);
+        expect(formatMarkdownMessage(styleClipboardData).formattedMessage).toBe(markdownTable);
     });
 
     test('returns a markdown table under a message when one is provided', () => {
         const testMessage = 'test message';
 
-        expect(formatMarkdownMessage(validClipboardData, testMessage)).toBe(`${testMessage}\n\n${markdownTable}\n`);
+        expect(formatMarkdownMessage(validClipboardData, testMessage).formattedMessage).toBe(`${testMessage}\n\n${markdownTable}\n`);
     });
 
     test('returns a markdown formatted link when valid hyperlink provided', () => {
@@ -85,7 +85,7 @@ describe('Paste.formatMarkdownMessage', () => {
         };
         const markdownLink = '[link text](https://test.domain)';
 
-        expect(formatMarkdownMessage(linkClipboardData)).toBe(markdownLink);
+        expect(formatMarkdownMessage(linkClipboardData).formattedMessage).toBe(markdownLink);
     });
 });
 
@@ -145,5 +145,29 @@ describe('Paste.formatGithubCodePaste', () => {
         const {formattedMessage, formattedCodeBlock} = formatGithubCodePaste({selectionStart: 5, selectionEnd: 12, message: originalMessage, clipboardData});
         expect(updatedMessage).toBe(formattedMessage);
         expect(codeBlock).toBe(formattedCodeBlock);
+    });
+});
+
+describe('Paste.formatMarkdownLinkMessage', () => {
+    const clipboardData: any = {
+        items: [],
+        types: ['text/plain'],
+        getData: () => {
+            return 'https://example.com/';
+        },
+    };
+
+    test('Should return empty selection when no selection is made', () => {
+        const message = '';
+
+        const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 0, selectionEnd: 0, message, clipboardData});
+        expect(formatttedMarkdownLinkMessage).toEqual('[](https://example.com/)');
+    });
+
+    test('Should return correct selection when selection is made', () => {
+        const message = 'test';
+
+        const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 0, selectionEnd: 4, message, clipboardData});
+        expect(formatttedMarkdownLinkMessage).toEqual('[test](https://example.com/)');
     });
 });
