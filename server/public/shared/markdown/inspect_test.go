@@ -12,7 +12,7 @@ import (
 )
 
 func TestInspect(t *testing.T) {
-	t.Run("", func(t *testing.T) {
+	t.Run("base", func(t *testing.T) {
 		markdown := `
 [foo]: bar
 - a
@@ -91,7 +91,6 @@ func TestInspect(t *testing.T) {
 
 		assert.Empty(t, visited)
 	})
-
 }
 
 var counterSink int
