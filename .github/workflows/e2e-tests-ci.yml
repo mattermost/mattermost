@@ -1,6 +1,10 @@
 name: E2E Tests
 on:
   workflow_dispatch:
+    inputs:
+      commit_sha:
+        type: string
+        required: false
 
 defaults:
   run:
@@ -15,7 +19,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ github.sha }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
           context: ci/e2e-tests
           description: E2E tests for mattermost server app
           status: pending
@@ -103,7 +107,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ github.sha }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
           context: ci/e2e-tests
           description: E2E tests for mattermost server app
           status: ${{ job.status }}
