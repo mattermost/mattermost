@@ -7,7 +7,7 @@ The following built-in variables are available:
 | Name  | Syntax | Description |
 | ----- | -----  | -----       |
 | schemaName | {{ .schemaName }}     | Returns the database/schema name (e.g. `mattermost_`, `mattermost_test`, `public`, ...) |
-| prefix | {{ .prefix }}     | Returns the table name prefix (e.g. `focalbaord_`) |
+| prefix | {{ .prefix }}     | Returns the table name prefix (e.g. `focalboard_`) |
 | postgres | {{if .postgres }} ... {{end}} | Returns true if the current database is Postgres. |
 | sqlite   | {{if .sqlite }} ... {{end}}   | Returns true if the current database is Sqlite3. |
 | mysql    | {{if .mysql }} ... {{end}}   | Returns true if the current database is MySQL. |
