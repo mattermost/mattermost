@@ -448,6 +448,7 @@ export const ModalIdentifiers = {
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
     DELINQUENCY_MODAL_DOWNGRADE: 'delinquency_modal_downgrade',
     CLOUD_LIMITS_DOWNGRADE: 'cloud_limits_downgrade',
+    PERSIST_NOTIFICATION_CONFIRM_MODAL: 'persist_notification_confirm_modal',
     AIR_GAPPED_SELF_HOSTED_PURCHASE: 'air_gapped_self_hosted_purchase',
     WORK_TEMPLATE: 'work_template',
     DOWNGRADE_MODAL: 'downgrade_modal',
@@ -651,6 +652,7 @@ export const SocketEvents = {
     DRAFT_CREATED: 'draft_created',
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
+    PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
 };
 
