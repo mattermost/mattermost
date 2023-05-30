@@ -1,29 +1,44 @@
 version: '2.4'
 services:
   minio:
-    image: ${CI_REGISTRY}/mattermost/ci/images/minio:RELEASE.2019-10-11T00-38-09Z-1
+    image: public.ecr.aws/mattermostqa/minio:RELEASE.2019-10-11T00-38-09Z-1
     command: "server /data"
     environment:
       MINIO_ACCESS_KEY: minioaccesskey
       MINIO_SECRET_KEY: miniosecretkey
       MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-w1", "127.0.0.1", "9000" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
   inbucket:
-    image: ${CI_REGISTRY}/mattermost/ci/images/inbucket:v3.0.0-rc1-2-gc64e7a6-1
+    image: public.ecr.aws/mattermostqa/inbucket:3.0.0
     restart: always
     environment:
       INBUCKET_WEB_ADDR: "0.0.0.0:9001"
       INBUCKET_POP3_ADDR: "0.0.0.0:10110"
       INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-w1", "127.0.0.1", "10025" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
   openldap:
-    image: ${CI_REGISTRY}/mattermost/ci/images/openldap:1.4.0-1
+    image: public.ecr.aws/mattermostqa/openldap:1.4.0
     restart: always
     environment:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
+    healthcheck:
+      test: [ "CMD", "bash", "-o", "pipefail", "-c", "ss -ltn 'sport = :636' | grep -qE '^LISTEN'" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
   elasticsearch:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-elasticsearch-docker:7.17.3
+    image: mattermost/mattermost-elasticsearch-docker:7.17.3
     environment:
       http.host: "0.0.0.0"
       http.port: 9200
@@ -33,10 +48,20 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: [ "CMD", "bash", "-o", "pipefail", "-c", "curl --silent localhost:9200/_cat/health | awk '{ print $$4 }' | grep -qE '^green$$'" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
   dejavu:
-    image: ${CI_REGISTRY}/mattermost/ci/images/dejavu:3.4.2-1
+    image: public.ecr.aws/mattermostqa/dejavu:3.4.2
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-w1", "127.0.0.1", "1358" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
   keycloak:
-    image: ${CI_REGISTRY}/mattermost/ci/images/keycloak:10.0.2-1
+    image: public.ecr.aws/mattermostqa/keycloak:10.0.2
     restart: always
     environment:
       KEYCLOAK_USER: mmuser
@@ -45,13 +70,29 @@ services:
       KEYCLOAK_IMPORT: /setup/realm.json
     volumes:
      - "./docker/keycloak:/setup"
+    healthcheck:
+      test: [ "CMD", "bash", "-o", "pipefail", "-c", "curl --silent localhost:9990/health | grep -q '\"status\":\"UP\"'" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
   prometheus:
-    image: ${CI_REGISTRY}/mattermost/ci/images/prometheus:2.27.1-1
+    image: public.ecr.aws/mattermostqa/prometheus:v2.27.1
     volumes:
       - "./docker/prometheus-linux.yml:/etc/prometheus/prometheus.yml"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O-", "127.0.0.1:9090/-/ready" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
+  # wget -q -O- localhost:3000/healthz | grep -q Ok
   grafana:
-    image: ${CI_REGISTRY}/mattermost/ci/images/grafana:8.0.1-1
+    image: public.ecr.aws/mattermostqa/grafana:8.0.1
     volumes:
      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    healthcheck:
+      test: [ "CMD", "bash", "-o", "pipefail", "-c", "wget -q -O- localhost:3000/healthz | grep -q Ok" ]
+      interval: 10s
+      timeout: 15s
+      retries: 12
