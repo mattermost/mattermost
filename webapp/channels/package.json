@@ -168,7 +168,6 @@
     "react-router-enzyme-context": "1.2.0",
     "redux-mock-store": "1.5.4",
     "redux-persist-node-storage": "2.0.0",
-    "style-loader": "3.0.0",
     "stylelint": "13.13.1",
     "stylelint-config-idiomatic-order": "8.1.0",
     "stylelint-config-recommended": "5.0.0",
