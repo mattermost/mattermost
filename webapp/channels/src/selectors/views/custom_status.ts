@@ -3,8 +3,7 @@
 
 import moment from 'moment-timezone';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';

@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import {General, Posts, Preferences} from 'mattermost-redux/constants';
 
-import {Posts, Preferences} from 'mattermost-redux/constants';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
@@ -37,6 +38,7 @@ import {
 import {Reaction} from '@mattermost/types/reactions';
 import {GlobalState} from '@mattermost/types/store';
 import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
 import {
     IDMappedObjects,
     RelationOneToOne,
@@ -830,4 +832,18 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
             }).sort((a, b) => b.acknowledgedAt - a.acknowledgedAt);
         },
     );
+}
+
+export function getTeamIdFromPost(state: GlobalState, post: Post): Team['id'] | undefined {
+    const channel = getChannel(state, post.channel_id);
+
+    if (!channel) {
+        return undefined;
+    }
+
+    if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+        return getCurrentTeamId(state);
+    }
+
+    return channel.team_id;
 }

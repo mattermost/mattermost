@@ -4,8 +4,7 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {Channel} from '@mattermost/types/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';

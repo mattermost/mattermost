@@ -5,8 +5,9 @@ import {getState} from 'stores/redux_store';
 
 import mockStore from 'tests/test_store';
 
-import SwitchChannelProvider from 'components/suggestion/switch_channel_provider.jsx';
 import {Preferences} from 'mattermost-redux/constants';
+
+import SwitchChannelProvider from './switch_channel_provider';
 
 const latestPost = {
     id: 'latest_post_id',
