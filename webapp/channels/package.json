@@ -145,7 +145,6 @@
     "enzyme": "3.11.0",
     "enzyme-adapter-react-17-updated": "1.0.2",
     "enzyme-to-json": "3.6.2",
-    "eslint-import-resolver-webpack": "0.13.2",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mattermost": "github:mattermost/eslint-plugin-mattermost#5b0c972eacf19286e4c66221b39113bf8728a99e",
