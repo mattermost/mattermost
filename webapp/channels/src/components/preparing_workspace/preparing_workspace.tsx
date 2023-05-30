@@ -15,12 +15,15 @@ import {Team} from '@mattermost/types/teams';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getFirstAdminSetupComplete, getConfig, getLicense, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
+
+import {CategoryOther} from '@mattermost/types/work_templates';
 
 import Constants from 'utils/constants';
 import {getSiteURL, teamNameToUrl} from 'utils/url';
 import {makeNewTeam} from 'utils/team_utils';
+import {GlobalState} from 'types/store';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
@@ -42,6 +45,8 @@ import {
 } from './steps';
 
 import Organization from './organization';
+import Roles from './roles';
+import RolesIllustration from './roles_illustration';
 import Plugins from './plugins';
 import Progress from './progress';
 import InviteMembers from './invite_members';
@@ -90,6 +95,7 @@ function makeSubmitFail(step: WizardStep) {
 
 const trackSubmitFail = {
     [WizardSteps.Organization]: makeSubmitFail(WizardSteps.Organization),
+    [WizardSteps.Roles]: makeSubmitFail(WizardSteps.Roles),
     [WizardSteps.Plugins]: makeSubmitFail(WizardSteps.Plugins),
     [WizardSteps.InviteMembers]: makeSubmitFail(WizardSteps.InviteMembers),
     [WizardSteps.LaunchingWorkspace]: makeSubmitFail(WizardSteps.LaunchingWorkspace),
@@ -97,6 +103,7 @@ const trackSubmitFail = {
 
 const onPageViews = {
     [WizardSteps.Organization]: makeOnPageView(WizardSteps.Organization),
+    [WizardSteps.Roles]: makeOnPageView(WizardSteps.Roles),
     [WizardSteps.Plugins]: makeOnPageView(WizardSteps.Plugins),
     [WizardSteps.InviteMembers]: makeOnPageView(WizardSteps.InviteMembers),
     [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
@@ -111,6 +118,7 @@ const PreparingWorkspace = (props: Props) => {
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
+    const isWorkTemplateEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'WorkTemplate') === 'true');
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
@@ -128,6 +136,7 @@ const PreparingWorkspace = (props: Props) => {
 
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
+        isWorkTemplateEnabled && WizardSteps.Roles,
         pluginsEnabled && WizardSteps.Plugins,
         WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,
@@ -256,6 +265,7 @@ const PreparingWorkspace = (props: Props) => {
         // even if admin skipped submitting plugins.
         const completeSetupRequest = {
             organization: form.organization,
+            role: form.role === CategoryOther ? form.roleOther : form.role,
             install_plugins: pluginsToSetup,
         };
 
@@ -365,6 +375,15 @@ const PreparingWorkspace = (props: Props) => {
         return '';
     }, [currentStep]);
 
+    const getRolesAnimationClass = useCallback(() => {
+        if (currentStep === WizardSteps.Roles) {
+            return 'enter';
+        } else if (mostRecentStep === WizardSteps.Roles) {
+            return 'exit';
+        }
+        return '';
+    }, [currentStep]);
+
     let previous: React.ReactNode = (
         <div
             onClick={goPrevious}
@@ -429,6 +448,48 @@ const PreparingWorkspace = (props: Props) => {
                     className='child-page'
                     createTeam={createTeam}
                     updateTeam={updateTeam}
+                />
+
+                <Roles
+                    onPageView={onPageViews[WizardSteps.Roles]}
+                    previous={previous}
+                    next={() => {
+                        makeNext(WizardSteps.Roles)({
+                            role: form.role,
+                            roleOther: form.roleOther,
+                        });
+                    }}
+                    quickNext={(role: string) => {
+                        setForm({
+                            ...form,
+                            role,
+                            roleOther: '',
+                        });
+                        makeNext(WizardSteps.Roles)({
+                            role,
+                            roleOther: '',
+                        });
+                    }}
+                    skip={() => {
+                        setForm({
+                            ...form,
+                            role: '',
+                            roleOther: '',
+                        });
+                        makeNext(WizardSteps.Roles, true)();
+                    }}
+                    transitionDirection={getTransitionDirection(WizardSteps.Roles)}
+                    show={shouldShowPage(WizardSteps.Roles)}
+                    role={form.role}
+                    roleOther={form.roleOther}
+                    setRole={(role: Form['role'], roleOther: Form['roleOther']) => {
+                        setForm({
+                            ...form,
+                            role,
+                            roleOther,
+                        });
+                    }}
+                    className='child-page'
                 />
 
                 <Plugins
@@ -507,6 +568,9 @@ const PreparingWorkspace = (props: Props) => {
             </div>
             <div className={`PreparingWorkspace__invite-members-illustration ${getInviteMembersAnimationClass()}`}>
                 <InviteMembersIllustration/>
+            </div>
+            <div className={`PreparingWorkspace__roles-illustration ${getRolesAnimationClass()}`}>
+                <RolesIllustration/>
             </div>
         </div>
     );

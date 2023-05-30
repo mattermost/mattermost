@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {GlobalState} from 'types/store';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -23,3 +22,4 @@ export const areWorkTemplatesEnabled = createSelector(
     },
 );
 
+export const getWorkTemplateCategories = (state: GlobalState) => state.entities.worktemplates.categories;

@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -229,13 +229,13 @@ func RoundOffToZeroes(n float64) int64 {
 	return firstDigit * tens
 }
 
-func min(a, b int) int {
+func MinInt(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
-func max(a, b int) int {
+func MaxInt(a, b int) int {
 	if a > b {
 		return a
 	}
@@ -246,7 +246,7 @@ func max(a, b int) int {
 // It implicitly sets the lowest minResolution to 0.
 // e.g. 0 reports 1s, 1 reports 10s, 2 reports 100s, 3 reports 1000s
 func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
-	resolution := max(0, minResolution)
+	resolution := MaxInt(0, minResolution)
 	if n >= -9 && n <= 9 {
 		if resolution == 0 {
 			return int64(n)
@@ -255,7 +255,7 @@ func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	}
 
 	zeroes := int(math.Log10(math.Abs(n)))
-	resolution = min(zeroes, resolution)
+	resolution = MinInt(zeroes, resolution)
 	tens := int64(math.Pow10(resolution))
 	significantDigits := int64(n) / tens
 	return significantDigits * tens

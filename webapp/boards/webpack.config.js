@@ -4,16 +4,22 @@
 const exec = require('child_process').exec;
 const path = require('path');
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = webpack.container;
 const tsTransformer = require('@formatjs/ts-transformer');
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 
+const targetIsRun = NPM_TARGET?.startsWith('start');
+const targetIsDebug = NPM_TARGET?.startsWith('debug');
+
+const DEV = targetIsRun || targetIsDebug;
+
 let mode = 'production';
 let devtool;
 const plugins = [];
-if (NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch' || NPM_TARGET === 'start:product') {
+if (DEV) {
     mode = 'development';
     devtool = 'source-map';
     plugins.push(
@@ -86,37 +92,26 @@ const config = {
                 exclude: [/node_modules/],
             },
             {
-                test: /\.html$/,
-                type: 'asset/resource',
+                test: /\.(css|scss)$/,
+                use: [
+                    DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                    },
+                ],
             },
             {
-                test: /\.s[ac]ss$/i,
+                test: /\.scss$/,
                 use: [
-                    'style-loader',
-                    'css-loader',
                     'sass-loader',
                     path.resolve(__dirname, 'loaders/globalScssClassLoader'),
                 ],
-            },
-            {
-                test: /\.css$/i,
-                use: [
-                    'style-loader',
-                    'css-loader',
-                ],
-            },
-            {
-                test: /\.(tsx?|js|jsx|mjs|html)$/,
-                use: [
-                ],
-                exclude: [/node_modules/],
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|jpg|gif)$/,
                 type: 'asset/resource',
                 generator: {
                     filename: '[name][ext]',
-                    publicPath: undefined,
                 },
             },
         ],
@@ -186,29 +181,9 @@ config.plugins.push(new webpack.DefinePlugin({
     'process.env': env,
 }));
 
-if (NPM_TARGET === 'start:product') {
-    const url = new URL(process.env.MM_BOARDS_DEV_SERVER_URL ?? 'http://localhost:9006');
-
-    config.devServer = {
-        server: {
-            type: url.protocol.substring(0, url.protocol.length - 1),
-            options: {
-                minVersion: process.env.MM_SERVICESETTINGS_TLSMINVER ?? 'TLSv1.2',
-                key: process.env.MM_SERVICESETTINGS_TLSKEYFILE,
-                cert: process.env.MM_SERVICESETTINGS_TLSCERTFILE,
-            },
-        },
-        host: url.hostname,
-        port: url.port,
-        devMiddleware: {
-            writeToDisk: false,
-        },
-        static: {
-            directory: path.join(__dirname, 'static'),
-            publicPath: '/static',
-        },
-    };
-}
-/* eslint-enable no-process-env */
+config.plugins.push(new MiniCssExtractPlugin({
+    filename: '[name].[contenthash].css',
+    chunkFilename: '[name].[contenthash].css',
+}));
 
 module.exports = config;

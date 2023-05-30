@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 
 	pbclient "github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 )
@@ -90,6 +90,12 @@ func TestGetWorkTemplatesByCategory(t *testing.T) {
 				},
 			},
 		},
+		{
+			ID:             "test-template-4",
+			Category:       firstCat.ID,
+			UseCase:        "test use case 4",
+			OnboardingOnly: true,
+		},
 		{ // this one should not be returned because of the category
 			ID:       "test-template-4",
 			Category: "cat-test2",
@@ -97,18 +103,30 @@ func TestGetWorkTemplatesByCategory(t *testing.T) {
 		},
 	}
 
-	// Act
-	worktemplates, appErr := th.App.GetWorkTemplates(firstCat.ID, ff, wtTranslationFunc)
+	t.Run("not onboarding", func(t *testing.T) {
+		// Act
+		worktemplates, appErr := th.App.GetWorkTemplates(firstCat.ID, ff, false, wtTranslationFunc)
 
-	// Assert
-	assert.Nil(appErr)
-	assert.Len(worktemplates, 2)
-	// assert the correct work templates have been returned
-	assert.Equal("test-template", worktemplates[0].ID)
-	assert.Equal("test-template-3", worktemplates[1].ID)
-	// assert the descriptions have been translated
-	assert.Equal("Translated test-template-channel-description", worktemplates[0].Description.Channel.Message)
-	assert.Equal("default message picked for unknown", worktemplates[1].Description.Channel.Message)
+		// Assert
+		assert.Nil(appErr)
+		assert.Len(worktemplates, 2)
+		// assert the correct work templates have been returned
+		assert.Equal("test-template", worktemplates[0].ID)
+		assert.Equal("test-template-3", worktemplates[1].ID)
+		// assert the descriptions have been translated
+		assert.Equal("Translated test-template-channel-description", worktemplates[0].Description.Channel.Message)
+		assert.Equal("default message picked for unknown", worktemplates[1].Description.Channel.Message)
+	})
+
+	t.Run("onboarding", func(t *testing.T) {
+		// Act
+		worktemplates, appErr := th.App.GetWorkTemplates(firstCat.ID, ff, true, wtTranslationFunc)
+
+		// Assert
+		assert.Nil(appErr)
+		assert.Len(worktemplates, 3)
+		assert.Equal("test-template-4", worktemplates[2].ID)
+	})
 }
 
 // helpers
