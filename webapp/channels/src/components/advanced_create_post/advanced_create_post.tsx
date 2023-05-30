@@ -52,6 +52,7 @@ import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
 import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -943,15 +944,16 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         event.preventDefault();
 
+        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
         if (shouldApplyLinkMarkdown) {
             const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message: this.state.message, clipboardData});
-            document.execCommand('insertText', false, formattedLink);
+            execCommandInsertText(formattedLink);
         } else if (shouldApplyGithubCodeBlock) {
             const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message: this.state.message, clipboardData});
-            document.execCommand('insertText', false, formattedCodeBlock);
+            execCommandInsertText(formattedCodeBlock);
         } else {
             const {formattedMarkdown} = formatMarkdownMessage(clipboardData, this.state.message, this.state.caretPosition);
-            document.execCommand('insertText', false, formattedMarkdown);
+            execCommandInsertText(formattedMarkdown);
         }
     };
 
