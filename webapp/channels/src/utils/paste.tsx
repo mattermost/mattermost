@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import TurndownService from 'turndown';
-import {tables} from '@guyplusplus/turndown-plugin-gfm';
-
+import turndownService from 'utils/turndown';
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
 
 type FormatMarkdownParams = {
@@ -40,45 +38,35 @@ export function hasHtmlLink(clipboardData: DataTransfer): boolean {
     return Array.from(clipboardData.types).includes('text/html') && (/<a/i).test(clipboardData.getData('text/html'));
 }
 
-export function getPlainText(clipboardData: DataTransfer): string | boolean {
-    if (Array.from(clipboardData.types).indexOf('text/plain') === -1) {
-        return false;
-    }
-
-    const plainText = clipboardData.getData('text/plain');
-
-    return plainText;
-}
-
 export function isGitHubCodeBlock(tableClassName: string): boolean {
     const result = (/\b(js|blob|diff)-./).test(tableClassName);
     return result;
 }
 
-export function isHttpProtocol(url: string): boolean {
-    return url.startsWith('http://');
+export function isTextUrl(clipboardData: DataTransfer): boolean {
+    const clipboardText = clipboardData.getData('text/plain');
+    return clipboardText.startsWith('http://') || clipboardText.startsWith('https://');
 }
 
-export function isHttpsProtocol(url: string): boolean {
-    return url.startsWith('https://');
-}
-
-function isHeaderlessTable(table: HTMLTableElement): boolean {
+function isTableWithoutHeaderRow(table: HTMLTableElement): boolean {
     return table.querySelectorAll('th').length === 0;
 }
 
+/**
+ * Formats the given HTML clipboard data into a Markdown message.
+ * @returns {Object} An object containing 'formattedMessage' and 'formattedMarkdown'.
+ * @property {string} formattedMessage - The formatted message, including the formatted Markdown.
+ * @property {string} formattedMarkdown - The resulting Markdown from the HTML clipboard data.
+ */
 export function formatMarkdownMessage(clipboardData: DataTransfer, message?: string, caretPosition?: number): {formattedMessage: string; formattedMarkdown: string} {
     const html = clipboardData.getData('text/html');
 
-    //TODO : Instantiate turndown service in a central file instead
-    const service = new TurndownService({emDelimiter: '*'}).remove('style');
-    service.use(tables);
-    let formattedMarkdown = service.turndown(html).trim();
+    let formattedMarkdown = turndownService.turndown(html).trim();
 
     const table = getHtmlTable(clipboardData);
-
-    if (table && isHeaderlessTable(table)) {
-        formattedMarkdown += '\n';
+    if (table && isTableWithoutHeaderRow(table)) {
+        const newLineLimiter = '\n';
+        formattedMarkdown = `${formattedMarkdown}${newLineLimiter}`;
     }
 
     let formattedMessage: string;
@@ -95,6 +83,13 @@ export function formatMarkdownMessage(clipboardData: DataTransfer, message?: str
     return {formattedMessage, formattedMarkdown};
 }
 
+/**
+ * Format the incoming github code paste into a markdown code block.
+ * This function assumes that the clipboardData contains a code block.
+ * @returns {Object} An object containing the 'formattedMessage' and 'formattedCodeBlock'.
+ * @property {string} formattedMessage - The complete formatted message including the code block.
+ * @property {string} formattedCodeBlock - The resulting code block from the clipboard data.
+*/
 export function formatGithubCodePaste({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): {formattedMessage: string; formattedCodeBlock: string} {
     const isTextSelected = selectionStart !== selectionEnd;
     const {firstPiece, lastPiece} = isTextSelected ? splitMessageBasedOnTextSelection(selectionStart ?? message.length, selectionEnd ?? message.length, message) : splitMessageBasedOnCaretPosition(selectionStart ?? message.length, message);
@@ -102,15 +97,17 @@ export function formatGithubCodePaste({message, clipboardData, selectionStart, s
     // Add new lines if content exists before or after the cursor.
     const requireStartLF = firstPiece === '' ? '' : '\n';
     const requireEndLF = lastPiece === '' ? '' : '\n';
-    const formattedCodeBlock = requireStartLF + '```\n' + getPlainText(clipboardData) + '\n```' + requireEndLF;
+    const clipboardText = clipboardData.getData('text/plain');
+    const formattedCodeBlock = requireStartLF + '```\n' + clipboardText + '\n```' + requireEndLF;
     const formattedMessage = `${firstPiece}${formattedCodeBlock}${lastPiece}`;
 
     return {formattedMessage, formattedCodeBlock};
 }
 
 /**
- * Formats the selected text with the copied link to markdown link format.
- * @caution This function assumes that the clipboardData contains a link.
+ * Formats the incoming link paste into a markdown link.
+ * This function assumes that the clipboardData contains a link.
+ * @returns {string} The resulting markdown link from the clipboard data.
  */
 export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): string {
     const isTextSelected = selectionStart !== selectionEnd;

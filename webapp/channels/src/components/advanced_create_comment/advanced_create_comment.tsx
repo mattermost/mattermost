@@ -27,7 +27,7 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
+import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isTextUrl} from 'utils/paste';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
@@ -436,8 +436,8 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
         const clipboardText = clipboardData.getData('text/plain');
-        const isClipboardTextURL = isHttpProtocol(clipboardText) || isHttpsProtocol(clipboardText);
-        const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
+        const hasTextUrl = isTextUrl(clipboardData);
+        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
 
         const hasLinks = hasHtmlLink(clipboardData);
         let table = getHtmlTable(clipboardData);

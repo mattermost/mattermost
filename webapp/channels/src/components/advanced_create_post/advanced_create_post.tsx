@@ -4,12 +4,20 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-
 import {isNil} from 'lodash';
 
 import {Posts} from 'mattermost-redux/constants';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import {ActionResult} from 'mattermost-redux/types/actions';
+
+import {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import {Post, PostMetadata, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
+import {PreferenceType} from '@mattermost/types/preferences';
+import {ServerError} from '@mattermost/types/errors';
+import {CommandArgs} from '@mattermost/types/integrations';
+import {Group, GroupSource} from '@mattermost/types/groups';
+import {FileInfo} from '@mattermost/types/files';
+import {Emoji} from '@mattermost/types/emojis';
 
 import * as GlobalActions from 'actions/global_actions';
 import Constants, {
@@ -32,11 +40,18 @@ import {
     mentionsMinusSpecialMentionsInText,
     hasRequestedPersistentNotifications,
 } from 'utils/post_utils';
-import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, formatGithubCodePaste, isGitHubCodeBlock, isHttpProtocol, isHttpsProtocol, formatMarkdownLinkMessage} from 'utils/paste';
+import {
+    getHtmlTable,
+    hasHtmlLink,
+    formatMarkdownMessage,
+    formatGithubCodePaste,
+    isGitHubCodeBlock,
+    formatMarkdownLinkMessage,
+    isTextUrl} from 'utils/paste';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
-import {applyLinkMarkdown, applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -48,24 +63,11 @@ import PostPriorityPickerOverlay from 'components/post_priority/post_priority_pi
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
 
 import {PostDraft} from 'types/store/draft';
-
 import {ModalData} from 'types/actions';
 
-import {Channel, ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {Post, PostMetadata, PostPriority, PostPriorityMetadata} from '@mattermost/types/posts';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {ServerError} from '@mattermost/types/errors';
-import {CommandArgs} from '@mattermost/types/integrations';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {FileInfo} from '@mattermost/types/files';
-import {Emoji} from '@mattermost/types/emojis';
-
 import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
-
 import FileLimitStickyBanner from '../file_limit_sticky_banner';
-
 import {FilePreviewInfo} from '../file_preview/file_preview';
-
 import PriorityLabels from './priority_labels';
 
 const KeyCodes = Constants.KeyCodes;
@@ -928,14 +930,14 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         const {selectionStart, selectionEnd} = target as TextboxElement;
 
-        const clipboardText = clipboardData.getData('text/plain');
-        const isClipboardTextURL = isHttpProtocol(clipboardText) || isHttpsProtocol(clipboardText);
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const shouldApplyLinkMarkdown = hasSelection && isClipboardTextURL;
-        const hasLinks = hasHtmlLink(clipboardData);
-        const table = getHtmlTable(clipboardData);
+        const hasTextUrl = isTextUrl(clipboardData);
+        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const htmlTable = getHtmlTable(clipboardData);
+        const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
 
-        if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
+        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
             return;
         }
 
@@ -944,7 +946,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         if (shouldApplyLinkMarkdown) {
             const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message: this.state.message, clipboardData});
             document.execCommand('insertText', false, formattedLink);
-        } else if (table && isGitHubCodeBlock(table.className)) {
+        } else if (shouldApplyGithubCodeBlock) {
             const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message: this.state.message, clipboardData});
             document.execCommand('insertText', false, formattedCodeBlock);
         } else {
