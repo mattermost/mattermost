@@ -67,7 +67,6 @@
     "@typescript-eslint/eslint-plugin": "5.57.1",
     "@typescript-eslint/parser": "5.57.1",
     "@webpack-cli/serve": "1.6.0",
-    "babel-jest": "27.4.6",
     "babel-plugin-add-react-displayname": "0.0.5",
     "classnames": "2.3.1",
     "eslint-import-resolver-webpack": "0.13.2",
