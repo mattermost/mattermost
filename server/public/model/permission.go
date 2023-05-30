@@ -22,8 +22,8 @@ type Permission struct {
 var PermissionInviteUser *Permission
 var PermissionAddUserToTeam *Permission
 
-// Deprecated: PermissionCreatePost should be used to determine if a slash command can be executed.
-// TODO: Remove in 8.0: https://mattermost.atlassian.net/browse/MM-51274
+// Deprecated: PermissionUseSlashCommands is not longer used. It's only kept for backwards compatibility.
+// See https://mattermost.atlassian.net/browse/MM-52574 for more details.
 var PermissionUseSlashCommands *Permission
 var PermissionManageSlashCommands *Permission
 var PermissionManageOthersSlashCommands *Permission

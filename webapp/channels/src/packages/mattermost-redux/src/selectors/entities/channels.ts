@@ -50,8 +50,7 @@ import {
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     Channel,
     ChannelMemberCountsByGroup,
