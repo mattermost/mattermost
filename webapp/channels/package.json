@@ -179,7 +179,6 @@
     "stylelint-config-standard": "22.0.0",
     "stylelint-order": "4.1.0",
     "stylelint-scss": "3.19.0",
-    "terser-webpack-plugin": "5.3.6",
     "webpack-bundle-analyzer": "4.7.0",
     "webpack-pwa-manifest": "4.3.0",
     "yargs": "16.2.0",
