@@ -294,11 +294,11 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	@# Keep the version in sync with the command in .circleci/config.yml
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
+	$(GOBIN)/golangci-lint run ./public/...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
@@ -415,7 +415,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 endif
 
-check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
 do-cover-file: ## Creates the test coverage report file.
