@@ -117,6 +117,7 @@ export type Props = {
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
+    canDelete?: boolean;
 };
 
 const PostComponent = (props: Props): JSX.Element => {
