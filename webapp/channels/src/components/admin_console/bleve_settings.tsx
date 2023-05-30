@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AdminConfig} from '@mattermost/types/config';
-import {Job, JobType} from '@mattermost/types/jobs';
+import {Job} from '@mattermost/types/jobs';
 
 import {blevePurgeIndexes} from 'actions/admin_actions.jsx';
 import {JobStatuses, JobTypes} from 'utils/constants';
@@ -174,7 +174,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                     <div className='col-sm-8'>
                         <div className='job-table-setting'>
                             <JobsTable
-                                jobType={JobTypes.BLEVE_POST_INDEXING as JobType}
+                                jobType={JobTypes.BLEVE_POST_INDEXING}
                                 disabled={!this.state.canPurgeAndIndex || Boolean(this.props.isDisabled)}
                                 createJobButtonText={
                                     <FormattedMessage
