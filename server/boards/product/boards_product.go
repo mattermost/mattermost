@@ -21,8 +21,10 @@ const (
 	boardsProductID   = "com.mattermost.boards"
 )
 
+//nolint:unused
 var errServiceTypeAssert = errors.New("type assertion failed")
 
+/*
 func init() {
 	product.RegisterProduct(boardsProductName, product.Manifest{
 		Initializer: newBoardsProduct,
@@ -49,6 +51,7 @@ func init() {
 		},
 	})
 }
+*/
 
 type boardsProduct struct {
 	teamService          product.TeamService
@@ -61,7 +64,7 @@ type boardsProduct struct {
 	configService        product.ConfigService
 	logger               mlog.LoggerIFace
 	licenseService       product.LicenseService
-	filestoreService     product.FilestoreService
+	filestoreService     product.FilestoreService //nolint:unused
 	fileInfoStoreService product.FileInfoStoreService
 	routerService        product.RouterService
 	cloudService         product.CloudService
@@ -74,6 +77,7 @@ type boardsProduct struct {
 	boardsApp *server.BoardsService
 }
 
+//nolint:unused
 func newBoardsProduct(services map[product.ServiceKey]interface{}) (product.Product, error) {
 	boardsProd := &boardsProduct{}
 
@@ -99,6 +103,8 @@ func newBoardsProduct(services map[product.ServiceKey]interface{}) (product.Prod
 }
 
 // populateServices populates the boardProduct with all the services needed from the suite.
+//
+//nolint:unused
 func populateServices(boardsProd *boardsProduct, services map[product.ServiceKey]interface{}) error {
 	for key, service := range services {
 		switch key {

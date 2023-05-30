@@ -58,11 +58,9 @@ build: node_modules ## Builds all web app packages
 	npm run build
 
 .PHONY: dist
-dist: build ## Builds all web app packages and copies Boards/Playbooks files into Channels dist folder
+dist: build ## Builds all web app packages and copies Playbooks files into Channels dist folder
 	@echo Packaging Mattermost Web App
 
-	mkdir -p channels/dist/products/boards
-	cp -R boards/dist/* channels/dist/products/boards
 	mkdir -p channels/dist/products/playbooks
 	cp -R playbooks/dist/* channels/dist/products/playbooks
 

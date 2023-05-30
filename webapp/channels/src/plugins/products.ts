@@ -3,8 +3,6 @@
 
 import {Store} from 'redux';
 
-import {Client4} from 'mattermost-redux/client';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
@@ -26,11 +24,8 @@ export function initializeProducts() {
 }
 
 function configureClient() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const config = getConfig(getState());
-
-        Client4.setUseBoardsProduct(config.FeatureFlagBoardsProduct === 'true');
-
         return Promise.resolve({data: true});
     };
 }
@@ -49,19 +44,9 @@ function loadRemoteModules() {
          */
         const products = [
             {
-                id: 'boards',
-                load: () => ({
-                    index: import('boards'),
-
-                    // manifest: import('boards/manifest'),
-                }),
-            },
-            {
                 id: 'playbooks',
                 load: () => ({
                     index: import('playbooks'),
-
-                    // manifest: import('boards/manifest'),
                 }),
             },
         ];

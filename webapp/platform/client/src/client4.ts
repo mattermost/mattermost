@@ -184,8 +184,6 @@ export default class Client4 {
     userRoles = '';
     telemetryHandler?: TelemetryHandler;
 
-    useBoardsProduct = false;
-
     getUrl() {
         return this.url;
     }
@@ -247,10 +245,6 @@ export default class Client4 {
 
     setTelemetryHandler(telemetryHandler?: TelemetryHandler) {
         this.telemetryHandler = telemetryHandler;
-    }
-
-    setUseBoardsProduct(useBoardsProduct: boolean) {
-        this.useBoardsProduct = useBoardsProduct;
     }
 
     getServerVersion() {
@@ -504,10 +498,6 @@ export default class Client4 {
 
     getDraftsRoute() {
         return `${this.getBaseRoute()}/drafts`;
-    }
-
-    getBoardsRoute() {
-        return `${this.url}/plugins/${this.useBoardsProduct ? 'boards' : 'focalboard'}/api/v2`;
     }
 
     getCSRFFromCookie() {

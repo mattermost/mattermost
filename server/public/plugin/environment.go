@@ -107,7 +107,6 @@ var pluginIDBlocklist = map[string]bool{
 	"playbooks": true,
 	"com.mattermost.plugin-incident-response":   true,
 	"com.mattermost.plugin-incident-management": true,
-	"focalboard": true,
 }
 
 func PluginIDIsBlocked(id string) bool {

@@ -281,15 +281,10 @@ if (DEV) {
     config.plugins.push({
         apply: (compiler) => {
             compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
-                const boardsDist = path.resolve(__dirname, '../boards/dist');
-                const boardsSymlink = './dist/products/boards';
                 const playbooksDist = path.resolve(__dirname, '../playbooks/dist');
                 const playbooksSymlink = './dist/products/playbooks';
 
                 fs.mkdir('./dist/products', () => {
-                    if (!fs.existsSync(boardsSymlink)) {
-                        fs.symlinkSync(boardsDist, boardsSymlink, 'dir');
-                    }
                     if (!fs.existsSync(playbooksSymlink)) {
                         fs.symlinkSync(playbooksDist, playbooksSymlink, 'dir');
                     }
@@ -336,7 +331,6 @@ async function initializeModuleFederation() {
 
     async function getRemoteContainers() {
         const products = [
-            {name: 'boards'},
             {name: 'playbooks'},
         ];
 
