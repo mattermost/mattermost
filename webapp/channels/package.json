@@ -157,6 +157,7 @@
     "bundle-loader": "0.2.0",
     "copy-webpack-plugin": "11.0.0",
     "dotenv-webpack": "8.0.1",
+    "emoji-datasource-google": "6.1.1",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-17-updated": "1.0.2",
     "enzyme-to-json": "3.6.2",

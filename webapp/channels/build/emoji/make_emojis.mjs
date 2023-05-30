@@ -82,6 +82,21 @@ readDirPromise.then((images) => {
     }
 });
 
+const missingEmojis = ['2640-fe0f.png', '2642-fe0f.png', '2695-fe0f.png'];
+
+const missingEmojiDataSourceDir = path.resolve(webappRootDir, `node_modules/emoji-datasource-google/img/google/${EMOJI_SIZE}/`);
+const readMissingDirPromise = fsPromise.readdir(missingEmojiDataSourceDir);
+endResults.push(readMissingDirPromise);
+readMissingDirPromise.then((images) => {
+    console.log(`Copying Missing ${images.length} emoji images\n`);
+    for (const missingEmoji of missingEmojis) {
+        endResults.push(
+            fsPromise.copyFile(path.join(missingEmojiDataSourceDir, missingEmoji), path.join(emojiImagesDir, missingEmoji)).
+                catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy ${missingEmoji}: ${err}`)));
+    }
+});
+
+// Copy mattermost emoji image
 const webappImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images');
 fsPromise.copyFile(path.resolve(webappImagesDir, 'icon64x64.png'), path.resolve(webappImagesDir, 'emoji/mattermost.png'));
 
