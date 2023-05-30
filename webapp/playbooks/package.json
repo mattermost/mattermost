@@ -69,7 +69,6 @@
     "@webpack-cli/serve": "1.6.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "27.4.6",
-    "babel-loader": "8.2.3",
     "babel-plugin-add-react-displayname": "0.0.5",
     "classnames": "2.3.1",
     "eslint-import-resolver-webpack": "0.13.2",

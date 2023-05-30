@@ -143,7 +143,6 @@
     "@types/webpack-env": "1.18.0",
     "@typescript-eslint/eslint-plugin": "5.57.1",
     "@typescript-eslint/parser": "5.57.1",
-    "babel-loader": "8.2.3",
     "babel-plugin-lodash": "3.3.4",
     "bundle-loader": "0.2.0",
     "copy-webpack-plugin": "11.0.0",
