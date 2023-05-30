@@ -326,12 +326,22 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 }
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
+	if ps.isFirstUserAccount.CompareAndSwap(false, false) {
+		return false
+	}
+
 	count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		return false
 	}
 
-	return count <= 0
+	if count > 0 {
+		// Cache the result, as it won't change.
+		ps.isFirstUserAccount.Store(false)
+		return false
+	}
+
+	return true
 }
 
 func (ps *PlatformService) MaxPostSize() int {
