@@ -1148,8 +1148,8 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
 
     const usernamesToLoad = new Set<string>();
 
-    posts.forEach((post) => {
-        if (!post.message.includes('@')) {
+    function findNeededUsernames(text?: string) {
+        if (!text || !text.includes('@')) {
             return;
         }
 
@@ -1160,7 +1160,7 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
         const pattern = /\B@(([a-z0-9_.-]*[a-z0-9_])[.-]*)/gi;
 
         let match;
-        while ((match = pattern.exec(post.message)) !== null) {
+        while ((match = pattern.exec(text)) !== null) {
             // match[1] is the matched mention including trailing punctuation
             // match[2] is the matched mention without trailing punctuation
             if (General.SPECIAL_MENTIONS.indexOf(match[2]) !== -1) {
@@ -1176,7 +1176,19 @@ export function getNeededAtMentionedUsernames(state: GlobalState, posts: Post[])
             usernamesToLoad.add(match[1]);
             usernamesToLoad.add(match[2]);
         }
-    });
+    }
+
+    for (const post of posts) {
+        // These correspond to the fields searched by getMentionsEnabledFields on the server
+        findNeededUsernames(post.message);
+
+        if (post.props?.attachments) {
+            for (const attachment of post.props.attachments) {
+                findNeededUsernames(attachment.pretext);
+                findNeededUsernames(attachment.text);
+            }
+        }
+    }
 
     return usernamesToLoad;
 }
