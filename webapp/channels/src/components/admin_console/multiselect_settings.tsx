@@ -1,39 +1,51 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
+
 import React from 'react';
-import ReactSelect from 'react-select';
+import ReactSelect, {ValueType} from 'react-select';
 
 import FormError from 'components/form_error';
 
 import Setting from './setting';
 
-export default class MultiSelectSetting extends React.PureComponent {
-    static propTypes = {
-        id: PropTypes.string.isRequired,
-        values: PropTypes.array.isRequired,
-        label: PropTypes.node.isRequired,
-        selected: PropTypes.array.isRequired,
-        onChange: PropTypes.func.isRequired,
-        disabled: PropTypes.bool,
-        setByEnv: PropTypes.bool.isRequired,
-        helpText: PropTypes.node,
-        noResultText: PropTypes.node,
-    };
+interface Option {
+    value: string;
+    text: string;
+}
 
-    static defaultProps = {
+interface MultiSelectSettingProps {
+    id: string;
+    values: Option[];
+    label: React.ReactNode;
+    selected: string[];
+    onChange: (id: string, values: string[]) => void;
+    disabled?: boolean;
+    setByEnv: boolean;
+    helpText?: React.ReactNode;
+    noResultText?: React.ReactNode; 
+}
+
+interface MultiSelectSettingState {
+    error: boolean;
+}
+
+export default class MultiSelectSetting extends React.PureComponent<
+MultiSelectSettingProps,
+MultiSelectSettingState 
+> {
+    static defaultProps: Partial<MultiSelectSettingProps> = {
         disabled: false,
     };
 
-    constructor(props) {
+    constructor(props: MultiSelectSettingProps) {
         super(props);
 
         this.state = {error: false};
     }
 
-    handleChange = (newValue) => {
-        const values = newValue.map((n) => {
+    handleChange = (newValue: ValueType<Option>) => {
+        const values = (newValue as Option[]).map((n) => {
             return n.value;
         });
 
@@ -42,18 +54,16 @@ export default class MultiSelectSetting extends React.PureComponent {
     };
 
     calculateValue = () => {
-        return this.props.selected.reduce((values, item) => {
-            const found = this.props.values.find((e) => {
-                return e.value === item;
-            });
-            if (found !== null) {
+        return this.props.selected.reduce<Option[]>((values, item) => {
+            const found = this.props.values.find((e) => e.value === item) as Option | undefined;
+            if (found) {
                 values.push(found);
             }
             return values;
         }, []);
     };
 
-    getOptionLabel = ({text}) => text;
+    getOptionLabel = ({text}: { text: string}) => text;
 
     render() {
         return (
