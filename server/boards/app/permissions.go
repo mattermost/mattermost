@@ -4,7 +4,7 @@
 package app
 
 import (
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func (a *App) HasPermissionToBoard(userID, boardID string, permission *mm_model.Permission) bool {

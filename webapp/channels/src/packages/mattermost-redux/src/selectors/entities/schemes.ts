@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
 import {ScopeTypes} from 'mattermost-redux/constants/schemes';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 

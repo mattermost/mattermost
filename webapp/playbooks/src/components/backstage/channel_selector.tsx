@@ -32,7 +32,6 @@ export interface Props {
 }
 
 const getAllPublicChannelsInTeam = (teamId: string) => createSelector(
-    'getAllPublicChannelsInTeam',
     getAllChannels,
     getChannelsInTeam,
     (allChannels: IDMappedObjects<Channel>, channelsByTeam: RelationOneToMany<Team, Channel>): Channel[] => {
@@ -48,7 +47,6 @@ const getAllPublicChannelsInTeam = (teamId: string) => createSelector(
 );
 
 const getMyPublicAndPrivateChannelsInTeam = (teamId: string) => createSelector(
-    'getMyPublicAndPrivateChannelsInTeam',
     getAllChannels,
     getChannelsInTeam,
     getMyChannelMemberships,

@@ -1,14 +1,12 @@
 {
 	"name": "boards",
-	"version": "7.11.0",
+	"version": "8.0.0",
 	"private": true,
 	"description": "",
 	"scripts": {
 		"build": "webpack --mode=production",
 		"build:watch": "webpack --mode=production --watch",
-		"start:product": "webpack serve --mode=development",
-		"debug": "webpack --mode=none",
-		"debug:watch": "webpack --mode=development --watch",
+		"start:product": "webpack --mode=development --watch",
 		"check-lint": "eslint --ignore-pattern ../.git-ignore --ignore-pattern dist --ext js,jsx,tsx,ts . --quiet --cache",
 		"check-lint:fix": "npm run check-lint -- --fix",
 		"check-style": "stylelint **/*.scss",
@@ -103,7 +101,6 @@
 		"@typescript-eslint/eslint-plugin": "5.57.1",
 		"@typescript-eslint/parser": "5.57.1",
 		"babel-eslint": "10.1.0",
-		"css-loader": "6.7.1",
 		"eslint-import-resolver-webpack": "0.13.2",
 		"eslint-plugin-babel": "^5.3.1",
 		"eslint-plugin-eslint-comments": "3.2.0",
@@ -134,16 +131,11 @@
 		"jest-mock": "29.4.3",
 		"prettier": "^2.6.1",
 		"redux-mock-store": "^1.5.4",
-		"sass": "1.49.9",
-		"sass-loader": "12.6.0",
 		"start-server-and-test": "^1.14.0",
 		"style-loader": "3.3.1",
 		"stylelint": "^14.6.1",
 		"stylelint-config-sass-guidelines": "^9.0.1",
 		"ts-loader": "9.4.2",
-		"typescript": "4.6.2",
-		"webpack": "5.74.0",
-		"webpack-cli": "4.10.0",
-		"webpack-dev-server": "4.10.0"
+		"typescript": "4.6.2"
 	}
 }

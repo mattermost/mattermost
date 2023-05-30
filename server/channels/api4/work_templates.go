@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/worktemplates"
-	"github.com/mattermost/mattermost-server/server/v8/model"
 )
 
 const WorkTemplateContextOnboarding = "onboarding"

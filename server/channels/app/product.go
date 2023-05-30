@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 )
 
 func (s *Server) initializeProducts(
