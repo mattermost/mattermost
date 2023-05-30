@@ -135,7 +135,6 @@
     "@types/shallow-equals": "1.0.0",
     "@types/styled-components": "5.1.24",
     "@types/tinycolor2": "1.4.3",
-    "@types/webpack-env": "1.18.0",
     "@typescript-eslint/eslint-plugin": "5.57.1",
     "@typescript-eslint/parser": "5.57.1",
     "babel-plugin-lodash": "3.3.4",
