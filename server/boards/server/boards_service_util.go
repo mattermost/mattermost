@@ -58,9 +58,9 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 		enableTelemetry = *mmconfig.LogSettings.EnableDiagnostics
 	}
 
-	enablePublicSharedBoards := false
-	if mmconfig.ProductSettings.EnablePublicSharedBoards != nil {
-		enablePublicSharedBoards = *mmconfig.ProductSettings.EnablePublicSharedBoards
+	enablePublicSharedBoards, ok := getPluginSetting(mmconfig, "EnablePublicShareBoards")
+	if !ok {
+		enablePublicSharedBoards = false
 	}
 
 	enableBoardsDeletion := false
@@ -102,7 +102,7 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 		EnableLocalMode:          false,
 		LocalModeSocketLocation:  "",
 		AuthMode:                 "mattermost",
-		EnablePublicSharedBoards: enablePublicSharedBoards,
+		EnablePublicSharedBoards: enablePublicSharedBoards.(bool),
 		FeatureFlags:             featureFlags,
 		NotifyFreqCardSeconds:    getPluginSettingInt(mmconfig, notifyFreqCardSecondsKey, 120),
 		NotifyFreqBoardSeconds:   getPluginSettingInt(mmconfig, notifyFreqBoardSecondsKey, 86400),

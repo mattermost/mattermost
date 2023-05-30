@@ -77,13 +77,11 @@ func TestSetConfiguration(t *testing.T) {
 	})
 
 	t.Run("test enable shared boards", func(t *testing.T) {
-		baseProductSettings := &model.ProductSettings{
-			EnablePublicSharedBoards: &falseRef,
-		}
-
 		mmConfig := baseConfig
-		mmConfig.ProductSettings = *baseProductSettings
-		mmConfig.ProductSettings.EnablePublicSharedBoards = &boolTrue
+		mmConfig.PluginSettings.Plugins = make(map[string]map[string]interface{})
+		mmConfig.PluginSettings.Plugins["focalboard"] = make(map[string]interface{})
+		mmConfig.PluginSettings.Plugins["focalboard"]["EnablePublicShareBoards"] = true
+
 		config := server.CreateBoardsConfig(*mmConfig, "", "")
 		assert.Equal(t, true, config.EnablePublicSharedBoards)
 	})
