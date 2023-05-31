@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 type Props = {
+    id?: string;
     show: boolean;
     header?: React.ReactNode;
     title?: React.ReactNode;
@@ -15,6 +16,7 @@ type Props = {
 
 export default class SettingsGroup extends React.PureComponent<Props> {
     static propTypes = {
+        id: PropTypes.string,
         show: PropTypes.bool.isRequired,
         header: PropTypes.node,
         title: PropTypes.node,
