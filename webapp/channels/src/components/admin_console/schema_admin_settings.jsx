@@ -25,7 +25,7 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import SettingsGroup from 'components/admin_console/settings_group.jsx';
 import JobsTable from 'components/admin_console/jobs';
 import FileUploadSetting from 'components/admin_console/file_upload_setting.jsx';
-import RemoveFileSetting from 'components/admin_console/remove_file_setting.jsx';
+import RemoveFileSetting from 'components/admin_console/remove_file_setting';
 import SchemaText from 'components/admin_console/schema_text';
 import SaveButton from 'components/save_button';
 import FormError from 'components/form_error';

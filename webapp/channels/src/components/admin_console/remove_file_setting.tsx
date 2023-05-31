@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 
-import Setting from './setting';
+import Setting, {Props} from './setting';
 
-export default class RemoveFileSetting extends Setting {
-    static get propTypes() {
-        return {
-            id: PropTypes.string.isRequired,
-            label: PropTypes.node.isRequired,
-            helpText: PropTypes.node,
-            removeButtonText: PropTypes.node.isRequired,
-            removingText: PropTypes.node,
-            fileName: PropTypes.string.isRequired,
-            onSubmit: PropTypes.func.isRequired,
-            disabled: PropTypes.bool,
-        };
-    }
+type FileSetting = Props & {
+    id: string,
+    label: React.ReactNode,
+    helptext?: React.ReactNode,
+    removeButtonText: React.ReactNode,
+    removingText?: React.ReactNode,
+    fileName: string,
+    onSubmit: (arg0: string, arg1: () => void) => void,
+    disabled?: boolean
+}
 
-    constructor(props) {
+export default class RemoveFileSetting extends React.Component<FileSetting, {removing: boolean}>{
+
+    constructor(props: FileSetting) {
         super(props);
 
         this.state = {
@@ -28,7 +26,7 @@ export default class RemoveFileSetting extends Setting {
         };
     }
 
-    handleRemove = (e) => {
+    handleRemove = (e: React.SyntheticEvent) => {
         e.preventDefault();
 
         this.setState({removing: true});
@@ -52,7 +50,6 @@ export default class RemoveFileSetting extends Setting {
                         type='button'
                         className='btn btn-danger'
                         onClick={this.handleRemove}
-                        ref={this.removeButtonRef}
                         disabled={this.props.disabled}
                     >
                         {this.state.removing && (
