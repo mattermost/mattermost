@@ -14123,7 +14123,7 @@ func (a *OpenTracingAppLayer) RemoveLdapPublicCertificate() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel, team *model.Team) error {
+func (a *OpenTracingAppLayer) RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveNotifications")
 
@@ -14135,7 +14135,7 @@ func (a *OpenTracingAppLayer) RemoveNotifications(c request.CTX, post *model.Pos
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveNotifications(c, post, channel, team)
+	resultVar0 := a.app.RemoveNotifications(c, post, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

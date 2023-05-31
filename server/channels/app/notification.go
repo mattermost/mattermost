@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -608,11 +609,23 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	return mentionedUsersList, nil
 }
 
-func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel, team *model.Team) error {
+func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel) error {
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	// CRT is the main issue in this case as notifications indicator are not updated when accessing threads from the sidebar.
 	if isCRTAllowed && post.RootId != "" {
+		var team *model.Team
+		if channel.TeamId != "" {
+			t, err1 := a.Srv().Store().Team().Get(channel.TeamId)
+			if err1 != nil {
+				return model.NewAppError("RemoveNotifications", "app.post.delete_post.get_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err1)
+			}
+			team = t
+		} else {
+			// Blank team for DMs
+			team = &model.Team{}
+		}
+
 		pCh := make(chan store.StoreResult, 1)
 		go func() {
 			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
@@ -660,7 +673,28 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 
 		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
+		userIDs := []string{}
+
+		for _, group := range mentions.GroupMentions {
+			for page := 0; ; page++ {
+				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(group.Id, page, 2, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+				if appErr != nil {
+					return appErr
+				}
+
+				fmt.Println(count)
+
+				for _, user := range groupMemberPage {
+					userIDs = append(userIDs, user.Id)
+				}
+			}
+		}
+
 		for userID := range mentions.Mentions {
+			userIDs = append(userIDs, userID)
+		}
+
+		for _, userID := range userIDs {
 			threadMembership, appErr := a.GetThreadMembershipForUser(userID, post.RootId)
 			if appErr != nil {
 				return appErr

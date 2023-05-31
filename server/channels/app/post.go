@@ -1294,18 +1294,6 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		return nil, appErr
 	}
 
-	var team *model.Team
-	if channel.TeamId != "" {
-		t, err1 := a.Srv().Store().Team().Get(channel.TeamId)
-		if err1 != nil {
-			return nil, model.NewAppError("DeletePost", "app.post.delete_post.get_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err1)
-		}
-		team = t
-	} else {
-		// Blank team for DMs
-		team = &model.Team{}
-	}
-
 	err = a.Srv().Store().Post().Delete(postID, model.GetMillis(), deleteByID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -1350,7 +1338,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		a.deleteFlaggedPosts(post.Id)
 	})
 
-	if err = a.RemoveNotifications(c, post, channel, team); err != nil {
+	if err = a.RemoveNotifications(c, post, channel); err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.delete_post.remove_notifications.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
