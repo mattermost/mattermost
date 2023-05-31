@@ -1,20 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React from 'react';
 
 import {useIntl, FormattedMessage} from 'react-intl';
 
-import {useSelector, useDispatch} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {GlobalState} from 'types/store';
-
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-
-import {getTotalUsersStats} from 'mattermost-redux/actions/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -23,7 +18,7 @@ import InvitationModal from 'components/invitation_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import {getAnalyticsCategory} from 'components/onboarding_tasks';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     touchedInviteMembersButton: boolean;
@@ -33,17 +28,8 @@ type Props = {
 }
 
 const InviteMembersButton = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
-
     const intl = useIntl();
     const currentTeamId = useSelector(getCurrentTeamId);
-    const totalUserCount = useSelector((state: GlobalState) => state.entities.users.stats?.total_users_count);
-
-    useEffect(() => {
-        if (!totalUserCount) {
-            dispatch(getTotalUsersStats());
-        }
-    }, []);
 
     const handleButtonClick = () => {
         trackEvent(getAnalyticsCategory(props.isAdmin), 'click_sidebar_invite_members_button');
@@ -52,11 +38,11 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
 
     let buttonClass = 'SidebarChannelNavigator__inviteMembersLhsButton';
 
-    if (!props.touchedInviteMembersButton && Number(totalUserCount) <= Constants.USER_LIMIT) {
+    if (!props.touchedInviteMembersButton) {
         buttonClass += ' SidebarChannelNavigator__inviteMembersLhsButton--untouched';
     }
 
-    if (!currentTeamId || !totalUserCount) {
+    if (!currentTeamId) {
         return null;
     }
 
