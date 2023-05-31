@@ -326,6 +326,20 @@ func TestGetClientConfig(t *testing.T) {
 				"ExperimentalSharedChannels": "true",
 			},
 		},
+		{
+			"Disable playbooks",
+			&model.Config{
+				ProductSettings: model.ProductSettings{},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"EnablePlaybooks": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

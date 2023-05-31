@@ -2861,6 +2861,16 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
+type ProductSettings struct {
+	EnablePlaybooks *bool
+}
+
+func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
+	if s.EnablePlaybooks == nil {
+		s.EnablePlaybooks = NewBool(true)
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
