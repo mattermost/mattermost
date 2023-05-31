@@ -22,7 +22,7 @@ import RadioSetting from 'components/admin_console/radio_setting';
 import ColorSetting from 'components/admin_console/color_setting';
 import GeneratedSetting from 'components/admin_console/generated_setting';
 import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
-import SettingsGroup from 'components/admin_console/settings_group.jsx';
+import SettingsGroup from 'components/admin_console/settings_group';
 import JobsTable from 'components/admin_console/jobs';
 import FileUploadSetting from 'components/admin_console/file_upload_setting.jsx';
 import RemoveFileSetting from 'components/admin_console/remove_file_setting.jsx';
