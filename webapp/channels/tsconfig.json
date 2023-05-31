@@ -25,7 +25,6 @@
     "composite": true,
     "paths": {
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
-        "reselect": ["packages/reselect/src"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
     }
   },

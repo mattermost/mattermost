@@ -54,7 +54,7 @@ export type Props = {
         * SearchChannelWithPermissionsProvider class to fetch channels
         * based on a search term
         */
-        autocompleteChannelsForSearch: (teamId: string, term: string) => Promise<ActionResult>;
+        autocompleteChannelsForSearch: (teamId: string, term: string) => Promise<ActionResult<Channel[]>>;
     };
 
 }

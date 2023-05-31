@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import {Channel} from '@mattermost/types/channels';
+
 import {
     getChannelsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/channels';
@@ -15,75 +16,57 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {Permissions} from 'mattermost-redux/constants';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 import {logError} from 'mattermost-redux/actions/errors';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store.jsx';
 import {Constants} from 'utils/constants';
-import {Channel} from '@mattermost/types/channels';
 
-import Provider, {ProviderResult} from './provider';
-import Suggestion from './suggestion.jsx';
+import Provider, {ResultsCallback} from './provider';
+import {SuggestionContainer, SuggestionProps} from './suggestion';
 
 interface WrappedChannel {
     channel: Channel;
     name: Channel['name'];
-    deactivated: boolean;
-    type: Channel['type'];
+    deactivated: boolean; // TODO is this needed
+    type: Channel['type']; // TODO is this needed
 }
 
 type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
 
-class SearchChannelWithPermissionsSuggestion extends Suggestion {
-    node: HTMLDivElement | null | undefined;
-    static get propTypes() {
-        return {
-            ...super.propTypes,
-        };
-    }
+const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
+    const {item} = props;
+    const channel = item.channel;
+    const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
-    render() {
-        const {item, isSelection} = this.props;
-        const channel = item.channel;
-        const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
-
-        let className = 'suggestion-list__item';
-        if (isSelection) {
-            className += ' suggestion--selected';
-        }
-
-        const displayName = channel.display_name;
-        let icon = null;
-        if (channelIsArchived) {
-            icon = (
-                <i className='icon icon--no-spacing icon-archive-outline'/>
-            );
-        } else if (channel.type === Constants.OPEN_CHANNEL) {
-            icon = (
-                <i className='icon icon--no-spacing icon-globe'/>
-            );
-        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-            icon = (
-                <i className='icon icon--no-spacing icon-lock-outline'/>
-            );
-        }
-
-        return (
-            <div
-                onClick={this.handleClick}
-                className={className}
-                onMouseMove={this.handleMouseMove}
-                ref={(node) => {
-                    this.node = node;
-                }}
-                {...Suggestion.baseProps}
-            >
-                <span className='suggestion-list__icon suggestion-list__icon--large'>{icon}</span>
-                <div className='suggestion-list__ellipsis'>
-                    <span className='suggestion-list__main'>{displayName}</span>
-                </div>
-            </div>
+    const displayName = channel.display_name;
+    let icon = null;
+    if (channelIsArchived) {
+        icon = (
+            <i className='icon icon--no-spacing icon-archive-outline'/>
+        );
+    } else if (channel.type === Constants.OPEN_CHANNEL) {
+        icon = (
+            <i className='icon icon--no-spacing icon-globe'/>
+        );
+    } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+        icon = (
+            <i className='icon icon--no-spacing icon-lock-outline'/>
         );
     }
-}
+
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            <span className='suggestion-list__icon suggestion-list__icon--large'>{icon}</span>
+            <div className='suggestion-list__ellipsis'>
+                <span className='suggestion-list__main'>{displayName}</span>
+            </div>
+        </SuggestionContainer>
+    );
+});
+SearchChannelWithPermissionsSuggestion.displayName = 'SearchChannelWithPermissionsSuggestion';
 
 let prefix = '';
 
@@ -119,6 +102,7 @@ function channelSearchSorter(wrappedA: WrappedChannel, wrappedB: WrappedChannel)
 
 export default class SearchChannelWithPermissionsProvider extends Provider {
     autocompleteChannelsForSearch: ChannelSearchFunction;
+
     constructor(channelSearchFunc: ChannelSearchFunction) {
         super();
         this.autocompleteChannelsForSearch = channelSearchFunc;
@@ -146,7 +130,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         };
     }
 
-    handlePretextChanged(channelPrefix: string, resultsCallback: (res: ProviderResult) => void) {
+    handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         if (channelPrefix) {
             prefix = channelPrefix;
             this.startNewRequest(channelPrefix);
@@ -163,7 +147,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         return true;
     }
 
-    async fetchChannels(channelPrefix: string, resultsCallback: (res: ProviderResult) => void) {
+    async fetchChannels(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         const state = store.getState();
         const teamId = getCurrentTeamId(state);
         if (!teamId) {
@@ -172,10 +156,10 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
 
         const channelsAsync = this.autocompleteChannelsForSearch(teamId, channelPrefix);
 
-        let channelsFromServer = [];
+        let channelsFromServer: Channel[] = [];
         try {
             const {data} = await channelsAsync;
-            channelsFromServer = data;
+            channelsFromServer = data ?? [];
         } catch (err) {
             store.dispatch(logError(err));
         }
@@ -188,7 +172,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         this.formatChannelsAndDispatch(channelPrefix, resultsCallback, channels);
     }
 
-    formatChannelsAndDispatch(channelPrefix: string, resultsCallback: (res: ProviderResult) => void, allChannels: Channel[]) {
+    formatChannelsAndDispatch(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>, allChannels: Channel[]) {
         const channels = [];
 
         const state = store.getState();
@@ -220,11 +204,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
                     continue;
                 } else if (!members[channel.id]) {
                     continue;
-                } else if (channel.type === Constants.OPEN_CHANNEL) {
-                    wrappedChannel.type = Constants.OPEN_CHANNEL;
-                } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-                    wrappedChannel.type = Constants.PRIVATE_CHANNEL;
-                } else {
+                } else if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
                     continue;
                 }
                 completedChannels[channel.id] = true;
