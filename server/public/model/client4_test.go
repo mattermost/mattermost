@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -104,4 +105,47 @@ func TestClient4SetToken(t *testing.T) {
 	_, resp, err := client.GetMe(context.Background(), "")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestClient4RequestCancellation(t *testing.T) {
+	t.Run("cancel before making the reqeust", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatal("request should not hit the server")
+		}))
+
+		client := NewAPIv4Client(server.URL)
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		cancel()
+
+		_, resp, err := client.GetMe(ctx, "")
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("cancel after making the reqeust", func(t *testing.T) {
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(100 * time.Millisecond)
+			t.Fatal("request should not hit the server")
+		}))
+
+		client := NewAPIv4Client(server.URL)
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		done := make(chan struct{})
+		go func() {
+			_, resp, err := client.GetMe(ctx, "")
+			assert.Error(t, err)
+			assert.Nil(t, resp)
+
+			done <- struct{}{}
+
+		}()
+		cancel()
+
+		<-done
+	})
 }
