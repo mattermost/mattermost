@@ -10,7 +10,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {Message} from 'utils/i18n';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 

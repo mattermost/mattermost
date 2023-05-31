@@ -20,7 +20,7 @@ import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 

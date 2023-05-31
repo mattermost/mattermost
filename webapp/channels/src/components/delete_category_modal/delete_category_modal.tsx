@@ -6,10 +6,12 @@ import {FormattedMessage} from 'react-intl';
 
 import {ChannelCategory} from '@mattermost/types/channel_categories';
 
+import {GenericModal} from '@mattermost/components';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import GenericModal from 'components/generic_modal';
 
 import {localizeMessage} from 'utils/utils';
+import {t} from 'utils/i18n';
 
 import '../category_modal.scss';
 
@@ -72,3 +74,11 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
         );
     }
 }
+
+// TODO MM-51399 These strings are properly defined in @mattermost/components, but the i18n tooling currently can't
+// find them there, so we've had to redefine them here
+t('generic_modal.cancel');
+t('generic_modal.confirm');
+t('footer_pagination.count');
+t('footer_pagination.prev');
+t('footer_pagination.next');

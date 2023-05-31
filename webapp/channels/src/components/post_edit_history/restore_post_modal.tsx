@@ -6,7 +6,7 @@ import {defineMessages, useIntl} from 'react-intl';
 
 import {Post} from '@mattermost/types/posts';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import PostMessageView from 'components/post_view/post_message_view';
 
 const modalMessages = defineMessages({

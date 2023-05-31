@@ -4,10 +4,10 @@
 import React from 'react';
 import {render, screen} from '@testing-library/react';
 
-import {LegacyGenericModal} from './legacy_generic_modal';
+import {GenericModal} from './generic_modal';
 import {wrapIntl} from '../testUtils';
 
-describe('LegacyGenericModal', () => {
+describe('GenericModal', () => {
     const baseProps = {
         onExited: jest.fn(),
         modalHeaderText: 'Modal Header Text',
@@ -16,7 +16,7 @@ describe('LegacyGenericModal', () => {
 
     test('should match snapshot for base case', () => {
         const wrapper = render(
-            wrapIntl(<LegacyGenericModal {...baseProps}/>),
+            wrapIntl(<GenericModal {...baseProps}/>),
         );
 
         expect(wrapper).toMatchSnapshot();
@@ -30,7 +30,7 @@ describe('LegacyGenericModal', () => {
         };
 
         render(
-            wrapIntl(<LegacyGenericModal {...props}/>),
+            wrapIntl(<GenericModal {...props}/>),
         );
         
         expect(screen.getByText('Confirm')).toBeInTheDocument();

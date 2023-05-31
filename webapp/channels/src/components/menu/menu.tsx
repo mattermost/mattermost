@@ -25,7 +25,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import CompassDesignProvider from 'components/compass_design_provider';
 import Tooltip from 'components/tooltip';
 import OverlayTrigger from 'components/overlay_trigger';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
 

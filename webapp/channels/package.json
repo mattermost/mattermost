@@ -16,7 +16,6 @@
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",
-    "@mui/system": "5.11.16",
     "@stripe/react-stripe-js": "1.13.0",
     "@stripe/stripe-js": "1.41.0",
     "@tippyjs/react": "4.2.6",
