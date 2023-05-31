@@ -326,12 +326,20 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 }
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
-	count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if err != nil {
-		return false
+	if ps.fetchUserCountForFirstUserAccountCheck.Load() {
+		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+		if err != nil {
+			return false
+		}
+		// Avoid calling the user count query in future if we get a count > 0
+		if count > 0 {
+			ps.fetchUserCountForFirstUserAccountCheck.Store(false)
+			return false
+		}
+		return true
 	}
 
-	return count <= 0
+	return false
 }
 
 func (ps *PlatformService) MaxPostSize() int {
