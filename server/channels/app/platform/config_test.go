@@ -124,6 +124,9 @@ func TestIsFirstUserAccount(t *testing.T) {
 		{"success multiple users - no store call", 42, nil, false, false},
 	}
 
+	// create a session, this should not affect IsFirstUserAccount
+	th.Service.sessionCache.Set("mock_session", 1)
+
 	for _, te := range tests {
 		t.Run(te.name, func(t *testing.T) {
 			*userStoreMock = smocks.UserStore{}
