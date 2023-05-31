@@ -172,7 +172,7 @@ if (argsExcludedEmojiFile) {
     fs.readFileSync(path.normalize(argsExcludedEmojiFile), 'utf-8').split(/\r?\n/).forEach((line) => {
         excludedEmoji.push(line);
     });
-    log('warn', `[WARNING] The following emoji(s) will be excluded from the webapp: \n${excludedEmoji}\n`);
+    log('warn', `The following emoji(s) will be excluded from the webapp: \n${excludedEmoji}\n`);
 }
 
 // Remove unwanted emoji
