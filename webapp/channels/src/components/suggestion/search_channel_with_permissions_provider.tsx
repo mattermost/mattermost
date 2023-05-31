@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {Channel} from '@mattermost/types/channels';
+
 import {
     getChannelsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/channels';
@@ -14,68 +16,57 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {Permissions} from 'mattermost-redux/constants';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 import {logError} from 'mattermost-redux/actions/errors';
+import {ActionResult} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store.jsx';
 import {Constants} from 'utils/constants';
 
-import Provider from './provider';
-import Suggestion from './suggestion.jsx';
+import Provider, {ResultsCallback} from './provider';
+import {SuggestionContainer, SuggestionProps} from './suggestion';
 
-class SearchChannelWithPermissionsSuggestion extends Suggestion {
-    static get propTypes() {
-        return {
-            ...super.propTypes,
-        };
-    }
+type WrappedChannel = {
+    channel: Channel;
+    name: string;
+}
 
-    render() {
-        const {item, isSelection} = this.props;
-        const channel = item.channel;
-        const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
+const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
+    const {item} = props;
+    const channel = item.channel;
+    const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
-        let className = 'suggestion-list__item';
-        if (isSelection) {
-            className += ' suggestion--selected';
-        }
-
-        const displayName = channel.display_name;
-        let icon = null;
-        if (channelIsArchived) {
-            icon = (
-                <i className='icon icon--no-spacing icon-archive-outline'/>
-            );
-        } else if (channel.type === Constants.OPEN_CHANNEL) {
-            icon = (
-                <i className='icon icon--no-spacing icon-globe'/>
-            );
-        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-            icon = (
-                <i className='icon icon--no-spacing icon-lock-outline'/>
-            );
-        }
-
-        return (
-            <div
-                onClick={this.handleClick}
-                className={className}
-                onMouseMove={this.handleMouseMove}
-                ref={(node) => {
-                    this.node = node;
-                }}
-                {...Suggestion.baseProps}
-            >
-                <span className='suggestion-list__icon suggestion-list__icon--large'>{icon}</span>
-                <div className='suggestion-list__ellipsis'>
-                    <span className='suggestion-list__main'>{displayName}</span>
-                </div>
-            </div>
+    const displayName = channel.display_name;
+    let icon = null;
+    if (channelIsArchived) {
+        icon = (
+            <i className='icon icon--no-spacing icon-archive-outline'/>
+        );
+    } else if (channel.type === Constants.OPEN_CHANNEL) {
+        icon = (
+            <i className='icon icon--no-spacing icon-globe'/>
+        );
+    } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+        icon = (
+            <i className='icon icon--no-spacing icon-lock-outline'/>
         );
     }
-}
+
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            <span className='suggestion-list__icon suggestion-list__icon--large'>{icon}</span>
+            <div className='suggestion-list__ellipsis'>
+                <span className='suggestion-list__main'>{displayName}</span>
+            </div>
+        </SuggestionContainer>
+    );
+});
+SearchChannelWithPermissionsSuggestion.displayName = 'SearchChannelWithPermissionsSuggestion';
 
 let prefix = '';
 
-function channelSearchSorter(wrappedA, wrappedB) {
+function channelSearchSorter(wrappedA: WrappedChannel, wrappedB: WrappedChannel) {
     const aIsArchived = wrappedA.channel.delete_at ? wrappedA.channel.delete_at !== 0 : false;
     const bIsArchived = wrappedB.channel.delete_at ? wrappedB.channel.delete_at !== 0 : false;
     if (aIsArchived && !bIsArchived) {
@@ -106,15 +97,17 @@ function channelSearchSorter(wrappedA, wrappedB) {
 }
 
 export default class SearchChannelWithPermissionsProvider extends Provider {
-    constructor(channelSearchFunc) {
+    autocompleteChannelsForSearch: (channelId: string, userId: string) => Promise<ActionResult<Channel[]>>;
+
+    constructor(channelSearchFunc: SearchChannelWithPermissionsProvider['autocompleteChannelsForSearch']) {
         super();
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
 
-    makeChannelSearchFilter(channelPrefix) {
+    makeChannelSearchFilter(channelPrefix: string) {
         const channelPrefixLower = channelPrefix.toLowerCase();
 
-        return (channel) => {
+        return (channel: Channel) => {
             const state = store.getState();
             const channelId = channel.id;
             const teamId = getCurrentTeamId(state);
@@ -133,7 +126,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         };
     }
 
-    handlePretextChanged(channelPrefix, resultsCallback) {
+    handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         if (channelPrefix) {
             prefix = channelPrefix;
             this.startNewRequest(channelPrefix);
@@ -150,7 +143,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         return true;
     }
 
-    async fetchChannels(channelPrefix, resultsCallback) {
+    async fetchChannels(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         const state = store.getState();
         const teamId = getCurrentTeamId(state);
         if (!teamId) {
@@ -159,10 +152,10 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
 
         const channelsAsync = this.autocompleteChannelsForSearch(teamId, channelPrefix);
 
-        let channelsFromServer = [];
+        let channelsFromServer: Channel[] = [];
         try {
             const {data} = await channelsAsync;
-            channelsFromServer = data;
+            channelsFromServer = data ?? [];
         } catch (err) {
             store.dispatch(logError(err));
         }
@@ -175,7 +168,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         this.formatChannelsAndDispatch(channelPrefix, resultsCallback, channels);
     }
 
-    formatChannelsAndDispatch(channelPrefix, resultsCallback, allChannels) {
+    formatChannelsAndDispatch(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>, allChannels: Channel[]) {
         const channels = [];
 
         const state = store.getState();
@@ -186,15 +179,14 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
             return;
         }
 
-        const completedChannels = {};
+        const completedChannels: Record<string, boolean> = {};
 
         const channelFilter = this.makeChannelSearchFilter(channelPrefix);
 
         const config = getConfig(state);
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
 
-        for (const id of Object.keys(allChannels)) {
-            const channel = allChannels[id];
+        for (const channel of allChannels) {
             if (!channel) {
                 continue;
             }
@@ -207,16 +199,15 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
                 const newChannel = Object.assign({}, channel);
                 const channelIsArchived = channel.delete_at !== 0;
 
-                const wrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false};
+                const wrappedChannel = {
+                    channel: newChannel,
+                    name: newChannel.name,
+                };
                 if (!viewArchivedChannels && channelIsArchived) {
                     continue;
                 } else if (!members[channel.id]) {
                     continue;
-                } else if (channel.type === Constants.OPEN_CHANNEL) {
-                    wrappedChannel.type = Constants.OPEN_CHANNEL;
-                } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-                    wrappedChannel.type = Constants.PRIVATE_CHANNEL;
-                } else {
+                } else if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
                     continue;
                 }
                 completedChannels[channel.id] = true;
