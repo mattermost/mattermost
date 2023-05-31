@@ -3,8 +3,8 @@
 
 @charset 'UTF-8';
 
-@import 'utils/variables';
-@import 'utils/mixins';
+@import '../../../../channels/src/sass/utils/variables';
+@import '../../../../channels/src/sass/utils/mixins';
 
 .console__body .modal .GenericModal,
 .app__body .modal .GenericModal {
