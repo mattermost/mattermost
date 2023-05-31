@@ -27,8 +27,8 @@ import {SuggestionContainer, SuggestionProps} from './suggestion';
 interface WrappedChannel {
     channel: Channel;
     name: Channel['name'];
-    deactivated: boolean; // TODO is this needed
-    type: Channel['type']; // TODO is this needed
+    deactivated: boolean;
+    type: Channel['type'];
 }
 
 type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
