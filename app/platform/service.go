@@ -49,10 +49,11 @@ type PlatformService struct {
 	sessionCache  cache.Cache
 	sessionPool   sync.Pool
 
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
-	limitedClientConfig  atomic.Value
+	asymmetricSigningKey                   atomic.Value
+	clientConfig                           atomic.Value
+	clientConfigHash                       atomic.Value
+	limitedClientConfig                    atomic.Value
+	fetchUserCountForFirstUserAccountCheck atomic.Value
 
 	logger              *mlog.Logger
 	notificationsLogger *mlog.Logger
@@ -125,6 +126,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
 	}
+
+	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
+	ps.fetchUserCountForFirstUserAccountCheck.Store(true)
 
 	// Step 1: Cache provider.
 	// At the moment we only have this implementation
