@@ -39,8 +39,6 @@ type ServiceConfig struct {
 // ensure the config wrapper implements `product.ConfigService`
 var _ product.ConfigService = (*PlatformService)(nil)
 
-var fetchUserCount = true
-
 func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
 }
@@ -328,18 +326,20 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 }
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
-	if fetchUserCount {
+	if ps.fetchUserCountForFirstUserAccountCheck.Load() {
 		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			return false
 		}
 		// Avoid calling the user count query in future if we get a count > 0
 		if count > 0 {
-			fetchUserCount = false
+			ps.fetchUserCountForFirstUserAccountCheck.Store(false)
+			return false
 		}
+		return true
 	}
 
-	return fetchUserCount
+	return false
 }
 
 func (ps *PlatformService) MaxPostSize() int {
