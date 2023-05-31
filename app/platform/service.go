@@ -53,7 +53,7 @@ type PlatformService struct {
 	clientConfig                           atomic.Value
 	clientConfigHash                       atomic.Value
 	limitedClientConfig                    atomic.Value
-	fetchUserCountForFirstUserAccountCheck atomic.Bool
+	fetchUserCountForFirstUserAccountCheck atomic.Value
 
 	logger              *mlog.Logger
 	notificationsLogger *mlog.Logger
