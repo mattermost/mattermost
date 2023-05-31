@@ -324,6 +324,7 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
 	if ps.fetchUserCountForFirstUserAccountCheck.Load() {
+		ps.logger.Debug("Fetching user count for first user account check")
 		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			return false
