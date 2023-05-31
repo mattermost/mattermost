@@ -7,7 +7,7 @@ import {DayPicker} from 'react-day-picker';
 
 import type {Locale} from 'date-fns';
 
-import Suggestion from '../suggestion.jsx';
+import {SuggestionProps} from '../suggestion';
 
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
@@ -15,7 +15,14 @@ import Constants from 'utils/constants';
 
 import 'react-day-picker/dist/style.css';
 
-export default class SearchDateSuggestion extends Suggestion {
+type Props = SuggestionProps<never> & {
+    currentDate?: Date;
+    handleEscape: () => void;
+    locale: string;
+    preventClose: () => void;
+}
+
+export default class SearchDateSuggestion extends React.PureComponent<Props> {
     private loadedLocales: Record<string, Locale> = {};
 
     state = {

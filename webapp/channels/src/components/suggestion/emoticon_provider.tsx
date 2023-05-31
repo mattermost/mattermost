@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {Preferences} from 'utils/constants';
+import {Emoji} from '@mattermost/types/emojis';
 
 import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
@@ -12,47 +12,46 @@ import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
 
 import store from 'stores/redux_store.jsx';
 
+import {Preferences} from 'utils/constants';
 import * as Emoticons from 'utils/emoticons';
 import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
 
-import Suggestion from './suggestion.jsx';
-import Provider from './provider';
+import {SuggestionContainer, SuggestionProps} from './suggestion';
+import Provider, {ResultsCallback} from './provider';
 
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
 
-class EmoticonSuggestion extends Suggestion {
-    render() {
-        const text = this.props.term;
-        const emoji = this.props.item.emoji;
-
-        let className = 'emoticon-suggestion';
-        if (this.props.isSelection) {
-            className += ' suggestion--selected';
-        }
-
-        return (
-            <div
-                className={className}
-                onClick={this.handleClick}
-                onMouseMove={this.handleMouseMove}
-                {...Suggestion.baseProps}
-            >
-                <div className='pull-left'>
-                    <img
-                        alt={text}
-                        className='emoticon-suggestion__image'
-                        src={getEmojiImageUrl(emoji)}
-                        title={text}
-                    />
-                </div>
-                <div className='pull-left'>
-                    {text}
-                </div>
-            </div>
-        );
-    }
+type EmojiItem = {
+    name: string;
+    emoji: Emoji;
+    type: string;
 }
+
+const EmoticonSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<EmojiItem>>((props, ref) => {
+    const text = props.term;
+    const emoji = props.item.emoji;
+
+    return (
+        <SuggestionContainer
+            ref={ref}
+            {...props}
+        >
+            <div className='pull-left'>
+                <img
+                    alt={text}
+                    className='emoticon-suggestion__image'
+                    src={getEmojiImageUrl(emoji)}
+                    title={text}
+                />
+            </div>
+            <div className='pull-left'>
+                {text}
+            </div>
+        </SuggestionContainer>
+    );
+});
+EmoticonSuggestion.displayName = 'EmoticonSuggestion';
 
 export default class EmoticonProvider extends Provider {
     constructor() {
@@ -60,7 +59,8 @@ export default class EmoticonProvider extends Provider {
 
         this.triggerCharacter = ':';
     }
-    handlePretextChanged(pretext, resultsCallback) {
+
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<EmojiItem>) {
         // Look for the potential emoticons at the start of the text, after whitespace, and at the start of emoji reaction commands
         const captured = (/(^|\s|^\+|^-)(:([^:\s]*))$/g).exec(pretext.toLowerCase());
         if (!captured) {
@@ -94,7 +94,7 @@ export default class EmoticonProvider extends Provider {
         return true;
     }
 
-    formatEmojis(emojis) {
+    formatEmojis(emojis: EmojiItem[]) {
         return emojis.map((item) => ':' + item.name + ':');
     }
 
@@ -108,9 +108,9 @@ export default class EmoticonProvider extends Provider {
     //
     // For now, this behaviour and difference is by design.
     // See https://mattermost.atlassian.net/browse/MM-17320.
-    findAndSuggestEmojis(text, partialName, resultsCallback) {
-        const recentMatched = [];
-        const matched = [];
+    findAndSuggestEmojis(text: string, partialName: string, resultsCallback: ResultsCallback<EmojiItem>) {
+        const recentMatched: EmojiItem[] = [];
+        const matched: EmojiItem[] = [];
         const state = store.getState();
         const skintone = state.entities?.preferences?.myPreferences['emoji--emoji_skintone']?.value || 'default';
         const emojiMap = getEmojiMap(state);
@@ -148,8 +148,8 @@ export default class EmoticonProvider extends Provider {
             }
         }
 
-        const sortEmojisHelper = (a, b) => {
-            return compareEmojis(a, b, partialName);
+        const sortEmojisHelper = (a: EmojiItem, b: EmojiItem) => {
+            return compareEmojis(a.emoji, b.emoji, partialName);
         };
 
         recentMatched.sort(sortEmojisHelper);
