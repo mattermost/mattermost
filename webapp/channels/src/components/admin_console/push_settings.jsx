@@ -19,6 +19,9 @@ const PUSH_NOTIFICATIONS_MHPNS = 'mhpns';
 const PUSH_NOTIFICATIONS_MTPNS = 'mtpns';
 const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
 
+const PUSH_NOTIFICATIONS_LOCATION_US = 'us';
+const PUSH_NOTIFICATIONS_LOCATION_DE = 'de';
+
 export default class PushSettings extends AdminSettings {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
@@ -38,7 +41,7 @@ export default class PushSettings extends AdminSettings {
 
             if (value === PUSH_NOTIFICATIONS_MHPNS) {
                 this.setState({
-                    pushNotificationServer: Constants.MHPNS,
+                    pushNotificationServer: Constants.MHPNS_US,
                 });
             } else if (value === PUSH_NOTIFICATIONS_MTPNS) {
                 this.setState({
@@ -50,6 +53,21 @@ export default class PushSettings extends AdminSettings {
                 this.setState({
                     pushNotificationServer: '',
                 });
+            }
+        }
+
+        if (id === 'pushNotificationServerLocation') {
+            switch (value) {
+            case PUSH_NOTIFICATIONS_LOCATION_US:
+                this.setState({
+                    pushNotificationServer: Constants.MHPNS_US,
+                });
+                break;
+            case PUSH_NOTIFICATIONS_LOCATION_DE:
+                this.setState({
+                    pushNotificationServer: Constants.MHPNS_DE,
+                });
+                break;
             }
         }
 
@@ -67,11 +85,18 @@ export default class PushSettings extends AdminSettings {
     getStateFromConfig(config) {
         let pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
         let agree = false;
+        let pushNotificationServerLocation = PUSH_NOTIFICATIONS_LOCATION_US;
         if (!config.EmailSettings.SendPushNotifications) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_OFF;
-        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS &&
+        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS_US &&
             this.props.license.IsLicensed === 'true' && this.props.license.MHPNS === 'true') {
             pushNotificationServerType = PUSH_NOTIFICATIONS_MHPNS;
+            pushNotificationServerLocation = PUSH_NOTIFICATIONS_LOCATION_US;
+            agree = true;
+        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS_DE &&
+            this.props.license.IsLicensed === 'true' && this.props.license.MHPNS === 'true') {
+            pushNotificationServerType = PUSH_NOTIFICATIONS_MHPNS;
+            pushNotificationServerLocation = PUSH_NOTIFICATIONS_LOCATION_DE;
             agree = true;
         } else if (config.EmailSettings.PushNotificationServer === Constants.MTPNS) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_MTPNS;
@@ -80,8 +105,10 @@ export default class PushSettings extends AdminSettings {
         let pushNotificationServer = config.EmailSettings.PushNotificationServer;
         if (pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
             pushNotificationServer = Constants.MTPNS;
-        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
-            pushNotificationServer = Constants.MHPNS;
+        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS && pushNotificationServerLocation === PUSH_NOTIFICATIONS_LOCATION_US) {
+            pushNotificationServer = Constants.MHPNS_US;
+        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS && pushNotificationServerLocation === PUSH_NOTIFICATIONS_LOCATION_DE) {
+            pushNotificationServer = Constants.MHPNS_DE;
         }
 
         const maxNotificationsPerChannel = config.TeamSettings.MaxNotificationsPerChannel;
@@ -262,6 +289,30 @@ export default class PushSettings extends AdminSettings {
             );
         }
 
+        let locationDropdown;
+        if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
+            const pushNotificationServerLocations = [];
+            pushNotificationServerLocations.push({value: PUSH_NOTIFICATIONS_LOCATION_US, text: Utils.localizeMessage('admin.email.pushServerLocationUS', 'US')});
+            pushNotificationServerLocations.push({value: PUSH_NOTIFICATIONS_LOCATION_DE, text: Utils.localizeMessage('admin.email.pushServerLocationDE', 'Germany')});
+
+            locationDropdown = (
+                <DropdownSetting
+                    id='pushNotificationServerLocation'
+                    values={pushNotificationServerLocations}
+                    label={
+                        <FormattedMessage
+                            id='admin.email.pushServerLocationTitle'
+                            defaultMessage='Push Notification Server location:'
+                        />
+                    }
+                    value={this.state.pushNotificationServerLocation}
+                    onChange={this.handleDropdownChange}
+                    setByEnv={this.isPushNotificationServerSetByEnv()}
+                    disabled={this.props.isDisabled}
+                />
+            );
+        }
+
         return (
             <SettingsGroup>
                 <DropdownSetting
@@ -279,6 +330,7 @@ export default class PushSettings extends AdminSettings {
                     setByEnv={this.isPushNotificationServerSetByEnv()}
                     disabled={this.props.isDisabled}
                 />
+                {locationDropdown}
                 {tosCheckbox}
                 <TextSetting
                     id='pushNotificationServer'
