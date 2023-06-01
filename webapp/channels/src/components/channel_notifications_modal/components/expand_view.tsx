@@ -5,8 +5,6 @@ import React, {ChangeEvent, useMemo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import * as NotificationSounds from 'utils/notification_sounds';
-
 import ReactSelect, {ValueType} from 'react-select';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -16,6 +14,8 @@ import {ChannelAutoFollowThreads, DesktopSound, IgnoreChannelMentions, Notificat
 import SettingItemMax from 'components/setting_item_max';
 
 import {ChannelNotifyProps} from '@mattermost/types/channels';
+
+import {notificationSounds} from 'utils/notification_sounds';
 
 import Describe from './describe';
 import ExtraInfo from './extra_info';
@@ -47,7 +47,7 @@ type Props = {
     serverError?: string;
 }
 
-const sounds = Array.from(NotificationSounds.notificationSounds.keys());
+const sounds = Array.from(notificationSounds.keys());
 
 const makeDefaultOptionLabel = (option: string) => `${option} (default)`;
 
