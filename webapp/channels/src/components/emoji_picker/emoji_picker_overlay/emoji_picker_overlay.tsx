@@ -10,17 +10,18 @@ import {Constants} from 'utils/constants';
 
 import {Emoji} from '@mattermost/types/emojis';
 
-import EmojiPickerTabs from './emoji_picker_tabs';
-import {getIsMobileView} from 'selectors/views/browser';
-import store from 'stores/redux_store.jsx';
+import EmojiPickerTabs from '../emoji_picker_tabs';
 
-type Props = {
-    show: boolean;
+import type {PropsFromRedux} from './index';
+
+export interface Props extends PropsFromRedux {
     container?: () => ReactNode;
     target: () => ReactNode;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
     onHide: () => void;
+    onExited?: () => void;
+    show: boolean;
     topOffset?: number;
     rightOffset?: number;
     leftOffset?: number;
@@ -28,10 +29,11 @@ type Props = {
     spaceRequiredBelow?: number;
     enableGifPicker?: boolean;
     defaultHorizontalPosition?: 'left' | 'right';
-    onExited?: () => void;
 }
 
-export default class EmojiPickerOverlay extends React.PureComponent<Props> {
+type State = {};
+
+export default class EmojiPickerOverlay extends React.PureComponent<Props, State> {
     // An emoji picker in the center channel is contained within the post list, so it needs space
     // above for the channel header and below for the post textbox
     static CENTER_SPACE_REQUIRED_ABOVE = 476;
@@ -81,17 +83,15 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
     });
 
     render() {
-        const {target, rightOffset, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show} = this.props;
-
+        const {target, rightOffset, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show, isMobileView} = this.props;
         const calculatedRightOffset = typeof rightOffset === 'undefined' ? this.emojiPickerPosition(target(), show) : rightOffset;
         const placement = this.getPlacement(target(), spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show);
-        const isNotMobileView = !getIsMobileView(store.getState());
 
         return (
             <Overlay
                 show={show}
                 placement={placement}
-                rootClose={isNotMobileView}
+                rootClose={!isMobileView}
                 container={this.props.container}
                 onHide={this.props.onHide}
                 target={target}
