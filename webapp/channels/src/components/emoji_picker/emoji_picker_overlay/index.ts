@@ -3,8 +3,6 @@
 
 import {connect, ConnectedProps} from 'react-redux';
 
-import {Dispatch} from 'redux';
-
 import {GlobalState} from 'types/store';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -17,7 +15,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
+function mapDispatchToProps() {
     return {};
 }
 

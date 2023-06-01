@@ -31,9 +31,7 @@ export interface Props extends PropsFromRedux {
     defaultHorizontalPosition?: 'left' | 'right';
 }
 
-type State = {};
-
-export default class EmojiPickerOverlay extends React.PureComponent<Props, State> {
+export default class EmojiPickerOverlay extends React.PureComponent<Props> {
     // An emoji picker in the center channel is contained within the post list, so it needs space
     // above for the channel header and below for the post textbox
     static CENTER_SPACE_REQUIRED_ABOVE = 476;
