@@ -390,7 +390,7 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam.id === props.team?.id) {
+        if (props.currentTeam.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
