@@ -6,11 +6,8 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import * as NotificationSounds from 'utils/notification_sounds';
-import {isDesktopApp} from 'utils/user_agent';
 
 import ReactSelect, {ValueType} from 'react-select';
-
-import semver from 'semver';
 
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -355,7 +352,7 @@ export default function ExpandView({
                             />
                         </label>
                     </div>
-                    {memberDesktopSound === DesktopSound.ON && (!isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'))) &&
+                    {memberDesktopSound === DesktopSound.ON &&
                     <div className='pt-2'>
                         <ReactSelect
                             className='react-select notification-sound-dropdown'
