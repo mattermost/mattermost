@@ -150,7 +150,7 @@ jobs:
           echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
           make build
-          cd ../mattermost-server
+          cd ../mattermost
   check-generate-work-templates:
     name: Generate work templates
     runs-on: ubuntu-22.04
