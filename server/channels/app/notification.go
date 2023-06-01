@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -674,18 +673,22 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
 		userIDs := []string{}
-
 		for _, group := range mentions.GroupMentions {
 			for page := 0; ; page++ {
-				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(group.Id, page, 2, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(group.Id, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
 				if appErr != nil {
 					return appErr
 				}
 
-				fmt.Println(count)
-
 				for _, user := range groupMemberPage {
 					userIDs = append(userIDs, user.Id)
+				}
+
+				// count is the total number of users that match the filter criteria.
+				// When we've processed `count` number of users, we know there aren't
+				// any more users left to query and we can break the loop
+				if len(userIDs) == count {
+					break
 				}
 			}
 		}
