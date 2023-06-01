@@ -198,10 +198,7 @@ func (ps *PlatformService) regenerateClientConfig() {
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (ps *PlatformService) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	if key := ps.asymmetricSigningKey.Load(); key != nil {
-		return key.(*ecdsa.PrivateKey)
-	}
-	return nil
+	return ps.asymmetricSigningKey.Load()
 }
 
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
@@ -337,6 +334,7 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 		return false
 	}
 
+	ps.logger.Debug("Fetching user count for first user account check")
 	count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		return false

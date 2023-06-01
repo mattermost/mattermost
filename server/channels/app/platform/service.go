@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 	"hash/maphash"
 	"net/http"
@@ -49,7 +50,7 @@ type PlatformService struct {
 	sessionCache  cache.Cache
 	sessionPool   sync.Pool
 
-	asymmetricSigningKey atomic.Value
+	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value
 	limitedClientConfig  atomic.Value
@@ -69,7 +70,7 @@ type PlatformService struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 
-	licenseValue       atomic.Value
+	licenseValue       atomic.Pointer[model.License]
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
 	licenseManager     einterfaces.LicenseInterface
