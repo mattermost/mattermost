@@ -395,7 +395,7 @@ const PostComponent = (props: Props): JSX.Element => {
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam.id, teamId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
