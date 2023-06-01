@@ -178,7 +178,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
         }
 
         return (
-            <SettingsGroup>
+            <SettingsGroup show={true}>
                 <BooleanSetting
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}

@@ -1084,6 +1084,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     <SettingsGroup
                         id={'PluginSettings'}
                         container={false}
+                        show={true}
                     >
                         {this.renderEnablePluginsSetting()}
 
