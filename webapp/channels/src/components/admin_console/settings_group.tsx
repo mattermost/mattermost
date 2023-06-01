@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 
 type Props = {
@@ -15,21 +14,6 @@ type Props = {
 };
 
 export default class SettingsGroup extends React.PureComponent<Props> {
-    static propTypes = {
-        id: PropTypes.string,
-        show: PropTypes.bool.isRequired,
-        header: PropTypes.node,
-        title: PropTypes.node,
-        subtitle: PropTypes.node,
-        children: PropTypes.node,
-        container: PropTypes.bool,
-    };
-
-    static defaultProps = {
-        show: true,
-        container: true,
-    };
-
     render(): React.ReactNode {
         let wrapperClass = '';
         let contentClass = '';
