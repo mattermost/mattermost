@@ -339,9 +339,9 @@ type Hooks interface {
 	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
 
 	// ConfigurationWillBeSaved is invoked before saving the configuration to the
-	// backing store. An error can be returned to reject the operation.
-	// Additionally, a new config object can be returned to be stored which will
-	// replace the provided one.
+	// backing store.
+	// An error can be returned to reject the operation. Additionally, a new
+	// config object can be returned to be stored in place of the provided one.
 	// Minimum server version: 8.0
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 }
