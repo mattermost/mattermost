@@ -51,6 +51,27 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Setup go.work
+        run: make setup-go-work
+      - name: Run golangci
+        run: make golangci-lint
+
   check-gen-serialized:
     name: Check serialization methods for hot structs
     runs-on: ubuntu-22.04

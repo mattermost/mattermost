@@ -4,11 +4,10 @@
 import {bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
-
 import {Post} from '@mattermost/types/posts';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
+import {GenericAction} from 'mattermost-redux/types/actions';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
