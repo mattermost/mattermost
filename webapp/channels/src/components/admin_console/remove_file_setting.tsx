@@ -5,7 +5,7 @@ import React from 'react';
 
 import Setting, {SettingsProps} from './setting';
 
-type FileSetting = SettingsProps & {
+type Props = SettingsProps & {
     id: string;
     label: React.ReactNode;
     helptext?: React.ReactNode;
@@ -16,8 +16,8 @@ type FileSetting = SettingsProps & {
     disabled?: boolean;
 }
 
-export default class RemoveFileSetting extends React.Component<FileSetting, {removing: boolean}> {
-    constructor(props: FileSetting) {
+export default class RemoveFileSetting extends React.Component<Props, {removing: boolean}> {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
