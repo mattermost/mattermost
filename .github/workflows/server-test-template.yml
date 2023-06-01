@@ -51,7 +51,7 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
-            -v ~/work/mattermost-server:/mattermost-server \
-            -w /mattermost-server/mattermost-server/server \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost/server \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
