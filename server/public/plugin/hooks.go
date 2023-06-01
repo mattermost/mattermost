@@ -49,6 +49,7 @@ const (
 	GetTopicRedirectID              = 31
 	GetCollectionMetadataByIdsID    = 32
 	GetTopicMetadataByIdsID         = 33
+	ConfigurationWillBeSavedID      = 34
 	TotalHooksID                    = iota
 )
 
@@ -336,4 +337,9 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.6
 	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
+
+	// ConfigurationWillBeSaved
+	//
+	// Minimum server version: 8.0
+	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 }

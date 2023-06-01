@@ -25,6 +25,32 @@ func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel
 	_m.Called(c, channel)
 }
 
+// ConfigurationWillBeSaved provides a mock function with given fields: newCfg
+func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
+	ret := _m.Called(newCfg)
+
+	var r0 *model.Config
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Config) (*model.Config, error)); ok {
+		return rf(newCfg)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Config) *model.Config); ok {
+		r0 = rf(newCfg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Config)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Config) error); ok {
+		r1 = rf(newCfg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ExecuteCommand provides a mock function with given fields: c, args
 func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	ret := _m.Called(c, args)
