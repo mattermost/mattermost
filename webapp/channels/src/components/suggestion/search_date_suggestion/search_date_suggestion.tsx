@@ -30,7 +30,13 @@ export default class SearchDateSuggestion extends React.PureComponent<Props> {
     };
 
     handleDayClick = (day: Date) => {
-        const dayString = day.toISOString().split('T')[0];
+        const dayString = new Date(
+            Date.UTC(
+                day.getFullYear(),
+                day.getMonth(),
+                day.getDate()
+            )
+        ).toISOString().slice(0, 10);
         this.props.onClick(dayString, this.props.matchedPretext);
     };
 
