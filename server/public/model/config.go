@@ -1345,6 +1345,9 @@ func (s *LogSettings) SetDefaults() {
 		}
 	}
 	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig != nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 	//s.AdvancedLoggingConfig = nil
 }
 
