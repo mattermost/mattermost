@@ -2180,18 +2180,12 @@
 }
 
 .post-row__padding {
-    &.bottom {
-        .new-separator,
-        .Separator {
-            padding-bottom: 1em;
-        }
+    &.bottom .Separator {
+        padding-bottom: 1em;
     }
 
-    &.top {
-        .new-separator,
-        .Separator {
-            padding-top: 1em;
-        }
+    &.top .Separator {
+        padding-top: 1em;
     }
 
     &.top .post {
