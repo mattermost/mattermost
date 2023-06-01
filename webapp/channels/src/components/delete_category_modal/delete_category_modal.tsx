@@ -75,7 +75,7 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
     }
 }
 
-// TODO MM-51399 These strings are properly defined in @mattermost/components, but the i18n tooling currently can't
+// TODO MM-52680 These strings are properly defined in @mattermost/components, but the i18n tooling currently can't
 // find them there, so we've had to redefine them here
 t('generic_modal.cancel');
 t('generic_modal.confirm');
