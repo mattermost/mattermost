@@ -75,21 +75,22 @@ func (ps *PlatformService) IsConfigReadOnly() bool {
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	var hookErr error
-	ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
-		var cfg *model.Config
-		cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
-		if hookErr == nil && cfg != nil {
-			newCfg = cfg
+	if ps.pluginEnv != nil {
+		var hookErr error
+		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
+			var cfg *model.Config
+			cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
+			if hookErr == nil && cfg != nil {
+				newCfg = cfg
+			}
+			return hookErr == nil
+		}, plugin.ConfigurationWillBeSavedID)
+		if hookErr != nil {
+			if appErr, ok := hookErr.(*model.AppError); ok {
+				return nil, nil, appErr
+			}
+			return nil, nil, model.NewAppError("saveConfig", "app.save_config.plugin_hook_error", nil, "", http.StatusBadRequest).Wrap(hookErr)
 		}
-		return hookErr == nil
-	}, plugin.ConfigurationWillBeSavedID)
-	if hookErr != nil {
-		if appErr, ok := hookErr.(*model.AppError); ok {
-			return nil, nil, appErr
-		}
-
-		return nil, nil, model.NewAppError("saveConfig", "app.save_config.plugin_hook_error", nil, "", http.StatusBadRequest).Wrap(hookErr)
 	}
 
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
