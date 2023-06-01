@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2927,6 +2928,12 @@ func TestRemoveNotifications(t *testing.T) {
 
 	_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)
 	require.Nil(t, appErr)
+
+	// Because we delete notification async, we need to wait
+	// just for a little while before checking the data
+	// 2 seconds is a very long time for the task we're performing
+	// but its okay considering sometimes the CI machines are slow.
+	time.Sleep(2 * time.Second)
 
 	threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
 	require.Nil(t, appErr)
