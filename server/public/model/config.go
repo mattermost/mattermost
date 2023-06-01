@@ -2610,31 +2610,32 @@ func (s *NativeAppSettings) SetDefaults() {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexReplicas          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexShards            *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	AggregatePostsAfterDays       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
-	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ConnectionURL                 *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Username                      *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Password                      *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableIndexing                *bool    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableSearching               *bool    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableAutocomplete            *bool    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Sniff                         *bool    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexReplicas             *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexShards               *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexReplicas          *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexShards            *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexReplicas             *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexShards               *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	AggregatePostsAfterDays       *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	PostsAggregatorJobStartTime   *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	IndexPrefix                   *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	LiveIndexingBatchSize         *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	BulkIndexingTimeWindowSeconds *int     `json:",omitempty"` // telemetry: none
+	BatchSize                     *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	RequestTimeoutSeconds         *int     `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	SkipTLSVerification           *bool    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                            *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                    *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                     *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Trace                         *string  `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes           []string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2732,6 +2733,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Trace == nil {
 		s.Trace = NewString("")
+	}
+
+	if s.IgnoredPurgeIndexes == nil {
+		s.IgnoredPurgeIndexes = []string{}
 	}
 }
 
