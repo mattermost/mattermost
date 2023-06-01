@@ -1344,17 +1344,19 @@ func (s *LogSettings) SetDefaults() {
 			s.AdvancedLoggingJSON = []byte("{}")
 		}
 	}
-	s.AdvancedLoggingConfig = nil
+	// temporarily let AdvancedLoggingConfig take precedence.
+	//s.AdvancedLoggingConfig = nil
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 // AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
 	}
 	return []byte("{}")
 }
