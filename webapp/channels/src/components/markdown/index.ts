@@ -3,22 +3,20 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
-
 import {Preferences} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelNameToDisplayNameMap} from 'mattermost-redux/selectors/entities/channels';
 import {getAutolinkedUrlSchemes, getConfig, getManagedResourcePaths} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {GlobalState} from 'types/store';
 import {getEmojiMap} from 'selectors/emojis';
 
 import {getSiteURL} from 'utils/url';
 import {ChannelNamesMap, MentionKey} from 'utils/text_formatting';
-
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import Markdown from './markdown';
 
