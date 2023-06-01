@@ -3,21 +3,20 @@
 
 import React from 'react';
 
-import Setting, {Props} from './setting';
+import Setting, {SettingsProps} from './setting';
 
-type FileSetting = Props & {
-    id: string,
-    label: React.ReactNode,
-    helptext?: React.ReactNode,
-    removeButtonText: React.ReactNode,
-    removingText?: React.ReactNode,
-    fileName: string,
-    onSubmit: (arg0: string, arg1: () => void) => void,
-    disabled?: boolean
+type FileSetting = SettingsProps & {
+    id: string;
+    label: React.ReactNode;
+    helptext?: React.ReactNode;
+    removeButtonText: React.ReactNode;
+    removingText?: React.ReactNode;
+    fileName: string;
+    onSubmit: (arg0: string, arg1: () => void) => void;
+    disabled?: boolean;
 }
 
-export default class RemoveFileSetting extends React.Component<FileSetting, {removing: boolean}>{
-
+export default class RemoveFileSetting extends React.Component<FileSetting, {removing: boolean}> {
     constructor(props: FileSetting) {
         super(props);
 
@@ -26,7 +25,7 @@ export default class RemoveFileSetting extends React.Component<FileSetting, {rem
         };
     }
 
-    handleRemove = (e: React.SyntheticEvent) => {
+    handleRemove = (e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
 
         this.setState({removing: true});
