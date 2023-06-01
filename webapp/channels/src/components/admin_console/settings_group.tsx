@@ -5,7 +5,7 @@ import React from 'react';
 
 type Props = {
     id?: string;
-    show: boolean;
+    show?: boolean;
     header?: React.ReactNode;
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
@@ -15,14 +15,16 @@ type Props = {
 
 export default class SettingsGroup extends React.PureComponent<Props> {
     render(): React.ReactNode {
+        const {show = true, container = true} = this.props;
+
         let wrapperClass = '';
         let contentClass = '';
 
-        if (!this.props.show) {
+        if (!show) {
             return null;
         }
 
-        if (this.props.container) {
+        if (container) {
             wrapperClass = 'admin-console__wrapper';
             contentClass = 'admin-console__content';
         }
