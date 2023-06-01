@@ -121,6 +121,7 @@ func TestClient4RequestCancellation(t *testing.T) {
 
 		_, resp, err := client.GetMe(ctx, "")
 		assert.Error(t, err)
+		assert.ErrorIs(t, err, context.Canceled)
 		assert.Nil(t, resp)
 	})
 
@@ -139,6 +140,7 @@ func TestClient4RequestCancellation(t *testing.T) {
 		go func() {
 			_, resp, err := client.GetMe(ctx, "")
 			assert.Error(t, err)
+			assert.ErrorIs(t, err, context.Canceled)
 			assert.Nil(t, resp)
 
 			done <- struct{}{}
