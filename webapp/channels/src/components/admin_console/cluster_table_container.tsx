@@ -13,10 +13,10 @@ interface ClusterTableContainerState {
     clusterInfos: ClusterInfo[] | null;
 }
 
-export default class ClusterTableContainer extends React.PureComponent<{}, ClusterTableContainerState> {
+export default class ClusterTableContainer extends React.PureComponent<object, ClusterTableContainerState> {
     interval: NodeJS.Timer | null;
 
-    constructor(props: {}) {
+    constructor(props: object) {
         super(props);
 
         this.interval = null;

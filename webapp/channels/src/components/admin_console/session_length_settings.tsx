@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {AdminConfig, ServiceSettings} from '@mattermost/types/config';
+
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import * as Utils from 'utils/utils';
 
@@ -11,8 +13,6 @@ import AdminSettings, {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import SettingsGroup from './settings_group.js';
 import TextSetting from './text_setting';
-import { DeepPartial } from 'redux';
-import { AdminConfig, ServiceSettings } from '@mattermost/types/config';
 
 interface SessionLengthSettingsState extends BaseState {
     extendSessionLengthWithActivity: ServiceSettings['ExtendSessionLengthWithActivity'];
@@ -31,27 +31,27 @@ interface SessionLengthSettingsProps extends BaseProps {
 }
 
 export default class SessionLengthSettings extends AdminSettings<SessionLengthSettingsProps, SessionLengthSettingsState> {
-    getConfigFromState = (config: DeepPartial<AdminConfig>) => {
+    getConfigFromState = (config: AdminConfig) => {
         const MINIMUM_IDLE_TIMEOUT = 5;
 
-        config.ServiceSettings!.ExtendSessionLengthWithActivity = this.state.extendSessionLengthWithActivity;
-        config.ServiceSettings!.SessionLengthWebInHours = this.parseIntNonZero(this.state.sessionLengthWebInHours);
-        config.ServiceSettings!.SessionLengthMobileInHours = this.parseIntNonZero(this.state.sessionLengthMobileInHours);
-        config.ServiceSettings!.SessionLengthSSOInHours = this.parseIntNonZero(this.state.sessionLengthSSOInHours);
-        config.ServiceSettings!.SessionCacheInMinutes = this.parseIntNonZero(this.state.sessionCacheInMinutes);
-        config.ServiceSettings!.SessionIdleTimeoutInMinutes = this.parseIntZeroOrMin(this.state.sessionIdleTimeoutInMinutes, MINIMUM_IDLE_TIMEOUT);
+        config.ServiceSettings.ExtendSessionLengthWithActivity = this.state.extendSessionLengthWithActivity;
+        config.ServiceSettings.SessionLengthWebInHours = this.parseIntNonZero(this.state.sessionLengthWebInHours);
+        config.ServiceSettings.SessionLengthMobileInHours = this.parseIntNonZero(this.state.sessionLengthMobileInHours);
+        config.ServiceSettings.SessionLengthSSOInHours = this.parseIntNonZero(this.state.sessionLengthSSOInHours);
+        config.ServiceSettings.SessionCacheInMinutes = this.parseIntNonZero(this.state.sessionCacheInMinutes);
+        config.ServiceSettings.SessionIdleTimeoutInMinutes = this.parseIntZeroOrMin(this.state.sessionIdleTimeoutInMinutes, MINIMUM_IDLE_TIMEOUT);
 
         return config;
     };
 
-    getStateFromConfig(config: DeepPartial<AdminConfig>) {
+    getStateFromConfig(config: AdminConfig) {
         return {
-            extendSessionLengthWithActivity: config.ServiceSettings!.ExtendSessionLengthWithActivity,
-            sessionLengthWebInHours: config.ServiceSettings!.SessionLengthWebInHours,
-            sessionLengthMobileInHours: config.ServiceSettings!.SessionLengthMobileInHours,
-            sessionLengthSSOInHours: config.ServiceSettings!.SessionLengthSSOInHours,
-            sessionCacheInMinutes: config.ServiceSettings!.SessionCacheInMinutes,
-            sessionIdleTimeoutInMinutes: config.ServiceSettings!.SessionIdleTimeoutInMinutes,
+            extendSessionLengthWithActivity: config.ServiceSettings.ExtendSessionLengthWithActivity,
+            sessionLengthWebInHours: config.ServiceSettings.SessionLengthWebInHours,
+            sessionLengthMobileInHours: config.ServiceSettings.SessionLengthMobileInHours,
+            sessionLengthSSOInHours: config.ServiceSettings.SessionLengthSSOInHours,
+            sessionCacheInMinutes: config.ServiceSettings.SessionCacheInMinutes,
+            sessionIdleTimeoutInMinutes: config.ServiceSettings.SessionIdleTimeoutInMinutes,
         };
     }
 
@@ -157,9 +157,12 @@ export default class SessionLengthSettings extends AdminSettings<SessionLengthSe
                 />
                 <TextSetting
                     id='sessionLengthWebInHours'
-                    label={<FormattedMessage
-                        id='admin.service.webSessionHours'
-                        defaultMessage='Session Length AD/LDAP and Email (hours):' />}
+                    label={
+                        <FormattedMessage
+                            id='admin.service.webSessionHours'
+                            defaultMessage='Session Length AD/LDAP and Email (hours):'
+                        />
+                    }
                     placeholder={Utils.localizeMessage('admin.service.sessionHoursEx', 'E.g.: "720"')}
                     helpText={sessionLengthWebHelpText}
                     value={this.state.sessionLengthWebInHours}
@@ -170,9 +173,11 @@ export default class SessionLengthSettings extends AdminSettings<SessionLengthSe
                 />
                 <TextSetting
                     id='sessionLengthMobileInHours'
-                    label={<FormattedMessage
-                        id='admin.service.mobileSessionHours'
-                        defaultMessage='Session Length Mobile (hours):' />}
+                    label={
+                        <FormattedMessage
+                            id='admin.service.mobileSessionHours'
+                            defaultMessage='Session Length Mobile (hours):'
+                        />}
                     placeholder={Utils.localizeMessage('admin.service.sessionHoursEx', 'E.g.: "720"')}
                     helpText={sessionLengthMobileHelpText}
                     value={this.state.sessionLengthMobileInHours}
@@ -183,9 +188,11 @@ export default class SessionLengthSettings extends AdminSettings<SessionLengthSe
                 />
                 <TextSetting
                     id='sessionLengthSSOInHours'
-                    label={<FormattedMessage
-                        id='admin.service.ssoSessionHours'
-                        defaultMessage='Session Length SSO (hours):' />}
+                    label={
+                        <FormattedMessage
+                            id='admin.service.ssoSessionHours'
+                            defaultMessage='Session Length SSO (hours):'
+                        />}
                     placeholder={Utils.localizeMessage('admin.service.sessionHoursEx', 'E.g.: "720"')}
                     helpText={sessionLengthSSOHelpText}
                     value={this.state.sessionLengthSSOInHours}
@@ -196,13 +203,17 @@ export default class SessionLengthSettings extends AdminSettings<SessionLengthSe
                 />
                 <TextSetting
                     id='sessionCacheInMinutes'
-                    label={<FormattedMessage
-                        id='admin.service.sessionCache'
-                        defaultMessage='Session Cache (minutes):' />}
+                    label={
+                        <FormattedMessage
+                            id='admin.service.sessionCache'
+                            defaultMessage='Session Cache (minutes):'
+                        />}
                     placeholder={Utils.localizeMessage('admin.service.sessionMinutesEx', 'E.g.: "10"')}
-                    helpText={<FormattedMessage
-                        id='admin.service.sessionCacheDesc'
-                        defaultMessage='The number of minutes to cache a session in memory:' />}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.service.sessionCacheDesc'
+                            defaultMessage='The number of minutes to cache a session in memory:'
+                        />}
                     value={this.state.sessionCacheInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionCacheInMinutes')}
