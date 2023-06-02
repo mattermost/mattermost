@@ -42,7 +42,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-
+	"strings"
 	"github.com/blang/semver"
 
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
@@ -303,10 +303,21 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 	if err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	filteredDir := make([]os.DirEntry, 0)
+    for _, entry := range dir {
+        _, err := entry.Info()
+        if err != nil {
+            return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+        }
 
-	if len(dir) == 1 && dir[0].IsDir() {
-		extractDir = filepath.Join(extractDir, dir[0].Name())
-	}
+        if !strings.HasPrefix(entry.Name(), ".") {
+            filteredDir = append(filteredDir, entry)
+        }
+    }
+
+    if len(filteredDir) == 1 && filteredDir[0].IsDir() {
+        extractDir = filepath.Join(extractDir, filteredDir[0].Name())
+    }
 
 	manifest, _, err := model.FindManifest(extractDir)
 	if err != nil {
