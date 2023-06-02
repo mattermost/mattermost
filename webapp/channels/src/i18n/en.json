@@ -772,6 +772,8 @@
   "admin.elasticsearch.enableIndexingTitle": "Enable Elasticsearch Indexing:",
   "admin.elasticsearch.enableSearchingDescription": "Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.",
   "admin.elasticsearch.enableSearchingTitle": "Enable Elasticsearch for search queries:",
+  "admin.elasticsearch.ignoredPurgeIndexes": "Indexes to skip while purging:",
+  "admin.elasticsearch.ignoredPurgeIndexesDescription": "When filled in, these indexes will be ignored during the purge, separated by commas.",
   "admin.elasticsearch.password": "E.g.: \"yourpassword\"",
   "admin.elasticsearch.passwordDescription": "(Optional) The password to authenticate to the Elasticsearch server.",
   "admin.elasticsearch.passwordTitle": "Server Password:",

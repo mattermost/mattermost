@@ -365,6 +365,25 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           }
         }
       />
+      <AdminTextSetting
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When filled in, these indexes will be ignored during the purge, separated by commas."
+            id="admin.elasticsearch.ignoredPurgeIndexesDescription"
+          />
+        }
+        id="ignoredPurgeIndexes"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Indexes to skip while purging:"
+            id="admin.elasticsearch.ignoredPurgeIndexes"
+          />
+        }
+        onChange={[Function]}
+        placeholder="E.g.: .opendistro*,.security*"
+        setByEnv={false}
+      />
       <BooleanSetting
         disabled={true}
         falseText={
@@ -834,6 +853,25 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             "id": "admin.elasticsearch.purgeIndexesButton.success",
           }
         }
+      />
+      <AdminTextSetting
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When filled in, these indexes will be ignored during the purge, separated by commas."
+            id="admin.elasticsearch.ignoredPurgeIndexesDescription"
+          />
+        }
+        id="ignoredPurgeIndexes"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Indexes to skip while purging:"
+            id="admin.elasticsearch.ignoredPurgeIndexes"
+          />
+        }
+        onChange={[Function]}
+        placeholder="E.g.: .opendistro*,.security*"
+        setByEnv={false}
       />
       <BooleanSetting
         disabled={false}
