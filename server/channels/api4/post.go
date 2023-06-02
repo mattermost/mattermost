@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -43,6 +44,8 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(acknowledgePost)).Methods("POST")
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods("DELETE")
+
+	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1109,6 +1112,73 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	appErr := c.App.DeleteAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	var moveThreadParams model.MoveThreadParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&moveThreadParams); jsonErr != nil {
+		c.SetInvalidParamWithErr("post", jsonErr)
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// If there are no configured PermittedWranglerUsers, skip the check
+	userHasRole := false || (len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0)
+	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerUsers {
+		if user.IsInRole(role) {
+			userHasRole = true
+			break
+		}
+	}
+
+	// Sysadmins are always permitted
+	if !userHasRole && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
+		return
+	}
+
+	userHasEmailDomain := false || (len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0)
+	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
+		if user.EmailDomain() == domain {
+			userHasEmailDomain = true
+			break
+		}
+	}
+
+	if !userHasEmailDomain && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
+		return
+	}
+
+	sourcePost, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+
+		// Post is inaccessible due to cloud plan's limit.
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+
+		return
+	}
+
+	err = c.App.MoveThread(c.AppContext, c.Params.PostId, sourcePost.ChannelId, moveThreadParams.ChannelId, user)
+	if err != nil {
+		c.Err = err
 		return
 	}
 

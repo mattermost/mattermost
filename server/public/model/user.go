@@ -1040,3 +1040,7 @@ type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
 }
+
+func (u *User) EmailDomain() string {
+	return strings.Split(u.Email, "@")[1]
+}

@@ -228,7 +228,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
 
     const postPreviewFooterMessage = formatMessage({
         id: 'forward_post_modal.preview.footer_message',
-        defaultMessage: 'Originally posted in ~{channelName}',
+        defaultMessage: 'Originally posted in ~{channel}',
     },
     {
         channel: channel.display_name,

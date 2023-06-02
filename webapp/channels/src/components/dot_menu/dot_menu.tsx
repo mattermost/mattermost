@@ -25,7 +25,7 @@ import {
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS, Preferences} from 'utils/constants';
 import DeletePostModal from 'components/delete_post_modal';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
@@ -38,6 +38,7 @@ import {ModalData} from 'types/actions';
 import {UserThread} from '@mattermost/types/threads';
 import {Post} from '@mattermost/types/posts';
 import ForwardPostModal from '../forward_post_modal';
+import MoveThreadModal from '../move_thread_modal';
 
 import {ChangeEvent, trackDotMenuEvent} from './utils';
 
@@ -73,6 +74,7 @@ type Props = {
     isMobileView: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
+    canMove: boolean;
 
     actions: {
 
@@ -264,6 +266,25 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(deletePostModalData);
     };
 
+    handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
+        e.preventDefault();
+        if (!this.props.canMove) {
+            return;
+        }
+
+        trackDotMenuEvent(e, TELEMETRY_LABELS.MOVE_THREAD);
+        const moveThreadModalData = {
+            modalId: ModalIdentifiers.MOVE_THREAD_MODAL,
+            dialogType: MoveThreadModal,
+            dialogProps: {
+                post: this.props.post,
+            },
+        };
+
+        this.props.actions.setGlobalItem(Preferences.FORWARD_POST_VIEWED, false);
+        this.props.actions.openModal(moveThreadModalData);
+    }
+
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
         if (!this.canPostBeForwarded) {
             // adding this early return since only hiding the Item from the menu is not enough,
@@ -377,6 +398,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         case Keyboard.isKeyPressed(e, Constants.KeyCodes.DELETE):
             this.handleDeleteMenuItemActivated(e);
             this.handleDropdownOpened(false);
+            break;
+        
+        // move thread
+        case Keyboard.isKeyPressed(e, Constants.KeyCodes.W):
+            this.handleMoveThreadMenuItemActivated(e);
+            this.props.handleDropdownOpened(false);
             break;
 
             // pin / unpin
@@ -621,6 +648,15 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handlePinMenuItemActivated}
                     />
                 }
+                {Boolean(!isSystemMessage && this.props.canMove) && 
+                    <Menu.Item
+                        id={`move_thread_${this.props.post.id}`}
+                        labels={<FormattedMessage id={'post_info.move_thread'} defaultMessage={'Move Thread'}/>}
+                        leadingElement={Utils.getMenuItemIcon('icon-message-arrow-right-outline')}
+                        trailingElements={<ShortcutKey shortcutKey='W'/>}
+                        onClick={this.handleMoveThreadMenuItemActivated}
+                    />
+            }
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
                 {!isSystemMessage &&
                     <Menu.Item

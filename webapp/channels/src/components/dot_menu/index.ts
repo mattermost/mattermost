@@ -11,6 +11,7 @@ import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/sele
 import {getCurrentTeamId, getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {makeCanWrangler} from 'selectors/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
@@ -62,6 +63,7 @@ type Props = {
 
 function makeMapStateToProps() {
     const getThreadOrSynthetic = makeGetThreadOrSynthetic();
+    const canWrangler = makeCanWrangler();
 
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const {post} = ownProps;
@@ -128,6 +130,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
+            canMove: canWrangler(state, channel.type, threadReplyCount),
         };
     };
 }

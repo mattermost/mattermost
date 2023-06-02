@@ -30,6 +30,7 @@ export type PostType = 'system_add_remove' |
 'system_fake_parent_deleted' |
 'system_generic' |
 'reminder' |
+'system_wrangler' |
 '';
 
 export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';

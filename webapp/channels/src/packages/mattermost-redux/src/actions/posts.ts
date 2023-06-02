@@ -1232,6 +1232,23 @@ export function selectPost(postId: string) {
     };
 }
 
+export function moveThread(postId: string, channelId: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        try {
+            await Client4.moveThread(postId, channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: PostTypes.MOVE_POST_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: PostTypes.MOVE_POST_SUCCESS});
+
+        return {data: true};
+    };
+}
+
 export function selectFocusedPostId(postId: string) {
     return {
         type: PostTypes.RECEIVED_FOCUSED_POST,

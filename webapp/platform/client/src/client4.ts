@@ -1072,6 +1072,14 @@ export default class Client4 {
         );
     }
 
+    moveThread = (postId: string, channelId: string) => {
+        const url = this.getPostRoute(postId) + '/move';
+        return this.doFetch<StatusOK>(
+            url,
+            {method: 'post', body: JSON.stringify({channel_id: channelId})},
+        );
+    }
+
     switchEmailToOAuth = (service: string, email: string, password: string, mfaCode = '') => {
         this.trackEvent('api', 'api_users_email_to_oauth');
 

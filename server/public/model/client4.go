@@ -4169,6 +4169,21 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 	return &list, BuildResponse(r), nil
 }
 
+// MoveThread moves a thread based on provided post id, and channel id string.
+func (c *Client4) MoveThread(postId string, params *MoveThreadParams) (*Response, error) {
+	js, err := json.Marshal(params)
+	if err != nil {
+		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(c.postRoute(postId)+"/move", string(js))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
 func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int, collapsedThreads bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
