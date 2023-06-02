@@ -7,7 +7,10 @@ MME2E_DASHBOARD_REF_DEFAULT="origin/main"
 MME2E_DASHBOARD_REF=${MME2E_DASHBOARD_REF:-$MME2E_DASHBOARD_REF_DEFAULT}
 
 mme2e_log "Cloning the automation-dashboard project"
-[ -d dashboard ] || git clone https://github.com/saturninoabril/automation-dashboard.git dashboard
+if [ ! -d dashboard ]; then
+  git clone https://github.com/saturninoabril/automation-dashboard.git dashboard
+  . .e2erc # Must reinitialize some variables that depend on the dashboard repo being checked out
+fi
 git -C dashboard fetch
 git -C dashboard checkout $MME2E_DASHBOARD_REF
 
@@ -20,6 +23,7 @@ MME2E_DC_DASHBOARD_GATEWAY=$(docker network inspect $MME2E_DC_DASHBOARD_NETWORK 
 AUTOMATION_DASHBOARD_URL="http://${MME2E_DC_DASHBOARD_GATEWAY}:4000/api"
 
 mme2e_log "Generating a signed JWT token for accessing the dashboard"
+${MME2E_DC_DASHBOARD} exec -T -u $MME2E_UID dashboard npm i
 AUTOMATION_DASHBOARD_TOKEN=$(${MME2E_DC_DASHBOARD} exec -T -u $MME2E_UID dashboard node script/sign.js | awk '{ print $2; }') # The token secret is specified in the dashboard.override.yml file
 
 mme2e_log "Generating the .env.dashboard file, to point Cypress to the dashboard URL"

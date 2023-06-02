@@ -68,7 +68,7 @@ mme2e_wait_image () {
 mme2e_legacy_setup () {
   # These functions are needed until every pipeline depending on the `server/build/gitlab-dc.*.yml` files is adapted to not use external docker networking anymore
   # After that is fixed, this function and the external network in the docker-compose files may be removed
-  export COMPOSE_PROJECT_NAME=mmserver
+  export COMPOSE_PROJECT_NAME=mmserver_legacy
   docker network inspect ${COMPOSE_PROJECT_NAME} >/dev/null 2>&1 || docker network create ${COMPOSE_PROJECT_NAME}
 }
 
