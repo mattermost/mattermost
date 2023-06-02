@@ -38,7 +38,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
         whileElementsMounted: autoUpdate,
         middleware: [
             offset(5),
-            flip({fallbackPlacements: ['top-start', 'left-start', 'right-start', 'bottom-start'], padding: 5}),
+            flip({fallbackPlacements: ['bottom-end', 'top-start', 'top-end', 'right-start', 'left-start'], padding: 5}),
             shift(),
         ],
     });
