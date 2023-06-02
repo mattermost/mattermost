@@ -27,3 +27,8 @@ services:
     command: postgres:5432
     networks:
       default:
+
+networks:
+  default:
+    external:
+      name: ${COMPOSE_PROJECT_NAME}

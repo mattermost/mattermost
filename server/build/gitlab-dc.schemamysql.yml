@@ -29,3 +29,8 @@ services:
     command: mysql:3306
     networks:
       default:
+
+networks:
+  default:
+    external:
+      name: ${COMPOSE_PROJECT_NAME}

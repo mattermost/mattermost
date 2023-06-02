@@ -65,6 +65,12 @@ mme2e_wait_image () {
   RETRIES_INTERVAL=${3:-10}
   mme2e_wait_command_success "docker pull $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
 }
+mme2e_legacy_setup () {
+  # These functions are needed until every pipeline depending on the `server/build/gitlab-dc.*.yml` files is adapted to not use external docker networking anymore
+  # After that is fixed, this function and the external network in the docker-compose files may be removed
+  export COMPOSE_PROJECT_NAME=mmserver
+  docker network inspect ${COMPOSE_PROJECT_NAME} >/dev/null 2>&1 || docker network create ${COMPOSE_PROJECT_NAME}
+}
 
 # Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
 # NB: this won't work in the script
@@ -73,3 +79,4 @@ alias docker-compose-mmdashboard="${MME2E_DC_DASHBOARD}"
 
 # Call prerequisite utility functions
 mme2e_load_env_file
+mme2e_legacy_setup # Temporary

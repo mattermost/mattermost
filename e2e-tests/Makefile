@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 .PHONY: all run stop
 all: run
 run: start-server prepare-server run-cypress
@@ -24,5 +26,5 @@ stop-dashboard:
 print-env-placeholders:
 	find .ci -maxdepth 1 -name '.env.*'  | xargs --verbose -l cat
 clean-env-placeholders:
-	git reset .ci/.env.*
-	git checkout .ci/.env.*
+	git reset .ci/.env.{cypress,server,dashboard}
+	git checkout .ci/.env.{cypress,server,dashboard}
