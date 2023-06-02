@@ -1,5 +1,0 @@
-dashboard
-env
-!.env.cypress
-!.env.server
-!.env.dashboard

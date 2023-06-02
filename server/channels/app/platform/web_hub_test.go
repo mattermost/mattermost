@@ -484,9 +484,9 @@ func TestHubIsRegistered(t *testing.T) {
 	defer wc2.Close()
 	defer wc3.Close()
 
-	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load().(*model.Session)))
-	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
-	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
+	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load()))
 
 	session4, err := th.Service.CreateSession(&model.Session{
 		UserId: th.BasicUser2.Id,

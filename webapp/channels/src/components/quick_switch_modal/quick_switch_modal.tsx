@@ -19,7 +19,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list.jsx';
-import SwitchChannelProvider from 'components/suggestion/switch_channel_provider.jsx';
+import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 
 const CHANNEL_MODE = 'channel';

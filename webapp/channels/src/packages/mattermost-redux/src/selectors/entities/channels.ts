@@ -349,7 +349,7 @@ export function makeGetChannelUnreadCount(): (state: GlobalState, channelId: str
     );
 }
 
-export function getChannelByName(state: GlobalState, channelName: string): Channel | undefined | null {
+export function getChannelByName(state: GlobalState, channelName: string): Channel | undefined {
     return getChannelByNameHelper(getAllChannels(state), channelName);
 }
 
