@@ -11,7 +11,7 @@ To interact with a workspace using npm, such as to add a dependency or run a scr
 npm add react --workspace=boards
 
 # Build multiple packages
-npm run build --workspace=packages/client --workspace=packages/components
+npm run build --workspace=platform/client --workspace=platform/components
 
 # Test all workspaces
 npm test --workspaces
