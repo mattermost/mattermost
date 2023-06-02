@@ -309,6 +309,26 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
+  <MenuItem
+    id="move_thread_post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Move Thread"
+        id="post_info.move_thread"
+      />
+    }
+    leadingElement={
+      <span
+        className="icon-message-arrow-right-outline MenuItem__compass-icon"
+      />
+    }
+    onClick={[Function]}
+    trailingElements={
+      <ShortcutKey
+        shortcutKey="W"
+      />
+    }
+  />
   <MenuItemSeparator />
   <MenuItem
     data-testid="permalink_post_id_1"

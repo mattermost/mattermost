@@ -16,34 +16,6 @@
     "translation": "February"
   },
   {
-    "id": "api.post.move_thread.no_permission",
-    "translation": "You do not have permission to move this thread."
-  },
-  {
-    "id": "app.post.move_thread_command.channel.multiple_messages",
-    "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
-  },
-  {
-    "id": "app.post.move_thread_command.channel.one_message",
-    "translation": "A message has been moved: {{.Link}}\n"
-  },
-  {
-    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "A thread with {{.NumMessages}} messages has been moved to a Direct/Group Message\n"
-  },
-  {
-    "id": "app.post.move_thread_command.direct_or_group.one_message",
-    "translation": "A message has been moved to a Direct/Group Message\n"
-  },
-  {
-    "id": "app.post.move_thread_command.error",
-    "translation": "Unable to remove thread"
-  },
-  {
-    "id": "model.config.is_valid.wrangler_settings.domain_invalid.app_error",
-    "translation": "Invalid domain for wrangler settings"
-  },
-  {
     "id": "January",
     "translation": "January"
   },
@@ -2398,6 +2370,10 @@
   {
     "id": "api.post.link_preview_disabled.app_error",
     "translation": "Link previews have been disabled by the system administrator."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -6284,6 +6260,26 @@
     "translation": "Failed to marshal post."
   },
   {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "A message has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "A message has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
+  },
+  {
     "id": "app.post.overwrite.app_error",
     "translation": "Unable to overwrite the Post."
   },
@@ -9118,6 +9114,10 @@
   {
     "id": "model.config.is_valid.websocket_url.app_error",
     "translation": "Websocket URL must be a valid URL and start with ws:// or wss://."
+  },
+  {
+    "id": "model.config.is_valid.wrangler_settings.domain_invalid.app_error",
+    "translation": "Invalid domain for wrangler settings"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",

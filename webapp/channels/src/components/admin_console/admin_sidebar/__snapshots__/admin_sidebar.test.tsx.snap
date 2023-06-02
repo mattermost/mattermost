@@ -928,6 +928,17 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               }
             />
             <AdminSidebarSection
+              definitionKey="site.wrangler"
+              key="site.wrangler"
+              name="site_config/wrangler"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wrangler"
+                  id="admin.sidebar.wrangler"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="site.file_sharing_downloads"
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
@@ -1658,6 +1669,17 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wrangler"
+              key="site.wrangler"
+              name="site_config/wrangler"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wrangler"
+                  id="admin.sidebar.wrangler"
                 />
               }
             />
@@ -2451,6 +2473,17 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               }
             />
             <AdminSidebarSection
+              definitionKey="site.wrangler"
+              key="site.wrangler"
+              name="site_config/wrangler"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wrangler"
+                  id="admin.sidebar.wrangler"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="site.file_sharing_downloads"
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
@@ -3181,6 +3214,17 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wrangler"
+              key="site.wrangler"
+              name="site_config/wrangler"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wrangler"
+                  id="admin.sidebar.wrangler"
                 />
               }
             />
@@ -3970,6 +4014,17 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wrangler"
+              key="site.wrangler"
+              name="site_config/wrangler"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wrangler"
+                  id="admin.sidebar.wrangler"
                 />
               }
             />
@@ -4884,6 +4939,17 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.wrangler"
+              key="site.wrangler"
+              name="site_config/wrangler"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Wrangler"
+                  id="admin.sidebar.wrangler"
                 />
               }
             />
