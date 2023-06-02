@@ -1082,7 +1082,6 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
                     <SettingsGroup
-                        id={'PluginSettings'}
                         container={false}
                     >
                         {this.renderEnablePluginsSetting()}

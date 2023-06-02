@@ -11,7 +11,7 @@ import * as Utils from 'utils/utils';
 
 import AdminSettings, {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import SettingsGroup from './settings_group.js';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 interface SessionLengthSettingsState extends BaseState {
