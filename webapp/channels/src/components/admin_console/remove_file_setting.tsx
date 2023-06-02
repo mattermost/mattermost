@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent} from 'react';
+import React, {PureComponent, MouseEvent} from 'react';
 
 import Setting, {Props as SettingsProps} from './setting';
 
@@ -16,7 +16,11 @@ type Props = SettingsProps & {
     disabled?: boolean;
 }
 
-export default class RemoveFileSetting extends React.Component<Props, {removing: boolean}> {
+type State = {
+    removing: boolean;
+}
+
+export default class RemoveFileSetting extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
