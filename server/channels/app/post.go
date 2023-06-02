@@ -2339,12 +2339,12 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 	}
 
 	if *config.MoveThreadMaxCount != int64(0) && *config.MoveThreadMaxCount < int64(wpl.NumPosts()) {
-		return errors.New(fmt.Sprintf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), config.MoveThreadMaxCount))
+		return fmt.Errorf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), config.MoveThreadMaxCount)
 	}
 
 	_, appErr := a.GetChannelMember(c, targetChannel.Id, user.Id)
 	if appErr != nil {
-		return errors.New(fmt.Sprintf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id))
+		return fmt.Errorf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id)
 	}
 
 	return nil

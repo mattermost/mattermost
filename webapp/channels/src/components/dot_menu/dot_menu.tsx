@@ -283,7 +283,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         this.props.actions.setGlobalItem(Preferences.FORWARD_POST_VIEWED, false);
         this.props.actions.openModal(moveThreadModalData);
-    }
+    };
 
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
         if (!this.canPostBeForwarded) {
@@ -399,7 +399,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleDeleteMenuItemActivated(e);
             this.handleDropdownOpened(false);
             break;
-        
+
         // move thread
         case Keyboard.isKeyPressed(e, Constants.KeyCodes.W):
             this.handleMoveThreadMenuItemActivated(e);
@@ -648,15 +648,19 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handlePinMenuItemActivated}
                     />
                 }
-                {Boolean(!isSystemMessage && this.props.canMove) && 
+                {Boolean(!isSystemMessage && this.props.canMove) &&
                     <Menu.Item
                         id={`move_thread_${this.props.post.id}`}
-                        labels={<FormattedMessage id={'post_info.move_thread'} defaultMessage={'Move Thread'}/>}
+                        labels={
+                            <FormattedMessage
+                                id={'post_info.move_thread'}
+                                defaultMessage={'Move Thread'}
+                            />}
                         leadingElement={Utils.getMenuItemIcon('icon-message-arrow-right-outline')}
                         trailingElements={<ShortcutKey shortcutKey='W'/>}
                         onClick={this.handleMoveThreadMenuItemActivated}
                     />
-            }
+                }
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
                 {!isSystemMessage &&
                     <Menu.Item

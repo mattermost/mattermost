@@ -629,7 +629,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
                 onChange={this.handleChange}
             />
         );
-    }
+    };
 
     buildLanguageSetting = (setting) => {
         const locales = I18n.getAllLanguages();

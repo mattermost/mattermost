@@ -195,6 +195,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
             className='a11y__modal forward-post move-thread'
             id='forward-post-modal'
             show={true}
+
             // enforceFocus={false}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
