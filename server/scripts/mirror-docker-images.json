@@ -29,5 +29,8 @@
   },
   "cypress-browsers-public": {
     "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace"
+  },
+  "golang": {
+    "1.19.5": "golang:1.19.5@sha256:bb9811fad43a7d6fd2173248d8331b2dcf5ac9af20976b1937ecd214c5b8c383"
   }
 }

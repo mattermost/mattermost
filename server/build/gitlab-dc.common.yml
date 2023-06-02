@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   minio:
-    image: public.ecr.aws/mattermostqa/minio:RELEASE.2019-10-11T00-38-09Z-1
+    image: mattermostdevelopment/mirrored-minio:RELEASE.2019-10-11T00-38-09Z-1
     command: "server /data"
     environment:
       MINIO_ACCESS_KEY: minioaccesskey
@@ -13,7 +13,7 @@ services:
       timeout: 15s
       retries: 12
   inbucket:
-    image: public.ecr.aws/mattermostqa/inbucket:3.0.0
+    image: mattermostdevelopment/mirrored-inbucket:3.0.0
     restart: always
     environment:
       INBUCKET_WEB_ADDR: "0.0.0.0:9001"
@@ -25,7 +25,7 @@ services:
       timeout: 15s
       retries: 12
   openldap:
-    image: public.ecr.aws/mattermostqa/openldap:1.4.0
+    image: mattermostdevelopment/mirrored-openldap:1.4.0
     restart: always
     environment:
       LDAP_TLS_VERIFY_CLIENT: "never"
@@ -54,14 +54,14 @@ services:
       timeout: 15s
       retries: 12
   dejavu:
-    image: public.ecr.aws/mattermostqa/dejavu:3.4.2
+    image: mattermostdevelopment/mirrored-dejavu:3.4.2
     healthcheck:
       test: [ "CMD", "nc", "-z", "-w1", "127.0.0.1", "1358" ]
       interval: 10s
       timeout: 15s
       retries: 12
   keycloak:
-    image: public.ecr.aws/mattermostqa/keycloak:10.0.2
+    image: mattermostdevelopment/mirrored-keycloak:10.0.2
     restart: always
     environment:
       KEYCLOAK_USER: mmuser
@@ -76,7 +76,7 @@ services:
       timeout: 15s
       retries: 12
   prometheus:
-    image: public.ecr.aws/mattermostqa/prometheus:v2.27.1
+    image: mattermostdevelopment/mirrored-prometheus:v2.27.1
     volumes:
       - "./docker/prometheus-linux.yml:/etc/prometheus/prometheus.yml"
     healthcheck:
@@ -86,7 +86,7 @@ services:
       retries: 12
   # wget -q -O- localhost:3000/healthz | grep -q Ok
   grafana:
-    image: public.ecr.aws/mattermostqa/grafana:8.0.1
+    image: mattermostdevelopment/mirrored-grafana:8.0.1
     volumes:
      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"

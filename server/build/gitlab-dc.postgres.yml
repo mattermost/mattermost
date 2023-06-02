@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   postgres:
-    image: public.ecr.aws/mattermostqa/postgres:12
+    image: mattermostdevelopment/mirrored-postgres:12
     restart: always
     environment:
       POSTGRES_USER: mmuser

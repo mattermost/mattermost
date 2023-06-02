@@ -19,6 +19,7 @@ ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress tee tests/fixtures/keycloak.
 
 # Generate the test mattermosts-server config, and restart its container
 mme2e_log "Prepare Server: patching the mattermost-server config"
+${MME2E_DC_SERVER} exec -T  -- utils bash -c "apt update && apt install -y jq"
 ${MME2E_DC_SERVER} exec -T -e "OUTPUT_CONFIG=/tmp/config_generated.json" -w /opt/mattermost-server/server -- utils go run scripts/config_generator/main.go
 ${MME2E_DC_SERVER} exec -T -- utils bash <<EOF
 jq "

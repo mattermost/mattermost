@@ -68,7 +68,7 @@ services:
           - webhook-interactions
 
   cypress:
-    image: "public.ecr.aws/mattermostqa/cypress-browsers-public:node16.14.2-slim-chrome100-ff99-edge"
+    image: "mattermostdevelopment/mirrored-cypress-browsers-public:node16.14.2-slim-chrome100-ff99-edge"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     env_file:
@@ -113,7 +113,7 @@ services:
       - "../../e2e-tests/cypress/:/app"
 
   utils:
-    image: "public.ecr.aws/mattermostqa/mattermost-build-server:20220415_golang-1.18.1"
+    image: "mattermostdevelopment/mirrored-golang:1.19.5"
     entrypoint: [ "/bin/bash", "-c" ]
     command: [ "until [ -f /var/run/mm_terminate ]; do sleep 5; done" ]
     working_dir: "/opt/mattermost-server"

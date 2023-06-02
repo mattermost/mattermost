@@ -1,5 +1,4 @@
 ---
-# TODO before merge: do a first manual upload run, and adapt the image references in the docker-compose files
 name: Push mirrored docker images
 on:
   push:
