@@ -164,6 +164,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
     }
 
     // listen for messages from the desktop app
+    // TODO: This needs to be deprecated in favour of a more solid Desktop App API.
     private onDesktopMessageListener = (desktopMessage: DesktopMessage) => {
         if (!this.props.currentUser) {
             return;
@@ -174,6 +175,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
         switch (desktopMessage.data.type) {
         case 'register-desktop': {
+            // Currently used by calls
             const {version} = desktopMessage.data.message;
             if (!window.desktop) {
                 window.desktop = {};

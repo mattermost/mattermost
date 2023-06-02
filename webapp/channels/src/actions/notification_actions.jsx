@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import semver from 'semver';
-
 import {logError} from 'mattermost-redux/actions/errors';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -213,8 +211,8 @@ export function sendDesktopNotification(post, msgProps) {
 }
 
 const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
-    // handle notifications in desktop app >= 4.3.0
-    if (isDesktopApp() && window.desktop && semver.gte(window.desktop.version, '4.3.0')) {
+    // handle notifications in desktop app
+    if (isDesktopApp()) {
         const msg = {
             title,
             body,
@@ -222,16 +220,8 @@ const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (disp
             teamId,
             silent,
         };
-
-        if (isDesktopApp() && window.desktop) {
-            if (semver.gte(window.desktop.version, '4.6.0')) {
-                msg.data = {soundName};
-            }
-
-            if (semver.gte(window.desktop.version, '4.7.2')) {
-                msg.url = url;
-            }
-        }
+        msg.data = {soundName};
+        msg.url = url;
 
         // get the desktop app to trigger the notification
         window.postMessage(

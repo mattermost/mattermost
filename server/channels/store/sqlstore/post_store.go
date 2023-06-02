@@ -223,6 +223,10 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		return nil, -1, errors.Wrap(err, "failed to save PostPriority")
 	}
 
+	if err = s.savePostsPersistentNotifications(transaction, posts); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to save posts persistent notifications")
+	}
+
 	if err = transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
 		return posts, -1, errors.Wrap(err, "commit_transaction")
@@ -2548,6 +2552,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 }
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
+// For any changes, accordingly update the markdown maxLen here - markdown/inspect.go.
 func (s *SqlPostStore) GetMaxPostSize() int {
 	s.maxPostSizeOnce.Do(func() {
 		s.maxPostSizeCached = s.determineMaxPostSize()
@@ -2997,6 +3002,20 @@ func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*mo
 				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
 			}
 			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapper, posts []*model.Post) error {
+	for _, post := range posts {
+		if priority := post.GetPriority(); priority != nil && priority.PersistentNotifications != nil && *priority.PersistentNotifications {
+			if _, err := transaction.NamedExec(`INSERT INTO PersistentNotifications (PostId, CreateAt, LastSentAt, DeleteAt, SentCount) VALUES (:PostId, :CreateAt, :LastSentAt, :DeleteAt, :SentCount)`, &model.PostPersistentNotifications{
+				PostId:   post.Id,
+				CreateAt: post.CreateAt,
+			}); err != nil {
 				return err
 			}
 		}
