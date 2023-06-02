@@ -34,11 +34,11 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
     const {x, y, reference, floating, strategy, context} = useFloating({
         open: isPopperOpen,
         onOpenChange: () => handlePopperOpenState(false),
-        placement: 'bottom',
+        placement: 'bottom-start',
         whileElementsMounted: autoUpdate,
         middleware: [
             offset(5),
-            flip({fallbackPlacements: ['bottom', 'right'], padding: 5}),
+            flip({fallbackPlacements: ['top-start', 'left-start', 'right-start', 'bottom-start'], padding: 5}),
             shift(),
         ],
     });
@@ -82,23 +82,23 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                 >
                     <div
                         ref={floating}
+                        style={{
+                            position: strategy,
+                            top: y ?? 0,
+                            left: x ?? 0,
+                            width: 'auto',
+                            zIndex: 999,
+                        }}
+                        {...getFloatingProps()}
                     >
                         <DayPicker
                             {...datePickerProps}
-                            style={{
-                                position: strategy,
-                                top: y ?? 0,
-                                left: x ?? 0,
-                                width: 'auto',
-                                zIndex: 999,
-                            }}
                             className='date-picker__popper'
                             locale={loadedLocales[locale]}
                             components={{
                                 IconRight: iconRight,
                                 IconLeft: iconLeft,
                             }}
-                            {...getFloatingProps}
                         />
                     </div>
 
