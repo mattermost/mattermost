@@ -63,7 +63,7 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304" \
             -v ~/work/mattermost:/mm \
             -w /mm \
-            $BUILD_IMAGE&
+            $BUILD_IMAGE &
           # In parallel, wait for the migrations to finish.
           # To verify this, we check that the server has finished the startup job through the log line "Server is listening on"
           until docker logs mmserver | grep "Server is listening on"; do\
