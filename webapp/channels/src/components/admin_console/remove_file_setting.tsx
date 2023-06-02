@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {MouseEvent} from 'react';
 
-import Setting, {SettingsProps} from './setting';
+import Setting, {Props as SettingsProps} from './setting';
 
 type Props = SettingsProps & {
     id: string;
@@ -25,7 +25,7 @@ export default class RemoveFileSetting extends React.Component<Props, {removing:
         };
     }
 
-    handleRemove = (e: React.MouseEvent<HTMLElement>) => {
+    handleRemove = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         this.setState({removing: true});

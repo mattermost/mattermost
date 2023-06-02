@@ -5,7 +5,7 @@ import React, {PureComponent} from 'react';
 
 import SetByEnv from './set_by_env';
 
-export type SettingsProps = {
+export type Props = {
     inputId?: string;
     label: React.ReactNode;
     children: React.ReactNode;
@@ -13,7 +13,7 @@ export type SettingsProps = {
     setByEnv?: boolean;
 }
 
-export default class Settings extends PureComponent<SettingsProps> {
+export default class Settings extends PureComponent<Props> {
     public render() {
         const {
             children,
