@@ -384,7 +384,7 @@ async function initializeModuleFederation() {
 
     // Desktop specific code for remote module loading
     moduleFederationPluginOptions.exposes = {
-        './app': 'components/app.jsx',
+        './app': 'components/app',
         './store': 'stores/redux_store.jsx',
         './styles': './src/sass/styles.scss',
         './registry': 'module_registry',
