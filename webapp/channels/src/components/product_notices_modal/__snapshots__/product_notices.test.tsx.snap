@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={true}
   bodyPadding={true}
@@ -38,11 +38,11 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
   <div
     className="productNotices__info"
   />
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={true}
   bodyPadding={true}
@@ -117,11 +117,11 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
       />
     </span>
   </div>
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] = `
-<GenericModal
+<LegacyGenericModal
   autoCloseOnCancelButton={false}
   autoCloseOnConfirmButton={false}
   bodyPadding={true}
@@ -200,7 +200,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
       id="inProduct_notices.adminOnlyMessage"
     />
   </div>
-</GenericModal>
+</LegacyGenericModal>
 `;
 
 exports[`ProductNoticesModal Should match snapshot when there are no notices 1`] = `""`;

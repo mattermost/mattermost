@@ -52,6 +52,7 @@ function errorDefFromId(id: ErrorId | null): ErrorDef {
         errDef.button1Text = intl.formatMessage({id: 'error.back-to-home', defaultMessage: 'Back to home'})
         errDef.button1Redirect = (): string => {
             UserSettings.setLastTeamID(null)
+
             return window.location.origin
         }
         errDef.button1Fill = true
@@ -75,6 +76,7 @@ function errorDefFromId(id: ErrorId | null): ErrorDef {
             if (r) {
                 return `/login?r=${r}`
             }
+
             return '/login'
         }
         errDef.button1Fill = true
@@ -100,6 +102,7 @@ function errorDefFromId(id: ErrorId | null): ErrorDef {
         break
     }
     }
+
     return errDef
 }
 

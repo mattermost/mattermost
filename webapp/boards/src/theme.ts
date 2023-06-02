@@ -229,6 +229,7 @@ export function loadTheme(): Theme {
             const theme = JSON.parse(themeStr)
             const consolidatedTheme = setTheme(theme)
             setActiveThemeName(consolidatedTheme, theme)
+
             return consolidatedTheme
         } catch (e) {
             return setTheme(null)

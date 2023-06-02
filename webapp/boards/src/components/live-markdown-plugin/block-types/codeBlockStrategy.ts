@@ -4,7 +4,7 @@ import {
     ContentBlock,
     ContentState,
     Modifier,
-    SelectionState
+    SelectionState,
 } from 'draft-js'
 
 import {BlockStrategy} from 'src/components/live-markdown-plugin/pluginStrategy'
@@ -83,9 +83,9 @@ const createCodeBlockStrategy = (): BlockStrategy => {
                 const isDelimiterBlock = i === 0 || i === codeBlockKeys.length - 1
                 const block = newContentState.getBlockForKey(blockKey)
                 const newBlockMap = newContentState.getBlockMap()
-                const data = block.
-                    getData().
-                    merge({language: isDelimiterBlock ? undefined : language})
+                const data = block
+                    .getData()
+                    .merge({language: isDelimiterBlock ? undefined : language})
                 const newBlock = block.merge({data}) as ContentBlock
                 newContentState = newContentState.merge({
                     blockMap: newBlockMap.set(blockKey, newBlock),

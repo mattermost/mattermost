@@ -5,14 +5,14 @@ import {
     fireEvent,
     render,
     screen,
-    within
+    within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import Mutator from 'src/mutator'
-import {wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import {IPropertyOption} from 'src/blocks/board'
 
@@ -99,7 +99,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         expect(container).toMatchSnapshot()
     })
-    test('return kanbanColumnHeader and edit title', async() => {
+    test('return kanbanColumnHeader and edit title', async () => {
         const mockedPropertyNameChanged = jest.fn()
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>

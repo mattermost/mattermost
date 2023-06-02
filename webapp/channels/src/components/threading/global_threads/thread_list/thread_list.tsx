@@ -233,7 +233,6 @@ const ThreadList = ({
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}
-                                disabled={!someUnread}
                                 className={'Button___large Button___icon'}
                                 onClick={handleOpenMarkAllAsReadModal}
                                 marginTop={true}

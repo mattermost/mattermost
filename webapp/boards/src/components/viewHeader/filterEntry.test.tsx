@@ -13,7 +13,7 @@ import {FilterClause} from 'src/blocks/filterClause'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 
 import mutator from 'src/mutator'
 

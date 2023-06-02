@@ -284,6 +284,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -589,6 +590,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -893,6 +895,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -1196,6 +1199,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -1499,6 +1503,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -1802,6 +1807,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -2074,6 +2080,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -2409,6 +2416,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -2712,6 +2720,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3036,6 +3045,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3381,6 +3391,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3685,6 +3696,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -3988,6 +4000,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -4310,6 +4323,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -4626,6 +4640,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",
@@ -4938,6 +4953,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           "msg_count": 0,
           "msg_count_root": 0,
           "notify_props": Object {
+            "channel_auto_follow_threads": "off",
             "desktop": "default",
             "email": "default",
             "ignore_channel_mentions": "default",

@@ -13,7 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 var (
@@ -95,10 +95,10 @@ func (a *App) writeArchiveBoard(zw *zip.Writer, board model.Board, opt model.Exp
 		if err = a.writeArchiveBlockLine(w, block); err != nil {
 			return err
 		}
-		if block.Type == model.TypeImage {
-			filename, err2 := extractImageFilename(block)
+		if block.Type == model.TypeImage || block.Type == model.TypeAttachment {
+			filename, err2 := extractFilename(block)
 			if err2 != nil {
-				return err
+				return err2
 			}
 			files = append(files, filename)
 		}
@@ -208,7 +208,10 @@ func (a *App) writeArchiveFile(zw *zip.Writer, filename string, boardID string, 
 		return err
 	}
 
-	src, err := a.GetFileReader(opt.TeamID, boardID, filename)
+	_, fileReader, err := a.GetFile(opt.TeamID, boardID, filename)
+	if err != nil && !model.IsErrNotFound(err) {
+		return err
+	}
 	if err != nil {
 		// just log this; image file is missing but we'll still export an equivalent board
 		a.logger.Error("image file missing for export",
@@ -218,9 +221,9 @@ func (a *App) writeArchiveFile(zw *zip.Writer, filename string, boardID string, 
 		)
 		return nil
 	}
-	defer src.Close()
+	defer fileReader.Close()
 
-	_, err = io.Copy(dest, src)
+	_, err = io.Copy(dest, fileReader)
 	return err
 }
 
@@ -239,10 +242,13 @@ func (a *App) getBoardsForArchive(boardIDs []string) ([]model.Board, error) {
 	return boards, nil
 }
 
-func extractImageFilename(imageBlock *model.Block) (string, error) {
-	f, ok := imageBlock.Fields["fileId"]
+func extractFilename(block *model.Block) (string, error) {
+	f, ok := block.Fields["fileId"]
 	if !ok {
-		return "", model.ErrInvalidImageBlock
+		f, ok = block.Fields["attachmentId"]
+		if !ok {
+			return "", model.ErrInvalidImageBlock
+		}
 	}
 
 	filename, ok := f.(string)

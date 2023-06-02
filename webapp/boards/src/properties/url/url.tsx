@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {
+    useCallback,
     useEffect,
     useRef,
     useState,
-    useCallback
 } from 'react'
 import {useIntl} from 'react-intl'
 
@@ -50,7 +50,7 @@ const URLProperty = (props: PropertyProps): JSX.Element => {
     }
     useEffect(() => {
         return () => {
-            saveTextPropertyRef.current && saveTextPropertyRef.current()
+            saveTextPropertyRef.current?.()
         }
     }, [])
 
@@ -87,6 +87,7 @@ const URLProperty = (props: PropertyProps): JSX.Element => {
                             return true
                         }
                         const urlRegexp = /(((.+:(?:\/\/)?)?(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w\-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)/
+
                         return urlRegexp.test(value as string)
                     }}
                 />

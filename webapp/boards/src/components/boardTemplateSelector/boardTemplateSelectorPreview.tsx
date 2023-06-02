@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useState, useMemo} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 
 import {Board} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
@@ -45,6 +45,7 @@ const BoardTemplateSelectorPreview = (props: Props) => {
                 }
             })
         }
+
         return () => {
             isSubscribed = false
         }
@@ -62,6 +63,7 @@ const BoardTemplateSelectorPreview = (props: Props) => {
         if (!activeView) {
             return {visible: [], hidden: []}
         }
+
         return getVisibleAndHiddenGroups(activeTemplateCards, activeView.fields.visibleOptionIds, activeView?.fields.hiddenOptionIds, groupByProperty)
     }, [activeTemplateCards, activeView, groupByProperty])
 

@@ -4,7 +4,6 @@
 import React, {ReactElement, ReactNode} from 'react'
 import {render, screen, waitFor} from '@testing-library/react'
 
-
 import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
@@ -114,6 +113,5 @@ describe('components/addContentMenuItem', () => {
         )
         expect(console.error).toBeCalledWith(expect.stringContaining('addContentMenu, unknown content type: unknown'))
         expect(container).toMatchSnapshot()
-        
     })
 })

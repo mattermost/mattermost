@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
+
 import React from 'react'
 
 import {useDrop} from 'react-dnd'
 
 import {
     Board,
+    BoardGroup,
     IPropertyOption,
     IPropertyTemplate,
-    BoardGroup
 } from 'src/blocks/board'
 import {BoardView} from 'src/blocks/boardView'
 import {Card} from 'src/blocks/card'

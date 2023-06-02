@@ -3,8 +3,7 @@
 
 import {cloneDeep} from 'lodash';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMySystemPermissions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {ResourceToSysConsolePermissionsTable, RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 

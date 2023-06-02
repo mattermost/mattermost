@@ -91,6 +91,7 @@ const filterValue = (props: Props): JSX.Element|null => {
     if (filter.values.length > 0) {
         displayValue = filter.values.map((id) => {
             const option = template?.options.find((o) => o.id === id)
+
             return option?.value || '(Unknown)'
         }).join(', ')
     } else {

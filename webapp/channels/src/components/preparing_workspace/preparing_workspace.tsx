@@ -8,17 +8,22 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
+import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Team} from '@mattermost/types/teams';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getFirstAdminSetupComplete, getConfig, getLicense, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
+
+import {CategoryOther} from '@mattermost/types/work_templates';
 
 import Constants from 'utils/constants';
 import {getSiteURL, teamNameToUrl} from 'utils/url';
 import {makeNewTeam} from 'utils/team_utils';
+import {GlobalState} from 'types/store';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
@@ -40,6 +45,8 @@ import {
 } from './steps';
 
 import Organization from './organization';
+import Roles from './roles';
+import RolesIllustration from './roles_illustration';
 import Plugins from './plugins';
 import Progress from './progress';
 import InviteMembers from './invite_members';
@@ -88,6 +95,7 @@ function makeSubmitFail(step: WizardStep) {
 
 const trackSubmitFail = {
     [WizardSteps.Organization]: makeSubmitFail(WizardSteps.Organization),
+    [WizardSteps.Roles]: makeSubmitFail(WizardSteps.Roles),
     [WizardSteps.Plugins]: makeSubmitFail(WizardSteps.Plugins),
     [WizardSteps.InviteMembers]: makeSubmitFail(WizardSteps.InviteMembers),
     [WizardSteps.LaunchingWorkspace]: makeSubmitFail(WizardSteps.LaunchingWorkspace),
@@ -95,6 +103,7 @@ const trackSubmitFail = {
 
 const onPageViews = {
     [WizardSteps.Organization]: makeOnPageView(WizardSteps.Organization),
+    [WizardSteps.Roles]: makeOnPageView(WizardSteps.Roles),
     [WizardSteps.Plugins]: makeOnPageView(WizardSteps.Plugins),
     [WizardSteps.InviteMembers]: makeOnPageView(WizardSteps.InviteMembers),
     [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
@@ -108,24 +117,28 @@ const PreparingWorkspace = (props: Props) => {
         defaultMessage: 'Something went wrong. Please try again.',
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
+    const isWorkTemplateEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'WorkTemplate') === 'true');
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
 
     // In cloud instances created from portal,
     // new admin user has a team in myTeams but not in currentTeam.
-    let team = currentTeam || myTeams?.[0];
+    const team = currentTeam || myTeams?.[0];
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
     const showOnMountTimeout = useRef<NodeJS.Timeout>();
     const configSiteUrl = config.SiteURL;
+    const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
 
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
+        isWorkTemplateEnabled && WizardSteps.Roles,
         pluginsEnabled && WizardSteps.Plugins,
-        isSelfHosted && WizardSteps.InviteMembers,
+        WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,
     ].filter((x) => Boolean(x)) as WizardStep[];
 
@@ -225,16 +238,15 @@ const PreparingWorkspace = (props: Props) => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
 
-        if (form.organization && !isSelfHosted) {
+        if (!form.teamMembers.skipped && !isConfigSiteUrlDefault && !isSelfHosted) {
             try {
-                const {error, newTeam} = await createTeam(form.organization);
-                if (error !== null) {
-                    redirectWithError(WizardSteps.Organization, genericSubmitError);
+                const inviteResult = await dispatch(sendEmailInvitesToTeamGracefully(team.id, form.teamMembers.invites));
+                if ((inviteResult as ActionResult).error) {
+                    redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-                team = newTeam as Team;
             } catch (e) {
-                redirectWithError(WizardSteps.Organization, genericSubmitError);
+                redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
         }
@@ -253,6 +265,7 @@ const PreparingWorkspace = (props: Props) => {
         // even if admin skipped submitting plugins.
         const completeSetupRequest = {
             organization: form.organization,
+            role: form.role === CategoryOther ? form.roleOther : form.role,
             install_plugins: pluginsToSetup,
         };
 
@@ -267,6 +280,7 @@ const PreparingWorkspace = (props: Props) => {
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
             props.history.push(`/${team.name}/channels${Constants.DEFAULT_CHANNEL}`);
+            trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
         const sendFormEnd = Date.now();
@@ -287,7 +301,7 @@ const PreparingWorkspace = (props: Props) => {
     }, [submissionState]);
 
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
-    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage;
+    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !onboardingFlowEnabled;
 
     useEffect(() => {
         if (shouldRedirect) {
@@ -361,6 +375,15 @@ const PreparingWorkspace = (props: Props) => {
         return '';
     }, [currentStep]);
 
+    const getRolesAnimationClass = useCallback(() => {
+        if (currentStep === WizardSteps.Roles) {
+            return 'enter';
+        } else if (mostRecentStep === WizardSteps.Roles) {
+            return 'exit';
+        }
+        return '';
+    }, [currentStep]);
+
     let previous: React.ReactNode = (
         <div
             onClick={goPrevious}
@@ -427,6 +450,48 @@ const PreparingWorkspace = (props: Props) => {
                     updateTeam={updateTeam}
                 />
 
+                <Roles
+                    onPageView={onPageViews[WizardSteps.Roles]}
+                    previous={previous}
+                    next={() => {
+                        makeNext(WizardSteps.Roles)({
+                            role: form.role,
+                            roleOther: form.roleOther,
+                        });
+                    }}
+                    quickNext={(role: string) => {
+                        setForm({
+                            ...form,
+                            role,
+                            roleOther: '',
+                        });
+                        makeNext(WizardSteps.Roles)({
+                            role,
+                            roleOther: '',
+                        });
+                    }}
+                    skip={() => {
+                        setForm({
+                            ...form,
+                            role: '',
+                            roleOther: '',
+                        });
+                        makeNext(WizardSteps.Roles, true)();
+                    }}
+                    transitionDirection={getTransitionDirection(WizardSteps.Roles)}
+                    show={shouldShowPage(WizardSteps.Roles)}
+                    role={form.role}
+                    roleOther={form.roleOther}
+                    setRole={(role: Form['role'], roleOther: Form['roleOther']) => {
+                        setForm({
+                            ...form,
+                            role,
+                            roleOther,
+                        });
+                    }}
+                    className='child-page'
+                />
+
                 <Plugins
                     isSelfHosted={isSelfHosted}
                     onPageView={onPageViews[WizardSteps.Plugins]}
@@ -434,16 +499,10 @@ const PreparingWorkspace = (props: Props) => {
                     next={() => {
                         const pluginChoices = {...form.plugins};
                         delete pluginChoices.skipped;
-                        if (!isSelfHosted) {
-                            setSubmissionState(SubmissionStates.UserRequested);
-                        }
                         makeNext(WizardSteps.Plugins)(pluginChoices);
                         skipPlugins(false);
                     }}
                     skip={() => {
-                        if (!isSelfHosted) {
-                            setSubmissionState(SubmissionStates.UserRequested);
-                        }
                         makeNext(WizardSteps.Plugins, true)();
                         skipPlugins(true);
                     }}
@@ -460,6 +519,9 @@ const PreparingWorkspace = (props: Props) => {
                     show={shouldShowPage(WizardSteps.Plugins)}
                     transitionDirection={getTransitionDirection(WizardSteps.Plugins)}
                     className='child-page'
+                    handleVisitMarketPlaceClick={() => {
+                        trackEvent('first_admin_setup', 'click_visit_marketplace_link');
+                    }}
                 />
                 <InviteMembers
                     onPageView={onPageViews[WizardSteps.InviteMembers]}
@@ -485,6 +547,18 @@ const PreparingWorkspace = (props: Props) => {
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}
+                    emails={form.teamMembers.invites}
+                    setEmails={(emails: string[]) => {
+                        setForm({
+                            ...form,
+                            teamMembers: {
+                                ...form.teamMembers,
+                                invites: emails,
+                            },
+                        });
+                    }}
+                    inferredProtocol={form.inferredProtocol}
+                    isSelfHosted={isSelfHosted}
                 />
                 <LaunchingWorkspace
                     onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}
@@ -494,6 +568,9 @@ const PreparingWorkspace = (props: Props) => {
             </div>
             <div className={`PreparingWorkspace__invite-members-illustration ${getInviteMembersAnimationClass()}`}>
                 <InviteMembersIllustration/>
+            </div>
+            <div className={`PreparingWorkspace__roles-illustration ${getRolesAnimationClass()}`}>
+                <RolesIllustration/>
             </div>
         </div>
     );

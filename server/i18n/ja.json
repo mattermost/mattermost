@@ -9597,7 +9597,7 @@
   },
   {
     "id": "worktemplate.category.product_teams",
-    "translation": "製品チーム"
+    "translation": "プロダクト"
   },
   {
     "id": "model.draft.is_valid.priority.app_error",
@@ -10022,5 +10022,149 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "営業に問い合わせる"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Zoomなどのよく使われるツールと統合し、チャンネルでの生産性を高めていきましょう。これらはあなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Boardsや統合機能と簡単に連携できるチャンネルで、チームと会話しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "週次目標に向けてスプリントへの分解、優先順位付け、オーナー割り当て、コメントなどを行い、チームの進捗を追跡しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "利用者からのフィードバックや優先順位についてチームで会話し、一緒に進捗を確認しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "プロダクトロードマップBoardを使用して、ユーザーフィードバックの管理、リソースの割り当て、カレンダービューでの成果物の表示、課題の優先順位付などを行いましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "目標や進捗についてチームと会話し、一つのチャンネルで最新の状況が把握することができるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "機能開発プロセスをサポートするタスクチェックリストと自動化機能により、部門を超えたコラボレーションを促進しましょう。開発が完了したら、レトロスペクティブを実施し、次のリリースに向けて改善しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "機能のリリースをサポートするGitHubなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Boards、Playbooks、その他の統合機能と簡単に連携できるチャンネルで、リリースに向けた問題点や変更点についてチームで会話しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "ミーティングアジェンダBoardで会議を滞りなく進めましょう。また、プロジェクトタスクBoardで仕事量を管理しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "チェックリストを使ってテスト担当領域を割り当て、自動タスクを使って包括的なバグバッシュプロセスを遂行しましょう。レトロスペクティブを利用して、プロセスの見直しを行い、次回に向けて改善しましょう。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Bug bashの進捗を追跡するためにJiraなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "チームが簡単にアクセスできるチャンネルで、バグ報告や解決策を計画・管理しましょう。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "目標や進捗についてチームと会話し、一つのチャンネルで最新の状況が把握することができるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "プロダクトのリリースを確実かつ予定通りに行うために、簡単に実行可能な再現性のあるワークフローを作成しましょう。"
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "日々のマイルストーンや問題点、成果物に対する変更について簡潔かつ素早くチームで会話しましょう。"
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "プロダクトリリースBoardを使って、リリースに向けた期間やプロセスを把握し、全員がどのタスクに期限があるかを把握できるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "チェックリストや、主要なチームメンバーを集める自動化を利用して、インシデント解決に向けた作業状況を共有しましょう。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "一つのチャンネルの中で優先順位についてチームで会話し、関係者を追加し、最新情報を提供し、課題解決に向けて作業しましょう。"
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "インシデント解決Boardを使用して、チーム全体で再現性のあるプロセスをサポートし、定義済みのタスクを割り当てます。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "簡単にコラボレーションできるようにするためにZoomなどのよく使うツールを統合し、チャンネルの生産性を向上しましょう。これらのツールは、あなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "目標や進捗についてチームと会話し、一つのチャンネルで最新の状況が把握することができるようにしましょう。"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "GoalsやOKRのBoardを使って、組織目標の達成に向けたチームの進捗を確認しましょう。ミーティングアジェンダBoardを使い、ミーティングを計画的に進めましょう。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "よく使われるツールと統合し、チャンネルでの生産性を高めていきましょう。これらはあなたのためにダウンロードされます。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "共同作業を行うためのチャンネルで新しいプロジェクトについてチームと会話し、どのように進めていくか決定してきましょう。"
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "カンバンボードを使用してタスクと進捗を定義し、追跡しましょう。"
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "ライセンスをアップロードする際の bytes が不正な値です。"
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch バージョン{{.Version}}は、サポートされている最新バージョン{{.MaxVersion}}より高いバージョンです"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "プラグイン {{.Id}} は、既存のバージョンと同じかより新しいため、インストールをスキップします。"
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "プラグイン {{.Id}} はブロックリストに登録されています。いくつかのプラグインは、このバージョンの Mattermost に組み込まれているためブロックされています。"
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWSサーバーがニュースレターを購読できませんでした。"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "トライアル用のビジネス用電子メールが不正です"
   }
 ]

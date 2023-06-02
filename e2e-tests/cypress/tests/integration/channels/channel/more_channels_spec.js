@@ -14,6 +14,11 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
 
+const channelType = {
+    public: 'Channel Type: Public',
+    archived: 'Channel Type: Archived',
+};
+
 describe('Channels', () => {
     let testUser;
     let otherUser;
@@ -65,7 +70,7 @@ describe('Channels', () => {
 
         cy.get('#moreChannelsModal').should('be.visible').within(() => {
             // * Dropdown should be visible, defaulting to "Public Channels"
-            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', 'Show: Public Channels').wait(TIMEOUTS.HALF_SEC);
+            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.public).wait(TIMEOUTS.HALF_SEC);
 
             cy.get('#searchChannelsTextbox').should('be.visible').type(testChannel.display_name).wait(TIMEOUTS.HALF_SEC);
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 1).within(() => {
@@ -113,7 +118,7 @@ describe('Channels', () => {
                 cy.findByText('Archived Channels').should('be.visible').click();
 
                 // * Channel test should be visible as an archived channel in the list
-                cy.wrap(el).should('contain', 'Show: Archived Channels');
+                cy.wrap(el).should('contain', channelType.archived);
             });
 
             cy.get('#searchChannelsTextbox').should('be.visible').type(testChannel.display_name).wait(TIMEOUTS.HALF_SEC);
@@ -196,7 +201,7 @@ describe('Channels', () => {
 
         // * Dropdown should be visible, defaulting to "Public Channels"
         cy.get('#channelsMoreDropdown').should('be.visible').within((el) => {
-            cy.wrap(el).should('contain', 'Show: Public Channels');
+            cy.wrap(el).should('contain', channelType.public);
         });
 
         // * Users should be able to type and search
@@ -207,12 +212,12 @@ describe('Channels', () => {
 
         cy.get('#moreChannelsModal').should('be.visible').within(() => {
             // * Users should be able to switch to "Archived Channels" list
-            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', 'Show: Public Channels').click().within((el) => {
+            cy.get('#channelsMoreDropdown').should('be.visible').and('contain', channelType.public).click().within((el) => {
                 // # Click on archived channels item
                 cy.findByText('Archived Channels').should('be.visible').click();
 
                 // * Modal should show the archived channels list
-                cy.wrap(el).should('contain', 'Show: Archived Channels');
+                cy.wrap(el).should('contain', channelType.archived);
             }).wait(TIMEOUTS.HALF_SEC);
             cy.get('#searchChannelsTextbox').clear();
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2);
@@ -250,7 +255,7 @@ function verifyMoreChannelsModal(isEnabled) {
     // * Verify that the more channels modal is open and with or without option to view archived channels
     cy.get('#moreChannelsModal').should('be.visible').within(() => {
         if (isEnabled) {
-            cy.get('#channelsMoreDropdown').should('be.visible').and('have.text', 'Show: Public Channels');
+            cy.get('#channelsMoreDropdown').should('be.visible').and('have.text', channelType.public);
         } else {
             cy.get('#channelsMoreDropdown').should('not.exist');
         }

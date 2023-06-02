@@ -64,6 +64,7 @@ const calculateBadges = (contents: ContentsType, comments: CommentBlock[]): Badg
             updateCounters(content)
         }
     }
+
     return {
         description: text > 0,
         comments: comments.length,
@@ -84,6 +85,7 @@ const CardBadges = (props: Props) => {
     }
     const intl = useIntl()
     const {checkboxes} = badges
+
     return (
         <div className={`CardBadges ${className || ''}`}>
             {badges.description &&

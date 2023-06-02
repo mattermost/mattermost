@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 	"hash/maphash"
 	"net/http"
@@ -11,8 +12,10 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/featureflag"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/localcachelayer"
@@ -21,13 +24,11 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/timerlayer"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
 )
 
 // PlatformService is the service for the platform related tasks. It is
@@ -49,10 +50,11 @@ type PlatformService struct {
 	sessionCache  cache.Cache
 	sessionPool   sync.Pool
 
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
-	limitedClientConfig  atomic.Value
+	asymmetricSigningKey                   atomic.Pointer[ecdsa.PrivateKey]
+	clientConfig                           atomic.Value
+	clientConfigHash                       atomic.Value
+	limitedClientConfig                    atomic.Value
+	fetchUserCountForFirstUserAccountCheck atomic.Bool
 
 	logger              *mlog.Logger
 	notificationsLogger *mlog.Logger
@@ -66,7 +68,7 @@ type PlatformService struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 
-	licenseValue       atomic.Value
+	licenseValue       atomic.Pointer[model.License]
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
 	licenseManager     einterfaces.LicenseInterface
@@ -125,6 +127,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
 	}
+
+	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
+	ps.fetchUserCountForFirstUserAccountCheck.Store(true)
 
 	// Step 1: Cache provider.
 	// At the moment we only have this implementation
@@ -225,7 +230,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 3: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err2 := filestore.NewFileBackend(ps.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}

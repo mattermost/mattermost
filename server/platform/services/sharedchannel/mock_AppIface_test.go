@@ -8,7 +8,7 @@ import (
 	filestore "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/server/v8/model"
+	model "github.com/mattermost/mattermost-server/server/public/model"
 
 	request "github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 )

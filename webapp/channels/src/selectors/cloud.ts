@@ -4,7 +4,7 @@
 import {Invoice, Subscription} from '@mattermost/types/cloud';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {createSelector} from 'reselect';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {GlobalState} from 'types/store';
 
@@ -43,3 +43,5 @@ export const isCloudDelinquencyGreaterThan90Days = createSelector(
         return (Math.floor((now.getTime() - delinquentDate.getTime()) / (1000 * 60 * 60 * 24)) >= 90);
     },
 );
+
+export const isCwsMockMode = (state: GlobalState) => getConfig(state)?.CWSMock === 'true';

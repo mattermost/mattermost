@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, KeyboardEvent} from 'react'
+import React, {KeyboardEvent, useState} from 'react'
 
 import {useIntl} from 'react-intl'
 
@@ -49,6 +49,7 @@ const CreateCategory = (props: Props): JSX.Element => {
     const onCreate = async (categoryName: string) => {
         if (!me) {
             Utils.logError('me not initialized')
+
             return
         }
 

@@ -38,8 +38,8 @@ type Props = PreparingWorkspacePageProps & {
     setInviteId: (inviteId: string) => void;
 }
 
-const reportValidationError = debounce(() => {
-    trackEvent('first_admin_setup', 'validate_organization_error');
+const reportValidationError = debounce((error: string) => {
+    trackEvent('first_admin_setup', 'admin_onboarding_organization_submit_fail', {error});
 }, 700, {leading: false});
 
 const Organization = (props: Props) => {
@@ -123,7 +123,7 @@ const Organization = (props: Props) => {
         }
 
         if (validation.error || teamApiError.current) {
-            reportValidationError();
+            reportValidationError(validation.error ? validation.error : teamApiError.current! as string);
             return;
         }
         props.next?.();

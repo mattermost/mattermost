@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
 
 import classNames from 'classnames';
+import crypto from 'crypto';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import GenericModal from 'components/generic_modal';
@@ -233,6 +234,9 @@ const NewChannelModal = () => {
     };
 
     const handleOnDisplayNameBlur = () => {
+        if (displayName && !url) {
+            setURL(crypto.randomBytes(16).toString('hex'));
+        }
         if (!displayNameModified) {
             setDisplayNameModified(true);
         }
@@ -270,7 +274,7 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const canCreate = displayName && !displayNameError && url && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
+    const canCreate = displayName && !displayNameError && !urlError && type && !purposeError && !serverError && canCreateFromPluggable;
 
     const newBoardInfoIcon = (
         <OverlayTrigger
