@@ -1,12 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot 1`] = `
-<div
-  className="suggestion-list__item"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={false}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <span
     className="suggestion-list__icon suggestion-list__icon--large"
@@ -25,16 +46,37 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot 1
     </span>
     ~DN
   </div>
-</div>
+</SuggestionContainer>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type DM_CHANNEL 1`] = `
-<div
-  className="suggestion-list__item suggestion--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={true}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "D",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <Memo(Avatar)
     size="sm"
@@ -49,16 +91,37 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
       @name
     </span>
   </div>
-</div>
+</SuggestionContainer>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type GM_CHANNEL 1`] = `
-<div
-  className="suggestion-list__item suggestion--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={true}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "G",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <span
     className="suggestion-list__icon suggestion-list__icon--large"
@@ -78,16 +141,37 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
       @name
     </span>
   </div>
-</div>
+</SuggestionContainer>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type OPEN_CHANNEL 1`] = `
-<div
-  className="suggestion-list__item suggestion--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={true}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <span
     className="suggestion-list__icon suggestion-list__icon--large"
@@ -106,16 +190,37 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     </span>
     ~DN
   </div>
-</div>
+</SuggestionContainer>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, channel type PRIVATE_CHANNEL 1`] = `
-<div
-  className="suggestion-list__item suggestion--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={true}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "P",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <span
     className="suggestion-list__icon suggestion-list__icon--large"
@@ -134,16 +239,37 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     </span>
     ~DN
   </div>
-</div>
+</SuggestionContainer>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is false 1`] = `
-<div
-  className="suggestion-list__item"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={false}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <span
     className="suggestion-list__icon suggestion-list__icon--large"
@@ -162,16 +288,37 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     </span>
     ~DN
   </div>
-</div>
+</SuggestionContainer>
 `;
 
 exports[`components/suggestion/search_channel_suggestion should match snapshot, isSelection is true 1`] = `
-<div
-  className="suggestion-list__item suggestion--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  currentUserId="userid1"
+  isSelection={true}
+  item={
+    Object {
+      "create_at": 0,
+      "creator_id": "id",
+      "delete_at": 0,
+      "display_name": "name",
+      "group_constrained": false,
+      "header": "header",
+      "id": "channel_id",
+      "last_post_at": 0,
+      "last_root_post_at": 0,
+      "name": "DN",
+      "purpose": "purpose",
+      "scheme_id": "id",
+      "team_id": "team_id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  teammateIsBot={false}
+  term=""
 >
   <span
     className="suggestion-list__icon suggestion-list__icon--large"
@@ -190,5 +337,5 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
     </span>
     ~DN
   </div>
-</div>
+</SuggestionContainer>
 `;

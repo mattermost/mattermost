@@ -1,5 +1,5 @@
 run:
-  timeout: 5m
+  timeout: 10m
   skip-dirs:
     - channels/store/storetest/mocks
 
