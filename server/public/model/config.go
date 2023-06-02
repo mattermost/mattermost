@@ -3894,6 +3894,15 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if ign := *s.IgnoredPurgeIndexes; ign != "" {
+		s := strings.Split(ign, ",")
+		for _, ix := range s {
+			if strings.HasPrefix(ix, "-") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -8744,6 +8744,10 @@
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
   {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
     "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
   },
