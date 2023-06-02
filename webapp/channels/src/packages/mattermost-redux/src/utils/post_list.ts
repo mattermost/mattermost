@@ -3,10 +3,9 @@
 
 import moment from 'moment-timezone';
 
-import * as reselect from 'reselect';
-
 import {Posts, Preferences} from 'mattermost-redux/constants';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetPostsForIds, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
@@ -275,7 +274,7 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
     const getPostsForIds = makeGetPostsForIds();
     const getPostIds = memoizeResult(getPostIdsForCombinedUserActivityPost);
 
-    return reselect.createSelector(
+    return createSelector(
         'makeGenerateCombinedPost',
         (state: GlobalState, combinedId: string) => combinedId,
         (state: GlobalState, combinedId: string) => getPostsForIds(state, getPostIds(combinedId)),

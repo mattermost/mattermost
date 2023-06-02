@@ -109,37 +109,33 @@ func TestIsFirstUserAccount(t *testing.T) {
 	storeMock.On("User").Return(userStoreMock)
 
 	type test struct {
-		name   string
-		count  int64
-		err    error
-		result bool
+		name            string
+		count           int64
+		err             error
+		result          bool
+		shouldCallStore bool
 	}
 
 	tests := []test{
-		{"success no users", 0, nil, true},
-		{"success one user", 1, nil, false},
-		{"success multiple users", 42, nil, false},
-		{"success negative users", -100, nil, true},
-		{"failed request", 0, errors.New("error"), false},
-	}
-
-	for _, te := range tests {
-		t.Run(te.name, func(t *testing.T) {
-			*userStoreMock = smocks.UserStore{}
-
-			userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err)
-			require.Equal(t, te.result, th.Service.IsFirstUserAccount())
-		})
+		{"failed request", 0, errors.New("error"), false, true},
+		{"success negative users", -100, nil, true, true},
+		{"success no users", 0, nil, true, true},
+		{"success one user", 1, nil, false, true},
+		{"success multiple users - no store call", 42, nil, false, false},
 	}
 
 	// create a session, this should not affect IsFirstUserAccount
 	th.Service.sessionCache.Set("mock_session", 1)
 
 	for _, te := range tests {
-		t.Run(te.name+" with session", func(t *testing.T) {
+		t.Run(te.name, func(t *testing.T) {
 			*userStoreMock = smocks.UserStore{}
 
-			userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err)
+			userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err).RunFn = func(args mock.Arguments) {
+				if !te.shouldCallStore {
+					assert.Fail(t, "should not have called the store")
+				}
+			}
 			require.Equal(t, te.result, th.Service.IsFirstUserAccount())
 		})
 	}
