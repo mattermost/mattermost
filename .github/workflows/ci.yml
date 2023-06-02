@@ -251,6 +251,8 @@ jobs:
     name: Build docker image
     runs-on: ubuntu-22.04
     needs: upload-s3
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
     steps:
     - name: Download build artifacts
       uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
