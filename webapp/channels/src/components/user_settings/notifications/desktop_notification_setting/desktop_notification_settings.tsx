@@ -5,13 +5,10 @@ import React, {ChangeEvent, RefObject} from 'react';
 import ReactSelect, {ValueType} from 'react-select';
 import {FormattedMessage} from 'react-intl';
 
-import semver from 'semver';
-
 import {NotificationLevels} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
-import {isDesktopApp} from 'utils/user_agent';
 
 import SettingItemMin from 'components/setting_item_min';
 import SettingItemMax from 'components/setting_item_max';
@@ -129,20 +126,18 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     return {value: sound, label: sound};
                 });
 
-                if (!isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'))) {
-                    notificationSelection = (<div className='pt-2'>
-                        <ReactSelect
-                            className='react-select notification-sound-dropdown'
-                            classNamePrefix='react-select'
-                            id='displaySoundNotification'
-                            options={options}
-                            clearable={false}
-                            onChange={this.setDesktopNotificationSound}
-                            value={this.state.selectedOption}
-                            isSearchable={false}
-                            ref={this.dropdownSoundRef}
-                        /></div>);
-                }
+                notificationSelection = (<div className='pt-2'>
+                    <ReactSelect
+                        className='react-select notification-sound-dropdown'
+                        classNamePrefix='react-select'
+                        id='displaySoundNotification'
+                        options={options}
+                        clearable={false}
+                        onChange={this.setDesktopNotificationSound}
+                        value={this.state.selectedOption}
+                        isSearchable={false}
+                        ref={this.dropdownSoundRef}
+                    /></div>);
             }
 
             if (NotificationSounds.hasSoundOptions()) {
