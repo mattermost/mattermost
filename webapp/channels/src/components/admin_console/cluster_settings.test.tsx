@@ -5,7 +5,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import {ClusterSettings as ClusterSettingsType} from '@mattermost/types/config';
 
-import ClusterSettings from 'components/admin_console/cluster_settings.tsx';
+import ClusterSettings from 'components/admin_console/cluster_settings';
 
 describe('components/ClusterSettings', () => {
     const baseProps = {
@@ -15,8 +15,7 @@ describe('components/ClusterSettings', () => {
         },
     };
     test('should match snapshot, encryption disabled', () => {
-
-        const config : {ClusterSettings : Partial<ClusterSettingsType> } = {
+        const config: { ClusterSettings: Partial<ClusterSettingsType> } = {
             ClusterSettings: {
                 Enable: true,
                 ClusterName: 'test',
@@ -26,12 +25,12 @@ describe('components/ClusterSettings', () => {
                 EnableGossipCompression: false,
                 GossipPort: 8074,
                 StreamingPort: 8075,
-            }
+            },
         };
 
         const props = {
             ...baseProps,
-            config: config,
+            config,
         };
 
         const wrapper = shallow(
@@ -46,10 +45,9 @@ describe('components/ClusterSettings', () => {
     });
 
     test('should match snapshot, encryption enabled', () => {
-
         const props = {
             ...baseProps,
-            config : {
+            config: {
                 ClusterSettings: {
                     Enable: true,
                     ClusterName: 'test',
@@ -60,7 +58,7 @@ describe('components/ClusterSettings', () => {
                     GossipPort: 8074,
                     StreamingPort: 8075,
                 },
-            }
+            },
         };
 
         const wrapper = shallow(
@@ -77,7 +75,7 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, compression enabled', () => {
         const props = {
             ...baseProps,
-            config : {
+            config: {
                 ClusterSettings: {
                     Enable: true,
                     ClusterName: 'test',
@@ -88,7 +86,7 @@ describe('components/ClusterSettings', () => {
                     GossipPort: 8074,
                     StreamingPort: 8075,
                 },
-            }
+            },
         };
 
         const wrapper = shallow(
@@ -106,7 +104,7 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, compression disabled', () => {
         const props = {
             ...baseProps,
-            config : {
+            config: {
                 ClusterSettings: {
                     Enable: true,
                     ClusterName: 'test',
@@ -117,7 +115,7 @@ describe('components/ClusterSettings', () => {
                     GossipPort: 8074,
                     StreamingPort: 8075,
                 },
-            }
+            },
         };
 
         const wrapper = shallow(

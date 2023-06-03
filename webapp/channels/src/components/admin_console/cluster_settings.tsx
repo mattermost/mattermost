@@ -3,13 +3,14 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {ClientLicense, ClusterSettings as ClusterSettingsType} from '@mattermost/types/config';
+import {AdminConfig, ClientLicense, ClusterSettings as ClusterSettingsType} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
 import * as Utils from 'utils/utils';
 
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import {DeepPartial} from '@mattermost/types/utilities';
 
 import ExternalLink from 'components/external_link';
 
@@ -25,7 +26,7 @@ export type ClusterSettingsProps = BaseProps & {
 type State = BaseState & ClusterSettingsType;
 
 export default class ClusterSettings extends AdminSettings<ClusterSettingsProps, State> {
-    getConfigFromState = (config) => {
+    getConfigFromState = (config: AdminConfig) => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;
         config.ClusterSettings.OverrideHostname = this.state.OverrideHostname;
@@ -37,7 +38,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: DeepPartial<AdminConfig>): Partial<State> {
         const settings = config.ClusterSettings as ClusterSettingsType;
 
         return {
@@ -196,6 +197,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
                     onChange={this.overrideHandleChange}
                     setByEnv={this.isSetByEnv('ClusterSettings.ClusterName')}
                     disabled={this.props.isDisabled}
+                    type={'input'}
                 />
                 <TextSetting
                     id='OverrideHostname'
@@ -216,6 +218,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
                     onChange={this.overrideHandleChange}
                     setByEnv={this.isSetByEnv('ClusterSettings.OverrideHostname')}
                     disabled={this.props.isDisabled}
+                    type={'input'}
                 />
                 <BooleanSetting
                     id='UseIPAddress'
@@ -293,6 +296,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
                     onChange={this.overrideHandleChange}
                     setByEnv={this.isSetByEnv('ClusterSettings.GossipPort')}
                     disabled={this.props.isDisabled}
+                    type={'input'}
                 />
                 <TextSetting
                     id='StreamingPort'
@@ -313,6 +317,7 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
                     onChange={this.overrideHandleChange}
                     setByEnv={this.isSetByEnv('ClusterSettings.StreamingPort')}
                     disabled={this.props.isDisabled}
+                    type={'input'}
                 />
             </SettingsGroup>
         );

@@ -65,7 +65,7 @@ import DatabaseSettings from './database_settings.jsx';
 import ElasticSearchSettings from './elasticsearch_settings.jsx';
 import BleveSettings from './bleve_settings.jsx';
 import FeatureFlags from './feature_flags.tsx';
-import ClusterSettings from './cluster_settings.jsx';
+import ClusterSettings from './cluster_settings.tsx';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import SessionLengthSettings from './session_length_settings';
 import BillingSubscriptions from './billing/billing_subscriptions/index.tsx';

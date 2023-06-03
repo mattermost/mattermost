@@ -520,6 +520,7 @@ const defaultServerConfig: AdminConfig = {
         MaxIdleConns: 100,
         MaxIdleConnsPerHost: 128,
         IdleConnTimeoutMilliseconds: 90000,
+        showWarning: true,
     },
     MetricsSettings: {
         Enable: false,
