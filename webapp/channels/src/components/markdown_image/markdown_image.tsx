@@ -13,6 +13,7 @@ import FilePreviewModal from 'components/file_preview_modal';
 
 import brokenImageIcon from 'images/icons/brokenimage.png';
 import ExternalLink from 'components/external_link';
+import {ModalData} from 'types/actions';
 
 export type Props = {
     alt: string;
@@ -28,11 +29,7 @@ export type Props = {
     onImageHeightChanged?: (isExpanded: boolean) => void;
     postType?: string;
     actions: {
-        openModal: (modalConfig: {
-            modalId: any;
-            dialogType: any;
-            dialogProps: any;
-        }) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
     };
     hideUtilities?: boolean;
 };
@@ -97,6 +94,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                 modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
                 dialogType: FilePreviewModal,
                 dialogProps: {
+                    startIndex: 0,
                     postId: this.props.postId,
                     fileInfos: [{
                         has_preview_image: false,
