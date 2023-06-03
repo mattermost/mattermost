@@ -655,6 +655,22 @@ describe('Actions.Posts', () => {
             new Set(['bbb', 'ccc']),
         );
 
+        expect(
+            Actions.getNeededAtMentionedUsernames(state, [
+                TestHelper.getPostMock({
+                    message: '@aaa @bbb',
+                    props: {
+                        attachments: [
+                            {text: '@ccc @ddd'},
+                            {pretext: '@eee @fff', text: '@ggg'},
+                        ],
+                    },
+                }),
+            ]),
+        ).toEqual(
+            new Set(['bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg']),
+        );
+
         // should never try to request usernames matching special mentions
         expect(
             Actions.getNeededAtMentionedUsernames(state, [
