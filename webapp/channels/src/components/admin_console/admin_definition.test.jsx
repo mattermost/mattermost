@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as yup from 'yup';
+import * as yup from "yup";
 
-import adminDefinition from 'components/admin_console/admin_definition.jsx';
-import {Constants} from 'utils/constants';
+import adminDefinition from "components/admin_console/admin_definition";
+import { Constants } from "utils/constants";
 
 const baseShape = {
     label: yup.string().required(),
@@ -35,7 +35,7 @@ const option = yup.object().shape({
 const settingBanner = yup.object().shape({
     ...baseShape,
     type: yup.mixed().oneOf([Constants.SettingsTypes.TYPE_BANNER]),
-    banner_type: yup.mixed().oneOf(['info', 'warning']),
+    banner_type: yup.mixed().oneOf(["info", "warning"]),
 });
 
 const settingBool = yup.object().shape({
@@ -126,23 +126,25 @@ const settingFileUploadButton = yup.object().shape({
 });
 
 // eslint-disable-next-line no-template-curly-in-string
-const setting = yup.mixed().test('is-setting', 'not a valid setting: ${path}', (value) => {
-    let valid = false;
-    valid = valid || settingBanner.isValidSync(value);
-    valid = valid || settingBool.isValidSync(value);
-    valid = valid || settingNumber.isValidSync(value);
-    valid = valid || settingColor.isValidSync(value);
-    valid = valid || settingText.isValidSync(value);
-    valid = valid || settingButton.isValidSync(value);
-    valid = valid || settingLanguage.isValidSync(value);
-    valid = valid || settingMultiLanguage.isValidSync(value);
-    valid = valid || settingDropdown.isValidSync(value);
-    valid = valid || settingCustom.isValidSync(value);
-    valid = valid || settingJobsTable.isValidSync(value);
-    valid = valid || settingPermission.isValidSync(value);
-    valid = valid || settingFileUploadButton.isValidSync(value);
-    return valid;
-});
+const setting = yup
+    .mixed()
+    .test("is-setting", "not a valid setting: ${path}", (value) => {
+        let valid = false;
+        valid = valid || settingBanner.isValidSync(value);
+        valid = valid || settingBool.isValidSync(value);
+        valid = valid || settingNumber.isValidSync(value);
+        valid = valid || settingColor.isValidSync(value);
+        valid = valid || settingText.isValidSync(value);
+        valid = valid || settingButton.isValidSync(value);
+        valid = valid || settingLanguage.isValidSync(value);
+        valid = valid || settingMultiLanguage.isValidSync(value);
+        valid = valid || settingDropdown.isValidSync(value);
+        valid = valid || settingCustom.isValidSync(value);
+        valid = valid || settingJobsTable.isValidSync(value);
+        valid = valid || settingPermission.isValidSync(value);
+        valid = valid || settingFileUploadButton.isValidSync(value);
+        return valid;
+    });
 
 var baseSchema = {
     id: yup.string().required(),
@@ -165,46 +167,46 @@ var customComponentSchema = yup.object().shape({
 
 var definition = yup.object().shape({
     reporting: yup.object().shape({
-        system_analytics: yup.object().shape({schema: customComponentSchema}),
-        team_analytics: yup.object().shape({schema: customComponentSchema}),
-        system_users: yup.object().shape({schema: customComponentSchema}),
-        server_logs: yup.object().shape({schema: customComponentSchema}),
+        system_analytics: yup.object().shape({ schema: customComponentSchema }),
+        team_analytics: yup.object().shape({ schema: customComponentSchema }),
+        system_users: yup.object().shape({ schema: customComponentSchema }),
+        server_logs: yup.object().shape({ schema: customComponentSchema }),
     }),
     authentication: yup.object().shape({
-        email: yup.object().shape({schema}),
-        ldap: yup.object().shape({sectionSchema}),
-        mfa: yup.object().shape({schema}),
-        saml: yup.object().shape({schema}),
+        email: yup.object().shape({ schema }),
+        ldap: yup.object().shape({ sectionSchema }),
+        mfa: yup.object().shape({ schema }),
+        saml: yup.object().shape({ schema }),
     }),
     settings: yup.object().shape({
         general: yup.object().shape({
-            configuration: yup.object().shape({schema}),
-            localization: yup.object().shape({schema}),
-            users_and_teams: yup.object().shape({schema}),
-            privacy: yup.object().shape({schema}),
-            compliance: yup.object().shape({schema}),
+            configuration: yup.object().shape({ schema }),
+            localization: yup.object().shape({ schema }),
+            users_and_teams: yup.object().shape({ schema }),
+            privacy: yup.object().shape({ schema }),
+            compliance: yup.object().shape({ schema }),
         }),
         security: yup.object().shape({}),
         notifications: yup.object().shape({}),
         integrations: yup.object().shape({
-            custom: yup.object().shape({schema}),
+            custom: yup.object().shape({ schema }),
         }),
         plugins: yup.object().shape({}),
         files: yup.object().shape({}),
         customization: yup.object().shape({
-            announcement: yup.object().shape({schema}),
+            announcement: yup.object().shape({ schema }),
         }),
         compliance: yup.object().shape({}),
         advanced: yup.object().shape({}),
     }),
     other: yup.object().shape({
-        license: yup.object().shape({schema: customComponentSchema}),
-        audits: yup.object().shape({schema: customComponentSchema}),
+        license: yup.object().shape({ schema: customComponentSchema }),
+        audits: yup.object().shape({ schema: customComponentSchema }),
     }),
 });
 
-describe('components/admin_console/admin_definition', () => {
-    it('should pass all validations checks', () => {
+describe("components/admin_console/admin_definition", () => {
+    it("should pass all validations checks", () => {
         definition.strict().validateSync(adminDefinition);
     });
 });
