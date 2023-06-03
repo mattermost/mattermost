@@ -25,4 +25,3 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
 const connector = connect(null, mapDispatchToProps);
 
 export default connector(MarkdownImage);
-

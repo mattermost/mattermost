@@ -12,7 +12,7 @@ export type Props = {
     postId: string;
     onToggle?: (isExpanded: boolean) => void;
     actions: {
-        toggleInlineImageVisibility: (postId: string, imageKey: string) => void;
+        toggleInlineImageVisibility?: (postId: string, imageKey: string) => void;
     };
 };
 
@@ -24,7 +24,9 @@ const MarkdownImageExpand: React.FC<Props> = ({children, alt, isExpanded, postId
     }, [isExpanded]);
 
     const handleToggleButtonClick = () => {
-        toggleInlineImageVisibility(postId, imageKey);
+        if (toggleInlineImageVisibility) {
+            toggleInlineImageVisibility(postId, imageKey);
+        }
     };
 
     const wrapperClassName = `markdown-image-expand ${isExpanded ? 'markdown-image-expand--expanded' : ''}`;
