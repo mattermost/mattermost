@@ -3,9 +3,18 @@
 
 package markdown
 
+const (
+	// Assuming 64k maxSize of a post which can be stored in DB.
+	// Allow scanning upto twice(arbitrary value) the post size.
+	maxLen = 1024 * 64 * 2
+)
+
 // Inspect traverses the markdown tree in depth-first order. If f returns true, Inspect invokes f
 // recursively for each child of the block or inline, followed by a call of f(nil).
 func Inspect(markdown string, f func(any) bool) {
+	if len(markdown) > maxLen {
+		return
+	}
 	document, referenceDefinitions := Parse(markdown)
 	InspectBlock(document, func(block Block) bool {
 		if !f(block) {
