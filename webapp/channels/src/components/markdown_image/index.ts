@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {ModalData} from 'types/actions';
@@ -11,7 +11,7 @@ import {ModalData} from 'types/actions';
 import MarkdownImage from './markdown_image';
 
 type Actions = {
-    openModal: (modalData: ModalData<unknown>) => Promise<ActionResult>;
+    openModal: <P>(modalData: ModalData<P>) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
