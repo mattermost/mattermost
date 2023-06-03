@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import React from 'react';
 import ReactSelect, {ValueType} from 'react-select';
 
@@ -14,7 +13,7 @@ interface Option {
     text: string;
 }
 
-interface MultiSelectSettingProps {
+interface Props {
     id: string;
     values: Option[];
     label: React.ReactNode;
@@ -23,22 +22,22 @@ interface MultiSelectSettingProps {
     disabled?: boolean;
     setByEnv: boolean;
     helpText?: React.ReactNode;
-    noResultText?: React.ReactNode; 
+    noResultText?: React.ReactNode;
 }
 
-interface MultiSelectSettingState {
+interface State {
     error: boolean;
 }
 
 export default class MultiSelectSetting extends React.PureComponent<
-MultiSelectSettingProps,
-MultiSelectSettingState 
+Props,
+State
 > {
-    static defaultProps: Partial<MultiSelectSettingProps> = {
+    static defaultProps: Partial<Props> = {
         disabled: false,
     };
 
-    constructor(props: MultiSelectSettingProps) {
+    constructor(props: Props) {
         super(props);
 
         this.state = {error: false};
@@ -55,7 +54,7 @@ MultiSelectSettingState
 
     calculateValue = () => {
         return this.props.selected.reduce<Option[]>((values, item) => {
-            const found = this.props.values.find((e) => e.value === item) as Option | undefined;
+            const found = this.props.values.find((e) => e.value === item);
             if (found) {
                 values.push(found);
             }
