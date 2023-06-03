@@ -3,8 +3,9 @@
 
 import React from 'react';
 import {shallow} from 'enzyme';
+import {ClusterSettings as ClusterSettingsType} from '@mattermost/types/config';
 
-import ClusterSettings from 'components/admin_console/cluster_settings.jsx';
+import ClusterSettings from 'components/admin_console/cluster_settings.tsx';
 
 describe('components/ClusterSettings', () => {
     const baseProps = {
@@ -14,11 +15,8 @@ describe('components/ClusterSettings', () => {
         },
     };
     test('should match snapshot, encryption disabled', () => {
-        const props = {
-            ...baseProps,
-            value: [],
-        };
-        const config = {
+
+        const config : {ClusterSettings : Partial<ClusterSettingsType> } = {
             ClusterSettings: {
                 Enable: true,
                 ClusterName: 'test',
@@ -27,13 +25,19 @@ describe('components/ClusterSettings', () => {
                 EnableExperimentalGossipEncryption: false,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
-                SteamingPort: 8075,
-            },
+                StreamingPort: 8075,
+            }
         };
+
+        const props = {
+            ...baseProps,
+            config: config,
+        };
+
         const wrapper = shallow(
             <ClusterSettings
-                {...props}
-                config={config}
+                license={props.license}
+                config={props.config}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -42,26 +46,27 @@ describe('components/ClusterSettings', () => {
     });
 
     test('should match snapshot, encryption enabled', () => {
+
         const props = {
             ...baseProps,
-            value: [],
+            config : {
+                ClusterSettings: {
+                    Enable: true,
+                    ClusterName: 'test',
+                    OverrideHostname: '',
+                    UseIPAddress: false,
+                    EnableExperimentalGossipEncryption: true,
+                    EnableGossipCompression: false,
+                    GossipPort: 8074,
+                    StreamingPort: 8075,
+                },
+            }
         };
-        const config = {
-            ClusterSettings: {
-                Enable: true,
-                ClusterName: 'test',
-                OverrideHostname: '',
-                UseIPAddress: false,
-                EnableExperimentalGossipEncryption: true,
-                EnableGossipCompression: false,
-                GossipPort: 8074,
-                SteamingPort: 8075,
-            },
-        };
+
         const wrapper = shallow(
             <ClusterSettings
-                {...props}
-                config={config}
+                license={props.license}
+                config={props.config}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -72,26 +77,27 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, compression enabled', () => {
         const props = {
             ...baseProps,
-            value: [],
+            config : {
+                ClusterSettings: {
+                    Enable: true,
+                    ClusterName: 'test',
+                    OverrideHostname: '',
+                    UseIPAddress: false,
+                    EnableExperimentalGossipEncryption: false,
+                    EnableGossipCompression: true,
+                    GossipPort: 8074,
+                    StreamingPort: 8075,
+                },
+            }
         };
-        const config = {
-            ClusterSettings: {
-                Enable: true,
-                ClusterName: 'test',
-                OverrideHostname: '',
-                UseIPAddress: false,
-                EnableExperimentalGossipEncryption: false,
-                EnableGossipCompression: true,
-                GossipPort: 8074,
-                SteamingPort: 8075,
-            },
-        };
+
         const wrapper = shallow(
             <ClusterSettings
-                {...props}
-                config={config}
+                license={props.license}
+                config={props.config}
             />,
         );
+
         expect(wrapper).toMatchSnapshot();
 
         expect(wrapper.find('#EnableGossipCompression').prop('value')).toBe(true);
@@ -100,26 +106,27 @@ describe('components/ClusterSettings', () => {
     test('should match snapshot, compression disabled', () => {
         const props = {
             ...baseProps,
-            value: [],
+            config : {
+                ClusterSettings: {
+                    Enable: true,
+                    ClusterName: 'test',
+                    OverrideHostname: '',
+                    UseIPAddress: false,
+                    EnableExperimentalGossipEncryption: false,
+                    EnableGossipCompression: false,
+                    GossipPort: 8074,
+                    StreamingPort: 8075,
+                },
+            }
         };
-        const config = {
-            ClusterSettings: {
-                Enable: true,
-                ClusterName: 'test',
-                OverrideHostname: '',
-                UseIPAddress: false,
-                EnableExperimentalGossipEncryption: false,
-                EnableGossipCompression: false,
-                GossipPort: 8074,
-                SteamingPort: 8075,
-            },
-        };
+
         const wrapper = shallow(
             <ClusterSettings
-                {...props}
-                config={config}
+                license={props.license}
+                config={props.config}
             />,
         );
+
         expect(wrapper).toMatchSnapshot();
 
         expect(wrapper.find('#EnableGossipCompression').prop('value')).toBe(false);

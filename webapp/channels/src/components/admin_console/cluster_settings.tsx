@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {ClientLicense, ClusterSettings as ClusterSettingsType} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -12,13 +13,18 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import ExternalLink from 'components/external_link';
 
-import AdminSettings from './admin_settings';
+import AdminSettings, {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import ClusterTableContainer from './cluster_table_container.jsx';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export default class ClusterSettings extends AdminSettings {
+export type ClusterSettingsProps = BaseProps & {
+    license: ClientLicense;
+};
+type State = BaseState & ClusterSettingsType;
+
+export default class ClusterSettings extends AdminSettings<ClusterSettingsProps, State> {
     getConfigFromState = (config) => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;
@@ -26,13 +32,13 @@ export default class ClusterSettings extends AdminSettings {
         config.ClusterSettings.UseIPAddress = this.state.UseIPAddress;
         config.ClusterSettings.EnableExperimentalGossipEncryption = this.state.EnableExperimentalGossipEncryption;
         config.ClusterSettings.EnableGossipCompression = this.state.EnableGossipCompression;
-        config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort, 8074);
-        config.ClusterSettings.StreamingPort = this.parseIntNonZero(this.state.StreamingPort, 8075);
+        config.ClusterSettings.GossipPort = this.parseIntNonZero(String(this.state.GossipPort), 8074);
+        config.ClusterSettings.StreamingPort = this.parseIntNonZero(String(this.state.StreamingPort), 8075);
         return config;
     };
 
     getStateFromConfig(config) {
-        const settings = config.ClusterSettings;
+        const settings = config.ClusterSettings as ClusterSettingsType;
 
         return {
             Enable: settings.Enable,
@@ -56,10 +62,11 @@ export default class ClusterSettings extends AdminSettings {
         );
     }
 
-    overrideHandleChange = (id, value) => {
-        this.setState({
+    overrideHandleChange = (id: string, value: boolean) => {
+        this.setState((prevState) => ({
+            ...prevState,
             showWarning: true,
-        });
+        }));
 
         this.handleChange(id, value);
     };
@@ -67,10 +74,10 @@ export default class ClusterSettings extends AdminSettings {
     renderSettings = () => {
         const licenseEnabled = this.props.license.IsLicensed === 'true' && this.props.license.Cluster === 'true';
         if (!licenseEnabled) {
-            return null;
+            return <></>;
         }
 
-        var configLoadedFromCluster = null;
+        let configLoadedFromCluster = null;
 
         if (Client4.clusterId) {
             configLoadedFromCluster = (
@@ -98,7 +105,7 @@ export default class ClusterSettings extends AdminSettings {
             );
         }
 
-        var warning = null;
+        let warning = null;
 
         if (this.state.showWarning) {
             warning = (
@@ -125,7 +132,7 @@ export default class ClusterSettings extends AdminSettings {
             );
         }
 
-        var clusterTableContainer = null;
+        let clusterTableContainer = null;
         if (this.state.Enable) {
             clusterTableContainer = (<ClusterTableContainer/>);
         }

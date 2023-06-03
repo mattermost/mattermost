@@ -723,6 +723,7 @@ export type ClusterSettings = {
     MaxIdleConns: number;
     MaxIdleConnsPerHost: number;
     IdleConnTimeoutMilliseconds: number;
+    showWarning: boolean;
 };
 
 export type MetricsSettings = {

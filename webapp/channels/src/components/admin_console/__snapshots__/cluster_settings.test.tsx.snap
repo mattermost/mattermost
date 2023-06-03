@@ -228,6 +228,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        value={8075}
       />
     </SettingsGroup>
     <div
@@ -501,6 +502,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        value={8075}
       />
     </SettingsGroup>
     <div
@@ -774,6 +776,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        value={8075}
       />
     </SettingsGroup>
     <div
@@ -1047,6 +1050,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        value={8075}
       />
     </SettingsGroup>
     <div
