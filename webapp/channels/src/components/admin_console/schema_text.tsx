@@ -52,19 +52,21 @@ export default class SchemaText extends React.PureComponent<Props> {
     };
 
     renderUntranslated = () => {
-        if (this.props.isMarkdown) {
-            if (typeof this.props.text === 'string') {
-                const html = marked(this.props.text, {
-                    breaks: true,
-                    sanitize: true,
-                    renderer: new CustomRenderer(),
-                });
-
-                return <span dangerouslySetInnerHTML={{__html: html}}/>;
+        const {isMarkdown, text} = this.props;
+        if (isMarkdown) {
+            if (typeof text === 'object') {
+                return text;
             }
+            const html = marked(text, {
+                breaks: true,
+                sanitize: true,
+                renderer: new CustomRenderer(),
+            });
+
+            return <span dangerouslySetInnerHTML={{__html: html}}/>;
         }
 
-        return <span>{this.props.text}</span>;
+        return <span>{text}</span>;
     };
 
     render() {
