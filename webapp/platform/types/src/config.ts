@@ -526,6 +526,7 @@ export type EmailSettings = {
     ConnectionSecurity: string;
     SendPushNotifications: boolean;
     PushNotificationServer: string;
+    PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;

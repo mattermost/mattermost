@@ -9,28 +9,41 @@ import ExternalLink from 'components/external_link';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from './admin_settings';
+import AdminSettings, {BaseProps, BaseState} from './admin_settings';
 import DropdownSetting from './dropdown_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting';
+import {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
 const PUSH_NOTIFICATIONS_OFF = 'off';
 const PUSH_NOTIFICATIONS_MHPNS = 'mhpns';
 const PUSH_NOTIFICATIONS_MTPNS = 'mtpns';
 const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
 
-export default class PushSettings extends AdminSettings {
+type Props = BaseProps & {
+    config: AdminConfig;
+    license: ClientLicense;
+};
+
+type State = BaseState & {
+    pushNotificationServer: string;
+    pushNotificationServerType: EmailSettings['PushNotificationServerType'];
+    agree: boolean;
+    maxNotificationsPerChannel: number;
+};
+
+export default class PushSettings extends AdminSettings<Props, State> {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
     };
 
-    handleAgreeChange = (e) => {
+    handleAgreeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             agree: e.target.checked,
         });
     };
 
-    handleDropdownChange = (id, value) => {
+    handleDropdownChange = (id: string, value: State['pushNotificationServerType']) => {
         if (id === 'pushNotificationServerType') {
             this.setState({
                 agree: false,
@@ -56,7 +69,7 @@ export default class PushSettings extends AdminSettings {
         this.handleChange(id, value);
     };
 
-    getConfigFromState = (config) => {
+    getConfigFromState = (config: Props['config']) => {
         config.EmailSettings.SendPushNotifications = this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_OFF;
         config.EmailSettings.PushNotificationServer = this.state.pushNotificationServer.trim();
         config.TeamSettings.MaxNotificationsPerChannel = this.state.maxNotificationsPerChannel;
@@ -64,8 +77,8 @@ export default class PushSettings extends AdminSettings {
         return config;
     };
 
-    getStateFromConfig(config) {
-        let pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
+    getStateFromConfig(config: Props['config']) {
+        let pushNotificationServerType: EmailSettings['PushNotificationServerType'] = PUSH_NOTIFICATIONS_CUSTOM;
         let agree = false;
         if (!config.EmailSettings.SendPushNotifications) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_OFF;
@@ -294,6 +307,7 @@ export default class PushSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={this.props.isDisabled || this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_CUSTOM}
                     setByEnv={this.isSetByEnv('EmailSettings.PushNotificationServer')}
+                    type='input'
                 />
                 <TextSetting
                     id='maxNotificationsPerChannel'

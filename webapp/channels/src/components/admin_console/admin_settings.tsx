@@ -4,7 +4,7 @@
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 
-import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import {AdminConfig, EmailSettings, EnvironmentConfig} from '@mattermost/types/config';
 import {DeepPartial} from '@mattermost/types/utilities';
 
 import {localizeMessage} from 'utils/utils';
@@ -79,7 +79,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         }
     };
 
-    protected handleChange = (id: string, value: boolean) => {
+    protected handleChange = (id: string, value: boolean | EmailSettings['PushNotificationServerType']) => {
         this.setState((prevState) => ({
             ...prevState,
             saveNeeded: true,
