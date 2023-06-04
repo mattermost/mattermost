@@ -203,6 +203,8 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = "Canonical1.1";
 //   - upload_action: An store action to upload the file.
 //   - remove_action: An store action to remove the file.
 //   - fileType: A list of extensions separated by ",". E.g. ".jpg,.png,.gif".
+
+export type ResourceKeys = typeof RESOURCE_KEYS;
 interface ItFunction {
     (
         config: Partial<AdminConfig>,
@@ -234,7 +236,7 @@ interface It {
         key: string
     ) => (config: Partial<AdminConfig>, state: any) => boolean;
     configIsTrue: (
-        group: string,
+        group: keyof AdminConfig,
         setting: string
     ) => (config: Partial<AdminConfig>) => boolean;
     configIsFalse: (
@@ -298,7 +300,9 @@ interface It {
         enterpriseReady: any,
         consoleAccess: ConsoleAccess
     ) => boolean;
-    userHasReadPermissionOnSomeResources: (key: string) => boolean;
+    userHasReadPermissionOnSomeResources: (
+        key: ResourceKeys[keyof ResourceKeys] | string
+    ) => boolean;
     userHasWritePermissionOnResource: (
         key: string
     ) => (
@@ -407,8 +411,10 @@ export const it: It = {
     stateEquals: (key, value) => (config, state) => state[key] === value,
     stateIsTrue: (key) => (config, state) => Boolean(state[key]),
     stateIsFalse: (key) => (config, state) => !state[key],
-    configIsTrue: (group, setting) => (config) =>
-        Boolean(config[group][setting]),
+    configIsTrue:
+        (group, setting = "") =>
+        (config) =>
+            Boolean(config?.[group]?.[setting]),
     configIsFalse: (group, setting) => (config) => !config[group][setting],
     configContains: (group, setting, word) => (config) =>
         Boolean(config[group][setting]?.includes(word)),
@@ -1435,7 +1441,7 @@ const AdminDefinition = {
                             "A comma-separated list of paths on the Mattermost server that are managed by another service. See <link>here</link> for more information.",
                         help_text_markdown: false,
                         help_text_values: {
-                            link: (msg) => (
+                            link: (msg: React.ReactNode) => (
                                 <ExternalLink
                                     location="admin_console"
                                     href="https://docs.mattermost.com/install/desktop-managed-resources.html"
@@ -2750,7 +2756,10 @@ const AdminDefinition = {
                                 </ExternalLink>
                             ),
                         },
-                        onConfigSave: (displayVal, previousVal) => {
+                        onConfigSave: (
+                            displayVal: boolean,
+                            previousVal: boolean
+                        ) => {
                             if (previousVal && previousVal !== displayVal) {
                                 trackEvent("ui", "diagnostics_disabled");
                             }
@@ -2833,7 +2842,7 @@ const AdminDefinition = {
                             "When true, Mattermost will enable performance monitoring collection and profiling. Please see <link>documentation</link> to learn more about configuring performance monitoring for Mattermost.",
                         help_text_markdown: false,
                         help_text_values: {
-                            link: (msg) => (
+                            link: (msg: React.ReactNode) => (
                                 <ExternalLink
                                     location="admin_console"
                                     href="https://docs.mattermost.com/deployment/metrics.html"
@@ -2942,7 +2951,7 @@ const AdminDefinition = {
                         help_text_default:
                             "A whitelist of local network addresses that can be requested by the Mattermost server on behalf of a client. Care should be used when configuring this setting to prevent unintended access to your local network. See <link>documentation</link> to learn more. Changing this requires a server restart before taking effect.",
                         help_text_values: {
-                            link: (msg) => (
+                            link: (msg: React.ReactNode) => (
                                 <ExternalLink
                                     location="admin_console"
                                     href="https://mattermost.com/pl/default-allow-untrusted-internal-connections"
@@ -5677,7 +5686,7 @@ const AdminDefinition = {
                                 help_text_default:
                                     "The attribute in the AD/LDAP server used as a unique identifier in Mattermost. It should be an AD/LDAP attribute with a value that does not change such as `uid` for LDAP or `objectGUID` for Active Directory. If a user's ID Attribute changes, it will create a new Mattermost account unassociated with their old one.\n \nIf you need to change this field after users have already logged in, use the <link>mattermost ldap idmigrate</link> CLI tool.",
                                 help_text_values: {
-                                    link: (msg) => (
+                                    link: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location="admin_console"
                                             href="https://docs.mattermost.com/manage/command-line-tools.html#mattermost-ldap-idmigrate"
@@ -5789,7 +5798,9 @@ const AdminDefinition = {
                                 help_text_default:
                                     "(Optional) The attribute in the AD/LDAP server used to populate the first name of users in Mattermost. When set, users cannot edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their first name in <strong>Account Menu > Account Settings > Profile</strong>.",
                                 help_text_values: {
-                                    strong: (msg) => <strong>{msg}</strong>,
+                                    strong: (msg: string) => (
+                                        <strong>{msg}</strong>
+                                    ),
                                 },
                                 isDisabled: it.any(
                                     it.not(
@@ -6593,8 +6604,9 @@ const AdminDefinition = {
                         ),
                         placeholder_default:
                             'E.g.: "https://<your-mattermost-url>/login/sso/saml"',
-                        onConfigLoad: (value, config) => {
-                            const siteUrl = config.ServiceSettings.SiteURL;
+                        onConfigLoad: (value: string, config: AdminConfig) => {
+                            const siteUrl =
+                                config.ServiceSettings?.SiteURL || "";
                             if (siteUrl.length > 0 && value.length === 0) {
                                 const addSlashIfNeeded =
                                     siteUrl[siteUrl.length - 1] === "/"
@@ -7114,8 +7126,8 @@ const AdminDefinition = {
                 id: "GitLabSettings",
                 name: t("admin.authentication.gitlab"),
                 name_default: "GitLab",
-                onConfigLoad: (config) => {
-                    const newState = {};
+                onConfigLoad: (config: AdminConfig) => {
+                    const newState: Record<string, string> = {};
                     newState["GitLabSettings.Url"] =
                         config.GitLabSettings.UserAPIEndpoint.replace(
                             "/api/v4/user",
@@ -7123,8 +7135,14 @@ const AdminDefinition = {
                         );
                     return newState;
                 },
-                onConfigSave: (config) => {
-                    const newConfig = { ...config };
+                onConfigSave: (
+                    config: Omit<AdminConfig, "GitLabSettings"> & {
+                        GitLabSettings: Pick<AdminConfig, "GitLabSettings"> & {
+                            Url: string;
+                        };
+                    }
+                ) => {
+                    const newConfig: any = { ...config };
                     newConfig.GitLabSettings.UserAPIEndpoint =
                         config.GitLabSettings.Url.replace(/\/$/, "") +
                         "/api/v4/user";
@@ -7210,7 +7228,11 @@ const AdminDefinition = {
                         key: "GitLabSettings.UserAPIEndpoint",
                         label: t("admin.gitlab.userTitle"),
                         label_default: "User API Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -7228,7 +7250,11 @@ const AdminDefinition = {
                         key: "GitLabSettings.AuthEndpoint",
                         label: t("admin.gitlab.authTitle"),
                         label_default: "Auth Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -7246,7 +7272,11 @@ const AdminDefinition = {
                         key: "GitLabSettings.TokenEndpoint",
                         label: t("admin.gitlab.tokenTitle"),
                         label_default: "Token Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -7282,8 +7312,8 @@ const AdminDefinition = {
                 id: "OAuthSettings",
                 name: t("admin.authentication.oauth"),
                 name_default: "OAuth 2.0",
-                onConfigLoad: (config) => {
-                    const newState = {};
+                onConfigLoad: (config: AdminConfig) => {
+                    const newState: any = {};
                     if (config.GitLabSettings && config.GitLabSettings.Enable) {
                         newState.oauthType = Constants.GITLAB_SERVICE;
                     }
@@ -7305,7 +7335,16 @@ const AdminDefinition = {
 
                     return newState;
                 },
-                onConfigSave: (config) => {
+                onConfigSave: (
+                    config: Omit<AdminConfig, "GitLabSettings"> & {
+                        GitLabSettings: Pick<AdminConfig, "GitLabSettings"> & {
+                            Url: string;
+                            Enable: boolean;
+                            UserAPIEndpoint: string;
+                        };
+                        oauthType?: string;
+                    }
+                ) => {
                     const newConfig = { ...config };
                     newConfig.GitLabSettings = config.GitLabSettings || {};
                     newConfig.Office365Settings =
@@ -7330,7 +7369,7 @@ const AdminDefinition = {
                     if (config.oauthType === Constants.GOOGLE_SERVICE) {
                         newConfig.GoogleSettings.Enable = true;
                     }
-                    delete newConfig.oauthType;
+                    newConfig.oauthType = undefined;
                     return newConfig;
                 },
                 settings: [
@@ -7527,7 +7566,11 @@ const AdminDefinition = {
                         key: "GitLabSettings.UserAPIEndpoint",
                         label: t("admin.gitlab.userTitle"),
                         label_default: "User API Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -7546,7 +7589,11 @@ const AdminDefinition = {
                         key: "GitLabSettings.AuthEndpoint",
                         label: t("admin.gitlab.authTitle"),
                         label_default: "Auth Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -7565,7 +7612,11 @@ const AdminDefinition = {
                         key: "GitLabSettings.TokenEndpoint",
                         label: t("admin.gitlab.tokenTitle"),
                         label_default: "Token Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -7720,7 +7771,11 @@ const AdminDefinition = {
                         key: "Office365Settings.AuthEndpoint",
                         label: t("admin.office365.authTitle"),
                         label_default: "Auth Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["Office365Settings.DirectoryId"]) {
                                 return (
                                     "https://login.microsoftonline.com/" +
@@ -7740,7 +7795,11 @@ const AdminDefinition = {
                         key: "Office365Settings.TokenEndpoint",
                         label: t("admin.office365.tokenTitle"),
                         label_default: "Token Endpoint:",
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["Office365Settings.DirectoryId"]) {
                                 return (
                                     "https://login.microsoftonline.com/" +
@@ -7777,7 +7836,7 @@ const AdminDefinition = {
                 id: "OpenIdSettings",
                 name: t("admin.authentication.openid"),
                 name_default: "OpenID Connect",
-                onConfigLoad: (config: Partial<AdminConfig>) => {
+                onConfigLoad: (config: AdminConfig) => {
                     const newState: Record<string, string> = {};
                     if (
                         config.Office365Settings &&
@@ -7811,9 +7870,11 @@ const AdminDefinition = {
                     return newState;
                 },
                 onConfigSave: (
-                    config: AdminConfig & { openidType: string }
+                    config: AdminConfig & { openidType?: string }
                 ) => {
-                    const newConfig = { ...config };
+                    const newConfig: AdminConfig & { openidType?: string } = {
+                        ...config,
+                    };
                     newConfig.Office365Settings =
                         config.Office365Settings || {};
                     newConfig.GoogleSettings = config.GoogleSettings || {};
@@ -7825,7 +7886,7 @@ const AdminDefinition = {
                     newConfig.GitLabSettings.Enable = false;
                     newConfig.OpenIdSettings.Enable = false;
 
-                    let configSetting = "";
+                    let configSetting;
                     if (config.openidType === Constants.OFFICE365_SERVICE) {
                         configSetting = "Office365Settings";
                     } else if (config.openidType === Constants.GOOGLE_SERVICE) {
@@ -7836,7 +7897,7 @@ const AdminDefinition = {
                         configSetting = "OpenIdSettings";
                     }
 
-                    if (configSetting !== "") {
+                    if (configSetting && configSetting !== "") {
                         newConfig[configSetting].Enable = true;
                         newConfig[configSetting].Scope =
                             Constants.OPENID_SCOPES;
@@ -7845,7 +7906,7 @@ const AdminDefinition = {
                         newConfig[configSetting].TokenEndpoint = "";
                     }
 
-                    delete newConfig.openidType;
+                    newConfig.openidType = undefined;
                     return newConfig;
                 },
                 settings: [
@@ -7921,7 +7982,9 @@ const AdminDefinition = {
                                             {msg}
                                         </ExternalLink>
                                     ),
-                                    strong: (msg) => <strong>{msg}</strong>,
+                                    strong: (msg: string) => (
+                                        <strong>{msg}</strong>
+                                    ),
                                 },
                             },
                             {
@@ -7935,7 +7998,7 @@ const AdminDefinition = {
                                     '1. <linkLogin>Log in</linkLogin> to your Microsoft or Office 365 account. Make sure it`s the account on the same <linkTenant>tenant</linkTenant> that you would like users to log in with.\n2. Go to <linkApps>https://apps.dev.microsoft.com</linkApps>, click <strong>Go to Azure Portal</strong> > click <strong>New Registration</strong>.\n3. Use "Mattermost - your-company-name" as the <strong>Application Name</strong>, click <strong>Registration</strong>, paste <strong>Client ID</strong> and <strong>Tenant ID</strong> below.\n4. Click <strong>Authentication</strong>, under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.\n5. Click <strong>Certificates & secrets</strong>, Generate <strong>New client secret</strong> and paste secret value in <strong>Client Secret</strong> field below.',
                                 help_text_markdown: false,
                                 help_text_values: {
-                                    linkLogin: (msg) => (
+                                    linkLogin: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location="admin_console"
                                             href="https://login.microsoftonline.com/"
@@ -7943,7 +8006,7 @@ const AdminDefinition = {
                                             {msg}
                                         </ExternalLink>
                                     ),
-                                    linkTenant: (msg) => (
+                                    linkTenant: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location="admin_console"
                                             href="https://msdn.microsoft.com/en-us/library/azure/jj573650.aspx#Anchor_0"
@@ -7951,7 +8014,7 @@ const AdminDefinition = {
                                             {msg}
                                         </ExternalLink>
                                     ),
-                                    linkApps: (msg) => (
+                                    linkApps: (msg: React.ReactNode) => (
                                         <ExternalLink
                                             location="admin_console"
                                             href="https://apps.dev.microsoft.com"
@@ -7959,7 +8022,9 @@ const AdminDefinition = {
                                             {msg}
                                         </ExternalLink>
                                     ),
-                                    strong: (msg) => <strong>{msg}</strong>,
+                                    strong: (msg: string) => (
+                                        <strong>{msg}</strong>
+                                    ),
                                 },
                             },
                             {
@@ -8009,7 +8074,11 @@ const AdminDefinition = {
                         help_text_default:
                             "The URL of the discovery document for OpenID Connect with GitLab.",
                         help_text_markdown: false,
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["GitLabSettings.Url"]) {
                                 return (
                                     state["GitLabSettings.Url"].replace(
@@ -8170,7 +8239,11 @@ const AdminDefinition = {
                         help_text_default:
                             "The URL of the discovery document for OpenID Connect with Office 365.",
                         help_text_markdown: false,
-                        dynamic_value: (value, config, state) => {
+                        dynamic_value: (
+                            value: any,
+                            config: Partial<AdminConfig>,
+                            state: any
+                        ) => {
                             if (state["Office365Settings.DirectoryId"]) {
                                 return (
                                     "https://login.microsoftonline.com/" +
