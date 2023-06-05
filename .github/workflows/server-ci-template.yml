@@ -226,6 +226,25 @@ jobs:
         run: make app-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+  check-mmctl-docs:
+    name: Check mmctl docs
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Check docs
+        run: |
+          echo "Making sure docs are updated"
+          cd server
+          make mmctl-docs
+          if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
     name: Postgres with binary parameters
     needs: check-mattermost-vet
@@ -247,6 +266,13 @@ jobs:
     with:
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
+  test-mmctl:
+    name: Run mmctl tests
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/mmctl-test-template.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
   build-mattermost-server:
     name: Build mattermost server app
     runs-on: ubuntu-latest-8-cores
