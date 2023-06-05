@@ -999,6 +999,11 @@ export const NotificationLevels = {
     NONE: 'none',
 } as const;
 
+export const DesktopSound = {
+    ON: 'on',
+    OFF: 'off',
+} as const;
+
 export const IgnoreChannelMentions = {
     ON: 'on',
     OFF: 'off',
