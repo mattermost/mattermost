@@ -401,7 +401,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			} else {
 				endpoint = h.HandlerName
 			}
-			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
+			originDevice := "unknown"
+			if session := c.AppContext.Session(); session != nil {
+				originDevice = "web"
+				if session.IsMobileApp() {
+					originDevice = "mobile"
+				}
+			}
+
+			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, originDevice, elapsed)
 		}
 	}
 }
