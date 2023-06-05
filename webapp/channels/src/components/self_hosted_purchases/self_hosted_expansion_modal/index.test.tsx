@@ -17,6 +17,7 @@ import {DeepPartial} from '@mattermost/types/utilities';
 
 import SelfHostedExpansionModal, {makeInitialState, canSubmit, FormState} from './';
 import moment from 'moment-timezone';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;
@@ -345,13 +346,19 @@ describe('SelfHostedExpansionModal RHS Card', () => {
     });
 
     it('New seats input cannot be less than 1', () => {
-        if (initialState.entities?.users?.filteredStats?.total_users_count) {
-            initialState.entities.users.filteredStats.total_users_count = 50;
-        }
+        const state = mergeObjects(initialState, {
+            entities: {
+                users: {
+                    filteredStats: {
+                        total_users_count: 50,
+                    },
+                },
+            },
+        });
 
         const expectedAddNewSeats = '1';
 
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, state);
         fillForm(defaultSuccessForm);
 
         // Try to set a negative value.
