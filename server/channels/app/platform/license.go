@@ -43,8 +43,7 @@ func (ps *PlatformService) SetLicenseManager(impl einterfaces.LicenseInterface) 
 }
 
 func (ps *PlatformService) License() *model.License {
-	license, _ := ps.licenseValue.Load().(*model.License)
-	return license
+	return ps.licenseValue.Load()
 }
 
 func (ps *PlatformService) LoadLicense() {
@@ -208,7 +207,7 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 			if oldLicense == nil {
 				listener(nil, license)
 			} else {
-				listener(oldLicense.(*model.License), license)
+				listener(oldLicense, license)
 			}
 		}
 	}()
@@ -255,7 +254,7 @@ func (ps *PlatformService) ClientLicense() map[string]string {
 }
 
 func (ps *PlatformService) RemoveLicense() *model.AppError {
-	if license, _ := ps.licenseValue.Load().(*model.License); license == nil {
+	if license := ps.licenseValue.Load(); license == nil {
 		return nil
 	}
 

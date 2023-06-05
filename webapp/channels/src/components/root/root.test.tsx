@@ -31,11 +31,17 @@ jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
-jest.mock('utils/utils', () => ({
-    localizeMessage: () => {},
-    applyTheme: jest.fn(),
-    makeIsEligibleForClick: jest.fn(),
-}));
+jest.mock('utils/utils', () => {
+    const original = jest.requireActual('utils/utils');
+
+    return {
+        ...original,
+        localizeMessage: () => {},
+        applyTheme: jest.fn(),
+        makeIsEligibleForClick: jest.fn(),
+
+    };
+});
 
 jest.mock('mattermost-redux/actions/general', () => ({
     setUrl: () => {},
