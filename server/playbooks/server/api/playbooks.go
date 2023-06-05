@@ -345,6 +345,16 @@ func (h *PlaybookHandler) getPlaybooks(c *Context, w http.ResponseWriter, r *htt
 		IsAdmin: app.IsSystemAdmin(userID, h.api),
 	}
 
+	isGuest, err := app.IsGuest(userID, h.api)
+	if err != nil {
+		h.HandleErrorWithCode(w, c.logger, http.StatusForbidden, "", err)
+		return
+	}
+
+	if isGuest {
+		opts.WithMembershipOnly = true
+	}
+
 	playbookResults, err := h.playbookService.GetPlaybooksForTeam(requesterInfo, teamID, opts)
 	if err != nil {
 		h.HandleError(w, c.logger, err)

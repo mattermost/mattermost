@@ -1,12 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CommandSuggestion should match snapshot 1`] = `
-<div
-  className="slash-command suggestion--selected"
-  onClick={[Function]}
-  onMouseMove={[Function]}
-  role="button"
-  tabIndex={-1}
+<SuggestionContainer
+  isSelection={true}
+  item={
+    Object {
+      "Complete": "/invite",
+      "Description": "Invite a user to a channel",
+      "Hint": "@[username] ~[channel]",
+      "IconData": "",
+      "Suggestion": "/invite",
+    }
+  }
+  matchedPretext=""
+  onClick={[MockFunction]}
+  onMouseMove={[MockFunction]}
+  term="/"
 >
   <div
     className="slash-command__icon"
@@ -29,5 +38,5 @@ exports[`CommandSuggestion should match snapshot 1`] = `
       Invite a user to a channel
     </div>
   </div>
-</div>
+</SuggestionContainer>
 `;

@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
-import classNames from 'classnames';
-
 import React from 'react';
 import styled from 'styled-components';
+import classNames from 'classnames';
+import {FormattedMessage} from 'react-intl';
+
+import {CheckIcon} from '@mattermost/compass-icons/components';
 
 import Accordion, {AccordionItemType} from 'components/common/accordion/accordion';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LoadingScreen from '../../loading_screen';
-import FormattedAdminHeader from '../../widgets/admin_console/formatted_admin_header';
-import {Props} from '../admin_console';
+import type {Props} from '../admin_console';
 
 import ChipsList, {ChipsInfoType} from './chips_list';
 import CtaButtons from './cta_buttons';
@@ -121,10 +122,12 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
 
     return loading || !accordionItemsData ? <LoadingScreen/> : (
         <div className='WorkspaceOptimizationDashboard wrapper--fixed'>
-            <FormattedAdminHeader
-                id={'admin.reporting.workspace_optimization.title'}
-                defaultMessage='Workspace Optimization'
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id={'admin.reporting.workspace_optimization.title'}
+                    defaultMessage='Workspace Optimization'
+                />
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <OverallScore
                     chips={

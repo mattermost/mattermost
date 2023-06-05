@@ -1,7 +1,9 @@
 name: Server CI PR
 on:
   pull_request:
-
+    paths:
+      - 'server/**'
+      - '.github/**'
 env:
   go-version: "1.19.5"
 concurrency:

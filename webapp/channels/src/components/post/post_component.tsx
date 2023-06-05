@@ -117,6 +117,7 @@ export type Props = {
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
+    canDelete?: boolean;
 };
 
 const PostComponent = (props: Props): JSX.Element => {
@@ -479,7 +480,7 @@ const PostComponent = (props: Props): JSX.Element => {
     ) : null;
     const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH && !props.isPinnedPosts && !props.isFlaggedPosts;
+    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
     const getTestId = () => {
         let idPrefix: string;
@@ -512,7 +513,7 @@ const PostComponent = (props: Props): JSX.Element => {
             className={props.location === 'SEARCH' ? 'search-item__container' : undefined}
             data-testid={props.location === 'SEARCH' ? 'search-item-container' : undefined}
         >
-            {(isSearchResultItem || props.isPinnedPosts || props.isFlagged) && <DateSeparator date={currentPostDay}/>}
+            {(isSearchResultItem || (props.location !== Locations.CENTER && props.isPinnedPosts) || props.isFlagged) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 role='listitem'

@@ -101,17 +101,24 @@ function cleanBindingRec(binding: AppBinding, topLocation: string, depth: number
     });
 }
 
-export function validateBindings(bindings: AppBinding[] = []): AppBinding[] {
-    const channelHeaderBindings = bindings?.filter((b) => b.location === AppBindingLocations.CHANNEL_HEADER_ICON);
-    const postMenuBindings = bindings?.filter((b) => b.location === AppBindingLocations.POST_MENU_ITEM);
-    const commandBindings = bindings?.filter((b) => b.location === AppBindingLocations.COMMAND);
+export function validateBindings(bindings: AppBinding[] | null = []): AppBinding[] {
+    if (!bindings || (bindings.length && bindings.length === 0)) {
+        return [];
+    }
+    const filterAndCleanBindings = (location: string): AppBinding[] => {
+        const filteredBindings = bindings.filter((b) => b.location === location);
+        if (filteredBindings?.length === 0) {
+            return [];
+        }
+        filteredBindings.forEach((b) => cleanBinding(b, location));
+        return filteredBindings.filter((b) => b.bindings?.length);
+    };
 
-    channelHeaderBindings.forEach((b) => cleanBinding(b, AppBindingLocations.CHANNEL_HEADER_ICON));
-    postMenuBindings.forEach((b) => cleanBinding(b, AppBindingLocations.POST_MENU_ITEM));
-    commandBindings.forEach((b) => cleanBinding(b, AppBindingLocations.COMMAND));
+    const channelHeaderBindings = filterAndCleanBindings(AppBindingLocations.CHANNEL_HEADER_ICON);
+    const postMenuBindings = filterAndCleanBindings(AppBindingLocations.POST_MENU_ITEM);
+    const commandBindings = filterAndCleanBindings(AppBindingLocations.COMMAND);
 
-    const hasBindings = (b: AppBinding) => b.bindings?.length;
-    return postMenuBindings.filter(hasBindings).concat(channelHeaderBindings.filter(hasBindings), commandBindings.filter(hasBindings));
+    return postMenuBindings.concat(channelHeaderBindings, commandBindings);
 }
 
 export function cleanForm(form?: AppForm) {

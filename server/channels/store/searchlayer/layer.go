@@ -21,7 +21,7 @@ type SearchStore struct {
 	channel      *SearchChannelStore
 	post         *SearchPostStore
 	fileInfo     *SearchFileInfoStore
-	configValue  atomic.Value
+	configValue  atomic.Pointer[model.Config]
 }
 
 func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) *SearchStore {
@@ -44,7 +44,7 @@ func (s *SearchStore) UpdateConfig(cfg *model.Config) {
 }
 
 func (s *SearchStore) getConfig() *model.Config {
-	return s.configValue.Load().(*model.Config)
+	return s.configValue.Load()
 }
 
 func (s *SearchStore) Channel() store.ChannelStore {

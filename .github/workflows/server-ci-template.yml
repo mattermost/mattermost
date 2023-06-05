@@ -16,7 +16,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -38,7 +38,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -51,6 +51,27 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Setup go.work
+        run: make setup-go-work
+      - name: Run golangci
+        run: make golangci-lint
+
   check-gen-serialized:
     name: Check serialization methods for hot structs
     runs-on: ubuntu-22.04
@@ -58,7 +79,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -78,7 +99,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -102,7 +123,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Extract migrations files
         run: make migrations-extract
@@ -112,7 +133,7 @@ jobs:
     name: Build API specification
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -129,7 +150,7 @@ jobs:
           echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
           make build
-          cd ../mattermost-server
+          cd ../mattermost
   check-generate-work-templates:
     name: Generate work templates
     runs-on: ubuntu-22.04
@@ -137,7 +158,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -157,7 +178,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate email templates
         run: |
@@ -172,7 +193,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -192,7 +213,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -243,7 +264,7 @@ jobs:
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml
     with:
-      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
   test-mmctl:
     name: Run mmctl tests
@@ -253,14 +274,14 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
   build-mattermost-server:
-    name: Build mattermost-server
+    name: Build mattermost server app
     runs-on: ubuntu-latest-8-cores
     defaults:
       run:
         working-directory: server
     needs: check-mattermost-vet
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0

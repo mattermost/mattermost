@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
 )
 
 const (
@@ -375,6 +376,11 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool `access:"site_posts"`
 	EnableInlineLatex                                 *bool `access:"site_posts"`
 	PostPriority                                      *bool `access:"site_posts"`
+	AllowPersistentNotifications                      *bool `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -853,6 +859,26 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.PostPriority = NewBool(true)
 	}
 
+	if s.AllowPersistentNotifications == nil {
+		s.AllowPersistentNotifications = NewBool(true)
+	}
+
+	if s.AllowPersistentNotificationsForGuests == nil {
+		s.AllowPersistentNotificationsForGuests = NewBool(false)
+	}
+
+	if s.PersistentNotificationIntervalMinutes == nil {
+		s.PersistentNotificationIntervalMinutes = NewInt(5)
+	}
+
+	if s.PersistentNotificationMaxCount == nil {
+		s.PersistentNotificationMaxCount = NewInt(6)
+	}
+
+	if s.PersistentNotificationMaxRecipients == nil {
+		s.PersistentNotificationMaxRecipients = NewInt(5)
+	}
+
 	if s.AllowSyncedDrafts == nil {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
@@ -1238,19 +1264,20 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleLevel           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	ConsoleJson            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableColor            *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile             *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLevel              *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileJson               *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	FileLocation           *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableWebhookDebugging *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	EnableDiagnostics      *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableSentry           *bool   `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	AdvancedLoggingConfig  *string `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	ConsoleJson            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableColor            *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile             *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLevel              *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileJson               *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
+	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func NewLogSettings() *LogSettings {
@@ -1308,20 +1335,45 @@ func (s *LogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
+	}
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
 	}
+	//s.AdvancedLoggingConfig = nil
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
+	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	return []byte("{}")
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB         *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups        *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize      *int    `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileEnabled           *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileName              *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
+	FileMaxSizeMB         *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxAgeDays        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1353,21 +1405,46 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
 
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
+	}
+
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
 	}
+	//s.AdvancedLoggingConfig = nil
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
+	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	return []byte("{}")
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel          *string `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson           *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableColor           *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile            *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLevel             *string `access:"write_restrictable,cloud_restrictable"`
-	FileJson              *bool   `access:"write_restrictable,cloud_restrictable"`
-	FileLocation          *string `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string `access:"write_restrictable,cloud_restrictable"`
+	EnableConsole         *bool           `access:"write_restrictable,cloud_restrictable"`
+	ConsoleLevel          *string         `access:"write_restrictable,cloud_restrictable"`
+	ConsoleJson           *bool           `access:"write_restrictable,cloud_restrictable"`
+	EnableColor           *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile            *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLevel             *string         `access:"write_restrictable,cloud_restrictable"`
+	FileJson              *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLocation          *string         `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON   json.RawMessage `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingConfig *string         `access:"write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1403,9 +1480,32 @@ func (s *NotificationLogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
+	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
+		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
+		} else {
+			s.AdvancedLoggingJSON = []byte("{}")
+		}
+	}
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
 	}
+	//s.AdvancedLoggingConfig = nil
+}
+
+// GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
+// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
+	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
+		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
+	}
+	return []byte("{}")
 }
 
 type PasswordSettings struct {
@@ -3728,6 +3828,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.PersistentNotificationIntervalMinutes < 2 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxCount <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_count.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxRecipients <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// we check if file has a valid parent, the server will try to create the socket
