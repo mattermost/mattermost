@@ -435,7 +435,7 @@ func (e *TestEnvironment) CreateAdditionalPlaybooks() {
 func (e *TestEnvironment) CreateGuest() {
 	cfg := e.Srv.Config()
 	cfg.GuestAccountsSettings.Enable = model.NewBool(true)
-	_, _, err := e.ServerAdminClient.UpdateConfig(cfg)
+	_, _, err := e.ServerAdminClient.UpdateConfig(context.Background(), cfg)
 	require.NoError(e.T, err)
 
 	userPassword := "password123!"
@@ -447,15 +447,15 @@ func (e *TestEnvironment) CreateGuest() {
 	require.Nil(e.T, appErr)
 	e.GuestUser = guest
 
-	_, _, err = e.ServerAdminClient.AddTeamMember(e.BasicPublicChannel.TeamId, e.GuestUser.Id)
+	_, _, err = e.ServerAdminClient.AddTeamMember(context.Background(), e.BasicPublicChannel.TeamId, e.GuestUser.Id)
 	require.NoError(e.T, err)
 
-	_, _, err = e.ServerAdminClient.AddChannelMember(e.BasicPublicChannel.Id, e.GuestUser.Id)
+	_, _, err = e.ServerAdminClient.AddChannelMember(context.Background(), e.BasicPublicChannel.Id, e.GuestUser.Id)
 	require.NoError(e.T, err)
 
 	siteURL := fmt.Sprintf("http://localhost:%v", e.A.Srv().ListenAddr.Port)
 	serverClientGuest := model.NewAPIv4Client(siteURL)
-	_, _, err = serverClientGuest.Login(e.GuestUser.Email, userPassword)
+	_, _, err = serverClientGuest.Login(context.Background(), e.GuestUser.Email, userPassword)
 	require.NoError(e.T, err)
 
 	playbooksClientGuest, err := client.New(serverClientGuest)
