@@ -1338,6 +1338,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		a.deleteFlaggedPosts(post.Id)
 	})
 
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
+	})
+
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
