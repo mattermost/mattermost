@@ -92,7 +92,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
 
         const ariaName: string = typeof name === 'string' ? name.toLowerCase() : '';
 
-        let userColor = '#000000';
+        let userColor = theme?.centerChannelColor;
         if (user && theme) {
             userColor = generateColor(user.username, theme.centerChannelBg);
         }
