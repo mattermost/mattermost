@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 	"hash/maphash"
 	"net/http"
@@ -49,10 +50,13 @@ type PlatformService struct {
 	sessionCache  cache.Cache
 	sessionPool   sync.Pool
 
-	asymmetricSigningKey atomic.Value
+	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value
 	limitedClientConfig  atomic.Value
+
+	isFirstUserAccountLock sync.Mutex
+	isFirstUserAccount     atomic.Bool
 
 	logger              *mlog.Logger
 	notificationsLogger *mlog.Logger
@@ -66,7 +70,7 @@ type PlatformService struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 
-	licenseValue       atomic.Value
+	licenseValue       atomic.Pointer[model.License]
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
 	licenseManager     einterfaces.LicenseInterface
@@ -125,6 +129,9 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
 	}
+
+	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
+	ps.isFirstUserAccount.Store(true)
 
 	// Step 1: Cache provider.
 	// At the moment we only have this implementation

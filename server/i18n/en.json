@@ -6192,6 +6192,10 @@
     "translation": "Unable to delete the post."
   },
   {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "An error occurred getting the team."
+  },
+  {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
   },
@@ -10037,7 +10041,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 112+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
