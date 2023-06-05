@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Moment} from 'moment-timezone';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import {isKeyPressed} from 'utils/keyboard';
 import {localizeMessage} from 'utils/utils';
 import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';

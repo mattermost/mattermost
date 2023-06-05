@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 
 import {isModalOpen} from 'selectors/views/modals';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import AlertSvg from 'components/common/svg_images_components/alert_svg';
 
 import {ModalIdentifiers} from 'utils/constants';

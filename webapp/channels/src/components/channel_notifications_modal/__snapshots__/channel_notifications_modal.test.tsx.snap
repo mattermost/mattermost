@@ -97,10 +97,17 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             <NotificationSection
               expand={false}
               globalNotificationLevel="all"
+              globalNotificationSound="Bing"
+              isNotificationsSettingSameAsGlobal={true}
+              memberDesktopNotificationSound="Bing"
+              memberDesktopSound="on"
               memberNotificationLevel="all"
               memberThreadsNotificationLevel="all"
               onChange={[Function]}
+              onChangeDesktopSound={[Function]}
+              onChangeNotificationSound={[Function]}
               onChangeThreads={[Function]}
+              onReset={[Function]}
               onSubmit={[Function]}
               onUpdateSection={[Function]}
               section="desktop"
@@ -111,10 +118,12 @@ exports[`components/channel_notifications_modal/ChannelNotificationsModal should
             />
             <NotificationSection
               expand={false}
-              memberNotificationLevel="default"
-              memberThreadsNotificationLevel="default"
+              isNotificationsSettingSameAsGlobal={true}
+              memberNotificationLevel="all"
+              memberThreadsNotificationLevel="all"
               onChange={[Function]}
               onChangeThreads={[Function]}
+              onReset={[Function]}
               onSubmit={[Function]}
               onUpdateSection={[Function]}
               section="push"
