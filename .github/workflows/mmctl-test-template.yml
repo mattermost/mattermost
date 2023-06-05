@@ -44,7 +44,7 @@ jobs:
             --ulimit nofile=8096:8096 \
             --env-file=dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
-            -v ~/work/mattermost-server:/mattermost-server \
-            -w /mattermost-server/mattermost-server/server \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost/server \
             $BUILD_IMAGE \
-            make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID MM_SERVER_PATH=/mattermost-server/mattermost-server/server
+            make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID MM_SERVER_PATH=/mattermost/mattermost/server
