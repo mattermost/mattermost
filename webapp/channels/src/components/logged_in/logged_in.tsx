@@ -15,8 +15,8 @@ import WebSocketClient from 'client/web_websocket_client.jsx';
 import BrowserStore from 'stores/browser_store';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
-
-const BACKSPACE_CHAR = 8;
+import {isKeyPressed} from 'utils/keyboard';
+import Constants from 'utils/constants';
 
 declare global {
     interface Window {
@@ -205,11 +205,19 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
     private handleBackSpace = (e: KeyboardEvent): void => {
         const excludedElements = ['input', 'textarea'];
+        const targetElement = e.target as HTMLElement;
+
+        if (!targetElement) {
+            return;
+        }
+
+        const targetsTagName = targetElement.tagName.toLowerCase();
+        const isTargetNotContentEditable = targetElement.getAttribute?.('contenteditable') !== 'true';
 
         if (
-            e.which === BACKSPACE_CHAR && e.target &&
-            !(excludedElements.includes((e.target as HTMLElement).tagName.toLowerCase())) &&
-            (e.target as HTMLElement).getAttribute?.('contenteditable') !== 'true'
+            isKeyPressed(e, Constants.KeyCodes.BACKSPACE) &&
+            !(excludedElements.includes(targetsTagName)) &&
+            isTargetNotContentEditable
         ) {
             e.preventDefault();
         }
