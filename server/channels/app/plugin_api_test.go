@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -2196,38 +2197,15 @@ func TestPluginUploadsAPI(t *testing.T) {
 	require.True(t, activated)
 }
 
+//go:embed plugin_api_tests/manual.test_configuration_will_be_saved_hook/main.tmpl
+var configurationWillBeSavedHookTemplate string
+
 func TestConfigurationWillBeSavedHook(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	getPluginCode := func(hookCode string) string {
-		return fmt.Sprintf(`
-    package main
-
-    import (
-		  "fmt"
-
-      "github.com/mattermost/mattermost-server/server/public/model"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
-    )
-
-    type TestPlugin struct {
-      plugin.MattermostPlugin
-    }
-
-	  func (p *TestPlugin) OnActivate() error {
-		  fmt.Println("activated")
-		  return nil
-	  }
-
-	  func (p *TestPlugin) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
-			%s
-	  }
-
-    func main() {
-      plugin.ClientMain(&TestPlugin{})
-    }
-  `, hookCode)
+		return fmt.Sprintf(configurationWillBeSavedHookTemplate, hookCode)
 	}
 
 	runPlugin := func(t *testing.T, code string) {
@@ -2265,9 +2243,12 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 
 		runPlugin(t, getPluginCode(hookCode))
 
-		_, _, appErr := th.App.SaveConfig(th.App.Config(), false)
+		cfg := th.App.Config()
+		_, _, appErr := th.App.SaveConfig(cfg, false)
 		require.NotNil(t, appErr)
 		require.Equal(t, "saveConfig: An error occurred running the plugin hook on configuration save., plugin hook failed", appErr.Error())
+
+		require.Equal(t, cfg, th.App.Config())
 	})
 
 	t.Run("AppError", func(t *testing.T) {
@@ -2277,9 +2258,12 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 
 		runPlugin(t, getPluginCode(hookCode))
 
-		_, _, appErr := th.App.SaveConfig(th.App.Config(), false)
+		cfg := th.App.Config()
+		_, _, appErr := th.App.SaveConfig(cfg, false)
 		require.NotNil(t, appErr)
 		require.Equal(t, "custom_error", appErr.Id)
+
+		require.Equal(t, cfg, th.App.Config())
 	})
 
 	t.Run("no error, no config change", func(t *testing.T) {
