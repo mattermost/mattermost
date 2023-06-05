@@ -37,7 +37,7 @@ export default class PushSettings extends AdminSettings {
     };
 
     handleDropdownChange = (id, value) => {
-        if (id === 'pushNotificationServerType') {
+        if (id === DROPDOWN_ID_SERVER_TYPE) {
             this.setState({
                 agree: false,
             });
@@ -59,7 +59,7 @@ export default class PushSettings extends AdminSettings {
             }
         }
 
-        if (id === 'pushNotificationServerLocation') {
+        if (id === DROPDOWN_ID_SERVER_LOCATION) {
             switch (value) {
             case PUSH_NOTIFICATIONS_LOCATION_US:
                 this.setState({
