@@ -4168,6 +4168,18 @@
     "translation": "Error fetching roles during validation."
   },
   {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Unable to get tokens by type when invalidating password recovery tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Unable to remove token when invalidating password recovery tokens"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Unable to parse token when invalidating password recovery tokens"
+  },
+  {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Unable to get tokens by type when invalidating email verification tokens"
   },
