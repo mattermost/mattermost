@@ -480,7 +480,7 @@ const PostComponent = (props: Props): JSX.Element => {
     ) : null;
     const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH && !props.isPinnedPosts && !props.isFlaggedPosts;
+    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
     const getTestId = () => {
         let idPrefix: string;

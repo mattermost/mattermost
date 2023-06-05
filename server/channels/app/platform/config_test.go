@@ -5,6 +5,7 @@ package platform
 
 import (
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -131,12 +132,62 @@ func TestIsFirstUserAccount(t *testing.T) {
 		t.Run(te.name, func(t *testing.T) {
 			*userStoreMock = smocks.UserStore{}
 
-			userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err).RunFn = func(args mock.Arguments) {
-				if !te.shouldCallStore {
-					assert.Fail(t, "should not have called the store")
-				}
+			if te.shouldCallStore {
+				userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err).Once()
+			} else {
+				userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Unset()
 			}
+
 			require.Equal(t, te.result, th.Service.IsFirstUserAccount())
 		})
 	}
+}
+
+func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+	storeMock := th.Service.Store.(*smocks.Store)
+	userStoreMock := &smocks.UserStore{}
+	storeMock.On("User").Return(userStoreMock)
+
+	tests := []struct {
+		name               string
+		count              int64
+		err                error
+		concurrentRequest  int
+		result             bool
+		numberOfStoreCalls int
+	}{
+		{"failed request", 0, errors.New("error"), 10, false, 10},
+		{"success negative users", -100, nil, 10, true, 10},
+		{"success no users", 0, nil, 10, true, 10},
+		{"success one user - lot of requests", 1, nil, 1000, false, 1},
+		{"success multiple users - no store call", 42, nil, 10, false, 0},
+	}
+
+	for _, te := range tests {
+		t.Run(te.name, func(t *testing.T) {
+			*userStoreMock = smocks.UserStore{}
+
+			if te.numberOfStoreCalls != 0 {
+				userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Return(te.count, te.err).Times(te.numberOfStoreCalls)
+			} else {
+				userStoreMock.On("Count", model.UserCountOptions{IncludeDeleted: true}).Unset()
+			}
+			defer userStoreMock.AssertExpectations(t)
+
+			var wg sync.WaitGroup
+			for i := 0; i < te.concurrentRequest; i++ {
+				wg.Add(1)
+
+				go func() {
+					defer wg.Done()
+					require.Equal(t, te.result, th.Service.IsFirstUserAccount())
+				}()
+			}
+
+			wg.Wait()
+		})
+	}
+
 }

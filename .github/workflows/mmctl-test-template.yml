@@ -1,0 +1,50 @@
+name: mmctl CI
+on:
+  workflow_call:
+    inputs:
+      datasource:
+        required: true
+        type: string
+      drivername:
+        required: true
+        type: string
+env:
+  go-version: "1.19.5"
+jobs:
+  run-mmctl-tests:
+    runs-on: ubuntu-latest-8-cores
+    env:
+      COMPOSE_PROJECT_NAME: ghactions
+      BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+      - name: Run docker compose
+        run: |
+          cd server/build
+          docker-compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --no-ansi ps
+          cd ..
+      - name: Wait for docker compose
+        run: |
+          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - name: Run mmctl Tests
+        run: |
+          mkdir -p client/plugins
+          cd server/build
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=dotenv/test.env \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost/server \
+            $BUILD_IMAGE \
+            make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID MM_SERVER_PATH=/mattermost/mattermost/server
