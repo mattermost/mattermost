@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {FocusTrap} from '../focus_trap';
+import './generic_modal.scss';
 
 export type Props = {
     className?: string;
@@ -53,7 +54,7 @@ type State = {
     isFocalTrapActive: boolean;
 }
 
-export class LegacyGenericModal extends React.PureComponent<Props, State> {
+export class GenericModal extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         show: true,
         id: 'genericModal',

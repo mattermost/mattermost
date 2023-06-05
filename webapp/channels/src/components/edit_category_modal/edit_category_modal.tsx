@@ -9,7 +9,7 @@ import {ChannelCategory} from '@mattermost/types/channel_categories';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {localizeMessage} from 'utils/utils';
 

@@ -5,7 +5,7 @@ import React from 'react';
 import {render, screen} from '@testing-library/react';
 
 import {FooterPagination} from './footer_pagination';
-import {wrapIntl} from '../../testUtils'
+import {wrapIntl} from '../testUtils'
 
 describe('LegacyGenericModal/FooterPagination', () => {
     const baseProps = {

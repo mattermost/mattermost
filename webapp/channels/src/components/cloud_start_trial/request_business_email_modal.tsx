@@ -16,7 +16,7 @@ import {validateBusinessEmail} from 'actions/cloud';
 
 import {ItemStatus, TELEMETRY_CATEGORIES, ModalIdentifiers, LicenseLinks, AboutLinks} from 'utils/constants';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import ExternalLink from 'components/external_link';
 
