@@ -1,0 +1,78 @@
+BenchmarkProcessText2_without_preprocessing/0_keywords,_10_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/0_keywords,_10_words,_0_mentions-10         	  150154	      7951 ns/op	    7090 B/op	      73 allocs/op
+BenchmarkProcessText2_without_preprocessing/0_keywords,_100_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/0_keywords,_100_words,_0_mentions-10        	   30613	     38650 ns/op	    7086 B/op	      73 allocs/op
+BenchmarkProcessText2_without_preprocessing/0_keywords,_500_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/0_keywords,_500_words,_0_mentions-10        	    7012	    171201 ns/op	    7080 B/op	      73 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_0_mentions-10        	   23205	     51152 ns/op	   39703 B/op	     321 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_5_mentions-10        	   26647	     44991 ns/op	   39948 B/op	     327 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_10_mentions-10       	   34454	     34691 ns/op	   40030 B/op	     332 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_10_words,_20_mentions-10       	   34812	     34482 ns/op	   40025 B/op	     332 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_0_mentions-10       	    4570	    260477 ns/op	   39700 B/op	     321 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_5_mentions-10       	    4480	    260023 ns/op	   39908 B/op	     327 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_10_mentions-10      	    4807	    252790 ns/op	   39993 B/op	     332 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_100_words,_20_mentions-10      	    4908	    235221 ns/op	   40473 B/op	     343 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_0_mentions-10       	    1096	   1084316 ns/op	   39701 B/op	     321 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_5_mentions-10       	    1066	   1097007 ns/op	   40034 B/op	     327 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_10_mentions-10      	    1083	   1113567 ns/op	   40056 B/op	     332 allocs/op
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/10_keywords,_500_words,_20_mentions-10      	    1074	   1115824 ns/op	   40572 B/op	     343 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_0_mentions-10       	    2221	    531976 ns/op	  524800 B/op	    2677 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_5_mentions-10       	    1800	    641309 ns/op	  522878 B/op	    2682 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_10_mentions-10      	    1639	    712548 ns/op	  518567 B/op	    2684 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_10_words,_20_mentions-10      	    1656	    713510 ns/op	  523499 B/op	    2688 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_0_mentions-10      	     397	   3048826 ns/op	  518542 B/op	    2674 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_5_mentions-10      	     379	   3150165 ns/op	  518762 B/op	    2680 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_10_mentions-10     	     368	   3266812 ns/op	  521075 B/op	    2686 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_100_words,_20_mentions-10     	     346	   3638967 ns/op	  519781 B/op	    2696 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_0_mentions-10      	      85	  13697623 ns/op	  523683 B/op	    2677 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_5_mentions-10      	      82	  13984916 ns/op	  524248 B/op	    2683 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_10_mentions-10     	      82	  14000971 ns/op	  515207 B/op	    2683 allocs/op
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/100_keywords,_500_words,_20_mentions-10     	      81	  14037989 ns/op	  524413 B/op	    2699 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_0_mentions-10      	     158	   7337532 ns/op	 7571530 B/op	   26608 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_5_mentions-10      	     136	   8607183 ns/op	 7605558 B/op	   26725 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_10_mentions-10     	     128	   9331296 ns/op	 7613243 B/op	   26756 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_10_words,_20_mentions-10     	     128	   9675972 ns/op	 7651296 B/op	   26880 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_0_mentions-10     	      30	  37414346 ns/op	 7643986 B/op	   26837 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_5_mentions-10     	      31	  40457110 ns/op	 7598052 B/op	   26700 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_10_mentions-10    	      28	  39967079 ns/op	 7653849 B/op	   26890 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_100_words,_20_mentions-10    	      28	  43028318 ns/op	 7523252 B/op	   26474 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_0_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_0_mentions-10     	       7	 167032393 ns/op	 7828973 B/op	   27455 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_5_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_5_mentions-10     	       7	 169181304 ns/op	 7657297 B/op	   26889 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_10_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_10_mentions-10    	       6	 170207333 ns/op	 7479082 B/op	   26311 allocs/op
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_20_mentions
+BenchmarkProcessText2_without_preprocessing/1000_keywords,_500_words,_20_mentions-10    	       6	 168699368 ns/op	 7887322 B/op	   27665 allocs/op

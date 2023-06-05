@@ -5,6 +5,9 @@ package app
 
 import (
 	"fmt"
+	"math/rand"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -2249,124 +2252,313 @@ func TestAddGroupMention(t *testing.T) {
 	}
 }
 
-func TestProcessText(t *testing.T) {
-	id1 := model.NewId()
+var id1 = model.NewId()
+var processTestCases = map[string]struct {
+	Text     string
+	Keywords map[string][]string
+	Groups   map[string]*model.Group
+	Expected *ExplicitMentions
+}{
+	"Mention user in text": {
+		Text:     "hello user @user1",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			Mentions: map[string]MentionType{
+				id1: KeywordMention,
+			},
+		},
+	},
+	"Mention user after ending a sentence with full stop": {
+		Text:     "hello user.@user1",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			Mentions: map[string]MentionType{
+				id1: KeywordMention,
+			},
+		},
+	},
+	"Mention user after hyphen": {
+		Text:     "hello user-@user1",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Expected: &ExplicitMentions{
+			Mentions: map[string]MentionType{
+				id1: KeywordMention,
+			},
+		},
+	},
+	"Mention user after colon": {
+		Text:     "hello user:@user1",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			Mentions: map[string]MentionType{
+				id1: KeywordMention,
+			},
+		},
+	},
+	"Mention here after colon": {
+		Text:     "hello all:@here",
+		Keywords: map[string][]string{},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			HereMentioned: true,
+		},
+	},
+	"Mention all after hyphen": {
+		Text:     "hello all-@all",
+		Keywords: map[string][]string{},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			AllMentioned: true,
+		},
+	},
+	"Mention channel after full stop": {
+		Text:     "hello channel.@channel",
+		Keywords: map[string][]string{},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			ChannelMentioned: true,
+		},
+	},
+	"Mention other potential users or system calls": {
+		Text:     "hello @potentialuser and @otherpotentialuser",
+		Keywords: map[string][]string{},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
+		},
+	},
+	"Mention a real user and another potential user": {
+		Text:     "@user1, you can use @systembot to get help",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			Mentions: map[string]MentionType{
+				id1: KeywordMention,
+			},
+			OtherPotentialMentions: []string{"systembot"},
+		},
+	},
+	"Mention a group": {
+		Text:     "@engineering",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
+			OtherPotentialMentions: []string{"engineering"},
+		},
+	},
+	"Mention a real user and another potential user and a group": {
+		Text:     "@engineering @user1, you can use @systembot to get help from",
+		Keywords: map[string][]string{"@user1": {id1}},
+		Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
+		Expected: &ExplicitMentions{
+			Mentions: map[string]MentionType{
+				id1: KeywordMention,
+			},
+			GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
+			OtherPotentialMentions: []string{"engineering", "systembot"},
+		},
+	},
+}
 
-	for name, tc := range map[string]struct {
-		Text     string
-		Keywords map[string][]string
-		Groups   map[string]*model.Group
-		Expected *ExplicitMentions
-	}{
-		"Mention user in text": {
-			Text:     "hello user @user1",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				Mentions: map[string]MentionType{
-					id1: KeywordMention,
-				},
-			},
-		},
-		"Mention user after ending a sentence with full stop": {
-			Text:     "hello user.@user1",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				Mentions: map[string]MentionType{
-					id1: KeywordMention,
-				},
-			},
-		},
-		"Mention user after hyphen": {
-			Text:     "hello user-@user1",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Expected: &ExplicitMentions{
-				Mentions: map[string]MentionType{
-					id1: KeywordMention,
-				},
-			},
-		},
-		"Mention user after colon": {
-			Text:     "hello user:@user1",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				Mentions: map[string]MentionType{
-					id1: KeywordMention,
-				},
-			},
-		},
-		"Mention here after colon": {
-			Text:     "hello all:@here",
-			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				HereMentioned: true,
-			},
-		},
-		"Mention all after hyphen": {
-			Text:     "hello all-@all",
-			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				AllMentioned: true,
-			},
-		},
-		"Mention channel after full stop": {
-			Text:     "hello channel.@channel",
-			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				ChannelMentioned: true,
-			},
-		},
-		"Mention other potential users or system calls": {
-			Text:     "hello @potentialuser and @otherpotentialuser",
-			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
-			},
-		},
-		"Mention a real user and another potential user": {
-			Text:     "@user1, you can use @systembot to get help",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				Mentions: map[string]MentionType{
-					id1: KeywordMention,
-				},
-				OtherPotentialMentions: []string{"systembot"},
-			},
-		},
-		"Mention a group": {
-			Text:     "@engineering",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
-				OtherPotentialMentions: []string{"engineering"},
-			},
-		},
-		"Mention a real user and another potential user and a group": {
-			Text:     "@engineering @user1, you can use @systembot to get help from",
-			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
-			Expected: &ExplicitMentions{
-				Mentions: map[string]MentionType{
-					id1: KeywordMention,
-				},
-				GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
-				OtherPotentialMentions: []string{"engineering", "systembot"},
-			},
-		},
-	} {
+func TestProcessText(t *testing.T) {
+	for name, tc := range processTestCases {
 		t.Run(name, func(t *testing.T) {
 			e := &ExplicitMentions{}
 			e.processText(tc.Text, tc.Keywords, tc.Groups)
 
 			assert.EqualValues(t, tc.Expected, e)
+		})
+	}
+}
+
+// func BenchmarkProcessText(b *testing.B) {
+// 	// b.Run("benchmark", func(b *testing.B) {
+// 	for i := 0; i <= b.N; i++ {
+// 		for _, tc := range processTestCases {
+// 			e := &ExplicitMentions{}
+// 			e.processText(tc.Text, tc.Keywords, tc.Groups)
+// 		}
+// 	}
+// 	// })
+// }
+
+func TestProcessText2(t *testing.T) {
+	for name, tc := range processTestCases {
+		t.Run(name, func(t *testing.T) {
+			pattern := MakePatternFromKeywords(tc.Keywords, tc.Groups)
+			e := &ExplicitMentions{}
+			e.processText2(tc.Text, pattern, tc.Keywords, tc.Groups)
+
+			tc.Expected.OtherPotentialMentions = nil
+			e.OtherPotentialMentions = nil
+			assert.EqualValues(t, tc.Expected, e)
+		})
+	}
+}
+
+// func BenchmarkProcessText2(b *testing.B) {
+// 	patterns := make(map[string]*regexp.Regexp, len(processTestCases))
+// 	for name, tc := range processTestCases {
+// 		patterns[name] = MakePatternFromKeywords(tc.Keywords, tc.Groups)
+// 	}
+
+// 	b.Run("benchmark", func(b *testing.B) {
+// 		for i := 0; i <= b.N; i++ {
+// 			for name, tc := range processTestCases {
+// 				e := &ExplicitMentions{}
+// 				e.processText2(tc.Text, patterns[name], tc.Keywords, tc.Groups)
+
+// 				// pattern := MakePatternFromKeywords(tc.Keywords, tc.Groups)
+// 				// e := &ExplicitMentions{}
+// 				// e.processText2(tc.Text, pattern, tc.Keywords, tc.Groups)
+// 			}
+// 		}
+// 	})
+// }
+
+const loremIpsum = `
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent nunc ante, scelerisque non purus a, faucibus tempor arcu. Praesent scelerisque tellus velit, eget consectetur lorem auctor nec. Curabitur molestie nunc enim, in varius sem porttitor vitae. Vestibulum ac ipsum cursus, congue ante eu, commodo neque. Vivamus et risus scelerisque, venenatis purus sit amet, porttitor nunc. Proin id nisl vel sem cursus semper. Curabitur ac facilisis ex. Aliquam non justo tristique ipsum commodo commodo non ut lectus. Aenean et finibus odio. Nulla pulvinar vulputate dui. Nulla vulputate condimentum consectetur.
+
+Aliquam dignissim, neque non posuere aliquam, purus diam eleifend felis, vel porttitor ipsum lorem vel ex. Cras tincidunt arcu eget nisi tincidunt consequat. In eu arcu vitae enim elementum bibendum placerat vitae nisl. Donec accumsan ut dui sit amet tristique. Morbi ut tortor quis turpis convallis molestie ac sit amet tellus. Nunc convallis massa et neque feugiat commodo. Fusce pharetra nisl vitae efficitur ultrices. Etiam accumsan scelerisque magna a volutpat. Phasellus dignissim, ex a sollicitudin accumsan, mi elit pharetra lorem, vel dignissim neque est eu leo.
+
+Nunc sed sapien faucibus quam varius maximus vitae ut lectus. Duis congue bibendum dui, in lobortis augue molestie eu. Morbi eleifend diam nec congue ornare. Phasellus iaculis nulla a congue placerat. Aenean pharetra nisi nunc, et blandit libero laoreet ut. Vestibulum consectetur risus vel tortor faucibus, et mollis tortor imperdiet. Donec aliquet sit amet enim consectetur aliquam. Phasellus non massa quam. Praesent augue enim, vulputate quis lobortis ut, dapibus a augue. Nunc sit amet velit et sapien ullamcorper dignissim eu sit amet magna. Nullam quis tempor nibh. Proin interdum dui vitae odio bibendum blandit. Vivamus a ullamcorper orci.
+
+Donec maximus hendrerit pharetra. Morbi ut felis lectus. Curabitur eu accumsan eros. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vivamus tristique quis nulla pulvinar lacinia. Aliquam cursus, sapien quis convallis blandit, arcu ante iaculis lorem, sed rutrum nunc odio ut ipsum. Quisque nec congue urna, nec sodales nisl. Donec et risus semper, auctor turpis non, hendrerit enim. Nunc sodales libero feugiat orci hendrerit feugiat. Mauris egestas varius nibh vitae dictum. In convallis laoreet urna sed hendrerit. Aenean mattis efficitur nulla id placerat. Suspendisse sit amet tempor neque. Praesent pharetra orci nunc, nec consectetur urna aliquet nec. Donec purus augue, ullamcorper ac luctus tempus, mattis in arcu.
+
+Curabitur malesuada non leo volutpat pellentesque. Vestibulum varius, ligula in blandit ultrices, purus purus maximus dui, sit amet aliquet libero nisl ac ex. Proin efficitur, est id ultricies finibus, augue libero consectetur mi, eget molestie purus est quis diam. Etiam nec sem ac lectus mollis mollis at vitae ipsum. Praesent et tellus libero. Suspendisse sit amet elementum orci. Sed convallis tempus elit nec sodales. Sed sit amet mi eros. Ut eros turpis, ultrices eu bibendum efficitur, condimentum et ipsum. Nunc scelerisque in justo sit amet consequat. Maecenas congue ante non rhoncus mattis. Fusce sem felis, tincidunt eu metus sed, cursus lobortis urna. Suspendisse id egestas tortor. Ut facilisis mauris vitae urna pulvinar, vel viverra tortor bibendum.`
+
+type processTestCase struct {
+	Name     string
+	Text     string
+	Keywords map[string][]string
+	Groups   map[string]*model.Group
+}
+
+func setupProcessTestCases() []*processTestCase {
+	rand.Seed(1234567890)
+
+	fakeUserIds := []string{"user1", "user2", "user3", "user4", "user5"}
+	fakeWords := strings.Split(strings.TrimSpace(loremIpsum), " ")
+
+	var testCases []*processTestCase
+
+	for _, numKeywords := range []int{0, 10, 100, 1000 /*, 10000, 100000, 1000000, 10000000*/} {
+		keywords := make(map[string][]string, numKeywords)
+		keywordsArray := make([]string, numKeywords)
+		for i := 0; i < numKeywords; i++ {
+			keyword := fmt.Sprintf("key%dword", i)
+			keywords[keyword] = fakeUserIds
+			keywordsArray[i] = keyword
+		}
+
+		for _, numWords := range []int{10, 100, 500 /*, 1000, 10000*/} {
+			for _, numMentions := range []int{0, 5, 10, 20 /*, 50, 100, 1000*/} {
+				if numKeywords == 0 && numMentions > 0 {
+					continue
+				}
+
+				words := make([]string, numWords)
+				for i := 0; i < numWords; i++ {
+					if i < numMentions {
+						// Who says more than the first few words will be mentions
+						words[i] = keywordsArray[i%len(keywordsArray)]
+					} else {
+						words[i] = fakeWords[i%len(fakeWords)]
+					}
+				}
+
+				name := fmt.Sprintf("%d keywords, %d words, %d mentions", numKeywords, numWords, numMentions)
+				text := strings.Join(words, " ")
+
+				testCases = append(testCases, &processTestCase{
+					Name:     name,
+					Text:     text,
+					Keywords: keywords,
+				})
+			}
+		}
+	}
+
+	return testCases
+}
+
+func BenchmarkProcessText(b *testing.B) {
+	testCases := setupProcessTestCases()
+	b.ResetTimer()
+
+	for _, tc := range testCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				e := &ExplicitMentions{}
+				e.processText(tc.Text, tc.Keywords, tc.Groups)
+			}
+		})
+	}
+}
+
+func BenchmarkProcessText2_without_preprocessing(b *testing.B) {
+	testCases := setupProcessTestCases()
+	b.ResetTimer()
+
+	for _, tc := range testCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				pattern := MakePatternFromKeywords(tc.Keywords, tc.Groups)
+
+				e := &ExplicitMentions{}
+				e.processText2(tc.Text, pattern, tc.Keywords, tc.Groups)
+			}
+		})
+	}
+}
+
+func BenchmarkProcessText2_with_preprocessing(b *testing.B) {
+	testCases := setupProcessTestCases()
+	patterns := make(map[string]*regexp.Regexp, len(testCases))
+	for _, tc := range testCases {
+		patterns[tc.Name] = MakePatternFromKeywords(tc.Keywords, tc.Groups)
+	}
+
+	b.ResetTimer()
+
+	for _, tc := range testCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				pattern := patterns[tc.Name]
+
+				e := &ExplicitMentions{}
+				e.processText2(tc.Text, pattern, tc.Keywords, tc.Groups)
+			}
+		})
+	}
+}
+
+func BenchmarkProcessText3_with_preprocessing(b *testing.B) {
+	testCases := setupProcessTestCases()
+	patterns := make(map[string]*regexp.Regexp, len(testCases))
+	for _, tc := range testCases {
+		patterns[tc.Name] = MakePatternFromKeywords(tc.Keywords, tc.Groups)
+		b.Log(tc.Name)
+		b.Log(patterns[tc.Name])
+	}
+
+	return
+
+	b.ResetTimer()
+
+	for _, tc := range testCases {
+		b.Run(tc.Name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				pattern := patterns[tc.Name]
+
+				e := &ExplicitMentions{}
+				e.processText3(tc.Text, pattern, tc.Keywords, tc.Groups)
+			}
 		})
 	}
 }
