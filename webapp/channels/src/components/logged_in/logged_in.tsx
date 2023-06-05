@@ -206,7 +206,11 @@ export default class LoggedIn extends React.PureComponent<Props> {
     private handleBackSpace = (e: KeyboardEvent): void => {
         const excludedElements = ['input', 'textarea'];
 
-        if (e.which === BACKSPACE_CHAR && !(excludedElements.includes((e.target as HTMLElement).tagName.toLowerCase()))) {
+        if (
+            e.which === BACKSPACE_CHAR && e.target &&
+            !(excludedElements.includes((e.target as HTMLElement).tagName.toLowerCase())) &&
+            (e.target as HTMLElement).getAttribute?.('contenteditable') !== 'true'
+        ) {
             e.preventDefault();
         }
     };
