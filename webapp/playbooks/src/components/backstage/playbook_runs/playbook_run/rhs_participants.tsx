@@ -6,10 +6,11 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {useDispatch, useSelector} from 'react-redux';
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {UserProfile} from '@mattermost/types/users';
 import {sortByUsername} from 'mattermost-redux/utils/user_utils';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {GlobalState} from '@mattermost/types/store';
 
 import Profile from 'src/components/profile/profile';
 import Tooltip from 'src/components/widgets/tooltip';
@@ -44,8 +45,6 @@ export const Participants = ({playbookRun, role, teamName}: Props) => {
     const {formatMessage} = useIntl();
     const [manageMode, setManageMode] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const myUser = useSelector(getCurrentUser);
-    const [participantsProfiles, setParticipantsProfiles] = useState<UserProfile[]>([]);
     const [showAddParticipantsModal, setShowAddParticipantsModal] = useState(false);
 
     const {removeFromRun, changeRunOwner} = useManageRunMembership(playbookRun.id);
@@ -55,19 +54,14 @@ export const Participants = ({playbookRun, role, teamName}: Props) => {
         return removeFromRun(userIDs);
     };
 
+    const participantsProfiles = useSelector((state: GlobalState) => {
+        const profiles = playbookRun.participant_ids.map((id) => getUser(state, id));
+        return profiles.sort(sortByUsername);
+    });
+
     useEffect(() => {
-        if (!playbookRun) {
-            return;
-        }
-
-        const profiles = dispatch(getProfilesByIds(playbookRun.participant_ids));
-
-        //@ts-ignore
-        profiles.then(({data}: { data: UserProfile[] }) => {
-            data.sort(sortByUsername);
-            setParticipantsProfiles(data || []);
-        });
-    }, [dispatch, playbookRun, playbookRun.participant_ids, role]);
+        dispatch(getMissingProfilesByIds(playbookRun.participant_ids));
+    }, [dispatch, playbookRun.participant_ids]);
 
     const includesTerm = (user: UserProfile) => {
         const userInfo = user.first_name + ';' + user.last_name + ';' + user.nickname + ';' + user.username;
