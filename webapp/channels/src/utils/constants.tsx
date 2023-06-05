@@ -18,7 +18,6 @@ import pdfIcon from 'images/icons/pdf.svg';
 import pptIcon from 'images/icons/ppt.svg';
 import videoIcon from 'images/icons/video.svg';
 import wordIcon from 'images/icons/word.svg';
-import logoImage from 'images/logo_compact.png';
 import githubIcon from 'images/themes/code_themes/github.png';
 import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
@@ -1138,7 +1137,6 @@ export const PermissionsScope = {
     [Permissions.INVITE_USER]: 'team_scope',
     [Permissions.INVITE_GUEST]: 'team_scope',
     [Permissions.ADD_USER_TO_TEAM]: 'team_scope',
-    [Permissions.USE_SLASH_COMMANDS]: 'channel_scope',
     [Permissions.MANAGE_SLASH_COMMANDS]: 'team_scope',
     [Permissions.MANAGE_OTHERS_SLASH_COMMANDS]: 'team_scope',
     [Permissions.CREATE_PUBLIC_CHANNEL]: 'team_scope',
@@ -1252,7 +1250,6 @@ export const DefaultRolePermissions = {
         Permissions.UPLOAD_FILE,
         Permissions.GET_PUBLIC_LINK,
         Permissions.CREATE_POST,
-        Permissions.USE_SLASH_COMMANDS,
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
         Permissions.DELETE_POST,
         Permissions.EDIT_POST,
@@ -1317,7 +1314,6 @@ export const DefaultRolePermissions = {
         Permissions.ADD_REACTION,
         Permissions.REMOVE_REACTION,
         Permissions.USE_CHANNEL_MENTIONS,
-        Permissions.USE_SLASH_COMMANDS,
         Permissions.READ_CHANNEL,
         Permissions.UPLOAD_FILE,
         Permissions.CREATE_POST,
@@ -1511,7 +1507,6 @@ export const Constants = {
     MENTION_NAME_PADDING_LEFT: 2.4,
     AVATAR_WIDTH: 24,
     AUTO_RESPONDER: 'system_auto_responder',
-    SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
         'signup',
         'login',

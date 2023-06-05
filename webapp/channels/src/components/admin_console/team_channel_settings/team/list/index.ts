@@ -4,10 +4,9 @@
 import {connect} from 'react-redux';
 import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'reselect';
-
 import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/teams';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {ActionFunc} from 'mattermost-redux/types/actions';
 

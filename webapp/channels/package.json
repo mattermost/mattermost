@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "7.11.0",
+  "version": "8.0.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react-dom": "1.0.0",
@@ -217,6 +217,6 @@
     "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
-    "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
+    "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }
 }

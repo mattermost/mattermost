@@ -4,10 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {createSelector} from 'reselect';
-
 import {Team, TeamSearchOpts} from '@mattermost/types/teams';
+
 import {debounce} from 'mattermost-redux/actions/helpers';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import InfiniteScroll from 'components/gif_picker/components/InfiniteScroll';

@@ -311,9 +311,8 @@ describe('components/AdvancedCreateComment', () => {
         expect(wrapper.state().serverError.message).toBe(testError1);
         expect(wrapper.state().draft.uploadsInProgress).toEqual([2, 3]);
 
-        // clientId = -1
         const testError2 = 'test error 2';
-        instance.handleUploadError(testError2, -1, null, props.rootId);
+        instance.handleUploadError(testError2, '', null, props.rootId);
 
         // should not call onUpdateCommentDraft
         expect(updateCommentDraftWithRootId.mock.calls.length).toBe(1);

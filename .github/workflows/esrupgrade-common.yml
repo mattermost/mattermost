@@ -60,9 +60,9 @@ jobs:
             --ulimit nofile=8096:8096 \
             --env-file=dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
-            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true" \
-            -v ~/work/mattermost-server:/mattermost-server \
-            -w /mattermost-server/mattermost-server \
+            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304" \
+            -v ~/work/mattermost:/mm \
+            -w /mm \
             $BUILD_IMAGE &
           # In parallel, wait for the migrations to finish.
           # To verify this, we check that the server has finished the startup job through the log line "Server is listening on"
@@ -139,7 +139,7 @@ jobs:
           name: upgraded-dump-script
           path: ${{ env.DUMP_SCRIPT_NAME }}.gz
   esr-upgrade-diff:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     needs:
       - esr-upgrade-server
       - esr-upgrade-script
