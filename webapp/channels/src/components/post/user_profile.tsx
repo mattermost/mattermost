@@ -4,7 +4,7 @@
 import React, {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Constants, {Locations} from 'utils/constants';
+import {Locations} from 'utils/constants';
 import {fromAutoResponder, isFromWebhook} from 'utils/post_utils';
 
 import Tag from 'components/widgets/tag/tag';
@@ -17,7 +17,6 @@ import {Post} from '@mattermost/types/posts';
 type Props = {
     post: Post;
     compactDisplay?: boolean;
-    currentUserId: string;
     colorizeUsernames?: boolean;
     enablePostUsernameOverride?: boolean;
     isConsecutivePost?: boolean;
@@ -142,7 +141,6 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                         />
                     }
                     userId={post.user_id}
-                    overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
                     channelId={post.channel_id}
                     colorize={colorize}

@@ -18,7 +18,6 @@ import pdfIcon from 'images/icons/pdf.svg';
 import pptIcon from 'images/icons/ppt.svg';
 import videoIcon from 'images/icons/video.svg';
 import wordIcon from 'images/icons/word.svg';
-import logoImage from 'images/logo_compact.png';
 import githubIcon from 'images/themes/code_themes/github.png';
 import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
@@ -997,6 +996,11 @@ export const NotificationLevels = {
     NONE: 'none',
 } as const;
 
+export const DesktopSound = {
+    ON: 'on',
+    OFF: 'off',
+} as const;
+
 export const IgnoreChannelMentions = {
     ON: 'on',
     OFF: 'off',
@@ -1506,7 +1510,6 @@ export const Constants = {
     MENTION_NAME_PADDING_LEFT: 2.4,
     AVATAR_WIDTH: 24,
     AUTO_RESPONDER: 'system_auto_responder',
-    SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
         'signup',
         'login',
