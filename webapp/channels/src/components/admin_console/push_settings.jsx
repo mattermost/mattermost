@@ -22,6 +22,9 @@ const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
 const PUSH_NOTIFICATIONS_LOCATION_US = 'us';
 const PUSH_NOTIFICATIONS_LOCATION_DE = 'de';
 
+const DROPDOWN_ID_SERVER_TYPE = 'pushNotificationServerType';
+const DROPDOWN_ID_SERVER_LOCATION = 'pushNotificationServerLocation';
+
 export default class PushSettings extends AdminSettings {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
@@ -291,13 +294,14 @@ export default class PushSettings extends AdminSettings {
 
         let locationDropdown;
         if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
-            const pushNotificationServerLocations = [];
-            pushNotificationServerLocations.push({value: PUSH_NOTIFICATIONS_LOCATION_US, text: Utils.localizeMessage('admin.email.pushServerLocationUS', 'US')});
-            pushNotificationServerLocations.push({value: PUSH_NOTIFICATIONS_LOCATION_DE, text: Utils.localizeMessage('admin.email.pushServerLocationDE', 'Germany')});
+            const pushNotificationServerLocations = [
+                {value: PUSH_NOTIFICATIONS_LOCATION_US, text: Utils.localizeMessage('admin.email.pushServerLocationUS', 'US')},
+                {value: PUSH_NOTIFICATIONS_LOCATION_DE, text: Utils.localizeMessage('admin.email.pushServerLocationDE', 'Germany')},
+            ];
 
             locationDropdown = (
                 <DropdownSetting
-                    id='pushNotificationServerLocation'
+                    id={DROPDOWN_ID_SERVER_LOCATION}
                     values={pushNotificationServerLocations}
                     label={
                         <FormattedMessage
@@ -316,7 +320,7 @@ export default class PushSettings extends AdminSettings {
         return (
             <SettingsGroup>
                 <DropdownSetting
-                    id='pushNotificationServerType'
+                    id={DROPDOWN_ID_SERVER_TYPE}
                     values={pushNotificationServerTypes}
                     label={
                         <FormattedMessage
