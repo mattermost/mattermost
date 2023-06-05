@@ -125,7 +125,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil {
+	if err != nil || channel == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}

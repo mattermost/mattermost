@@ -3,12 +3,11 @@
 
 import React from 'react';
 
-import {screen} from '@testing-library/react';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import {TestHelper} from 'utils/test_helper';
 
-import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import AdminUserCard from './admin_user_card';
 
 describe('components/admin_console/admin_user_card/admin_user_card', () => {
     const user = TestHelper.getUserMock({

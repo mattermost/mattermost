@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, fireEvent} from '@testing-library/react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {GlobalState} from 'types/store';
 
 import {DeepPartial} from '@mattermost/types/utilities';
