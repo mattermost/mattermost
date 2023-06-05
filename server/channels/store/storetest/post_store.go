@@ -1303,6 +1303,88 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		// last reply at should be 0
 		require.Equal(t, int64(0), thread.LastReplyAt)
 	})
+
+	t.Run("thread with file attachments", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Create another root post
+		rootPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Reply to first root post with file attachments
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+		file11, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost1.Id,
+			CreatorId: replyPost1.UserId,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+		file12, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost1.Id,
+			CreatorId: replyPost1.UserId,
+			Path:      "file2.png",
+		})
+		require.NoError(t, err)
+
+		// Reply to second root post with file attachments
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost2.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost2.Id,
+		})
+		require.NoError(t, err)
+		file21, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost2.Id,
+			CreatorId: replyPost2.UserId,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		// Delete the first root post
+		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		// Verify the reply post's files are deleted
+		_, err = ss.FileInfo().Get(file11.Id)
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+		_, err = ss.FileInfo().Get(file12.Id)
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+
+		// Verify the other reply post's files are NOT deleted
+		_, err = ss.FileInfo().Get(file21.Id)
+		require.NoError(t, err, "Not deleted id should have succeeded")
+	})
 }
 
 func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {

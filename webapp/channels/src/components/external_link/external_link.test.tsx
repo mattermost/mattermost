@@ -59,12 +59,11 @@ describe('components/external_link', () => {
                 },
             },
         };
-        const store: GlobalState = JSON.parse(JSON.stringify(state));
         renderWithIntlAndStore(
             <ExternalLink href='https://mattermost.com'>
                 {'Click Me'}
             </ExternalLink>,
-            store,
+            state,
         );
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
@@ -86,12 +85,11 @@ describe('components/external_link', () => {
                 },
             },
         };
-        const store: GlobalState = JSON.parse(JSON.stringify(state));
         renderWithIntlAndStore(
             <ExternalLink href='https://mattermost.com?test=true'>
                 {'Click Me'}
             </ExternalLink>,
-            store,
+            state,
         );
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
@@ -113,12 +111,11 @@ describe('components/external_link', () => {
                 },
             },
         };
-        const store: GlobalState = JSON.parse(JSON.stringify(state));
         renderWithIntlAndStore(
             <ExternalLink href='https://google.com'>
                 {'Click Me'}
             </ExternalLink>,
-            store,
+            state,
         );
 
         expect(screen.queryByText('Click Me')).not.toHaveAttribute(
@@ -140,14 +137,13 @@ describe('components/external_link', () => {
                 },
             },
         };
-        const store: GlobalState = JSON.parse(JSON.stringify(state));
         renderWithIntlAndStore(
             <ExternalLink
                 target='test'
                 rel='test'
                 href='https://google.com'
             >{'Click Me'}</ExternalLink>,
-            store,
+            state,
         );
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
@@ -175,14 +171,13 @@ describe('components/external_link', () => {
                 },
             },
         };
-        const store: GlobalState = JSON.parse(JSON.stringify(state));
         renderWithIntlAndStore(
             <ExternalLink
                 href='https://mattermost.com#desktop'
             >
                 {'Click Me'}
             </ExternalLink>,
-            store,
+            state,
         );
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
