@@ -15,6 +15,7 @@ import {
     FolderPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    GlobeIcon,
 } from '@mattermost/compass-icons/components';
 
 import {ChannelCategory, CategorySorting} from '@mattermost/types/channel_categories';
@@ -31,6 +32,12 @@ import * as Menu from 'components/menu';
 
 import type {PropsFromRedux} from './index';
 
+import MoreChannels from 'components/more_channels';
+
+import {useDispatch} from 'react-redux';
+
+import {DispatchFunc} from 'mattermost-redux/types/actions';
+
 type OwnProps = {
     category: ChannelCategory;
 };
@@ -38,7 +45,9 @@ type OwnProps = {
 type Props = OwnProps & PropsFromRedux;
 
 const SidebarCategoryMenu = (props: Props) => {
+    const dispatch = useDispatch<DispatchFunc>();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isCloseMenuManually, setIsCloseMenuManually] = useState(false);
 
     const {formatMessage} = useIntl();
 
@@ -233,9 +242,40 @@ const SidebarCategoryMenu = (props: Props) => {
             )}
         />
     );
+    function showMoreChannelsModal() {
+        dispatch(props.openModal({
+            modalId: ModalIdentifiers.MORE_CHANNELS,
+            dialogType: MoreChannels,
+            dialogProps: {morePublicChannelsModalType: 'public'},
+        }));
+        trackEvent('ui', 'browse_channels_button_is_clicked');
+        setIsCloseMenuManually(true);
+    };
+
+    let joinPublicChannel = <></>;
+    if (props.canJoinPublicChannel && props.isMobileView ) {
+        joinPublicChannel = (
+            <Menu.Item
+            id='showMoreChannels'
+            onClick={showMoreChannelsModal}
+            aria-haspopup={false}
+            leadingElement={<GlobeIcon size={18}/>}
+            labels={(
+                <FormattedMessage
+                    id='sidebar_left.add_channel_dropdown.browseChannels'
+                    defaultMessage='Browse channels'
+                />
+            )}
+        />
+        );
+    }
 
     function handleMenuToggle(isOpen: boolean) {
         setIsMenuOpen(isOpen);
+    }
+
+    function onMenuModalClose() {
+        setIsCloseMenuManually(false);
     }
 
     return (
@@ -265,8 +305,12 @@ const SidebarCategoryMenu = (props: Props) => {
                     id: `SidebarChannelMenu-MenuList-${props.category.id}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.dropdownAriaLabel', defaultMessage: 'Edit category menu'}),
                     onToggle: handleMenuToggle,
+                    closeMenuManually: isCloseMenuManually,
                 }}
+                onMenuModalClose={onMenuModalClose}
             >
+                {joinPublicChannel}
+                {props.canJoinPublicChannel && props.isMobileView && <Menu.Separator/>}
                 {muteUnmuteCategoryMenuItem}
                 {renameCategoryMenuItem}
                 {deleteCategoryMenuItem}

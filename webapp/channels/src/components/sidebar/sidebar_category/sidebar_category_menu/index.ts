@@ -9,13 +9,31 @@ import {openModal} from 'actions/views/modals';
 
 import SidebarCategoryMenu from './sidebar_category_menu';
 
+import {GlobalState} from 'types/store';
+
+import {getIsMobileView} from 'selectors/views/browser';
+
+import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import Permissions from 'mattermost-redux/constants/permissions';
+
+function mapStateToProps() {
+
+    return (state: GlobalState) => {
+        return {
+            isMobileView: getIsMobileView(state),
+            canJoinPublicChannel: haveICurrentChannelPermission(state, Permissions.JOIN_PUBLIC_CHANNELS),
+        };
+    };
+}
+
 const mapDispatchToProps = {
     openModal,
     setCategoryMuted,
     setCategorySorting,
 };
 
-const connector = connect(null, mapDispatchToProps);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
