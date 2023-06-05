@@ -11,7 +11,7 @@ import './footer_pagination.scss';
 
 const BUTTON_ICON_SIZE = 16;
 
-type FooterPaginationProps = {
+type Props = {
     page: number;
     total: number;
     itemsPerPage: number;
@@ -25,7 +25,7 @@ export const FooterPagination = ({
     itemsPerPage,
     onNextPage,
     onPreviousPage,
-}: FooterPaginationProps) => {
+}: Props) => {
     const {formatMessage} = useIntl();
 
     const startCount = page * itemsPerPage;

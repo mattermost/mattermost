@@ -14,7 +14,7 @@ import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
