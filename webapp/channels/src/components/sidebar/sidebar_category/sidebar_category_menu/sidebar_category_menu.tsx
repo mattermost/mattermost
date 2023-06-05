@@ -39,6 +39,7 @@ type Props = OwnProps & PropsFromRedux;
 
 const SidebarCategoryMenu = (props: Props) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isCloseMenuManually, setIsCloseMenuManually] = useState(false);
 
     const {formatMessage} = useIntl();
 
@@ -217,6 +218,7 @@ const SidebarCategoryMenu = (props: Props) => {
             dialogType: EditCategoryModal,
         });
         trackEvent('ui', 'ui_sidebar_category_menu_createCategory');
+        setIsCloseMenuManually(true);
     }
 
     const createNewCategoryMenuItem = (
@@ -236,6 +238,10 @@ const SidebarCategoryMenu = (props: Props) => {
 
     function handleMenuToggle(isOpen: boolean) {
         setIsMenuOpen(isOpen);
+    }
+
+    function onMenuModalClose() {
+        setIsCloseMenuManually(false);
     }
 
     return (
@@ -265,7 +271,9 @@ const SidebarCategoryMenu = (props: Props) => {
                     id: `SidebarChannelMenu-MenuList-${props.category.id}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.dropdownAriaLabel', defaultMessage: 'Edit category menu'}),
                     onToggle: handleMenuToggle,
+                    closeMenuManually: isCloseMenuManually,
                 }}
+                onMenuModalClose={onMenuModalClose}
             >
                 {muteUnmuteCategoryMenuItem}
                 {renameCategoryMenuItem}
