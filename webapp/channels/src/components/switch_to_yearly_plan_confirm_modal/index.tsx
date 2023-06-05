@@ -11,7 +11,7 @@ import {GlobalState} from 'types/store';
 
 import {isModalOpen} from 'selectors/views/modals';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
