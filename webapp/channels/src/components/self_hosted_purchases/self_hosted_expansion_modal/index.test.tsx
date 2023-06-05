@@ -3,13 +3,16 @@
 
 import React from 'react';
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
-
 import {GlobalState} from 'types/store';
 
 import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+    waitFor,
+} from 'tests/react_testing_utils';
 import {TestHelper as TH} from 'utils/test_helper';
 import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
 
@@ -17,6 +20,7 @@ import {DeepPartial} from '@mattermost/types/utilities';
 
 import SelfHostedExpansionModal, {makeInitialState, canSubmit, FormState} from './';
 import moment from 'moment-timezone';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 interface MockCardInputProps {
     onCardInputChange: (event: {complete: boolean}) => void;
@@ -345,13 +349,19 @@ describe('SelfHostedExpansionModal RHS Card', () => {
     });
 
     it('New seats input cannot be less than 1', () => {
-        if (initialState.entities?.users?.filteredStats?.total_users_count) {
-            initialState.entities.users.filteredStats.total_users_count = 50;
-        }
+        const state = mergeObjects(initialState, {
+            entities: {
+                users: {
+                    filteredStats: {
+                        total_users_count: 50,
+                    },
+                },
+            },
+        });
 
         const expectedAddNewSeats = '1';
 
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, initialState);
+        renderWithIntlAndStore(<div id='root-portal'><SelfHostedExpansionModal/></div>, state);
         fillForm(defaultSuccessForm);
 
         // Try to set a negative value.

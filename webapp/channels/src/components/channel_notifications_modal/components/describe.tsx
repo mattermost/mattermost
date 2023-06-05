@@ -16,6 +16,13 @@ type Props = {
     isCollapsed?: boolean;
 }
 
+const defaultOption = (
+    <FormattedMessage
+        id='channel_notifications.defaultOption'
+        defaultMessage='(default)'
+    />
+);
+
 export default function Describe({section, isCollapsed, memberNotifyLevel, globalNotifyLevel, ignoreChannelMentions, channelAutoFollowThreads}: Props) {
     if (memberNotifyLevel === NotificationLevels.DEFAULT && globalNotifyLevel) {
         t('channel_notifications.levels.default');
@@ -95,7 +102,8 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
         return (
             <FormattedMessage
                 id='channel_notifications.onlyMentions'
-                defaultMessage='Only for mentions'
+                defaultMessage='Only for mentions ({isDefault})'
+                values={{isDefault: globalNotifyLevel === NotificationLevels.MENTION ? defaultOption : <></>}}
             />
         );
     } else if (
@@ -105,7 +113,8 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
         return (
             <FormattedMessage
                 id='channel_notifications.allActivity'
-                defaultMessage='For all activity'
+                defaultMessage='For all activity ({isDefault})'
+                values={{isDefault: globalNotifyLevel === NotificationLevels.ALL ? defaultOption : <></>}}
             />
         );
     } else if (
@@ -123,7 +132,8 @@ export default function Describe({section, isCollapsed, memberNotifyLevel, globa
     return (
         <FormattedMessage
             id='channel_notifications.never'
-            defaultMessage='Never'
+            defaultMessage='Never ({isDefault})'
+            values={{isDefault: globalNotifyLevel === NotificationLevels.NONE ? defaultOption : <></>}}
         />
     );
 }

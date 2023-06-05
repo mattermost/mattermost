@@ -3,7 +3,7 @@
 
 import styled from 'styled-components';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 const Modal = styled(GenericModal)`
     width: 960px;

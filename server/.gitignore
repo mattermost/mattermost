@@ -108,6 +108,7 @@ app/data/*
 
 cover.out
 ecover.out
+mmctlcover.out
 cprofile.out
 *.test
 webapp/coverage
@@ -122,6 +123,7 @@ webapp/coverage
 /client
 __debug_bin
 report.xml
+*coverage.txt
 go.*.orig
 config.override.mk
 docker-compose.override.yaml

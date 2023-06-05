@@ -1,35 +1,17 @@
-name: E2E Tests
+name: mattermost-e2e-tests
 on:
-  # For PRs, this workflow gets triggered from the Argo Events platform.
-  # Check the following repo for details: https://github.com/mattermost/delivery-platform
-  workflow_dispatch:
-    inputs:
-      commit_sha:
-        type: string
-        required: false
+  pull_request:
+  push:
+    branches:
+      - master
+      - mono-repo*
 
 defaults:
   run:
     shell: bash
-
 jobs:
-  update-initial-status:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-tests
-          description: E2E tests for mattermost server app
-          status: pending
-
   cypress-check:
     runs-on: ubuntu-22.04
-    needs:
-      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests/cypress
@@ -42,18 +24,15 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+          cache-dependency-path: 'e2e-tests/cypress/package-lock.json'
       - name: ci/cypress/npm-install
         run: |
           npm ci
       - name: ci/cypress/npm-check
         run: |
           npm run check
-
   playwright-check:
     runs-on: ubuntu-22.04
-    needs:
-      - update-initial-status
     defaults:
       run:
         working-directory: e2e-tests/playwright
@@ -66,7 +45,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+          cache-dependency-path: 'e2e-tests/playwright/package-lock.json'
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         # requires build of client and types
@@ -78,38 +57,3 @@ jobs:
       - name: ci/playwright/npm-check
         run: |
           npm run check
-
-  smoketests:
-    runs-on: ubuntu-22.04
-    needs:
-      - cypress-check
-      - playwright-check
-    defaults:
-      run:
-        working-directory: e2e-tests
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: ci/e2e-smoketests
-        run: |
-          make
-          # Assert that the run contained 0 failures
-          CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
-          echo "Cypress run completed with $CYPRESS_FAILURES failures"
-          [ "$CYPRESS_FAILURES" = "0" ]
-
-  update-final-status:
-    runs-on: ubuntu-22.04
-    if: always()
-    needs:
-      - smoketests
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-tests
-          description: E2E tests for mattermost server app
-          status: ${{ job.status }}
