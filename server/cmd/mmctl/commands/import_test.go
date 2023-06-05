@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -21,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 
 		s.client.
 			EXPECT().
-			ListImports().
+			ListImports(context.Background()).
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
@@ -42,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 
 		s.client.
 			EXPECT().
-			ListImports().
+			ListImports(context.Background()).
 			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
@@ -63,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUploadsForUser("me").
+			GetUploadsForUser(context.Background(), "me").
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
@@ -93,7 +94,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUploadsForUser("me").
+			GetUploadsForUser(context.Background(), "me").
 			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
@@ -114,7 +115,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(jobID).
+			GetJob(context.Background(), jobID).
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
@@ -132,7 +133,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJob(mockJob.Id).
+			GetJob(context.Background(), mockJob.Id).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -157,7 +158,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
+			GetJobsByType(context.Background(), model.JobTypeImportProcess, 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -190,7 +191,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
+			GetJobsByType(context.Background(), model.JobTypeImportProcess, 0, perPage).
 			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
@@ -214,7 +215,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 
 	s.client.
 		EXPECT().
-		CreateJob(mockJob).
+		CreateJob(context.Background(), mockJob).
 		Return(mockJob, &model.Response{}, nil).
 		Times(1)
 

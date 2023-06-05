@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
@@ -70,7 +71,7 @@ func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []s
 		return errors.Errorf("could not retrieve user information of %q", userArg)
 	}
 
-	token, _, err := c.CreateUserAccessToken(user.Id, args[1])
+	token, _, err := c.CreateUserAccessToken(context.TODO(), user.Id, args[1])
 	if err != nil {
 		return errors.Errorf("could not create token for %q: %s", userArg, err.Error())
 	}
@@ -98,7 +99,7 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 		return errors.Errorf("could not retrieve user information of %q", userArg)
 	}
 
-	tokens, _, err := c.GetUserAccessTokensForUser(user.Id, page, perPage)
+	tokens, _, err := c.GetUserAccessTokensForUser(context.TODO(), user.Id, page, perPage)
 	if err != nil {
 		return errors.Errorf("could not retrieve tokens for user %q: %s", userArg, err.Error())
 	}
@@ -120,7 +121,7 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 
 func revokeTokenForAUserCmdF(c client.Client, command *cobra.Command, args []string) error {
 	for _, id := range args {
-		res, err := c.RevokeUserAccessToken(id)
+		res, err := c.RevokeUserAccessToken(context.TODO(), id)
 		if err != nil {
 			return errors.Errorf("could not revoke token %q: %s", id, err.Error())
 		}

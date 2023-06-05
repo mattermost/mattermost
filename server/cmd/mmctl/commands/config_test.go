@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -32,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -51,7 +52,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -70,7 +71,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -89,7 +90,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -108,7 +109,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -129,7 +130,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -150,7 +151,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -170,7 +171,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
@@ -197,7 +198,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(7)
 
@@ -255,7 +256,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
 
@@ -272,7 +273,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -296,12 +297,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -324,12 +325,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -352,12 +353,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -380,12 +381,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -407,12 +408,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -434,7 +435,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -453,7 +454,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -475,12 +476,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
@@ -515,13 +516,13 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(3)
 
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(3)
 
@@ -555,7 +556,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -576,7 +577,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -617,12 +618,12 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			PatchConfig(inputConfig).
+			PatchConfig(context.Background(), inputConfig).
 			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -640,7 +641,7 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -668,12 +669,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(defaultConfig).
+			UpdateConfig(context.Background(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -694,12 +695,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(defaultConfig).
+			UpdateConfig(context.Background(), defaultConfig).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -721,7 +722,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -742,7 +743,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(mockConfig, &model.Response{}, nil).
 			Times(1)
 
@@ -759,7 +760,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 		s.client.
 			EXPECT().
-			GetConfig().
+			GetConfig(context.Background()).
 			Return(nil, &model.Response{}, configError).
 			Times(1)
 
@@ -775,7 +776,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig().
+			ReloadConfig(context.Background()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -789,7 +790,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 
 		s.client.
 			EXPECT().
-			ReloadConfig().
+			ReloadConfig(context.Background()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
@@ -813,7 +814,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(args[0], args[1]).
+			MigrateConfig(context.Background(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -831,7 +832,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 
 		s.client.
 			EXPECT().
-			MigrateConfig(args[0], args[1]).
+			MigrateConfig(context.Background(), args[0], args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 

@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -18,7 +19,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(notFoundChannel, "").
+			GetChannel(context.Background(), notFoundChannel, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
@@ -33,7 +34,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(badRequestChannel, "").
+			GetChannel(context.Background(), badRequestChannel, "").
 			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
@@ -48,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(forbidden, "").
+			GetChannel(context.Background(), forbidden, "").
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 
@@ -63,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(errChannel, "").
+			GetChannel(context.Background(), errChannel, "").
 			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, internalServerErrorErr).
 			Times(1)
 
@@ -78,7 +79,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetChannel(successID, "").
+			GetChannel(context.Background(), successID, "").
 			Return(successChannel, nil, nil).
 			Times(1)
 
@@ -96,12 +97,12 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(successTeam, nil, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelID, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelID, teamID, "").
 			Return(successChannel, nil, nil).
 			Times(1)
 
