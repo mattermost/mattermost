@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {LegacyGenericModal} from '@mattermost/components';
+import {GenericModal} from '@mattermost/components';
 import AccessDeniedHappySvg from 'components/common/svg_images_components/access_denied_happy_svg';
 import {useControlScreeningInProgressModal} from 'components/common/hooks/useControlModal';
 
@@ -14,7 +14,7 @@ export default function ScreeningInProgressModal() {
     const {close} = useControlScreeningInProgressModal();
 
     return (
-        <LegacyGenericModal
+        <GenericModal
             onExited={close}
             show={true}
             className='ScreeningInProgressModal'
@@ -49,6 +49,6 @@ export default function ScreeningInProgressModal() {
                     />
                 </div>
             </div>
-        </LegacyGenericModal>
+        </GenericModal>
     );
 }

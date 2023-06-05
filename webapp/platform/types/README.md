@@ -29,8 +29,8 @@ In your Jest config, you can use the `moduleNameMapper` field to add that alias.
 As a member of Mattermost with write access to our NPM organization, you can build and publish this package by running the following commands:
 
 ```bash
-npm run build --workspace=packages/types
-npm publish --workspace=packages/types
+npm run build --workspace=platform/types
+npm publish --workspace=platform/types
 ```
 
 Make sure to increment the version number in `package.json` first! You can add `-0`, `-1`, etc for pre-release versions.

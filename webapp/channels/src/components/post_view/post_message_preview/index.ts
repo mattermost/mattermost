@@ -8,7 +8,7 @@ import {bindActionCreators, Dispatch} from 'redux';
 import {GlobalState} from 'types/store';
 
 import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post, PostPreviewMetadata} from '@mattermost/types/posts';
+import {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -29,7 +29,6 @@ import PostMessagePreview from './post_message_preview';
 
 export type OwnProps = {
     metadata: PostPreviewMetadata;
-    previewPost?: Post;
     preventClickAction?: boolean;
     previewFooterMessage?: string;
 }
@@ -43,7 +42,7 @@ function makeMapStateToProps() {
         let user = null;
         let embedVisible = false;
         let channelDisplayName = ownProps.metadata.channel_display_name;
-        const previewPost = getPost(state, ownProps.metadata.post_id) || ownProps.previewPost;
+        const previewPost = getPost(state, ownProps.metadata.post_id);
 
         if (previewPost && previewPost.user_id) {
             user = getUser(state, previewPost.user_id);

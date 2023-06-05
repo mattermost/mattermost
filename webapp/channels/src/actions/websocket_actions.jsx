@@ -82,7 +82,7 @@ import {
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getPost, getMostRecentPostIdInChannel} from 'mattermost-redux/selectors/entities/posts';
+import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
@@ -774,8 +774,10 @@ async function handlePostDeleteEvent(msg) {
         const thread = getThread(state, post.root_id);
         if (thread) {
             const userId = getCurrentUserId(state);
-            const teamId = getCurrentTeamId(state);
-            dispatch(fetchThread(userId, teamId, post.root_id, true));
+            const teamId = getTeamIdFromPost(state, post);
+            if (teamId) {
+                dispatch(fetchThread(userId, teamId, post.root_id, true));
+            }
         } else {
             const res = await dispatch(getPostThread(post.root_id));
             const {order, posts} = res.data;
@@ -1679,7 +1681,7 @@ function handleThreadFollowChanged(msg) {
         const state = doGetState();
         const thread = getThread(state, msg.data.thread_id);
         if (!thread && msg.data.state && msg.data.reply_count) {
-            await doDispatch(fetchThread(getCurrentUserId(state), getCurrentTeamId(state), msg.data.thread_id, true));
+            await doDispatch(fetchThread(getCurrentUserId(state), msg.broadcast.team_id, msg.data.thread_id, true));
         }
         handleFollowChanged(doDispatch, msg.data.thread_id, msg.broadcast.team_id, msg.data.state);
     };

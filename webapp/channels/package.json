@@ -16,7 +16,6 @@
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",
-    "@mui/system": "5.11.16",
     "@stripe/react-stripe-js": "1.13.0",
     "@stripe/stripe-js": "1.41.0",
     "@tippyjs/react": "4.2.6",
@@ -34,8 +33,6 @@
     "css-vars-ponyfill": "2.4.8",
     "date-fns": "2.29.3",
     "dynamic-virtualized-list": "github:mattermost/dynamic-virtualized-list#1c330717d6778315a40e70137ace38247c6a1d0f",
-    "emoji-datasource": "6.1.1",
-    "emoji-datasource-apple": "6.0.1",
     "emoji-regex": "10.2.1",
     "exif2css": "1.3.0",
     "fast-deep-equal": "3.1.3",
@@ -157,6 +154,9 @@
     "bundle-loader": "0.2.0",
     "copy-webpack-plugin": "11.0.0",
     "dotenv-webpack": "8.0.1",
+    "emoji-datasource": "6.1.1",
+    "emoji-datasource-apple": "6.1.1",
+    "emoji-datasource-google": "6.1.1",
     "enzyme": "3.11.0",
     "enzyme-adapter-react-17-updated": "1.0.2",
     "enzyme-to-json": "3.6.2",
@@ -217,6 +217,6 @@
     "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
-    "make-emojis": "node --experimental-json-modules build/emoji/emoji_gen.mjs"
+    "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }
 }
