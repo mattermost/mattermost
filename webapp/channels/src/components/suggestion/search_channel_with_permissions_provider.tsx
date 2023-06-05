@@ -24,10 +24,14 @@ import {Constants} from 'utils/constants';
 import Provider, {ResultsCallback} from './provider';
 import {SuggestionContainer, SuggestionProps} from './suggestion';
 
-type WrappedChannel = {
+interface WrappedChannel {
     channel: Channel;
-    name: string;
+    name: Channel['name'];
+    deactivated: boolean;
+    type: Channel['type'];
 }
+
+type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
 
 const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
     const {item} = props;
@@ -97,9 +101,9 @@ function channelSearchSorter(wrappedA: WrappedChannel, wrappedB: WrappedChannel)
 }
 
 export default class SearchChannelWithPermissionsProvider extends Provider {
-    autocompleteChannelsForSearch: (channelId: string, userId: string) => Promise<ActionResult<Channel[]>>;
+    autocompleteChannelsForSearch: ChannelSearchFunction;
 
-    constructor(channelSearchFunc: SearchChannelWithPermissionsProvider['autocompleteChannelsForSearch']) {
+    constructor(channelSearchFunc: ChannelSearchFunction) {
         super();
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
@@ -179,7 +183,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
             return;
         }
 
-        const completedChannels: Record<string, boolean> = {};
+        const completedChannels: Record<Channel['id'], boolean> = {};
 
         const channelFilter = this.makeChannelSearchFilter(channelPrefix);
 
@@ -187,10 +191,6 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
 
         for (const channel of allChannels) {
-            if (!channel) {
-                continue;
-            }
-
             if (completedChannels[channel.id]) {
                 continue;
             }
@@ -199,10 +199,7 @@ export default class SearchChannelWithPermissionsProvider extends Provider {
                 const newChannel = Object.assign({}, channel);
                 const channelIsArchived = channel.delete_at !== 0;
 
-                const wrappedChannel = {
-                    channel: newChannel,
-                    name: newChannel.name,
-                };
+                const wrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false, type: newChannel.type};
                 if (!viewArchivedChannels && channelIsArchived) {
                     continue;
                 } else if (!members[channel.id]) {

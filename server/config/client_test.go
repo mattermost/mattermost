@@ -327,7 +327,7 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"Disable playbooks",
+			"Default Playbooks Enabled",
 			&model.Config{
 				ProductSettings: model.ProductSettings{},
 			},

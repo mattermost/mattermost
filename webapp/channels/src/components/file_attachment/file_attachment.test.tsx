@@ -4,11 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import {screen} from '@testing-library/react';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-import {renderWithIntl, renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntl, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 
 import {GlobalState} from '@mattermost/types/store';
 

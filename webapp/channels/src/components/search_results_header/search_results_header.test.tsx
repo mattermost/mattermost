@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import {RHSStates} from 'utils/constants';
 import {RhsState} from 'types/store/rhs';
