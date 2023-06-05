@@ -147,7 +147,7 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
           cd mattermost-api-reference
-          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
           make build
           cd ../mattermost
