@@ -277,7 +277,7 @@ export default class PushSettings extends AdminSettings {
                                         {msg}
                                     </ExternalLink>
                                 ),
-                                linkPricacy: (msg) => (
+                                linkPrivacy: (msg) => (
                                     <ExternalLink
                                         href='https://mattermost.com/data-processing-addendum/'
                                         location='push_settings'
