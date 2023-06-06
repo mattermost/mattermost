@@ -58,11 +58,6 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 		enableTelemetry = *mmconfig.LogSettings.EnableDiagnostics
 	}
 
-	enablePublicSharedBoards, ok := getPluginSetting(mmconfig, "EnablePublicShareBoards")
-	if !ok {
-		enablePublicSharedBoards = false
-	}
-
 	enableBoardsDeletion := false
 	if mmconfig.DataRetentionSettings.EnableBoardsDeletion != nil {
 		enableBoardsDeletion = true
@@ -81,36 +76,35 @@ func CreateBoardsConfig(mmconfig mm_model.Config, baseURL string, serverID strin
 	}
 
 	return &config.Configuration{
-		ServerRoot:               baseURL + "/boards",
-		Port:                     -1,
-		DBType:                   *mmconfig.SqlSettings.DriverName,
-		DBConfigString:           *mmconfig.SqlSettings.DataSource,
-		DBTablePrefix:            "focalboard_",
-		UseSSL:                   false,
-		SecureCookie:             true,
-		WebPath:                  path.Join(*mmconfig.PluginSettings.Directory, "focalboard", "pack"),
-		FilesDriver:              *mmconfig.FileSettings.DriverName,
-		FilesPath:                *mmconfig.FileSettings.Directory,
-		FilesS3Config:            filesS3Config,
-		MaxFileSize:              *mmconfig.FileSettings.MaxFileSize,
-		Telemetry:                enableTelemetry,
-		TelemetryID:              serverID,
-		WebhookUpdate:            []string{},
-		SessionExpireTime:        2592000,
-		SessionRefreshTime:       18000,
-		LocalOnly:                false,
-		EnableLocalMode:          false,
-		LocalModeSocketLocation:  "",
-		AuthMode:                 "mattermost",
-		EnablePublicSharedBoards: enablePublicSharedBoards.(bool),
-		FeatureFlags:             featureFlags,
-		NotifyFreqCardSeconds:    getPluginSettingInt(mmconfig, notifyFreqCardSecondsKey, 120),
-		NotifyFreqBoardSeconds:   getPluginSettingInt(mmconfig, notifyFreqBoardSecondsKey, 86400),
-		EnableDataRetention:      enableBoardsDeletion,
-		DataRetentionDays:        *mmconfig.DataRetentionSettings.BoardsRetentionDays,
-		TeammateNameDisplay:      *mmconfig.TeamSettings.TeammateNameDisplay,
-		ShowEmailAddress:         showEmailAddress,
-		ShowFullName:             showFullName,
+		ServerRoot:              baseURL + "/boards",
+		Port:                    -1,
+		DBType:                  *mmconfig.SqlSettings.DriverName,
+		DBConfigString:          *mmconfig.SqlSettings.DataSource,
+		DBTablePrefix:           "focalboard_",
+		UseSSL:                  false,
+		SecureCookie:            true,
+		WebPath:                 path.Join(*mmconfig.PluginSettings.Directory, "focalboard", "pack"),
+		FilesDriver:             *mmconfig.FileSettings.DriverName,
+		FilesPath:               *mmconfig.FileSettings.Directory,
+		FilesS3Config:           filesS3Config,
+		MaxFileSize:             *mmconfig.FileSettings.MaxFileSize,
+		Telemetry:               enableTelemetry,
+		TelemetryID:             serverID,
+		WebhookUpdate:           []string{},
+		SessionExpireTime:       2592000,
+		SessionRefreshTime:      18000,
+		LocalOnly:               false,
+		EnableLocalMode:         false,
+		LocalModeSocketLocation: "",
+		AuthMode:                "mattermost",
+		FeatureFlags:            featureFlags,
+		NotifyFreqCardSeconds:   getPluginSettingInt(mmconfig, notifyFreqCardSecondsKey, 120),
+		NotifyFreqBoardSeconds:  getPluginSettingInt(mmconfig, notifyFreqBoardSecondsKey, 86400),
+		EnableDataRetention:     enableBoardsDeletion,
+		DataRetentionDays:       *mmconfig.DataRetentionSettings.BoardsRetentionDays,
+		TeammateNameDisplay:     *mmconfig.TeamSettings.TeammateNameDisplay,
+		ShowEmailAddress:        showEmailAddress,
+		ShowFullName:            showFullName,
 	}
 }
 

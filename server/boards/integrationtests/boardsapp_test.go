@@ -76,16 +76,6 @@ func TestSetConfiguration(t *testing.T) {
 		assert.Equal(t, "testId", config.TelemetryID)
 	})
 
-	t.Run("test enable shared boards", func(t *testing.T) {
-		mmConfig := baseConfig
-		mmConfig.PluginSettings.Plugins = make(map[string]map[string]interface{})
-		mmConfig.PluginSettings.Plugins["focalboard"] = make(map[string]interface{})
-		mmConfig.PluginSettings.Plugins["focalboard"]["EnablePublicShareBoards"] = true
-
-		config := server.CreateBoardsConfig(*mmConfig, "", "")
-		assert.Equal(t, true, config.EnablePublicSharedBoards)
-	})
-
 	t.Run("test boards feature flags", func(t *testing.T) {
 		featureFlags := &model.FeatureFlags{
 			TestFeature:        "test",
