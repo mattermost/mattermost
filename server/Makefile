@@ -57,6 +57,11 @@ endif
 # Ensure developer invocation and tests are anchored.
 MM_SERVER_PATH ?= $(PWD)
 
+# Go test sum configuration
+GOTESTSUM_FORMAT ?= testname
+GOTESTSUM_JUNITFILE ?= report.xml
+GOTESTSUM_JSONFILE ?= gotestsum.json
+
 # mmctl
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS = -timeout 30m -race -v
@@ -436,6 +441,10 @@ check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
+gotestsum: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.7.0
 
@@ -464,9 +473,13 @@ else
 endif
 
 test-server-race: test-server-pre
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(GOBIN)" "90m"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(GOBIN)" "90m"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(GOBIN)" "90m"
+ifeq ($(IS_CI),true)
+	export GOMAXPROCS=4
+endif
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
+	$(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
+	$(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
+
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -477,7 +490,7 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(GOBIN)" "90m"
+	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -489,15 +502,15 @@ endif
 
 test-server-ee: check-prereqs-enterprise start-docker gotestsum do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(GOBIN)" "20m"
+	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GO) test $(GOFLAGS) -short $(SUITE_PACKAGES) $(EE_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -short
 else
 	@echo Running only TE tests
-	$(GO) test $(GOFLAGS) -short $(SUITE_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES)" -- $(GOFLAGS) -short
 endif
 
 internal-test-web-client: ## Runs web client tests.
