@@ -62,3 +62,13 @@ jobs:
             -w /mattermost/mattermost/server \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE=
+      - name: Archive report.xml
+        uses: actions/upload-artifact@v3
+        with:
+          name: report-xml
+          path: report.xml
+      - name: Archive gotestsum.json
+        uses: actions/upload-artifact@v3
+        with:
+          name: gotestsum-json
+          path: gotestsum.json
