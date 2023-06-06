@@ -54,8 +54,10 @@ ifeq ($(BUILD_NUMBER),dev)
 	export MM_FEATUREFLAGS_GRAPHQL = true
 endif
 
-# mmctl
+# Ensure developer invocation and tests are anchored.
 MM_SERVER_PATH ?= $(PWD)
+
+# mmctl
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS = -timeout 30m -race -v
 MMCTL_PKG = github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/commands
@@ -535,21 +537,24 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
 
-test-mmctl-unit:
+test-mmctl-pre: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-pre:
+
+test-mmctl-unit: test-mmctl-pre
 	@echo Running mmctl unit tests
 	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
-test-mmctl-e2e: start-docker
+test-mmctl-e2e: test-mmctl-pre start-docker
 	@echo Running mmctl e2e tests
-	MM_SERVER_PATH=$(MM_SERVER_PATH) $(GO) test $(MMCTL_TESTFLAGS) -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GO) test $(MMCTL_TESTFLAGS) -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
-test-mmctl: start-docker
+test-mmctl: test-mmctl-pre start-docker
 	@echo Running all mmctl tests
-	MM_SERVER_PATH=$(MM_SERVER_PATH) $(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
-test-mmctl-coverage: start-docker
+test-mmctl-coverage: test-mmctl-pre start-docker
 	@echo Running all mmctl tests with coverage
-	MM_SERVER_PATH=$(MM_SERVER_PATH) $(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_PACKAGES)
+	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_PACKAGES)
 	$(GO) tool cover -html=mmctlcover.out
 
 validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
