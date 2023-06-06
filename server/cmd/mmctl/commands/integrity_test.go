@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 
 	"github.com/hashicorp/go-multierror"
@@ -40,7 +41,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity().
+			CheckIntegrity(context.Background()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
@@ -58,7 +59,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 
 		s.client.
 			EXPECT().
-			CheckIntegrity().
+			CheckIntegrity(context.Background()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -98,7 +99,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		}
 		s.client.
 			EXPECT().
-			CheckIntegrity().
+			CheckIntegrity(context.Background()).
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 		var expected error

@@ -478,7 +478,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
-	th.Client.DeleteChannel(th.BasicDeletedChannel.Id)
+	th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
 
@@ -552,7 +552,7 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 		Description: "bot",
 	}
 
-	rbot, _, err := client.CreateBot(bot)
+	rbot, _, err := client.CreateBot(context.Background(), bot)
 	if err != nil {
 		panic(err)
 	}
@@ -576,7 +576,7 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	rteam, _, err := client.CreateTeam(team)
+	rteam, _, err := client.CreateTeam(context.Background(), team)
 	if err != nil {
 		panic(err)
 	}
@@ -595,7 +595,7 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Password:  "Pa$$word11",
 	}
 
-	ruser, _, err := client.CreateUser(user)
+	ruser, _, err := client.CreateUser(context.Background(), user)
 	if err != nil {
 		panic(err)
 	}
@@ -696,7 +696,7 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 		TeamId:      teamId,
 	}
 
-	rchannel, _, err := client.CreateChannel(channel)
+	rchannel, _, err := client.CreateChannel(context.Background(), channel)
 	if err != nil {
 		panic(err)
 	}
@@ -735,7 +735,7 @@ func (th *TestHelper) CreatePostWithFilesWithClient(client *model.Client4, chann
 		FileIds:   fileIds,
 	}
 
-	rpost, _, err := client.CreatePost(post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
@@ -750,7 +750,7 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 		Message:   "message_" + id,
 	}
 
-	rpost, _, err := client.CreatePost(post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
@@ -766,7 +766,7 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 		IsPinned:  true,
 	}
 
-	rpost, _, err := client.CreatePost(post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
@@ -779,7 +779,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 		Message:   message,
 	}
 
-	rpost, _, err := client.CreatePost(post)
+	rpost, _, err := client.CreatePost(context.Background(), post)
 	if err != nil {
 		panic(err)
 	}
@@ -837,7 +837,7 @@ func (th *TestHelper) LoginSystemManager() {
 }
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
-	_, _, err := client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -851,28 +851,28 @@ func (th *TestHelper) LoginBasicWithGraphQL() {
 }
 
 func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
-	_, _, err := client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
+	_, _, err := client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
-	_, _, err := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	_, _, err := client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
-	_, _, err := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+	_, _, err := client.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
-	_, _, err := client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+	_, _, err := client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 	if err != nil {
 		panic(err)
 	}
