@@ -11,7 +11,7 @@ jobs:
     name: Check mocks
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - uses: actions/setup-go@v4
         with:
@@ -24,7 +24,7 @@ jobs:
     name: Check go mod tidy
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run go mod tidy
         run: make modules-tidy
@@ -34,7 +34,7 @@ jobs:
     name: Check serialization methods for hot structs
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run make-gen-serialized
         run: make gen-serialized
@@ -44,7 +44,7 @@ jobs:
     name: Check style
     runs-on: ubuntu-latest-8-cores
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Checkout focalboard
         run: |
@@ -53,7 +53,7 @@ jobs:
           cd focalboard
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || git checkout rolling-stable
           echo $(git rev-parse HEAD)
-          cd ../mattermost-server
+          cd ../mattermost
           make setup-go-work
       - name: Reset config
         run: make config-reset
@@ -65,7 +65,7 @@ jobs:
     name: Check migration files
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Extract migrations files
         run: make migrations-extract
@@ -75,22 +75,22 @@ jobs:
     name: Build API specification
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Checkout mattermost-api-reference
         run: |
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
           cd mattermost-api-reference
-          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
           make build
-          cd ../mattermost-server
+          cd ../mattermost
   check-generate-work-templates:
     name: Generate work templates
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate work templates
         run: make generate-worktemplates
@@ -100,7 +100,7 @@ jobs:
     name: Generate email templates
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate email templates
         run: |
@@ -112,7 +112,7 @@ jobs:
     name: Check store layers
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate store layers
         run: make store-layers
@@ -122,7 +122,7 @@ jobs:
     name: Check app layers
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate app layers
         run: make app-layers
@@ -154,7 +154,7 @@ jobs:
     runs-on: ubuntu-latest-8-cores
     needs: check-mattermost-vet
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Checkout mattermost-webapp
         run: |
@@ -181,7 +181,7 @@ jobs:
           echo "Building web app from source"
           make dist
           fi
-          cd ../mattermost-server
+          cd ../mattermost
       - name: Checkout and build focalboard
         run: |
           cd ..
@@ -195,7 +195,7 @@ jobs:
           make prebuild
           cd mattermost-plugin/webapp
           npm run build:product
-          cd ../../../mattermost-server
+          cd ../../../mattermost
           make setup-go-work
       - name: Build
         run: |
@@ -251,6 +251,8 @@ jobs:
     name: Build docker image
     runs-on: ubuntu-22.04
     needs: upload-s3
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
     steps:
     - name: Download build artifacts
       uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b  # v3.0.2
@@ -271,7 +273,7 @@ jobs:
         export TAG=$(echo "${{ github.event.pull_request.head.sha || github.sha }}" | cut -c1-7)
         cd build
         export DOCKER_CLI_EXPERIMENTAL=enabled
-        export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
+        export MM_PACKAGE=https://pr-builds.mattermost.com/$REPO_NAME/commit/${GITHUB_SHA}/mattermost-team-linux-amd64.tar.gz
         docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
   sentry:
     name: Send build info to sentry
@@ -286,8 +288,11 @@ jobs:
       SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
+      SENTRY_LOG_LEVEL: 'debug'
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Create Sentry release
         uses: getsentry/action-release@85e0095193a153d57c458995f99d0afd81b9e5ea # v1.3.0
+        with:
+          ignore_missing: true
