@@ -1216,6 +1216,7 @@ export function removePost(post: ExtendedPost) {
                     },
                 );
             }
+            // TODO remove saved draft on to the post
         }
         return {data: true};
     };

@@ -54,6 +54,8 @@ function Drafts({
         return null;
     }
 
+    console.log('drafts.tsx: drafts.length = ' + drafts.length, drafts);
+
     return (
         <div
             id='app-content'
@@ -77,7 +79,7 @@ function Drafts({
                         key={d.key}
                         displayName={displayName}
                         draft={d}
-                        isRemote={draftRemotes[d.key]}
+                        isRemote={draftRemotes?.[d.key]}
                         user={user}
                         status={status}
                     />

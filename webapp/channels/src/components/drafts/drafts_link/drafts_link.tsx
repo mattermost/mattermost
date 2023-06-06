@@ -41,6 +41,8 @@ function DraftsLink() {
         return null;
     }
 
+    console.log('DraftsLink.tsx: count = ' + count);
+
     return (
         <ul className='SidebarDrafts NavGroupContent nav nav-pills__container'>
             <li
