@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -22,7 +23,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should silently prevent the user from creating a category with an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -37,7 +38,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			Channels: []string{th.BasicChannel.Id, "notachannel", th.BasicChannel2.Id},
 		}
 
-		received, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, category)
+		received, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, category)
 		require.NoError(t, err)
 		assert.NotContains(t, received.Channels, "notachannel")
 		assert.Equal(t, []string{th.BasicChannel.Id, th.BasicChannel2.Id}, received.Channels)
@@ -46,13 +47,13 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should silently prevent the user from creating a category with a channel that they're not a member of", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
 
 		// Have another user create a channel that user isn't a part of
-		channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
+		channel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId: th.BasicTeam.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
@@ -69,7 +70,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			Channels: []string{th.BasicChannel.Id, channel.Id},
 		}
 
-		received, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, category)
+		received, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, category)
 		require.NoError(t, err)
 		assert.NotContains(t, received.Channels, channel.Id)
 		assert.Equal(t, []string{th.BasicChannel.Id}, received.Channels)
@@ -78,7 +79,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should return expected sort order value", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId:      user.Id,
 				TeamId:      th.BasicTeam.Id,
@@ -96,7 +97,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			user, client := setupUserForSubtest(t, th)
 			payload := []byte(`null`)
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
-			r, err := client.DoAPIPostBytes(route, payload)
+			r, err := client.DoAPIPostBytes(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
@@ -118,7 +119,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			Channels: []string{th.BasicChannel.Id, "notachannel", th.BasicChannel2.Id},
 		}
 
-		received, _, err := th.Client.CreateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, category)
+		received, _, err := th.Client.CreateSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, category)
 		require.NoError(t, err)
 
 		testCategories := []*model.SidebarCategoryWithChannels{
@@ -134,7 +135,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 			},
 		}
 
-		testCategories, _, err = th.Client.UpdateSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, testCategories)
+		testCategories, _, err = th.Client.UpdateSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, testCategories)
 		require.NoError(t, err)
 
 		b, err := json.Marshal(testCategories)
@@ -171,7 +172,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -186,13 +187,13 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
 		}
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
 		assert.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.Channels, received.Channels)
 
 		// And when requesting the category later
-		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
+		received, _, err = client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
 		assert.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.Channels, received.Channels)
@@ -201,7 +202,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should update the sort order of the DM category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -217,13 +218,13 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		}
 		updatedCategory.Sorting = model.SidebarCategorySortAlphabetical
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
 		assert.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.Equal(t, model.SidebarCategorySortAlphabetical, received.Sorting)
 
 		// And when requesting the category later
-		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
+		received, _, err = client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
 		assert.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.Equal(t, model.SidebarCategorySortAlphabetical, received.Sorting)
@@ -232,7 +233,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should update the display name of a custom category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId:      user.Id,
 				TeamId:      th.BasicTeam.Id,
@@ -249,13 +250,13 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		}
 		updatedCategory.DisplayName = "abcCustom"
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, customCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, customCategory.Id, updatedCategory)
 		assert.NoError(t, err)
 		assert.Equal(t, customCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
 
 		// And when requesting the category later
-		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, customCategory.Id, "")
+		received, _, err = client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, customCategory.Id, "")
 		assert.NoError(t, err)
 		assert.Equal(t, customCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
@@ -264,7 +265,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should update the channel order of the category even if it contains archived channels", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -274,7 +275,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.Len(t, channelsCategory.Channels, 5) // Town Square, Off Topic, and the 3 channels created by InitBasic
 
 		// Delete one of the channels
-		_, err = client.DeleteChannel(th.BasicChannel.Id)
+		_, err = client.DeleteChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 
 		// Should still be able to reorder the channels
@@ -283,7 +284,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
 		}
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.Channels, received.Channels)
@@ -292,7 +293,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -305,7 +306,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels:        append(channelsCategory.Channels, "notachannel"),
 		}
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.NotContains(t, received.Channels, "notachannel")
@@ -315,7 +316,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should silently prevent the user from adding a channel that they're not a member of", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -324,7 +325,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Have another user create a channel that user isn't a part of
-		channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
+		channel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId: th.BasicTeam.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
@@ -337,7 +338,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels:        append(channelsCategory.Channels, channel.Id),
 		}
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.NotContains(t, received.Channels, channel.Id)
@@ -347,7 +348,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("muting a category should mute all of its channels", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -368,19 +369,19 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels: channelsCategory.Channels,
 		}
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.True(t, received.Muted)
 
 		// Check that the muted category was saved in the database
-		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
+		received, _, err = client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.True(t, received.Muted)
 
 		// Confirm that the channels in the category were muted
-		member, _, err := client.GetChannelMember(channelsCategory.Channels[0], user.Id, "")
+		member, _, err := client.GetChannelMember(context.Background(), channelsCategory.Channels[0], user.Id, "")
 		require.NoError(t, err)
 		assert.True(t, member.IsChannelMuted())
 	})
@@ -388,7 +389,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should not be able to mute DM category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -398,7 +399,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.Len(t, dmsCategory.Channels, 0)
 
 		// Ensure a DM channel exists
-		dmChannel, _, err := client.CreateDirectChannel(user.Id, th.BasicUser.Id)
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), user.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		// Attempt to mute the category
@@ -413,19 +414,19 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels: []string{dmChannel.Id},
 		}
 
-		received, _, err := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
+		received, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
 		require.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.False(t, received.Muted)
 
 		// Check that the muted category was not saved in the database
-		received, _, err = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
+		received, _, err = client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.False(t, received.Muted)
 
 		// Confirm that the channels in the category were not muted
-		member, _, err := client.GetChannelMember(dmChannel.Id, user.Id, "")
+		member, _, err := client.GetChannelMember(context.Background(), dmChannel.Id, user.Id, "")
 		require.NoError(t, err)
 		assert.False(t, member.IsChannelMuted())
 	})
@@ -434,7 +435,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.NotPanics(t, func() {
 			user, client := setupUserForSubtest(t, th)
 
-			categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+			categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 			require.NoError(t, err)
 			require.Len(t, categories.Categories, 3)
 			require.Len(t, categories.Order, 3)
@@ -443,7 +444,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 			payload := []byte(`null`)
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
-			r, err := client.DoAPIPutBytes(route, payload)
+			r, err := client.DoAPIPutBytes(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
@@ -457,7 +458,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -470,7 +471,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 			Channels:        append(channelsCategory.Channels, "notachannel"),
 		}
 
-		received, _, err := client.UpdateSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{updatedCategory})
+		received, _, err := client.UpdateSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{updatedCategory})
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received[0].Id)
 		assert.NotContains(t, received[0].Channels, "notachannel")
@@ -480,7 +481,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 	t.Run("should silently prevent the user from adding a channel that they're not a member of", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -489,7 +490,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Have another user create a channel that user isn't a part of
-		channel, _, err := th.SystemAdminClient.CreateChannel(&model.Channel{
+		channel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId: th.BasicTeam.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "testchannel",
@@ -502,7 +503,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 			Channels:        append(channelsCategory.Channels, channel.Id),
 		}
 
-		received, _, err := client.UpdateSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{updatedCategory})
+		received, _, err := client.UpdateSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{updatedCategory})
 		require.NoError(t, err)
 		assert.Equal(t, channelsCategory.Id, received[0].Id)
 		assert.NotContains(t, received[0].Channels, channel.Id)
@@ -512,7 +513,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 	t.Run("should update order", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
-		categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -520,10 +521,10 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		channelsCategory := categories.Categories[1]
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
-		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], categories.Order[2]})
+		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], categories.Order[2]})
 		require.NoError(t, err)
 
-		categories, _, err = client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		categories, _, err = client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.Len(t, categories.Categories, 3)
 		require.Len(t, categories.Order, 3)
@@ -532,16 +533,16 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// validate order
-		newOrder, _, err := client.GetSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		newOrder, _, err := client.GetSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 		require.EqualValues(t, newOrder, categories.Order)
 
 		// try to update with missing category
-		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0]})
+		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0]})
 		require.Error(t, err)
 
 		// try to update with invalid category
-		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], "asd"})
+		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], "asd"})
 		require.Error(t, err)
 	})
 }
@@ -561,7 +562,7 @@ func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Clie
 	th.AddUserToChannel(user, th.BasicPrivateChannel)
 
 	client := th.CreateClient()
-	user, _, err := client.Login(user.Email, password)
+	user, _, err := client.Login(context.Background(), user.Email, password)
 	require.NoError(t, err)
 
 	return user, client

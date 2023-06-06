@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -39,7 +40,7 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	number, _ := cmd.Flags().GetInt("number")
-	logLines, _, err := c.GetLogs(0, number)
+	logLines, _, err := c.GetLogs(context.TODO(), 0, number)
 	if err != nil {
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}
