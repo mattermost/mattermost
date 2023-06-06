@@ -3,7 +3,7 @@
 import React from 'react'
 import {FormattedMessage} from 'react-intl'
 
-import {useLocation, useHistory} from 'react-router-dom'
+import {useHistory, useLocation} from 'react-router-dom'
 
 import BoardWelcomePNG from 'static/boards-welcome.png'
 import BoardWelcomeSmallPNG from 'static/boards-welcome-small.png'
@@ -19,9 +19,9 @@ import {
     fetchMe,
     getMe,
     getMyConfig,
-    patchProps
+    patchProps,
 } from 'src/store/users'
-import {getCurrentTeam, Team} from 'src/store/teams'
+import {Team, getCurrentTeam} from 'src/store/teams'
 import octoClient from 'src/octoClient'
 import {FINISHED, TOUR_ORDER} from 'src/components/onboardingTour'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
@@ -51,6 +51,7 @@ const WelcomePage = () => {
     const goForward = () => {
         if (queryString.get('r')) {
             history.replace(queryString.get('r')!)
+
             return
         }
         if (currentTeam) {
@@ -107,11 +108,13 @@ const WelcomePage = () => {
             })()
         }
         goForward()
+
         return null
     }
 
     if (myConfig[UserSettingKey.WelcomePageViewed]) {
         goForward()
+
         return null
     }
 

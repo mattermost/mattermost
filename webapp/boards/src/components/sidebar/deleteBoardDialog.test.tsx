@@ -37,6 +37,7 @@ describe('components/sidebar/DeleteBoardDialog', () => {
         rootPortalDiv.id = 'focalboard-root-portal'
 
         const {container} = render(<TestComponent/>, {container: document.body.appendChild(rootPortalDiv)})
+
         return container
     }
 

@@ -10,14 +10,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
 	sapp "github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"
@@ -60,6 +60,7 @@ type TestEnvironment struct {
 	PlaybooksClient          *client.Client
 	PlaybooksClient2         *client.Client
 	PlaybooksClientNotInTeam *client.Client
+	PlaybooksClientGuest     *client.Client
 
 	UnauthenticatedPlaybooksClient *client.Client
 
@@ -78,6 +79,7 @@ type TestEnvironment struct {
 	RegularUser              *model.User
 	RegularUser2             *model.User
 	RegularUserNotInTeam     *model.User
+	GuestUser                *model.User
 }
 
 func getEnvWithDefault(name, defaultValue string) string {
@@ -428,6 +430,37 @@ func (e *TestEnvironment) CreateAdditionalPlaybooks() {
 	require.NoError(e.T, err)
 
 	e.ArchivedPlaybook = archivedPlaybook
+}
+
+func (e *TestEnvironment) CreateGuest() {
+	cfg := e.Srv.Config()
+	cfg.GuestAccountsSettings.Enable = model.NewBool(true)
+	_, _, err := e.ServerAdminClient.UpdateConfig(cfg)
+	require.NoError(e.T, err)
+
+	userPassword := "password123!"
+	guest, appErr := e.A.CreateGuest(request.EmptyContext(e.logger), &model.User{
+		Email:    "playbookguest@example.com",
+		Username: "playbookguest",
+		Password: userPassword,
+	})
+	require.Nil(e.T, appErr)
+	e.GuestUser = guest
+
+	_, _, err = e.ServerAdminClient.AddTeamMember(e.BasicPublicChannel.TeamId, e.GuestUser.Id)
+	require.NoError(e.T, err)
+
+	_, _, err = e.ServerAdminClient.AddChannelMember(e.BasicPublicChannel.Id, e.GuestUser.Id)
+	require.NoError(e.T, err)
+
+	siteURL := fmt.Sprintf("http://localhost:%v", e.A.Srv().ListenAddr.Port)
+	serverClientGuest := model.NewAPIv4Client(siteURL)
+	_, _, err = serverClientGuest.Login(e.GuestUser.Email, userPassword)
+	require.NoError(e.T, err)
+
+	playbooksClientGuest, err := client.New(serverClientGuest)
+	require.NoError(e.T, err)
+	e.PlaybooksClientGuest = playbooksClientGuest
 }
 
 func (e *TestEnvironment) RemoveLicence() {

@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {FocusTrap} from '../focus_trap';
+import './generic_modal.scss';
 
 export type Props = {
     className?: string;
@@ -40,6 +41,7 @@ export type Props = {
     backdropClassName?: string;
     tabIndex?: number;
     children: React.ReactNode;
+    autoFocusConfirmButton?: boolean;
     keyboardEscape?: boolean;
     headerInput?: React.ReactNode;
     bodyPadding?: boolean;
@@ -130,6 +132,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
             confirmButton = (
                 <button
+                    autoFocus={this.props.autoFocusConfirmButton}
                     type='submit'
                     className={classNames('GenericModal__button', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
                         disabled: this.props.isConfirmDisabled,

@@ -2,10 +2,16 @@
 
 const path = require('path');
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
+
+const targetIsRun = NPM_TARGET?.startsWith('start');
+
+const DEV = targetIsRun;
+
 const TARGET_IS_PRODUCT = NPM_TARGET?.endsWith(':product');
 const mode = 'production';
 const devtool = 'source-map';
@@ -17,7 +23,6 @@ const config = {
         alias: {
             src: path.resolve(__dirname, './src/'),
             'mattermost-redux': path.resolve(__dirname, '../channels/src/packages/mattermost-redux/src/'),
-            reselect: path.resolve(__dirname, '../channels/src/packages/reselect/src/index'),
             '@mattermost/client': path.resolve(__dirname, '../platform/client/src/'),
             '@mattermost/components': path.resolve(__dirname, '../platform/components/src/'),
         },
@@ -42,35 +47,23 @@ const config = {
                 },
             },
             {
-                test: /\.scss$/,
+                test: /\.(css|scss)$/,
                 use: [
-                    'style-loader',
+                    DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
-                    },
-                    {
-                        loader: 'sass-loader',
                     },
                 ],
             },
             {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
+                test: /\.scss$/,
+                use: [
+                    'sass-loader',
+                ],
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg|jpeg)$/,
                 type: 'asset/inline', // consider 'asset' when URL resource chunks are supported
-            },
-            {
-                test: /\.apng$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'files/[contenthash].[ext]',
-                        },
-                    },
-                ],
             },
         ],
     },
@@ -78,6 +71,11 @@ const config = {
     mode,
     plugins,
 };
+
+config.plugins.push(new MiniCssExtractPlugin({
+    filename: '[name].[contenthash].css',
+    chunkFilename: '[name].[contenthash].css',
+}));
 
 // Set up module federation
 function makeSingletonSharedModules(packageNames) {
@@ -133,25 +131,5 @@ config.output = {
     path: path.join(__dirname, '/dist'),
     chunkFilename: '[name].[contenthash].js',
 };
-
-if (NPM_TARGET === 'start:product') {
-    const url = new URL(process.env.MM_PLAYBOOKS_DEV_SERVER_URL ?? 'http://localhost:9007');
-
-    config.devServer = {
-        server: {
-            type: url.protocol.substring(0, url.protocol.length - 1),
-            options: {
-                minVersion: process.env.MM_SERVICESETTINGS_TLSMINVER ?? 'TLSv1.2',
-                key: process.env.MM_SERVICESETTINGS_TLSKEYFILE,
-                cert: process.env.MM_SERVICESETTINGS_TLSCERTFILE,
-            },
-        },
-        host: url.hostname,
-        port: url.port,
-        devMiddleware: {
-            writeToDisk: false,
-        },
-    };
-}
 
 module.exports = config;

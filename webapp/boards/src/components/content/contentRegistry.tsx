@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable react/require-optimization */
+
 import {IntlShape} from 'react-intl'
 
 import {BlockTypes} from 'src/blocks/block'
@@ -25,6 +25,7 @@ class ContentRegistry {
     registerContentType(entry: ContentHandler) {
         if (this.isContentType(entry.type)) {
             Utils.logError(`registerContentType, already registered type: ${entry.type}`)
+
             return
         }
         this.registry.set(entry.type, entry)

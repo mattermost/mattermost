@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 import React from 'react'
 
-import Select, {components, DropdownIndicatorProps, StylesConfig} from 'react-select'
+import Select, {DropdownIndicatorProps, StylesConfig, components} from 'react-select'
 
-
-import {useIntl, IntlShape} from 'react-intl'
+import {IntlShape, useIntl} from 'react-intl'
 
 import {getSelectBaseStyle} from 'src/theme'
 import ChevronUp from 'src/widgets/icons/chevronUp'

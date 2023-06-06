@@ -48,6 +48,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                     name: block.title,
                     extension: block.title.split('.').slice(0, -1).join('.'),
                 })
+
                 return
             }
             const attachmentInfo = await octoClient.getFileInfo(block.boardId, block.fields.fileId)
@@ -65,8 +66,10 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                 if (fName.length > 18) {
                     let result = fName.slice(0, 15)
                     result += '...'
+
                     return result
                 }
+
                 return fName
             }
             setFileName(generateFileName(fileInfo.name))

@@ -3,10 +3,10 @@
 
 import React from 'react'
 import {
+    act,
+    fireEvent,
     render,
     screen,
-    act,
-    fireEvent
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
@@ -206,7 +206,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
         await act(() => userEvent.click(menuElement))
         const numberType = screen.getByRole('button', {name: /number/i})
 
-        await act( () => userEvent.click(numberType))
+        await act(() => userEvent.click(numberType))
 
         expect(mockedMutator.insertPropertyTemplate).toHaveBeenCalledTimes(1)
 

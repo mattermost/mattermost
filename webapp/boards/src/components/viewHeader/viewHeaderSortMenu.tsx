@@ -88,6 +88,7 @@ const ViewHeaderSortMenu = (props: Props) => {
                             rightIcon = sortOption.reversed ? <SortDownIcon/> : <SortUpIcon/>
                         }
                     }
+
                     return (
                         <Menu.Text
                             key={option.id}

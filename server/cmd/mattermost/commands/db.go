@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
@@ -182,7 +183,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if savePlan || recoverFlag {
-		backend, err2 := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(false, true))
+		backend, err2 := filestore.NewFileBackend(ConfigToFileBackendSettings(&config.FileSettings, false, true))
 		if err2 != nil {
 			return fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -229,7 +230,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	dryRun, _ := command.Flags().GetBool("dry-run")
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 
-	backend, err2 := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(false, true))
+	backend, err2 := filestore.NewFileBackend(ConfigToFileBackendSettings(&config.FileSettings, false, true))
 	if err2 != nil {
 		return fmt.Errorf("failed to initialize filebackend: %w", err2)
 	}
@@ -310,4 +311,28 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Current database schema version is: " + strconv.Itoa(v))
 
 	return nil
+}
+
+func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature bool, skipVerify bool) filestore.FileBackendSettings {
+	if *s.DriverName == model.ImageDriverLocal {
+		return filestore.FileBackendSettings{
+			DriverName: *s.DriverName,
+			Directory:  *s.Directory,
+		}
+	}
+	return filestore.FileBackendSettings{
+		DriverName:                         *s.DriverName,
+		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey:            *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:                     *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:                 *s.AmazonS3PathPrefix,
+		AmazonS3Region:                     *s.AmazonS3Region,
+		AmazonS3Endpoint:                   *s.AmazonS3Endpoint,
+		AmazonS3SSL:                        s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:                     s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:                        s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:                      s.AmazonS3Trace != nil && *s.AmazonS3Trace,
+		AmazonS3RequestTimeoutMilliseconds: *s.AmazonS3RequestTimeoutMilliseconds,
+		SkipVerify:                         skipVerify,
+	}
 }

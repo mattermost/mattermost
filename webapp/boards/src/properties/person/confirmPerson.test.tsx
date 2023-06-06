@@ -9,7 +9,7 @@ import {
     render,
     screen,
     waitFor,
-    within
+    within,
 } from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
@@ -153,6 +153,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -203,6 +204,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -218,7 +220,7 @@ describe('properties/person', () => {
 
             const option = renderResult.getByText('username-4')
             expect(option).not.toBeNull()
-            await act(() => userEvent.click(option as Element))    
+            await act(() => userEvent.click(option as Element))
             const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
             expect(confirmDialog).toBeDefined()
             const cancelButton = within(confirmDialog).getByRole('button', {name: 'Cancel'})

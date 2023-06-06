@@ -26,11 +26,13 @@ const WithWebSockets = (props: Props): React.ReactElement => {
 
         if (!props.webSocketClient) {
             Utils.logWarn('Trying to initialise Boards websocket in plugin mode without base connection. Aborting')
+
             return
         }
 
         if (!props.manifest?.id || !props.manifest?.version) {
             Utils.logError('Trying to initialise Boards websocket in plugin mode with an incomplete manifest. Aborting')
+
             return
         }
 

@@ -96,6 +96,7 @@ const state: GlobalState = {
         },
         admin: {
             logs: [],
+            plainLogs: [],
             audits: {},
             config: {},
             environmentConfig: {},
@@ -254,12 +255,6 @@ const state: GlobalState = {
         insights: {
             topReactions: {},
             myTopReactions: {},
-        },
-        worktemplates: {
-            categories: [],
-            templatesInCategory: {},
-            playbookTemplates: [],
-            linkedProducts: {},
         },
     },
     errors: [],

@@ -12,7 +12,7 @@ import {mocked} from 'jest-mock'
 
 import {MockStoreEnhanced} from 'redux-mock-store'
 
-import {wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 

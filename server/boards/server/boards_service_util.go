@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
 
-	mm_model "github.com/mattermost/mattermost-server/server/v8/model"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
 )
 
 const defaultS3Timeout = 60 * 1000 // 60 seconds

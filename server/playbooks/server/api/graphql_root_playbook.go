@@ -7,7 +7,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"
 	"gopkg.in/guregu/null.v4"
@@ -63,6 +63,11 @@ func (r *PlaybookRootResolver) Playbooks(ctx context.Context, args struct {
 		}
 	}
 
+	isGuest, err := app.IsGuest(userID, c.api)
+	if err != nil {
+		return nil, err
+	}
+
 	requesterInfo := app.RequesterInfo{
 		UserID:  userID,
 		TeamID:  args.TeamID,
@@ -74,7 +79,7 @@ func (r *PlaybookRootResolver) Playbooks(ctx context.Context, args struct {
 		Direction:          app.SortDirection(args.Direction),
 		SearchTerm:         args.SearchTerm,
 		WithArchived:       args.WithArchived,
-		WithMembershipOnly: args.WithMembershipOnly,
+		WithMembershipOnly: isGuest || args.WithMembershipOnly, // Guests can only see playbooks if they are invited to them
 		Page:               0,
 		PerPage:            10000,
 	}

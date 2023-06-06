@@ -1,0 +1,289 @@
+# Base CI template which is called from server-ci-pr.yml
+# and server-ci-master.yml
+
+name: Server CI Template
+on:
+  workflow_call:
+
+env:
+  go-version: "1.19.5"
+
+jobs:
+  check-mocks:
+    name: Check mocks
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Generate mocks
+        run: make mocks
+      - name: Check mocks
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
+  check-go-mod-tidy:
+    name: Check go mod tidy
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Run go mod tidy
+        run: make modules-tidy
+      - name: Check modules
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Setup go.work
+        run: make setup-go-work
+      - name: Run golangci
+        run: make golangci-lint
+
+  check-gen-serialized:
+    name: Check serialization methods for hot structs
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Run make-gen-serialized
+        run: make gen-serialized
+      - name: Check serialized
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+  check-mattermost-vet:
+    name: Check style
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Reset config
+        run: make config-reset
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Run plugin-checker
+        run: make plugin-checker
+      - name: Run mattermost-vet
+        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+  check-migrations:
+    name: Check migration files
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Extract migrations files
+        run: make migrations-extract
+      - name: Check migration files
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+  build-api-spec:
+    name: Build API specification
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Checkout mattermost-api-reference
+        run: |
+          cd ..
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
+          cd mattermost-api-reference
+          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
+          git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
+          make build
+          cd ../mattermost
+  check-email-templates:
+    name: Generate email templates
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Generate email templates
+        run: |
+          sudo npm install -g mjml@4.9.0
+          make build-templates
+      - name: Check generated email templates
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+  check-store-layers:
+    name: Check store layers
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Generate store layers
+        run: make store-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+  check-app-layers:
+    name: Check app layers
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Generate app layers
+        run: make app-layers
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+  check-mmctl-docs:
+    name: Check mmctl docs
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost-server
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Check docs
+        run: |
+          echo "Making sure docs are updated"
+          cd server
+          make mmctl-docs
+          if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
+  test-postgres-binary:
+    name: Postgres with binary parameters
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/server-test-template.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
+      drivername: postgres
+  test-postgres-normal:
+    name: Postgres
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/server-test-template.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+  test-mysql:
+    name: MySQL
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/server-test-template.yml
+    with:
+      datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
+      drivername: mysql
+  test-mmctl:
+    name: Run mmctl tests
+    needs: check-mattermost-vet
+    uses: ./.github/workflows/mmctl-test-template.yml
+    with:
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+  build-mattermost-server:
+    name: Build mattermost server app
+    runs-on: ubuntu-latest-8-cores
+    defaults:
+      run:
+        working-directory: server
+    needs: check-mattermost-vet
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+      - name: Build
+        run: |
+          make config-reset
+          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+      - name: Persist dist artifacts
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: server-dist-artifact
+          path: server/dist/
+          retention-days: 14
+      - name: Persist build artifacts
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: server-build-artifact
+          path: server/build/
+          retention-days: 14

@@ -12,10 +12,10 @@ import CompassIcon from 'src/widgets/icons/compassIcon'
 
 import {
     Board,
-    createBoard,
     BoardTypeOpen,
     BoardTypePrivate,
-    MemberRole
+    MemberRole,
+    createBoard,
 } from 'src/blocks/board'
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentTeam} from 'src/store/teams'

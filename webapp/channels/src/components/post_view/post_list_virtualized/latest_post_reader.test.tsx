@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import {createIntl, useIntl} from 'react-intl';
+import {Provider} from 'react-redux';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
 
+import {render, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {mockStore} from 'tests/test_store';
 
 import {TestHelper} from 'utils/test_helper';
@@ -59,36 +60,40 @@ describe('LatestPostReader', () => {
     };
 
     test('should render aria-label as a child in the given locale', () => {
-        const {mountOptions} = mockStore(baseState);
+        const store = mockStore(baseState);
 
         (useIntl as jest.Mock).mockImplementation(() => createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
-        let wrapper = mount(<LatestPostReader {...baseProps}/>, mountOptions);
-        let span = wrapper.childAt(0);
+        const {rerender} = render(
+            <Provider store={store.store}>
+                <LatestPostReader {...baseProps}/>
+            </Provider>,
+        );
 
-        expect(span.prop('children')).toContain(author.username);
-        expect(span.prop('children')).toContain('January');
+        const prevMessage = screen.getByText(`January 1, ${author.username} wrote, This is a test`, {exact: false});
+        expect(prevMessage).toBeInTheDocument();
+        expect(prevMessage).toHaveClass('sr-only');
 
         (useIntl as jest.Mock).mockImplementation(() => createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'}));
 
-        wrapper = mount(<LatestPostReader {...baseProps}/>, mountOptions);
-        span = wrapper.childAt(0);
+        rerender(<Provider store={store.store}> <LatestPostReader {...baseProps}/></Provider>);
+        const januaryInSpanish = 'enero';
+        const message = screen.getByText(`${januaryInSpanish}, ${author.username} wrote, This is a test`, {exact: false});
 
-        expect(span.prop('children')).toContain(author.username);
-        expect(span.prop('children')).toContain('enero');
+        expect(message).toBeInTheDocument();
+        expect(message).toHaveClass('sr-only');
     });
 
     test('should be able to handle an empty post array', () => {
-        const {mountOptions} = mockStore(baseState);
-
         const props = {
             ...baseProps,
             postIds: [],
         };
 
-        const wrapper = mount(<LatestPostReader {...props}/>, mountOptions);
-        const span = wrapper.childAt(0);
+        renderWithIntlAndStore(<LatestPostReader {...props}/>, baseState);
 
-        expect(span.prop('children')).toEqual('');
+        // body should be empty
+        const message = screen.queryByText('This is a test');
+        expect(message).not.toBeInTheDocument();
     });
 });

@@ -27,13 +27,16 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/timezones"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/expirynotify"
@@ -47,13 +50,15 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/plugins"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/awsmeter"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
@@ -62,15 +67,11 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/scheduler"
 )
 
 // declaring this as var to allow overriding in tests
@@ -1151,7 +1152,31 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return nil
+
+	// Overriding the default origin checker
+	return func(r *http.Request) bool {
+		origin := r.Header["Origin"]
+		if len(origin) == 0 {
+			return true
+		}
+		if origin[0] == "null" {
+			return false
+		}
+		u, err := url.Parse(origin[0])
+		if err != nil {
+			return false
+		}
+
+		// To maintain the case where siteURL is not set.
+		if *a.Config().ServiceSettings.SiteURL == "" {
+			return strings.EqualFold(u.Host, r.Host)
+		}
+		siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			return false
+		}
+		return strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
+	}
 }
 
 func (s *Server) checkPushNotificationServerURL() {
@@ -1476,6 +1501,11 @@ func (s *Server) initJobs() {
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
 	}
 
+	if jobsElasticsearchFixChannelIndexInterface != nil {
+		builder := jobsElasticsearchFixChannelIndexInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
+	}
+
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
@@ -1495,8 +1525,8 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypePlugins,
-		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
-		scheduler.MakeScheduler(s.Jobs),
+		plugins.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		plugins.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1575,6 +1605,12 @@ func (s *Server) initJobs() {
 		model.JobTypeTrialNotifyAdmin,
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypePostPersistentNotifications,
+		post_persistent_notifications.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		post_persistent_notifications.MakeScheduler(s.Jobs, func() *model.License { return s.License() }),
 	)
 
 	s.Jobs.RegisterJobType(

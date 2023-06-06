@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as React from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
 import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 
-const StarterRightPanel: React.FC = () => {
+const StarterRightPanel = () => {
     const upgradeAdvantages = [
         'OneLogin/ADFS SAML 2.0',
         'OpenID Connect',
@@ -61,4 +61,4 @@ const StarterRightPanel: React.FC = () => {
     );
 };
 
-export default React.memo(StarterRightPanel);
+export default memo(StarterRightPanel);

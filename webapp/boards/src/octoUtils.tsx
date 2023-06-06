@@ -35,6 +35,7 @@ class OctoUtils {
         case 'attachment': { return createAttachmentBlock(block) }
         default: {
             Utils.assertFailure(`Can't hydrate unknown block type: ${block.type}`)
+
             return createBlock(block)
         }
         }
@@ -49,6 +50,7 @@ class OctoUtils {
         const newBlocks = blocks.filter((o) => !updatedBlockIds.includes(o.id))
         const updatedAndNotDeletedBlocks = updatedBlocks.filter((o) => o.deleteAt === 0)
         newBlocks.push(...updatedAndNotDeletedBlocks)
+
         return newBlocks
     }
 
@@ -62,6 +64,7 @@ class OctoUtils {
             newBlock.createAt = now
             newBlock.updateAt = now
             idMap[block.id] = newBlock.id
+
             return newBlock
         })
 
@@ -102,6 +105,7 @@ class OctoUtils {
         })
 
         const newSourceBlock = newBlocks.find((block) => block.id === newSourceBlockId)!
+
         return [newBlocks, newSourceBlock, idMap]
     }
 
@@ -150,6 +154,7 @@ class OctoUtils {
             }
         } else {
             Utils.assertFailure()
+
             return '(unknown)'
         }
     }
@@ -203,6 +208,7 @@ class OctoUtils {
             }
         }
         Utils.assertFailure()
+
         return 'includes'
     }
 }

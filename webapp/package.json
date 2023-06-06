@@ -2,8 +2,8 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": "16.10.0",
-    "npm": "7.24.0"
+    "node": "^16.10.0",
+    "npm": "^7.24.0"
   },
   "scripts": {
     "postinstall": "node scripts/skip_integrity_check.js && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
@@ -11,6 +11,7 @@
     "run": "node scripts/run.js",
     "dev-server": "node scripts/dev-server.js",
     "test": "npm run test --workspaces --if-present",
+    "test-ci": "npm run test-ci --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",
     "check-types": "npm run check-types --workspaces --if-present",
@@ -24,9 +25,17 @@
     "chalk": "4.1.2",
     "concurrently": "7.6.0",
     "cross-env": "7.0.3",
+    "css-loader": "6.7.3",
     "eslint": "8.37.0",
     "eslint-plugin-formatjs": "4.9.1",
-    "strip-ansi": "6.0.1"
+    "mini-css-extract-plugin": "2.7.5",
+    "sass": "1.62.1",
+    "sass-loader": "13.2.2",
+    "strip-ansi": "6.0.1",
+    "style-loader": "3.3.2",
+    "webpack": "5.81.0",
+    "webpack-cli": "5.0.2",
+    "webpack-dev-server": "4.13.3"
   },
   "workspaces": [
     "channels",

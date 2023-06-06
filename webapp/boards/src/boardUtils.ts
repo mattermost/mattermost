@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {Card} from './blocks/card'
-import {IPropertyTemplate, IPropertyOption, BoardGroup} from './blocks/board'
+import {BoardGroup, IPropertyOption, IPropertyTemplate} from './blocks/board'
 
 function groupCardsByOptions(cards: Card[], optionIds: string[], groupByProperty?: IPropertyTemplate): BoardGroup[] {
     const groups = []
@@ -22,6 +22,7 @@ function groupCardsByOptions(cards: Card[], optionIds: string[], groupByProperty
             // Empty group
             const emptyGroupCards = cards.filter((card) => {
                 const groupByOptionId = card.fields.properties[groupByProperty?.id || '']
+
                 return !groupByOptionId || !groupByProperty?.options.find((option) => option.id === groupByOptionId)
             })
             const group: BoardGroup = {
@@ -31,15 +32,16 @@ function groupCardsByOptions(cards: Card[], optionIds: string[], groupByProperty
             groups.push(group)
         }
     }
+
     return groups
 }
 
 function getOptionGroups(cards: Card[], visibleOptionIds: string[], hiddenOptionIds: string[], groupByProperty?: IPropertyTemplate): {visible: BoardGroup[], hidden: BoardGroup[]} {
     let unassignedOptionIds: string[] = []
     if (groupByProperty) {
-        unassignedOptionIds = groupByProperty.options.
-            filter((o: IPropertyOption) => !visibleOptionIds.includes(o.id) && !hiddenOptionIds.includes(o.id)).
-            map((o: IPropertyOption) => o.id)
+        unassignedOptionIds = groupByProperty.options
+            .filter((o: IPropertyOption) => !visibleOptionIds.includes(o.id) && !hiddenOptionIds.includes(o.id))
+            .map((o: IPropertyOption) => o.id)
     }
     const allVisibleOptionIds = [...visibleOptionIds, ...unassignedOptionIds]
 
@@ -50,6 +52,7 @@ function getOptionGroups(cards: Card[], visibleOptionIds: string[], hiddenOption
 
     const visibleGroups = groupCardsByOptions(cards, allVisibleOptionIds, groupByProperty)
     const hiddenGroups = groupCardsByOptions(cards, hiddenOptionIds, groupByProperty)
+
     return {visible: visibleGroups, hidden: hiddenGroups}
 }
 export function getVisibleAndHiddenGroups(cards: Card[], visibleOptionIds: string[], hiddenOptionIds: string[], groupByProperty?: IPropertyTemplate): {visible: BoardGroup[], hidden: BoardGroup[]} {
@@ -70,6 +73,7 @@ function getPersonGroups(cards: Card[], groupByProperty: IPropertyTemplate, hidd
         }
 
         const curGroup = unique[key] ?? []
+
         return {...unique, [key]: [...curGroup, item]}
     }, {})
 

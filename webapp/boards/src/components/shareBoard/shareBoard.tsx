@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 
-import {useIntl, FormattedMessage} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 import {generatePath, useRouteMatch} from 'react-router-dom'
 import Select from 'react-select/async'
 import {StylesConfig} from 'react-select'
@@ -11,17 +11,17 @@ import {StylesConfig} from 'react-select'
 import {useAppSelector} from 'src/store/hooks'
 import {getCurrentBoard, getCurrentBoardMembers} from 'src/store/boards'
 import {Channel, ChannelTypeOpen, ChannelTypePrivate} from 'src/store/channels'
-import {getMe, getBoardUsersList} from 'src/store/users'
+import {getBoardUsersList, getMe} from 'src/store/users'
 
 import {ClientConfig} from 'src/config/clientConfig'
 import {getClientConfig} from 'src/store/clientConfig'
 
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 import Tooltip from 'src/widgets/tooltip'
 import mutator from 'src/mutator'
 
 import {ISharing} from 'src/blocks/sharing'
-import {BoardMember, createBoard, MemberRole} from 'src/blocks/board'
+import {BoardMember, MemberRole, createBoard} from 'src/blocks/board'
 
 import client from 'src/octoClient'
 import Dialog from 'src/components/dialog'
@@ -96,6 +96,7 @@ function isLastAdmin(members: BoardMember[]) {
             }
         }
     }
+
     return true
 }
 
@@ -135,6 +136,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
             enabled: true,
             token: Utils.createGuid(IDType.Token),
         }
+
         return newSharing
     }
 
@@ -150,6 +152,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
     const onLinkBoard = async (channel: Channel, confirmed?: boolean) => {
         if (!confirmed) {
             setShowLinkChannelConfirmation(channel)
+
             return
         }
         setShowLinkChannelConfirmation(null)
@@ -188,6 +191,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
     const onUpdateBoardMember = (member: BoardMember, newPermission: string) => {
         if (member.userId === me?.id && isLastAdmin(Object.values(members))) {
             sendFlashMessage({content: intl.formatMessage({id: 'shareBoard.lastAdmin', defaultMessage: 'Boards must have at least one Administrator'}), severity: 'low'})
+
             return
         }
 
@@ -239,6 +243,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
     const onDeleteBoardMember = (member: BoardMember) => {
         if (member.userId === me?.id && isLastAdmin(Object.values(members))) {
             sendFlashMessage({content: intl.formatMessage({id: 'shareBoard.lastAdmin', defaultMessage: 'Boards must have at least one Administrator'}), severity: 'low'})
+
             return
         }
         mutator.deleteBoardMember(member)
@@ -285,6 +290,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
     const formatOptionLabel = (userOrChannel: IUser | Channel) => {
         if ((userOrChannel as IUser).username) {
             const user = userOrChannel as IUser
+
             return (
                 <div className='user-item'>
                     <img
@@ -302,6 +308,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         }
 
         const channel = userOrChannel as Channel
+
         return (
             <div className='user-item'>
                 {channel.type === ChannelTypePrivate && <PrivateIcon/>}
@@ -378,7 +385,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                             defaultOptions={true}
                             formatOptionLabel={formatOptionLabel}
                             getOptionValue={({id}) => id}
-                            getOptionLabel={(x) => isUser(x) ? x.username : x.display_name}
+                            getOptionLabel={(x) => (isUser(x) ? x.username : x.display_name)}
                             isMulti={false}
                             placeholder={board.isTemplate ?
                                 intl.formatMessage({id: 'ShareTemplate.searchPlaceholder', defaultMessage: 'Search for people'}) :
@@ -407,6 +414,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                     if (members[user.id].synthetic) {
                         return null
                     }
+
                     return (
                         <UserPermissionsRow
                             key={user.id}

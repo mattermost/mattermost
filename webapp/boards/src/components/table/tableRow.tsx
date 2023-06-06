@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {
+    useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
-    useMemo,
-    useCallback
 } from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
 
@@ -69,7 +69,7 @@ const TableRow = (props: Props) => {
     }, [])
 
     const onClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        props.onClick && props.onClick(e, card)
+        props.onClick?.(e, card)
     }, [card, props.onClick])
 
     const onSaveWithEnter = useCallback(() => {
@@ -123,6 +123,7 @@ const TableRow = (props: Props) => {
     const handleDeleteCard = useCallback(async () => {
         if (!card) {
             Utils.assertFailure()
+
             return
         }
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: board.id, card: card.id})
@@ -146,6 +147,7 @@ const TableRow = (props: Props) => {
         // confirmation dialog
         if (card?.title === '' && card?.fields.contentOrder.length === 0) {
             handleDeleteCard()
+
             return
         }
         setShowConfirmationDialogBox(true)

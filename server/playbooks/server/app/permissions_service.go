@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
 	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
@@ -69,10 +69,13 @@ func (p *PermissionsService) getPlaybookRole(userID string, playbook Playbook) [
 
 	// Public playbooks
 	if playbook.Public {
-		if playbook.DefaultPlaybookMemberRole == "" {
-			return []string{playbook.DefaultPlaybookMemberRole}
+		// Public playbooks are public to those who can list channels on a team. (Not guests)
+		if p.api.HasPermissionToTeam(userID, playbook.TeamID, model.PermissionListTeamChannels) {
+			if playbook.DefaultPlaybookMemberRole == "" {
+				return []string{playbook.DefaultPlaybookMemberRole}
+			}
+			return []string{PlaybookRoleMember}
 		}
-		return []string{PlaybookRoleMember}
 	}
 
 	return []string{}
@@ -103,6 +106,7 @@ func (p *PermissionsService) canViewTeam(userID string, teamID string) bool {
 		return false
 	}
 
+	// This is list team channels so that Guests are excluded.
 	return p.api.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam)
 }
 
@@ -363,9 +367,10 @@ func (p *PermissionsService) PlaybookViewWithPlaybook(userID string, playbook Pl
 		return errors.Wrapf(noAccessErr, "no playbook access; no team view permission for team `%s`", playbook.TeamID)
 	}
 
-	// If the playbook is public team access is enough to view
 	if p.PlaybookIsPublic(playbook) {
-		return nil
+		if p.hasPermissionsToPlaybook(userID, playbook, model.PermissionPublicPlaybookView) {
+			return nil
+		}
 	}
 
 	if p.hasPermissionsToPlaybook(userID, playbook, model.PermissionPrivatePlaybookView) {

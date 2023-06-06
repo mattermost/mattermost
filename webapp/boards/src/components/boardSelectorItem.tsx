@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import {FormattedMessage, useIntl} from 'react-intl'
 
 import {Board} from 'src/blocks/board'
 import Button from 'src/widgets/buttons/button'
@@ -22,6 +22,7 @@ const BoardSelectorItem = (props: Props) => {
     const intl = useIntl()
     const untitledBoardTitle = intl.formatMessage({id: 'ViewTitle.untitled-board', defaultMessage: 'Untitled board'})
     const resultTitle = item.title || untitledBoardTitle
+
     return (
         <div className='BoardSelectorItem'>
             <div className='BoardSelectorItem-info'>

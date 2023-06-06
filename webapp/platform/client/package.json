@@ -1,11 +1,11 @@
 {
   "name": "@mattermost/client",
-  "version": "7.9.0",
+  "version": "8.0.0",
   "description": "JavaScript/TypeScript client for Mattermost",
   "keywords": [
     "mattermost"
   ],
-  "homepage": "https://github.com/mattermost/mattermost-webapp/tree/master/packages/client#readme",
+  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/client#readme",
   "license": "MIT",
   "files": [
     "lib"
@@ -14,17 +14,11 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost-webapp",
-    "directory": "packages/client"
+    "url": "github:mattermost/mattermost-server",
+    "directory": "webapp/platform/client"
   },
   "dependencies": {
-    "form-data": "4.0.0"
-  },
-  "devDependencies": {
-    "@babel/preset-typescript": "7.21.0",
-    "isomorphic-fetch": "3.0.0",
-    "jest": "*",
-    "nock": "*"
+    "form-data": "^4.0.0"
   },
   "peerDependencies": {
     "@mattermost/types": "*",

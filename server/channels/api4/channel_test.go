@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/server/v8/channels/app"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest/mock"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -250,6 +250,15 @@ func TestUpdateChannel(t *testing.T) {
 	_, resp, err = client.UpdateChannel(directChannel)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	t.Run("null value", func(t *testing.T) {
+		r, err := client.DoAPIPut(fmt.Sprintf("/channels"+"/%v", channel.Id), "null")
+		resp := model.BuildResponse(r)
+		defer closeBody(r)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchChannel(t *testing.T) {

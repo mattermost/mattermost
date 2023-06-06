@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 import {GlobalState} from 'types/store';
 import {General} from 'mattermost-redux/constants';
-import {OverActiveUserLimits, Preferences, StatTypes} from 'utils/constants';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
+import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {trackEvent} from 'actions/telemetry_actions';
 import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
@@ -105,6 +104,19 @@ describe('components/overage_users_banner', () => {
                 subscriptionStats: {
                     is_expandable: false,
                     getRequestState: 'IDLE',
+                },
+            },
+            hostedCustomer: {
+                products: {
+                    productsLoaded: true,
+                    products: {
+                        prod_professional: TestHelper.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
                 },
             },
         },

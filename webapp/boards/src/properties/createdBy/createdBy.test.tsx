@@ -18,7 +18,7 @@ import CreatedBy from './createdBy'
 
 describe('properties/createdBy', () => {
     test('should match snapshot', () => {
-        jest.spyOn(console, 'error').mockImplementation()        
+        jest.spyOn(console, 'error').mockImplementation()
 
         const card = createCard()
         card.createdBy = 'user-id-1'
@@ -53,9 +53,10 @@ describe('properties/createdBy', () => {
 
         const {container} = render(component)
         expect(container).toMatchSnapshot()
+
         // TODO fix test — fix personSelector
         expect(console.error).toHaveBeenCalledWith(
-            expect.stringContaining('Each child in a list should have a unique "key" prop'), 
+            expect.stringContaining('Each child in a list should have a unique "key" prop'),
             expect.stringContaining('Check the render method of `PersonSelector`'),
             expect.anything(),
             expect.anything()
