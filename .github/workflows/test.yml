@@ -15,7 +15,7 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Run docker compose
         run: |
@@ -42,7 +42,7 @@ jobs:
             --env-file=dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
-            -v ~/work/mattermost-server:/mattermost-server \
-            -w /mattermost-server/mattermost-server \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost \
             $BUILD_IMAGE \
             make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
