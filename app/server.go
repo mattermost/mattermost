@@ -1493,6 +1493,11 @@ func (s *Server) initJobs() {
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
 	}
 
+	if jobsElasticsearchFixChannelIndexInterface != nil {
+		builder := jobsElasticsearchFixChannelIndexInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
+	}
+
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
