@@ -54,8 +54,6 @@ function Drafts({
         return null;
     }
 
-    console.log('drafts.tsx: drafts.length = ' + drafts.length, drafts);
-
     return (
         <div
             id='app-content'
