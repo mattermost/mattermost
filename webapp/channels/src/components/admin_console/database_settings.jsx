@@ -13,7 +13,7 @@ import ExternalLink from 'components/external_link';
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import RequestButton from './request_button/request_button';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 import MigrationsTable from './database';
