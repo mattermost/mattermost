@@ -443,6 +443,9 @@ gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 gotestsum:
+	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
+	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
+	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
 	$(GO) install gotest.tools/gotestsum@v1.7.0
 
 test-compile: gotestsum ## Compile tests.
@@ -463,6 +466,9 @@ modules-tidy:
 	fi;
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
+	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
+	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
+	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
