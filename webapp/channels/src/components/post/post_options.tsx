@@ -25,11 +25,10 @@ type Props = {
     post: Post;
     teamId: string;
     isFlagged: boolean;
-    removePost: (post: Post) => void;
+    removePostCloseRHSDeleteDraft: (post: Post) => void;
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
-    setActionsMenuInitialisationState: (initializationState: Record<string, boolean>) => void;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;
@@ -42,7 +41,6 @@ type Props = {
     isMobileView: boolean;
     hasReplies?: boolean;
     isFirstReply?: boolean;
-    isSearchResultsItem?: boolean;
     canReply?: boolean;
     replyCount?: number;
     location: keyof typeof Locations;
@@ -85,7 +83,9 @@ const PostOptions = (props: Props): JSX.Element => {
     const systemMessage = isSystemMessage(post);
     const isFromAutoResponder = fromAutoResponder(post);
 
-    const removePost = () => props.removePost(props.post);
+    function removePostCloseRHSDeleteDraft() {
+        props.removePostCloseRHSDeleteDraft(props.post);
+    }
 
     const toggleEmojiPicker = () => {
         setShowEmojiPicker(!showEmojiPicker);
@@ -196,7 +196,7 @@ const PostOptions = (props: Props): JSX.Element => {
             <div className='col col__remove'>
                 <button
                     className='post__remove theme color--link style--none'
-                    onClick={removePost}
+                    onClick={removePostCloseRHSDeleteDraft}
                 >
                     {'×'}
                 </button>
