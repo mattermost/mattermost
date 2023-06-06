@@ -883,6 +883,7 @@ type AppIface interface {
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateAllResendInviteEmailJobs() *model.AppError
 	InvalidateCacheForUser(userID string)
+	InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError

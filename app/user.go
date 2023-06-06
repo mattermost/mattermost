@@ -1461,8 +1461,13 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
+	// remove any previously created tokens for user
+	appErr := a.InvalidatePasswordRecoveryTokensForUser(userID)
+	if appErr != nil {
+		mlog.Warn("Error while deleting additional user tokens.", mlog.Err(err))
+	}
 
+	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError
 		switch {
@@ -1474,6 +1479,34 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 	}
 
 	return token, nil
+}
+
+func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError {
+	tokens, err := a.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+	if err != nil {
+		return model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	var appErr *model.AppError = nil
+	for _, token := range tokens {
+		tokenExtra := struct {
+			UserId string
+			Email  string
+		}{}
+		if err := json.Unmarshal([]byte(token.Extra), &tokenExtra); err != nil {
+			appErr = model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens_parse.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			continue
+		}
+
+		if tokenExtra.UserId != userID {
+			continue
+		}
+
+		if err := a.Srv().Store().Token().Delete(token.Token); err != nil {
+			appErr = model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens_delete.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return appErr
 }
 
 func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
