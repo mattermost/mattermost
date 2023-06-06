@@ -15,14 +15,14 @@ import {StoragePrefixes} from 'utils/constants';
 import {GlobalState} from 'types/store';
 
 export function removePostCloseRHSDeleteDraft(post: ExtendedPost) {
-    return async (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
-        if (getGlobalItem(getState(), draftKey, null)) {
-            await dispatch(removeDraft(draftKey, post.channel_id, post.id));
-        }
-
+    return (dispatch: DispatchFunc, getState: () => GlobalState) => {
         if (isThreadOpen(getState(), post.id)) {
             dispatch(closeRightHandSide());
+        }
+
+        const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
+        if (getGlobalItem(getState(), draftKey, null)) {
+            dispatch(removeDraft(draftKey, post.channel_id, post.id));
         }
 
         return dispatch(removePost(post));
