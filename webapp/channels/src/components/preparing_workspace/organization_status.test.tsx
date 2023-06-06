@@ -2,10 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {render} from '@testing-library/react';
-import {BadUrlReasons} from 'utils/url';
-import OrganizationStatus, {TeamApiError} from './organization_status';
+
+import {render} from 'tests/react_testing_utils';
 import {withIntl} from 'tests/helpers/intl-test-helper';
+
+import {BadUrlReasons} from 'utils/url';
+
+import OrganizationStatus, {TeamApiError} from './organization_status';
 
 describe('components/preparing-workspace/organization_status', () => {
     const defaultProps = {

@@ -37,8 +37,8 @@ function configureClient() {
 
 function loadRemoteModules() {
     /* eslint-disable no-console */
-    return async (/*dispatch: DispatchFunc, getState: GetStateFunc*/) => {
-        // const config = getConfig(getState());
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const config = getConfig(getState());
 
         /**
          * products contains a map of product IDs to a function that will load all of their parts. Calling that
@@ -47,7 +47,7 @@ function loadRemoteModules() {
          * Note that these import paths must be statically defined or else they won't be found at runtime. They
          * can't be constructed based on the name of a product at runtime.
          */
-        const products = [
+        let products = [
             {
                 id: 'boards',
                 load: () => ({
@@ -65,6 +65,9 @@ function loadRemoteModules() {
                 }),
             },
         ];
+        if (config.EnablePlaybooks !== 'true') {
+            products = products.filter((p) => p.id !== 'playbooks');
+        }
 
         await Promise.all(products.map(async (product) => {
             if (!REMOTE_CONTAINERS[product.id]) {
