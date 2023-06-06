@@ -54,8 +54,6 @@ type FeatureFlags struct {
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
 
-	WorkTemplate bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -101,7 +99,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
