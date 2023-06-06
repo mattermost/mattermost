@@ -2881,10 +2881,7 @@ type ProductSettings struct {
 	EnablePlaybooks *bool
 }
 
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePlaybooks == nil {
-		s.EnablePlaybooks = NewBool(true)
-	}
+func (s *ProductSettings) SetDefaults() {
 	if s.EnablePlaybooks == nil {
 		s.EnablePlaybooks = NewBool(true)
 	}
@@ -3369,6 +3366,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
