@@ -37,10 +37,10 @@ jobs:
           until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
           docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
           docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
-      - name: Compile Tests
+      - name: Fetch Dependencies
         run: |
           cd server
-          make test-compile
+          go mod download
       - name: Run Tests
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
