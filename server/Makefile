@@ -445,7 +445,7 @@ gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.7.0
 
-test-compile: ## Compile tests.
+test-compile: gotestsum ## Compile tests.
 	@echo COMPILE TESTS
 
 	for package in $(SUITE_PACKAGES) $(EE_PACKAGES); do \
