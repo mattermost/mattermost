@@ -16,7 +16,7 @@ func Example() {
 	ctx := context.Background()
 
 	client4 := model.NewAPIv4Client("http://localhost:8065")
-	_, _, err := client4.Login("test@example.com", "testtest")
+	_, _, err := client4.Login(context.Background(), "test@example.com", "testtest")
 	if err != nil {
 		log.Fatal(err)
 	}
