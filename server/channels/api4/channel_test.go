@@ -250,6 +250,15 @@ func TestUpdateChannel(t *testing.T) {
 	_, resp, err = client.UpdateChannel(context.Background(), directChannel)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	t.Run("null value", func(t *testing.T) {
+		r, err := client.DoAPIPut(context.Background(), fmt.Sprintf("/channels"+"/%v", channel.Id), "null")
+		resp := model.BuildResponse(r)
+		defer closeBody(r)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchChannel(t *testing.T) {
