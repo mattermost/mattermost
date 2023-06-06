@@ -10,7 +10,7 @@ import debounce from 'lodash/debounce';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 
-import {FooterPagination} from '@mattermost/components';
+import {FooterPagination, GenericModal} from '@mattermost/components';
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
 import {getFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/selectors/entities/general';
@@ -20,7 +20,6 @@ import {fetchListing, filterListing} from 'actions/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {closeModal} from 'actions/views/modals';
 
-import GenericModal from 'components/generic_modal';
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 

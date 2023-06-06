@@ -17,7 +17,7 @@ import ConfirmModal from 'components/confirm_modal';
 
 import AdminSettings, {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
-import SettingsGroup from '../settings_group.jsx';
+import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 import {appsPluginID} from 'utils/apps';
 import ExternalLink from 'components/external_link';
