@@ -4,10 +4,13 @@
 import {connect, ConnectedProps} from 'react-redux';
 import {AnyAction, bindActionCreators, Dispatch} from 'redux';
 
+import {Emoji} from '@mattermost/types/emojis';
+import {Post} from '@mattermost/types/posts';
+
 import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
+import {ExtendedPost, removePost} from 'mattermost-redux/actions/posts';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
-
 import {
     get,
     getBool,
@@ -15,32 +18,27 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {General} from 'mattermost-redux/constants';
+import {DispatchFunc} from 'mattermost-redux/types/actions';
 
-import {Emoji} from '@mattermost/types/emojis';
-import {Post} from '@mattermost/types/posts';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
-
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {removeDraft} from 'actions/views/drafts';
 
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+import {isThreadOpen} from 'selectors/views/threads';
+import {getGlobalItem} from 'selectors/storage';
 
 import {GlobalState} from 'types/store';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
-import {Locations, Preferences, RHSStates} from 'utils/constants';
-
-import {ExtendedPost, removePost} from 'mattermost-redux/actions/posts';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {isThreadOpen} from 'selectors/views/threads';
-
-import {General} from 'mattermost-redux/constants';
-
+import {Locations, Preferences, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getDisplayNameByUser} from 'utils/utils';
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 
 import PostComponent from './post_component';
 
@@ -84,22 +82,17 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
     return consecutivePost;
 }
 
-// export function removePostAndDeleteDraft(post: PostActions.ExtendedPost) {
-//     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-//         const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
-//         if (getGlobalItem(getState() as GlobalState, draftKey, null)) {
-//             dispatch(removeDraft(draftKey, post.channel_id, post.id));
-//         }
-//     };
-// }
-
-// CHeck here
 function removePostCloseRHSDeleteDraft(post: ExtendedPost) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
-        if (isThreadOpen(state, post.id)) {
+    return async (dispatch: DispatchFunc, getState: () => GlobalState) => {
+        const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
+        if (getGlobalItem(getState(), draftKey, null)) {
+            await dispatch(removeDraft(draftKey, post.channel_id, post.id));
+        }
+
+        if (isThreadOpen(getState(), post.id)) {
             dispatch(closeRightHandSide());
         }
+
         return dispatch(removePost(post));
     };
 }
