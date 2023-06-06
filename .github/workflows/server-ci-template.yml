@@ -13,5 +13,5 @@ jobs:
     name: Postgres
     uses: ./.github/workflows/server-test-template.yml
     with:
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
