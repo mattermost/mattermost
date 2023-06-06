@@ -62,6 +62,9 @@ jobs:
           export MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}"
           export TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}"
           export TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}"
+          make gotestsum
+          make gotestsum BUILD_NUMBER=test
+          make test-server-pre
           make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Archive report.xml
         if: ${{ always() }}

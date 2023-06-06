@@ -487,6 +487,9 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
+	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
+	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
+	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
 	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
