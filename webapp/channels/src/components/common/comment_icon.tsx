@@ -26,7 +26,7 @@ export default class CommentIcon extends React.PureComponent<Props> {
         searchStyle: '',
         commentCount: 0,
         extraClass: '',
-    }
+    };
 
     public render(): JSX.Element {
         let commentCountSpan: JSX.Element | null = null;

@@ -79,7 +79,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
                 }
             },
         );
-    }
+    };
 
     public handleDeny = (): void => {
         const redirectUri = (new URLSearchParams(this.props.location.search)).get('redirect_uri');
@@ -89,7 +89,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
         }
 
         getHistory().replace('/error');
-    }
+    };
 
     public render(): ReactNode {
         const app = this.state.app;

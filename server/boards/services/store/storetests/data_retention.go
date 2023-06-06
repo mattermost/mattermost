@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
 	"github.com/stretchr/testify/require"
 )
@@ -98,7 +98,7 @@ func LoadData(t *testing.T, store store.Store) {
 func testRunDataRetention(t *testing.T, store store.Store, batchSize int) {
 	LoadData(t, store)
 
-	blocks, err := store.GetBlocksForBoard(boardID)
+	blocks, err := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 	require.NoError(t, err)
 	require.Len(t, blocks, 4)
 	initialCount := len(blocks)
@@ -115,7 +115,7 @@ func testRunDataRetention(t *testing.T, store store.Store, batchSize int) {
 		require.True(t, deletions > int64(initialCount))
 
 		// expect all blocks to be deleted.
-		blocks, errBlocks := store.GetBlocksForBoard(boardID)
+		blocks, errBlocks := store.GetBlocks(model.QueryBlocksOptions{BoardID: boardID})
 		require.NoError(t, errBlocks)
 		require.Equal(t, 0, len(blocks))
 

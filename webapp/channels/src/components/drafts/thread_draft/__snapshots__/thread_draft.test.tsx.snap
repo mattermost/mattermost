@@ -42,6 +42,7 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
     displayName=""
     draftId=""
     id={Object {}}
+    isRemote={false}
     rootId=""
     status={Object {}}
     thread={
@@ -98,6 +99,7 @@ exports[`components/drafts/drafts_row should match snapshot for undefined thread
     displayName=""
     draftId=""
     id={Object {}}
+    isRemote={false}
     rootId=""
     status={Object {}}
     thread={null}

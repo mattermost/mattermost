@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'reselect';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {
     getMyGroupMentionKeysForChannel,
@@ -19,11 +19,10 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'utils/constants';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {Channel} from '@mattermost/types/channels';
 import {Post} from '@mattermost/types/posts';
-
-import {getCurrentUserTimezone} from '../../selectors/general';
 
 import PostMarkdown from './post_markdown';
 
@@ -75,7 +74,7 @@ function makeMapStateToProps() {
             isUserCanManageMembers: channel && canManageMembers(state, channel),
             mentionKeys: getMentionKeysForPost(state, ownProps.post, channel),
             isMilitaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
-            timezone: getCurrentUserTimezone(state),
+            timezone: getCurrentTimezone(state),
         };
     };
 }

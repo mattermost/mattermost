@@ -1,107 +1,116 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import {isPlugin, getName} from 'mattermost-redux/utils/marketplace';
 
+import PluginIcon from 'components/widgets/icons/plugin_icon';
+
 import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
 import MarketplaceItemApp from '../marketplace_item/marketplace_item_app';
 
-import NavigationRow from './navigation_row';
-
-const ITEMS_PER_PAGE = 15;
+export const ITEMS_PER_PAGE = 15;
 
 type MarketplaceListProps = {
     listing: Array<MarketplacePlugin | MarketplaceApp>;
-};
-
-type MarketplaceListState = {
     page: number;
+    noResultsMessage: string;
+    noResultsAction?: {
+        label: string;
+        onClick: () => void;
+    };
+    filter?: string;
+    listRef?: React.RefObject<HTMLDivElement>;
 };
 
-export default class MarketplaceList extends React.PureComponent <MarketplaceListProps, MarketplaceListState> {
-    static getDerivedStateFromProps(props: MarketplaceListProps, state: MarketplaceListState): MarketplaceListState | null {
-        if (state.page > 0 && props.listing.length < ITEMS_PER_PAGE) {
-            return {page: 0};
+const MarketplaceList = ({
+    listing,
+    page,
+    noResultsMessage,
+    noResultsAction,
+    filter,
+    listRef,
+}: MarketplaceListProps) => {
+    const {formatMessage} = useIntl();
+
+    const pageItems = useMemo(() => {
+        if (listing.length === 0) {
+            return [];
         }
 
-        return null;
-    }
-
-    constructor(props: MarketplaceListProps) {
-        super(props);
-
-        this.state = {
-            page: 0,
-        };
-    }
-
-    nextPage = (): void => {
-        this.setState((state) => ({
-            page: state.page + 1,
-        }));
-    };
-
-    previousPage = (): void => {
-        this.setState((state) => ({
-            page: state.page - 1,
-        }));
-    };
-
-    render(): JSX.Element {
-        const pageStart = this.state.page * ITEMS_PER_PAGE;
+        const pageStart = page * ITEMS_PER_PAGE;
         const pageEnd = pageStart + ITEMS_PER_PAGE;
 
-        this.props.listing.sort((a, b) => {
-            return getName(a).localeCompare(getName(b));
-        });
+        return [...listing].
+            sort((a, b) => getName(a).localeCompare(getName(b))).
+            slice(pageStart, pageEnd).
+            map((i) => (
+                isPlugin(i) ? (
+                    <MarketplaceItemPlugin
+                        key={i.manifest.id}
+                        id={i.manifest.id}
+                        name={i.manifest.name}
+                        description={i.manifest.description}
+                        version={i.manifest.version}
+                        homepageUrl={i.homepage_url}
+                        releaseNotesUrl={i.release_notes_url}
+                        labels={i.labels}
+                        iconData={i.icon_data}
+                        installedVersion={i.installed_version}
+                    />
+                ) : (
+                    <MarketplaceItemApp
+                        key={i.manifest.app_id}
+                        id={i.manifest.app_id}
+                        name={i.manifest.display_name}
+                        description={i.manifest.description}
+                        homepageUrl={i.manifest.homepage_url}
+                        iconURL={i.icon_url}
+                        installed={i.installed}
+                        labels={i.labels}
+                    />
+                )
+            ));
+    }, [listing, page]);
 
-        const itemsToDisplay = this.props.listing.slice(pageStart, pageEnd);
+    const getNoResultsMessage = useCallback(() => (
+        filter ? (
+            formatMessage(
+                {id: 'marketplace_modal_list.no_plugins_filter', defaultMessage: 'No results for "{filter}"'},
+                {filter},
+            )
+        ) : (
+            noResultsMessage
+        )
+    ), [filter, noResultsMessage]);
 
-        return (
-            <div className='more-modal__list'>
-                {itemsToDisplay.map((i) => {
-                    if (isPlugin(i)) {
-                        return (
-                            <MarketplaceItemPlugin
-                                key={i.manifest.id}
-                                id={i.manifest.id}
-                                name={i.manifest.name}
-                                description={i.manifest.description}
-                                version={i.manifest.version}
-                                homepageUrl={i.homepage_url}
-                                releaseNotesUrl={i.release_notes_url}
-                                labels={i.labels}
-                                iconData={i.icon_data}
-                                installedVersion={i.installed_version}
-                            />
-                        );
-                    }
-
-                    return (
-                        <MarketplaceItemApp
-                            key={i.manifest.app_id}
-                            id={i.manifest.app_id}
-                            name={i.manifest.display_name}
-                            description={i.manifest.description}
-                            homepageUrl={i.manifest.homepage_url}
-                            iconURL={i.icon_url}
-                            installed={i.installed}
-                            labels={i.labels}
-                        />
-                    );
-                })
-                }
-                <NavigationRow
-                    page={this.state.page}
-                    total={this.props.listing.length}
-                    maximumPerPage={ITEMS_PER_PAGE}
-                    onNextPageButtonClick={this.nextPage}
-                    onPreviousPageButtonClick={this.previousPage}
-                />
+    return (listing.length === 0 ? (
+        <div className='no_plugins'>
+            <PluginIcon className='icon__plugin'/>
+            <div className='no_plugins__message'>
+                {getNoResultsMessage()}
             </div>
-        );
-    }
-}
+            {noResultsAction && (
+                <button
+                    className='no_plugins__action'
+                    onClick={noResultsAction.onClick}
+                    data-testid='Install-Plugins-button'
+                >
+                    {noResultsAction.label}
+                </button>
+            )}
+        </div>
+    ) : (
+        <div
+            ref={listRef}
+            className='more-modal__list'
+        >
+            {pageItems}
+        </div>
+    ));
+};
+
+export default MarketplaceList;

@@ -12,7 +12,7 @@ import {Utils} from './utils'
 import {IPropertyTemplate} from './blocks/board'
 
 jest.mock('./utils')
-const mockedUtils = mocked(Utils, true)
+const mockedUtils = mocked(Utils)
 
 const dayMillis = 24 * 60 * 60 * 1000
 

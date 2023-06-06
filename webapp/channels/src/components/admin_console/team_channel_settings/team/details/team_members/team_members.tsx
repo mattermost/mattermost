@@ -126,25 +126,25 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
 
     private setStateLoading = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
 
     private loadPage = async (page: number) => {
         const {loadProfilesAndReloadTeamMembers} = this.props.actions;
         const {teamId, filters} = this.props;
         await loadProfilesAndReloadTeamMembers(page + 1, PROFILE_CHUNK_SIZE, teamId, {active: true, ...filters});
-    }
+    };
 
     private removeUser = (user: UserProfile) => {
         this.props.onRemoveCallback(user);
-    }
+    };
 
     private onAddCallback = (users: UserProfile[]) => {
         this.props.onAddCallback(users);
-    }
+    };
 
     private onSearch = async (term: string) => {
         this.props.actions.setUserGridSearch(term);
-    }
+    };
 
     private onFilter = async (filterOptions: FilterOptions) => {
         const roles = filterOptions.role.values;
@@ -177,11 +177,11 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
         } else {
             this.props.actions.setUserGridFilters(filters);
         }
-    }
+    };
 
     private updateMembership = (membership: BaseMembership) => {
         this.props.updateRole(membership.user_id, membership.scheme_user, membership.scheme_admin);
-    }
+    };
 
     public render = () => {
         const {users, team, usersToAdd, usersToRemove, teamMembers, totalCount, searchTerm, isDisabled} = this.props;
@@ -294,5 +294,5 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 />
             </AdminPanel>
         );
-    }
+    };
 }

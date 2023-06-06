@@ -84,9 +84,8 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     >
       <MenuItemLink
         icon={
-          <Icon
-            glyph="application-cog"
-            size={16}
+          <ApplicationCogIcon
+            size={18}
           />
         }
         id="systemConsole"
@@ -101,9 +100,8 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     </Connect(SystemPermissionGate)>
     <MenuItemLink
       icon={
-        <Icon
-          glyph="webhook-incoming"
-          size={16}
+        <WebhookIncomingIcon
+          size={18}
         />
       }
       id="integrations"
@@ -127,9 +125,8 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       }
       disabled={false}
       icon={
-        <Icon
-          glyph="account-multiple-outline"
-          size={16}
+        <AccountMultipleOutlineIcon
+          size={18}
         />
       }
       id="userGroups"
@@ -147,31 +144,27 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       teamId=""
     >
       <MenuItemToggleModalRedux
-        dialogType={
+        dialogProps={
           Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
+            "openedFrom": "product_menu",
           }
         }
+        dialogType={[Function]}
         icon={
-          <Icon
-            glyph="apps"
-            size={16}
+          <ViewGridPlusOutlineIcon
+            size={18}
           />
         }
         id="marketplaceModal"
         modalId="plugin_marketplace"
         show={false}
-        text="Marketplace"
+        text="App Marketplace"
       />
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
-        <Icon
-          glyph="download-outline"
-          size={16}
+        <DownloadOutlineIcon
+          size={18}
         />
       }
       id="nativeAppLink"
@@ -189,9 +182,8 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         }
       }
       icon={
-        <Icon
-          glyph="information-outline"
-          size={16}
+        <InformationOutlineIcon
+          size={18}
         />
       }
       id="about"
@@ -287,9 +279,8 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     >
       <MenuItemLink
         icon={
-          <Icon
-            glyph="application-cog"
-            size={16}
+          <ApplicationCogIcon
+            size={18}
           />
         }
         id="systemConsole"
@@ -304,9 +295,8 @@ exports[`components/global/product_switcher_menu should match snapshot with most
     </Connect(SystemPermissionGate)>
     <MenuItemLink
       icon={
-        <Icon
-          glyph="webhook-incoming"
-          size={16}
+        <WebhookIncomingIcon
+          size={18}
         />
       }
       id="integrations"
@@ -330,9 +320,8 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       }
       disabled={false}
       icon={
-        <Icon
-          glyph="account-multiple-outline"
-          size={16}
+        <AccountMultipleOutlineIcon
+          size={18}
         />
       }
       id="userGroups"
@@ -350,31 +339,27 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       teamId=""
     >
       <MenuItemToggleModalRedux
-        dialogType={
+        dialogProps={
           Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
+            "openedFrom": "product_menu",
           }
         }
+        dialogType={[Function]}
         icon={
-          <Icon
-            glyph="apps"
-            size={16}
+          <ViewGridPlusOutlineIcon
+            size={18}
           />
         }
         id="marketplaceModal"
         modalId="plugin_marketplace"
         show={true}
-        text="Marketplace"
+        text="App Marketplace"
       />
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
-        <Icon
-          glyph="download-outline"
-          size={16}
+        <DownloadOutlineIcon
+          size={18}
         />
       }
       id="nativeAppLink"
@@ -392,9 +377,8 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         }
       }
       icon={
-        <Icon
-          glyph="information-outline"
-          size={16}
+        <InformationOutlineIcon
+          size={18}
         />
       }
       id="about"
@@ -423,9 +407,8 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   disabled={false}
   icon={
-    <Icon
-      glyph="account-multiple-outline"
-      size={16}
+    <AccountMultipleOutlineIcon
+      size={18}
     />
   }
   id="userGroups"
@@ -453,9 +436,8 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   disabled={true}
   icon={
-    <Icon
-      glyph="account-multiple-outline"
-      size={16}
+    <AccountMultipleOutlineIcon
+      size={18}
     />
   }
   id="userGroups"
@@ -496,9 +478,8 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   disabled={false}
   icon={
-    <Icon
-      glyph="account-multiple-outline"
-      size={16}
+    <AccountMultipleOutlineIcon
+      size={18}
     />
   }
   id="userGroups"
@@ -610,9 +591,8 @@ exports[`components/global/product_switcher_menu should show integrations should
     >
       <MenuItemLink
         icon={
-          <Icon
-            glyph="application-cog"
-            size={16}
+          <ApplicationCogIcon
+            size={18}
           />
         }
         id="systemConsole"
@@ -627,9 +607,8 @@ exports[`components/global/product_switcher_menu should show integrations should
     </Connect(SystemPermissionGate)>
     <MenuItemLink
       icon={
-        <Icon
-          glyph="webhook-incoming"
-          size={16}
+        <WebhookIncomingIcon
+          size={18}
         />
       }
       id="integrations"
@@ -653,9 +632,8 @@ exports[`components/global/product_switcher_menu should show integrations should
       }
       disabled={false}
       icon={
-        <Icon
-          glyph="account-multiple-outline"
-          size={16}
+        <AccountMultipleOutlineIcon
+          size={18}
         />
       }
       id="userGroups"
@@ -673,31 +651,27 @@ exports[`components/global/product_switcher_menu should show integrations should
       teamId=""
     >
       <MenuItemToggleModalRedux
-        dialogType={
+        dialogProps={
           Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
+            "openedFrom": "product_menu",
           }
         }
+        dialogType={[Function]}
         icon={
-          <Icon
-            glyph="apps"
-            size={16}
+          <ViewGridPlusOutlineIcon
+            size={18}
           />
         }
         id="marketplaceModal"
         modalId="plugin_marketplace"
         show={false}
-        text="Marketplace"
+        text="App Marketplace"
       />
     </Connect(TeamPermissionGate)>
     <MenuItemExternalLink
       icon={
-        <Icon
-          glyph="download-outline"
-          size={16}
+        <DownloadOutlineIcon
+          size={18}
         />
       }
       id="nativeAppLink"
@@ -715,9 +689,8 @@ exports[`components/global/product_switcher_menu should show integrations should
         }
       }
       icon={
-        <Icon
-          glyph="information-outline"
-          size={16}
+        <InformationOutlineIcon
+          size={18}
         />
       }
       id="about"

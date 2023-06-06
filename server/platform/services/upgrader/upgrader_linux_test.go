@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestCanIUpgradeToE0(t *testing.T) {

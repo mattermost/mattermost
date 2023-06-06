@@ -6,9 +6,10 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -71,12 +72,32 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedCh
 	return sc, nil
 }
 
+func sharedChannelFields(prefix string) []string {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
+		prefix = prefix + "."
+	}
+	return []string{
+		prefix + "ChannelId",
+		prefix + "TeamId",
+		prefix + "Home",
+		prefix + "ReadOnly",
+		prefix + "ShareName",
+		prefix + "ShareDisplayName",
+		prefix + "SharePurpose",
+		prefix + "ShareHeader",
+		prefix + "CreatorId",
+		prefix + "CreateAt",
+		prefix + "UpdateAt",
+		prefix + "RemoteId",
+	}
+}
+
 // Get fetches a shared channel by channel_id.
 func (s SqlSharedChannelStore) Get(channelId string) (*model.SharedChannel, error) {
 	var sc model.SharedChannel
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelFields("")...).
 		From("SharedChannels").
 		Where(sq.Eq{"SharedChannels.ChannelId": channelId})
 
@@ -173,15 +194,15 @@ func (s SqlSharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (
 }
 
 func (s SqlSharedChannelStore) getSharedChannelsQuery(opts model.SharedChannelFilterOpts, forCount bool) sq.SelectBuilder {
-	var selectStr string
+	var selectFields []string
 	if forCount {
-		selectStr = "count(sc.ChannelId)"
+		selectFields = []string{"count(sc.ChannelId)"}
 	} else {
-		selectStr = "sc.*"
+		selectFields = sharedChannelFields("sc")
 	}
 
 	query := s.getQueryBuilder().
-		Select(selectStr).
+		Select(selectFields...).
 		From("SharedChannels AS sc")
 
 	if opts.MemberId != "" {
@@ -364,12 +385,30 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 	return remote, nil
 }
 
+func sharedChannelRemoteFields(prefix string) []string {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
+		prefix = prefix + "."
+	}
+	return []string{
+		prefix + "Id",
+		prefix + "ChannelId",
+		prefix + "CreatorId",
+		prefix + "CreateAt",
+		prefix + "UpdateAt",
+		prefix + "IsInviteAccepted",
+		prefix + "IsInviteConfirmed",
+		prefix + "RemoteId",
+		prefix + "LastPostUpdateAt",
+		prefix + "LastPostId",
+	}
+}
+
 // GetRemote fetches a shared channel remote by id.
 func (s SqlSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelRemoteFields("")...).
 		From("SharedChannelRemotes").
 		Where(sq.Eq{"SharedChannelRemotes.Id": id})
 
@@ -392,7 +431,7 @@ func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string)
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelRemoteFields("")...).
 		From("SharedChannelRemotes").
 		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId}).
 		Where(sq.Eq{"SharedChannelRemotes.RemoteId": remoteId})
@@ -416,7 +455,7 @@ func (s SqlSharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOp
 	remotes := []*model.SharedChannelRemote{}
 
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelRemoteFields("")...).
 		From("SharedChannelRemotes")
 
 	if opts.ChannelId != "" {
@@ -570,6 +609,20 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	return status, nil
 }
 
+func sharedChannelUserFields(prefix string) []string {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
+		prefix = prefix + "."
+	}
+	return []string{
+		prefix + "Id",
+		prefix + "UserId",
+		prefix + "ChannelId",
+		prefix + "RemoteId",
+		prefix + "CreateAt",
+		prefix + "LastSyncAt",
+	}
+}
+
 // SaveUser inserts a new shared channel user record to the SharedChannelUsers table.
 func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model.SharedChannelUser, error) {
 	scUser.PreSave()
@@ -578,7 +631,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelUsers").
-		Columns("Id", "UserId", "ChannelId", "RemoteId", "CreateAt", "LastSyncAt").
+		Columns(sharedChannelUserFields("")...).
 		Values(scUser.Id, scUser.UserId, scUser.ChannelId, scUser.RemoteId, scUser.CreateAt, scUser.LastSyncAt).
 		ToSql()
 	if err != nil {
@@ -595,7 +648,7 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 	var scu model.SharedChannelUser
 
 	squery, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelUserFields("")...).
 		From("SharedChannelUsers").
 		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
 		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteID}).
@@ -618,7 +671,7 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 // GetUsersForUser fetches all shared channel user records based on userID.
 func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelUserFields("")...).
 		From("SharedChannelUsers").
 		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
 		ToSql()
@@ -645,7 +698,9 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 	}
 
 	query := s.getQueryBuilder().
-		Select("u.*").
+		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Email", "u.EmailVerified",
+			"u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props",
+			"u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.Locale", "u.Timezone", "u.RemoteId").
 		Distinct().
 		From("Users AS u").
 		Join("SharedChannelUsers AS scu ON u.Id = scu.UserId").
@@ -723,6 +778,19 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 	return nil
 }
 
+func sharedChannelAttachementFields(prefix string) []string {
+	if prefix != "" && !strings.HasSuffix(prefix, ".") {
+		prefix = prefix + "."
+	}
+	return []string{
+		prefix + "Id",
+		prefix + "FileId",
+		prefix + "RemoteId",
+		prefix + "CreateAt",
+		prefix + "LastSyncAt",
+	}
+}
+
 // SaveAttachment inserts a new shared channel file attachment record to the SharedChannelFiles table.
 func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
 	attachment.PreSave()
@@ -731,7 +799,7 @@ func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAtt
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelAttachments").
-		Columns("Id", "FileId", "RemoteId", "CreateAt", "LastSyncAt").
+		Columns(sharedChannelAttachementFields("")...).
 		Values(attachment.Id, attachment.FileId, attachment.RemoteId, attachment.CreateAt, attachment.LastSyncAt).
 		ToSql()
 	if err != nil {
@@ -753,7 +821,7 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 	}
 	query := s.getQueryBuilder().
 		Insert("SharedChannelAttachments").
-		Columns("Id", "FileId", "RemoteId", "CreateAt", "LastSyncAt").
+		Columns(sharedChannelAttachementFields("")...).
 		Values(attachment.Id, attachment.FileId, attachment.RemoteId, attachment.CreateAt, attachment.LastSyncAt)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
@@ -777,7 +845,7 @@ func (s SqlSharedChannelStore) GetAttachment(fileId string, remoteId string) (*m
 	var attachment model.SharedChannelAttachment
 
 	squery, args, err := s.getQueryBuilder().
-		Select("*").
+		Select(sharedChannelAttachementFields("")...).
 		From("SharedChannelAttachments").
 		Where(sq.Eq{"SharedChannelAttachments.FileId": fileId}).
 		Where(sq.Eq{"SharedChannelAttachments.RemoteId": remoteId}).

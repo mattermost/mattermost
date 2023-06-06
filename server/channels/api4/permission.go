@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func (api *API) InitPermissions() {

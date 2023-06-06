@@ -29,13 +29,13 @@ export default class FailedPostOptions extends React.PureComponent<Props> {
         const post = {...this.props.post};
         Reflect.deleteProperty(post, 'id');
         this.props.actions.createPost(post, []);
-    }
+    };
 
     cancelPost = (e: MouseEvent): void => {
         e.preventDefault();
 
         this.props.actions.removePost(this.props.post);
-    }
+    };
 
     render(): JSX.Element {
         return (

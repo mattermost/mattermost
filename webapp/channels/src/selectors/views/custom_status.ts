@@ -3,8 +3,8 @@
 
 import moment from 'moment-timezone';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -12,8 +12,9 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
 
+import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
+
 import {GlobalState} from 'types/store';
-import {getCurrentUserTimezone} from 'selectors/general';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus {
@@ -37,7 +38,7 @@ export function isCustomStatusExpired(state: GlobalState, customStatus?: UserCus
     }
 
     const expiryTime = moment(customStatus.expires_at);
-    const timezone = getCurrentUserTimezone(state);
+    const timezone = getCurrentTimezone(state);
     const currentTime = getCurrentMomentForTimezone(timezone);
     return currentTime.isSameOrAfter(expiryTime);
 }
@@ -56,9 +57,12 @@ export function isCustomStatusEnabled(state: GlobalState) {
 }
 
 function showCustomStatusPulsatingDotAndPostHeader(state: GlobalState) {
+    // only show this for users after the first seven days
+    const currentUser = getCurrentUser(state);
+    const hasUserCreationMoreThanSevenDays = isDateWithinDaysRange(currentUser?.create_at, 7, TimeInformation.FUTURE);
     const customStatusTutorialState = get(state, Preferences.CATEGORY_CUSTOM_STATUS, Preferences.NAME_CUSTOM_STATUS_TUTORIAL_STATE);
     const modalAlreadyViewed = customStatusTutorialState && JSON.parse(customStatusTutorialState)[Preferences.CUSTOM_STATUS_MODAL_VIEWED];
-    return !modalAlreadyViewed;
+    return !modalAlreadyViewed && hasUserCreationMoreThanSevenDays;
 }
 
 export function showStatusDropdownPulsatingDot(state: GlobalState) {

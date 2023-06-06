@@ -18,7 +18,7 @@ type Props = {
 export default class ShowSearchButton extends React.PureComponent<Props> {
     handleClick = () => {
         this.props.actions.openRHSSearch();
-    }
+    };
 
     render() {
         return (

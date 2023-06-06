@@ -5,7 +5,6 @@ import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {fireEvent, render} from '@testing-library/react'
 import configureStore from 'redux-mock-store'
-import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
 

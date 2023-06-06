@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable max-lines */
+
 import React, {
     useCallback,
-    useState,
+    useEffect,
     useMemo,
-    useEffect
+    useState,
 } from 'react'
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl'
+import {FormattedMessage} from 'react-intl'
 
 import withScrolling, {createHorizontalStrength, createVerticalStrength} from 'react-dnd-scrolling'
 
@@ -17,14 +17,14 @@ import {Position} from 'src/components/cardDetail/cardDetailContents'
 
 import {
     Board,
+    BoardGroup,
     IPropertyOption,
     IPropertyTemplate,
-    BoardGroup
 } from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 import {BoardView} from 'src/blocks/boardView'
 import mutator from 'src/mutator'
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 import Button from 'src/widgets/buttons/button'
 import {Constants, Permission} from 'src/constants'
 
@@ -49,7 +49,6 @@ type Props = {
     visibleGroups: BoardGroup[]
     hiddenGroups: BoardGroup[]
     selectedCardIds: string[]
-    intl: IntlShape
     readonly: boolean
     onCardClicked: (e: React.MouseEvent, card: Card) => void
     addCard: (groupByOptionId?: string, show?: boolean) => Promise<void>
@@ -115,6 +114,7 @@ const Kanban = (props: Props) => {
         cardOrder = cardOrder.filter((id) => !setOfIds.has(id))
         const lastCardIndex = cardOrder.indexOf(lastCardId)
         cardOrder.splice(lastCardIndex + 1, 0, ...cardIds)
+
         return cardOrder
     }, [activeView, visibleGroups])
 
@@ -131,6 +131,7 @@ const Kanban = (props: Props) => {
             await mutator.performAsUndoGroup(async () => {
                 const cardsById: { [key: string]: Card } = cards.reduce((acc: { [key: string]: Card }, c: Card): { [key: string]: Card } => {
                     acc[c.id] = c
+
                     return acc
                 }, {})
                 const draggedCards: Card[] = draggedCardIds.map((o: string) => cardsById[o]).filter((c) => c)
@@ -187,6 +188,7 @@ const Kanban = (props: Props) => {
         // Update dstCard order
         const cardsById: { [key: string]: Card } = cards.reduce((acc: { [key: string]: Card }, card: Card): { [key: string]: Card } => {
             acc[card.id] = card
+
             return acc
         }, {})
         const draggedCards: Card[] = draggedCardIds.map((o: string) => cardsById[o]).filter((c) => c)
@@ -224,6 +226,7 @@ const Kanban = (props: Props) => {
 
     if (!groupByProperty) {
         Utils.assertFailure('Board views must have groupByProperty set')
+
         return <div/>
     }
 
@@ -245,7 +248,6 @@ const Kanban = (props: Props) => {
                         group={group}
                         board={board}
                         activeView={activeView}
-                        intl={props.intl}
                         groupByProperty={groupByProperty}
                         addCard={props.addCard}
                         readonly={props.readonly}
@@ -342,7 +344,6 @@ const Kanban = (props: Props) => {
                                 key={group.option.id}
                                 group={group}
                                 activeView={activeView}
-                                intl={props.intl}
                                 readonly={props.readonly}
                                 onDrop={(card: Card) => onDropToColumn(group.option, card)}
                             />
@@ -360,4 +361,4 @@ const Kanban = (props: Props) => {
     )
 }
 
-export default injectIntl(Kanban)
+export default Kanban

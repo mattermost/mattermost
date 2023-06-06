@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import '@testing-library/jest-dom'
 import {render} from '@testing-library/react'
 import 'isomorphic-fetch'
 import userEvent from '@testing-library/user-event'
@@ -114,7 +113,7 @@ describe('/components/viewMenu', () => {
         expect(container).toMatchSnapshot()
     })
 
-    it('should check view limits', () => {
+    it('should check view limits', async () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
@@ -138,7 +137,7 @@ describe('/components/viewMenu', () => {
         const container = render(component)
 
         const buttonElement = container.getByRole('button', {name: 'Duplicate view'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(mockedallowCreateView).toBeCalledTimes(1)
     })
 })

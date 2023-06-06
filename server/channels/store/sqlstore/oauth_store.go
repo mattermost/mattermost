@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 )
 
 type SqlOAuthStore struct {
@@ -265,6 +265,14 @@ func (as SqlOAuthStore) RemoveAuthDataByClientId(clientId string, userId string)
 	_, err := as.GetMasterX().Exec("DELETE FROM OAuthAuthData WHERE ClientId = ? and UserId = ?", clientId, userId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete AuthData with clientId=%s and userId=%s", clientId, userId)
+	}
+	return nil
+}
+
+func (as SqlOAuthStore) RemoveAuthDataByUserId(userId string) error {
+	_, err := as.GetMasterX().Exec("DELETE FROM OAuthAuthData WHERE UserId = ?", userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete AuthData with userId=%s", userId)
 	}
 	return nil
 }

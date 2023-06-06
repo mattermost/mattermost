@@ -12,8 +12,8 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
 )
 
 const (
@@ -219,17 +219,6 @@ func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 		return errors.Wrapf(err, "failed to update Session with sessionId=%s", sessionId)
 	}
 	return nil
-}
-
-func (me *SqlSessionStore) GetLastSessionRowCreateAt() (int64, error) {
-	query := `SELECT CREATEAT FROM Sessions ORDER BY CREATEAT DESC LIMIT 1`
-	var createAt int64
-	err := me.GetReplicaX().Get(&createAt, query)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get last session createat")
-	}
-
-	return createAt, nil
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {

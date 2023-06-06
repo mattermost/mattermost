@@ -1073,6 +1073,37 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
+            definitionKey="products"
+            icon={
+              <ProductsIcon
+                className="category-icon fa"
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="products"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Products"
+                id="admin.sidebar.products"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="products.boards"
+              key="products.boards"
+              name="products/boards"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Boards"
+                  id="admin.sidebar.boards"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
             definitionKey="integrations"
             icon={
               <SitemapIcon
@@ -1773,6 +1804,37 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="custompluginplugin_0"
               name="plugins/plugin_plugin_0"
               title="Plugin 0"
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="products"
+            icon={
+              <ProductsIcon
+                className="category-icon fa"
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="products"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Products"
+                id="admin.sidebar.products"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="products.boards"
+              key="products.boards"
+              name="products/boards"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Boards"
+                  id="admin.sidebar.boards"
+                />
+              }
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
@@ -2534,6 +2596,37 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
+            definitionKey="products"
+            icon={
+              <ProductsIcon
+                className="category-icon fa"
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="products"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Products"
+                id="admin.sidebar.products"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="products.boards"
+              key="products.boards"
+              name="products/boards"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Boards"
+                  id="admin.sidebar.boards"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
             definitionKey="integrations"
             icon={
               <SitemapIcon
@@ -3234,6 +3327,37 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="custompluginplugin_0"
               name="plugins/plugin_plugin_0"
               title="Plugin 0"
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="products"
+            icon={
+              <ProductsIcon
+                className="category-icon fa"
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="products"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Products"
+                id="admin.sidebar.products"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="products.boards"
+              key="products.boards"
+              name="products/boards"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Boards"
+                  id="admin.sidebar.boards"
+                />
+              }
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
@@ -4036,6 +4160,37 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="custompluginplugin_0"
               name="plugins/plugin_plugin_0"
               title="Plugin 0"
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="products"
+            icon={
+              <ProductsIcon
+                className="category-icon fa"
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="products"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Products"
+                id="admin.sidebar.products"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="products.boards"
+              key="products.boards"
+              name="products/boards"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Boards"
+                  id="admin.sidebar.boards"
+                />
+              }
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory
@@ -4971,6 +5126,37 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="custompluginplugin_0"
               name="plugins/plugin_plugin_0"
               title="Plugin 0"
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="products"
+            icon={
+              <ProductsIcon
+                className="category-icon fa"
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="products"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Products"
+                id="admin.sidebar.products"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="products.boards"
+              key="products.boards"
+              name="products/boards"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Boards"
+                  id="admin.sidebar.boards"
+                />
+              }
             />
           </AdminSidebarCategory>
           <AdminSidebarCategory

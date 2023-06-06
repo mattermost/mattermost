@@ -16,8 +16,6 @@ import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import UserPermissionsRow from './userPermissionsRow'
 
-jest.useFakeTimers()
-
 const boardId = '1'
 
 jest.mock('src/utils')
@@ -94,7 +92,7 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })
@@ -132,7 +130,7 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
-        userEvent.click(buttonElement!)
+        await userEvent.click(buttonElement!)
 
         expect(container).toMatchSnapshot()
     })

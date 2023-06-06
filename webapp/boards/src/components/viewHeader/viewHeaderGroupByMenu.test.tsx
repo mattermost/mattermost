@@ -4,7 +4,6 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
 
@@ -14,13 +13,13 @@ import {TestBlockFactory} from 'src/test/testBlockFactory'
 
 import mutator from 'src/mutator'
 
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 import {IPropertyOption} from 'src/blocks/board'
 
 import ViewHeaderGroupByMenu from './viewHeaderGroupByMenu'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -95,7 +94,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         jest.clearAllMocks()
         setDefaultOptions()
     })
-    test('return groupBy menu', () => {
+    test('return groupBy menu', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -108,10 +107,10 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('return groupBy menu and groupBy Status', () => {
+    test('return groupBy menu and groupBy Status', async () => {
         const {container} = render(
             wrapIntl(
                 <ReduxProvider store={store}>
@@ -124,13 +123,13 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         const buttonStatus = screen.getByRole('button', {name: 'Status'})
-        userEvent.click(buttonStatus)
+        await userEvent.click(buttonStatus)
         expect(container).toMatchSnapshot()
         expect(mockedMutator.changeViewGroupById).toBeCalledTimes(1)
     })
-    test('return groupBy menu, hideEmptyGroups and ungroup in viewType table', () => {
+    test('return groupBy menu, hideEmptyGroups and ungroup in viewType table', async () => {
         activeView.fields.viewType = 'table'
         const {container} = render(
             wrapIntl(
@@ -145,26 +144,26 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         )
 
         const menuButton = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(menuButton)
+        await userEvent.click(menuButton)
         expect(container).toMatchSnapshot()
 
         const hideEmptyGroupsButton = screen.getByRole('button', {name: /Hide.+groups/i})
         expect(hideEmptyGroupsButton)
-        userEvent.click(hideEmptyGroupsButton)
+        await userEvent.click(hideEmptyGroupsButton)
         expect(mockedMutator.hideViewColumns).toBeCalledTimes(1)
 
-        userEvent.click(menuButton)
+        await userEvent.click(menuButton)
         const showHiddenGroupsButton = screen.getByRole('button', {name: /Show.+groups/i})
-        userEvent.click(showHiddenGroupsButton)
+        await userEvent.click(showHiddenGroupsButton)
         expect(mockedMutator.unhideViewColumns).toBeCalledTimes(1)
 
-        userEvent.click(menuButton)
+        await userEvent.click(menuButton)
         const ungroupButton = screen.getByRole('button', {name: 'Ungroup'})
-        userEvent.click(ungroupButton)
+        await userEvent.click(ungroupButton)
         expect(mockedMutator.changeViewGroupById).toBeCalledTimes(1)
     })
 
-    test('For viewType table render only HideEmptyGroupsButton when hiddenGroups is empty', () => {
+    test('For viewType table render only HideEmptyGroupsButton when hiddenGroups is empty', async () => {
         activeView.fields.viewType = 'table'
         activeView.fields.hiddenOptionIds = []
 
@@ -180,7 +179,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
 
         const hideEmptyGroupsButton = screen.queryByRole('button', {name: /Hide.+groups/i})
@@ -190,7 +189,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         expect(showHiddenGroupsButton).not.toBeInTheDocument()
     })
 
-    test('For viewType table render only ShowHiddenGroupsButton when there are no emptyGroups', () => {
+    test('For viewType table render only ShowHiddenGroupsButton when there are no emptyGroups', async () => {
         activeView.fields.viewType = 'table'
 
         const cardToFillTheEmptyGroup = TestBlockFactory.createCard(board)
@@ -209,7 +208,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
 
         const showHiddenGroupsButton = screen.queryByRole('button', {name: /Show.+groups/i})

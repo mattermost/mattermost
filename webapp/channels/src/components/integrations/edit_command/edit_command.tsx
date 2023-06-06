@@ -100,15 +100,15 @@ export default class EditCommand extends React.PureComponent<Props, State> {
         } else {
             await this.submitCommand();
         }
-    }
+    };
 
     public handleConfirmModal = (): void => {
         this.setState({showConfirmModal: true});
-    }
+    };
 
     public confirmModalDismissed = (): void => {
         this.setState({showConfirmModal: false});
-    }
+    };
 
     public submitCommand = async (): Promise<void> => {
         this.setState({serverError: ''});
@@ -125,7 +125,7 @@ export default class EditCommand extends React.PureComponent<Props, State> {
         if (error) {
             this.setState({serverError: error.message});
         }
-    }
+    };
 
     public renderExtra = (): JSX.Element => {
         const confirmButton = (
@@ -159,7 +159,7 @@ export default class EditCommand extends React.PureComponent<Props, State> {
                 onCancel={this.confirmModalDismissed}
             />
         );
-    }
+    };
 
     public render(): JSX.Element {
         if (!this.state.originalCommand) {

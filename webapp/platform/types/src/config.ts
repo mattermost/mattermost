@@ -18,13 +18,10 @@ export type ClientConfig = {
     BannerColor: string;
     BannerText: string;
     BannerTextColor: string;
-    BuildBoards: string;
     BuildDate: string;
     BuildEnterpriseReady: string;
     BuildHash: string;
-    BuildHashBoards: string;
     BuildHashEnterprise: string;
-    BuildHashPlaybooks: string;
     BuildNumber: string;
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
@@ -33,6 +30,7 @@ export type ClientConfig = {
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;
     CWSURL: string;
+    CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
@@ -41,6 +39,7 @@ export type ClientConfig = {
     DefaultTheme: string;
     DiagnosticId: string;
     DiagnosticsEnabled: string;
+    DisableRefetchingOnBrowserFocus: string;
     EmailLoginButtonBorderColor: string;
     EmailLoginButtonColor: string;
     EmailLoginButtonTextColor: string;
@@ -83,6 +82,7 @@ export type ClientConfig = {
     EnableOAuthServiceProvider: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
+    EnablePlaybooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
     EnablePreviewFeatures: string;
@@ -119,6 +119,7 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
+    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -197,6 +198,11 @@ export type ClientConfig = {
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
     PostAcknowledgements: string;
+    AllowPersistentNotifications: string;
+    PersistentNotificationMaxRecipients: string;
+    PersistentNotificationIntervalMinutes: string;
+    AllowPersistentNotificationsForGuests: string;
+    DelayChannelAutocomplete: 'true' | 'false';
 };
 
 export type License = {
@@ -251,6 +257,11 @@ export type RequestLicenseBody = {
     users: number;
     terms_accepted: boolean;
     receive_emails_accepted: boolean;
+    contact_name: string;
+    contact_email: string;
+    company_name: string;
+    company_size: string;
+    company_country: string;
 }
 
 export type DataRetentionPolicy = {
@@ -258,6 +269,8 @@ export type DataRetentionPolicy = {
     file_deletion_enabled: boolean;
     message_retention_cutoff: number;
     file_retention_cutoff: number;
+    boards_retention_cutoff: number;
+    boards_deletion_enabled: boolean;
 };
 
 export type ServiceSettings = {
@@ -364,7 +377,11 @@ export type ServiceSettings = {
     EnableCustomGroups: boolean;
     SelfHostedPurchase: boolean;
     AllowSyncedDrafts: boolean;
-    SelfHostedExpansion: boolean;
+    AllowPersistentNotifications: boolean;
+    AllowPersistentNotificationsForGuests: boolean;
+    PersistentNotificationIntervalMinutes: number;
+    PersistentNotificationMaxCount: number;
+    PersistentNotificationMaxRecipients: number;
 };
 
 export type TeamSettings = {
@@ -521,7 +538,6 @@ export type EmailSettings = {
     LoginButtonColor: string;
     LoginButtonBorderColor: string;
     LoginButtonTextColor: string;
-    EnableInactivityEmail: boolean;
 };
 
 export type RateLimitSettings = {
@@ -724,7 +740,8 @@ export type ExperimentalSettings = {
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
     EnableAppBar: boolean;
-    PatchPluginsReactDOM: boolean;
+    DisableRefetchingOnBrowserFocus: boolean;
+    DelayChannelAutocomplete: boolean;
 };
 
 export type AnalyticsSettings = {
@@ -802,6 +819,7 @@ export type JobSettings = {
 
 export type ProductSettings = {
     EnablePublicSharedBoards: boolean;
+    EnablePlaybooks: boolean;
 };
 
 export type PluginSettings = {

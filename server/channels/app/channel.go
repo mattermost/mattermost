@@ -14,15 +14,15 @@ import (
 
 	"github.com/mattermost/logr/v2"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 )
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
@@ -1334,6 +1334,14 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		filteredProps[model.DesktopNotifyProp] = desktop
 	}
 
+	if desktop_sound, exists := data[model.DesktopSoundNotifyProp]; exists {
+		filteredProps[model.DesktopSoundNotifyProp] = desktop_sound
+	}
+
+	if desktop_notification_sound, exists := data["desktop_notification_sound"]; exists {
+		filteredProps["desktop_notification_sound"] = desktop_notification_sound
+	}
+
 	if desktop_threads, exists := data[model.DesktopThreadsNotifyProp]; exists {
 		filteredProps[model.DesktopThreadsNotifyProp] = desktop_threads
 	}
@@ -1352,6 +1360,10 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 
 	if ignoreChannelMentions, exists := data[model.IgnoreChannelMentionsNotifyProp]; exists {
 		filteredProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
+	}
+
+	if channelAutoFollowThreads, exists := data[model.ChannelAutoFollowThreads]; exists {
+		filteredProps[model.ChannelAutoFollowThreads] = channelAutoFollowThreads
 	}
 
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
@@ -1517,11 +1529,16 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 		}
 	}
 
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
+		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	deleteAt := model.GetMillis()
 
 	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
 		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
@@ -2408,7 +2425,6 @@ func (a *App) PostAddToChannelMessage(c request.CTX, user *model.User, addedUser
 		Message:   message,
 		Type:      postType,
 		UserId:    user.Id,
-		RootId:    postRootId,
 		Props: model.StringInterface{
 			"userId":                   user.Id,
 			"username":                 user.Username,
@@ -2517,6 +2533,9 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
+		return model.NewAppError("removeUserFromChannel", model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if isGuest {
@@ -2785,7 +2804,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
+		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.IsPostPriorityEnabled())
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
@@ -3087,6 +3106,10 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 
 	if err := a.Srv().Store().Webhook().PermanentDeleteOutgoingByChannel(channel.Id); err != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
+		return model.NewAppError("PermanentDeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	deleteAt := model.GetMillis()

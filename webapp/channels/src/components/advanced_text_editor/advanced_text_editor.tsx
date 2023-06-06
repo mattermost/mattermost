@@ -88,7 +88,7 @@ type Props = {
     hideEmojiPicker: () => void;
     toggleAdvanceTextEditor: () => void;
     handleUploadProgress: (filePreviewInfo: FilePreviewInfo) => void;
-    handleUploadError: (err: string | ServerError, clientId?: string, channelId?: string) => void;
+    handleUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string) => void;
     handleFileUploadComplete: (fileInfos: FileInfo[], clientIds: string[], channelId: string, rootId?: string) => void;
     handleUploadStart: (clientIds: string[], channelId: string) => void;
     handleFileUploadChange: () => void;
@@ -101,6 +101,7 @@ type Props = {
     isThreadView?: boolean;
     additionalControls?: React.ReactNodeArray;
     labels?: React.ReactNode;
+    disableSend?: boolean;
 }
 
 const AdvanceTextEditor = ({
@@ -131,7 +132,7 @@ const AdvanceTextEditor = ({
     canUploadFiles,
     enableEmojiPicker,
     enableGifPicker,
-    handleBlur,
+    handleBlur: onBlur,
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
@@ -156,6 +157,7 @@ const AdvanceTextEditor = ({
     isThreadView,
     additionalControls,
     labels,
+    disableSend = false,
 }: Props) => {
     const readOnlyChannel = !canPost;
     const {formatMessage} = useIntl();
@@ -170,6 +172,7 @@ const AdvanceTextEditor = ({
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
+    const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
     const input = textboxRef.current?.getInputBox();
 
@@ -187,16 +190,14 @@ const AdvanceTextEditor = ({
         setShowPreview(!shouldShowPreview);
     }, [shouldShowPreview, setShowPreview]);
 
-    let serverErrorJsx = null;
-    if (serverError) {
-        serverErrorJsx = (
-            <MessageSubmitError
-                error={serverError}
-                submittedMessage={serverError.submittedMessage}
-                handleSubmit={handleSubmit}
-            />
-        );
-    }
+    const handleBlur = useCallback(() => {
+        onBlur?.();
+        setKeepEditorInFocus(false);
+    }, [onBlur]);
+
+    const handleFocus = useCallback(() => {
+        setKeepEditorInFocus(true);
+    }, []);
 
     let attachmentPreview = null;
     if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
@@ -291,7 +292,7 @@ const AdvanceTextEditor = ({
         );
     }
 
-    const disableSendButton = Boolean(readOnlyChannel || (!message.trim().length && !draft.fileInfos.length));
+    const disableSendButton = Boolean(readOnlyChannel || (!message.trim().length && !draft.fileInfos.length)) || disableSend;
     const sendButton = readOnlyChannel ? null : (
         <SendButton
             disabled={disableSendButton}
@@ -422,6 +423,7 @@ const AdvanceTextEditor = ({
                 />
             )}
             slot2={null}
+            shouldScrollIntoView={keepEditorInFocus}
         />
     );
 
@@ -479,6 +481,7 @@ const AdvanceTextEditor = ({
                             handlePostError={handlePostError}
                             value={messageValue}
                             onBlur={handleBlur}
+                            onFocus={handleFocus}
                             emojiEnabled={enableEmojiPicker}
                             createMessage={createMessage}
                             channelId={channelId}
@@ -537,12 +540,20 @@ const AdvanceTextEditor = ({
             <div
                 id='postCreateFooter'
                 role='form'
-                className={classNames('AdvancedTextEditor__footer', {
-                    'AdvancedTextEditor__footer--has-error': postError || serverError,
-                })}
+                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
             >
-                {postError && <label className={classNames('post-error', {errorClass})}>{postError}</label>}
-                {serverErrorJsx}
+                {postError && (
+                    <label className={classNames('post-error', {errorClass})}>
+                        {postError}
+                    </label>
+                )}
+                {serverError && (
+                    <MessageSubmitError
+                        error={serverError}
+                        submittedMessage={serverError.submittedMessage}
+                        handleSubmit={handleSubmit}
+                    />
+                )}
                 <MsgTyping
                     channelId={channelId}
                     postId={postId}

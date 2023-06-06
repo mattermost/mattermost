@@ -65,10 +65,10 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
 
     doHide = () => {
         this.setState({show: false});
-    }
+    };
     isSaveEnabled = () => {
         return this.state.name.length > 0 && this.state.mention.length > 0 && this.state.usersToAdd.length > 0;
-    }
+    };
     updateNameState = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         let mention = this.state.mention;
@@ -79,12 +79,12 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
             }
         }
         this.setState({name: value, mention});
-    }
+    };
 
     updateMentionState = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         this.setState({mention: value, mentionUpdatedManually: true});
-    }
+    };
 
     private addUserCallback = (usersToAdd: UserProfile[]): void => {
         this.setState({usersToAdd});
@@ -99,7 +99,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
             this.props.backButtonCallback();
             this.props.onExited();
         }
-    }
+    };
 
     createGroup = async (users?: UserProfile[]) => {
         this.setState({showUnknownError: false, mentionInputErrorText: '', nameInputErrorText: '', saving: true});
@@ -161,7 +161,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
         } else {
             this.doHide();
         }
-    }
+    };
 
     render() {
         return (
@@ -213,9 +213,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
                     }
 
                 </Modal.Header>
-                <Modal.Body
-                    className='overflow--visible'
-                >
+                <Modal.Body>
                     <div className='user-groups-modal__content'>
                         <div className='group-name-input-wrapper'>
                             <Input

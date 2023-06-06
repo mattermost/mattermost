@@ -6,6 +6,7 @@ exports[`components/ColorInput should match snapshot, click on picker 1`] = `
 >
   <input
     className="form-control"
+    data-testid="color-inputColorValue"
     id="sidebarBg-inputColorValue"
     maxLength={7}
     onBlur={[Function]}
@@ -51,6 +52,7 @@ exports[`components/ColorInput should match snapshot, init 1`] = `
 >
   <input
     className="form-control"
+    data-testid="color-inputColorValue"
     id="sidebarBg-inputColorValue"
     maxLength={7}
     onBlur={[Function]}
@@ -84,6 +86,7 @@ exports[`components/ColorInput should match snapshot, opened 1`] = `
 >
   <input
     className="form-control"
+    data-testid="color-inputColorValue"
     id="sidebarBg-inputColorValue"
     maxLength={7}
     onBlur={[Function]}
@@ -129,6 +132,7 @@ exports[`components/ColorInput should match snapshot, toggle picker 1`] = `
 >
   <input
     className="form-control"
+    data-testid="color-inputColorValue"
     id="sidebarBg-inputColorValue"
     maxLength={7}
     onBlur={[Function]}

@@ -4,8 +4,8 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import * as reactRedux from 'react-redux';
-import {act} from '@testing-library/react';
 
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import {CloudProducts, LicenseSkus} from 'utils/constants';
@@ -72,7 +72,7 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         );
 
         expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Try free for 30 days');
+        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Start trial');
     });
 
     test('should display for admin users on professional with option to start trial if no cloud trial before', async () => {
@@ -108,7 +108,7 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         await actImmediate(wrapper);
 
         expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Try free for 30 days');
+        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Start trial');
     });
 
     test('should display for admin users on professional with option to contact sales if self-hosted trialed before', () => {

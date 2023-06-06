@@ -121,7 +121,7 @@ export default class Setup extends React.PureComponent<Props, State> {
 
             this.props.history.push('/mfa/confirm');
         });
-    }
+    };
 
     public render(): JSX.Element {
         let formClass = 'form-group';

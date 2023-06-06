@@ -9,7 +9,7 @@ import {
     render,
     screen,
     waitFor,
-    within
+    within,
 } from '@testing-library/react'
 
 import configureStore from 'redux-mock-store'
@@ -35,8 +35,8 @@ import ConfirmPerson from './confirmPerson'
 jest.mock('src/mutator')
 jest.mock('src/octoClient')
 
-const mockedMutator = mocked(mutator, true)
-const mockedOctoClient = mocked(client, true)
+const mockedMutator = mocked(mutator)
+const mockedOctoClient = mocked(client)
 
 const board = TestBlockFactory.createBoard()
 board.teamId = 'team-id-1'
@@ -153,6 +153,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -160,25 +161,21 @@ describe('properties/person', () => {
         if (container) {
             // this is the actual element where the click event triggers
             // opening of the dropdown
-            const userProperty = container.querySelector('.Person > div > div:nth-child(1) > div:nth-child(2) > input')
+            const userProperty = screen.getByRole('combobox')
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            await act(() => userEvent.click(userProperty as Element))
             expect(container).toMatchSnapshot()
 
             const option = renderResult.getByText('username-4')
             expect(option).not.toBeNull()
-            act(() => {
-                userEvent.click(option as Element)
-            })
+            await act(() => userEvent.click(option as Element))
 
             const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
             expect(confirmDialog).toBeDefined()
             const confirmButton = within(confirmDialog).getByRole('button', {name: 'Add to board'})
             expect(confirmButton).toBeDefined()
-            userEvent.click(confirmButton)
+            await userEvent.click(confirmButton)
 
             expect(mockedMutator.createBoardMember).toBeCalled()
         } else {
@@ -207,6 +204,7 @@ describe('properties/person', () => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
             }
+
             return Promise.resolve(renderResult.container)
         })
         expect(container).toMatchSnapshot()
@@ -214,25 +212,20 @@ describe('properties/person', () => {
         if (container) {
             // this is the actual element where the click event triggers
             // opening of the dropdown
-            const userProperty = container.querySelector('.Person > div > div:nth-child(1) > div:nth-child(2) > input')
+            const userProperty = screen.getByRole('combobox')
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            await act(() => userEvent.click(userProperty as Element))
             expect(container).toMatchSnapshot()
 
             const option = renderResult.getByText('username-4')
             expect(option).not.toBeNull()
-            act(() => {
-                userEvent.click(option as Element)
-            })
-
+            await act(() => userEvent.click(option as Element))
             const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
             expect(confirmDialog).toBeDefined()
             const cancelButton = within(confirmDialog).getByRole('button', {name: 'Cancel'})
             expect(cancelButton).toBeDefined()
-            userEvent.click(cancelButton)
+            await userEvent.click(cancelButton)
 
             expect(mockedMutator.createBoardMember).not.toBeCalled()
         } else {

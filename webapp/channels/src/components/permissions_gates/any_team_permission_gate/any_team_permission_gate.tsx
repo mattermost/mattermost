@@ -29,7 +29,7 @@ export type Props = {
 export default class AnyTeamPermissionGate extends React.PureComponent<Props> {
     static defaultProps = {
         invert: false,
-    }
+    };
 
     render() {
         if (this.props.hasPermission !== this.props.invert) {

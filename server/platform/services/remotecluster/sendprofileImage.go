@@ -14,8 +14,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 type SendProfileImageResultFunc func(userId string, rc *model.RemoteCluster, resp *Response, err error)

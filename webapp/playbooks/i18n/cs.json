@@ -28,5 +28,6 @@
     "+hddg7": "Přidat do časové osy běhu",
     "+Tmpup": "Automaticky dostanete aktualizace když bude tento playbook spuštěn.",
     "+8G9qr": "Výchozí text pro retrospektivu.",
-    "+/x2FM": "Vyberte playbook"
+    "+/x2FM": "Vyberte playbook",
+    "/HtNUp": "Vyberte nebo zadejte {mode, select, DurationValue {časový rozsah (\"4 hodiny\", \"7 dní\"...)} DateTimeValue {čas (\"za 4 hodiny\", \"1. května\", \"Zítra ve 13:00\"...)} jiný {čas nebo časové rozpětí}}"
 }

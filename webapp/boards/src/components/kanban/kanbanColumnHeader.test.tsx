@@ -5,23 +5,21 @@ import {
     fireEvent,
     render,
     screen,
-    within
+    within,
 } from '@testing-library/react'
-import {createIntl} from 'react-intl'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import Mutator from 'src/mutator'
-import {wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapDNDIntl} from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import {IPropertyOption} from 'src/blocks/board'
 
 import KanbanColumnHeader from './kanbanColumnHeader'
 jest.mock('src/mutator')
-const mockedMutator = mocked(Mutator, true)
+const mockedMutator = mocked(Mutator)
 describe('src/components/kanban/kanbanColumnHeader', () => {
-    const intl = createIntl({locale: 'en-us'})
     const board = TestBlockFactory.createBoard()
     const activeView = TestBlockFactory.createBoardView(board)
     const card = TestBlockFactory.createCard(board)
@@ -67,7 +65,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -90,7 +87,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={true}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -103,7 +99,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         expect(container).toMatchSnapshot()
     })
-    test('return kanbanColumnHeader and edit title', () => {
+    test('return kanbanColumnHeader and edit title', async () => {
         const mockedPropertyNameChanged = jest.fn()
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>
@@ -114,7 +110,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={mockedPropertyNameChanged}
@@ -128,12 +123,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         const inputTitle = screen.getByRole('textbox', {name: option.value})
         expect(inputTitle).toBeDefined()
         fireEvent.change(inputTitle, {target: {value: ''}})
-        userEvent.type(inputTitle, 'New Title')
+        await userEvent.type(inputTitle, 'New Title')
         fireEvent.blur(inputTitle)
         expect(mockedPropertyNameChanged).toBeCalledWith(option, 'New Title')
         expect(container).toMatchSnapshot()
     })
-    test('return kanbanColumnHeader and click on menuwrapper', () => {
+    test('return kanbanColumnHeader and click on menuwrapper', async () => {
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
@@ -143,7 +138,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -156,10 +150,10 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
-        userEvent.click(buttonMenuWrapper)
+        await userEvent.click(buttonMenuWrapper)
         expect(container).toMatchSnapshot()
     })
-    test('return kanbanColumnHeader, click on menuwrapper and click on hide menu', () => {
+    test('return kanbanColumnHeader, click on menuwrapper and click on hide menu', async () => {
         render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
@@ -169,7 +163,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -182,13 +175,13 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
-        userEvent.click(buttonMenuWrapper)
+        await userEvent.click(buttonMenuWrapper)
         const buttonHide = within(buttonMenuWrapper).getByRole('button', {name: 'Hide'})
         expect(buttonHide).toBeDefined()
-        userEvent.click(buttonHide)
+        await userEvent.click(buttonHide)
         expect(mockedMutator.hideViewColumn).toBeCalledTimes(1)
     })
-    test('return kanbanColumnHeader, click on menuwrapper and click on delete menu', () => {
+    test('return kanbanColumnHeader, click on menuwrapper and click on delete menu', async () => {
         render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
@@ -198,7 +191,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -211,13 +203,13 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
-        userEvent.click(buttonMenuWrapper)
+        await userEvent.click(buttonMenuWrapper)
         const buttonDelete = within(buttonMenuWrapper).getByRole('button', {name: 'Delete'})
         expect(buttonDelete).toBeDefined()
-        userEvent.click(buttonDelete)
+        await userEvent.click(buttonDelete)
         expect(mockedMutator.deletePropertyOption).toBeCalledTimes(1)
     })
-    test('return kanbanColumnHeader, click on menuwrapper and click on blue color menu', () => {
+    test('return kanbanColumnHeader, click on menuwrapper and click on blue color menu', async () => {
         render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
@@ -227,7 +219,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -240,14 +231,14 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
-        userEvent.click(buttonMenuWrapper)
+        await userEvent.click(buttonMenuWrapper)
         const buttonBlueColor = within(buttonMenuWrapper).getByRole('button', {name: 'Select Blue Color'})
         expect(buttonBlueColor).toBeDefined()
-        userEvent.click(buttonBlueColor)
+        await userEvent.click(buttonBlueColor)
         expect(mockedMutator.changePropertyOptionColor).toBeCalledTimes(1)
     })
 
-    test('return kanbanColumnHeader and click to add card', () => {
+    test('return kanbanColumnHeader and click to add card', async () => {
         const mockedAddCard = jest.fn()
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>
@@ -258,7 +249,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={mockedAddCard}
                     propertyNameChanged={jest.fn()}
@@ -271,10 +261,10 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const buttonAddCard = container.querySelector('.AddIcon')?.parentElement
         expect(buttonAddCard).toBeDefined()
-        userEvent.click(buttonAddCard!)
+        await userEvent.click(buttonAddCard!)
         expect(mockedAddCard).toBeCalledTimes(1)
     })
-    test('return kanbanColumnHeader and click KanbanCalculationMenu', () => {
+    test('return kanbanColumnHeader and click KanbanCalculationMenu', async () => {
         const mockedCalculationMenuOpen = jest.fn()
         render(wrapDNDIntl(
             <ReduxProvider store={store}>
@@ -285,7 +275,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -298,10 +287,10 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const buttonKanbanCalculation = screen.getByText(/0/i).parentElement
         expect(buttonKanbanCalculation).toBeDefined()
-        userEvent.click(buttonKanbanCalculation!)
+        await userEvent.click(buttonKanbanCalculation!)
         expect(mockedCalculationMenuOpen).toBeCalledTimes(1)
     })
-    test('return kanbanColumnHeader and click count on KanbanCalculationMenu', () => {
+    test('return kanbanColumnHeader and click count on KanbanCalculationMenu', async () => {
         render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
@@ -311,7 +300,6 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                         option,
                         cards: [card],
                     }}
-                    intl={intl}
                     readonly={false}
                     addCard={jest.fn()}
                     propertyNameChanged={jest.fn()}
@@ -324,7 +312,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         ))
         const menuCountEmpty = screen.getByText('Count')
         expect(menuCountEmpty).toBeDefined()
-        userEvent.click(menuCountEmpty)
+        await userEvent.click(menuCountEmpty)
         expect(mockedMutator.changeViewKanbanCalculations).toBeCalledTimes(1)
     })
 })

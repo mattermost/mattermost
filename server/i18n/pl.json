@@ -3140,10 +3140,6 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch jest obecnie uruchomiony."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch."
   },
@@ -9024,50 +9020,6 @@
     "translation": "błąd liczenia grup"
   },
   {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Odblokuj zwiększoną produktywność dzięki tym wspaniałym funkcjom"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hej {{.Name}}, zauważyliśmy, że twój serwer Mattermost zbiera trochę kurzu. Zapoznaj się z kilkoma funkcjami, które pomogą odciążyć Twój zespół."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "Otwórz Mattermost, aby zwiększyć produktywność swojego zespołu!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Zarządzaj zadaniami za pomocą "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Zarządzanie przepływem pracy z "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Dostęp gości do określenia "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Przyjdź i sprawdź to!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Otwórz Mattermost"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Playbooki"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanały"
-  },
-  {
-    "id": "Boards",
-    "translation": "Tablice"
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Maksymalna długość identyfikatora MattermostAppID wynosi 32 znaki."
   },
@@ -9170,10 +9122,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Ustawienia Elasticsearch mają nieustawione wartości."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9512,10 +9460,6 @@
     "translation": "nazwa grupy już istnieje jako nazwa zastrzeżona"
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "Wtyczka {{.Name}} nie może być włączona w trybie produktu."
-  },
-  {
     "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Twoja licencja nie wspiera kont gości"
   },
@@ -9592,10 +9536,6 @@
     "translation": "Nie można uzyskać priorytetu dla posta"
   },
   {
-    "id": "app.draft.update.app_error",
-    "translation": "Nie można zaktualizować szkicu."
-  },
-  {
     "id": "app.draft.save.app_error",
     "translation": "Nie można zapisać Szkicu."
   },
@@ -9662,22 +9602,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Nie można usunąć potwierdzenia w zarchiwizowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Twórz przejrzyste przepływy pracy pomiędzy zespołami programistów, aby zapewnić płynny proces rozwoju funkcji."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.integration",
-    "translation": "Zwiększ wydajność na swoim kanale, integrując bota Jira i bota Github. Zostaną one pobrane za Ciebie."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.channel",
-    "translation": "Czatuj ze swoim zespołem na kanale Feature Release, który łatwo łączy się z tablicami, playbookami i botami aplikacji."
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.board",
-    "translation": "Użyj naszego szablonu tablicy Meeting Agenda do powtarzających się spotkań, takich jak standup, oraz naszej tablicy Project Tasks do zarządzania postępem zadań w trakcie."
   },
   {
     "id": "worktemplate.category.product_teams",
@@ -9776,80 +9700,12 @@
     "translation": "użytkownik o nazwie \"{{.Username}}\" już istnieje."
   },
   {
-    "id": "worktemplate.product_teams.bug_bash.channel",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.board",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.integration",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.leadership.goals_and_okrs.board",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.devops.product_release.playbook",
-    "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
-  },
-  {
-    "id": "worktemplate.devops.product_release.channel",
-    "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
-  },
-  {
-    "id": "worktemplate.devops.product_release.board",
-    "translation": "Nie przegap żadnego kroku podczas wydania produktu dzięki temu projektowi. Przydziel zadania z listy kontrolnej Playbooka i uderzaj w kamienie milowe z tablicą. Użyj kanałów, aby wszyscy byli na tej samej stronie."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.playbook",
-    "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Kiedy wszystko idzie nie tak, posiadanie powtarzalnego procesu jest kluczem do zapewnienia, że wszystko zostanie naprawione tak szybko, jak to możliwe. Ten projekt łączy w sobie wszystko, co oferuje Mattermost, aby zapewnić gaszenie pożarów i informowanie zainteresowanych stron po drodze."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Zaplanuj mapę drogową za pomocą tej tablicy projektów i współpracuj na temat w kanale utworzonym za pomocą tego szablonu."
-  },
-  {
     "id": "worktemplate.category.leadership",
     "translation": "Przywództwo"
   },
   {
     "id": "worktemplate.category.devops",
-    "translation": "Dev Ops"
+    "translation": "DevOps"
   },
   {
     "id": "worktemplate.category.companywide",
@@ -9910,46 +9766,6 @@
   {
     "id": "api.config.update_config.translations.app_error",
     "translation": "Nie udało się zaktualizować tłumaczeń serwera."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.integration",
-    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.channel",
-    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
-  },
-  {
-    "id": "worktemplate.product_teams.sprint_planning.board",
-    "translation": "Użyj Projektu, aby planowanie sprintu było proste. Kanał utrzymuje rozmowę i pytania w centrum uwagi. Plan sprintu utrzymuje wszystkich na zadaniach na dany tydzień, a tablica retrospektywna łączy zespół w celu ciągłego doskonalenia."
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.channel",
-    "translation": "Opis, dlaczego kanał(y) jest(są) potrzebny(e)"
-  },
-  {
-    "id": "worktemplate.product_teams.product_roadmap.board",
-    "translation": "Opis powodów, dla których tablica(e) jest(są) potrzebna(e)"
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.integration",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.channel",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.goals_and_okrs.board",
-    "translation": "Jasna koncentracja jest niezbędna dla sukcesu zespołu, a dzięki temu projektowi możesz udokumentować cele zespołu i OKR, a także zamieszczać aktualizacje w dedykowanym kanale."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.playbook",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
-  },
-  {
-    "id": "worktemplate.product_teams.bug_bash.integration",
-    "translation": "Zorganizuj się i pokonaj wszystkie błędy dzięki temu projektowi! Zbuduj tempo i mierz postępy dzięki dołączonemu Playbookowi, tablicy i kanałowi."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -10014,5 +9830,365 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Nie można usunąć danych oauth."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.heading",
+    "translation": "Uruchomienia w Trakcie"
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.zero_overdue",
+    "translation": "Masz 0 zaległych uruchomień."
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.num_overdue",
+    "translation": {
+      "few": "Masz {{.Count}} zaległości w aktualizacji statusu:",
+      "many": "Masz {{.Count}} zaległości w aktualizacji statusu:",
+      "one": "Masz {{.Count}} zaległość w aktualizacji statusu:"
+    }
+  },
+  {
+    "id": "app.user.digest.overdue_status_updates.heading",
+    "translation": "Zaległe aktualizacje statusu"
+  },
+  {
+    "id": "app.command.execute.error",
+    "translation": "Nie można wykonać polecenia."
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.zero_in_progress",
+    "translation": "Obecnie masz 0 uruchomień w trakcie."
+  },
+  {
+    "id": "app.user.digest.tasks.all_tasks_command",
+    "translation": "Użyj `/playbook todo`, aby zobaczyć wszystkie swoje zadania."
+  },
+  {
+    "id": "app.user.digest.tasks.heading",
+    "translation": "Twoje przydzielone zadania"
+  },
+  {
+    "id": "app.user.digest.tasks.zero_assigned",
+    "translation": "Masz 0 przydzielonych zadań."
+  },
+  {
+    "id": "app.user.new_run.run_name",
+    "translation": "Nazwa uruchomienia"
+  },
+  {
+    "id": "app.user.new_run.title",
+    "translation": "Uruchom playbook"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.description",
+    "translation": "Opis"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.name",
+    "translation": "Nazwa"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.submit_label",
+    "translation": "Dodaj zadanie"
+  },
+  {
+    "id": "app.user.run.add_checklist_item.title",
+    "translation": "Dodaj nowe zadanie"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.playbook_run",
+    "translation": "Uruchomienie Playbooka"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.submit_label",
+    "translation": "Dodaj do osi czasu uruchomienia"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary",
+    "translation": "Podsumowanie"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.help",
+    "translation": "Maksymalnie 64 znaki"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.summary.placeholder",
+    "translation": "Krótkie podsumowanie widoczne na osi czasu"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run",
+    "translation": "Zakończ uruchomienie"
+  },
+  {
+    "id": "app.user.run.update_status.finish_run.placeholder",
+    "translation": "Oznacz również uruchomienie jako zakończone"
+  },
+  {
+    "id": "app.user.run.update_status.reminder_for_next_update",
+    "translation": "Przypomnienie o następnej aktualizacji"
+  },
+  {
+    "id": "app.user.run.update_status.submit_label",
+    "translation": "Status aktualizacji"
+  },
+  {
+    "id": "app.user.digest.runs_in_progress.num_in_progress",
+    "translation": {
+      "few": "Masz {{.Count}} uruchomienia w toku:",
+      "many": "Masz {{.Count}} uruchomień w toku:",
+      "one": "Masz {{.Count}} uruchomienie w toku:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_in_x_days",
+    "translation": {
+      "few": "Termin płatności za {{.Count}} dni",
+      "many": "Termin płatności za {{.Count}} dni",
+      "one": "Termin płatności za {{.Count}} dzień"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_after_today",
+    "translation": {
+      "few": "Masz **{{.Count}} przydzielone zadania, których termin wykonania wypada po dzisiejszym dniu**.",
+      "many": "Masz **{{.Count}} przydzielonych zadań, których termin wykonania wypada po dzisiejszym dniu**.",
+      "one": "Masz **{{.Count}} przydzielone zadanie, którego termin wykonania wypada po dzisiejszym dniu**."
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.due_today",
+    "translation": "Do zapłaty dzisiaj"
+  },
+  {
+    "id": "app.user.digest.tasks.due_x_days_ago",
+    "translation": "Termin {{.Count}} dni temu"
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned",
+    "translation": {
+      "few": "Masz {{.Count}} przydzielone zadania:",
+      "many": "Masz {{.Count}} przydzielonych zadań:",
+      "one": "Masz {{.Count}} przydzielone zadanie:"
+    }
+  },
+  {
+    "id": "app.user.digest.tasks.num_assigned_due_until_today",
+    "translation": {
+      "few": "Masz {{.Count}} przydzielone zadania, których termin wykonania właśnie upływa:",
+      "many": "Masz {{.Count}} przydzielonych zadań, których termin wykonania właśnie upływa:",
+      "one": "Masz {{.Count}} przydzielone zadanie, którego termin wykonania właśnie upływa:"
+    }
+  },
+  {
+    "id": "app.user.new_run.intro",
+    "translation": "**Właściciel** {{.Username}}"
+  },
+  {
+    "id": "app.user.new_run.playbook",
+    "translation": "Playbook"
+  },
+  {
+    "id": "app.user.new_run.submit_label",
+    "translation": "Rozpocznij uruchomienie"
+  },
+  {
+    "id": "app.user.run.confirm_finish.num_outstanding",
+    "translation": {
+      "few": "Są **{.Count}} zaległe zadania**. Czy na pewno chcesz zakończyć uruchomienie *{.RunName}}* dla wszystkich uczestników?",
+      "many": "Jest **{.Count}} zaległych zadań**. Czy na pewno chcesz zakończyć uruchomienie *{.RunName}}* dla wszystkich uczestników?",
+      "one": "Jest **{.Count}} zaległe zadanie**. Czy na pewno chcesz zakończyć uruchomienie *{.RunName}}* dla wszystkich uczestników?"
+    }
+  },
+  {
+    "id": "app.user.run.update_status.num_channel",
+    "translation": {
+      "few": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanałach.",
+      "many": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanałach.",
+      "one": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanale."
+    }
+  },
+  {
+    "id": "app.user.run.update_status.title",
+    "translation": "Aktualizacje statusu"
+  },
+  {
+    "id": "app.user.digest.tasks.due_yesterday",
+    "translation": "Termin na wczoraj"
+  },
+  {
+    "id": "app.user.run.status_disable",
+    "translation": "@{.Username}} wyłączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.status_enable",
+    "translation": "@{.Username}} włączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
+  },
+  {
+    "id": "app.user.run.update_status.change_since_last_update",
+    "translation": "Zmiana od ostatniej aktualizacji"
+  },
+  {
+    "id": "app.user.run.confirm_finish.submit_label",
+    "translation": "Zakończ uruchomienie"
+  },
+  {
+    "id": "app.user.run.confirm_finish.title",
+    "translation": "Potwierdź zakończenie uruchomienia"
+  },
+  {
+    "id": "app.user.run.request_join_channel",
+    "translation": "@{{.Name}} jest uczestnikiem uruchomienia i chce dołączyć do tego kanału. Każdy członek kanału może go zaprosić.\n"
+  },
+  {
+    "id": "app.user.run.request_update",
+    "translation": "@here - @{.Name}} zażądał aktualizacji statusu dla [{{.RunName}}]({{.RunURL}}). \n"
+  },
+  {
+    "id": "app.user.run.add_to_timeline.title",
+    "translation": "Dodaj do osi czasu uruchomienia"
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacji dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.integration",
+    "translation": "Zwiększ produktywność na swoim kanale, integrując najczęściej używane narzędzia. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.channel",
+    "translation": "Porozmawiaj ze swoim zespołem o nowym projekcie i zdecyduj, jak zamierzasz go ustrukturyzować, na kanale współpracy."
+  },
+  {
+    "id": "worktemplate.companywide.create_project.board",
+    "translation": "Użyj tablicy Kanban, aby zdefiniować i śledzić zadania i postępy w projekcie."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Nieprawidłowa wartość dla bajtów podczas wgrywania licencji."
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Wersja Elasticsearch {{.Version}} jest wyższa niż maksymalnie obsługiwana wersja {{.MaxVersion}}"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
+  },
+  {
+    "id": "app.plugin.blocked.app_error",
+    "translation": "Wtyczka {{.Id}} jest na liście blokowanych. Niektóre wtyczki są zablokowane, ponieważ są wbudowane w tę wersję Mattermost."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Serwer CWS nie zdołał zapisać się do newslettera."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Nieprawidłowy e-mail służbowy dla wersji testowej"
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.integration",
+    "translation": "Zwiększ produktywność swojego kanału poprzez integrację najczęściej używanych narzędzi, takich jak Zoom. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.channel",
+    "translation": "Czatuj ze swoim zespołem w kanale, który łatwo łączy się z Twoimi tablicami i integracjami."
+  },
+  {
+    "id": "worktemplate.product_teams.sprint_planning.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji tygodniowych celów dzięki podziałom na sprinty, ustalaniu priorytetów, przypisywaniu właścicieli i komentarzom."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.channel",
+    "translation": "Porozmawiaj ze swoim zespołem o opiniach klientów, ustal priorytety i wspólnie ustalcie postępy."
+  },
+  {
+    "id": "worktemplate.product_teams.product_roadmap.board",
+    "translation": "Wykorzystaj tablicę Product Roadmap do zarządzania opiniami użytkowników, przydzielania zasobów, przeglądania zadań w widoku kalendarza i nadawania priorytetów."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.integration",
+    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.channel",
+    "translation": "Czatuj o swoich celach i postępach ze swoim zespołem, asynchronicznie lub w czasie rzeczywistym, i bądź na bieżąco ze zmianami na jednym kanale."
+  },
+  {
+    "id": "worktemplate.product_teams.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacyjnych dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Usprawnij współpracę międzyfunkcyjnego zespołu dzięki listom kontrolnym zadań i automatyzacji, które wspierają proces tworzenia funkcji. Kiedy skończysz, przeprowadź retrospektywę i wprowadź ulepszenia do następnego wydania."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Zwiększ wydajność na swoim kanale, integrując najczęściej używane narzędzia do obsługi wydania funkcji, takie jak GitHub. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Czatuj ze swoim zespołem na temat wszelkich blokad wydania i zmian w kanale, który łatwo łączy się z tablicami, playbookami i innymi integracjami."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań. Zarządzaj swoim obciążeniem pracą dzięki tablicy Zadania projektowe."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.playbook",
+    "translation": "Użyj list kontrolnych, aby przypisać obszary testowe i zautomatyzowane zadania, aby uruchomić kompleksowy proces bug bash. Użyj retrospektywy, aby przejrzeć swój proces i poprawić go na następny raz."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.integration",
+    "translation": "Zwiększ produktywność w swoim kanale, integrując swoje najczęściej używane narzędzia, takie jak Jira, aby śledzić postępy w bug bashu. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.product_teams.bug_bash.channel",
+    "translation": "Planuj i zarządzaj raportami o błędach i rozwiązaniami w jednym kanale, który jest łatwo dostępny dla Twojego zespołu i organizacji."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.integration",
+    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.channel",
+    "translation": "Czatuj o swoich celach i postępach ze swoim zespołem, asynchronicznie lub w czasie rzeczywistym, i bądź na bieżąco ze zmianami w jednym kanale."
+  },
+  {
+    "id": "worktemplate.leadership.goals_and_okrs.board",
+    "translation": "Śledź postępy swojego zespołu w realizacji celów organizacyjnych dzięki tablicy Cele i OKR. Utrzymuj spotkania na właściwym torze dzięki tablicy Agenda spotkań."
+  },
+  {
+    "id": "worktemplate.devops.product_release.playbook",
+    "translation": "Stwórz powtarzalne przepływy pracy, które są łatwe do naśladowania i wdrożenia, aby wydania produktów były niezawodne i terminowe."
+  },
+  {
+    "id": "worktemplate.devops.product_release.channel",
+    "translation": "Rozmawiaj ze swoim zespołem o codziennych kamieniach milowych, wszelkich blokadach i zmianach w produktach - łatwo i szybko."
+  },
+  {
+    "id": "worktemplate.devops.product_release.board",
+    "translation": "Użyj tablicy Product Release, aby wesprzeć ramy czasowe i proces wydawania produktów, upewniając się, że wszyscy wiedzą, które zadania są wymagalne."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.playbook",
+    "translation": "Użyj list kontrolnych i automatyzacji, aby wprowadzić kluczowych członków zespołu, i podziel się tym, jak twój incydent jest śledzony w kierunku rozwiązania."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.channel",
+    "translation": "Rozmawiaj ze swoim zespołem o priorytetach, dodawaj interesariuszy, dostarczaj aktualizacje i pracuj nad rozwiązaniem na jednym kanale."
+  },
+  {
+    "id": "worktemplate.devops.incident_resolution.description.board",
+    "translation": "Użyj tablicy rozwiązywania incydentów, aby wspierać powtarzalne procesy i przypisywać zdefiniowane zadania w całym zespole."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.integration",
+    "translation": "Zwiększ produktywność swojego kanału, integrując najczęściej używane narzędzia, takie jak Zoom, aby ułatwić współpracę. Zostaną one pobrane za Ciebie."
+  },
+  {
+    "id": "worktemplate.companywide.goals_and_okrs.channel",
+    "translation": "Czatuj o swoich celach i postępach ze swoim zespołem, asynchronicznie lub w czasie rzeczywistym, i bądź na bieżąco ze zmianami w jednym kanale."
   }
 ]

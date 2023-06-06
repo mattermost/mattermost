@@ -46,11 +46,11 @@ import (
 
 	"github.com/blang/semver"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
 )
 
 // managedPluginFileName is the file name of the flag file that marks
@@ -93,7 +93,10 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 
 	manifest, appErr := ch.installPluginLocally(reader, signature, installPluginLocallyAlways)
 	if appErr != nil {
-		mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+		// A log line already appears if the plugin is on the blocklist or skipped
+		if appErr.Id != "app.plugin.blocked.app_error" && appErr.Id != "app.plugin.skip_installation.app_error" {
+			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+		}
 		return
 	}
 
@@ -211,35 +214,38 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
-		if appErr != nil {
-			return nil, appErr
+		// The plugin might only be prepackaged and not on the Marketplace.
+		if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
+			mlog.Warn("Failed to reach Marketplace to install plugin", mlog.String("plugin_id", request.Id), mlog.Err(appErr))
 		}
 
-		var prepackagedVersion semver.Version
-		if prepackagedPlugin != nil {
-			var err error
-			prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
-			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		if plugin != nil {
+			var prepackagedVersion semver.Version
+			if prepackagedPlugin != nil {
+				var err error
+				prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
+				if err != nil {
+					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 			}
-		}
 
-		marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
-		if err != nil {
-			return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
+			marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
+			if err != nil {
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 
-		if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
-			downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
-			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+				downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
+				if err != nil {
+					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+				signature, err := plugin.DecodeSignature()
+				if err != nil {
+					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
+				}
+				pluginFile = bytes.NewReader(downloadedPluginBytes)
+				signatureFile = signature
 			}
-			signature, err := plugin.DecodeSignature()
-			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
-			}
-			pluginFile = bytes.NewReader(downloadedPluginBytes)
-			signatureFile = signature
 		}
 	}
 
@@ -341,8 +347,8 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 	// Check plugin id is not blocked
 	if plugin.PluginIDIsBlocked(manifest.Id) {
-		mlog.Debug("Skipping installation of plugin since plugin is on blocklist", mlog.String("plugin_id", manifest.Id))
-		return nil, nil
+		mlog.Debug("Skipping installation of plugin since plugin is on blocklist. Some plugins are blocked because they are built into this version of Mattermost.", mlog.String("plugin_id", manifest.Id))
+		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.blocked.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 	}
 
 	// Check for plugins installed with the same ID.
@@ -376,7 +382,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 			if version.LTE(existingVersion) {
 				mlog.Debug("Skipping local installation of plugin since existing version is newer", mlog.String("plugin_id", manifest.Id))
-				return nil, nil
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.skip_installation.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 			}
 		}
 

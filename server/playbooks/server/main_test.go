@@ -1,43 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/api4"
-	sapp "github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/api4"
+	sapp "github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost-server/server/v8/config"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
 
-	_ "github.com/mattermost/mattermost-server/v6/server/playbooks/product"
+	_ "github.com/mattermost/mattermost-server/server/v8/playbooks/product"
 )
 
 func TestMain(m *testing.M) {
-	serverpathBytes, err := exec.Command("go", "list", "-f", "'{{.Dir}}'", "-m", "github.com/mattermost/mattermost-server/v6").Output()
-	if err != nil {
-		panic(err)
-	}
-	serverpath := string(serverpathBytes)
-	serverpath = strings.Trim(strings.TrimSpace(serverpath), "'")
-	os.Setenv("MM_SERVER_PATH", filepath.Join(serverpath, "server"))
-
 	// This actually runs the tests
 	status := m.Run()
 
@@ -70,6 +60,7 @@ type TestEnvironment struct {
 	PlaybooksClient          *client.Client
 	PlaybooksClient2         *client.Client
 	PlaybooksClientNotInTeam *client.Client
+	PlaybooksClientGuest     *client.Client
 
 	UnauthenticatedPlaybooksClient *client.Client
 
@@ -88,6 +79,7 @@ type TestEnvironment struct {
 	RegularUser              *model.User
 	RegularUser2             *model.User
 	RegularUserNotInTeam     *model.User
+	GuestUser                *model.User
 }
 
 func getEnvWithDefault(name, defaultValue string) string {
@@ -97,7 +89,7 @@ func getEnvWithDefault(name, defaultValue string) string {
 	return defaultValue
 }
 
-func Setup(t *testing.T) (*TestEnvironment, func()) {
+func Setup(t *testing.T) *TestEnvironment {
 	// Ignore any locally defined SiteURL as we intend to host our own.
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
@@ -117,7 +109,7 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 	config := configStore.Get()
 	// Force plugins to be disabled since we are in product mode
 	config.PluginSettings.Enable = model.NewBool(false)
-	config.ServiceSettings.ListenAddress = model.NewString("localhost:9056")
+	config.ServiceSettings.ListenAddress = model.NewString("localhost:0")
 	config.TeamSettings.MaxUsersPerTeam = model.NewInt(10000)
 	config.LocalizationSettings.SetDefaults()
 	config.SqlSettings = *sqlSettings
@@ -125,11 +117,6 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 	config.LogSettings.EnableConsole = model.NewBool(true)
 	config.LogSettings.EnableFile = model.NewBool(false)
 	config.LogSettings.ConsoleLevel = model.NewString("INFO")
-
-	// disable Boards through the feature flag
-	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
-	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
-	config.FeatureFlags.BoardsProduct = false
 
 	// override config with e2etest.config.json if it exists
 	textConfig, err := os.ReadFile("./e2etest.config.json")
@@ -169,10 +156,6 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 
 	ap := sapp.New(sapp.ServerConnector(server.Channels()))
 
-	teardown := func() {
-		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", boardsProductEnvValue)
-	}
-
 	return &TestEnvironment{
 		T:   t,
 		Srv: server,
@@ -184,7 +167,7 @@ func Setup(t *testing.T) (*TestEnvironment, func()) {
 			},
 		},
 		logger: testLogger,
-	}, teardown
+	}
 }
 
 func (e *TestEnvironment) CreateClients() {
@@ -227,7 +210,7 @@ func (e *TestEnvironment) CreateClients() {
 	require.Nil(e.T, appErr)
 	e.RegularUserNotInTeam = notInTeam
 
-	siteURL := "http://localhost:9056"
+	siteURL := fmt.Sprintf("http://localhost:%v", e.A.Srv().ListenAddr.Port)
 
 	serverAdminClient := model.NewAPIv4Client(siteURL)
 	_, _, err := serverAdminClient.Login(admin.Email, userPassword)
@@ -449,6 +432,37 @@ func (e *TestEnvironment) CreateAdditionalPlaybooks() {
 	e.ArchivedPlaybook = archivedPlaybook
 }
 
+func (e *TestEnvironment) CreateGuest() {
+	cfg := e.Srv.Config()
+	cfg.GuestAccountsSettings.Enable = model.NewBool(true)
+	_, _, err := e.ServerAdminClient.UpdateConfig(cfg)
+	require.NoError(e.T, err)
+
+	userPassword := "password123!"
+	guest, appErr := e.A.CreateGuest(request.EmptyContext(e.logger), &model.User{
+		Email:    "playbookguest@example.com",
+		Username: "playbookguest",
+		Password: userPassword,
+	})
+	require.Nil(e.T, appErr)
+	e.GuestUser = guest
+
+	_, _, err = e.ServerAdminClient.AddTeamMember(e.BasicPublicChannel.TeamId, e.GuestUser.Id)
+	require.NoError(e.T, err)
+
+	_, _, err = e.ServerAdminClient.AddChannelMember(e.BasicPublicChannel.Id, e.GuestUser.Id)
+	require.NoError(e.T, err)
+
+	siteURL := fmt.Sprintf("http://localhost:%v", e.A.Srv().ListenAddr.Port)
+	serverClientGuest := model.NewAPIv4Client(siteURL)
+	_, _, err = serverClientGuest.Login(e.GuestUser.Email, userPassword)
+	require.NoError(e.T, err)
+
+	playbooksClientGuest, err := client.New(serverClientGuest)
+	require.NoError(e.T, err)
+	e.PlaybooksClientGuest = playbooksClientGuest
+}
+
 func (e *TestEnvironment) RemoveLicence() {
 	e.Srv.SetLicense(nil)
 }
@@ -478,8 +492,7 @@ func (e *TestEnvironment) CreateBasic() {
 
 // TestTestFramework If this is failing you know the break is not exclusively in your test.
 func TestTestFramework(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 }
 

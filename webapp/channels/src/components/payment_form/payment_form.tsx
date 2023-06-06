@@ -77,7 +77,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
 
     private resetState = () => {
         this.setState(this.getResetState());
-    }
+    };
 
     private getResetState = (props = this.props) => {
         const {initialBillingDetails, paymentMethod} = props;
@@ -94,7 +94,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
             name: billingDetails.name,
             changePaymentMethod: paymentMethod == null,
         };
-    }
+    };
 
     private handleInputChange = (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const target = event.target;
@@ -111,13 +111,13 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         if (onInputChange) {
             onInputChange({...this.state, ...newStateValue, card: this.cardRef.current?.getCard()} as BillingDetails);
         }
-    }
+    };
 
     private handleCardInputChange = (event: StripeCardElementChangeEvent) => {
         if (this.props.onCardInputChange) {
             this.props.onCardInputChange(event);
         }
-    }
+    };
 
     private handleStateChange = (stateValue: string) => {
         const newStateValue = {
@@ -128,7 +128,7 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         if (this.props.onInputChange) {
             this.props.onInputChange({...this.state, ...newStateValue, card: this.cardRef.current?.getCard()} as BillingDetails);
         }
-    }
+    };
 
     private handleCountryChange = (option: any) => {
         const newStateValue = {
@@ -139,19 +139,19 @@ export default class PaymentForm extends React.PureComponent<Props, State> {
         if (this.props.onInputChange) {
             this.props.onInputChange({...this.state, ...newStateValue, card: this.cardRef.current?.getCard()} as BillingDetails);
         }
-    }
+    };
 
     private onBlur = () => {
         const {onInputBlur} = this.props;
         if (onInputBlur) {
             onInputBlur({...this.state, card: this.cardRef.current?.getCard()} as BillingDetails);
         }
-    }
+    };
 
     private changePaymentMethod = (event: React.MouseEvent<HTMLElement>) => {
         event.preventDefault();
         this.setState({changePaymentMethod: true});
-    }
+    };
 
     public render() {
         const {className, paymentMethod, buttonFooter, theme} = this.props;

@@ -10,7 +10,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import Markdown from 'components/markdown';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';
@@ -189,7 +189,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
     private trackClickEvent = () => {
         const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
         trackEvent('ui', `notice_click_${presentNoticeInfo.id}`);
-    }
+    };
 
     private renderActionButton(presentNoticeInfo: ProductNotice) {
         const noOfNotices = this.state.noticesData.length;
@@ -225,7 +225,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 presentNoticeIndex: this.state.presentNoticeIndex + 1,
             });
         }
-    }
+    };
 
     private handlePreviousButton = () => {
         if (this.state.presentNoticeIndex !== 0) {
@@ -233,7 +233,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 presentNoticeIndex: this.state.presentNoticeIndex - 1,
             });
         }
-    }
+    };
 
     onModalDismiss = () => {
         this.clearDataTimer = window.setTimeout(() => {
@@ -242,7 +242,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 presentNoticeIndex: 0,
             });
         }, 3000);
-    }
+    };
 
     render() {
         if (!this.state.noticesData.length) {

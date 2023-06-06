@@ -6,7 +6,7 @@ import {IPropertyTemplate} from 'src/blocks/board'
 import {Card} from 'src/blocks/card'
 import {Utils} from 'src/utils'
 
-import {PropertyType, PropertyTypeEnum, FilterValueType} from 'src/properties/types'
+import {FilterValueType, PropertyType, PropertyTypeEnum} from 'src/properties/types'
 
 import MultiSelect from './multiselect'
 
@@ -23,13 +23,16 @@ export default class MultiSelectProperty extends PropertyType {
             if (!options.length) {
                 Utils.assertFailure(`Invalid multiSelect option IDs ${propertyValue}, block.title: ${card.title}`)
             }
+
             return options.map((o) => o.value)
         }
+
         return ''
     }
 
     exportValue = (value: string | string[] | undefined, card: Card, template: IPropertyTemplate): string => {
         const displayValue = this.displayValue(value, card, template)
+
         return ((displayValue as unknown || []) as string[]).join('|')
     }
 
@@ -43,6 +46,7 @@ export default class MultiSelectProperty extends PropertyType {
         displayValues.forEach((v) => {
             result += Utils.getTextWidth(v.toUpperCase(), fontDescriptor) + (perItemPadding || 0)
         })
+
         return result
     }
 }

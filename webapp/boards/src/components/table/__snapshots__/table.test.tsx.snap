@@ -117,7 +117,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             <span
               class="Label empty "
             >
-              Status
+              Last Modified By
             </span>
           </div>
           <div
@@ -140,6 +140,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -179,6 +180,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -192,6 +194,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -243,18 +246,8 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
-            >
-              <span
-                class="Label empty "
-              >
-                <span
-                  class="Label-text"
-                />
-              </span>
-            </div>
+              class="Person octo-propertyvalue octo-propertyvalue--readonly"
+            />
           </div>
         </div>
         <div
@@ -266,6 +259,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -305,6 +299,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -318,6 +313,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -369,18 +365,8 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
-            >
-              <span
-                class="Label empty "
-              >
-                <span
-                  class="Label-text"
-                />
-              </span>
-            </div>
+              class="Person octo-propertyvalue octo-propertyvalue--readonly"
+            />
           </div>
         </div>
       </div>
@@ -478,7 +464,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -490,6 +476,9 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -498,7 +487,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -522,6 +511,9 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -530,7 +522,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -554,6 +546,9 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -562,17 +557,20 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
               class="Label empty "
             >
-              Status
+              Date Created
             </span>
           </div>
           <div
             class="octo-spacer"
+          />
+          <div
+            class="HorizontalGrip"
           />
         </div>
       </div>
@@ -580,13 +578,22 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
         class="table-row-container"
       >
         <div
-          class="TableRow octo-table-row readonly"
+          class="TableRow octo-table-row"
           draggable="true"
           style="opacity: 1;"
         >
           <div
             class="action-cell octo-table-cell-btn"
-          />
+          >
+            <button
+              class="IconButton"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-drag-vertical"
+              />
+            </button>
+          </div>
           <div
             class="octo-table-cell title-cell"
             id="mainBoardHeader"
@@ -601,18 +608,39 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
                 i
               </div>
               <input
-                class="Editable readonly "
+                class="Editable "
                 placeholder="Untitled"
-                readonly=""
                 spellcheck="true"
                 title="title"
                 value="title"
               />
             </div>
             <div
+              aria-label="menuwrapper"
+              class="MenuWrapper optionsMenu ml-2 mr-2"
+              role="button"
+            >
+              <div
+                class="octo-tooltip tooltip-top"
+                data-tooltip="More actions"
+              >
+                <button
+                  aria-label="MenuBtn"
+                  class="IconButton"
+                  title="MenuBtn"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -626,7 +654,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
+              class="octo-propertyvalue"
               data-testid="select-non-editable"
               tabindex="0"
             >
@@ -646,7 +674,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
+              class="octo-propertyvalue"
               data-testid="select-non-editable"
               tabindex="0"
             >
@@ -664,28 +692,29 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="CreatedTime octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
-              >
-                <span
-                  class="Label-text"
-                />
-              </span>
+              June 15, 2021, 4:22 PM
             </div>
           </div>
         </div>
         <div
-          class="TableRow octo-table-row readonly"
+          class="TableRow octo-table-row"
           draggable="true"
           style="opacity: 1;"
         >
           <div
             class="action-cell octo-table-cell-btn"
-          />
+          >
+            <button
+              class="IconButton"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-drag-vertical"
+              />
+            </button>
+          </div>
           <div
             class="octo-table-cell title-cell"
             id="mainBoardHeader"
@@ -700,18 +729,39 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
                 i
               </div>
               <input
-                class="Editable readonly "
+                class="Editable "
                 placeholder="Untitled"
-                readonly=""
                 spellcheck="true"
                 title="title"
                 value="title"
               />
             </div>
             <div
+              aria-label="menuwrapper"
+              class="MenuWrapper optionsMenu ml-2 mr-2"
+              role="button"
+            >
+              <div
+                class="octo-tooltip tooltip-top"
+                data-tooltip="More actions"
+              >
+                <button
+                  aria-label="MenuBtn"
+                  class="IconButton"
+                  title="MenuBtn"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -725,7 +775,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
+              class="octo-propertyvalue"
               data-testid="select-non-editable"
               tabindex="0"
             >
@@ -745,7 +795,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
+              class="octo-propertyvalue"
               data-testid="select-non-editable"
               tabindex="0"
             >
@@ -763,29 +813,27 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="CreatedTime octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
-              >
-                <span
-                  class="Label-text"
-                />
-              </span>
+              June 15, 2021, 4:22 PM
             </div>
           </div>
         </div>
       </div>
       <div
         class="octo-table-footer"
-      />
+      >
+        <div
+          class="octo-table-cell"
+        >
+          + New
+        </div>
+      </div>
       <div
         class="CalculationRow octo-table-row"
       >
         <div
-          class="Calculation count octo-table-cell disabled  "
+          class="Calculation count octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -801,7 +849,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           </span>
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -815,7 +863,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           />
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -829,7 +877,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           />
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -965,7 +1013,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             <span
               class="Label empty "
             >
-              Status
+              Created By
             </span>
           </div>
           <div
@@ -988,6 +1036,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -1027,6 +1076,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -1040,6 +1090,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -1091,17 +1142,13 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="Person octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
+              <div
+                class="Person-item"
               >
-                <span
-                  class="Label-text"
-                />
-              </span>
+                username_1
+              </div>
             </div>
           </div>
         </div>
@@ -1114,6 +1161,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -1153,6 +1201,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -1166,6 +1215,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -1217,17 +1267,13 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="Person octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
+              <div
+                class="Person-item"
               >
-                <span
-                  class="Label-text"
-                />
-              </span>
+                username_2
+              </div>
             </div>
           </div>
         </div>
@@ -1425,7 +1471,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             <span
               class="Label empty "
             >
-              Status
+              Date Updated
             </span>
           </div>
           <div
@@ -1448,6 +1494,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -1487,6 +1534,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -1500,6 +1548,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -1551,17 +1600,9 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="UpdatedTime octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
-              >
-                <span
-                  class="Label-text"
-                />
-              </span>
+              June 20, 2021, 12:22 PM
             </div>
           </div>
         </div>
@@ -1574,6 +1615,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -1613,6 +1655,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -1626,6 +1669,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -1677,17 +1721,9 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="UpdatedTime octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
-              >
-                <span
-                  class="Label-text"
-                />
-              </span>
+              June 22, 2021, 11:23 AM
             </div>
           </div>
         </div>
@@ -1885,7 +1921,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             <span
               class="Label empty "
             >
-              Status
+              Last Modified By
             </span>
           </div>
           <div
@@ -1908,6 +1944,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -1947,6 +1984,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -1960,6 +1998,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -2011,17 +2050,13 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="Person octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
+              <div
+                class="Person-item"
               >
-                <span
-                  class="Label-text"
-                />
-              </span>
+                username_4
+              </div>
             </div>
           </div>
         </div>
@@ -2034,6 +2069,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             class="action-cell octo-table-cell-btn"
           >
             <button
+              class="IconButton"
               type="button"
             >
               <i
@@ -2073,6 +2109,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               >
                 <button
                   aria-label="MenuBtn"
+                  class="IconButton"
                   title="MenuBtn"
                   type="button"
                 >
@@ -2086,6 +2123,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -2137,17 +2175,13 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue"
-              data-testid="select-non-editable"
-              tabindex="0"
+              class="Person octo-propertyvalue octo-propertyvalue--readonly"
             >
-              <span
-                class="Label empty "
+              <div
+                class="Person-item"
               >
-                <span
-                  class="Label-text"
-                />
-              </span>
+                username_3
+              </div>
             </div>
           </div>
         </div>
@@ -2361,6 +2395,7 @@ exports[`components/table/Table limited card in table view 1`] = `
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -2442,6 +2477,7 @@ exports[`components/table/Table limited card in table view 1`] = `
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -2551,6 +2587,7 @@ exports[`components/table/Table limited card in table view 1`] = `
         Cards hidden
       </div>
       <button
+        class="Button"
         title="hidden-card-count"
         type="button"
       >
@@ -2581,7 +2618,7 @@ exports[`components/table/Table should match snapshot 1`] = `
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -2593,6 +2630,9 @@ exports[`components/table/Table should match snapshot 1`] = `
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2601,7 +2641,7 @@ exports[`components/table/Table should match snapshot 1`] = `
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -2625,6 +2665,9 @@ exports[`components/table/Table should match snapshot 1`] = `
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2633,7 +2676,7 @@ exports[`components/table/Table should match snapshot 1`] = `
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -2657,19 +2700,31 @@ exports[`components/table/Table should match snapshot 1`] = `
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
       </div>
       <div
         class="table-row-container"
       >
         <div
-          class="TableRow octo-table-row readonly"
+          class="TableRow octo-table-row"
           draggable="true"
           style="opacity: 1;"
         >
           <div
             class="action-cell octo-table-cell-btn"
-          />
+          >
+            <button
+              class="IconButton"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-drag-vertical"
+              />
+            </button>
+          </div>
           <div
             class="octo-table-cell title-cell"
             id="mainBoardHeader"
@@ -2684,18 +2739,39 @@ exports[`components/table/Table should match snapshot 1`] = `
                 i
               </div>
               <input
-                class="Editable readonly "
+                class="Editable "
                 placeholder="Untitled"
-                readonly=""
                 spellcheck="true"
                 title="title"
                 value="title"
               />
             </div>
             <div
+              aria-label="menuwrapper"
+              class="MenuWrapper optionsMenu ml-2 mr-2"
+              role="button"
+            >
+              <div
+                class="octo-tooltip tooltip-top"
+                data-tooltip="More actions"
+              >
+                <button
+                  aria-label="MenuBtn"
+                  class="IconButton"
+                  title="MenuBtn"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -2709,7 +2785,7 @@ exports[`components/table/Table should match snapshot 1`] = `
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
+              class="octo-propertyvalue"
               data-testid="select-non-editable"
               tabindex="0"
             >
@@ -2729,7 +2805,7 @@ exports[`components/table/Table should match snapshot 1`] = `
             style="width: 100px;"
           >
             <div
-              class="octo-propertyvalue octo-propertyvalue--readonly"
+              class="octo-propertyvalue"
               data-testid="select-non-editable"
               tabindex="0"
             >
@@ -2746,12 +2822,18 @@ exports[`components/table/Table should match snapshot 1`] = `
       </div>
       <div
         class="octo-table-footer"
-      />
+      >
+        <div
+          class="octo-table-cell"
+        >
+          + New
+        </div>
+      </div>
       <div
         class="CalculationRow octo-table-row"
       >
         <div
-          class="Calculation count octo-table-cell disabled  "
+          class="Calculation count octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -2767,7 +2849,7 @@ exports[`components/table/Table should match snapshot 1`] = `
           </span>
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -2781,7 +2863,7 @@ exports[`components/table/Table should match snapshot 1`] = `
           />
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -2818,7 +2900,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -2830,6 +2912,9 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2838,7 +2923,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -2862,6 +2947,9 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2870,7 +2958,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
         >
           <div
             aria-label="menuwrapper"
-            class="MenuWrapper disabled"
+            class="MenuWrapper"
             role="button"
           >
             <span
@@ -2894,6 +2982,9 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           <div
             class="octo-spacer"
           />
+          <div
+            class="HorizontalGrip"
+          />
         </div>
       </div>
       <div
@@ -2912,6 +3003,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
               style="width: 100px;"
             >
               <button
+                class="IconButton octo-table-cell__expand "
                 type="button"
               >
                 <i
@@ -2920,18 +3012,41 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
               </button>
               <span
                 class="Label empty "
-                title="Items with an empty Property 1 property will go here. This column cannot be removed."
+                title="Items with an empty Property 1 property will go here. This column can't be removed."
               >
                 No Property 1
               </span>
               
             </div>
             <button
+              class="Button"
               type="button"
             >
               <span>
                 0
               </span>
+            </button>
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <button
+                class="IconButton"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-dots-horizontal OptionsIcon"
+                />
+              </button>
+            </div>
+            <button
+              class="IconButton"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-plus AddIcon"
+              />
             </button>
           </div>
         </div>
@@ -2943,7 +3058,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
         class="CalculationRow octo-table-row"
       >
         <div
-          class="Calculation count octo-table-cell disabled  "
+          class="Calculation count octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -2959,7 +3074,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           </span>
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -2973,7 +3088,7 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           />
         </div>
         <div
-          class="Calculation none octo-table-cell disabled  "
+          class="Calculation none octo-table-cell   "
           style="width: 100px;"
           tabindex="0"
         >
@@ -3125,6 +3240,7 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>
@@ -3362,6 +3478,7 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
               class="open-button"
             >
               <button
+                class="Button"
                 type="button"
               >
                 <span>

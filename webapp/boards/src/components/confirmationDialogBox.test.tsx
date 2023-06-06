@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import '@testing-library/jest-dom'
 import {act, render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -55,16 +54,16 @@ describe('/components/confirmationDialogBox', () => {
         expect(containerWithCnfrmBtnText).toMatchSnapshot()
     })
 
-    it('confirm button click, run onConfirm Function once', () => {
+    it('confirm button click, run onConfirm Function once', async () => {
         const result = render(
             wrapDNDIntl(<ConfirmationDialogBox dialogBox={dialogProps}/>),
         )
 
-        userEvent.click(result.getByTitle('Confirm'))
+        await userEvent.click(result.getByTitle('Confirm'))
         expect(dialogProps.onConfirm).toBeCalledTimes(1)
     })
 
-    it('confirm button (with passed prop text), run onConfirm Function once', () => {
+    it('confirm button (with passed prop text), run onConfirm Function once', async () => {
         const resultWithConfirmBtnText = render(
             wrapDNDIntl(
                 <ConfirmationDialogBox
@@ -73,21 +72,21 @@ describe('/components/confirmationDialogBox', () => {
             ),
         )
 
-        userEvent.click(
+        await userEvent.click(
             resultWithConfirmBtnText.getByTitle(dialogPropsWithCnfrmBtnText.confirmButtonText),
         )
 
         expect(dialogPropsWithCnfrmBtnText.onConfirm).toBeCalledTimes(1)
     })
 
-    it('cancel button click runs onClose function', () => {
+    it('cancel button click runs onClose function', async () => {
         const result = render(wrapDNDIntl(
             <ConfirmationDialogBox
                 dialogBox={dialogProps}
             />,
         ))
 
-        userEvent.click(result.getByTitle('Cancel'))
+        await userEvent.click(result.getByTitle('Cancel'))
         expect(dialogProps.onClose).toBeCalledTimes(1)
     })
 })

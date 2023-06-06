@@ -10,9 +10,9 @@ import (
 	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/web"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/web"
 )
 
 type Routes struct {
@@ -139,8 +139,6 @@ type Routes struct {
 	InsightsForUser *mux.Router // 'api/v4/users/me/top'
 
 	Usage *mux.Router // 'api/v4/usage'
-
-	WorkTemplates *mux.Router // 'api/v4/worktemplates'
 
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
@@ -271,8 +269,6 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
 
-	api.BaseRoutes.WorkTemplates = api.BaseRoutes.APIRoot.PathPrefix("/worktemplates").Subrouter()
-
 	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
 
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
@@ -320,7 +316,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitExport()
 	api.InitInsights()
 	api.InitUsage()
-	api.InitWorkTemplate()
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	if err := api.InitGraphQL(); err != nil {

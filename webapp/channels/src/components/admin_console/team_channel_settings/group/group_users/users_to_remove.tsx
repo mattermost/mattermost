@@ -83,7 +83,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
 
     setStateLoading = (loading: boolean) => {
         this.setState({loading});
-    }
+    };
 
     componentWillUnmount() {
         this.props.actions.setModalSearchTerm('');
@@ -98,23 +98,23 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         } else if (scope === 'team') {
             await loadTeamMembersForProfilesList(profiles, scopeId);
         }
-    }
+    };
 
     previousPage = async () => {
         const page = this.state.page < 1 ? 0 : this.state.page - 1;
         this.setState({page});
-    }
+    };
 
     nextPage = async () => {
         const {total} = this.props;
         const page = (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ? this.state.page : this.state.page + 1;
         this.setState({page});
-    }
+    };
 
     onSearch = (term: string) => {
         this.props.actions.setModalSearchTerm(term);
         this.setState({page: 0});
-    }
+    };
 
     private onFilter = async (filterOptions: FilterOptions) => {
         const roles = filterOptions.role.values;
@@ -147,7 +147,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         }
         this.props.actions.setModalFilters(filters);
         this.setState({page: 0});
-    }
+    };
 
     private getPaginationProps = () => {
         const {page} = this.state;
@@ -161,7 +161,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         const firstPage = page === 0;
 
         return {startCount, endCount, page, lastPage, firstPage, total};
-    }
+    };
 
     private getRows = (): Row[] => {
         const {members, memberships, scope} = this.props;
@@ -201,7 +201,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                 },
             };
         });
-    }
+    };
 
     private getColumns = (): Column[] => {
         return [
@@ -236,7 +236,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                 width: 3,
             },
         ];
-    }
+    };
 
     private getFilterOptions = (): FilterOptions => {
         const filterOptions: FilterOptions = {
@@ -325,7 +325,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         }
 
         return filterOptions;
-    }
+    };
 
     public render = (): JSX.Element => {
         const rows: Row[] = this.getRows();
@@ -360,5 +360,5 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                 />
             </div>
         );
-    }
+    };
 }

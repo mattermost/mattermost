@@ -5,9 +5,9 @@ import {Timezone} from 'timezones.json';
 
 import {UserTimezone} from '@mattermost/types/users';
 
-export function getUserCurrentTimezone(userTimezone?: UserTimezone): string | undefined | null {
+export function getUserCurrentTimezone(userTimezone?: UserTimezone): string {
     if (!userTimezone) {
-        return null;
+        return 'UTC';
     }
     const {
         useAutomaticTimezone,

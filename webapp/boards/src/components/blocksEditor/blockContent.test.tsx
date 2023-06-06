@@ -4,13 +4,18 @@
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {
+    act,
+    fireEvent,
     render,
     screen,
-    fireEvent,
-    act
 } from '@testing-library/react'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from 'src/testUtils'
+import {
+    mockDOM,
+    mockStateStore,
+    setup,
+    wrapDNDIntl,
+} from 'src/testUtils'
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
 import BlockContent from './blockContent'
@@ -141,26 +146,28 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call onSave on hit enter in the input', async () => {
         const onSave = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <BlockContent
-                        boardId='fake-board-id'
-                        block={block}
-                        contentOrder={[block.id]}
-                        editing={block}
-                        setEditing={jest.fn()}
-                        setAfterBlock={jest.fn()}
-                        onSave={onSave}
-                        onMove={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+
+        const {user} = setup(wrapDNDIntl(
+            <ReduxProvider store={store}>
+                <BlockContent
+                    boardId='fake-board-id'
+                    block={block}
+                    contentOrder={[block.id]}
+                    editing={block}
+                    setEditing={jest.fn()}
+                    setAfterBlock={jest.fn()}
+                    onSave={onSave}
+                    onMove={jest.fn()}
+                />
+            </ReduxProvider>,
+        ))
         const input = screen.getByDisplayValue('Title')
         expect(onSave).not.toBeCalled()
-        fireEvent.change(input, {target: {value: 'test'}})
-        fireEvent.keyDown(input, {key: 'Enter'})
+        await act(async () => {
+            await user.clear(input)
+            await user.type(input, 'test')
+            await user.keyboard('{Enter}')
+        })
 
         expect(onSave).toBeCalledWith(expect.objectContaining({value: 'test'}))
     })

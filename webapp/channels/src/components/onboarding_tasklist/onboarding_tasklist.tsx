@@ -5,8 +5,6 @@ import React, {useRef, useCallback, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
-import Icon from '@mattermost/compass-components/foundations/icon/Icon';
-
 import {FormattedMessage} from 'react-intl';
 
 import {getShowTaskListBool} from 'selectors/onboarding';
@@ -15,6 +13,7 @@ import {shouldShowAutoLinkedBoard} from 'selectors/plugins';
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
+    getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
@@ -29,6 +28,7 @@ import {
 import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {useHandleOnBoardingTaskTrigger} from 'components/onboarding_tasks/onboarding_tasks_manager';
 import OnBoardingVideoModal from 'components/onboarding_tasks/onboarding_video_modal/onboarding_video_modal';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
 import {openModal} from 'actions/views/modals';
 import {GlobalState} from 'types/store';
@@ -42,6 +42,7 @@ import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
 import Completed from './onboarding_tasklist_completed';
 import {CompletedAnimation} from './onboarding_tasklist_animations';
+import {CloseIcon, PlayIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
 const TaskItems = styled.div`
     border-radius: 4px;
@@ -102,18 +103,12 @@ const Button = styled.button<{open: boolean}>(({open}) => {
         background: var(--center-channel-bg);
         border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: var(--elevation-3);
-
-        i {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-        }
+        color: rgba(var(--center-channel-color-rgb), 0.56);
 
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             box-shadow: var(--elevation-4);
-
-            i {
-                color: rgba(var(--center-channel-color-rgb), 0.72)
-            }
+            color: rgba(var(--center-channel-color-rgb), 0.72)
         }
 
         span {
@@ -154,8 +149,8 @@ const PlayButton = styled.button`
         box-shadow: var(--elevation-4);
     }
 
-    i {
-        margin-right: 10px;
+    svg {
+        margin-right: 6px;
         vertical-align: middle;
     }
 `;
@@ -190,6 +185,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const isFirstAdmin = useFirstAdminUser();
     const isEnableOnboardingFlow = useSelector((state: GlobalState) => getConfig(state).EnableOnboardingFlow === 'true');
     const [showTaskList, firstTimeOnboarding] = useSelector(getShowTaskListBool);
+    const theme = useSelector(getTheme);
 
     // a/b test auto show linked boards
     const autoShowLinkedBoard = useSelector((state: GlobalState) => shouldShowAutoLinkedBoard(state));
@@ -318,7 +314,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }
 
     return (
-        <>
+        <CompassThemeProvider theme={theme}>
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
@@ -326,7 +322,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                 open={open}
                 data-cy='onboarding-task-list-action-button'
             >
-                <Icon glyph={open ? 'close' : 'playlist-check'}/>
+                {open ? <CloseIcon size={20}/> : <PlaylistCheckIcon size={20}/>}
                 {itemsLeft !== 0 && (<span>{itemsLeft}</span>)}
             </Button>
             <TaskListPopover
@@ -363,10 +359,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                                     <PlayButton
                                         onClick={openVideoModal}
                                     >
-                                        <Icon
-                                            glyph={'play'}
-                                            size={16}
-                                        />
+                                        <PlayIcon size={18}/>
                                         <FormattedMessage
                                             id='onboardingTask.checklist.video_title'
                                             defaultMessage='Watch overview'
@@ -396,7 +389,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                         )}
                 </TaskItems>
             </TaskListPopover>
-        </>
+        </CompassThemeProvider>
     );
 };
 

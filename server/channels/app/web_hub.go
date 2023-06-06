@@ -4,8 +4,8 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
 )
 
 func (a *App) TotalWebsocketConnections() int {

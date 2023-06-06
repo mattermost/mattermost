@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
 )
 
 func (api *API) InitCommand() {
@@ -323,9 +323,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
 
-	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionUseSlashCommands) {
-		c.SetPermissionError(model.PermissionUseSlashCommands)
+	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 
@@ -343,8 +343,8 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
 		if c.AppContext.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {
-			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionUseSlashCommands) {
-				c.SetPermissionError(model.PermissionUseSlashCommands)
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreatePost) {
+				c.SetPermissionError(model.PermissionCreatePost)
 				return
 			}
 		}
@@ -353,7 +353,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.UserId = c.AppContext.Session().UserId
 	commandArgs.T = c.AppContext.T
 	commandArgs.SiteURL = c.GetSiteURLHeader()
-	commandArgs.Session = *c.AppContext.Session()
 
 	response, err := c.App.ExecuteCommand(c.AppContext, &commandArgs)
 	if err != nil {
@@ -424,7 +423,6 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		RootId:    query.Get("root_id"),
 		UserId:    c.AppContext.Session().UserId,
 		T:         c.AppContext.T,
-		Session:   *c.AppContext.Session(),
 		SiteURL:   c.GetSiteURLHeader(),
 		Command:   userInput,
 	}

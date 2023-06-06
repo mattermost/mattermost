@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import {General, Posts, Preferences} from 'mattermost-redux/constants';
 
-import {Posts, Preferences} from 'mattermost-redux/constants';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
@@ -24,6 +25,7 @@ import {
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {Channel} from '@mattermost/types/channels';
 import {
@@ -36,6 +38,7 @@ import {
 import {Reaction} from '@mattermost/types/reactions';
 import {GlobalState} from '@mattermost/types/store';
 import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
 import {
     IDMappedObjects,
     RelationOneToOne,
@@ -71,13 +74,13 @@ export function getReactionsForPosts(state: GlobalState): RelationOneToOne<Post,
 
 export function makeGetReactionsForPost(): (state: GlobalState, postId: Post['id']) => {
     [x: string]: Reaction;
-} | undefined | null {
+} | undefined {
     return createSelector('makeGetReactionsForPost', getReactionsForPosts, (state: GlobalState, postId: string) => postId, (reactions, postId) => {
         if (reactions[postId]) {
             return reactions[postId];
         }
 
-        return null;
+        return undefined;
     });
 }
 
@@ -388,7 +391,7 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
     );
 }
 
-// The selector below filters current user if it exists. Excluding currentUser is just for convinience
+// The selector below filters current user if it exists. Excluding currentUser is just for convenience
 export function makeGetProfilesForThread(): (state: GlobalState, rootId: string) => UserProfile[] {
     const getPostsForThread = makeGetPostsForThread();
     return createSelector(
@@ -398,7 +401,7 @@ export function makeGetProfilesForThread(): (state: GlobalState, rootId: string)
         getPostsForThread,
         getUserStatuses,
         (allUsers, currentUserId, posts, userStatuses) => {
-            const profileIds = posts.map((post) => post.user_id);
+            const profileIds = posts.map((post) => post.user_id).filter(Boolean);
             const uniqueIds = [...new Set(profileIds)];
             return uniqueIds.reduce((acc: UserProfile[], id: string) => {
                 const profile: UserProfile = userStatuses ? {...allUsers[id], status: userStatuses[id]} : {...allUsers[id]};
@@ -775,9 +778,39 @@ export function isPostAcknowledgementsEnabled(state: GlobalState) {
     );
 }
 
+export function getAllowPersistentNotifications(state: GlobalState) {
+    return (
+        isPostPriorityEnabled(state) &&
+        getConfig(state).AllowPersistentNotifications === 'true'
+    );
+}
+
+export function getPersistentNotificationMaxRecipients(state: GlobalState) {
+    return getConfig(state).PersistentNotificationMaxRecipients;
+}
+
+export function getPersistentNotificationIntervalMinutes(state: GlobalState) {
+    return getConfig(state).PersistentNotificationIntervalMinutes;
+}
+
+export function getAllowPersistentNotificationsForGuests(state: GlobalState) {
+    return (
+        isPostPriorityEnabled(state) &&
+        getConfig(state).AllowPersistentNotificationsForGuests === 'true'
+    );
+}
+
 export function getPostAcknowledgements(state: GlobalState, postId: Post['id']): Record<UserProfile['id'], PostAcknowledgement['acknowledged_at']> {
     return state.entities.posts.acknowledgements[postId];
 }
+
+export const isPersistentNotificationsEnabled = createSelector(
+    'getPersistentNotificationsEnabled',
+    getCurrentUser,
+    getAllowPersistentNotifications,
+    getAllowPersistentNotificationsForGuests,
+    (user, forAll, forGuests) => (isGuest(user.roles) ? (forAll && forGuests) : forAll),
+);
 
 export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, postId: Post['id']) => Array<{user: UserProfile; acknowledgedAt: PostAcknowledgement['acknowledged_at']}> {
     return createSelector(
@@ -799,4 +832,18 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
             }).sort((a, b) => b.acknowledgedAt - a.acknowledgedAt);
         },
     );
+}
+
+export function getTeamIdFromPost(state: GlobalState, post: Post): Team['id'] | undefined {
+    const channel = getChannel(state, post.channel_id);
+
+    if (!channel) {
+        return undefined;
+    }
+
+    if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+        return getCurrentTeamId(state);
+    }
+
+    return channel.team_id;
 }

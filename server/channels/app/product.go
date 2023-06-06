@@ -9,7 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
 )
 
 func (s *Server) initializeProducts(
@@ -71,19 +72,26 @@ func (s *Server) initializeProducts(
 }
 
 func (s *Server) shouldStart(product string) bool {
+	if s.skipProductsInit && product != "channels" {
+		s.Log().Warn("Skipping product start: disabled via server options", mlog.String("product", product))
+		return false
+	}
+
 	if product == "boards" {
-		if !s.Config().FeatureFlags.BoardsProduct {
-			s.Log().Info("Skipping Boards init; disabled via feature flag")
+		if os.Getenv("MM_DISABLE_BOARDS") == "true" {
+			s.Log().Warn("Skipping Boards start: disabled via env var")
 			return false
 		}
-		s.Log().Info("Allowing Boards init; enabled via feature flag")
 	}
 	if product == "playbooks" {
 		if os.Getenv("MM_DISABLE_PLAYBOOKS") == "true" {
-			s.Log().Info("Skipping Playbooks init; disabled via env var")
+			s.Log().Warn("Skipping Playbooks start: disabled via env var")
 			return false
 		}
-		s.Log().Info("Allowing Playbooks init; enabled via env var")
+		if !*s.Config().ProductSettings.EnablePlaybooks {
+			s.Log().Warn("Skipping Playbooks start: disabled via configuration")
+			return false
+		}
 	}
 
 	return true

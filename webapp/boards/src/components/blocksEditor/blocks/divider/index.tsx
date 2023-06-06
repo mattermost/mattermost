@@ -18,6 +18,7 @@ const Divider: ContentType = {
         useEffect(() => {
             props.onSave(props.value)
         }, [])
+
         return null
     },
 }

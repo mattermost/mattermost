@@ -5,8 +5,7 @@ import {render} from '@testing-library/react'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
-import '@testing-library/jest-dom'
-import {wrapIntl, mockStateStore} from 'src/testUtils'
+import {mockStateStore, wrapIntl} from 'src/testUtils'
 import {IPropertyTemplate} from 'src/blocks/board'
 
 import CalendarView from './fullCalendar'

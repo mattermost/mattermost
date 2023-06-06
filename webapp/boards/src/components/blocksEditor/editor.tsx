@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 
 import * as contentBlocks from './blocks/'
-import {ContentType, BlockData} from './blocks/types'
+import {BlockData, ContentType} from './blocks/types'
 import RootInput from './rootInput'
 
 import './editor.scss'

@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
 
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 import {CustomGroupPatch, Group} from '@mattermost/types/groups';
 
@@ -52,7 +53,7 @@ const UpdateUserGroupModal = (props: Props) => {
     }, [name, mention, hasUpdated, saving]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
             patchGroup();
         }
     }, [name, mention, hasUpdated, saving]);

@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/channels/web"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
+	"github.com/mattermost/mattermost-server/server/v8/channels/web"
 )
 
 func (api *API) InitPost() {
@@ -78,6 +78,57 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
+	}
+
+	if post.GetPriority() != nil {
+		priorityForbiddenErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
+
+		if !c.App.IsPostPriorityEnabled() {
+			c.Err = priorityForbiddenErr
+			return
+		}
+
+		if post.RootId != "" {
+			c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		if ack := post.GetRequestedAck(); ack != nil && *ack {
+			licenseErr := minimumProfessionalLicense(c)
+			if licenseErr != nil {
+				c.Err = licenseErr
+				return
+			}
+		}
+
+		if notification := post.GetPersistentNotification(); notification != nil && *notification {
+			licenseErr := minimumProfessionalLicense(c)
+			if licenseErr != nil {
+				c.Err = licenseErr
+				return
+			}
+			if !c.App.IsPersistentNotificationsEnabled() {
+				c.Err = priorityForbiddenErr
+				return
+			}
+
+			if !post.IsUrgent() {
+				c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.urgent_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
+				return
+			}
+
+			if !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
+				user, err := c.App.GetUser(c.AppContext.Session().UserId)
+				if err != nil {
+					c.Err = err
+					return
+				}
+				if user.IsGuest() {
+					c.Err = priorityForbiddenErr
+					return
+				}
+			}
+		}
 	}
 
 	setOnline := r.URL.Query().Get("set_online")

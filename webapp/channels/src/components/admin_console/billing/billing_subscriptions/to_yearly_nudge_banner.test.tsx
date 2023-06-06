@@ -3,10 +3,7 @@
 
 import React from 'react';
 
-import {Provider} from 'react-redux';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {CloudProducts, RecurringIntervals} from 'utils/constants';
 
 import {ToYearlyNudgeBanner, ToYearlyNudgeBannerDismissable} from './to_yearly_nudge_banner';
@@ -42,7 +39,7 @@ const initialState = {
     },
 };
 
-describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () => {
+describe('ToYearlyNudgeBannerDismissable', () => {
     test('should show for admins cloud professional monthly', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users.profiles = {
@@ -63,14 +60,9 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(true);
+        screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar');
     });
 
     test('should NOT show for NON admins', () => {
@@ -93,14 +85,9 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins on cloud free', () => {
@@ -123,14 +110,9 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins on cloud enterprise', () => {
@@ -153,14 +135,9 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBannerDismissable/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins on cloud pro annual', () => {
@@ -182,15 +159,9 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
                 },
             },
         };
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBannerDismissable/>
-            </Provider>,
-        );
-
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 
     test('should NOT show for admins when banner was dismissed in preferences', () => {
@@ -200,10 +171,10 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
         };
         state.entities.preferences = {
             myPreferences: {
-                'cloud_yearly_nudge_banner--nudge_to_yearly_banner_dismissed': {
-                    category: 'cloud_yearly_nudge_banner',
-                    name: 'nudge_to_yearly_banner_dismissed',
-                    value: 'true',
+                'to_cloud_yearly_plan_nudge--nudge_to_cloud_yearly_plan_snoozed': {
+                    category: 'to_cloud_yearly_plan_nudge',
+                    name: 'nudge_to_cloud_yearly_plan_snoozed',
+                    value: '{"range": 0, "show": false}',
                 },
             },
         };
@@ -221,19 +192,65 @@ describe('components/admin_console/billing/ToYearlyNudgeBannerDismissable', () =
                 },
             },
         };
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBannerDismissable/>
-            </Provider>,
-        );
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
+    });
 
-        expect(wrapper.find('AnnouncementBar').exists()).toBe(false);
+    test('should NOT show when subscription has billing type of internal', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.users.profiles = {
+            current_user_id: {roles: 'system_admin'},
+        };
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'internal',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
+    });
+
+    test('should NOT show when subscription has billing type of licensed', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.users.profiles = {
+            current_user_id: {roles: 'system_admin'},
+        };
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'licensed',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBannerDismissable/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-announcement-bar')).toThrow();
     });
 });
 
-describe('components/admin_console/billing/ToYearlyNudgeBanner', () => {
+describe('ToYearlyNudgeBanner', () => {
     test('should show for cloud professional monthly', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
@@ -251,14 +268,9 @@ describe('components/admin_console/billing/ToYearlyNudgeBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBanner/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToYearlyNudgeBanner/>, state);
 
-        expect(wrapper.find('AlertBanner').exists()).toBe(true);
+        screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner');
     });
 
     test('should NOT show for non cloud professional monthly', () => {
@@ -278,13 +290,54 @@ describe('components/admin_console/billing/ToYearlyNudgeBanner', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ToYearlyNudgeBanner/>
-            </Provider>,
-        );
+        renderWithIntlAndStore(<ToYearlyNudgeBanner/>, state);
 
-        expect(wrapper.find('AlertBanner').exists()).toBe(false);
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
+    });
+    test('should NOT show when subscription has billing type of internal', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'internal',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBanner/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
+    });
+
+    test('should NOT show when subscription has billing type of licensed', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud = {
+            subscription: {
+                product_id: 'prod_professional',
+                is_free_trial: 'false',
+                trial_end_at: 1,
+                billing_type: 'licensed',
+            },
+            products: {
+                prod_professional: {
+                    id: 'prod_professional',
+                    sku: CloudProducts.PROFESSIONAL,
+                    recurring_interval: RecurringIntervals.MONTH,
+                },
+            },
+        };
+
+        renderWithIntlAndStore(<ToYearlyNudgeBanner/>, state);
+
+        expect(() => screen.getByTestId('cloud-pro-monthly-deprecation-alert-banner')).toThrow();
     });
 });
+

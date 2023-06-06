@@ -10,7 +10,7 @@ import SettingPicture from 'components/setting_picture';
 
 const helpText: ReactNode = (
     <FormattedMessage
-        id={'setting_picture.help.profile'}
+        id={'setting_picture.help.profile.example'}
         defaultMessage='Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}'
         values={{max: 52428800}}
     />

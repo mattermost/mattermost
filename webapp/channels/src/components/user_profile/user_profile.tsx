@@ -35,7 +35,6 @@ export type UserProfileProps = {
     hasMention?: boolean;
     hideStatus?: boolean;
     isRHS?: boolean;
-    overwriteImage?: React.ReactNode;
     channelId?: string;
     theme?: Theme;
 }
@@ -49,20 +48,19 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
         hasMention: false,
         hideStatus: false,
         isRHS: false,
-        overwriteImage: '',
         overwriteName: '',
         colorize: false,
-    }
+    };
 
     hideProfilePopover = (): void => {
         if (this.overlay) {
             this.overlay.hide();
         }
-    }
+    };
 
     setOverlaynRef = (ref: BaseOverlayTrigger): void => {
         this.overlay = ref;
-    }
+    };
 
     render(): React.ReactNode {
         const {

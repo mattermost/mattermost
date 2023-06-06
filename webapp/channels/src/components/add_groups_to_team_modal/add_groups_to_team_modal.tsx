@@ -105,12 +105,12 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
     public handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
-    }
+    };
 
     // public for tests
     public handleExit = (): void => {
         this.props.onExited();
-    }
+    };
 
     // public for tests
     public handleResponse = (err?: Error): void => {
@@ -123,7 +123,7 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
             saving: false,
             addError,
         });
-    }
+    };
 
     // public for tests
     public handleSubmit = async () => {
@@ -148,7 +148,7 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                 this.handleHide();
             }
         }));
-    }
+    };
 
     // public for tests
     public addValue = (value: GroupValue): void => {
@@ -159,13 +159,13 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
         }
 
         this.setState({values});
-    }
+    };
 
     private setGroupsLoadingState = (loadingState: boolean) => {
         this.setState({
             loadingGroups: loadingState,
         });
-    }
+    };
 
     // public for tests
     public handlePageChange = (page: number, prevPage: number): void => {
@@ -175,7 +175,7 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                 this.setGroupsLoadingState(false);
             });
         }
-    }
+    };
 
     // public for tests
     public handleDelete = (values: GroupValue[]): void => this.setState({values});
@@ -224,7 +224,7 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                 </div>
             </div>
         );
-    }
+    };
 
     // public for tests
     public renderValue = (props: { data: Value }): string | undefined => props.data.display_name;

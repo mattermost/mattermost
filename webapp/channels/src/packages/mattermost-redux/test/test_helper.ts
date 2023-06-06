@@ -306,7 +306,7 @@ class TestHelper {
             description: '',
             content_type: 'application/x-www-form-urlencoded',
         };
-    }
+    };
 
     testCommand = (teamId: string): Command => {
         return {
@@ -344,7 +344,7 @@ class TestHelper {
                     min_server_version: '5.12.0',
                 },
         };
-    }
+    };
 
     fakeChannel = (teamId: string): Channel => {
         const name = this.generateId();
@@ -392,7 +392,7 @@ class TestHelper {
 
     getChannelMock = (override?: Partial<Channel>) => {
         return Object.assign(this.fakeChannel(override?.team_id || ''), override);
-    }
+    };
 
     fakeChannelWithId = (teamId: string) => {
         return {
@@ -415,7 +415,7 @@ class TestHelper {
             id: this.generateId(),
             delete_at: 0,
         };
-    }
+    };
 
     fakeGmChannel = (...usernames: string[]) => {
         return {
@@ -426,7 +426,7 @@ class TestHelper {
             id: this.generateId(),
             delete_at: 0,
         };
-    }
+    };
 
     fakeChannelMember = (userId: string, channelId: string): ChannelMembership => {
         return {
@@ -449,13 +449,15 @@ class TestHelper {
     fakeChannelNotifyProps = (override: Partial<ChannelNotifyProps>): ChannelNotifyProps => {
         return {
             desktop: 'default',
+            desktop_sound: 'off',
             email: 'default',
             mark_unread: 'mention',
             push: 'default',
             ignore_channel_mentions: 'default',
+            channel_auto_follow_threads: 'off',
             ...override,
         };
-    }
+    };
 
     fakeUserNotifyProps = (override: Partial<UserNotifyProps>): UserNotifyProps => {
         return {
@@ -471,7 +473,7 @@ class TestHelper {
             mention_keys: '',
             ...override,
         };
-    }
+    };
 
     fakePost = (channelId: string): Post => {
         return {
@@ -528,11 +530,11 @@ class TestHelper {
             user_id: '',
             ...override,
         };
-    }
+    };
 
     getPostMock = (override?: Partial<Post>) => {
         return Object.assign(this.fakePost(override?.channel_id || ''), override);
-    }
+    };
 
     fakePostWithId = (channelId: string): Post => {
         return {
@@ -622,7 +624,7 @@ class TestHelper {
             delete_at: 0,
             description: '',
         };
-    }
+    };
 
     fakeGroup = (groupId: string, source = 'ldap'): Group => {
         const name = 'software-engineers';
@@ -740,7 +742,7 @@ class TestHelper {
         nock(clientBaseRoute).
             get('/users/me/preferences').
             reply(200, [{user_id: this.basicUser!.id, category: 'tutorial_step', name: this.basicUser!.id, value: '999'}]);
-    }
+    };
 
     initMockEntities = () => {
         this.basicUser = this.fakeUserWithId();
@@ -838,7 +840,7 @@ class TestHelper {
         };
         this.basicScheme = this.mockSchemeWithId();
         this.basicGroup = this.fakeGroupWithId('');
-    }
+    };
 
     initBasic = (client4 = this.createClient4()) => {
         client4.setUrl(DEFAULT_SERVER);
@@ -866,9 +868,9 @@ class TestHelper {
         this.basicChannel = null;
         this.basicChannelMember = null;
         this.basicPost = null;
-    }
+    };
 
-    wait = (time: number) => new Promise((resolve) => setTimeout(resolve, time))
+    wait = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
 }
 
 export default new TestHelper();

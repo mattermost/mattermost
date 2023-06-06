@@ -28,7 +28,7 @@ const ANIMATION_DURATION = 500;
 export default class SidebarRightMenu extends React.PureComponent<Props> {
     handleEmitUserLoggedOutEvent = () => {
         GlobalActions.emitUserLoggedOutEvent();
-    }
+    };
 
     render() {
         let siteName = '';

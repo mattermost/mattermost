@@ -131,7 +131,7 @@ export default class Markdown extends React.PureComponent<Props> {
         imagesMetadata: {},
         postId: '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
         editedAt: 0,
-    }
+    };
 
     render() {
         const {postId, editedAt, message, enableFormatting} = this.props;

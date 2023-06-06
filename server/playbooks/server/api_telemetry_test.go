@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"context"
@@ -11,8 +11,7 @@ import (
 )
 
 func TestCreateEvent(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("create an event with bad type fails", func(t *testing.T) {

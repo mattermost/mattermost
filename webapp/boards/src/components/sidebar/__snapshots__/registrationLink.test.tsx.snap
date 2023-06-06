@@ -32,11 +32,11 @@ exports[`components/sidebar/RegistrationLink renders with signupToken in URL que
       >
         <a
           class="shareUrl"
-          href="http://localhost/register?t=abc123"
+          href="http://localhost:8065/register?t=abc123"
           rel="noreferrer"
           target="_blank"
         >
-          http://localhost/register?t=abc123
+          http://localhost:8065/register?t=abc123
         </a>
         <button
           class="Button filled size--small"

@@ -19,7 +19,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list.jsx';
-import SwitchChannelProvider from 'components/suggestion/switch_channel_provider.jsx';
+import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 
 const CHANNEL_MODE = 'channel';
@@ -151,13 +151,13 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             pretext: suggestions.matchedPretext,
             hasSuggestions: suggestions.items.length > 0,
         });
-    }
+    };
 
     public render = (): JSX.Element => {
         const providers: SwitchChannelProvider[] = this.channelProviders;
 
         const header = (
-            <h1>
+            <h1 id='quickSwitchHeader'>
                 <FormattedMessage
                     id='quick_switch_modal.switchChannels'
                     defaultMessage='Find Channels'
@@ -190,8 +190,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 enforceFocus={false}
                 restoreFocus={false}
                 role='dialog'
-                aria-labelledby='quickSwitchModalLabel'
-                aria-describedby='quickSwitchHeader'
+                aria-labelledby='quickSwitchHeader'
+                aria-describedby='quickSwitchHeaderWithHint'
                 animation={false}
             >
                 <Modal.Header
@@ -201,7 +201,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 <Modal.Body>
                     <div
                         className='channel-switcher__header'
-                        id='quickSwitchHeader'
+                        id='quickSwitchHeaderWithHint'
                     >
                         {header}
                         <div
@@ -244,5 +244,5 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 </Modal.Body>
             </Modal>
         );
-    }
+    };
 }

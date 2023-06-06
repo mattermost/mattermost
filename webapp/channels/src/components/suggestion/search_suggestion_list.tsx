@@ -85,7 +85,7 @@ export default class SearchSuggestionList extends SuggestionList {
 
     getContent = () => {
         return this.itemsContainerRef.current?.parentNode;
-    }
+    };
 
     renderChannelDivider(type: string) {
         let text;

@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, fireEvent} from '@testing-library/react';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {GlobalState} from 'types/store';
 
 import {DeepPartial} from '@mattermost/types/utilities';
@@ -146,7 +145,6 @@ describe('components/dot_menu/DotMenu', () => {
         threadReplyCount: 0,
         userId: 'user_id_1',
         isMilitaryTime: false,
-        showForwardPostNewLabel: false,
     };
 
     test('should match snapshot, on Center', () => {
@@ -172,32 +170,6 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             canEdit: true,
             canDelete: true,
-        };
-        const wrapper = renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, show "New" badge on forward post', () => {
-        const props = {
-            ...baseProps,
-            showForwardPostNewLabel: true,
-        };
-        const wrapper = renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, hide "New" badge on forward post', () => {
-        const props = {
-            ...baseProps,
-            showForwardPostNewLabel: false,
         };
         const wrapper = renderWithIntlAndStore(
             <DotMenu {...props}/>,

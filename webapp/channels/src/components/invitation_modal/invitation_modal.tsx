@@ -118,7 +118,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
 
     handleHide = () => {
         this.setState({show: false});
-    }
+    };
 
     toggleCustomMessage = () => {
         this.setState((state) => ({
@@ -131,7 +131,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 },
             },
         }));
-    }
+    };
 
     setCustomMessage = (message: string) => {
         this.setState((state) => ({
@@ -144,7 +144,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 },
             },
         }));
-    }
+    };
 
     setInviteAs = (inviteType: InviteType) => {
         if (this.state.invite.inviteType !== inviteType) {
@@ -156,7 +156,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 },
             }));
         }
-    }
+    };
 
     invite = async () => {
         const roleForTrackFlow = getRoleForTrackFlow();
@@ -230,7 +230,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 notSent: invites.notSent,
             },
         }));
-    }
+    };
 
     inviteMore = () => {
         this.setState((state: State) => ({
@@ -244,7 +244,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
             result: defaultResultState,
             termWithoutResults: null,
         }));
-    }
+    };
 
     debouncedSearchChannels = debounce((term) => this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
@@ -257,7 +257,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         return this.props.invitableChannels.filter((channel) => {
             return channel.display_name.toLowerCase().startsWith(value.toLowerCase()) || channel.name.toLowerCase().startsWith(value.toLowerCase());
         });
-    }
+    };
 
     onChannelsChange = (channels: Channel[]) => {
         this.setState((state) => ({
@@ -266,11 +266,11 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 ...state.invite,
                 inviteChannels: {
                     ...state.invite.inviteChannels,
-                    channels,
+                    channels: channels ?? [],
                 },
             },
         }));
-    }
+    };
 
     onChannelsInputChange = (search: string) => {
         this.setState((state) => ({
@@ -283,7 +283,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 },
             },
         }));
-    }
+    };
 
     debouncedSearchProfiles = debounce((term: string, callback: (users: UserProfile[]) => void) => {
         this.props.actions.searchProfiles(term).
@@ -323,7 +323,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 usersEmails,
             },
         }));
-    }
+    };
 
     onUsersInputChange = (usersEmailsSearch: string) => {
         this.setState((state: State) => ({
@@ -333,7 +333,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
                 usersEmailsSearch,
             },
         }));
-    }
+    };
 
     getBackdrop = (): Backdrop => {
         // 'static' means backdrop clicks do not close
@@ -354,7 +354,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
             }
         }
         return true;
-    }
+    };
 
     render() {
         let view = (

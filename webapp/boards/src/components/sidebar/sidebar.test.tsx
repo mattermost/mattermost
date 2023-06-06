@@ -22,7 +22,7 @@ import octoClient from 'src/octoClient'
 import Sidebar from './sidebar'
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(octoClient, true)
+const mockedOctoClient = mocked(octoClient)
 
 beforeAll(() => {
     mockMatchMedia({matches: true})
@@ -48,7 +48,7 @@ describe('components/sidebarSidebar', () => {
     defaultCategory.name = 'Boards'
     defaultCategory.boardMetadata = []
 
-    test('sidebar hidden', () => {
+    test('sidebar hidden', async () => {
         const store = mockStore({
             teams: {
                 current: {id: 'team-id'},
@@ -101,7 +101,7 @@ describe('components/sidebarSidebar', () => {
         const hideSidebar = container.querySelector('button > .HideSidebarIcon')
         expect(hideSidebar).toBeDefined()
 
-        userEvent.click(hideSidebar as Element)
+        await userEvent.click(hideSidebar as Element)
         expect(container).toMatchSnapshot()
 
         const showSidebar = container.querySelector('button > .ShowSidebarIcon')

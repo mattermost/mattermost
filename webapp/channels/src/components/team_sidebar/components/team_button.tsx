@@ -50,7 +50,7 @@ class TeamButton extends React.PureComponent<Props> {
         setTimeout(() => {
             trackEvent('ui', 'ui_team_sidebar_switch_team');
         }, 0);
-    }
+    };
 
     render() {
         const {teamIconUrl, displayName, btnClass, mentions, unread, isDraggable = false, teamIndex, teamId, order} = this.props;

@@ -11,8 +11,6 @@ import {
     getSubscriptionProduct,
 } from 'mattermost-redux/selectors/entities/cloud';
 
-import {SalesInquiryIssue} from 'selectors/cloud';
-
 import {CloudProducts} from 'utils/constants';
 import {asGBString, fallbackStarterLimits, hasSomeLimits} from 'utils/limits';
 
@@ -32,7 +30,7 @@ const Limits = (): JSX.Element | null => {
     const subscriptionProduct = useSelector(getSubscriptionProduct);
     const [cloudLimits, limitsLoaded] = useGetLimits();
     const usage = useGetUsage();
-    const openSalesLink = useOpenSalesLink(SalesInquiryIssue.UpgradeEnterprise);
+    const [openSalesLink] = useOpenSalesLink();
     const openPricingModal = useOpenPricingModal();
 
     if (!subscriptionProduct || !limitsLoaded || !hasSomeLimits(cloudLimits)) {

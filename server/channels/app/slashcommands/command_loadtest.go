@@ -14,12 +14,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 )
 
 var usage = `Mattermost testing commands to help configure the system
@@ -629,7 +629,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c request.CTX, args *model.Comma
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/server/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".md"
@@ -683,7 +683,7 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c request.CTX, args *model.Comm
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/server/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".json"

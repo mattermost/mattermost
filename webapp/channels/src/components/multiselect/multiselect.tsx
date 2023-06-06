@@ -78,9 +78,9 @@ export type State = {
 const KeyCodes = Constants.KeyCodes;
 
 export default class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
-    private listRef = React.createRef<MultiSelectList<T>>()
-    private reactSelectRef = React.createRef<ReactSelect>()
-    private selected: T | null = null
+    private listRef = React.createRef<MultiSelectList<T>>();
+    private reactSelectRef = React.createRef<ReactSelect>();
+    private selected: T | null = null;
 
     public static defaultProps = {
         ariaLabelRenderer: defaultAriaLabelRenderer,
@@ -88,7 +88,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
         valueWithImage: false,
         focusOnLoad: true,
         savingEnabled: true,
-    }
+    };
 
     public constructor(props: Props<T>) {
         super(props);
@@ -130,11 +130,11 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
 
     private handleA11yActivateEvent = () => {
         this.setState({a11yActive: true});
-    }
+    };
 
     private handleA11yDeactivateEvent = () => {
         this.setState({a11yActive: false});
-    }
+    };
 
     private nextPage = () => {
         if (this.props.handlePageChange) {
@@ -144,7 +144,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             this.listRef.current.setSelected(0);
         }
         this.setState({page: this.state.page + 1});
-    }
+    };
 
     private prevPage = () => {
         if (this.state.page === 0) {
@@ -159,15 +159,15 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             this.listRef.current.setSelected(0);
         }
         this.setState({page: this.state.page - 1});
-    }
+    };
 
     public resetPaging = () => {
         this.setState({page: 0});
-    }
+    };
 
     private onSelect = (selected: T | null) => {
         this.selected = selected;
-    }
+    };
 
     private onAdd = (value: T) => {
         if (this.props.maxValues && this.props.values.length >= this.props.maxValues) {
@@ -194,7 +194,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
         if (submitImmediatelyOn && submitImmediatelyOn(value)) {
             this.props.handleSubmit([value]);
         }
-    }
+    };
 
     private onInput = (input: string, change: InputActionMeta) => {
         if (!change) {
@@ -221,7 +221,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
         this.selected = null;
 
         this.props.handleInput(input, this);
-    }
+    };
 
     private onInputKeyDown = (e: React.KeyboardEvent) => {
         switch (e.key) {
@@ -229,7 +229,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             e.preventDefault();
             break;
         }
-    }
+    };
 
     private handleEnterPress = (e: KeyboardEvent) => {
         switch (e.key) {
@@ -241,12 +241,12 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             this.onAdd(this.selected);
             break;
         }
-    }
+    };
 
     private handleOnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         this.props.handleSubmit();
-    }
+    };
 
     private onChange: ReactSelect['onChange'] = (_, change) => {
         if (change.action !== 'remove-value' && change.action !== 'pop-value') {
@@ -263,7 +263,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
         }
 
         this.props.handleDelete(values);
-    }
+    };
 
     MultiValueRemove = ({children, innerProps}: any) => (
         <div {...innerProps}>
@@ -286,11 +286,11 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                 </div>
             </>
         );
-    }
+    };
 
     valueRenderer = (props: any) => {
         return this.props.valueWithImage ? <components.MultiValueLabel {...props}/> : this.props.valueRenderer;
-    }
+    };
 
     public render() {
         const options = Object.assign([...this.props.options]);

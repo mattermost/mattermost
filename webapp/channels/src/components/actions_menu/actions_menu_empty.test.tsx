@@ -37,13 +37,9 @@ describe('components/actions_menu/ActionsMenu returning empty ("")', () => {
             },
             appBindings: [],
             pluginMenuItems: [],
-            handleOpenTip: jest.fn(),
-            handleNextTip: jest.fn(),
-            handleDismissTip: jest.fn(),
-            showPulsatingDot: false,
-            showTutorialTip: false,
             appsEnabled: false,
             isSysAdmin: true,
+            canOpenMarketplace: false,
         };
 
         const wrapper = shallow(

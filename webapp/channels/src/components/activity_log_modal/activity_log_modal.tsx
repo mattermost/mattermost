@@ -53,7 +53,7 @@ type State = {
 export default class ActivityLogModal extends React.PureComponent<Props, State> {
     static propTypes = {
 
-    }
+    };
 
     constructor(props: Props) {
         super(props);
@@ -73,15 +73,15 @@ export default class ActivityLogModal extends React.PureComponent<Props, State> 
         this.props.actions.revokeSession(this.props.currentUserId, altId).then(() => {
             this.props.actions.getSessions(this.props.currentUserId);
         });
-    }
+    };
 
     onShow = () => {
         this.props.actions.getSessions(this.props.currentUserId);
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     componentDidMount() {
         this.onShow();

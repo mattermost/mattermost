@@ -46,19 +46,19 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         if (this.props.showBannerWarning !== prevProps.showBannerWarning) {
             this.updateBannerWarning(this.props.showBannerWarning);
         }
-    }
+    };
 
     doHide = () => {
         this.setState({show: false});
-    }
+    };
 
     updateBannerWarning = (showBannerWarning: boolean) => {
         this.setState({showBannerWarning});
-    }
+    };
 
     hideBannerWarning = () => {
         this.updateBannerWarning(false);
-    }
+    };
 
     render() {
         const {showBannerWarning} = this.state;

@@ -191,6 +191,7 @@ const PlaybookListRow = (props: Props) => {
                     <InfoLine>
                         {infos.map((info, i) => (
                             <Fragment key={props.playbook.id + '-infoline' + i}>
+                                {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                                 {i > 0 && ' - '}
                                 {info}
                             </Fragment>))}
@@ -204,7 +205,7 @@ const PlaybookListRow = (props: Props) => {
                         value={props.playbook.last_run_at}
                     />
                 ) : (
-                    '-'
+                    '-' // eslint-disable-line formatjs/no-literal-string-in-jsx
                 )}
             </PlaybookItemRow>
             <PlaybookItemRow>{props.playbook.active_runs}</PlaybookItemRow>

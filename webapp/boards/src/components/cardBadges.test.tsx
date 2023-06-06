@@ -5,7 +5,6 @@ import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {render, screen} from '@testing-library/react'
-import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 import {blocksById, mockStateStore, wrapDNDIntl} from 'src/testUtils'

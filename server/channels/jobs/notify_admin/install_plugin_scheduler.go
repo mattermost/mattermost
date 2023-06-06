@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/jobs"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
 )
 
-const installPluginSchedFreq = 1 * time.Minute
+const installPluginSchedFreq = 24 * time.Hour
 
 func MakeInstallPluginScheduler(jobServer *jobs.JobServer, license *model.License, jobType string) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {

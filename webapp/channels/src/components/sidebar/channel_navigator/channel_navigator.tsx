@@ -11,6 +11,8 @@ import QuickSwitchModal from 'components/quick_switch_modal';
 import {ModalData} from 'types/actions';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import ChannelFilter from '../channel_filter';
@@ -59,17 +61,17 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
             modalId: ModalIdentifiers.QUICK_SWITCH,
             dialogType: QuickSwitchModal,
         });
-    }
+    };
 
     handleShortcut = (e: KeyboardEvent) => {
         const {actions: {closeModal}} = this.props;
 
-        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey) {
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.M)) {
+        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.M)) {
                 e.preventDefault();
                 closeModal(ModalIdentifiers.QUICK_SWITCH);
             }
-            if (Utils.isKeyPressed(e, Constants.KeyCodes.L)) {
+            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.L)) {
                 // just close the modal if it's open, but let someone else handle the shortcut
                 closeModal(ModalIdentifiers.QUICK_SWITCH);
             }
@@ -77,13 +79,13 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
     };
 
     handleQuickSwitchKeyPress = (e: KeyboardEvent) => {
-        if (Utils.cmdOrCtrlPressed(e) && !e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.K)) {
-            if (!e.altKey) {
+        if (Keyboard.cmdOrCtrlPressed(e) && !e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.K)) {
+            if (!e.altKey && !Utils.isTextSelectedInPostOrReply(e)) {
                 e.preventDefault();
                 this.toggleQuickSwitchModal();
             }
         }
-    }
+    };
 
     toggleQuickSwitchModal = () => {
         const {isQuickSwitcherOpen, actions: {openModal, closeModal}} = this.props;
@@ -96,17 +98,17 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                 dialogType: QuickSwitchModal,
             });
         }
-    }
+    };
 
     goBack = () => {
         trackEvent('ui', 'ui_history_back');
         this.props.actions.goBack();
-    }
+    };
 
     goForward = () => {
         trackEvent('ui', 'ui_history_forward');
         this.props.actions.goForward();
-    }
+    };
 
     render() {
         return (
@@ -123,7 +125,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                         defaultMessage='Find channel'
                     />
                     <div className={'SidebarChannelNavigator_shortcutText'}>
-                        {`${Utils.isMac() ? '⌘' : 'Ctrl+'}K`}
+                        {`${UserAgent.isMac() ? '⌘' : 'Ctrl+'}K`}
                     </div>
                 </button>
             </div>

@@ -12,7 +12,7 @@ type Props = {
 export default class SiteNameAndDescription extends React.PureComponent<Props> {
     public static defaultProps: Partial<Props> = {
         siteName: 'Mattermost',
-    }
+    };
 
     public render(): JSX.Element {
         const {

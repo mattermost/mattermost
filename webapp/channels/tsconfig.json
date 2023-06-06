@@ -25,11 +25,7 @@
     "composite": true,
     "paths": {
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
-        "reselect": ["packages/reselect/src"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
-        "!!file-loader*": ["utils/empty-string"],
-        "@e2e-support/*": ["e2e/playwright/support/*"],
-        "@e2e-test.config": ["e2e/playwright/test.config.ts"]
     }
   },
   "include": [

@@ -13,8 +13,9 @@ import Textbox, {TextboxElement} from 'components/textbox';
 import TextboxClass from 'components/textbox/textbox';
 import TextboxLinks from 'components/textbox/textbox_links';
 import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
-import {insertLineBreakFromKeyEvent, isKeyPressed, isUnhandledLineBreakKeyCombo, localizeMessage} from 'utils/utils';
+import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo, localizeMessage} from 'utils/utils';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -87,17 +88,17 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
         if (isKeyPressed(e as unknown as React.KeyboardEvent, KeyCodes.ESCAPE)) {
             this.hideModal();
         }
-    }
+    };
 
     private setShowPreview = (newState: boolean): void => {
         this.props.actions.setShowPreview(newState);
-    }
+    };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
         this.setState({
             header: e.target.value,
         });
-    }
+    };
 
     public handleSave = async (): Promise<void> => {
         const header = this.state.header?.trim() ?? '';
@@ -113,29 +114,29 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                 this.hideModal();
             }
         }
-    }
+    };
 
     private hideModal = (): void => {
         this.setState({
             show: false,
         });
-    }
+    };
 
     private focusTextbox = (): void => {
         if (this.editChannelHeaderTextboxRef.current) {
             this.editChannelHeaderTextboxRef.current.focus();
         }
-    }
+    };
 
     private blurTextbox = (): void => {
         if (this.editChannelHeaderTextboxRef.current) {
             this.editChannelHeaderTextboxRef.current.blur();
         }
-    }
+    };
 
     private handleEntering = (): void => {
         this.focusTextbox();
-    }
+    };
 
     private handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
         const {ctrlSend} = this.props;
@@ -146,7 +147,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
         } else if (ctrlSend && isKeyPressed(e, KeyCodes.ENTER) && e.ctrlKey === true) {
             this.handleKeyPress(e);
         }
-    }
+    };
 
     private handleKeyPress = (e: React.KeyboardEvent<Element>): void => {
         const {ctrlSend} = this.props;
@@ -157,11 +158,11 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                 this.handleSave();
             }
         }
-    }
+    };
 
     private handlePostError = (postError: React.ReactNode) => {
         this.setState({postError});
-    }
+    };
 
     private renderError = (): (JSX.Element | null) => {
         const {serverError} = this.state;
@@ -192,7 +193,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                 </label>
             </div>
         );
-    }
+    };
 
     public render(): JSX.Element {
         let headerTitle = null;

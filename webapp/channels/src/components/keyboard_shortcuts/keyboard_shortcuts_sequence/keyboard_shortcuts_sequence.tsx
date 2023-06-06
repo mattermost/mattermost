@@ -6,7 +6,7 @@ import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {ShortcutKeyVariant, ShortcutKey} from 'components/shortcut_key';
-import {isMac} from 'utils/utils';
+import {isMac} from 'utils/user_agent';
 
 import {isMessageDescriptor, KeyboardShortcutDescriptor} from './keyboard_shortcuts';
 

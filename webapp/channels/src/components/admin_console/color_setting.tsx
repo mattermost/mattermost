@@ -21,7 +21,7 @@ export default class ColorSetting extends React.PureComponent<Props> {
         if (this.props.onChange) {
             this.props.onChange(this.props.id, color);
         }
-    }
+    };
 
     public render() {
         return (

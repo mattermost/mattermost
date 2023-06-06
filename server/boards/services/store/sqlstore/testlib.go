@@ -9,10 +9,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
 	"github.com/mgdelacroix/foundation"
 	"github.com/stretchr/testify/require"
 )
@@ -50,6 +50,7 @@ func NewStoreType(name string, driver string, skipMigrations bool) *storeType {
 		DB:               sqlDB,
 		IsPlugin:         false, // ToDo: to be removed
 	}
+
 	store, err := New(storeParams)
 	if err != nil {
 		panic(fmt.Sprintf("cannot create store: %s", err))

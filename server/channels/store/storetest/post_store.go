@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 )
 
 func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -43,7 +43,6 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, ss) })
-	t.Run("GetLastPostRowCreateAt", func(t *testing.T) { testPostStoreGetLastPostRowCreateAt(t, ss) })
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, ss) })
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
@@ -1303,6 +1302,88 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		// last reply at should be 0
 		require.Equal(t, int64(0), thread.LastReplyAt)
+	})
+
+	t.Run("thread with file attachments", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Create another root post
+		rootPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Reply to first root post with file attachments
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+		file11, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost1.Id,
+			CreatorId: replyPost1.UserId,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+		file12, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost1.Id,
+			CreatorId: replyPost1.UserId,
+			Path:      "file2.png",
+		})
+		require.NoError(t, err)
+
+		// Reply to second root post with file attachments
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost2.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost2.Id,
+		})
+		require.NoError(t, err)
+		file21, err := ss.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			PostId:    replyPost2.Id,
+			CreatorId: replyPost2.UserId,
+			Path:      "file1.txt",
+		})
+		require.NoError(t, err)
+
+		// Delete the first root post
+		err = ss.Post().Delete(rootPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		// Verify the reply post's files are deleted
+		_, err = ss.FileInfo().Get(file11.Id)
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+		_, err = ss.FileInfo().Get(file12.Id)
+		require.Error(t, err, "Deleted id should have failed")
+		require.IsType(t, &store.ErrNotFound{}, err)
+
+		// Verify the other reply post's files are NOT deleted
+		_, err = ss.FileInfo().Get(file21.Id)
+		require.NoError(t, err, "Not deleted id should have succeeded")
 	})
 }
 
@@ -3359,40 +3440,6 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o5.ChannelId, 0, 10)
 	require.NoError(t, err)
 	require.Len(t, r.Order, 0, "should have 0 posts")
-}
-
-func testPostStoreGetLastPostRowCreateAt(t *testing.T, ss store.Store) {
-	teamId := model.NewId()
-	channel1, err := ss.Channel().Save(&model.Channel{
-		TeamId:      teamId,
-		DisplayName: "DisplayName1",
-		Name:        "channel" + model.NewId(),
-		Type:        model.ChannelTypeOpen,
-	}, -1)
-	require.NoError(t, err)
-
-	createTime1 := model.GetMillis() + 1
-	o0 := &model.Post{}
-	o0.ChannelId = channel1.Id
-	o0.UserId = model.NewId()
-	o0.Message = NewTestId()
-	o0.CreateAt = createTime1
-	o0, err = ss.Post().Save(o0)
-	require.NoError(t, err)
-
-	createTime2 := model.GetMillis() + 2
-
-	o1 := &model.Post{}
-	o1.ChannelId = o0.ChannelId
-	o1.UserId = model.NewId()
-	o1.Message = "Latest message"
-	o1.CreateAt = createTime2
-	_, err = ss.Post().Save(o1)
-	require.NoError(t, err)
-
-	createAt, err := ss.Post().GetLastPostRowCreateAt()
-	require.NoError(t, err)
-	assert.Equal(t, createAt, createTime2)
 }
 
 func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {

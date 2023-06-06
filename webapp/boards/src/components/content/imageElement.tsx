@@ -70,7 +70,7 @@ contentRegistry.registerContentType({
                         block.fields.fileId = fileId || ''
                         resolve(block)
                     } else {
-                        sendFlashMessage({content: intl.formatMessage({id: 'createImageBlock.failed', defaultMessage: 'Unable to upload the file. File size limit reached.'}), severity: 'normal'})
+                        sendFlashMessage({content: intl.formatMessage({id: 'createImageBlock.failed', defaultMessage: "This file couldn't be uploaded as the file size limit has been reached."}), severity: 'normal'})
                     }
                 },
                 '.jpg,.jpeg,.png,.gif')

@@ -15,7 +15,7 @@ import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {get, isCollapsedThreadsAllowed, getCollapsedThreadsPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {getTimezoneLabel, makeGetUserTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentTimezoneFull, getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {CollapsedThreads} from '@mattermost/types/config';
@@ -34,15 +34,13 @@ type Actions = {
 }
 
 export function makeMapStateToProps() {
-    const getUserTimezone = makeGetUserTimezone();
-
     return (state: GlobalState) => {
         const config = getConfig(state);
         const currentUserId = getCurrentUserId(state);
-        const userTimezone = getUserTimezone(state, currentUserId);
+        const userTimezone = getCurrentTimezoneFull(state);
         const automaticTimezoneNotSet = userTimezone && userTimezone.useAutomaticTimezone && !userTimezone.automaticTimezone;
         const shouldAutoUpdateTimezone = !userTimezone || automaticTimezoneNotSet;
-        const timezoneLabel = getTimezoneLabel(state, currentUserId);
+        const timezoneLabel = getCurrentTimezoneLabel(state);
         const allowCustomThemes = config.AllowCustomThemes === 'true';
         const enableLinkPreviews = config.EnableLinkPreviews === 'true';
         const defaultClientLocale = config.DefaultClientLocale as string;

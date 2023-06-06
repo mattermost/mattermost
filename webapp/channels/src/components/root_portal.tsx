@@ -8,7 +8,7 @@ interface Props {
     children: React.ReactNode | React.ReactNodeArray;
 }
 export default class RootPortal extends React.PureComponent<Props> {
-    private el: HTMLDivElement
+    private el: HTMLDivElement;
 
     constructor(props: Props) {
         super(props);

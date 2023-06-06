@@ -25,7 +25,7 @@ export default class RevokeTokenButton extends React.PureComponent<RevokeTokenBu
         if ('error' in response) {
             this.props.onError(response.error.message);
         }
-    }
+    };
 
     render() {
         return (

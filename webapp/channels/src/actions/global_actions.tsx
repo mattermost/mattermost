@@ -12,9 +12,9 @@ import {
 import {logout, loadMe, loadMeREST} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
-import {getBool, isCollapsedThreadsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
+import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {ChannelTypes} from 'mattermost-redux/action_types';
@@ -65,7 +65,7 @@ export function emitChannelClickEvent(channel: Channel) {
         const currentChannelId = getCurrentChannelId(state);
         const previousRhsState = getPreviousRhsState(state);
 
-        dispatch(getChannelStats(chan.id));
+        dispatch(getChannelStats(chan.id, true));
 
         const penultimate = LocalStorageStore.getPreviousChannelName(userId, teamId);
         const penultimateType = LocalStorageStore.getPreviousViewedType(userId, teamId);
@@ -352,7 +352,7 @@ export async function redirectUserToDefaultTeam() {
     // Assume we need to load the user if they don't have any team memberships loaded or the user loaded
     let user = getCurrentUser(state);
     const shouldLoadUser = Utils.isEmptyObject(getTeamMemberships(state)) || !user;
-
+    const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
     if (shouldLoadUser) {
         if (isGraphQLEnabled(state)) {
             await dispatch(loadMe());
@@ -367,11 +367,20 @@ export async function redirectUserToDefaultTeam() {
         return;
     }
 
+    // if the user is the first admin
+    const isUserFirstAdmin = isFirstAdmin(state);
+
     const locale = getCurrentLocale(state);
     const teamId = LocalStorageStore.getPreviousTeamId(user.id);
 
     let myTeams = getMyTeams(state);
-    if (myTeams.length === 0) {
+    const teams = getActiveTeamsList(state);
+    if (teams.length === 0) {
+        if (isUserFirstAdmin && onboardingFlowEnabled) {
+            getHistory().push('/preparing-workspace');
+            return;
+        }
+
         getHistory().push('/select_team');
         return;
     }

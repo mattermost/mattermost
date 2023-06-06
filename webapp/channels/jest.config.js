@@ -5,7 +5,7 @@
 
 const config = {
     snapshotSerializers: ['enzyme-to-json/serializer'],
-    testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
+    testPathIgnorePatterns: ['/node_modules/'],
     clearMocks: true,
     collectCoverageFrom: [
         'actions/src/**/*.{js,jsx,ts,tsx}',
@@ -17,7 +17,6 @@ const config = {
         'selectors/src/**/*.{js,jsx,ts,tsx}',
         'stores/src/**/*.{js,jsx,ts,tsx}',
         'utils/src/**/*.{js,jsx,ts,tsx}',
-        '!e2e/**',
     ],
     coverageReporters: ['lcov', 'text-summary'],
     moduleNameMapper: {
@@ -27,7 +26,6 @@ const config = {
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',
-        '^reselect$': '<rootDir>/src/packages/reselect/src',
         '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
             'identity-obj-proxy',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',

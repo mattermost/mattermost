@@ -14,7 +14,7 @@ import {mockStateStore, wrapIntl} from 'src/testUtils'
 import RHSChannelBoards from './rhsChannelBoards'
 
 jest.mock('src/octoClient')
-const mockedOctoClient = mocked(octoClient, true)
+const mockedOctoClient = mocked(octoClient)
 
 describe('components/rhsChannelBoards', () => {
     const board1 = createBoard()
@@ -44,7 +44,7 @@ describe('components/rhsChannelBoards', () => {
         users: {
             me: {
                 id: 'user-id',
-                permissions: ['create_post']
+                permissions: ['create_post'],
             },
         },
         language: {
@@ -115,7 +115,7 @@ describe('components/rhsChannelBoards', () => {
     })
 
     it('renders the RHS for channel boards, no add', async () => {
-        const localState = {...state, users: {me:{id: 'user-id'}}}
+        const localState = {...state, users: {me: {id: 'user-id'}}}
         const store = mockStateStore([thunk], localState)
         let container: Element | DocumentFragment | null = null
         await act(async () => {
@@ -133,7 +133,7 @@ describe('components/rhsChannelBoards', () => {
     })
 
     it('renders with empty list of boards, cannot add', async () => {
-        const localState = {...state, users: {me:{id: 'user-id'}}, boards: {...state.boards, boards: {}}}
+        const localState = {...state, users: {me: {id: 'user-id'}}, boards: {...state.boards, boards: {}}}
         const store = mockStateStore([thunk], localState)
 
         let container: Element | DocumentFragment | null = null

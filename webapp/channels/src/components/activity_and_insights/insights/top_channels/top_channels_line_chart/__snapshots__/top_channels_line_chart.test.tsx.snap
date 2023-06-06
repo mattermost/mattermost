@@ -222,7 +222,7 @@ exports[`components/activity_and_insights/insights/top_channels should match sna
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Top Channels"
-              id="analytics.system.totalBotPosts"
+              id="analytics.system.topChannels"
             />
           }
         >
@@ -237,7 +237,7 @@ exports[`components/activity_and_insights/insights/top_channels should match sna
               >
                 <FormattedMessage
                   defaultMessage="Top Channels"
-                  id="analytics.system.totalBotPosts"
+                  id="analytics.system.topChannels"
                 >
                   <span>
                     Top Channels

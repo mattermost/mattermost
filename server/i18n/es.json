@@ -3140,10 +3140,6 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch ya fue iniciado."
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "No se pudo crear el procesador a granel de Elasticsearch."
   },
@@ -8976,20 +8972,12 @@
     "translation": "El tamaño del lote de indexación masiva de Elasticsearch debe ser al menos de {{.BatchSize}}."
   },
   {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Recibiste este correo electrónico único porque tu servidor Mattermost estuvo inactivo durante más de {{.Hours}} horas. Este correo electrónico fue generado automáticamente por tu servidor Mattermost."
-  },
-  {
     "id": "api.custom_groups.no_remote_id",
     "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "No se pudo obtener el estado de finalización de inducción."
-  },
-  {
-    "id": "Boards",
-    "translation": " "
   },
   {
     "id": "app.custom_group.unique_name",
@@ -9060,26 +9048,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.server_inactivity_button",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "¡Ven y dale un vistazo!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Hey {{.Name}}, notamos que tu servidor Mattermost está acumulando algo de polvo. Da un vistazo a algunas características que pueden aligerar la carga de trabajo de tu equipo."
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": " "
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "No se pudo obtener todos los jobs por tipo y estado."
   },
@@ -9114,14 +9082,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Los ajustes de Búsqueda Elástica tienen valores no establecidos."
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "¡Ven y abre Mattermost para aumentar la productividad de tu equipo!"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -9208,10 +9168,6 @@
     "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName}}"
   },
   {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.title",
     "translation": "¡Ahora estás actualizado!"
   },
@@ -9225,14 +9181,6 @@
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": " "
-  },
-  {
-    "id": "Playbooks",
-    "translation": " "
-  },
-  {
-    "id": "Channels",
     "translation": " "
   },
   {
@@ -9488,10 +9436,6 @@
     "translation": "No es posible obtener los DMs principales para el usuario."
   },
   {
-    "id": "app.plugin.product_mode.app_error",
-    "translation": "El plugin {{.Name}} no se pudo activar en el modo producto."
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "No es posible enviar la publicación de notificación."
   },
@@ -9546,5 +9490,9 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
+  },
+  {
+    "id": "api.command_templates.name",
+    "translation": "plantillas"
   }
 ]

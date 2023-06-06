@@ -13,12 +13,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/config"
 )
 
 type TestHelper struct {
@@ -36,9 +36,7 @@ type TestHelper struct {
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
 
-	tempWorkspace            string
-	boardsProductEnvValue    string
-	playbooksDisableEnvValue string
+	tempWorkspace string
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
@@ -53,17 +51,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if configSet != nil {
 		configSet(memoryConfig)
 	}
-
-	// disable Boards through the feature flag
-	boardsProductEnvValue := os.Getenv("MM_FEATUREFLAGS_BoardsProduct")
-	os.Unsetenv("MM_FEATUREFLAGS_BoardsProduct")
-	memoryConfig.FeatureFlags.BoardsProduct = false
-
-	// disable Playbooks (temporarily) as it causes many more mocked methods to get
-	// called, and cannot receieve a mocked database.
-	playbooksDisableEnvValue := os.Getenv("MM_DISABLE_PLAYBOOKS")
-	os.Setenv("MM_DISABLE_PLAYBOOKS", "true")
-
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -95,20 +83,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:                      app.New(app.ServerConnector(s.Channels())),
-		Context:                  request.EmptyContext(testLogger),
-		Server:                   s,
-		LogBuffer:                buffer,
-		TestLogger:               testLogger,
-		IncludeCacheLayer:        includeCacheLayer,
-		boardsProductEnvValue:    boardsProductEnvValue,
-		playbooksDisableEnvValue: playbooksDisableEnvValue,
+		App:               app.New(app.ServerConnector(s.Channels())),
+		Context:           request.EmptyContext(testLogger),
+		Server:            s,
+		LogBuffer:         buffer,
+		TestLogger:        testLogger,
+		IncludeCacheLayer: includeCacheLayer,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
@@ -157,6 +143,7 @@ func setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadBoardsMigrationsIfNeeded()
 
 	return setupTestHelper(dbStore, false, true, tb, nil)
 }
@@ -389,17 +376,6 @@ func (th *TestHelper) shutdownApp() {
 }
 
 func (th *TestHelper) tearDown() {
-	// reset board and playbooks product setting to original
-	if th.boardsProductEnvValue != "" {
-		os.Setenv("MM_FEATUREFLAGS_BoardsProduct", th.boardsProductEnvValue)
-	}
-
-	if th.playbooksDisableEnvValue != "" {
-		os.Setenv("MM_DISABLE_PLAYBOOKS", th.playbooksDisableEnvValue)
-	} else {
-		os.Unsetenv("MM_DISABLE_PLAYBOOKS")
-	}
-
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()

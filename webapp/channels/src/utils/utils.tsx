@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import React, {LinkHTMLAttributes} from 'react';
 import {FormattedMessage, IntlShape} from 'react-intl';
 
@@ -13,6 +11,8 @@ import moment from 'moment';
 import type {Locale} from 'date-fns';
 
 import {getName} from 'country-list';
+
+import {isNil} from 'lodash';
 
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
 
@@ -30,7 +30,6 @@ import {
     getChannel,
     getChannelsNameMapInTeam,
     getMyChannelMemberships,
-    getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, getTeammateNameDisplaySetting, Theme, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -38,10 +37,6 @@ import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/s
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 import {
-    getCurrentRelativeTeamUrl,
-    getCurrentTeam,
-    getCurrentTeamId,
-    getTeam,
     getTeamByName,
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
@@ -50,14 +45,9 @@ import {
 import {addUserToTeam} from 'actions/team_actions';
 import {searchForTerm} from 'actions/post_actions';
 import {getHistory} from 'utils/browser_history';
+import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import {isDesktopApp} from 'utils/user_agent';
-import bing from 'sounds/bing.mp3';
-import crackle from 'sounds/crackle.mp3';
-import down from 'sounds/down.mp3';
-import hello from 'sounds/hello.mp3';
-import ripple from 'sounds/ripple.mp3';
-import upstairs from 'sounds/upstairs.mp3';
 import {t} from 'utils/i18n';
 import store from 'stores/redux_store.jsx';
 
@@ -90,14 +80,23 @@ const CLICKABLE_ELEMENTS = [
     'audio',
     'video',
 ];
+const MS_PER_SECOND = 1000;
+const MS_PER_MINUTE = 60 * MS_PER_SECOND;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
 
-export function isMac() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+export enum TimeInformation {
+    MILLISECONDS = 'm',
+    SECONDS = 's',
+    MINUTES = 'x',
+    HOURS = 'h',
+    DAYS = 'd',
+    FUTURE = 'f',
+    PAST = 'p'
 }
 
-export function isLinux() {
-    return navigator.platform.toUpperCase().indexOf('LINUX') >= 0;
-}
+export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
+export type TimeDirection = TimeInformation.FUTURE | TimeInformation.PAST;
 
 export function createSafeId(prop: {props: {defaultMessage: string}} | string): string | undefined {
     let str = '';
@@ -111,42 +110,14 @@ export function createSafeId(prop: {props: {defaultMessage: string}} | string): 
     return str.replace(new RegExp(' ', 'g'), '_');
 }
 
-export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAlt = false) {
-    if (allowAlt) {
-        return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
-    }
-    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
-}
-
-export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [string, number]) {
-    // There are two types of keyboards
-    // 1. English with different layouts(Ex: Dvorak)
-    // 2. Different language keyboards(Ex: Russian)
-
-    if (event.keyCode === Constants.KeyCodes.COMPOSING[1]) {
-        return false;
-    }
-
-    // checks for event.key for older browsers and also for the case of different English layout keyboards.
-    if (typeof event.key !== 'undefined' && event.key !== 'Unidentified' && event.key !== 'Dead') {
-        const isPressedByCode = event.key === key[0] || event.key === key[0].toUpperCase();
-        if (isPressedByCode) {
-            return true;
-        }
-    }
-
-    // used for different language keyboards to detect the position of keys
-    return event.keyCode === key[1];
-}
-
 /**
  * check keydown event for line break combo. Should catch alt/option + enter not all browsers except Safari
  */
 export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEvent): boolean {
     return Boolean(
-        isKeyPressed(e, Constants.KeyCodes.ENTER) &&
+        Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 
@@ -169,83 +140,6 @@ export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElemen
     return newValue;
 }
 
-export function isInRole(roles: string, inRole: string): boolean {
-    if (roles) {
-        const parts = roles.split(' ');
-        for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === inRole) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-export function getTeamRelativeUrl(team: Team) {
-    if (!team) {
-        return '';
-    }
-
-    return '/' + team.name;
-}
-
-export function getPermalinkURL(state: GlobalState, teamId: Team['id'], postId: Post['id']): string {
-    let team = getTeam(state, teamId);
-    if (!team) {
-        team = getCurrentTeam(state);
-    }
-    return `${getTeamRelativeUrl(team)}/pl/${postId}`;
-}
-
-export function getChannelURL(state: GlobalState, channel: Channel, teamId: string): string {
-    let notificationURL;
-    if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
-        notificationURL = getCurrentRelativeTeamUrl(state) + '/channels/' + channel.name;
-    } else if (channel) {
-        const team = getTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + '/channels/' + channel.name;
-    } else if (teamId) {
-        const team = getTeam(state, teamId);
-        const redirectChannel = getRedirectChannelNameForTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + `/channels/${redirectChannel}`;
-    } else {
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        notificationURL = getCurrentRelativeTeamUrl(state) + `/channels/${redirectChannel}`;
-    }
-    return notificationURL;
-}
-
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
-]);
-
-let canDing = true;
-export function ding(name: string) {
-    if (hasSoundOptions() && canDing) {
-        tryNotificationSound(name);
-        canDing = false;
-        setTimeout(() => {
-            canDing = true;
-        }, 3000);
-    }
-}
-
-export function tryNotificationSound(name: string) {
-    const audio = new Audio(notificationSounds.get(name) ?? notificationSounds.get('Bing'));
-    audio.play();
-}
-
-export function hasSoundOptions() {
-    return (!UserAgent.isEdge());
-}
-
 export function getDateForUnixTicks(ticks: number): Date {
     return new Date(ticks);
 }
@@ -256,13 +150,45 @@ export function getTimestamp(): number {
 }
 
 export function getRemainingDaysFromFutureTimestamp(timestamp?: number): number {
-    const MS_PER_DAY = 24 * 60 * 60 * 1000;
     const futureDate = new Date(timestamp as number);
     const utcFuture = Date.UTC(futureDate.getFullYear(), futureDate.getMonth(), futureDate.getDate());
     const today = new Date();
     const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
     return Math.floor((utcFuture - utcToday) / MS_PER_DAY);
+}
+
+export function addTimeToTimestamp(timestamp: number, type: TimeUnit, diff: number, timeline: TimeDirection) {
+    let modifier = 1;
+    switch (type) {
+    case TimeInformation.SECONDS:
+        modifier = MS_PER_SECOND;
+        break;
+    case TimeInformation.MINUTES:
+        modifier = MS_PER_MINUTE;
+        break;
+    case TimeInformation.HOURS:
+        modifier = MS_PER_HOUR;
+        break;
+    case TimeInformation.DAYS:
+        modifier = MS_PER_DAY;
+        break;
+    }
+
+    return timeline === TimeInformation.FUTURE ? timestamp + (diff * modifier) : timestamp - (diff * modifier);
+}
+
+/**
+ * Verifies if a date is in a particular given range of days from today
+ * @param timestamp date you want to check is in the range of the provided number of days from today
+ * @param days number of days you want to check your date against to
+ * @param timeline 'f' represents future, 'p' represents past
+ * @returns boolean, true if your date is in the range of the provided number of days
+ */
+export function isDateWithinDaysRange(timestamp: number, days: number, timeline: TimeDirection): boolean {
+    const today = new Date().getTime();
+    const daysSince = Math.round((today - timestamp) / MS_PER_DAY);
+    return timeline === TimeInformation.PAST ? daysSince <= days : daysSince >= days;
 }
 
 export function getLocaleDateFromUTC(timestamp: number, format = 'YYYY/MM/DD HH:mm:ss', userTimezone = '') {
@@ -480,7 +406,6 @@ export function applyTheme(theme: Theme) {
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
@@ -541,7 +466,6 @@ export function applyTheme(theme: Theme) {
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
     }
 
@@ -714,12 +638,12 @@ function changeCss(className: string, classValue: string) {
     }
 }
 
-function updateCodeTheme(userTheme: string) {
+function updateCodeTheme(codeTheme: string) {
     let cssPath = '';
     Constants.THEME_ELEMENTS.forEach((element) => {
         if (element.id === 'codeTheme') {
-            (element.themes as any).forEach((theme: Theme) => {
-                if (userTheme === theme.id) {
+            element.themes?.forEach((theme) => {
+                if (codeTheme === theme.id) {
                     cssPath = theme.cssURL!;
                 }
             });
@@ -1335,6 +1259,9 @@ export function localizeMessage(id: string, defaultMessage?: string) {
     return translations[id];
 }
 
+/**
+ * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
+ */
 export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
     const base = localizeMessage(id, defaultMessage);
 
@@ -1366,11 +1293,13 @@ export function getPasswordConfig(config: Partial<ClientConfig>) {
 
 export function isValidPassword(password: string, passwordConfig: ReturnType<typeof getPasswordConfig>, intl?: IntlShape) {
     let errorId = t('user.settings.security.passwordError');
+    const telemetryErrorIds = [];
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
 
     if (password.length < minimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
         valid = false;
+        telemetryErrorIds.push({field: 'password', rule: 'error_length'});
     }
 
     if (passwordConfig.requireLowercase) {
@@ -1379,6 +1308,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Lowercase';
+        telemetryErrorIds.push({field: 'password', rule: 'lowercase'});
     }
 
     if (passwordConfig.requireUppercase) {
@@ -1387,6 +1317,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Uppercase';
+        telemetryErrorIds.push({field: 'password', rule: 'uppercase'});
     }
 
     if (passwordConfig.requireNumber) {
@@ -1395,6 +1326,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Number';
+        telemetryErrorIds.push({field: 'password', rule: 'number'});
     }
 
     if (passwordConfig.requireSymbol) {
@@ -1403,6 +1335,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         }
 
         errorId += 'Symbol';
+        telemetryErrorIds.push({field: 'password', rule: 'symbol'});
     }
 
     let error;
@@ -1430,7 +1363,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
         );
     }
 
-    return {valid, error};
+    return {valid, error, telemetryErrorIds};
 }
 
 function isChannelOrPermalink(link: string) {
@@ -1728,6 +1661,26 @@ function isSelection() {
     return selection!.type === 'Range';
 }
 
+export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
+    const {id} = e.target as HTMLElement;
+
+    const isTypingInPost = id === 'post_textbox';
+    const isTypingInReply = id === 'reply_textbox';
+
+    if (!isTypingInPost && !isTypingInReply) {
+        return false;
+    }
+
+    const {
+        selectionStart,
+        selectionEnd,
+    } = e.target as TextboxElement;
+
+    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+
+    return hasSelection;
+}
+
 /*
  * Returns false when the element clicked or its ancestors
  * is a potential click target (link, button, image, etc..)
@@ -1828,9 +1781,14 @@ export function getRoleForTrackFlow() {
     return {started_by_role: startedByRole};
 }
 
-export function getRoleFromTrackFlow() {
+export function getSbr() {
     const params = new URLSearchParams(window.location.search);
     const sbr = params.get('sbr') ?? '';
+    return sbr;
+}
+
+export function getRoleFromTrackFlow() {
+    const sbr = getSbr();
     const startedByRole = TrackFlowRoles[sbr] ?? '';
 
     return {started_by_role: startedByRole};

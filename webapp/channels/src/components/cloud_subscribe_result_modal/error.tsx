@@ -13,9 +13,8 @@ import PaymentFailedSvg from 'components/common/svg_images_components/payment_fa
 import IconMessage from 'components/purchase_modal/icon_message';
 
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 
-import {InquiryType} from 'selectors/cloud';
 import {closeModal} from 'actions/views/modals';
 import {ModalIdentifiers} from 'utils/constants';
 import {isModalOpen} from 'selectors/views/modals';
@@ -31,7 +30,8 @@ type Props = {
 function ErrorModal(props: Props) {
     const dispatch = useDispatch();
     const subscriptionProduct = useSelector(getSubscriptionProduct);
-    const openContactUs = useOpenSalesLink(undefined, InquiryType.Technical);
+
+    const [openContactSupport] = useOpenCloudZendeskSupportForm('Cloud Subscription', '');
 
     const isSuccessModalOpen = useSelector((state: GlobalState) =>
         isModalOpen(state, ModalIdentifiers.ERROR_MODAL),
@@ -97,7 +97,7 @@ function ErrorModal(props: Props) {
                             }
                         />
                     }
-                    tertiaryButtonHandler={openContactUs}
+                    tertiaryButtonHandler={openContactSupport}
                     buttonHandler={onBackButtonPress}
                     className={'success'}
                 />

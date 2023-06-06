@@ -9,7 +9,7 @@ const config = {
         '^@mattermost/(components)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
-        '^reselect$': '<rootDir>/../channels/src/packages/reselect/src',
+        '^mattermost-redux/(.*)$': '<rootDir>/../channels/src/packages/mattermost-redux/src/$1',
         '^src/(.*)$': '<rootDir>/src/$1',
     },
     testEnvironment: 'jsdom',

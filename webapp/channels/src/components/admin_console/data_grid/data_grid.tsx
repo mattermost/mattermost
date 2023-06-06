@@ -82,7 +82,7 @@ class DataGrid extends React.PureComponent<Props, State> {
     static defaultProps = {
         term: '',
         searchPlaceholder: '',
-    }
+    };
 
     public constructor(props: Props) {
         super(props);
@@ -134,7 +134,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         });
 
         this.setState({visibleColumns});
-    }
+    };
 
     private renderRows(): JSX.Element {
         const {rows, rowsContainerStyles} = this.props;
@@ -219,19 +219,19 @@ class DataGrid extends React.PureComponent<Props, State> {
         if (!this.props.loading) {
             this.props.nextPage();
         }
-    }
+    };
 
     private previousPage = () => {
         if (!this.props.loading) {
             this.props.previousPage();
         }
-    }
+    };
 
     private search = (term: string) => {
         if (this.props.onSearch) {
             this.props.onSearch(term);
         }
-    }
+    };
 
     private renderFooter = (): JSX.Element | null => {
         const {startCount, endCount, total} = this.props;
@@ -286,7 +286,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         }
 
         return footer;
-    }
+    };
 
     public render() {
         return (

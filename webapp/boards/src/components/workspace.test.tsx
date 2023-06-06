@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, waitFor} from '@testing-library/react'
+import {
+    act,
+    fireEvent,
+    render,
+    screen,
+} from '@testing-library/react'
 import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {MemoryRouter} from 'react-router-dom'
 import {mocked} from 'jest-mock'
-
-import userEvent from '@testing-library/user-event'
 
 import thunk from 'redux-thunk'
 
@@ -17,7 +20,7 @@ import {
     mockDOM,
     mockMatchMedia,
     mockStateStore,
-    wrapDNDIntl
+    wrapDNDIntl,
 } from 'src/testUtils'
 import {Constants} from 'src/constants'
 import {Utils} from 'src/utils'
@@ -29,9 +32,11 @@ jest.useFakeTimers()
 jest.mock('src/utils')
 jest.mock('src/octoClient')
 jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
-const mockedUtils = mocked(Utils, true)
-const mockedOctoClient = mocked(octoClient, true)
+const mockedUtils = mocked(Utils)
+const mockedOctoClient = mocked(octoClient)
 const board = TestBlockFactory.createBoard()
+
+// TODO fix TestBlockFactory ID generation: mocked Utils.createGuid() returns undefined
 board.id = 'board1'
 board.teamId = 'team-id'
 board.cardProperties = [
@@ -96,6 +101,9 @@ const me: IUser = {
 }
 
 const categoryAttribute1 = TestBlockFactory.createCategoryBoards()
+
+// TODO fix TestBlockFactory ID generation: mocked Utils.createGuid() returns undefined
+categoryAttribute1.id = 'categoryAttributeId1'
 categoryAttribute1.name = 'Category 1'
 categoryAttribute1.boardMetadata = [{boardID: board.id, hidden: false}]
 
@@ -107,6 +115,7 @@ jest.mock('react-router-dom', () => {
         useRouteMatch: jest.fn(() => {
             return {
                 params: {
+                    teamId: board.teamId,
                     boardId: board.id,
                     viewId: activeView.id,
                 },
@@ -229,7 +238,7 @@ describe('src/components/workspace', () => {
             const cardElements = container!.querySelectorAll('.KanbanCard')
             expect(cardElements).toBeDefined()
             const cardElement = cardElements[0]
-            userEvent.click(cardElement)
+            fireEvent.click(cardElement)
         })
         expect(container).toMatchSnapshot()
     })
@@ -247,7 +256,7 @@ describe('src/components/workspace', () => {
             const cardElements = container!.querySelectorAll('.KanbanCard')
             expect(cardElements).toBeDefined()
             const cardElement = cardElements[0]
-            userEvent.click(cardElement)
+            fireEvent.click(cardElement)
         })
         expect(container).toMatchSnapshot()
         expect(mockedUtils.getReadToken).toBeCalledTimes(1)
@@ -508,21 +517,18 @@ describe('src/components/workspace', () => {
         }
         const localStore = mockStateStore([thunk], localState)
 
+        render(wrapDNDIntl(
+            <ReduxProvider store={localStore}>
+                <Workspace readonly={false}/>
+            </ReduxProvider>,
+        ), {wrapper: MemoryRouter})
+
         await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={localStore}>
-                    <Workspace readonly={false}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
+            jest.runOnlyPendingTimers()
         })
 
-        jest.runOnlyPendingTimers()
-
-        await waitFor(() => expect(document.querySelectorAll('.AddViewTourStep')).toBeDefined(), {timeout: 5000})
-
-        const elements = document.querySelectorAll('.AddViewTourStep')
-        expect(elements.length).toBe(2)
-        expect(elements[1]).toMatchSnapshot()
+        const element = await screen.findByRole('tooltip')
+        expect(element).toMatchSnapshot()
     })
 
     test('show copy link tooltip', async () => {

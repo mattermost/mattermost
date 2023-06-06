@@ -52,18 +52,18 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
         {
             skinName: Emoji.SkinTranslations.get(skin),
         });
-    }
+    };
 
     hideSkinTonePicker = (skin: string) => {
         this.setState({pickerExtended: false});
         if (skin !== this.props.userSkinTone) {
             this.props.onSkinSelected(skin);
         }
-    }
+    };
 
     showSkinTonePicker = () => {
         this.setState({pickerExtended: true});
-    }
+    };
 
     extended() {
         const closeButtonLabel = this.props.intl.formatMessage({

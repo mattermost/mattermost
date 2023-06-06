@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit'
+import {PayloadAction, createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 
 import {ClientConfig} from 'src/config/clientConfig'
 

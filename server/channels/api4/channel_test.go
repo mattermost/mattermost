@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/server/v8/channels/utils/testutils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -250,6 +250,15 @@ func TestUpdateChannel(t *testing.T) {
 	_, resp, err = client.UpdateChannel(directChannel)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	t.Run("null value", func(t *testing.T) {
+		r, err := client.DoAPIPut(fmt.Sprintf("/channels"+"/%v", channel.Id), "null")
+		resp := model.BuildResponse(r)
+		defer closeBody(r)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchChannel(t *testing.T) {
@@ -859,13 +868,22 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channels, 4, "wrong path")
 
-	for i, c := range channels {
+	var foundPublicChannel1, foundPublicChannel2 bool
+	for _, c := range channels {
 		// check all channels included are open
 		require.Equal(t, model.ChannelTypeOpen, c.Type, "should include open channel only")
 
 		// only check the created 2 public channels
-		require.False(t, i < 2 && !(c.DisplayName == publicChannel1.DisplayName || c.DisplayName == publicChannel2.DisplayName), "should match public channel display name")
+		switch c.DisplayName {
+		case publicChannel1.DisplayName:
+			foundPublicChannel1 = true
+		case publicChannel2.DisplayName:
+			foundPublicChannel2 = true
+		}
 	}
+
+	require.True(t, foundPublicChannel1, "failed to find publicChannel1")
+	require.True(t, foundPublicChannel2, "failed to find publicChannel2")
 
 	privateChannel := th.CreatePrivateChannel()
 	channels, _, err = client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
@@ -1135,9 +1153,14 @@ func TestGetAllChannels(t *testing.T) {
 		require.NoError(t, err)
 		beforeCount := len(channels)
 
-		firstChannel := channels[0].Channel
+		deletedChannel := channels[0].Channel
 
-		_, err = client.DeleteChannel(firstChannel.Id)
+		// Never try to delete the default channel
+		if deletedChannel.Name == "town-square" {
+			deletedChannel = channels[1].Channel
+		}
+
+		_, err = client.DeleteChannel(deletedChannel.Id)
 		require.NoError(t, err)
 
 		channels, _, err = client.GetAllChannels(0, 10000, "")
@@ -1147,7 +1170,7 @@ func TestGetAllChannels(t *testing.T) {
 		}
 		require.NoError(t, err)
 		require.Len(t, channels, beforeCount-1)
-		require.NotContains(t, ids, firstChannel.Id)
+		require.NotContains(t, ids, deletedChannel.Id)
 
 		channels, _, err = client.GetAllChannelsIncludeDeleted(0, 10000, "")
 		ids = []string{}
@@ -1156,7 +1179,7 @@ func TestGetAllChannels(t *testing.T) {
 		}
 		require.NoError(t, err)
 		require.True(t, len(channels) > beforeCount)
-		require.Contains(t, ids, firstChannel.Id)
+		require.Contains(t, ids, deletedChannel.Id)
 	})
 
 	_, resp, err := client.GetAllChannels(0, 20, "")
@@ -4140,6 +4163,12 @@ func TestGetChannelModerations(t *testing.T) {
 		scheme.DefaultChannelGuestRole = ""
 
 		mockStore := mocks.Store{}
+
+		// Playbooks DB job requires a plugin mock
+		pluginStore := mocks.PluginStore{}
+		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		mockStore.On("Plugin").Return(&pluginStore)
+
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
@@ -4282,6 +4311,12 @@ func TestPatchChannelModerations(t *testing.T) {
 		scheme.DefaultChannelGuestRole = ""
 
 		mockStore := mocks.Store{}
+
+		// Playbooks DB job requires a plugin mock
+		pluginStore := mocks.PluginStore{}
+		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		mockStore.On("Plugin").Return(&pluginStore)
+
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
 		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
@@ -4340,7 +4375,6 @@ func TestPatchChannelModerations(t *testing.T) {
 			require.Equal(t, moderation.Roles.Members.Enabled, true)
 		}
 	})
-
 }
 
 func TestGetChannelMemberCountsByGroup(t *testing.T) {

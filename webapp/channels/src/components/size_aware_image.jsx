@@ -86,7 +86,7 @@ export default class SizeAwareImage extends React.PureComponent {
          * Prevents display of utility buttons when image in a location that makes them inappropriate
          */
         hideUtilities: PropTypes.bool,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -113,11 +113,11 @@ export default class SizeAwareImage extends React.PureComponent {
 
     dimensionsAvailable = (dimensions) => {
         return dimensions && dimensions.width && dimensions.height;
-    }
+    };
 
     isSmallImage = (width, height) => {
         return width < MIN_IMAGE_SIZE || height < MIN_IMAGE_SIZE;
-    }
+    };
 
     handleLoad = (event) => {
         if (this.mounted) {
@@ -147,13 +147,13 @@ export default class SizeAwareImage extends React.PureComponent {
 
     handleImageClick = (e) => {
         this.props.onClick?.(e, this.props.src);
-    }
+    };
 
     onEnterKeyDown = (e) => {
         if (e.key === 'Enter') {
             this.handleImageClick(e);
         }
-    }
+    };
 
     renderImageLoaderIfNeeded = () => {
         if (!this.state.loaded && this.props.showLoader && !this.state.error) {
@@ -166,7 +166,7 @@ export default class SizeAwareImage extends React.PureComponent {
             );
         }
         return null;
-    }
+    };
 
     renderImageWithContainerIfNeeded = () => {
         const {
@@ -369,7 +369,7 @@ export default class SizeAwareImage extends React.PureComponent {
                 {utilityButtonsWrapper}
             </figure>
         );
-    }
+    };
 
     renderImageOrFallback = () => {
         const {
@@ -437,7 +437,7 @@ export default class SizeAwareImage extends React.PureComponent {
                 </div>
             </React.Fragment>
         );
-    }
+    };
 
     isInternalImage = (this.props.fileInfo !== undefined) && (this.props.fileInfo !== null);
 
@@ -450,7 +450,7 @@ export default class SizeAwareImage extends React.PureComponent {
         this.timeout = setTimeout(() => {
             this.setState({linkCopiedRecently: false, linkCopyInProgress: false});
         }, 1500);
-    }
+    };
 
     copyLinkToAsset = () => {
         // if linkCopyInProgress is true return
@@ -472,7 +472,7 @@ export default class SizeAwareImage extends React.PureComponent {
                 this.startCopyTimer();
             });
         }
-    }
+    };
 
     render() {
         return (

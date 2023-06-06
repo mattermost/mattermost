@@ -66,7 +66,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent {
          * Whether to allow configuration of the default post icon.
          */
         enablePostIconOverride: PropTypes.bool.isRequired,
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -104,7 +104,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent {
             username: hook.username || '',
             iconURL: hook.icon_url || '',
         };
-    }
+    };
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -180,61 +180,61 @@ export default class AbstractOutgoingWebhook extends React.PureComponent {
         };
 
         this.props.action(hook).then(() => this.setState({saving: false}));
-    }
+    };
 
     updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value,
         });
-    }
+    };
 
     updateDescription = (e) => {
         this.setState({
             description: e.target.value,
         });
-    }
+    };
 
     updateContentType = (e) => {
         this.setState({
             contentType: e.target.value,
         });
-    }
+    };
 
     updateChannelId = (e) => {
         this.setState({
             channelId: e.target.value,
         });
-    }
+    };
 
     updateTriggerWords = (e) => {
         this.setState({
             triggerWords: e.target.value,
         });
-    }
+    };
 
     updateTriggerWhen = (e) => {
         this.setState({
             triggerWhen: e.target.value,
         });
-    }
+    };
 
     updateCallbackUrls = (e) => {
         this.setState({
             callbackUrls: e.target.value,
         });
-    }
+    };
 
     updateUsername = (e) => {
         this.setState({
             username: e.target.value,
         });
-    }
+    };
 
     updateIconURL = (e) => {
         this.setState({
             iconURL: e.target.value,
         });
-    }
+    };
 
     render() {
         const contentTypeOption1 = 'application/x-www-form-urlencoded';
@@ -249,7 +249,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent {
                 <BackstageHeader>
                     <Link to={`/${this.props.team.name}/integrations/outgoing_webhooks`}>
                         <FormattedMessage
-                            id='installed_outgoing_webhooks.header'
+                            id='add_outgoing_webhook.header'
                             defaultMessage='Outgoing Webhooks'
                         />
                     </Link>

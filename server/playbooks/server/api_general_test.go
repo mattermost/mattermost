@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"net/http"
@@ -11,8 +11,7 @@ import (
 )
 
 func TestAPI(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateClients()
 
 	t.Run("404", func(t *testing.T) {

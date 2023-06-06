@@ -16,7 +16,7 @@ import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
 import AppCommandProvider from 'components/suggestion/command_provider/app_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
-import EmoticonProvider from 'components/suggestion/emoticon_provider.jsx';
+import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list.jsx';
@@ -44,6 +44,7 @@ export type Props = {
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
+    onFocus?: (e: FocusEvent<TextboxElement>) => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
     onPaste?: (e: ClipboardEvent) => void;
@@ -60,6 +61,7 @@ export type Props = {
     currentTeamId: string;
     preview?: boolean;
     autocompleteGroups: Array<{ id: string }> | null;
+    delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
         autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
@@ -112,7 +114,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
                 priorityProfiles: this.props.priorityProfiles,
             }),
-            new ChannelMentionProvider(props.actions.autocompleteChannels),
+            new ChannelMentionProvider(props.actions.autocompleteChannels, props.delayChannelAutocomplete),
             new EmoticonProvider(),
         );
 
@@ -132,7 +134,7 @@ export default class Textbox extends React.PureComponent<Props> {
 
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.props.onChange(e);
-    }
+    };
 
     updateSuggestions(prevProps: Props) {
         if (this.props.channelId !== prevProps.channelId ||
@@ -179,6 +181,16 @@ export default class Textbox extends React.PureComponent<Props> {
             }
         }
 
+        if (this.props.delayChannelAutocomplete !== prevProps.delayChannelAutocomplete) {
+            for (const provider of this.suggestionProviders) {
+                if (provider instanceof ChannelMentionProvider) {
+                    provider.setProps({
+                        delayChannelAutocomplete: this.props.delayChannelAutocomplete,
+                    });
+                }
+            }
+        }
+
         if (prevProps.value !== this.props.value) {
             this.checkMessageLength(this.props.value);
         }
@@ -209,13 +221,13 @@ export default class Textbox extends React.PureComponent<Props> {
                 this.props.handlePostError(null);
             }
         }
-    }
+    };
 
     // adding in the HTMLDivElement to support event handling in preview state
     handleKeyDown = (e: KeyboardEvent<TextboxElement | HTMLDivElement>) => {
         // since we do only handle the sending when in preview mode this is fine to be casted
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
-    }
+    };
 
     handleSelect = (e: React.SyntheticEvent<TextboxElement>) => this.props.onSelect?.(e);
 
@@ -227,11 +239,11 @@ export default class Textbox extends React.PureComponent<Props> {
     handleBlur = (e: FocusEvent<TextboxElement | HTMLDivElement>) => {
         // since we do only handle the sending when in preview mode this is fine to be casted
         this.props.onBlur?.(e as FocusEvent<TextboxElement>);
-    }
+    };
 
     getInputBox = () => {
         return this.message.current?.getTextbox();
-    }
+    };
 
     focus = () => {
         const textbox = this.getInputBox();
@@ -245,7 +257,7 @@ export default class Textbox extends React.PureComponent<Props> {
             // reset character count warning
             this.checkMessageLength(textbox.value);
         }
-    }
+    };
 
     blur = () => {
         this.getInputBox()?.blur();
@@ -253,7 +265,7 @@ export default class Textbox extends React.PureComponent<Props> {
 
     getStyle = () => {
         return this.props.preview ? HIDDEN : VISIBLE;
-    }
+    };
 
     render() {
         let preview = null;
@@ -312,6 +324,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     onKeyUp={this.handleKeyUp}
                     onComposition={this.props.onComposition}
                     onBlur={this.handleBlur}
+                    onFocus={this.props.onFocus}
                     onHeightChange={this.props.onHeightChange}
                     onWidthChange={this.props.onWidthChange}
                     onPaste={this.props.onPaste}

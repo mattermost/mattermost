@@ -9,7 +9,7 @@ import {shallow} from 'enzyme';
 
 import Carousel from 'components/common/carousel/carousel';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
@@ -33,6 +33,12 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         entities: {
             users: {
                 currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {
+                        id: 'current_user_id',
+                        roles: '',
+                    },
+                },
             },
             admin: {
                 analytics: {

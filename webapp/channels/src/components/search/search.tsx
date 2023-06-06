@@ -11,7 +11,7 @@ import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import * as Keyboard from 'utils/keyboard';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import SearchHint from 'components/search_hint/search_hint';
@@ -109,7 +109,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         }
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (Utils.cmdOrCtrlPressed(e) && Utils.isKeyPressed(e, Constants.KeyCodes.F)) {
+            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F)) {
                 if (!isDesktop && !e.shiftKey) {
                     return;
                 }

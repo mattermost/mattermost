@@ -20,7 +20,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <MemoizedFormattedMessage
             defaultMessage="Button Text"
-            id="test"
+            id="test2"
           />
         </LoadingWrapper>
       </button>
@@ -30,7 +30,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <MemoizedFormattedMessage
         defaultMessage="Help Text"
-        id="test"
+        id="test1"
       />
     </div>
   </div>
@@ -42,7 +42,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   buttonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Button Text"
-      id="test"
+      id="test2"
     />
   }
   disabled={false}
@@ -55,7 +55,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   helpText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Help Text"
-      id="test"
+      id="test1"
     />
   }
   includeDetailedError={true}
@@ -103,7 +103,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           >
             <FormattedMessage
               defaultMessage="Button Text"
-              id="test"
+              id="test2"
             >
               <span>
                 Button Text
@@ -154,7 +154,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
       >
         <FormattedMessage
           defaultMessage="Help Text"
-          id="test"
+          id="test1"
         >
           <span>
             Help Text
@@ -171,7 +171,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   buttonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Button Text"
-      id="test"
+      id="test2"
     />
   }
   disabled={false}
@@ -184,7 +184,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   helpText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Help Text"
-      id="test"
+      id="test1"
     />
   }
   includeDetailedError={false}
@@ -240,7 +240,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           >
             <FormattedMessage
               defaultMessage="Button Text"
-              id="test"
+              id="test2"
             >
               <span>
                 Button Text
@@ -291,7 +291,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
       >
         <FormattedMessage
           defaultMessage="Help Text"
-          id="test"
+          id="test1"
         >
           <span>
             Help Text
@@ -308,7 +308,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   buttonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Button Text"
-      id="test"
+      id="test2"
     />
   }
   disabled={false}
@@ -321,7 +321,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   helpText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Help Text"
-      id="test"
+      id="test1"
     />
   }
   includeDetailedError={false}
@@ -369,7 +369,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           >
             <FormattedMessage
               defaultMessage="Button Text"
-              id="test"
+              id="test2"
             >
               <span>
                 Button Text
@@ -413,7 +413,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
       >
         <FormattedMessage
           defaultMessage="Help Text"
-          id="test"
+          id="test1"
         >
           <span>
             Help Text
@@ -430,7 +430,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   buttonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Button Text"
-      id="test"
+      id="test2"
     />
   }
   disabled={false}
@@ -443,7 +443,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
   helpText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Help Text"
-      id="test"
+      id="test1"
     />
   }
   includeDetailedError={false}
@@ -499,7 +499,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           >
             <FormattedMessage
               defaultMessage="Button Text"
-              id="test"
+              id="test2"
             >
               <span>
                 Button Text
@@ -513,7 +513,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
       >
         <FormattedMessage
           defaultMessage="Help Text"
-          id="test"
+          id="test1"
         >
           <span>
             Help Text

@@ -17,7 +17,7 @@ type Props = {
 export default class CloseChannel extends React.PureComponent<Props> {
     private handleClose = () => {
         this.props.actions.goToLastViewedChannel();
-    }
+    };
 
     render() {
         return (

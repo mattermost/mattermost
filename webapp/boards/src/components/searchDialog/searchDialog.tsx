@@ -4,7 +4,7 @@ import React, {
     ReactNode,
     useEffect,
     useMemo,
-    useState
+    useState,
 } from 'react'
 
 import './searchDialog.scss'

@@ -3,7 +3,6 @@
 
 import React from 'react'
 import {fireEvent, render} from '@testing-library/react'
-import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
 
@@ -189,9 +188,9 @@ test('should match snapshot, edit title', async () => {
     )
 
     const input = getByTitle(/value 1/)
-    act(() => {
-        userEvent.click(input)
-        userEvent.keyboard('{enter}')
+    await act(async () => {
+        await userEvent.click(input)
+        await userEvent.keyboard('{Enter}')
     })
 
     expect(container).toMatchSnapshot()

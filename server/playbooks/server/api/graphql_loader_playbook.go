@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/graph-gophers/dataloader/v7"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 )
 
 type playbookInfo struct {

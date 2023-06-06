@@ -65,11 +65,11 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
 
     handleFormSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
         return this.handleSubmit(e);
-    }
+    };
 
     handleSaveButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): Promise<void> => {
         return this.handleSubmit(e);
-    }
+    };
 
     handleSubmit = async (e: SyntheticEvent<unknown>): Promise<void> => {
         const {actions, emojiMap, user, team} = this.props;

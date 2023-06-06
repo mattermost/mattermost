@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost-server/server/v8/config"
 )
 
 const (
@@ -39,8 +39,14 @@ func (p *productB) Start() error { return nil }
 func (p *productB) Stop() error  { return nil }
 
 func TestInitializeProducts(t *testing.T) {
-	ps, err := platform.New(platform.ServiceConfig{ConfigStore: config.NewTestMemoryStore()})
+	configStore := config.NewTestMemoryStore()
+	memoryConfig := configStore.Get()
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+	configStore.Set(memoryConfig)
+
+	ps, err := platform.New(platform.ServiceConfig{ConfigStore: configStore})
 	require.NoError(t, err)
+	defer ps.Shutdown()
 
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
@@ -147,25 +153,5 @@ func TestInitializeProducts(t *testing.T) {
 		err := server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
 		require.Len(t, server.products, 2)
-	})
-
-	t.Run("boards product to be blocked", func(t *testing.T) {
-		products := map[string]product.Manifest{
-			"productA": {
-				Initializer: newProductA,
-			},
-			"boards": {
-				Initializer: newProductB,
-			},
-		}
-
-		server := &Server{
-			products: make(map[string]product.Product),
-			platform: ps,
-		}
-
-		err := server.initializeProducts(products, map[product.ServiceKey]any{})
-		require.NoError(t, err)
-		require.Len(t, server.products, 1)
 	})
 }

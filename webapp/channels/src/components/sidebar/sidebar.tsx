@@ -19,6 +19,7 @@ import {ModalData} from 'types/actions';
 import {RhsState} from 'types/store/rhs';
 
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
@@ -52,7 +53,6 @@ type Props = {
     canCreateCustomGroups: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
-    showWorkTemplateButton: boolean;
 };
 
 type State = {
@@ -95,18 +95,18 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.clearChannelSelection();
-    }
+    };
 
     handleKeyDownEvent = (event: KeyboardEvent) => {
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ESCAPE)) {
             this.props.actions.clearChannelSelection();
             return;
         }
 
-        const ctrlOrMetaKeyPressed = Utils.cmdOrCtrlPressed(event, true);
+        const ctrlOrMetaKeyPressed = Keyboard.cmdOrCtrlPressed(event, true);
 
         if (ctrlOrMetaKeyPressed) {
-            if (Utils.isKeyPressed(event, Constants.KeyCodes.FORWARD_SLASH)) {
+            if (Keyboard.isKeyPressed(event, Constants.KeyCodes.FORWARD_SLASH)) {
                 event.preventDefault();
                 if (this.props.isKeyBoardShortcutModalOpen) {
                     this.props.actions.closeModal(ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL);
@@ -116,7 +116,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         dialogType: KeyboardShortcutsModal,
                     });
                 }
-            } else if (Utils.isKeyPressed(event, Constants.KeyCodes.A) && event.shiftKey) {
+            } else if (Keyboard.isKeyPressed(event, Constants.KeyCodes.A) && event.shiftKey) {
                 event.preventDefault();
 
                 this.props.actions.openModal({
@@ -128,16 +128,16 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 });
             }
         }
-    }
+    };
 
     showMoreDirectChannelsModal = () => {
         this.setState({showDirectChannelsModal: true});
         trackEvent('ui', 'ui_channels_more_direct_v2');
-    }
+    };
 
     hideMoreDirectChannelsModal = () => {
         this.setState({showDirectChannelsModal: false});
-    }
+    };
 
     showCreateCategoryModal = () => {
         this.props.actions.openModal({
@@ -145,11 +145,11 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: EditCategoryModal,
         });
         trackEvent('ui', 'ui_sidebar_menu_createCategory');
-    }
+    };
 
     handleCreateCategory = (categoryName: string) => {
         this.props.actions.createCategory(this.props.teamId, categoryName);
-    }
+    };
 
     showMoreChannelsModal = () => {
         this.props.actions.openModal({
@@ -158,7 +158,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogProps: {morePublicChannelsModalType: 'public'},
         });
         trackEvent('ui', 'ui_channels_more_public_v2');
-    }
+    };
 
     invitePeopleModal = () => {
         this.props.actions.openModal({
@@ -166,7 +166,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: InvitationModal,
         });
         trackEvent('ui', 'ui_channels_dropdown_invite_people');
-    }
+    };
 
     showNewChannelModal = () => {
         this.props.actions.openModal({
@@ -175,7 +175,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         });
         this.closeEditRHS();
         trackEvent('ui', 'ui_channels_create_channel_v2');
-    }
+    };
 
     showCreateUserGroupModal = () => {
         this.props.actions.openModal({
@@ -183,7 +183,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             dialogType: CreateUserGroupsModal,
         });
         trackEvent('ui', 'ui_channels_create_user_group');
-    }
+    };
 
     handleOpenMoreDirectChannelsModal = (e: Event) => {
         e.preventDefault();
@@ -193,15 +193,15 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             this.showMoreDirectChannelsModal();
             this.closeEditRHS();
         }
-    }
+    };
 
     onDragStart = () => {
         this.setState({isDragging: true});
-    }
+    };
 
     onDragEnd = () => {
         this.setState({isDragging: false});
-    }
+    };
 
     renderModals = () => {
         let moreDirectChannelsModal;
@@ -219,7 +219,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 {moreDirectChannelsModal}
             </React.Fragment>
         );
-    }
+    };
 
     closeEditRHS = () => {
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
@@ -255,7 +255,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         unreadFilterEnabled={this.props.unreadFilterEnabled}
                         userGroupsEnabled={this.props.userGroupsEnabled}
                         canCreateCustomGroups={this.props.canCreateCustomGroups}
-                        showWorkTemplateButton={this.props.showWorkTemplateButton}
                     />
                 )}
                 <div

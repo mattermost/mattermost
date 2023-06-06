@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
 )
 
 func TestCondenseSiteURL(t *testing.T) {
@@ -408,7 +408,6 @@ func TestMailServiceConfig(t *testing.T) {
 					LoginButtonColor:                  new(string),
 					LoginButtonBorderColor:            new(string),
 					LoginButtonTextColor:              new(string),
-					EnableInactivityEmail:             new(bool),
 				},
 			}
 		},

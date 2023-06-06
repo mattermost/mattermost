@@ -10,19 +10,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/client"
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/server"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/auth"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/config"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/localpermissions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/permissions/mmpermissions"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/server/boards/utils"
+	"github.com/mattermost/mattermost-server/server/v8/boards/client"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/server"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/auth"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/localpermissions"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/mmpermissions"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/sqlstore"
+	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 
 	"github.com/stretchr/testify/require"
 )
@@ -384,6 +384,11 @@ func (th *TestHelper) TearDown() {
 	}
 
 	err := th.Server.Shutdown()
+	if err != nil {
+		panic(err)
+	}
+
+	err = th.Server.Store().Shutdown()
 	if err != nil {
 		panic(err)
 	}

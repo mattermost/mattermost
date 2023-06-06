@@ -9,9 +9,7 @@ import {Overlay} from 'react-bootstrap';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {Team, TeamMembership} from '@mattermost/types/teams';
-
 import {UserProfile} from '@mattermost/types/users';
-
 import {ServerError} from '@mattermost/types/errors';
 
 import {adminResetMfa, adminResetEmail} from 'actions/admin_actions.jsx';
@@ -30,11 +28,11 @@ import SaveButton from 'components/save_button';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
 import Tooltip from 'components/tooltip';
-
 import TeamList from 'components/admin_console/system_user_detail/team_list';
 import EmailIcon from 'components/widgets/icons/email_icon';
 import AtIcon from 'components/widgets/icons/at_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import './system_user_detail.scss';
 
@@ -108,11 +106,11 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
         this.setState({teams});
         this.setState({teamIds});
         this.setState({refreshTeams: false});
-    }
+    };
 
     openAddTeam = (): void => {
         this.setState({addTeamOpen: true});
-    }
+    };
 
     addTeams = (teams: Team[]): void => {
         const promises = [];
@@ -120,63 +118,63 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             promises.push(this.props.actions.addUserToTeam(team.id, this.props.user.id));
         }
         Promise.all(promises).finally(() => this.setState({refreshTeams: true}));
-    }
+    };
 
     closeAddTeam = (): void => {
         this.setState({addTeamOpen: false});
-    }
+    };
 
     doPasswordReset = (user: UserProfile): void => {
         this.setState({
             showPasswordModal: true,
             user,
         });
-    }
+    };
 
     doPasswordResetDismiss = (): void => {
         this.setState({
             showPasswordModal: false,
         });
-    }
+    };
 
     doPasswordResetSubmit = (): void => {
         this.setState({
             showPasswordModal: false,
         });
-    }
+    };
 
     handleMakeActive = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         this.props.actions.updateUserActive(this.props.user.id, true).
             then((data) => this.onUpdateActiveResult(data.error));
-    }
+    };
 
     handleShowDeactivateMemberModal = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         this.setState({showDeactivateMemberModal: true});
-    }
+    };
 
     handleDeactivateMember = (): void => {
         this.props.actions.updateUserActive(this.props.user.id, false).
             then((data) => this.onUpdateActiveResult(data.error));
         this.setState({showDeactivateMemberModal: false});
-    }
+    };
 
     onUpdateActiveResult = (error: ServerError): void => {
         if (error) {
             this.setState({error});
         }
-    }
+    };
 
     handleDeactivateCancel = (): void => {
         this.setState({showDeactivateMemberModal: false});
-    }
+    };
 
     // TODO: add error handler function
     handleResetMfa = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
         adminResetMfa(this.props.user.id, null, null);
-    }
+    };
 
     handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const emailChanged = e.target.value !== this.props.user.email;
@@ -187,7 +185,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             saveNeeded: emailChanged,
         });
         this.props.actions.setNavigationBlocked(emailChanged);
-    }
+    };
 
     handleSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e.preventDefault();
@@ -220,7 +218,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             });
             this.props.actions.setNavigationBlocked(false);
         }
-    }
+    };
 
     renderDeactivateMemberModal = (user: UserProfile): React.ReactNode => {
         const title = (
@@ -279,7 +277,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                 onCancel={this.handleDeactivateCancel}
             />
         );
-    }
+    };
 
     renderActivateDeactivate = (): React.ReactNode => {
         if (this.props.user.delete_at > 0) {
@@ -302,7 +300,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                 {Utils.localizeMessage('admin.user_item.makeInactive', 'Deactivate')}
             </AdminButtonOutline>
         );
-    }
+    };
 
     renderRemoveMFA = (): React.ReactNode => {
         if (this.props.user.mfa_active) {
@@ -317,7 +315,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             );
         }
         return null;
-    }
+    };
 
     getAuthenticationText(): string {
         const {user, mfaEnabled} = this.props;
@@ -365,7 +363,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
 
         return (
             <div className='SystemUserDetail wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/users'
@@ -376,7 +374,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                             defaultMessage='User Configuration'
                         />
                     </div>
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <AdminUserCard

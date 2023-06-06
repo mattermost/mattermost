@@ -44,6 +44,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with about link 1
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="About"
               id="web.footer.about"
             />
           </ExternalLink>
@@ -98,6 +99,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="About"
               id="web.footer.about"
             />
           </ExternalLink>
@@ -109,6 +111,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="Privacy Policy"
               id="web.footer.privacy"
             />
           </ExternalLink>
@@ -120,6 +123,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="Terms"
               id="web.footer.terms"
             />
           </ExternalLink>
@@ -131,6 +135,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with all links 1`
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="Help"
               id="web.footer.help"
             />
           </ExternalLink>
@@ -231,6 +236,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with help link 1`
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="Help"
               id="web.footer.help"
             />
           </ExternalLink>
@@ -285,6 +291,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with privacy poli
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="Privacy Policy"
               id="web.footer.privacy"
             />
           </ExternalLink>
@@ -339,6 +346,7 @@ exports[`components/HeaderFooterTemplate should match snapshot with term of serv
             location="header_footer_template"
           >
             <MemoizedFormattedMessage
+              defaultMessage="Terms"
               id="web.footer.terms"
             />
           </ExternalLink>

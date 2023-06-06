@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"encoding/json"
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,8 +16,7 @@ func TestTrialLicences(t *testing.T) {
 	// This test is flaky due to upstream connectivity issues.
 	t.Skip()
 
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("request trial license without permissions", func(t *testing.T) {

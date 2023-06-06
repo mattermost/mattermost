@@ -6,6 +6,7 @@ import {Client4} from 'mattermost-redux/client';
 import * as Channels from 'mattermost-redux/selectors/entities/channels';
 import * as Teams from 'mattermost-redux/selectors/entities/teams';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -55,7 +56,7 @@ const initialState = {
             roles: {
                 custom_role: {
                     permissions: [
-                        'sysconsole_read_plugins',
+                        Permissions.SYSCONSOLE_WRITE_PLUGINS,
                     ],
                 },
             },

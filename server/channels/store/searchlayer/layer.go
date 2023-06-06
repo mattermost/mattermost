@@ -7,10 +7,10 @@ import (
 	"context"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
 )
 
 type SearchStore struct {
@@ -21,7 +21,7 @@ type SearchStore struct {
 	channel      *SearchChannelStore
 	post         *SearchPostStore
 	fileInfo     *SearchFileInfoStore
-	configValue  atomic.Value
+	configValue  atomic.Pointer[model.Config]
 }
 
 func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) *SearchStore {
@@ -44,7 +44,7 @@ func (s *SearchStore) UpdateConfig(cfg *model.Config) {
 }
 
 func (s *SearchStore) getConfig() *model.Config {
-	return s.configValue.Load().(*model.Config)
+	return s.configValue.Load()
 }
 
 func (s *SearchStore) Channel() store.ChannelStore {

@@ -1,7 +1,6 @@
 .BoardPage {
     position: relative;
 
-    .CloudMessage:not(:first-child),
     .VersionMessage:not(:first-child) {
         position: absolute;
         top: 0;

@@ -377,6 +377,39 @@ export function useEnsureProfiles(userIds: string[]) {
     }, [userIds]);
 }
 
+export function useOpenStartTrialFormModal() {
+    const dispatch = useDispatch();
+
+    // @ts-ignore
+    if (!window.WebappUtils?.modals?.openModal || !window.WebappUtils?.modals?.ModalIdentifiers?.START_TRIAL_FORM_MODAL || !window.Components?.StartTrialFormModal) {
+        // eslint-disable-next-line no-console
+        console.error('unable to open cloud modal');
+
+        return () => {
+            /*do nothing*/
+        };
+    }
+
+    // @ts-ignore
+    const {openModal, ModalIdentifiers} = window.WebappUtils.modals;
+
+    // @ts-ignore
+    const TrialModal = window.Components.StartTrialFormModal;
+
+    return (page?: string, onClose?: () => void) => {
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.START_TRIAL_FORM_MODAL,
+                dialogType: TrialModal,
+                dialogProps: {
+                    page,
+                    onClose,
+                },
+            }),
+        );
+    };
+}
+
 export function useOpenCloudModal() {
     const dispatch = useDispatch();
     const isServerCloud = useSelector(isCloud);

@@ -42,11 +42,11 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
         }
         this.props.actions.deleteChannel(this.props.channel.id);
         this.onHide();
-    }
+    };
 
     onHide = () => {
         this.setState({show: false});
-    }
+    };
 
     render() {
         const {canViewArchivedChannels} = this.props;

@@ -9,6 +9,7 @@ import {General} from 'mattermost-redux/constants';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import ProfilePopover from 'components/profile_popover/profile_popover';
+import {checkUserInCall} from 'components/profile_popover';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -282,5 +283,54 @@ describe('components/ProfilePopover', () => {
         );
         expect(wrapper.find('ProfilePopoverCallButton').exists()).toBe(true);
         expect(wrapper).toMatchSnapshot();
+    });
+});
+
+describe('checkUserInCall', () => {
+    test('missing state', () => {
+        expect(checkUserInCall({
+            'plugins-com.mattermost.calls': {},
+        } as any, 'userA')).toBe(false);
+    });
+
+    test('call state missing', () => {
+        expect(checkUserInCall({
+            'plugins-com.mattermost.calls': {
+                voiceConnectedProfiles: {
+                    channelID: null,
+                },
+            },
+        } as any, 'userA')).toBe(false);
+    });
+
+    test('user not in call', () => {
+        expect(checkUserInCall({
+            'plugins-com.mattermost.calls': {
+                voiceConnectedProfiles: {
+                    channelID: [
+                        {
+                            id: 'userB',
+                        },
+                    ],
+                },
+            },
+        } as any, 'userA')).toBe(false);
+    });
+
+    test('user in call', () => {
+        expect(checkUserInCall({
+            'plugins-com.mattermost.calls': {
+                voiceConnectedProfiles: {
+                    channelID: [
+                        {
+                            id: 'userB',
+                        },
+                        {
+                            id: 'userA',
+                        },
+                    ],
+                },
+            },
+        } as any, 'userA')).toBe(true);
     });
 });

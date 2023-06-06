@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/server/public/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -324,6 +324,20 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			map[string]string{
 				"ExperimentalSharedChannels": "true",
+			},
+		},
+		{
+			"Default Playbooks Enabled",
+			&model.Config{
+				ProductSettings: model.ProductSettings{},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: "other",
+			},
+			map[string]string{
+				"EnablePlaybooks": "true",
 			},
 		},
 	}

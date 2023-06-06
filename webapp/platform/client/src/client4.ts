@@ -26,12 +26,14 @@ import {
     CreateSubscriptionRequest,
     Feedback,
     WorkspaceDeletionRequest,
+    NewsletterRequestBody,
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
     SelfHostedSignupCustomerResponse,
     SelfHostedSignupSuccessResponse,
     SelfHostedSignupBootstrapResponse,
+    SelfHostedExpansionRequest,
 } from '@mattermost/types/hosted_customer';
 import {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 
@@ -138,8 +140,6 @@ import {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
 import {LeastActiveChannelsResponse, TopChannelResponse, TopReactionResponse, TopThreadResponse, TopDMsResponse} from '@mattermost/types/insights';
 
-import {Category, ExecuteWorkTemplateRequest, ExecuteWorkTemplateResponse, WorkTemplate} from '@mattermost/types/work_templates';
-
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import {TelemetryHandler} from './telemetry';
@@ -152,7 +152,7 @@ const HEADER_USER_AGENT = 'User-Agent';
 export const HEADER_X_CLUSTER_ID = 'X-Cluster-Id';
 const HEADER_X_CSRF_TOKEN = 'X-CSRF-Token';
 export const HEADER_X_VERSION_ID = 'X-Version-Id';
-
+const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
 export const DEFAULT_LIMIT_BEFORE = 30;
@@ -337,31 +337,6 @@ export default class Client4 {
 
     getCommandsRoute() {
         return `${this.getBaseRoute()}/commands`;
-    }
-
-    getBaseWorkTemplate() {
-        return `${this.getBaseRoute()}/worktemplates`;
-    }
-
-    getWorkTemplateCategories = () => {
-        return this.doFetch<Category[]>(
-            `${this.getBaseWorkTemplate()}/categories`,
-            {method: 'get'},
-        );
-    }
-
-    getWorkTemplates = (categoryId: string) => {
-        return this.doFetch<WorkTemplate[]>(
-            `${this.getBaseWorkTemplate()}/categories/${categoryId}/templates`,
-            {method: 'get'},
-        );
-    }
-
-    executeWorkTemplate = (req: ExecuteWorkTemplateRequest) => {
-        return this.doFetch<ExecuteWorkTemplateResponse>(
-            `${this.getBaseWorkTemplate()}/execute`,
-            {method: 'post', body: JSON.stringify(req)},
-        );
     }
 
     getFilesRoute() {
@@ -1782,9 +1757,10 @@ export default class Client4 {
         );
     };
 
-    getChannelStats = (channelId: string) => {
+    getChannelStats = (channelId: string, excludeFilesCount = false) => {
+        const param = excludeFilesCount ? `?exclude_files_count=${excludeFilesCount}` : '';
         return this.doFetch<ChannelStats>(
-            `${this.getChannelRoute(channelId)}/stats`,
+            `${this.getChannelRoute(channelId)}/stats${param}`,
             {method: 'get'},
         );
     };
@@ -2437,6 +2413,7 @@ export default class Client4 {
     ping = () => {
         return this.doFetch<{
             status: string;
+            ActiveSearchBackend: string;
         }>(
             `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
             {method: 'get'},
@@ -3016,6 +2993,13 @@ export default class Client4 {
         return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs/query`,
             {method: 'post', body: JSON.stringify(logFilter)},
+        );
+    };
+
+    getPlainLogs = (page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+        return this.doFetch<string[]>(
+            `${this.getBaseRoute()}/logs${buildQueryString({page, logs_per_page: perPage})}`,
+            {method: 'get'},
         );
     };
 
@@ -3892,6 +3876,21 @@ export default class Client4 {
         );
     };
 
+
+    confirmSelfHostedExpansion = (setupIntentId: string, expandRequest: SelfHostedExpansionRequest) => {
+        return this.doFetch<SelfHostedSignupSuccessResponse>(
+            `${this.getHostedCustomerRoute()}/confirm-expand`,
+            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: setupIntentId, expand_request: expandRequest})},
+        );
+    }
+
+    subscribeToNewsletter = (newletterRequestBody: NewsletterRequestBody) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHostedCustomerRoute()}/subscribe-newsletter`,
+            {method: 'post', body: JSON.stringify(newletterRequestBody)},
+        );
+    };
+
     createPaymentMethod = async () => {
         return this.doFetch(
             `${this.getCloudRoute()}/payment`,
@@ -4149,7 +4148,7 @@ export default class Client4 {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',
                 url,
-            });
+            }, err);
         }
 
         if (headers.has(HEADER_X_VERSION_ID) && !headers.get('Cache-Control')) {
@@ -4254,7 +4253,7 @@ export default class Client4 {
     }
 
     cwsAvailabilityCheck = () => {
-        return this.doFetch<StatusOK>(
+        return this.doFetchWithResponse(
             `${this.getCloudRoute()}/check-cws-connection`,
             {method: 'get'},
         );
@@ -4292,8 +4291,8 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
 
-    constructor(baseUrl: string, data: ServerError) {
-        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''));
+    constructor(baseUrl: string, data: ServerError, cause?: any) {
+        super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
 
         this.message = data.message;
         this.url = data.url;

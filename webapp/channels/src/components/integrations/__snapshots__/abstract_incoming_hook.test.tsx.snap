@@ -10,7 +10,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -43,7 +43,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="testIncomingWebhook"
@@ -76,7 +76,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
             value="testing"
@@ -107,8 +107,8 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
             selectPrivate={true}
             value="88cxd9wpzpbpfp8pad78xj75pr"
@@ -172,7 +172,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           <input
             className="form-control"
             id="username"
-            maxLength="22"
+            maxLength={22}
             onChange={[Function]}
             type="text"
             value=""
@@ -205,7 +205,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           <input
             className="form-control"
             id="iconURL"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             type="text"
             value=""
@@ -271,7 +271,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -304,7 +304,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="testIncomingWebhook"
@@ -337,7 +337,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
             value="testing"
@@ -368,8 +368,8 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
             selectPrivate={true}
             value="88cxd9wpzpbpfp8pad78xj75pr"
@@ -433,7 +433,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           <input
             className="form-control"
             id="username"
-            maxLength="22"
+            maxLength={22}
             onChange={[Function]}
             type="text"
             value=""
@@ -466,7 +466,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           <input
             className="form-control"
             id="iconURL"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             type="text"
             value=""
@@ -532,7 +532,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -565,7 +565,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value=""
@@ -598,7 +598,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
             value=""
@@ -629,8 +629,8 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
             selectPrivate={true}
             value=""
@@ -694,7 +694,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="username"
-            maxLength="22"
+            maxLength={22}
             onChange={[Function]}
             type="text"
             value=""
@@ -727,7 +727,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="iconURL"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             type="text"
             value=""
@@ -796,7 +796,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -829,7 +829,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="testIncomingWebhook"
@@ -862,7 +862,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
             value="testing"
@@ -893,8 +893,8 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
             selectPrivate={true}
             value="88cxd9wpzpbpfp8pad78xj75pr"
@@ -958,7 +958,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="username"
-            maxLength="22"
+            maxLength={22}
             onChange={[Function]}
             type="text"
             value=""
@@ -1024,7 +1024,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -1057,7 +1057,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="testIncomingWebhook"
@@ -1090,7 +1090,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
             value="testing"
@@ -1121,8 +1121,8 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
             selectPrivate={true}
             value="88cxd9wpzpbpfp8pad78xj75pr"
@@ -1186,7 +1186,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="iconURL"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             type="text"
             value=""
@@ -1252,7 +1252,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
     >
       <MemoizedFormattedMessage
         defaultMessage="Incoming Webhooks"
-        id="installed_incoming_webhooks.header"
+        id="incoming_webhooks.header"
       />
     </Link>
     <MemoizedFormattedMessage
@@ -1285,7 +1285,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="displayName"
-            maxLength="64"
+            maxLength={64}
             onChange={[Function]}
             type="text"
             value="testIncomingWebhook"
@@ -1318,7 +1318,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="description"
-            maxLength="500"
+            maxLength={500}
             onChange={[Function]}
             type="text"
             value="testing"
@@ -1349,8 +1349,8 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           className="col-md-5 col-sm-8"
         >
           <Connect(ChannelSelect)
-            id="channelId"
             onChange={[Function]}
+            selectDm={false}
             selectOpen={true}
             selectPrivate={true}
             value="88cxd9wpzpbpfp8pad78xj75pr"
@@ -1414,7 +1414,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="username"
-            maxLength="22"
+            maxLength={22}
             onChange={[Function]}
             type="text"
             value=""
@@ -1447,7 +1447,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           <input
             className="form-control"
             id="iconURL"
-            maxLength="1024"
+            maxLength={1024}
             onChange={[Function]}
             type="text"
             value=""

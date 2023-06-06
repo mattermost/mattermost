@@ -3132,10 +3132,6 @@
     "translation": "無法解碼搜尋結果"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch 已啟動"
-  },
-  {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "建立 Elasticsearch 批次處理器時失敗"
   },
@@ -7246,10 +7242,6 @@
   {
     "id": "api.back_to_app",
     "translation": "返回至 {{.SiteName}}"
-  },
-  {
-    "id": "Channels",
-    "translation": "頻道"
   },
   {
     "id": "api.cloud.app_error",

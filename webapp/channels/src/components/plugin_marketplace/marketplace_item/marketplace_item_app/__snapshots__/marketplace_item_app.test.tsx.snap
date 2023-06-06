@@ -11,7 +11,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -50,7 +50,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render installed a
     }
     button={
       <button
-        className="btn btn-outline"
+        className="app-installed"
         disabled={true}
       >
         <Memo(MemoizedFormattedMessage)
@@ -83,7 +83,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -123,7 +123,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -164,7 +164,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -202,7 +202,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -240,7 +240,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -288,7 +288,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -328,7 +328,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >
@@ -381,7 +381,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
     }
     button={
       <button
-        className="btn btn-primary"
+        className="app-install always-show-enabled"
         disabled={false}
         onClick={[Function]}
       >

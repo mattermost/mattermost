@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {
+    act,
     fireEvent,
     render,
     screen,
     within,
-    act
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -29,7 +29,14 @@ jest.mock('react-router-dom', () => {
     return {
         ...originalModule,
         useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
+            return {
+                params: {
+                    teamId: 'team1',
+                    boardId: 'boardId1',
+                    viewId: 'viewId1',
+                    cardId: 'cardId1',
+                },
+            }
         }),
     }
 })
@@ -38,9 +45,9 @@ jest.mock('src/octoClient')
 jest.mock('src/mutator')
 jest.mock('src/telemetry/telemetryClient')
 jest.mock('draft-js/lib/generateRandomKey', () => () => '123')
-const mockedUtils = mocked(Utils, true)
-const mockedMutator = mocked(Mutator, true)
-const mockedOctoClient = mocked(octoClient, true)
+const mockedUtils = mocked(Utils)
+const mockedMutator = mocked(Mutator)
+const mockedOctoClient = mocked(octoClient)
 mockedUtils.createGuid.mockReturnValue('test-id')
 mockedUtils.generateClassName = jest.requireActual('src/utils').Utils.generateClassName
 describe('components/centerPanel', () => {
@@ -234,7 +241,7 @@ describe('components/centerPanel', () => {
         expect(container).toMatchSnapshot()
     })
     describe('return centerPanel and', () => {
-        test('select one card and click background', () => {
+        test('select one card and click background', async () => {
             activeView.fields.viewType = 'table'
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -255,13 +262,13 @@ describe('components/centerPanel', () => {
             //select card
             const cardElement = screen.getByRole('textbox', {name: 'card1'})
             expect(cardElement).not.toBeNull()
-            userEvent.click(cardElement, {shiftKey: true})
+            fireEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //background
             const boardElement = container.querySelector('.BoardComponent')
             expect(boardElement).not.toBeNull()
-            userEvent.click(boardElement!)
+            fireEvent.click(boardElement!)
             expect(container).toMatchSnapshot()
         })
 
@@ -288,7 +295,7 @@ describe('components/centerPanel', () => {
             expect(container).toMatchSnapshot()
         })
 
-        test('press touch esc for one card selected', () => {
+        test('press touch esc for one card selected', async () => {
             activeView.fields.viewType = 'table'
             const {container, baseElement} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -306,11 +313,9 @@ describe('components/centerPanel', () => {
                 </ReduxProvider>,
             ))
 
-            act(() => {
-                const cardElement = screen.getByRole('textbox', {name: 'card1'})
-                expect(cardElement.parentNode).not.toBeNull()
-                userEvent.click(cardElement as HTMLElement, {shiftKey: true})
-            })
+            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            expect(cardElement.parentNode).not.toBeNull()
+            fireEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //escape
@@ -335,27 +340,23 @@ describe('components/centerPanel', () => {
                 </ReduxProvider>,
             ))
 
-            act(() => {
-                //select card1
-                const card1Element = screen.getByRole('textbox', {name: 'card1'})
-                expect(card1Element).not.toBeNull()
-                userEvent.click(card1Element, {shiftKey: true})
-            })
+            //select card1
+            const card1Element = screen.getByRole('textbox', {name: 'card1'})
+            expect(card1Element).not.toBeNull()
+            fireEvent.click(card1Element, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
-            act(() => {
-                //select card2
-                const card2Element = screen.getByRole('textbox', {name: 'card2'})
-                expect(card2Element).not.toBeNull()
-                userEvent.click(card2Element, {shiftKey: true, ctrlKey: true})
-            })
+            //select card2
+            const card2Element = screen.getByRole('textbox', {name: 'card2'})
+            expect(card2Element).not.toBeNull()
+            fireEvent.click(card2Element, {shiftKey: true, ctrlKey: true})
             expect(container).toMatchSnapshot()
 
             //escape
             fireEvent.keyDown(baseElement, {keyCode: 27})
             expect(container).toMatchSnapshot()
         })
-        test('press touch del for one card selected', () => {
+        test('press touch del for one card selected', async () => {
             activeView.fields.viewType = 'table'
             const {container, baseElement} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -372,19 +373,18 @@ describe('components/centerPanel', () => {
                     />
                 </ReduxProvider>,
             ))
-            act(() => {
-                const cardElement = screen.getByRole('textbox', {name: 'card1'})
-                expect(cardElement).not.toBeNull()
-                userEvent.click(cardElement, {shiftKey: true})
-            })
+            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            expect(cardElement).not.toBeNull()
+            fireEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //delete
             fireEvent.keyDown(baseElement, {keyCode: 8})
             expect(mockedMutator.performAsUndoGroup).toBeCalledTimes(1)
         })
-        test('press touch ctrl+d for one card selected', () => {
+        test('press touch ctrl+d for one card selected', async () => {
             activeView.fields.viewType = 'table'
+
             const {container, baseElement} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
                     <CenterPanel
@@ -400,18 +400,16 @@ describe('components/centerPanel', () => {
                     />
                 </ReduxProvider>,
             ))
-            act(() => {
-                const cardElement = screen.getByRole('textbox', {name: 'card1'})
-                expect(cardElement).not.toBeNull()
-                userEvent.click(cardElement, {shiftKey: true})
-            })
+            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            expect(cardElement).not.toBeNull()
+            fireEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //ctrl+d
             fireEvent.keyDown(baseElement, {ctrlKey: true, keyCode: 68})
             expect(mockedMutator.performAsUndoGroup).toBeCalledTimes(1)
         })
-        test('click on card to show card', () => {
+        test('click on card to show card', async () => {
             activeView.fields.viewType = 'board'
             const mockedShowCard = jest.fn()
             const {container} = render(wrapDNDIntl(
@@ -433,11 +431,11 @@ describe('components/centerPanel', () => {
             const kanbanCardElements = container.querySelectorAll('.KanbanCard')
             expect(kanbanCardElements).not.toBeNull()
             const kanbanCardElement = kanbanCardElements[0]
-            userEvent.click(kanbanCardElement)
+            await userEvent.click(kanbanCardElement)
             expect(container).toMatchSnapshot()
             expect(mockedShowCard).toBeCalledWith(card1.id)
         })
-        test('click on new card to add card', () => {
+        test('click on new card to add card', async () => {
             activeView.fields.viewType = 'table'
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -456,10 +454,10 @@ describe('components/centerPanel', () => {
             ))
             const buttonWithMenuElement = container.querySelector('.ButtonWithMenu')
             expect(buttonWithMenuElement).not.toBeNull()
-            userEvent.click(buttonWithMenuElement!)
+            await act(() => userEvent.click(buttonWithMenuElement!))
             expect(mockedMutator.performAsUndoGroup).toBeCalledTimes(1)
         })
-        test('click on new card to add card template', () => {
+        test('click on new card to add card template', async () => {
             activeView.fields.viewType = 'table'
             const {container} = render(wrapDNDIntl(
                 <ReduxProvider store={store}>
@@ -478,13 +476,13 @@ describe('components/centerPanel', () => {
             ))
             const elementMenuWrapper = container.querySelector('.ButtonWithMenu > div.MenuWrapper')
             expect(elementMenuWrapper).not.toBeNull()
-            userEvent.click(elementMenuWrapper!)
+            await act(() => userEvent.click(elementMenuWrapper!))
             const buttonNewTemplate = within(elementMenuWrapper!.parentElement!).getByRole('button', {name: 'New template'})
-            userEvent.click(buttonNewTemplate)
+            await act(() => userEvent.click(buttonNewTemplate))
             expect(mockedMutator.insertBlock).toBeCalledTimes(1)
         })
 
-        test('click on new card to add card from template', () => {
+        test('click on new card to add card from template', async () => {
             activeView.fields.viewType = 'table'
             activeView.fields.defaultTemplateId = '1'
             const {container} = render(wrapDNDIntl(
@@ -504,14 +502,14 @@ describe('components/centerPanel', () => {
             ))
             const elementMenuWrapper = container.querySelector('.ButtonWithMenu > div.MenuWrapper')
             expect(elementMenuWrapper).not.toBeNull()
-            userEvent.click(elementMenuWrapper!)
+            await act(() => userEvent.click(elementMenuWrapper!))
             const elementCard1 = within(elementMenuWrapper!.parentElement!).getByRole('button', {name: 'card1'})
             expect(elementCard1).not.toBeNull()
-            userEvent.click(elementCard1)
+            await act(() => userEvent.click(elementCard1))
             expect(mockedMutator.performAsUndoGroup).toBeCalledTimes(1)
         })
 
-        test('click on new card to edit template', () => {
+        test('click on new card to edit template', async () => {
             activeView.fields.viewType = 'table'
             activeView.fields.defaultTemplateId = '1'
             const {container} = render(wrapDNDIntl(
@@ -531,15 +529,15 @@ describe('components/centerPanel', () => {
             ))
             const elementMenuWrapper = container.querySelector('.ButtonWithMenu > div.MenuWrapper')
             expect(elementMenuWrapper).not.toBeNull()
-            userEvent.click(elementMenuWrapper!)
+            await act(() => userEvent.click(elementMenuWrapper!))
             const elementCard1 = within(elementMenuWrapper!.parentElement!).getByRole('button', {name: 'card1'})
             expect(elementCard1).not.toBeNull()
             const elementMenuWrapperCard1 = within(elementCard1).getByRole('button', {name: 'menuwrapper'})
             expect(elementMenuWrapperCard1).not.toBeNull()
-            userEvent.click(elementMenuWrapperCard1)
+            await act(() => userEvent.click(elementMenuWrapperCard1))
             const elementEditMenuTemplate = within(elementMenuWrapperCard1).getByRole('button', {name: 'Edit'})
             expect(elementMenuWrapperCard1).not.toBeNull()
-            userEvent.click(elementEditMenuTemplate)
+            await act(() => userEvent.click(elementEditMenuTemplate))
             expect(container).toMatchSnapshot()
         })
     })

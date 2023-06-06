@@ -7,8 +7,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal, openModal} from 'actions/views/modals';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import SelfHostedPurchaseModal from 'components/self_hosted_purchase_modal';
-import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchase_modal/constants';
+import SelfHostedPurchaseModal from 'components/self_hosted_purchases/self_hosted_purchase_modal';
+import {STORAGE_KEY_PURCHASE_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 import PurchaseInProgressModal from 'components/purchase_in_progress_modal';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -63,6 +63,7 @@ export default function useControlSelfHostedPurchaseModal(options: HookOptions):
                         dialogType: PurchaseInProgressModal,
                         dialogProps: {
                             purchaserEmail: currentUser.email,
+                            storageKey: STORAGE_KEY_PURCHASE_IN_PROGRESS,
                         },
                     }));
                     return;
@@ -86,6 +87,7 @@ export default function useControlSelfHostedPurchaseModal(options: HookOptions):
                             dialogType: PurchaseInProgressModal,
                             dialogProps: {
                                 purchaserEmail: result.email,
+                                storageKey: STORAGE_KEY_PURCHASE_IN_PROGRESS,
                             },
                         }));
                         return;

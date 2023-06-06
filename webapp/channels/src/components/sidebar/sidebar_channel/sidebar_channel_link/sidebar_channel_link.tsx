@@ -15,8 +15,9 @@ import Tooltip from 'components/tooltip';
 
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
+import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {isDesktopApp} from 'utils/user_agent';
-import {cmdOrCtrlPressed, localizeMessage} from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
@@ -109,7 +110,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         const element = this.gmItemRef.current || this.labelRef.current;
         const showTooltip = element && element.offsetWidth < element.scrollWidth;
         this.setState({showTooltip: Boolean(showTooltip)});
-    }
+    };
 
     getAriaLabel = (): string => {
         const {label, ariaLabelPrefix, unreadMentions} = this.props;
@@ -131,7 +132,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         return ariaLabel.toLowerCase();
-    }
+    };
 
     // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
     removeTooltipLink = (): void => this.gmItemRef.current?.removeAttribute?.('aria-describedby');
@@ -147,7 +148,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         setTimeout(() => {
             trackEvent('ui', 'ui_channel_selected_v2');
         }, 0);
-    }
+    };
 
     handleSelectChannel = (event: React.MouseEvent<HTMLAnchorElement>): void => {
         if (event.defaultPrevented || event.button !== 0) {
@@ -166,11 +167,11 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         } else {
             this.props.actions.clearChannelSelection();
         }
-    }
+    };
 
     handleMenuToggle = (isMenuOpen: boolean) => {
         this.setState({isMenuOpen});
-    }
+    };
 
     render(): JSX.Element {
         const {

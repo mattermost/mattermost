@@ -486,7 +486,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         }
 
         return config;
-    }
+    };
 
     getStateFromConfig(config: Props['config']) {
         const state = {
@@ -517,7 +517,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         if (element.files && element.files.length > 0) {
             this.setState({fileSelected: true, file: element.files[0]});
         }
-    }
+    };
 
     helpSubmitUpload = async (file: File, force: boolean) => {
         this.setState({uploading: true});
@@ -561,7 +561,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             uploading: false,
             loading: false,
         });
-    }
+    };
 
     handleSubmitUpload = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -575,7 +575,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             this.helpSubmitUpload(file, false);
         }
         Utils.clearFileInput(element);
-    }
+    };
 
     handleOverwriteUploadPluginCancel = () => {
         this.setState({
@@ -586,20 +586,20 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             lastMessage: null,
             uploading: false,
         });
-    }
+    };
 
     handleOverwriteUploadPlugin = () => {
         this.setState({confirmOverwriteUploadModal: false});
         if (this.state.file) {
             this.helpSubmitUpload(this.state.file, true);
         }
-    }
+    };
 
     onPluginDownloadUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({
             pluginDownloadUrl: e.target.value,
         });
-    }
+    };
 
     installFromUrl = async (force: boolean) => {
         const {pluginDownloadUrl} = this.state;
@@ -644,7 +644,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             installing: false,
             loading: false,
         });
-    }
+    };
 
     getMarketplaceURLHelpText = (url: string, enableUploads: boolean) => {
         return (
@@ -685,16 +685,16 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 }
             </div>
         );
-    }
+    };
 
     canSave = () => {
         return this.state.marketplaceUrl !== '';
-    }
+    };
 
     handleSubmitInstall = (e: React.SyntheticEvent) => {
         e.preventDefault();
         return this.installFromUrl(false);
-    }
+    };
 
     handleOverwriteInstallPluginCancel = () => {
         this.setState({
@@ -703,12 +703,12 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             serverError: null,
             lastMessage: null,
         });
-    }
+    };
 
     handleOverwriteInstallPlugin = () => {
         this.setState({confirmOverwriteInstallModal: false});
         return this.installFromUrl(true);
-    }
+    };
 
     showRemovePluginModal = (e: React.SyntheticEvent) => {
         if (this.props.isDisabled) {
@@ -717,16 +717,16 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         e.preventDefault();
         const pluginId = e.currentTarget.getAttribute('data-plugin-id');
         this.setState({showRemoveModal: true, removing: pluginId});
-    }
+    };
 
     handleRemovePluginCancel = () => {
         this.setState({showRemoveModal: false, removing: null});
-    }
+    };
 
     handleRemovePlugin = () => {
         this.setState({showRemoveModal: false});
         this.handleRemove();
-    }
+    };
 
     handleRemove = async () => {
         this.setState({lastMessage: null, serverError: null});
@@ -738,7 +738,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 this.setState({serverError: error.message});
             }
         }
-    }
+    };
 
     handleEnable = async (e: React.KeyboardEvent) => {
         e.preventDefault();
@@ -755,7 +755,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 this.setState({serverError: error.message});
             }
         }
-    }
+    };
 
     handleDisable = async (e: React.KeyboardEvent) => {
         this.setState({lastMessage: null, serverError: null});
@@ -772,7 +772,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 this.setState({serverError: error.message});
             }
         }
-    }
+    };
 
     renderTitle() {
         return (
@@ -818,7 +818,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 onCancel={onCancel}
             />
         );
-    }
+    };
 
     renderRemovePluginModal = (
         show: boolean, onConfirm: (checked: boolean) => void, onCancel: (checked: boolean) => void) => {
@@ -854,7 +854,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 onCancel={onCancel}
             />
         );
-    }
+    };
 
     renderEnablePluginsSetting = () => {
         const hideEnablePlugins = this.props.config.ExperimentalSettings && this.props.config.ExperimentalSettings.RestrictSystemAdmin;
@@ -892,7 +892,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             );
         }
         return null;
-    }
+    };
 
     renderSettings = () => {
         const {enableUploads} = this.state;
@@ -1256,5 +1256,5 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 </div>
             </div>
         );
-    }
+    };
 }

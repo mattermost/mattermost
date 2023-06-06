@@ -48,7 +48,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         };
         const {form} = this.state;
         if (!form) {
-            const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_form', defaultMessage: '`form` is not defined'});
+            const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_form', defaultMessage: '`form` is not defined.'});
             return {error: makeCallErrorResponse(makeErrorMsg(errMsg))};
         }
         if (!form.submit) {
@@ -97,7 +97,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
     refreshOnSelect = async (field: AppField, values: AppFormValues): Promise<DoAppCallResult<FormResponseData>> => {
         const makeErrMsg = (message: string) => this.props.intl.formatMessage(
             {
-                id: 'apps.error.form.refresh',
+                id: 'apps.error.form.update',
                 defaultMessage: 'There has been an error updating the modal. Contact the app developer. Details: {details}',
             },
             {details: message},
@@ -144,7 +144,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         case AppCallResponseTypes.NAVIGATE:
             return {error: makeCallErrorResponse(makeErrMsg(this.props.intl.formatMessage({
                 id: 'apps.error.responses.unexpected_type',
-                defaultMessage: 'App response type was not expected. Response type: {type}.',
+                defaultMessage: 'App response type was not expected. Response type: {type}',
             }, {
                 type: callResp.type,
             },
@@ -185,7 +185,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         creq.query = userInput;
 
         return this.props.actions.doAppLookup(creq, intl);
-    }
+    };
 
     render() {
         const {form} = this.state;

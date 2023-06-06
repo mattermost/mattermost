@@ -9,3 +9,10 @@ export function setAddChannelDropdown(open: boolean) {
         open,
     };
 }
+
+export function setAddChannelCtaDropdown(open: boolean) {
+    return {
+        type: ActionTypes.ADD_CHANNEL_CTA_DROPDOWN_TOGGLE,
+        open,
+    };
+}

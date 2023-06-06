@@ -5,19 +5,21 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {AuthorType, MarketplacePlugin, ReleaseStage} from '@mattermost/types/marketplace';
-import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import MarketplaceModal, {AllListing, InstalledListing, MarketplaceModalProps} from './marketplace_modal';
+import {GlobalState} from 'types/store';
+import {ModalIdentifiers} from 'utils/constants';
 
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
+import MarketplaceModal, {OpenedFromType} from './marketplace_modal';
+
+let mockState: GlobalState;
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux') as typeof import('react-redux'),
+    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
+    useDispatch: jest.fn(() => (action: ActionFunc) => action),
+}));
 
 describe('components/marketplace/', () => {
     const samplePlugin: MarketplacePlugin = {
@@ -52,147 +54,106 @@ describe('components/marketplace/', () => {
         installed_version: '1.0.3',
     };
 
-    describe('AllListing', () => {
-        it('should render with no plugins', () => {
-            const wrapper = shallow(
-                <AllListing listing={[]}/>,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
+    const defaultProps = {
+        openedFrom: 'actions_menu' as OpenedFromType,
+    };
 
-        it('should render with one plugin', () => {
-            const wrapper = shallow(
-                <AllListing listing={[samplePlugin]}/>,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
-
-        it('should render with plugins', () => {
-            const wrapper = shallow(
-                <AllListing listing={[samplePlugin, sampleInstalledPlugin]}/>,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
-    });
-
-    describe('InstalledPlugins', () => {
-        const baseProps = {
-            changeTab: jest.fn(),
-        };
-
-        it('should render with no plugins', () => {
-            const wrapper = shallow(
-                <InstalledListing
-                    {...baseProps}
-                    installedItems={[]}
-                />,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
-
-        it('should render with one plugin', () => {
-            const wrapper = shallow(
-                <InstalledListing
-                    {...baseProps}
-                    installedItems={[sampleInstalledPlugin]}
-                />,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
-
-        it('should render with multiple plugins', () => {
-            const wrapper = shallow(
-                <InstalledListing
-                    {...baseProps}
-                    installedItems={[sampleInstalledPlugin, sampleInstalledPlugin]}
-                />,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
-    });
-
-    describe('MarketplaceModal', () => {
-        const baseProps: MarketplaceModalProps = {
-            show: true,
-            listing: [samplePlugin],
-            installedListing: [],
-            pluginStatuses: {},
-            siteURL: 'http://example.com',
-            firstAdminVisitMarketplaceStatus: false,
-            actions: {
-                closeModal: jest.fn(),
-                fetchListing: jest.fn(() => {
-                    return Promise.resolve({});
-                }),
-                filterListing: jest.fn(() => {
-                    return Promise.resolve({});
-                }),
-                setFirstAdminVisitMarketplaceStatus: jest.fn(),
-                getPluginStatuses: jest.fn(),
+    beforeEach(() => {
+        mockState = {
+            views: {
+                modals: {
+                    modalState: {
+                        [ModalIdentifiers.PLUGIN_MARKETPLACE]: {
+                            open: true,
+                        },
+                    },
+                },
+                marketplace: {
+                    plugins: [],
+                    apps: [],
+                },
             },
-        };
+            entities: {
+                general: {
+                    firstAdminCompleteSetup: false,
+                },
+                admin: {
+                    pluginStatuses: {},
+                },
+            },
+        } as unknown as GlobalState;
+    });
 
-        test('should render with no plugins installed', () => {
-            const wrapper = shallow<MarketplaceModal>(
-                <MarketplaceModal {...baseProps}/>,
-            );
-            expect(wrapper).toMatchSnapshot();
-        });
+    test('should render default', () => {
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
 
-        test('should render with plugins installed', () => {
-            const props = {
-                ...baseProps,
-                plugins: [
-                    ...baseProps.listing,
-                    sampleInstalledPlugin,
-                ],
-                installedListing: [
-                    sampleInstalledPlugin,
-                ],
-            };
+        expect(wrapper.shallow()).toMatchSnapshot();
+    });
 
-            const wrapper = shallow<MarketplaceModal>(
-                <MarketplaceModal {...props}/>,
-            );
+    test('should render with no plugins available', () => {
+        const setState = jest.fn();
+        const useStateSpy = jest.spyOn(React, 'useState');
+        useStateSpy.mockImplementationOnce(() => [false, setState]);
 
-            expect(wrapper).toMatchSnapshot();
-        });
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
 
-        test('should fetch plugins when plugin status is changed', () => {
-            const fetchListing = baseProps.actions.fetchListing;
-            const wrapper = shallow<MarketplaceModal>(<MarketplaceModal {...baseProps}/>);
+        wrapper.update();
 
-            expect(fetchListing).toBeCalledTimes(1);
-            wrapper.setProps({...baseProps});
-            expect(fetchListing).toBeCalledTimes(1);
+        expect(wrapper.shallow()).toMatchSnapshot();
+    });
 
-            const status = {
-                id: 'test',
-            } as PluginStatusRedux;
-            wrapper.setProps({...baseProps, pluginStatuses: {test: status}});
-            expect(fetchListing).toBeCalledTimes(2);
-        });
+    test('should render with plugins available', () => {
+        const setState = jest.fn();
+        const useStateSpy = jest.spyOn(React, 'useState');
+        useStateSpy.mockImplementationOnce(() => [false, setState]);
 
-        test('should render with error banner', () => {
-            const wrapper = shallow<MarketplaceModal>(
-                <MarketplaceModal {...baseProps}/>,
-            );
+        mockState.views.marketplace.plugins = [
+            samplePlugin,
+        ];
 
-            wrapper.setState({serverError: {name: 'some.error', message: 'Error test'}});
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
 
-            expect(wrapper).toMatchSnapshot();
-        });
+        wrapper.update();
 
-        test('Should call for track event when searching', () => {
-            const wrapper = shallow<MarketplaceModal>(
-                <MarketplaceModal {...baseProps}/>,
-            );
+        expect(wrapper.shallow()).toMatchSnapshot();
+    });
 
-            wrapper.setState({filter: 'nps'});
-            wrapper.instance().doSearch();
+    test('should render with plugins installed', () => {
+        const setState = jest.fn();
+        const useStateSpy = jest.spyOn(React, 'useState');
+        useStateSpy.mockImplementationOnce(() => [false, setState]);
 
-            expect(trackEvent).toHaveBeenCalledWith('plugins', 'ui_marketplace_opened');
-            expect(trackEvent).toHaveBeenCalledWith('plugins', 'ui_marketplace_search', {filter: 'nps'});
-        });
+        mockState.views.marketplace.plugins = [
+            samplePlugin,
+            sampleInstalledPlugin,
+        ];
+
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
+
+        wrapper.update();
+
+        expect(wrapper.shallow()).toMatchSnapshot();
+    });
+
+    test('should render with error banner', () => {
+        const setState = jest.fn();
+        const useStateSpy = jest.spyOn(React, 'useState');
+        useStateSpy.mockImplementation(() => [true, setState]);
+
+        const wrapper = shallow(
+            <MarketplaceModal {...defaultProps}/>,
+        );
+
+        wrapper.update();
+
+        expect(wrapper.shallow()).toMatchSnapshot();
     });
 });

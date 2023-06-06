@@ -10,14 +10,12 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/timeutils"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -345,6 +343,16 @@ func (h *PlaybookHandler) getPlaybooks(c *Context, w http.ResponseWriter, r *htt
 		UserID:  userID,
 		TeamID:  teamID,
 		IsAdmin: app.IsSystemAdmin(userID, h.api),
+	}
+
+	isGuest, err := app.IsGuest(userID, h.api)
+	if err != nil {
+		h.HandleErrorWithCode(w, c.logger, http.StatusForbidden, "", err)
+		return
+	}
+
+	if isGuest {
+		opts.WithMembershipOnly = true
 	}
 
 	playbookResults, err := h.playbookService.GetPlaybooksForTeam(requesterInfo, teamID, opts)
@@ -693,14 +701,8 @@ func (h *PlaybookHandler) getTopPlaybooksForUser(c *Context, w http.ResponseWrit
 		h.HandleErrorWithCode(w, c.logger, http.StatusBadRequest, "unable to get user", err)
 		return
 	}
-	timezone, err := timeutils.GetUserTimezone(user)
-	if err != nil {
-		h.HandleErrorWithCode(w, c.logger, http.StatusBadRequest, "unable to get user timezone", err)
-		return
-	}
-	if timezone == nil {
-		timezone = time.Now().UTC().Location()
-	}
+	timezone := user.GetTimezoneLocation()
+
 	// get unix time for duration
 	startTime, appErr := model.GetStartOfDayForTimeRange(timeRange, timezone)
 	if appErr != nil {
@@ -750,14 +752,8 @@ func (h *PlaybookHandler) getTopPlaybooksForTeam(c *Context, w http.ResponseWrit
 		h.HandleErrorWithCode(w, c.logger, http.StatusBadRequest, "unable to get user", err)
 		return
 	}
-	timezone, err := timeutils.GetUserTimezone(user)
-	if err != nil {
-		h.HandleErrorWithCode(w, c.logger, http.StatusBadRequest, "unable to get user timezone", err)
-		return
-	}
-	if timezone == nil {
-		timezone = time.Now().UTC().Location()
-	}
+	timezone := user.GetTimezoneLocation()
+
 	// get unix time for duration
 	startTime, appErr := model.GetStartOfDayForTimeRange(timeRange, timezone)
 	if appErr != nil {

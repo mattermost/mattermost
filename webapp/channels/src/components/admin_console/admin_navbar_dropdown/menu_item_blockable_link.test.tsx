@@ -2,25 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
+
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 
 import {MenuItemBlockableLinkImpl} from './menu_item_blockable_link';
 
 describe('components/MenuItemBlockableLink', () => {
-    test('should match snapshot', () => {
-        const wrapper = shallow(
+    test('should render my link', () => {
+        renderWithFullContext(
             <MenuItemBlockableLinkImpl
                 to='/wherever'
                 text='Whatever'
             />,
         );
 
-        expect(wrapper).toMatchInlineSnapshot(`
-<Connect(BlockableLink)
-  to="/wherever"
->
-  Whatever
-</Connect(BlockableLink)>
-`);
+        screen.getByText('Whatever');
+        expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain('/wherever');
     });
 });

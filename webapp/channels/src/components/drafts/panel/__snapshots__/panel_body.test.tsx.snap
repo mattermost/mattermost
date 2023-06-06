@@ -73,9 +73,11 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -102,6 +104,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -351,9 +354,11 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -380,6 +385,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -577,7 +583,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
     priority={
       Object {
         "priority": "important",
-        "requested_ack": true,
+        "requested_ack": false,
       }
     }
     status="status"
@@ -635,9 +641,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -664,6 +672,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -767,76 +776,68 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
             <strong>
               display_name
             </strong>
-            <div
-              className="DraftPanelBody__priority"
+            <Memo(PriorityLabels)
+              canRemove={false}
+              hasError={false}
+              padding="0 0 0 8px"
+              priority="important"
+              requestedAck={false}
             >
-              <PriorityLabel
-                priority="important"
-                size="xs"
+              <Priority
+                padding="0 0 0 8px"
               >
-                <Memo(Tag)
-                  icon="alert-circle-outline"
-                  size="xs"
-                  text="IMPORTANT"
-                  uppercase={true}
-                  variant="info"
+                <div
+                  className="Priority-unHRQ dkJcdD"
                 >
-                  <TagWrapper
-                    as="div"
-                    className="Tag Tag--info Tag--xs"
-                    uppercase={true}
+                  <PriorityLabel
+                    priority="important"
+                    size="xs"
                   >
-                    <div
-                      className="TagWrapper-keYggn hpsCJu Tag Tag--info Tag--xs"
+                    <Memo(Tag)
+                      icon="alert-circle-outline"
+                      size="xs"
+                      text="Important"
+                      uppercase={true}
+                      variant="info"
                     >
-                      <AlertCircleOutlineIcon
-                        size={10}
+                      <TagWrapper
+                        as="div"
+                        className="Tag Tag--info Tag--xs"
+                        uppercase={true}
                       >
-                        <svg
-                          fill="currentColor"
-                          height={10}
-                          version="1.1"
-                          viewBox="0 0 24 24"
-                          width={10}
-                          xmlns="http://www.w3.org/2000/svg"
+                        <div
+                          className="TagWrapper-keYggn hpsCJu Tag Tag--info Tag--xs"
                         >
-                          <path
-                            d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z M12.501,13h-1l-0.5-6h2L12.501,13z M13,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1S13,15.448,13,16z"
-                          />
-                        </svg>
-                      </AlertCircleOutlineIcon>
-                      <TagText>
-                        <span
-                          className="TagText-bWgUzx kzWPbz"
-                        >
-                          IMPORTANT
-                        </span>
-                      </TagText>
-                    </div>
-                  </TagWrapper>
-                </Memo(Tag)>
-              </PriorityLabel>
-              <div
-                className="DraftPanelBody__priority-ack"
-              >
-                <CheckCircleOutlineIcon
-                  size={14}
-                >
-                  <svg
-                    fill="currentColor"
-                    height={14}
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width={14}
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
-                    />
-                  </svg>
-                </CheckCircleOutlineIcon>
-              </div>
-            </div>
+                          <AlertCircleOutlineIcon
+                            size={10}
+                          >
+                            <svg
+                              fill="currentColor"
+                              height={10}
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width={10}
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z M12.501,13h-1l-0.5-6h2L12.501,13z M13,16c0,0.552-0.448,1-1,1s-1-0.448-1-1s0.448-1,1-1S13,15.448,13,16z"
+                              />
+                            </svg>
+                          </AlertCircleOutlineIcon>
+                          <TagText>
+                            <span
+                              className="TagText-bWgUzx kzWPbz"
+                            >
+                              Important
+                            </span>
+                          </TagText>
+                        </div>
+                      </TagWrapper>
+                    </Memo(Tag)>
+                  </PriorityLabel>
+                </div>
+              </Priority>
+            </Memo(PriorityLabels)>
           </div>
           <div
             className="post__body"
@@ -989,9 +990,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                   hide={[Function]}
                   intl={
                     Object {
+                      "$t": [Function],
                       "defaultFormats": Object {},
                       "defaultLocale": "en",
                       "defaultRichTextElements": undefined,
+                      "fallbackOnEmptyString": true,
                       "formatDate": [Function],
                       "formatDateTimeRange": [Function],
                       "formatDateToParts": [Function],
@@ -1018,6 +1021,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                       "locale": "en",
                       "messages": Object {},
                       "onError": [Function],
+                      "onWarn": [Function],
                       "textComponent": "span",
                       "timeZone": "Etc/UTC",
                       "wrapRichTextChunksInFragment": undefined,
@@ -1121,38 +1125,147 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
             <strong>
               display_name
             </strong>
-            <div
-              className="DraftPanelBody__priority"
+            <Memo(PriorityLabels)
+              canRemove={false}
+              hasError={false}
+              padding="0 0 0 8px"
+              priority=""
+              requestedAck={true}
             >
-              <div
-                className="DraftPanelBody__priority-ack"
+              <Priority
+                padding="0 0 0 8px"
               >
-                <CheckCircleOutlineIcon
-                  size={14}
+                <div
+                  className="Priority-unHRQ dkJcdD"
                 >
-                  <svg
-                    fill="currentColor"
-                    height={14}
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    width={14}
-                    xmlns="http://www.w3.org/2000/svg"
+                  <Acknowledgements
+                    hasError={false}
                   >
-                    <path
-                      d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
-                    />
-                  </svg>
-                </CheckCircleOutlineIcon>
-                <FormattedMessage
-                  defaultMessage="Request acknowledgement"
-                  id="post_priority.request_acknowledgement"
-                >
-                  <span>
-                    Request acknowledgement
-                  </span>
-                </FormattedMessage>
-              </div>
-            </div>
+                    <div
+                      className="Acknowledgements-kPkVCv dNydui"
+                    >
+                      <OverlayTrigger
+                        defaultOverlayShown={false}
+                        delayShow={400}
+                        overlay={
+                          <Tooltip
+                            id="post-priority-picker-ack-tooltip"
+                          >
+                            <Memo(MemoizedFormattedMessage)
+                              defaultMessage="Acknowledgement will be requested"
+                              id="post_priority.request_acknowledgement.tooltip"
+                            />
+                          </Tooltip>
+                        }
+                        placement="top"
+                        trigger={
+                          Array [
+                            "hover",
+                            "focus",
+                          ]
+                        }
+                      >
+                        <OverlayTrigger
+                          defaultOverlayShown={false}
+                          delayShow={400}
+                          overlay={
+                            <OverlayWrapper
+                              id="post-priority-picker-ack-tooltip"
+                              intl={
+                                Object {
+                                  "$t": [Function],
+                                  "defaultFormats": Object {},
+                                  "defaultLocale": "en",
+                                  "defaultRichTextElements": undefined,
+                                  "fallbackOnEmptyString": true,
+                                  "formatDate": [Function],
+                                  "formatDateTimeRange": [Function],
+                                  "formatDateToParts": [Function],
+                                  "formatDisplayName": [Function],
+                                  "formatList": [Function],
+                                  "formatListToParts": [Function],
+                                  "formatMessage": [Function],
+                                  "formatNumber": [Function],
+                                  "formatNumberToParts": [Function],
+                                  "formatPlural": [Function],
+                                  "formatRelativeTime": [Function],
+                                  "formatTime": [Function],
+                                  "formatTimeToParts": [Function],
+                                  "formats": Object {},
+                                  "formatters": Object {
+                                    "getDateTimeFormat": [Function],
+                                    "getDisplayNames": [Function],
+                                    "getListFormat": [Function],
+                                    "getMessageFormat": [Function],
+                                    "getNumberFormat": [Function],
+                                    "getPluralRules": [Function],
+                                    "getRelativeTimeFormat": [Function],
+                                  },
+                                  "locale": "en",
+                                  "messages": Object {},
+                                  "onError": [Function],
+                                  "onWarn": [Function],
+                                  "textComponent": "span",
+                                  "timeZone": "Etc/UTC",
+                                  "wrapRichTextChunksInFragment": undefined,
+                                }
+                              }
+                            >
+                              <Memo(MemoizedFormattedMessage)
+                                defaultMessage="Acknowledgement will be requested"
+                                id="post_priority.request_acknowledgement.tooltip"
+                              />
+                            </OverlayWrapper>
+                          }
+                          placement="top"
+                          trigger={
+                            Array [
+                              "hover",
+                              "focus",
+                            ]
+                          }
+                        >
+                          <CheckCircleOutlineIcon
+                            onBlur={[Function]}
+                            onClick={null}
+                            onFocus={[Function]}
+                            onMouseOut={[Function]}
+                            onMouseOver={[Function]}
+                            size={14}
+                          >
+                            <svg
+                              fill="currentColor"
+                              height={14}
+                              onBlur={[Function]}
+                              onClick={null}
+                              onFocus={[Function]}
+                              onMouseOut={[Function]}
+                              onMouseOver={[Function]}
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width={14}
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z"
+                              />
+                            </svg>
+                          </CheckCircleOutlineIcon>
+                        </OverlayTrigger>
+                      </OverlayTrigger>
+                      <FormattedMessage
+                        defaultMessage="Request acknowledgement"
+                        id="post_priority.request_acknowledgement"
+                      >
+                        <span>
+                          Request acknowledgement
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </Acknowledgements>
+                </div>
+              </Priority>
+            </Memo(PriorityLabels)>
           </div>
           <div
             className="post__body"

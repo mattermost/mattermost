@@ -69,15 +69,15 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
         } else {
             await this.submitOAuthApp();
         }
-    }
+    };
 
     handleConfirmModal = () => {
         this.setState({showConfirmModal: true});
-    }
+    };
 
     confirmModalDismissed = () => {
         this.setState({showConfirmModal: false});
-    }
+    };
 
     submitOAuthApp = async () => {
         this.setState({serverError: ''});
@@ -95,7 +95,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
             const {error: err} = res;
             this.setState({serverError: err.message});
         }
-    }
+    };
 
     renderExtra = () => {
         const confirmButton = (
@@ -129,7 +129,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
                 onCancel={this.confirmModalDismissed}
             />
         );
-    }
+    };
 
     render() {
         if (!this.props.oauthApp) {

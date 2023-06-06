@@ -49,7 +49,7 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
         e.stopPropagation();
 
         this.setState({hasError: false});
-    }
+    };
 
     render() {
         if (this.state.hasError) {

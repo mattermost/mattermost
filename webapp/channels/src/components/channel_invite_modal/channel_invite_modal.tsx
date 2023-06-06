@@ -231,13 +231,13 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             return '';
         }
         return option.username;
-    }
+    };
 
     private filterOutDeletedAndExcludedAndNotInTeamUsers = (users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
         return users.filter((user) => {
             return user.delete_at === 0 && !excludeUserIds.has(user.id);
         }) as UserProfileValue[];
-    }
+    };
 
     renderOption = (option: UserProfileValue, isSelected: boolean, onAdd: (user: UserProfileValue) => void, onMouseMove: (user: UserProfileValue) => void) => {
         let rowSelected = '';
@@ -352,24 +352,21 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             this.props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
         };
 
-        const InviteModalLink = ({
-            children,
-            inviteAsGuest,
-        }: {children: React.ReactNode; inviteAsGuest?: boolean}) => {
+        const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode}) => {
             return (
                 <ToggleModalButton
                     id='inviteGuest'
-                    className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+                    className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     dialogProps={{
                         channelToInvite: this.props.channel,
                         initialValue: this.state.term,
-                        inviteAsGuest,
+                        inviteAsGuest: props.inviteAsGuest,
                     }}
                     onClick={closeMembersInviteModal}
                 >
-                    {children}
+                    {props.children}
                 </ToggleModalButton>
             );
         };
@@ -457,5 +454,5 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 </Modal.Body>
             </Modal>
         );
-    }
+    };
 }

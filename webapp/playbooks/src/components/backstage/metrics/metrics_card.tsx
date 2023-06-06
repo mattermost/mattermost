@@ -55,11 +55,13 @@ const MetricsCard = ({playbookMetrics, playbookStats, index}: Props) => {
                 <SummaryCardInner>
                     <Cell>
                         <Title>{formatMessage({defaultMessage: 'Average value'})}</Title>
+                        {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                         <Value>{stats.average === null ? '-' : transformFn(stats.average)}</Value>
                     </Cell>
                     <Cell>
                         <Title>{formatMessage({defaultMessage: '10-run average value'})}</Title>
                         <Row>
+                            {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                             <Value>{stats.rolling_average === null ? '-' : transformFn(stats.rolling_average)}</Value>
                             {percentageChange(stats.rolling_average_change)}
                         </Row>
@@ -67,9 +69,11 @@ const MetricsCard = ({playbookMetrics, playbookStats, index}: Props) => {
                     <Cell>
                         <Title>{formatMessage({defaultMessage: 'Value range'})}</Title>
                         <Value>
+                            {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                             {stats.value_range[0] === null ? '-' : valueTransformFn(stats.value_range[0])}
                             {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                             <ValueTo>{' ' + formatMessage({defaultMessage: 'to'}) + ' '}</ValueTo>
+                            {/* eslint-disable-next-line formatjs/no-literal-string-in-jsx */}
                             {stats.value_range[1] === null ? '-' : valueTransformFn(stats.value_range[1])}
                         </Value>
                     </Cell>

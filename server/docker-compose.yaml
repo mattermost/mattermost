@@ -101,7 +101,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
-    working_dir: '/home/mattermost-server'
+    working_dir: '/home/mattermost-server/server'
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
@@ -109,14 +109,12 @@ services:
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
-      - "MM_FEATUREFLAGS_BoardsProduct=true"
     networks:
       - mm-test
     depends_on:
       - start_dependencies
     volumes:
-      - './server:/home/mattermost-server'
-      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../:/home/mattermost-server'
       - './../../enterprise:/home/enterprise'
     restart: on-failure
     healthcheck:
@@ -139,7 +137,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
-    working_dir: '/home/mattermost-server'
+    working_dir: '/home/mattermost-server/server'
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
@@ -147,14 +145,12 @@ services:
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
-      - "MM_FEATUREFLAGS_BoardsProduct=true"
     networks:
       - mm-test
     depends_on:
       - leader
     volumes:
-      - './server:/home/mattermost-server'
-      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../:/home/mattermost-server'
       - './../../enterprise:/home/enterprise'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
@@ -177,7 +173,7 @@ services:
     build:
       context: .
       dockerfile: ./build/Dockerfile.buildenv
-    working_dir: '/home/mattermost-server'
+    working_dir: '/home/mattermost-server/server'
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
@@ -185,14 +181,12 @@ services:
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
-      - "MM_FEATUREFLAGS_BoardsProduct=true"
     networks:
       - mm-test
     depends_on:
       - leader
     volumes:
-      - './server:/home/mattermost-server'
-      - './../../mattermost-webapp:/home/mattermost-webapp'
+      - './../:/home/mattermost-server'
       - './../../enterprise:/home/enterprise'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://follower2:8065/api/v4/system/ping"]

@@ -21,7 +21,7 @@ describe('components/modal', () => {
         ))
         expect(container).toMatchSnapshot()
     })
-    test('return Modal and close', () => {
+    test('return Modal and close', async () => {
         const onMockedClose = jest.fn()
         render(wrapDNDIntl(
             <Modal
@@ -31,7 +31,7 @@ describe('components/modal', () => {
             </Modal>,
         ))
         const buttonClose = screen.getByRole('button', {name: 'Close'})
-        userEvent.click(buttonClose)
+        await userEvent.click(buttonClose)
         expect(onMockedClose).toBeCalledTimes(1)
     })
     test('return Modal on position top', () => {

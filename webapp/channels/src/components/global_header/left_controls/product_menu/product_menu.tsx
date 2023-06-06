@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 import {useDispatch, useSelector} from 'react-redux';
 
-import IconButton from '@mattermost/compass-components/components/icon-button';
+import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

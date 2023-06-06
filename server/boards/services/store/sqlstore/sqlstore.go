@@ -11,11 +11,11 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v6/server/boards/model"
-	"github.com/mattermost/mattermost-server/v6/server/boards/services/store"
+	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
 
-	mm_model "github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
 )
 
 // SQLStore is a SQL database.
@@ -199,6 +199,10 @@ func (s *SQLStore) DBVersion() string {
 	return version
 }
 
+// dropAllTables deletes the contents of all the database tables
+// except the schema_migrations table with the intention of cleaning
+// the state for the next text to execute without having to run the
+// migrations.
 func (s *SQLStore) dropAllTables(db sq.BaseRunner) error {
 	if s.DBType() == model.PostgresDBType {
 		_, err := db.Exec(`DO

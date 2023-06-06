@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package main
+package server
 
 import (
 	"context"
@@ -11,16 +11,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/client"
-	"github.com/mattermost/mattermost-server/v6/server/playbooks/server/app"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRunCreation(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	incompletePlaybookID, err := e.PlaybooksAdminClient.Playbooks.Create(context.Background(), client.PlaybookCreateOptions{
@@ -314,8 +313,7 @@ func TestRunCreation(t *testing.T) {
 }
 
 func TestCreateRunInExistingChannel(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	// create playbook
@@ -410,8 +408,7 @@ func TestCreateRunInExistingChannel(t *testing.T) {
 }
 
 func TestCreateInvalidRuns(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("fails if description is longer than 4096", func(t *testing.T) {
@@ -428,8 +425,7 @@ func TestCreateInvalidRuns(t *testing.T) {
 }
 
 func TestRunRetrieval(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("by channel id", func(t *testing.T) {
@@ -510,8 +506,8 @@ func TestRunRetrieval(t *testing.T) {
 }
 
 func TestRunPostStatusUpdate(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	t.Skip("MM-52694")
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("post an update", func(t *testing.T) {
@@ -571,8 +567,7 @@ func TestRunPostStatusUpdate(t *testing.T) {
 }
 
 func TestChecklistManagement(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	createNewRunWithNoChecklists := func(t *testing.T) *client.PlaybookRun {
@@ -1188,8 +1183,7 @@ func TestChecklistManagement(t *testing.T) {
 }
 
 func TestChecklisFailTooLarge(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("checklist creation - failure: too large checklist", func(t *testing.T) {
@@ -1213,8 +1207,7 @@ func TestChecklisFailTooLarge(t *testing.T) {
 }
 
 func TestRunGetStatusUpdates(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("public - get no updates", func(t *testing.T) {
@@ -1343,8 +1336,7 @@ func TestRunGetStatusUpdates(t *testing.T) {
 }
 
 func TestRequestUpdate(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("private - no viewer access ", func(t *testing.T) {
@@ -1437,8 +1429,7 @@ func TestRequestUpdate(t *testing.T) {
 }
 
 func TestReminderReset(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	t.Run("reminder reset - timeline event created", func(t *testing.T) {
@@ -1485,8 +1476,7 @@ func TestReminderReset(t *testing.T) {
 }
 
 func TestChecklisItem_SetAssignee(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	addSimpleChecklistToTun := func(t *testing.T, runID string) *client.PlaybookRun {
@@ -1597,8 +1587,7 @@ func TestChecklisItem_SetAssignee(t *testing.T) {
 }
 
 func TestChecklisItem_SetCommand(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	run, err := e.PlaybooksClient.PlaybookRuns.Create(context.Background(), client.PlaybookRunCreateOptions{
@@ -1699,8 +1688,7 @@ func TestChecklisItem_SetCommand(t *testing.T) {
 }
 
 func TestGetOwners(t *testing.T) {
-	e, teardown := Setup(t)
-	defer teardown()
+	e := Setup(t)
 	e.CreateBasic()
 
 	ownerFromUser := func(u *model.User) client.OwnerInfo {

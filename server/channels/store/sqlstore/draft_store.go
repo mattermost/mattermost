@@ -10,10 +10,10 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
 )
 
 type SqlDraftStore struct {
@@ -88,7 +88,7 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted boo
 	return &dt, nil
 }
 
-func (s *SqlDraftStore) Save(draft *model.Draft) (*model.Draft, error) {
+func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	draft.PreSave()
 	maxDraftSize := s.GetMaxDraftSize()
 	if err := draft.IsValid(maxDraftSize); err != nil {
@@ -96,6 +96,13 @@ func (s *SqlDraftStore) Save(draft *model.Draft) (*model.Draft, error) {
 	}
 
 	builder := s.getQueryBuilder().Insert("Drafts").Columns(draftSliceColumns()...).Values(draftToSlice(draft)...)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE  UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
+	} else {
+		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
+	}
+
 	query, args, err := builder.ToSql()
 
 	if err != nil {
@@ -103,36 +110,7 @@ func (s *SqlDraftStore) Save(draft *model.Draft) (*model.Draft, error) {
 	}
 
 	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save Draft")
-	}
-
-	return draft, nil
-}
-
-func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
-	draft.PreUpdate()
-
-	maxDraftSize := s.GetMaxDraftSize()
-	if err := draft.IsValid(maxDraftSize); err != nil {
-		return nil, err
-	}
-
-	query := s.getQueryBuilder().
-		Update("Drafts").
-		Set("UpdateAt", draft.UpdateAt).
-		Set("Message", draft.Message).
-		Set("Props", draft.Props).
-		Set("FileIds", draft.FileIds).
-		Set("Priority", draft.Priority).
-		Set("DeleteAt", 0).
-		Where(sq.Eq{
-			"UserId":    draft.UserId,
-			"ChannelId": draft.ChannelId,
-			"RootId":    draft.RootId,
-		})
-
-	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Draft with channelid=%s", draft.ChannelId)
+		return nil, errors.Wrap(err, "failed to upsert Draft")
 	}
 
 	return draft, nil

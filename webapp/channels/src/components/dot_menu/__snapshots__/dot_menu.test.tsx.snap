@@ -9,7 +9,7 @@ Object {
         aria-controls="CENTER_dropdown_post_id_1"
         aria-expanded="false"
         aria-haspopup="true"
-        aria-label="Actions"
+        aria-label="more"
         class="post-menu__item"
         data-testid="PostDotMenu-Button-post_id_1"
         id="CENTER_button_post_id_1"
@@ -34,114 +34,7 @@ Object {
       aria-controls="CENTER_dropdown_post_id_1"
       aria-expanded="false"
       aria-haspopup="true"
-      aria-label="Actions"
-      class="post-menu__item"
-      data-testid="PostDotMenu-Button-post_id_1"
-      id="CENTER_button_post_id_1"
-    >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
-        />
-      </svg>
-    </button>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`components/dot_menu/DotMenu should match snapshot, hide "New" badge on forward post 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <button
-        aria-controls="CENTER_dropdown_post_id_1"
-        aria-expanded="false"
-        aria-haspopup="true"
-        aria-label="Actions"
-        class="post-menu__item"
-        data-testid="PostDotMenu-Button-post_id_1"
-        id="CENTER_button_post_id_1"
-      >
-        <svg
-          fill="currentColor"
-          height="16"
-          version="1.1"
-          viewBox="0 0 24 24"
-          width="16"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
-          />
-        </svg>
-      </button>
-    </div>
-  </body>,
-  "container": <div>
-    <button
-      aria-controls="CENTER_dropdown_post_id_1"
-      aria-expanded="false"
-      aria-haspopup="true"
-      aria-label="Actions"
+      aria-label="more"
       class="post-menu__item"
       data-testid="PostDotMenu-Button-post_id_1"
       id="CENTER_button_post_id_1"
@@ -228,7 +121,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   }
   menuButton={
     Object {
-      "aria-label": "Actions",
+      "aria-label": "more",
       "children": <DotsHorizontalIcon
         size={16}
       />,
@@ -482,111 +375,4 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     }
   />
 </Menu>
-`;
-
-exports[`components/dot_menu/DotMenu should match snapshot, show "New" badge on forward post 1`] = `
-Object {
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <button
-        aria-controls="CENTER_dropdown_post_id_1"
-        aria-expanded="false"
-        aria-haspopup="true"
-        aria-label="Actions"
-        class="post-menu__item"
-        data-testid="PostDotMenu-Button-post_id_1"
-        id="CENTER_button_post_id_1"
-      >
-        <svg
-          fill="currentColor"
-          height="16"
-          version="1.1"
-          viewBox="0 0 24 24"
-          width="16"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
-          />
-        </svg>
-      </button>
-    </div>
-  </body>,
-  "container": <div>
-    <button
-      aria-controls="CENTER_dropdown_post_id_1"
-      aria-expanded="false"
-      aria-haspopup="true"
-      aria-label="Actions"
-      class="post-menu__item"
-      data-testid="PostDotMenu-Button-post_id_1"
-      id="CENTER_button_post_id_1"
-    >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
-        />
-      </svg>
-    </button>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
 `;

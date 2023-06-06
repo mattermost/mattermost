@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 import React from 'react'
 
-import Select, {components, DropdownIndicatorProps} from 'react-select'
+import Select, {DropdownIndicatorProps, StylesConfig, components} from 'react-select'
 
-import {CSSObject} from '@emotion/serialize'
-
-import {useIntl, IntlShape} from 'react-intl'
+import {IntlShape, useIntl} from 'react-intl'
 
 import {getSelectBaseStyle} from 'src/theme'
 import ChevronUp from 'src/widgets/icons/chevronUp'
@@ -114,22 +112,22 @@ function generateTypesByOption(): Map<string, string[]> {
     return mapping
 }
 
-const baseStyles = getSelectBaseStyle()
+const baseStyles = getSelectBaseStyle<Option>()
 
-const styles = {
+const styles: StylesConfig<Option> = {
     ...baseStyles,
-    dropdownIndicator: (provided: CSSObject): CSSObject => ({
-        ...baseStyles.dropdownIndicator(provided),
+    dropdownIndicator: (...props) => ({
+        ...baseStyles.dropdownIndicator?.(...props),
         pointerEvents: 'none',
     }),
-    control: (): CSSObject => ({
+    control: () => ({
         border: 0,
         width: '100%',
         margin: '0',
         display: 'flex',
         flexDirection: 'row',
     }),
-    menu: (provided: CSSObject): CSSObject => ({
+    menu: (provided) => ({
         ...provided,
         minWidth: '100%',
         width: 'max-content',
@@ -137,15 +135,15 @@ const styles = {
         left: '0',
         marginBottom: '0',
     }),
-    singleValue: (provided: CSSObject): CSSObject => ({
-        ...baseStyles.singleValue(provided),
+    singleValue: (...props) => ({
+        ...baseStyles.singleValue?.(...props),
         opacity: '0.8',
         fontSize: '12px',
         right: '0',
         textTransform: 'uppercase',
     }),
-    valueContainer: (provided: CSSObject): CSSObject => ({
-        ...baseStyles.valueContainer(provided),
+    valueContainer: (...props) => ({
+        ...baseStyles.valueContainer?.(...props),
         display: 'none',
         pointerEvents: 'none',
     }),
@@ -178,7 +176,7 @@ export const CalculationOptions = (props: BaseCalculationOptionProps): JSX.Eleme
     const intl = useIntl()
 
     return (
-        <Select
+        <Select<Option>
             styles={styles}
             value={Options[props.value]}
             isMulti={false}

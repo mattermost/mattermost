@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react'
+import React, {useCallback, useState} from 'react'
 import {useIntl} from 'react-intl'
 
 import {IPropertyOption} from 'src/blocks/board'
 
 import Label from 'src/widgets/label'
-import {Utils, IDType} from 'src/utils'
+import {IDType, Utils} from 'src/utils'
 import mutator from 'src/mutator'
 import ValueSelector from 'src/widgets/valueSelector'
 
@@ -57,6 +57,7 @@ const SelectProperty = (props: PropertyProps) => {
             </div>
         )
     }
+
     return (
         <ValueSelector
             emptyValue={emptyDisplayValue}

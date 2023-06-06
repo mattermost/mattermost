@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapDNDIntl, mockStateStore, blocksById} from 'src/testUtils'
+import {blocksById, mockStateStore, wrapDNDIntl} from 'src/testUtils'
 
 import {TestBlockFactory} from 'src/test/testBlockFactory'
 
@@ -19,7 +19,7 @@ import mutator from 'src/mutator'
 import Gallery from './gallery'
 
 jest.mock('src/mutator')
-const mockedMutator = mocked(mutator, true)
+const mockedMutator = mocked(mutator)
 
 describe('src/components/gallery/Gallery', () => {
     const board = TestBlockFactory.createBoard()
@@ -71,7 +71,7 @@ describe('src/components/gallery/Gallery', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>
                 <Gallery
@@ -88,10 +88,10 @@ describe('src/components/gallery/Gallery', () => {
             </ReduxProvider>,
         ))
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('should match snapshot without permissions', () => {
+    test('should match snapshot without permissions', async () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={localStore}>
@@ -109,10 +109,10 @@ describe('src/components/gallery/Gallery', () => {
             </ReduxProvider>,
         ))
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
-        userEvent.click(buttonElement)
+        await userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
-    test('return Gallery and click new', () => {
+    test('return Gallery and click new', async () => {
         const mockAddCard = jest.fn()
         const {container} = render(wrapDNDIntl(
             <ReduxProvider store={store}>
@@ -133,7 +133,7 @@ describe('src/components/gallery/Gallery', () => {
 
         const elementNew = container.querySelector('.octo-gallery-new')!
         expect(elementNew).toBeDefined()
-        userEvent.click(elementNew)
+        await userEvent.click(elementNew)
         expect(mockAddCard).toBeCalledTimes(1)
     })
 
