@@ -438,9 +438,6 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
-do-cover-file: ## Creates the test coverage report file.
-	@echo "mode: count" > cover.out
-
 gotestsum: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
@@ -465,7 +462,7 @@ modules-tidy:
 		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
 
-test-server-pre: check-prereqs-enterprise start-docker gotestsum do-cover-file ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -500,7 +497,7 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server-ee: check-prereqs-enterprise start-docker gotestsum do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests.
 	@echo Running only EE tests
 	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
