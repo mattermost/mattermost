@@ -14,6 +14,10 @@ import {StoragePrefixes} from 'utils/constants';
 
 import {GlobalState} from 'types/store';
 
+/**
+ * This action is called when the deleted post which is shown as 'deleted' in the RHS is then removed from the channel manually.
+ * @param post Deleted post
+ */
 export function removePostCloseRHSDeleteDraft(post: ExtendedPost) {
     return (dispatch: DispatchFunc, getState: () => GlobalState) => {
         if (isThreadOpen(getState(), post.id)) {
