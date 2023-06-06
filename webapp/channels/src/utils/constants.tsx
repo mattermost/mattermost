@@ -18,7 +18,6 @@ import pdfIcon from 'images/icons/pdf.svg';
 import pptIcon from 'images/icons/ppt.svg';
 import videoIcon from 'images/icons/video.svg';
 import wordIcon from 'images/icons/word.svg';
-import logoImage from 'images/logo_compact.png';
 import githubIcon from 'images/themes/code_themes/github.png';
 import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
@@ -450,7 +449,6 @@ export const ModalIdentifiers = {
     CLOUD_LIMITS_DOWNGRADE: 'cloud_limits_downgrade',
     PERSIST_NOTIFICATION_CONFIRM_MODAL: 'persist_notification_confirm_modal',
     AIR_GAPPED_SELF_HOSTED_PURCHASE: 'air_gapped_self_hosted_purchase',
-    WORK_TEMPLATE: 'work_template',
     DOWNGRADE_MODAL: 'downgrade_modal',
     PURCHASE_IN_PROGRESS: 'purchase_in_progress',
     DELETE_WORKSPACE: 'delete_workspace',
@@ -764,7 +762,6 @@ export const TELEMETRY_CATEGORIES = {
     WORKSPACE_OPTIMIZATION_DASHBOARD: 'workspace_optimization_dashboard',
     REQUEST_BUSINESS_EMAIL: 'request_business_email',
     TRUE_UP_REVIEW: 'true_up_review',
-    WORK_TEMPLATES: 'work_templates',
 };
 
 export const TELEMETRY_LABELS = {
@@ -997,6 +994,11 @@ export const NotificationLevels = {
     ALL: 'all',
     MENTION: 'mention',
     NONE: 'none',
+} as const;
+
+export const DesktopSound = {
+    ON: 'on',
+    OFF: 'off',
 } as const;
 
 export const IgnoreChannelMentions = {
@@ -1508,7 +1510,6 @@ export const Constants = {
     MENTION_NAME_PADDING_LEFT: 2.4,
     AVATAR_WIDTH: 24,
     AUTO_RESPONDER: 'system_auto_responder',
-    SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
         'signup',
         'login',

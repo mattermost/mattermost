@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {GlobalState} from 'types/store';
 import {TestHelper as TH} from 'utils/test_helper';
 import {Client4} from 'mattermost-redux/client';

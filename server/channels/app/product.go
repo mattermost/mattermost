@@ -88,6 +88,10 @@ func (s *Server) shouldStart(product string) bool {
 			s.Log().Warn("Skipping Playbooks start: disabled via env var")
 			return false
 		}
+		if !*s.Config().ProductSettings.EnablePlaybooks {
+			s.Log().Warn("Skipping Playbooks start: disabled via configuration")
+			return false
+		}
 	}
 
 	return true

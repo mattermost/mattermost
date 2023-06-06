@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import DateSeparator from 'components/post_view/date_separator/date_separator';
-import {screen} from '@testing-library/react';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+
+import DateSeparator from './date_separator';
 
 describe('components/post_view/DateSeparator', () => {
     const initialState = {

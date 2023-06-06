@@ -480,7 +480,7 @@ const PostComponent = (props: Props): JSX.Element => {
     ) : null;
     const currentPostDay = getDateForUnixTicks(post.create_at);
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH && !props.isPinnedPosts && !props.isFlaggedPosts;
+    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
     const getTestId = () => {
         let idPrefix: string;
@@ -510,7 +510,7 @@ const PostComponent = (props: Props): JSX.Element => {
 
     return (
         <>
-            {(isSearchResultItem || props.isPinnedPosts || props.isFlagged) && <DateSeparator date={currentPostDay}/>}
+            {(isSearchResultItem || (props.location !== Locations.CENTER && props.isPinnedPosts) || props.isFlagged) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 role='listitem'
