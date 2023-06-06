@@ -13,6 +13,7 @@ const (
 	JobTypeMessageExport                = "message_export"
 	JobTypeElasticsearchPostIndexing    = "elasticsearch_post_indexing"
 	JobTypeElasticsearchPostAggregation = "elasticsearch_post_aggregation"
+	JobTypeElasticsearchFixChannelIndex = "elasticsearch_fix_channel_index"
 	JobTypeBlevePostIndexing            = "bleve_post_indexing"
 	JobTypeLdapSync                     = "ldap_sync"
 	JobTypeMigrations                   = "migrations"
