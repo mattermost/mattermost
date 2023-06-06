@@ -84,7 +84,17 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
     return consecutivePost;
 }
 
-function removePostAndCloseRHS(post: ExtendedPost) {
+// export function removePostAndDeleteDraft(post: PostActions.ExtendedPost) {
+//     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+//         const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
+//         if (getGlobalItem(getState() as GlobalState, draftKey, null)) {
+//             dispatch(removeDraft(draftKey, post.channel_id, post.id));
+//         }
+//     };
+// }
+
+// CHeck here
+function removePostCloseRHSDeleteDraft(post: ExtendedPost) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         if (isThreadOpen(state, post.id)) {
@@ -242,7 +252,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,
-            removePost: removePostAndCloseRHS,
+            removePost: removePostCloseRHSDeleteDraft,
             closeRightHandSide,
             selectPostCard,
         }, dispatch),

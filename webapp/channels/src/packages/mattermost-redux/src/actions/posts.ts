@@ -19,12 +19,12 @@ import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/a
 
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {General, Preferences, Posts} from '../constants';
+import {General, Preferences, Posts} from 'mattermost-redux/constants';
 import {UserProfile} from '@mattermost/types/users';
 import {Reaction} from '@mattermost/types/reactions';
 import {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import {GlobalState} from '@mattermost/types/store';
-import {ChannelUnread} from '@mattermost/types/channels';
+import {Channel, ChannelUnread} from '@mattermost/types/channels';
 import {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from './users';
@@ -544,6 +544,16 @@ export function pinPost(postId: string) {
     };
 }
 
+/**
+ * Decrements the pinned post count for a channel by 1
+ */
+export function decrementPinnedPostCount(channelId: Channel['id']) {
+    return {
+        type: ChannelTypes.DECREMENT_PINNED_POST_COUNT,
+        id: channelId,
+    };
+}
+
 export function unpinPost(postId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         dispatch({type: PostTypes.EDIT_POST_REQUEST});
@@ -573,10 +583,7 @@ export function unpinPost(postId: string) {
                     is_pinned: false,
                     update_at: Date.now(),
                 }, isCollapsedThreadsEnabled(state)),
-                {
-                    type: ChannelTypes.DECREMENT_PINNED_POST_COUNT,
-                    id: post.channel_id,
-                },
+                decrementPinnedPostCount(post.channel_id),
             );
         }
 
@@ -1209,14 +1216,8 @@ export function removePost(post: ExtendedPost) {
         } else {
             dispatch(postRemoved(post));
             if (post.is_pinned) {
-                dispatch(
-                    {
-                        type: ChannelTypes.DECREMENT_PINNED_POST_COUNT,
-                        id: post.channel_id,
-                    },
-                );
+                dispatch(decrementPinnedPostCount(post.channel_id));
             }
-            // TODO remove saved draft on to the post
         }
         return {data: true};
     };
