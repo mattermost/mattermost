@@ -1,26 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, {PureComponent, MouseEvent} from 'react';
 
-import Setting from './setting';
+import Setting, {Props as SettingsProps} from './setting';
 
-export default class RemoveFileSetting extends Setting {
-    static get propTypes() {
-        return {
-            id: PropTypes.string.isRequired,
-            label: PropTypes.node.isRequired,
-            helpText: PropTypes.node,
-            removeButtonText: PropTypes.node.isRequired,
-            removingText: PropTypes.node,
-            fileName: PropTypes.string.isRequired,
-            onSubmit: PropTypes.func.isRequired,
-            disabled: PropTypes.bool,
-        };
-    }
+type Props = SettingsProps & {
+    id: string;
+    label: React.ReactNode;
+    helptext?: React.ReactNode;
+    removeButtonText: React.ReactNode;
+    removingText?: React.ReactNode;
+    fileName: string;
+    onSubmit: (arg0: string, arg1: () => void) => void;
+    disabled?: boolean;
+}
 
-    constructor(props) {
+type State = {
+    removing: boolean;
+}
+
+export default class RemoveFileSetting extends PureComponent<Props, State> {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
@@ -28,7 +29,7 @@ export default class RemoveFileSetting extends Setting {
         };
     }
 
-    handleRemove = (e) => {
+    handleRemove = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         this.setState({removing: true});
@@ -52,7 +53,6 @@ export default class RemoveFileSetting extends Setting {
                         type='button'
                         className='btn btn-danger'
                         onClick={this.handleRemove}
-                        ref={this.removeButtonRef}
                         disabled={this.props.disabled}
                     >
                         {this.state.removing && (
