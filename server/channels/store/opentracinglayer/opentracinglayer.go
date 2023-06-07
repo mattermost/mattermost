@@ -8,6 +8,7 @@ package opentracinglayer
 
 import (
 	"context"
+	"time"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/store"

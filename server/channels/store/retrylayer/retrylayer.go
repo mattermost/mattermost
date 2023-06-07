@@ -8,6 +8,7 @@ package retrylayer
 
 import (
 	"context"
+	"time"
 	timepkg "time"
 
 	"github.com/go-sql-driver/mysql"
