@@ -41,9 +41,6 @@ ifeq ($(DIFF), 1)
     GIT_TREESTATE = dirty
 endif
 
-# Go tags
-GOTAGS ?= $(GOTAGS:)
-
 # Docker
 export COMPOSE_PROJECT_NAME=mattermost-server
 
@@ -55,7 +52,6 @@ endif
 
 ifeq ($(BUILD_NUMBER),dev)
 	export MM_FEATUREFLAGS_GRAPHQL = true
-	GOTAGS += "testlicensekey"
 endif
 
 # mmctl
@@ -354,9 +350,6 @@ telemetry-mocks: ## Creates mock files.
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
 
-generate-worktemplates: ## Generate work templates
-	$(GO) generate $(GOFLAGS) ./channels/app/worktemplates
-
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GO) install github.com/mattermost/morph/cmd/morph@master
 	@echo "Generating new migration for mysql"
@@ -395,7 +388,6 @@ sharedchannel-mocks: ## Creates mock files for shared channels.
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
 	$(GOBIN)/mockery --dir channels/utils --name LicenseValidatorIface --output channels/utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
-	$(GOBIN)/mockery --dir channels/app --name WorkTemplateExecutor --output channels/app/mocks --note 'Regenerate this file using `make misc-mocks`.'
 
 email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
@@ -581,7 +573,7 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
-	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -605,7 +597,7 @@ run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
 
 run-client: client ## Runs the webapp.
 	@echo Running mattermost client for development
@@ -665,7 +657,7 @@ restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) -tags $(GOTAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
 
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP

@@ -15,10 +15,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -192,10 +189,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -294,9 +288,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
       />
       <SettingsGroup
-        container={true}
         id="globalRelaySettings"
-        show={true}
       >
         <RadioSetting
           disabled={true}
@@ -466,10 +458,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -643,10 +632,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -745,9 +731,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
       />
       <SettingsGroup
-        container={true}
         id="globalRelaySettings"
-        show={true}
       >
         <RadioSetting
           disabled={false}

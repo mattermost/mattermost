@@ -92,7 +92,6 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/olivere/elastic.v6 v6.2.37
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -232,6 +231,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
 	modernc.org/ccgo/v3 v3.16.13 // indirect

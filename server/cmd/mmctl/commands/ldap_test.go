@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
@@ -21,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(false).
+			SyncLdap(context.Background(), false).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -38,7 +39,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(false).
+			SyncLdap(context.Background(), false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -55,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(false).
+			SyncLdap(context.Background(), false).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -73,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap(true).
+			SyncLdap(context.Background(), true).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -88,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap("test-id").
+			MigrateIdLdap(context.Background(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -104,7 +105,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 
 		s.client.
 			EXPECT().
-			MigrateIdLdap("test-id").
+			MigrateIdLdap(context.Background(), "test-id").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("test-error")).
 			Times(1)
 
