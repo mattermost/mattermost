@@ -468,10 +468,10 @@ else
 	@echo Running only TE tests
 endif
 
-gotestsum: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
-gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
-gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-server-race: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server-race: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
 	export GOMAXPROCS=4
@@ -494,6 +494,9 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
+	bash -c 'echo "test-server"'
+	bash -c 'echo MM_SERVER_PATH=$$MM_SERVER_PATH'
+	bash -c 'echo GOTESTSUM_FORMAT=$$GOTESTSUM_FORMAT'
 	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
