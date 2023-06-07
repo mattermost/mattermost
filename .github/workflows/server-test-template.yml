@@ -31,41 +31,26 @@ jobs:
           cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker-compose --no-ansi ps
-          cd ..
-      - name: Wait for docker compose
-        run: |
-          until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
-          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-          docker run --net ghactions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
-      - name: Fetch Dependencies
-        run: |
-          cd server
-          go mod download
       - name: Run Tests
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
           fi
-          # --ulimit nofile=8096:8096 \
-          cd server
-          export CI_INBUCKET_HOST=localhost
-          export CI_MINIO_HOST=localhost
-          export CI_INBUCKET_PORT=9001
-          export CI_MINIO_PORT=9000
-          export CI_INBUCKET_SMTP_PORT=10025
-          export CI_LDAP_HOST=localhost
-          export IS_CI=true
-          export MM_EMAILSETTINGS_SMTPSERVER=localhost
-          export MM_EMAILSETTINGS_SMTPPORT=10025
-          export MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://localhost:9200
-          export MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}"
-          export MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}"
-          export TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}"
-          export TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}"
-          make gotestsum
-          make gotestsum BUILD_NUMBER=test
-          make test-server-pre
-          make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+          mkdir -p client/plugins
+          cd server/build
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            -v $(go env GOCACHE):/go/cache \
+            -e GOCACHE=/go/cache \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost/server \
+            $BUILD_IMAGE \
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
