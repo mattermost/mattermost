@@ -169,7 +169,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     callsSoundRadio[0] = true;
                 }
 
-                if (this.props.sound === 'true') {
+                if (this.props.callsSound === 'true') {
                     const callsSounds = Array.from(NotificationSounds.callsNotificationSounds.keys());
                     const callsOptions = callsSounds.map((sound) => {
                         return {value: sound, label: sound};
