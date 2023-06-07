@@ -11,7 +11,7 @@ import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import DropdownSetting from './dropdown_setting.jsx';
-import SettingsGroup from './settings_group.jsx';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 const PUSH_NOTIFICATIONS_OFF = 'off';

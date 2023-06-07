@@ -4,13 +4,12 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {act} from '@testing-library/react';
-
 import {ReactWrapper} from 'enzyme';
 
 import {CardSizes, InsightsWidgetTypes, TimeFrames} from '@mattermost/types/insights';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import TopReactions from './top_reactions';

@@ -2860,14 +2860,18 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
@@ -2879,6 +2883,7 @@ func (s *CloudSettings) SetDefaults() {
 
 type ProductSettings struct {
 	EnablePublicSharedBoards *bool
+	EnablePlaybooks          *bool
 }
 
 func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
@@ -2888,6 +2893,9 @@ func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
 		} else {
 			s.EnablePublicSharedBoards = NewBool(false)
 		}
+	}
+	if s.EnablePlaybooks == nil {
+		s.EnablePlaybooks = NewBool(true)
 	}
 }
 

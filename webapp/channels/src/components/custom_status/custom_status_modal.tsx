@@ -15,7 +15,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import RenderEmoji from 'components/emoji/render_emoji';
