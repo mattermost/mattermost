@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
@@ -59,7 +60,7 @@ func samlAuthDataResetCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		}
 	}
 
-	numAffected, _, err := c.ResetSamlAuthDataToEmail(includeDeleted, dryRun, userIDs)
+	numAffected, _, err := c.ResetSamlAuthDataToEmail(context.TODO(), includeDeleted, dryRun, userIDs)
 	if err != nil {
 		return err
 	}

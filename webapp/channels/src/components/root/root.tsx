@@ -93,6 +93,7 @@ import {applyLuxonDefaults} from './effects';
 
 import RootProvider from './root_provider';
 import RootRedirect from './root_redirect';
+import {ServiceEnvironment} from '@mattermost/types/config';
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -229,17 +230,23 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     onConfigLoaded = () => {
+        const config = getConfig(store.getState());
         const telemetryId = this.props.telemetryId;
 
-        let rudderKey: string | null | undefined = Constants.TELEMETRY_RUDDER_KEY;
-        let rudderUrl: string | null | undefined = Constants.TELEMETRY_RUDDER_DATAPLANE_URL;
-
-        if (rudderKey.startsWith('placeholder') && rudderUrl.startsWith('placeholder')) {
-            rudderKey = process.env.RUDDER_KEY; //eslint-disable-line no-process-env
-            rudderUrl = process.env.RUDDER_DATAPLANE_URL; //eslint-disable-line no-process-env
+        const rudderUrl = 'https://pdat.matterlytics.com';
+        let rudderKey = '';
+        switch (config.ServiceEnvironment) {
+        case ServiceEnvironment.PRODUCTION:
+            rudderKey = '1aoejPqhgONMI720CsBSRWzzRQ9';
+            break;
+        case ServiceEnvironment.TEST:
+            rudderKey = '1aoeoCDeh7OCHcbW2kseWlwUFyq';
+            break;
+        case ServiceEnvironment.DEV:
+            break;
         }
 
-        if (rudderKey != null && rudderKey !== '' && this.props.telemetryEnabled) {
+        if (rudderKey !== '' && this.props.telemetryEnabled) {
             const rudderCfg: {setCookieDomain?: string} = {};
             const siteURL = getConfig(store.getState()).SiteURL;
             if (siteURL !== '') {

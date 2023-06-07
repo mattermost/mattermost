@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -128,7 +129,7 @@ func TestPostActionCookies(t *testing.T) {
 			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
 
-			resp, err := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
+			resp, err := client.DoPostActionWithCookie(context.Background(), post.Id, test.Action.Id, "", test.Action.Cookie)
 			require.NotNil(t, resp)
 			if test.ExpectedSuccess {
 				assert.NoError(t, err)
@@ -174,40 +175,40 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	_, err := client.OpenInteractiveDialog(request)
+	_, err := client.OpenInteractiveDialog(context.Background(), request)
 	require.NoError(t, err)
 
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
-	resp, err := client.OpenInteractiveDialog(request)
+	resp, err := client.OpenInteractiveDialog(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// URL is required
 	request.TriggerId = triggerId
 	request.URL = ""
-	resp, err = client.OpenInteractiveDialog(request)
+	resp, err = client.OpenInteractiveDialog(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Should pass with markdown formatted introduction text
 	request.URL = "http://localhost:8065"
 	request.Dialog.IntroductionText = "**Some** _introduction text"
-	_, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(context.Background(), request)
 	require.NoError(t, err)
 
 	// Should pass with empty introduction text
 	request.Dialog.IntroductionText = ""
-	_, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(context.Background(), request)
 	require.NoError(t, err)
 
 	// Should pass with no elements
 	request.Dialog.Elements = nil
-	_, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(context.Background(), request)
 	require.NoError(t, err)
 
 	request.Dialog.Elements = []model.DialogElement{}
-	_, err = client.OpenInteractiveDialog(request)
+	_, err = client.OpenInteractiveDialog(context.Background(), request)
 	require.NoError(t, err)
 }
 
@@ -248,19 +249,19 @@ func TestSubmitDialog(t *testing.T) {
 
 	submit.URL = ts.URL
 
-	submitResp, _, err := client.SubmitInteractiveDialog(submit)
+	submitResp, _, err := client.SubmitInteractiveDialog(context.Background(), submit)
 	require.NoError(t, err)
 	assert.NotNil(t, submitResp)
 
 	submit.URL = ""
-	submitResp, resp, err := client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err := client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	assert.Nil(t, submitResp)
 
 	submit.URL = ts.URL
 	submit.ChannelId = model.NewId()
-	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
@@ -268,7 +269,7 @@ func TestSubmitDialog(t *testing.T) {
 	submit.URL = ts.URL
 	submit.ChannelId = th.BasicChannel.Id
 	submit.TeamId = model.NewId()
-	submitResp, resp, err = client.SubmitInteractiveDialog(submit)
+	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	assert.Nil(t, submitResp)
