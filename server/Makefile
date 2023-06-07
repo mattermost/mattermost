@@ -55,7 +55,7 @@ ifeq ($(BUILD_NUMBER),dev)
 endif
 
 # Ensure developer invocation and tests are anchored.
-MM_SERVER_PATH ?= $(PWD)
+MM_SERVER_PATH ?= $(ROOT)
 
 # Go test sum configuration
 GOTESTSUM_FORMAT ?= testname
