@@ -2860,14 +2860,18 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
