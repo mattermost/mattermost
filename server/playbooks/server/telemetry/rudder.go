@@ -99,13 +99,9 @@ const (
 // dataPlaneURL with the writeKey, identified with the diagnosticID. The
 // version of the server is also sent with every event tracked.
 // If either diagnosticID or serverVersion are empty, an error is returned.
-func NewRudder(dataPlaneURL, writeKey, diagnosticID, pluginVersion, serverVersion string) (*RudderTelemetry, error) {
+func NewRudder(dataPlaneURL, writeKey, diagnosticID, serverVersion string) (*RudderTelemetry, error) {
 	if diagnosticID == "" {
 		return nil, errors.New("diagnosticID should not be empty")
-	}
-
-	if pluginVersion == "" {
-		return nil, errors.New("pluginVersion should not be empty")
 	}
 
 	if serverVersion == "" {
@@ -116,6 +112,10 @@ func NewRudder(dataPlaneURL, writeKey, diagnosticID, pluginVersion, serverVersio
 	if err != nil {
 		return nil, err
 	}
+
+	// Continue to emit the pluginVersion for backwards compatibility, but just set it to
+	// the server version given we're permanently part of the monorepo now.
+	pluginVersion := serverVersion
 
 	return &RudderTelemetry{
 		client:        client,
