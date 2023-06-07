@@ -63,7 +63,7 @@ function DraftsLink() {
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
                             <FormattedMessage
-                                id='drafts.sidebarTitle'
+                                id='drafts.sidebarLink'
                                 defaultMessage='Drafts'
                             />
                         </span>
