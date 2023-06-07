@@ -154,8 +154,11 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards|server/v8/cmd/mmctl')
 BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
 PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
-SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl')
+SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl' | grep )
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
+
+SUITE_PACKAGES=github.com/mattermost/mattermost-server/server/v8/channels/app/email
+EE_PACKAGES=
 
 TEMPLATES_DIR=templates
 
@@ -443,6 +446,7 @@ gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 gotestsum:
+	bash -c 'echo HERE: gotestsum'
 	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
 	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
 	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
@@ -466,6 +470,7 @@ modules-tidy:
 	fi;
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
+	bash -c 'echo HERE: test-server-pre'
 	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
 	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
 	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
@@ -493,6 +498,7 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
+	bash -c 'echo HERE: test-server'
 	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
 	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
 	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
