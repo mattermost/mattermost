@@ -66,15 +66,11 @@ jobs:
           make gotestsum BUILD_NUMBER=test
           make test-server-pre
           make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
-      - name: Archive report.xml
+      - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: report-xml
-          path: server/report.xml
-      - name: Archive gotestsum.json
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: gotestsum-json
-          path: server/gotestsum.json
+          name: server-test-logs
+          path: |
+            server/gotestsum.json
+            server/report.xml
