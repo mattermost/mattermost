@@ -441,15 +441,7 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
-gotestsum: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
-gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
-gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 gotestsum:
-	bash -c 'echo HERE: gotestsum'
-	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
-	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
-	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
 	$(GO) install gotest.tools/gotestsum@v1.7.0
 
 test-compile: gotestsum ## Compile tests.
@@ -470,16 +462,16 @@ modules-tidy:
 	fi;
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
-	bash -c 'echo HERE: test-server-pre'
-	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
-	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
-	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
 	@echo Running only TE tests
 endif
 
+gotestsum: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+gotestsum: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+gotestsum: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+gotestsum: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
 	export GOMAXPROCS=4
@@ -497,11 +489,11 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
+test-server: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	bash -c 'echo HERE: test-server'
-	bash -c 'echo MM_SERVER_PATH = $$MM_SERVER_PATH'
-	bash -c 'echo GOTESTSUM_FORMAT = $$GOTESTSUM_FORMAT'
-	bash -c 'echo BUILD_NUMBER = $$BUILD_NUMBER'
 	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -512,10 +504,18 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
+test-server-ee: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server-ee: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-ee: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-ee: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests.
 	@echo Running only EE tests
 	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
+test-server-quick: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
@@ -562,22 +562,23 @@ inject-test-data: # add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=SampleUs@r-1
 	@echo ========================================================================
 
-test-mmctl-pre: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-test-mmctl-pre:
-
+test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: test-mmctl-pre
 	@echo Running mmctl unit tests
 	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
-test-mmctl-e2e: test-mmctl-pre start-docker
+test-mmctl-e2e: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-e2e: start-docker
 	@echo Running mmctl e2e tests
 	$(GO) test $(MMCTL_TESTFLAGS) -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
-test-mmctl: test-mmctl-pre start-docker
+test-mmctl: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl: start-docker
 	@echo Running all mmctl tests
 	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
-test-mmctl-coverage: test-mmctl-pre start-docker
+test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-coverage: start-docker
 	@echo Running all mmctl tests with coverage
 	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_PACKAGES)
 	$(GO) tool cover -html=mmctlcover.out
