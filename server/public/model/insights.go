@@ -268,6 +268,7 @@ func StartOfDayForTimeRange(timeRange string, location *time.Location) *time.Tim
 // GetStartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
 // Time range can be one of: "today", "7_day", or "28_day".
 func GetStartOfDayForTimeRange(timeRange string, location *time.Location) (*time.Time, *AppError) {
+	// LOL
 	now := time.Now().In(location)
 	resultTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
 	switch timeRange {
