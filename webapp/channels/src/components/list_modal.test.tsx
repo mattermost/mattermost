@@ -6,15 +6,12 @@ import {shallow} from 'enzyme';
 
 import ListModal, {DEFAULT_NUM_PER_PAGE} from './list_modal';
 import {Group} from '@mattermost/types/groups';
-import test_helper from 'packages/mattermost-redux/test/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/ListModal', () => {
-    const mockItem1 = test_helper.fakeGroupWithId('123');
-    mockItem1.name = 'bar31';
-    const mockItem2 = test_helper.fakeGroupWithId('234');
-    mockItem2.name = 'bar2';
-    const mockItem3 = test_helper.fakeGroupWithId('345');
-    mockItem3.name = 'bar3';
+    const mockItem1 = TestHelper.getGroupMock({id: '123', name: 'bar31'});
+    const mockItem2 = TestHelper.getGroupMock({id: '234', name: 'bar2'});
+    const mockItem3 = TestHelper.getGroupMock({id: '345', name: 'bar3'});
     const mockItems = [mockItem1, mockItem2];
     const mockItemsPage2 = [mockItem3];
     const mockSearchTerm = 'ar3';
