@@ -395,6 +395,22 @@ func TestSentry(t *testing.T) {
 	}}
 	testDir, _ := fileutils.FindDir("tests")
 
+	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
+		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// Allow Playbooks to startup
+		oldBuildHash := model.BuildHash
+		model.BuildHash = "dev"
+
+		oldSentryDSN := SentryDSN
+		SentryDSN = dsn.String()
+		t.Cleanup(func() {
+			os.Unsetenv("MM_SERVICEENVIRONMENT")
+			model.BuildHash = oldBuildHash
+			SentryDSN = oldSentryDSN
+		})
+	}
+
 	t.Run("sentry is disabled, should not receive a report", func(t *testing.T) {
 		data := make(chan bool, 1)
 
@@ -408,7 +424,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SentryDSN = dsn.String()
+		setSentryDSN(t, dsn)
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = "localhost:0"
@@ -452,7 +468,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SentryDSN = dsn.String()
+		setSentryDSN(t, dsn)
 
 		s, err := newServerWithConfig(t, func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = "localhost:0"

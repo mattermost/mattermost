@@ -172,15 +172,6 @@ config.output = {
     chunkFilename: '[name].[contenthash].js',
 };
 
-/* eslint-disable no-process-env */
-const env = {};
-env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
-env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
-
-config.plugins.push(new webpack.DefinePlugin({
-    'process.env': env,
-}));
-
 config.plugins.push(new MiniCssExtractPlugin({
     filename: '[name].[contenthash].css',
     chunkFilename: '[name].[contenthash].css',

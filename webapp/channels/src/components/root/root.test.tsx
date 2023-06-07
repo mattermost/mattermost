@@ -16,6 +16,9 @@ import * as GlobalActions from 'actions/global_actions';
 import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
 import matchMedia from 'tests/helpers/match_media.mock';
 import {ProductComponent} from 'types/store/plugins';
+import {ServiceEnvironment} from '@mattermost/types/config';
+
+import store from 'stores/redux_store.jsx';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -201,12 +204,16 @@ describe('components/Root', () => {
     describe('onConfigLoaded', () => {
         afterEach(() => {
             Client4.telemetryHandler = undefined;
-
-            Constants.TELEMETRY_RUDDER_KEY = 'placeholder_rudder_key';
-            Constants.TELEMETRY_RUDDER_DATAPLANE_URL = 'placeholder_rudder_dataplane_url';
         });
 
         test('should not set a TelemetryHandler when onConfigLoaded is called if Rudder is not configured', () => {
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ServiceEnvironment: ServiceEnvironment.DEV,
+                },
+            });
+
             const wrapper = shallow(<Root {...baseProps}/>);
 
             Client4.trackEvent('category', 'event');
@@ -217,8 +224,12 @@ describe('components/Root', () => {
         });
 
         test('should set a TelemetryHandler when onConfigLoaded is called if Rudder is configured', () => {
-            Constants.TELEMETRY_RUDDER_KEY = 'testKey';
-            Constants.TELEMETRY_RUDDER_DATAPLANE_URL = 'url';
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ServiceEnvironment: ServiceEnvironment.TEST,
+                },
+            });
 
             const wrapper = shallow(<Root {...baseProps}/>);
 
@@ -236,8 +247,12 @@ describe('components/Root', () => {
                 // Simulate an error occurring and the callback not getting called
             });
 
-            Constants.TELEMETRY_RUDDER_KEY = 'testKey';
-            Constants.TELEMETRY_RUDDER_DATAPLANE_URL = 'url';
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ServiceEnvironment: ServiceEnvironment.TEST,
+                },
+            });
 
             const wrapper = shallow(<Root {...baseProps}/>);
 
