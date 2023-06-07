@@ -161,23 +161,6 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 # Changing for PR
-PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.16.1
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
-PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
