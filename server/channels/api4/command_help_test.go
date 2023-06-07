@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,14 +26,14 @@ func TestHelpCommand(t *testing.T) {
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SupportSettings.HelpLink = "" })
-	rs1, _, err := client.ExecuteCommand(channel.Id, "/help ")
+	rs1, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/help ")
 	require.NoError(t, err)
 	assert.Contains(t, rs1.Text, model.SupportSettingsDefaultHelpLink, "failed to default help link")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.SupportSettings.HelpLink = "https://docs.mattermost.com/guides/user.html"
 	})
-	rs2, _, err := client.ExecuteCommand(channel.Id, "/help ")
+	rs2, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/help ")
 	require.NoError(t, err)
 	assert.Contains(t, rs2.Text, "https://docs.mattermost.com/guides/user.html", "failed to help link")
 }

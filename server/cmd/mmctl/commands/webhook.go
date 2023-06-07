@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/server/public/model"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
@@ -90,7 +92,7 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 	if len(args) < 1 {
 		var err error
 		// If no team is specified, list all teams
-		teams, _, err = c.GetAllTeams("", 0, 100000000)
+		teams, _, err = c.GetAllTeams(context.TODO(), "", 0, 100000000)
 		if err != nil {
 			return err
 		}
@@ -107,13 +109,13 @@ func listWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 		// Fetch all hooks with a very large limit so we get them all.
 		incomingResult := make(chan StoreResult, 1)
 		go func() {
-			incomingHooks, _, err := c.GetIncomingWebhooksForTeam(team.Id, 0, 100000000, "")
+			incomingHooks, _, err := c.GetIncomingWebhooksForTeam(context.TODO(), team.Id, 0, 100000000, "")
 			incomingResult <- StoreResult{Data: incomingHooks, Err: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan StoreResult, 1)
 		go func() {
-			outgoingHooks, _, err := c.GetOutgoingWebhooksForTeam(team.Id, 0, 100000000, "")
+			outgoingHooks, _, err := c.GetOutgoingWebhooksForTeam(context.TODO(), team.Id, 0, 100000000, "")
 			outgoingResult <- StoreResult{Data: outgoingHooks, Err: err}
 			close(outgoingResult)
 		}()
@@ -170,7 +172,7 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		UserId:        user.Id,
 	}
 
-	createdIncoming, _, err := c.CreateIncomingWebhook(incomingWebhook)
+	createdIncoming, _, err := c.CreateIncomingWebhook(context.TODO(), incomingWebhook)
 	if err != nil {
 		printer.PrintError("Unable to create webhook")
 		return err
@@ -187,7 +189,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	printer.SetSingle(true)
 
 	webhookArg := args[0]
-	oldHook, _, err := c.GetIncomingWebhook(webhookArg, "")
+	oldHook, _, err := c.GetIncomingWebhook(context.TODO(), webhookArg, "")
 	if err != nil {
 		return errors.New("Unable to find webhook '" + webhookArg + "'")
 	}
@@ -219,7 +221,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	updatedHook.ChannelLocked = channelLocked
 
 	var newHook *model.IncomingWebhook
-	if newHook, _, err = c.UpdateIncomingWebhook(updatedHook); err != nil {
+	if newHook, _, err = c.UpdateIncomingWebhook(context.TODO(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify incoming webhook")
 		return err
 	}
@@ -283,7 +285,7 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		}
 	}
 
-	createdOutgoing, _, err := c.CreateOutgoingWebhook(outgoingWebhook)
+	createdOutgoing, _, err := c.CreateOutgoingWebhook(context.TODO(), outgoingWebhook)
 	if err != nil {
 		printer.PrintError("Unable to create outgoing webhook")
 		return err
@@ -300,7 +302,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	printer.SetSingle(true)
 
 	webhookArg := args[0]
-	oldHook, _, err := c.GetOutgoingWebhook(webhookArg)
+	oldHook, _, err := c.GetOutgoingWebhook(context.TODO(), webhookArg)
 	if err != nil {
 		return errors.New("unable to find webhook '" + webhookArg + "'")
 	}
@@ -367,7 +369,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	}
 
 	var newHook *model.OutgoingWebhook
-	if newHook, _, err = c.UpdateOutgoingWebhook(updatedHook); err != nil {
+	if newHook, _, err = c.UpdateOutgoingWebhook(context.TODO(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify outgoing webhook")
 		return err
 	}
@@ -380,8 +382,8 @@ func deleteWebhookCmdF(c client.Client, command *cobra.Command, args []string) e
 	printer.SetSingle(true)
 
 	webhookID := args[0]
-	if incomingWebhook, _, err := c.GetIncomingWebhook(webhookID, ""); err == nil {
-		_, err := c.DeleteIncomingWebhook(webhookID)
+	if incomingWebhook, _, err := c.GetIncomingWebhook(context.TODO(), webhookID, ""); err == nil {
+		_, err := c.DeleteIncomingWebhook(context.TODO(), webhookID)
 		if err != nil {
 			printer.PrintError("Unable to delete webhook '" + webhookID + "'")
 			return err
@@ -390,8 +392,8 @@ func deleteWebhookCmdF(c client.Client, command *cobra.Command, args []string) e
 		return nil
 	}
 
-	if outgoingWebhook, _, err := c.GetOutgoingWebhook(webhookID); err == nil {
-		_, err := c.DeleteOutgoingWebhook(webhookID)
+	if outgoingWebhook, _, err := c.GetOutgoingWebhook(context.TODO(), webhookID); err == nil {
+		_, err := c.DeleteOutgoingWebhook(context.TODO(), webhookID)
 		if err != nil {
 			printer.PrintError("Unable to delete webhook '" + webhookID + "'")
 			return err
@@ -408,12 +410,12 @@ func showWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 	printer.SetSingle(true)
 
 	webhookID := args[0]
-	if incomingWebhook, _, err := c.GetIncomingWebhook(webhookID, ""); err == nil {
+	if incomingWebhook, _, err := c.GetIncomingWebhook(context.TODO(), webhookID, ""); err == nil {
 		printer.Print(*incomingWebhook)
 		return nil
 	}
 
-	if outgoingWebhook, _, err := c.GetOutgoingWebhook(webhookID); err == nil {
+	if outgoingWebhook, _, err := c.GetOutgoingWebhook(context.TODO(), webhookID); err == nil {
 		printer.Print(*outgoingWebhook)
 		return nil
 	}
