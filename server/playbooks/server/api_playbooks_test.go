@@ -1270,7 +1270,7 @@ func TestAddPostToTimeline(t *testing.T) {
 		e.RemoveLicence()
 
 		// Post the request with the dialog payload and verify it is not allowed
-		resp, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
+		resp, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -1280,7 +1280,7 @@ func TestAddPostToTimeline(t *testing.T) {
 		e.SetE10Licence()
 
 		// Post the request with the dialog payload and verify it is allowed
-		_, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
+		_, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
 		require.NoError(t, err)
 	})
 
@@ -1289,7 +1289,7 @@ func TestAddPostToTimeline(t *testing.T) {
 		e.SetE20Licence()
 
 		// Post the request with the dialog payload and verify it is allowed
-		_, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
+		_, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
 		require.NoError(t, err)
 	})
 }
@@ -1512,5 +1512,32 @@ func TestPlaybookChecklistCleanup(t *testing.T) {
 			},
 		}
 		require.Equal(t, pb.Checklists, actual)
+	})
+}
+
+func TestPlaybooksGuests(t *testing.T) {
+	e := Setup(t)
+	e.SetE20Licence()
+	e.CreateBasic()
+	e.CreateGuest()
+
+	t.Run("guests can't create playbooks", func(t *testing.T) {
+		_, err := e.PlaybooksClientGuest.Playbooks.Create(context.Background(), client.PlaybookCreateOptions{
+			Title:  "test4",
+			TeamID: e.BasicTeam.Id,
+			Public: false,
+		})
+		assert.Error(t, err)
+	})
+
+	t.Run("get playbook guest", func(t *testing.T) {
+		_, err := e.PlaybooksClientGuest.Playbooks.Get(context.Background(), e.BasicPlaybook.ID)
+		require.Error(t, err)
+	})
+
+	t.Run("update playbook properties", func(t *testing.T) {
+		e.BasicPlaybook.Description = "This is the updated description"
+		err := e.PlaybooksClientGuest.Playbooks.Update(context.Background(), *e.BasicPlaybook)
+		require.Error(t, err)
 	})
 }

@@ -170,6 +170,11 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        AllowPersistentNotifications: true,
+        PersistentNotificationMaxCount: 6,
+        PersistentNotificationMaxRecipients: 5,
+        PersistentNotificationIntervalMinutes: 5,
+        AllowPersistentNotificationsForGuests: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -602,6 +607,7 @@ const defaultServerConfig: AdminConfig = {
     },
     ProductSettings: {
         EnablePublicSharedBoards: false,
+        EnablePlaybooks: true,
     },
     PluginSettings: {
         Enable: true,
@@ -668,7 +674,6 @@ const defaultServerConfig: AdminConfig = {
         InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
-        WorkTemplate: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,

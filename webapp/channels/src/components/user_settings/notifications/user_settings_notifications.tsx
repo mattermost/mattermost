@@ -6,14 +6,11 @@
 import React, {ChangeEvent, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import semver from 'semver';
-
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants, {NotificationLevels} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {a11yFocus, localizeMessage, moveCursorToEnd} from 'utils/utils';
-import {isDesktopApp} from 'utils/user_agent';
 import {t} from 'utils/i18n';
 
 import SettingItem from 'components/setting_item';
@@ -215,10 +212,8 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         data.email = this.state.enableEmail;
         data.desktop_sound = this.state.desktopSound;
         data.calls_desktop_sound = this.state.callsDesktopSound;
-        if (!isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'))) {
-            data.desktop_notification_sound = this.state.desktopNotificationSound;
-            data.calls_notification_sound = this.state.callsNotificationSound;
-        }
+        data.desktop_notification_sound = this.state.desktopNotificationSound;
+        data.calls_notification_sound = this.state.callsNotificationSound;
         data.desktop = this.state.desktopActivity;
         data.desktop_threads = this.state.desktopThreads;
         data.email_threads = this.state.emailThreads;

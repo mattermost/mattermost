@@ -208,16 +208,16 @@ func TestGraphQLChangeRunParticipants(t *testing.T) {
 	e := Setup(t)
 	e.CreateBasic()
 
-	user3, _, err := e.ServerAdminClient.CreateUser(&model.User{
+	user3, _, err := e.ServerAdminClient.CreateUser(context.Background(), &model.User{
 		Email:    "thirduser@example.com",
 		Username: "thirduser",
 		Password: "Password123!",
 	})
 	require.NoError(t, err)
-	_, _, err = e.ServerAdminClient.AddTeamMember(e.BasicTeam.Id, user3.Id)
+	_, _, err = e.ServerAdminClient.AddTeamMember(context.Background(), e.BasicTeam.Id, user3.Id)
 	require.NoError(t, err)
 
-	userNotInTeam, _, err := e.ServerAdminClient.CreateUser(&model.User{
+	userNotInTeam, _, err := e.ServerAdminClient.CreateUser(context.Background(), &model.User{
 		Email:    "notinteam@example.com",
 		Username: "notinteam",
 		Password: "Password123!",
@@ -671,13 +671,13 @@ func TestGraphQLChangeRunOwner(t *testing.T) {
 	e.CreateBasic()
 
 	// create a third user to test change owner
-	user3, _, err := e.ServerAdminClient.CreateUser(&model.User{
+	user3, _, err := e.ServerAdminClient.CreateUser(context.Background(), &model.User{
 		Email:    "thirduser@example.com",
 		Username: "thirduser",
 		Password: "Password123!",
 	})
 	require.NoError(t, err)
-	_, _, err = e.ServerAdminClient.AddTeamMember(e.BasicTeam.Id, user3.Id)
+	_, _, err = e.ServerAdminClient.AddTeamMember(context.Background(), e.BasicTeam.Id, user3.Id)
 	require.NoError(t, err)
 
 	t.Run("set another participant as owner", func(t *testing.T) {

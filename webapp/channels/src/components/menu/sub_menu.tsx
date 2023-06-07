@@ -17,7 +17,7 @@ import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import CompassDesignProvider from 'components/compass_design_provider';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
 import {MenuItem as ParentMenuItem, Props as MenuItemProps} from './menu_item';

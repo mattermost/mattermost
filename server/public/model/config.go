@@ -376,6 +376,11 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool `access:"site_posts"`
 	EnableInlineLatex                                 *bool `access:"site_posts"`
 	PostPriority                                      *bool `access:"site_posts"`
+	AllowPersistentNotifications                      *bool `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -854,6 +859,26 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.PostPriority = NewBool(true)
 	}
 
+	if s.AllowPersistentNotifications == nil {
+		s.AllowPersistentNotifications = NewBool(true)
+	}
+
+	if s.AllowPersistentNotificationsForGuests == nil {
+		s.AllowPersistentNotificationsForGuests = NewBool(false)
+	}
+
+	if s.PersistentNotificationIntervalMinutes == nil {
+		s.PersistentNotificationIntervalMinutes = NewInt(5)
+	}
+
+	if s.PersistentNotificationMaxCount == nil {
+		s.PersistentNotificationMaxCount = NewInt(6)
+	}
+
+	if s.PersistentNotificationMaxRecipients == nil {
+		s.PersistentNotificationMaxRecipients = NewInt(5)
+	}
+
 	if s.AllowSyncedDrafts == nil {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
@@ -1319,17 +1344,22 @@ func (s *LogSettings) SetDefaults() {
 			s.AdvancedLoggingJSON = []byte("{}")
 		}
 	}
-	s.AdvancedLoggingConfig = nil
+	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
+	//s.AdvancedLoggingConfig = nil
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 // AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
 	}
 	return []byte("{}")
 }
@@ -1383,17 +1413,23 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 			s.AdvancedLoggingJSON = []byte("{}")
 		}
 	}
-	s.AdvancedLoggingConfig = nil
+
+	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
+	//s.AdvancedLoggingConfig = nil
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 // AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
 	}
 	return []byte("{}")
 }
@@ -1452,17 +1488,22 @@ func (s *NotificationLogSettings) SetDefaults() {
 			s.AdvancedLoggingJSON = []byte("{}")
 		}
 	}
-	s.AdvancedLoggingConfig = nil
+	// temporarily let AdvancedLoggingConfig take precedence.
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
+	//s.AdvancedLoggingConfig = nil
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
 // AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
 func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
-	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		return s.AdvancedLoggingJSON
-	}
+	// temporarily let AdvancedLoggingConfig take precedence.
 	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
 		return []byte(*s.AdvancedLoggingConfig)
+	}
+	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
+		return s.AdvancedLoggingJSON
 	}
 	return []byte("{}")
 }
@@ -2819,14 +2860,18 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
@@ -2838,6 +2883,7 @@ func (s *CloudSettings) SetDefaults() {
 
 type ProductSettings struct {
 	EnablePublicSharedBoards *bool
+	EnablePlaybooks          *bool
 }
 
 func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
@@ -2847,6 +2893,9 @@ func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
 		} else {
 			s.EnablePublicSharedBoards = NewBool(false)
 		}
+	}
+	if s.EnablePlaybooks == nil {
+		s.EnablePlaybooks = NewBool(true)
 	}
 }
 
@@ -3787,6 +3836,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.PersistentNotificationIntervalMinutes < 2 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxCount <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_count.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *s.PersistentNotificationMaxRecipients <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// we check if file has a valid parent, the server will try to create the socket

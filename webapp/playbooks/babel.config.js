@@ -10,7 +10,7 @@ const config = {
                 edge: 42,
                 safari: 12,
             },
-            modules: false,
+            modules: 'auto',
             corejs: 3,
             debug: false,
             useBuiltIns: 'usage',
@@ -48,19 +48,15 @@ const config = {
     ],
 };
 
-const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
-const targetIsDevServer = NPM_TARGET === 'dev-server';
-if (targetIsDevServer) {
-    config.plugins.push(require.resolve('react-refresh/babel'));
-}
-
-// Jest needs module transformation
 config.env = {
     test: {
         presets: config.presets,
         plugins: config.plugins,
     },
+    production: {
+        presets: config.presets,
+        plugins: config.plugins.filter((plugin) => plugin !== 'babel-plugin-typescript-to-proptypes'),
+    },
 };
-config.env.test.presets[0][1].modules = 'auto';
 
 module.exports = config;

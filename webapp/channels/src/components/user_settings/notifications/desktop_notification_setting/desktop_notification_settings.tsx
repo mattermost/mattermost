@@ -5,13 +5,10 @@ import React, {ChangeEvent, RefObject} from 'react';
 import ReactSelect, {ValueType} from 'react-select';
 import {FormattedMessage} from 'react-intl';
 
-import semver from 'semver';
-
 import {NotificationLevels} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
-import {isDesktopApp} from 'utils/user_agent';
 
 import SettingItemMin from 'components/setting_item_min';
 import SettingItemMax from 'components/setting_item_max';
@@ -120,7 +117,6 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
     }
 
     buildMaximizedSetting = (): JSX.Element => {
-        const showSoundSelection = !isDesktopApp() || (window.desktop && semver.gte(window.desktop.version || '', '4.6.0'));
         const inputs = [];
 
         const activityRadio = [false, false, false];
@@ -145,7 +141,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 soundRadio[0] = true;
             }
 
-            if (this.props.sound === 'true' && showSoundSelection) {
+            if (this.props.sound === 'true') {
                 const sounds = Array.from(NotificationSounds.notificationSounds.keys());
                 const options = sounds.map((sound) => {
                     return {value: sound, label: sound};
@@ -173,7 +169,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     callsSoundRadio[0] = true;
                 }
 
-                if (this.props.callsSound === 'true' && showSoundSelection) {
+                if (this.props.sound === 'true') {
                     const callsSounds = Array.from(NotificationSounds.callsNotificationSounds.keys());
                     const callsOptions = callsSounds.map((sound) => {
                         return {value: sound, label: sound};

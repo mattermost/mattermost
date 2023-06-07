@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2882,4 +2883,117 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, threadMembership)
 	assert.False(t, threadMembership.Following)
+}
+
+func TestRemoveNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	c1 := th.BasicChannel
+	th.AddUserToChannel(u2, c1)
+
+	// Enable CRT
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	t.Run("base case", func(t *testing.T) {
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rootPost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost1 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost2 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@" + u2.Username + " mention by user1",
+			UserId:    u1.Id,
+			RootId:    rootPost.Id,
+		}
+		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)
+		require.Nil(t, appErr)
+
+		// Because we delete notification async, we need to wait
+		// just for a little while before checking the data
+		// 2 seconds is a very long time for the task we're performing
+		// but its okay considering sometimes the CI machines are slow.
+		time.Sleep(2 * time.Second)
+
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
+		require.Nil(t, appErr)
+		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		require.Nil(t, appErr)
+		require.Equal(t, int64(0), thread.UnreadMentions)
+		require.Equal(t, int64(0), thread.UnreadReplies)
+	})
+
+	t.Run("when mentioned via a user group", func(t *testing.T) {
+		group, appErr := th.App.CreateGroup(&model.Group{
+			Name:        model.NewString("test_group"),
+			DisplayName: "test_group",
+			Source:      model.GroupSourceCustom,
+		})
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpsertGroupMember(group.Id, u1.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpsertGroupMember(group.Id, u2.Id)
+		require.Nil(t, appErr)
+
+		rootPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "root post by user1",
+			UserId:    u1.Id,
+		}
+		rootPost, appErr = th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost1 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "reply post by user2",
+			UserId:    u2.Id,
+			RootId:    rootPost.Id,
+		}
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		require.Nil(t, appErr)
+
+		replyPost2 := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@" + *group.Name + " mention by user1",
+			UserId:    u1.Id,
+			RootId:    rootPost.Id,
+		}
+		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)
+		require.Nil(t, appErr)
+
+		time.Sleep(2 * time.Second)
+
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
+		require.Nil(t, appErr)
+		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		require.Nil(t, appErr)
+		require.Equal(t, int64(0), thread.UnreadMentions)
+		require.Equal(t, int64(0), thread.UnreadReplies)
+	})
 }

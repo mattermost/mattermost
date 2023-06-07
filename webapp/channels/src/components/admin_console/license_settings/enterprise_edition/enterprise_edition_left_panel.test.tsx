@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 
 import {Provider} from 'react-redux';
 
 import moment from 'moment-timezone';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import {OverActiveUserLimits, SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 

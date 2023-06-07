@@ -451,6 +451,7 @@ class TestHelper {
     fakeChannelNotifyProps = (override: Partial<ChannelNotifyProps>): ChannelNotifyProps => {
         return {
             desktop: 'default',
+            desktop_sound: 'off',
             email: 'default',
             mark_unread: 'mention',
             push: 'default',
