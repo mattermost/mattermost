@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -55,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		s.client.
 			EXPECT().
-			CreateTeam(mockTeam).
+			CreateTeam(context.Background(), mockTeam).
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -83,7 +84,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		s.client.
 			EXPECT().
-			CreateTeam(mockTeam).
+			CreateTeam(context.Background(), mockTeam).
 			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -109,7 +110,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		s.client.
 			EXPECT().
-			CreateTeam(mockTeam).
+			CreateTeam(context.Background(), mockTeam).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -131,14 +132,14 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		// Mocking : GetTeam searches with team id, if team not found proceeds with team name search
 		s.client.
 			EXPECT().
-			GetTeam("existingName", "").
+			GetTeam(context.Background(), "existingName", "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// Mocking : GetTeamByname is called, if GetTeam fails to return any team, as team name was passed instead of team id
 		s.client.
 			EXPECT().
-			GetTeamByName("existingName", "").
+			GetTeamByName(context.Background(), "existingName", "").
 			Return(nil, &model.Response{}, nil). // Error is nil as team not found will not return error from API
 			Times(1)
 
@@ -169,13 +170,13 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(args[0], "").
+			GetTeam(context.Background(), args[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(args[0], "").
+			GetTeamByName(context.Background(), args[0], "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -185,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		// Mock out UpdateTeam which calls the api to rename team
 		s.client.
 			EXPECT().
-			UpdateTeam(renamedTeam).
+			UpdateTeam(context.Background(), renamedTeam).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -215,19 +216,19 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(args[0], "").
+			GetTeam(context.Background(), args[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(args[0], "").
+			GetTeamByName(context.Background(), args[0], "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeam(updatedTeam).
+			UpdateTeam(context.Background(), updatedTeam).
 			Return(updatedTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -247,7 +248,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, APILimitMaximum).
+			GetAllTeams(context.Background(), "", 0, APILimitMaximum).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -265,7 +266,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, APILimitMaximum).
+			GetAllTeams(context.Background(), "", 0, APILimitMaximum).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(2)
 
@@ -299,7 +300,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, APILimitMaximum).
+			GetAllTeams(context.Background(), "", 0, APILimitMaximum).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(2)
 
@@ -346,7 +347,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, APILimitMaximum).
+			GetAllTeams(context.Background(), "", 0, APILimitMaximum).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(2)
 
@@ -390,13 +391,13 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, APILimitMaximum).
+			GetAllTeams(context.Background(), "", 0, APILimitMaximum).
 			Return(mockTeamsPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 1, APILimitMaximum).
+			GetAllTeams(context.Background(), "", 1, APILimitMaximum).
 			Return(mockTeamsPage2, &model.Response{}, nil).
 			Times(1)
 
@@ -427,13 +428,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -454,13 +455,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamID).
+			PermanentDeleteTeam(context.Background(), teamID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -483,13 +484,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamID).
+			PermanentDeleteTeam(context.Background(), teamID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -511,7 +512,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: teamName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: teamName}).
 			Return([]*model.Team{mockTeam}, &model.Response{}, nil).
 			Times(1)
 
@@ -529,7 +530,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: displayName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: displayName}).
 			Return([]*model.Team{mockTeam}, &model.Response{}, nil).
 			Times(1)
 
@@ -546,7 +547,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: teamName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: teamName}).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -563,7 +564,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: displayName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: displayName}).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -584,13 +585,13 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: mockTeam1Name}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: mockTeam1Name}).
 			Return([]*model.Team{mockTeam1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: mockTeam2DisplayName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: mockTeam2DisplayName}).
 			Return([]*model.Team{mockTeam2}, &model.Response{}, nil).
 			Times(1)
 
@@ -611,7 +612,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{}, nil).
 			Times(1)
 
@@ -634,13 +635,13 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: "team"}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: "team"}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{}, nil).
 			Times(1)
 
@@ -662,7 +663,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 		s.client.
 			EXPECT().
-			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{}, nil).
 			Times(1)
 
@@ -682,7 +683,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		mockError := errors.New("remote error")
 		teamName := "teamName"
 		s.client.EXPECT().
-			SearchTeams(&model.TeamSearch{Term: teamName}).
+			SearchTeams(context.Background(), &model.TeamSearch{Term: teamName}).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -719,13 +720,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -748,13 +749,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TeamInvite).
+			UpdateTeamPrivacy(context.Background(), teamID, model.TeamInvite).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -777,13 +778,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TeamOpen).
+			UpdateTeamPrivacy(context.Background(), teamID, model.TeamOpen).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -808,13 +809,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TeamOpen).
+			UpdateTeamPrivacy(context.Background(), teamID, model.TeamOpen).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -838,13 +839,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -864,13 +865,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreTeam(teamID).
+			RestoreTeam(context.Background(), teamID).
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
@@ -890,13 +891,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreTeam(teamID).
+			RestoreTeam(context.Background(), teamID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

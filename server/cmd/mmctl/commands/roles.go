@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -78,7 +79,7 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 
 		if !systemAdmin {
 			roles = append(roles, model.SystemAdminRoleId)
-			if _, err := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); err != nil {
+			if _, err := c.UpdateUserRoles(context.TODO(), user.Id, strings.Join(roles, " ")); err != nil {
 				updateErr := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
 				errs = multierror.Append(errs, updateErr)
 				printer.PrintError(updateErr.Error())
@@ -117,7 +118,7 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		}
 
 		if shouldRemoveSysadmin {
-			if _, err := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); err != nil {
+			if _, err := c.UpdateUserRoles(context.TODO(), user.Id, strings.Join(newRoles, " ")); err != nil {
 				updateErr := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
 				errs = multierror.Append(errs, updateErr)
 				printer.PrintError(updateErr.Error())

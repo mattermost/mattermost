@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
@@ -103,7 +104,7 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	displayName, _ := cmd.Flags().GetString("display-name")
 	description, _ := cmd.Flags().GetString("description")
 
-	bot, _, err := c.CreateBot(&model.Bot{
+	bot, _, err := c.CreateBot(context.TODO(), &model.Bot{
 		Username:    username,
 		DisplayName: displayName,
 		Description: description,
@@ -144,7 +145,7 @@ func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		patch.Description = &description
 	}
 
-	bot, _, err := c.PatchBot(user.Id, &patch)
+	bot, _, err := c.PatchBot(context.TODO(), user.Id, &patch)
 	if err != nil {
 		return errors.Errorf("could not update bot: %s", err)
 	}
@@ -165,11 +166,11 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		var bots []*model.Bot
 		var err error
 		if all { //nolint:gocritic
-			bots, _, err = c.GetBotsIncludeDeleted(page, perPage, "")
+			bots, _, err = c.GetBotsIncludeDeleted(context.TODO(), page, perPage, "")
 		} else if orphaned {
-			bots, _, err = c.GetBotsOrphaned(page, perPage, "")
+			bots, _, err = c.GetBotsOrphaned(context.TODO(), page, perPage, "")
 		} else {
-			bots, _, err = c.GetBots(page, perPage, "")
+			bots, _, err = c.GetBots(context.TODO(), page, perPage, "")
 		}
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch bots")
@@ -180,7 +181,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			userIds = append(userIds, bot.OwnerId)
 		}
 
-		users, _, err := c.GetUsersByIds(userIds)
+		users, _, err := c.GetUsersByIds(context.TODO(), userIds)
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch bots")
 		}
@@ -227,7 +228,7 @@ func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		bot, _, err := c.EnableBot(user.Id)
+		bot, _, err := c.EnableBot(context.TODO(), user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not enable bot '%v'", args[i]))
 			result = multierror.Append(result, fmt.Errorf("could not enable bot %q: %w", args[i], err))
@@ -251,7 +252,7 @@ func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		bot, _, err := c.DisableBot(user.Id)
+		bot, _, err := c.DisableBot(context.TODO(), user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not disable bot '%v'", args[i]))
 			result = multierror.Append(result, fmt.Errorf("could not disable bot %q: %w", args[i], err))
@@ -274,7 +275,7 @@ func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("unable to find user '" + args[1] + "'")
 	}
 
-	newBot, _, err := c.AssignBot(botUser.Id, newOwnerUser.Id)
+	newBot, _, err := c.AssignBot(context.TODO(), botUser.Id, newOwnerUser.Id)
 	if err != nil {
 		return errors.Errorf("can not assign bot '%s' to user '%s'", args[0], args[1])
 	}
