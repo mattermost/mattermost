@@ -13,14 +13,13 @@
 * npm run make-emojis -- --help
 */
 
-/* eslint-disable no-console */
-
 import path from 'node:path';
 import * as fsPromise from 'node:fs/promises';
 import * as fs from 'node:fs';
 import * as url from 'node:url';
 
 import yargs from 'yargs';
+import chalk from 'chalk';
 import jsonData from 'emoji-datasource/emoji.json';
 import jsonCategories from 'emoji-datasource/categories.json';
 
@@ -30,10 +29,6 @@ const EMOJI_SIZE = 64;
 const EMOJI_SIZE_PADDED = EMOJI_SIZE + 2; // 1px per side
 const EMOJI_DEFAULT_SKIN = 'default';
 const endResults = [];
-
-const errorLogColor = '\x1b[31m%s\x1b[0m';
-const warnLogColor = '\x1b[33m%s\x1b[0m';
-const successLogColor = '\x1b[32m%s\x1b[0m';
 
 const currentDir = path.dirname(url.fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, '..', '..', '..', '..');
@@ -54,12 +49,48 @@ const argv = yargs(process.argv.slice(1)).
 
 const argsExcludedEmojiFile = argv['excluded-emoji-file'];
 
+function log(level = '', text) {
+    if (level === 'info') {
+        // eslint-disable-next-line no-console
+        console.log(chalk.cyan(`[INFO]: ${text}`));
+    } else if (level === 'warn') {
+        // eslint-disable-next-line no-console
+        console.log(chalk.yellow(`[WARN]: ${text}`));
+    } else if (level === 'error') {
+        // eslint-disable-next-line no-console
+        console.error(chalk.red(`[ERRO]: ${text}`));
+    } else if (level === 'success') {
+        // eslint-disable-next-line no-console
+        console.log(chalk.green(`[SUCC]: ${text}`));
+    } else {
+        // eslint-disable-next-line no-console
+        console.log(text);
+    }
+}
+
 function writeToFileAndPrint(fileName, filePath, data) {
     const promise = fsPromise.writeFile(filePath, data, writeOptions);
 
     promise.then(() => {
-        console.log(successLogColor, `${fileName} generated successfully in ${filePath}\n`);
+        log('info', `"${fileName}" generated successfully in "${filePath}"`);
+    }).catch((err) => {
+        log('error', `Failed to generate "${fileName}": ${err}`);
     });
+
+    return promise;
+}
+
+function copyFileAndPrint(source, destination, fileName, print = true) {
+    const promise = fsPromise.copyFile(source, destination);
+
+    promise.then(() => {
+        if (print) {
+            log('info', `"${fileName}" copied successfully to "${destination}"`);
+        }
+    }).catch((err) => {
+        log('error', `Failed to copy "${fileName}": ${err}`);
+    });
+
     return promise;
 }
 
@@ -73,24 +104,36 @@ const emojiImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images', 
 const readDirPromise = fsPromise.readdir(emojiDataSourceDir);
 endResults.push(readDirPromise);
 readDirPromise.then((images) => {
-    console.log(`Copying ${images.length} emoji images, this might take a while\n`);
-
     for (const imageFile of images) {
-        endResults.push(
-            fsPromise.copyFile(path.join(emojiDataSourceDir, imageFile), path.join(emojiImagesDir, imageFile)).
-                catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy ${imageFile}: ${err}`)));
+        endResults.push(copyFileAndPrint(path.join(emojiDataSourceDir, imageFile), path.join(emojiImagesDir, imageFile), imageFile, false));
     }
 });
 
+// Missing emojis from Apple emoji set ["medical_symbol", "male_sign", and "female_sign"]
+// @see https://github.com/iamcal/emoji-data#image-sources
+const missingEmojis = ['2640-fe0f', '2642-fe0f', '2695-fe0f'];
+
+// Copy the missing from google emoji set
+const missingEmojiDataSourceDir = path.resolve(webappRootDir, `node_modules/emoji-datasource-google/img/google/${EMOJI_SIZE}/`);
+const readMissingDirPromise = fsPromise.readdir(missingEmojiDataSourceDir);
+endResults.push(readMissingDirPromise);
+readMissingDirPromise.then(() => {
+    for (const missingEmoji of missingEmojis) {
+        endResults.push(
+            copyFileAndPrint(path.join(missingEmojiDataSourceDir, `${missingEmoji}.png`), path.join(emojiImagesDir, `${missingEmoji}.png`), `Missed ${missingEmoji}`));
+    }
+});
+
+// Copy mattermost emoji image
 const webappImagesDir = path.resolve(webappRootDir, 'channels', 'src', 'images');
-fsPromise.copyFile(path.resolve(webappImagesDir, 'icon64x64.png'), path.resolve(webappImagesDir, 'emoji/mattermost.png'));
+endResults.push(copyFileAndPrint(path.resolve(webappImagesDir, 'icon64x64.png'), path.resolve(webappImagesDir, 'emoji/mattermost.png'), 'mattermost-emoji'));
 
 const sheetSource = path.resolve(webappRootDir, `node_modules/emoji-datasource-apple/img/apple/sheets/${EMOJI_SIZE}.png`);
 const sheetAbsoluteFile = path.resolve(webappRootDir, 'channels', 'src', 'images/emoji-sheets/apple-sheet.png');
 const sheetFile = 'images/emoji-sheets/apple-sheet.png';
 
 // Copy sheet image
-fsPromise.copyFile(sheetSource, sheetAbsoluteFile).catch((err) => console.log(errorLogColor, `[ERROR] Failed to copy sheet file: ${err}`));
+endResults.push(copyFileAndPrint(sheetSource, sheetAbsoluteFile, 'emoji-sheet'));
 
 // we'll load it as a two dimensional array so we can generate a Map out of it
 const emojiIndicesByAlias = [];
@@ -129,7 +172,7 @@ if (argsExcludedEmojiFile) {
     fs.readFileSync(path.normalize(argsExcludedEmojiFile), 'utf-8').split(/\r?\n/).forEach((line) => {
         excludedEmoji.push(line);
     });
-    console.log(warnLogColor, `\n[WARNING] The following emoji(s) will be excluded from the webapp: \n${excludedEmoji}\n`);
+    log('warn', `The following emoji(s) will be excluded from the webapp: \n${excludedEmoji}\n`);
 }
 
 // Remove unwanted emoji
@@ -454,11 +497,13 @@ ${cssEmojis.join('\n')}
 const emojispriteDir = path.resolve(webappRootDir, 'channels', 'src', 'sass', 'components', '_emojisprite.scss');
 endResults.push(writeToFileAndPrint('_emojisprite.scss', emojispriteDir, cssRules));
 
+log('', '\n');
+log('info', 'Running "make-emojis" script...');
 Promise.all(endResults).then(() => {
-    console.log(warnLogColor, '\n[WARNING] Remember to npm run \'i18n-extract\' as categories might have changed.');
-    console.log(warnLogColor, '[WARNING] Remember to run `gofmt -w ./server/public/model/emoji_data.go` from the root of the repository.');
-    console.log(successLogColor, '\n[SUCCESS] make-emojis script completed successfully.');
+    log('warn', 'Remember to npm run "i18n-extract" as categories might have changed.');
+    log('warn', 'Remember to run "gofmt -w ./server/public/model/emoji_data.go" from the root of the repository.');
+    log('success', 'make-emojis script completed successfully.');
 }).catch((err) => {
     control.abort(); // cancel any other file writing
-    console.log(errorLogColor, `[ERROR] There was an error while running make-emojis script: ${err}`);
+    log('error', `There was an error while running make-emojis script: ${err}`);
 });

@@ -10,7 +10,7 @@ import {Limits, CloudUsage} from '@mattermost/types/cloud';
 import {Message} from 'utils/i18n';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import WorkspaceLimitsPanel, {messageToElement} from './workspace_limits_panel';
 

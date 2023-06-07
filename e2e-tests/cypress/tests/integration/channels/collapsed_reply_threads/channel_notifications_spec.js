@@ -245,7 +245,7 @@ function setCRTDesktopNotification(type) {
     cy.get('#desktopTitle').
         scrollIntoView().
         should('be.visible').
-        and('contain', 'Send desktop notifications').click();
+        and('contain', 'Desktop notifications').click();
 
     // # Select mentions category for messages.
     cy.get('#channelNotificationMentions').scrollIntoView().check();

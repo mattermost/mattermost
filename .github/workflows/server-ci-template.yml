@@ -147,30 +147,10 @@ jobs:
           cd ..
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
           cd mattermost-api-reference
-          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+          echo "Trying to checkout the same branch on mattermost-api-reference as mattermost"
           git checkout $GITHUB_HEAD_REF || git checkout $GITHUB_BASE_REF || true
           make build
           cd ../mattermost
-  check-generate-work-templates:
-    name: Generate work templates
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: ${{ env.go-version }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
-      - name: Generate work templates
-        run: make generate-worktemplates
-      - name: Check generated work templates
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the worktemplates using make generate-worktemplates"; exit 1; fi
   check-email-templates:
     name: Generate email templates
     runs-on: ubuntu-22.04

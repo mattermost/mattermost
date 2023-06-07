@@ -5,9 +5,7 @@ import React from 'react';
 
 import {Provider} from 'react-redux';
 
-import {screen} from '@testing-library/react';
-
-import {renderWithIntl, renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntl, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';

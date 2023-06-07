@@ -3,9 +3,9 @@
 
 import React from 'react';
 
+import {render, renderWithIntl, screen} from 'tests/react_testing_utils';
+
 import CommentedOnFilesMessage from './commented_on_files_message';
-import {render, screen} from '@testing-library/react';
-import {renderWithIntl} from 'tests/react_testing_utils';
 
 describe('components/CommentedOnFilesMessage', () => {
     const baseProps = {

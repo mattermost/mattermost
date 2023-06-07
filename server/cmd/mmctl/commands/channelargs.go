@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -50,11 +51,11 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 			return nil
 		}
 
-		channel, _, _ = c.GetChannelByNameIncludeDeleted(channelPart, team.Id, "")
+		channel, _, _ = c.GetChannelByNameIncludeDeleted(context.TODO(), channelPart, team.Id, "")
 	}
 
 	if channel == nil {
-		channel, _, _ = c.GetChannel(channelPart, "")
+		channel, _, _ = c.GetChannel(context.TODO(), channelPart, "")
 	}
 
 	return channel
@@ -94,7 +95,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		if err != nil {
 			return nil, err
 		}
-		channel, response, err = c.GetChannelByNameIncludeDeleted(channelArg, team.Id, "")
+		channel, response, err = c.GetChannelByNameIncludeDeleted(context.TODO(), channelArg, team.Id, "")
 		if err != nil {
 			err = ExtractErrorFromResponse(response, err)
 			var nfErr *NotFoundError
@@ -108,7 +109,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		return channel, nil
 	}
 	var err error
-	channel, response, err = c.GetChannel(channelArg, "")
+	channel, response, err = c.GetChannel(context.TODO(), channelArg, "")
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
