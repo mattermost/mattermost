@@ -11,10 +11,10 @@ import {
     getTeamMember,
 } from 'mattermost-redux/selectors/entities/teams';
 import {
-    getChannelMembersInChannels,
     canManageAnyChannelMembersInCurrentTeam,
     getCurrentChannelId,
     getChannelByName,
+    getChannelMember,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCallsConfig, getCalls} from 'mattermost-redux/selectors/entities/common';
 import {Action} from 'mattermost-redux/types/actions';
@@ -75,7 +75,7 @@ function makeMapStateToProps() {
         const teamMember = getTeamMember(state, team.id, userId);
 
         const isTeamAdmin = Boolean(teamMember && teamMember.scheme_admin);
-        const channelMember = getChannelMembersInChannels(state)?.[channelId]?.[userId];
+        const channelMember = getChannelMember(state, channelId, userId);
 
         let isChannelAdmin = false;
         if (getRhsState(state) !== 'search' && channelMember != null && channelMember.scheme_admin) {
