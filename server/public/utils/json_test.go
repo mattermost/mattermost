@@ -283,6 +283,11 @@ func TestIsJSONEmpty(t *testing.T) {
 			[]byte("\"hello\""),
 			false,
 		},
+		{
+			"whitespace still empty",
+			[]byte("  \n {  \t }  "),
+			true,
+		},
 	}
 
 	for _, testCase := range testCases {

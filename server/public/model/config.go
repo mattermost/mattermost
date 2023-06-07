@@ -1336,15 +1336,12 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
@@ -1401,14 +1398,12 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
@@ -1470,14 +1465,12 @@ func (s *NotificationLogSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
