@@ -188,7 +188,7 @@ func TestRunCreation(t *testing.T) {
 					tc.permissionsPrep()
 				}
 
-				result, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/dialog", dialogRequestBytes, "")
+				result, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/dialog", dialogRequestBytes, "")
 				tc.expected(t, result, err)
 			})
 		}
@@ -357,14 +357,14 @@ func TestCreateRunInExistingChannel(t *testing.T) {
 
 	t.Run("create a run, pass a channel different from the playbook configs", func(t *testing.T) {
 		// create private channel
-		privateChannel, _, err := e.ServerAdminClient.CreateChannel(&model.Channel{
+		privateChannel, _, err := e.ServerAdminClient.CreateChannel(context.Background(), &model.Channel{
 			DisplayName: "test_private",
 			Name:        "test_private",
 			Type:        model.ChannelTypePrivate,
 			TeamId:      e.BasicTeam.Id,
 		})
 		require.NoError(e.T, err)
-		_, _, err = e.ServerAdminClient.AddChannelMember(privateChannel.Id, e.RegularUser.Id)
+		_, _, err = e.ServerAdminClient.AddChannelMember(context.Background(), privateChannel.Id, e.RegularUser.Id)
 		require.NoError(e.T, err)
 
 		// create a run, pass the channel id different from the playbook configs
@@ -393,7 +393,7 @@ func TestCreateRunInExistingChannel(t *testing.T) {
 		dialogRequestBytes, err := json.Marshal(dialogRequest)
 		assert.NoError(t, err)
 
-		result, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/dialog", dialogRequestBytes, "")
+		result, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/dialog", dialogRequestBytes, "")
 
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusCreated, result.StatusCode)
@@ -481,7 +481,7 @@ func TestRunRetrieval(t *testing.T) {
 	})
 
 	t.Run("checklist autocomplete", func(t *testing.T) {
-		resp, err := e.ServerClient.DoAPIRequest("GET", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/checklist-autocomplete?channel_id="+e.BasicPrivateChannel.Id, "", "")
+		resp, err := e.ServerClient.DoAPIRequest(context.Background(), "GET", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/checklist-autocomplete?channel_id="+e.BasicPrivateChannel.Id, "", "")
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
@@ -528,7 +528,7 @@ func TestRunPostStatusUpdate(t *testing.T) {
 		assert.NoError(t, err)
 
 		// post created with expected props
-		post, _, err := e.ServerClient.GetPost(run.ReminderPostID, "")
+		post, _, err := e.ServerClient.GetPost(context.Background(), run.ReminderPostID, "")
 		assert.NoError(t, err)
 		assert.Equal(t, run.ID, post.GetProp("playbookRunId"))
 		assert.Equal(t, e.RegularUser.Username, post.GetProp("targetUsername"))
@@ -540,7 +540,7 @@ func TestRunPostStatusUpdate(t *testing.T) {
 	})
 
 	t.Run("no permissions to run", func(t *testing.T) {
-		_, _, err := e.ServerAdminClient.AddChannelMember(e.BasicRun.ChannelID, e.RegularUser2.Id)
+		_, _, err := e.ServerAdminClient.AddChannelMember(context.Background(), e.BasicRun.ChannelID, e.RegularUser2.Id)
 		require.NoError(t, err)
 		err = e.PlaybooksClient2.PlaybookRuns.UpdateStatus(context.Background(), e.BasicRun.ID, "update", 600)
 		requireErrorWithStatusCode(t, err, http.StatusForbidden)
@@ -1468,7 +1468,7 @@ func TestReminderReset(t *testing.T) {
 		assert.NoError(t, err)
 
 		// post created with expected props
-		post, _, err := e.ServerClient.GetPost(run.ReminderPostID, "")
+		post, _, err := e.ServerClient.GetPost(context.Background(), run.ReminderPostID, "")
 		assert.NoError(t, err)
 		assert.Equal(t, run.ID, post.GetProp("playbookRunId"))
 		assert.Equal(t, e.RegularUser.Username, post.GetProp("targetUsername"))
@@ -1753,7 +1753,7 @@ func TestGetOwners(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			cfg := e.Srv.Config()
 			cfg.PrivacySettings.ShowFullName = model.NewBool(tc.ShowFullName)
-			_, _, err = e.ServerAdminClient.UpdateConfig(cfg)
+			_, _, err = e.ServerAdminClient.UpdateConfig(context.Background(), cfg)
 			require.NoError(t, err)
 
 			owners, err := tc.Client.PlaybookRuns.GetOwners(context.Background())

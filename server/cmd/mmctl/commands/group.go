@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
@@ -149,7 +150,7 @@ func init() {
 }
 
 func listLdapGroupsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	groups, _, err := c.GetLdapGroups()
+	groups, _, err := c.GetLdapGroups(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -174,7 +175,7 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		},
 	}
 
-	groups, _, _, err := c.GetGroupsByChannel(channel.Id, *groupOpts)
+	groups, _, _, err := c.GetGroupsByChannel(context.TODO(), channel.Id, *groupOpts)
 	if err != nil {
 		return err
 	}
@@ -184,7 +185,7 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(true)}
-	if _, _, err = c.PatchChannel(channel.Id, &channelPatch); err != nil {
+	if _, _, err = c.PatchChannel(context.TODO(), channel.Id, &channelPatch); err != nil {
 		return err
 	}
 
@@ -198,7 +199,7 @@ func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string)
 	}
 
 	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(false)}
-	if _, _, err := c.PatchChannel(channel.Id, &channelPatch); err != nil {
+	if _, _, err := c.PatchChannel(context.TODO(), channel.Id, &channelPatch); err != nil {
 		return err
 	}
 
@@ -234,7 +235,7 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 			PerPage: 9999,
 		},
 	}
-	groups, _, _, err := c.GetGroupsByChannel(channel.Id, groupOpts)
+	groups, _, _, err := c.GetGroupsByChannel(context.TODO(), channel.Id, groupOpts)
 	if err != nil {
 		return err
 	}
@@ -258,7 +259,7 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 			PerPage: 10,
 		},
 	}
-	groups, _, _, err := c.GetGroupsByTeam(team.Id, groupOpts)
+	groups, _, _, err := c.GetGroupsByTeam(context.TODO(), team.Id, groupOpts)
 	if err != nil {
 		return err
 	}
@@ -268,7 +269,7 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(true)}
-	if _, _, err = c.PatchTeam(team.Id, &teamPatch); err != nil {
+	if _, _, err = c.PatchTeam(context.TODO(), team.Id, &teamPatch); err != nil {
 		return err
 	}
 
@@ -282,7 +283,7 @@ func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) er
 	}
 
 	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
-	if _, _, err := c.PatchTeam(team.Id, &teamPatch); err != nil {
+	if _, _, err := c.PatchTeam(context.TODO(), team.Id, &teamPatch); err != nil {
 		return err
 	}
 
@@ -318,7 +319,7 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			PerPage: 9999,
 		},
 	}
-	groups, _, _, err := c.GetGroupsByTeam(team.Id, groupOpts)
+	groups, _, _, err := c.GetGroupsByTeam(context.TODO(), team.Id, groupOpts)
 	if err != nil {
 		return err
 	}
@@ -332,7 +333,7 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 func userGroupRestoreCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	groupID := args[0]
-	_, resp, err := c.RestoreGroup(groupID, "")
+	_, resp, err := c.RestoreGroup(context.TODO(), groupID, "")
 	if err != nil {
 		return err
 	}

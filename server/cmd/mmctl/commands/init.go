@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -72,7 +73,9 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 			return fn(c, cmd, args)
 		}
 
-		c, serverVersion, err := InitClient(viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"))
+		ctx := context.TODO()
+
+		c, serverVersion, err := InitClient(ctx, viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"))
 		if err != nil {
 			return err
 		}
@@ -163,32 +166,32 @@ func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool
 	return client
 }
 
-func InitClientWithUsernameAndPassword(username, password, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+func InitClientWithUsernameAndPassword(ctx context.Context, username, password, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
 	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
 
-	_, resp, err := client.Login(username, password)
+	_, resp, err := client.Login(ctx, username, password)
 	if err != nil {
 		return nil, "", checkInsecureTLSError(err, allowInsecureTLS)
 	}
 	return client, resp.ServerVersion, nil
 }
 
-func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+func InitClientWithMFA(ctx context.Context, username, password, mfaToken, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
 	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
-	_, resp, err := client.LoginWithMFA(username, password, mfaToken)
+	_, resp, err := client.LoginWithMFA(ctx, username, password, mfaToken)
 	if err != nil {
 		return nil, "", checkInsecureTLSError(err, allowInsecureTLS)
 	}
 	return client, resp.ServerVersion, nil
 }
 
-func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+func InitClientWithCredentials(ctx context.Context, credentials *Credentials, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
 	client := NewAPIv4Client(credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS)
 
 	client.AuthType = model.HeaderBearer
 	client.AuthToken = credentials.AuthToken
 
-	_, resp, err := client.GetMe("")
+	_, resp, err := client.GetMe(ctx, "")
 	if err != nil {
 		return nil, "", checkInsecureTLSError(err, allowInsecureTLS)
 	}
@@ -196,12 +199,12 @@ func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allo
 	return client, resp.ServerVersion, nil
 }
 
-func InitClient(allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+func InitClient(ctx context.Context, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
 	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return nil, "", err
 	}
-	return InitClientWithCredentials(credentials, allowInsecureSHA1, allowInsecureTLS)
+	return InitClientWithCredentials(ctx, credentials, allowInsecureSHA1, allowInsecureTLS)
 }
 
 func InitWebSocketClient() (*model.WebSocketClient, error) {
