@@ -4,17 +4,25 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import ListModal from './list_modal';
+import ListModal, {DEFAULT_NUM_PER_PAGE} from './list_modal';
+import {Group} from '@mattermost/types/groups';
+import test_helper from 'packages/mattermost-redux/test/test_helper';
 
 describe('components/ListModal', () => {
-    const mockItems = [{id: '123', foo: 'bar31'}, {id: '234', foo: 'bar2'}];
-    const mockItemsPage2 = [{id: '123', foo: 'bar3'}];
+    const mockItem1 = test_helper.fakeGroupWithId('123');
+    mockItem1.name = 'bar31';
+    const mockItem2 = test_helper.fakeGroupWithId('234');
+    mockItem2.name = 'bar2';
+    const mockItem3 = test_helper.fakeGroupWithId('345');
+    mockItem3.name = 'bar3';
+    const mockItems = [mockItem1, mockItem2];
+    const mockItemsPage2 = [mockItem3];
     const mockSearchTerm = 'ar3';
-    const mockItemsSearch = mockItems.concat(mockItemsPage2).filter((item) => item.foo.includes(mockSearchTerm));
+    const mockItemsSearch = mockItems.concat(mockItemsPage2).filter((item) => item.name.includes(mockSearchTerm));
     const totalCount = mockItems.length + mockItemsPage2.length;
 
     const baseProps = {
-        loadItems: async (pageNumber, searchTerm) => {
+        loadItems: async (pageNumber: number, searchTerm: string) => {
             if (searchTerm === mockSearchTerm) {
                 return {items: mockItemsSearch, totalCount};
             }
@@ -23,18 +31,21 @@ describe('components/ListModal', () => {
             }
             return {items: mockItemsPage2, totalCount};
         },
-        renderRow: (item) => {
+        renderRow: (item: Group) => {
             return (
                 <div
                     className='item'
                     key={item.id}
                 >
-                    {item.foo}
+                    {item.id}
                 </div>
             );
         },
-        titleText: 'foo list modal',
-        searchPlaceholderText: 'search for foos',
+        titleText: 'list modal',
+        searchPlaceholderText: 'search for name',
+        numPerPage: DEFAULT_NUM_PER_PAGE,
+        titleBarButtonText: 'DEFAULT',
+        titleBarButtonTextOnClick: () => {},
     };
 
     it('should match snapshot', () => {
@@ -45,7 +56,7 @@ describe('components/ListModal', () => {
         setTimeout(() => {
             expect(wrapper.state('items')).toEqual(mockItems);
             expect(wrapper.state('totalCount')).toEqual(totalCount);
-            expect(wrapper.state('numPerPage')).toEqual(ListModal.DEFAULT_NUM_PER_PAGE);
+            expect(wrapper.state('numPerPage')).toEqual(DEFAULT_NUM_PER_PAGE);
         }, 0);
     });
 
@@ -77,7 +88,7 @@ describe('components/ListModal', () => {
         const wrapper = shallow(
             <ListModal {...props}/>,
         );
-        wrapper.instance().handleExit();
+        (wrapper.instance() as ListModal).handleExit();
         expect(onHide).toHaveBeenCalledTimes(1);
     });
 
@@ -85,12 +96,12 @@ describe('components/ListModal', () => {
         const wrapper = shallow(
             <ListModal {...baseProps}/>,
         );
-        wrapper.instance().onNext();
+        (wrapper.instance() as ListModal).onNext();
         setTimeout(() => {
             expect(wrapper.state('page')).toEqual(1);
             expect(wrapper.state('items')).toEqual(mockItemsPage2);
         }, 0);
-        wrapper.instance().onPrev();
+        (wrapper.instance() as ListModal).onPrev();
         setTimeout(() => {
             expect(wrapper.state('page')).toEqual(0);
             expect(wrapper.state('items')).toEqual(mockItems);
@@ -101,7 +112,7 @@ describe('components/ListModal', () => {
         const wrapper = shallow(
             <ListModal {...baseProps}/>,
         );
-        wrapper.instance().onSearchInput({target: {value: mockSearchTerm}});
+        (wrapper.instance() as ListModal).onSearchInput({target: {value: mockSearchTerm}} as React.ChangeEvent<HTMLInputElement>);
         setTimeout(() => {
             expect(wrapper.state('searchTerm')).toEqual(mockSearchTerm);
             expect(wrapper.state('items')).toEqual(mockItemsSearch);
