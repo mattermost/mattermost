@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -30,7 +31,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
+			UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, nil).
 			Times(1)
 
@@ -50,7 +51,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPluginForced(gomock.AssignableToTypeOf(tmpFile)).
+			UploadPluginForced(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, nil).
 			Times(1)
 
@@ -81,7 +82,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
+			UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{}, mockError).
 			Times(1)
 
@@ -103,13 +104,13 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 			if arg == "fail" {
 				s.client.
 					EXPECT().
-					UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
+					UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
 					Return(nil, &model.Response{}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
+					UploadPlugin(context.Background(), gomock.AssignableToTypeOf(tmpFile)).
 					Return(&model.Manifest{}, &model.Response{}, nil).
 					Times(1)
 			}
@@ -138,13 +139,13 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(pluginURL1, false).
+			InstallPluginFromURL(context.Background(), pluginURL1, false).
 			Return(manifest1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(pluginURL2, false).
+			InstallPluginFromURL(context.Background(), pluginURL2, false).
 			Return(manifest2, &model.Response{}, nil).
 			Times(1)
 
@@ -164,7 +165,7 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(pluginURL, true).
+			InstallPluginFromURL(context.Background(), pluginURL, true).
 			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
@@ -188,13 +189,13 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(pluginURL1, false).
+			InstallPluginFromURL(context.Background(), pluginURL1, false).
 			Return(manifest1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InstallPluginFromURL(pluginURL2, false).
+			InstallPluginFromURL(context.Background(), pluginURL2, false).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -217,7 +218,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 
 		s.client.
 			EXPECT().
-			DisablePlugin(arg).
+			DisablePlugin(context.Background(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -235,7 +236,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 
 		s.client.
 			EXPECT().
-			DisablePlugin(arg).
+			DisablePlugin(context.Background(), arg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -255,13 +256,13 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 			if strings.HasPrefix(arg, "fail") {
 				s.client.
 					EXPECT().
-					DisablePlugin(arg).
+					DisablePlugin(context.Background(), arg).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					DisablePlugin(arg).
+					DisablePlugin(context.Background(), arg).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 					Times(1)
 			}
@@ -285,7 +286,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 
 		s.client.
 			EXPECT().
-			EnablePlugin(pluginArg).
+			EnablePlugin(context.Background(), pluginArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -303,7 +304,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range plugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(plugin).
+				EnablePlugin(context.Background(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -324,7 +325,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 
 		s.client.
 			EXPECT().
-			EnablePlugin(pluginArg).
+			EnablePlugin(context.Background(), pluginArg).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
@@ -347,7 +348,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range okPlugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(plugin).
+				EnablePlugin(context.Background(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 				Times(1)
 		}
@@ -355,7 +356,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		for _, plugin := range failPlugins {
 			s.client.
 				EXPECT().
-				EnablePlugin(plugin).
+				EnablePlugin(context.Background(), plugin).
 				Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 				Times(1)
 		}
@@ -424,7 +425,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins().
+			GetPlugins(context.Background()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
@@ -499,7 +500,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins().
+			GetPlugins(context.Background()).
 			Return(mockList, &model.Response{}, nil).
 			Times(1)
 
@@ -525,7 +526,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		s.client.
 			EXPECT().
-			GetPlugins().
+			GetPlugins(context.Background()).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -543,7 +544,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(args).
+			RemovePlugin(context.Background(), args).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
@@ -560,7 +561,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(args).
+			RemovePlugin(context.Background(), args).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -586,25 +587,25 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 
 		s.client.
 			EXPECT().
-			RemovePlugin(args[0]).
+			RemovePlugin(context.Background(), args[0]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(args[1]).
+			RemovePlugin(context.Background(), args[1]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErrors[0]).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(args[2]).
+			RemovePlugin(context.Background(), args[2]).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErrors[1]).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RemovePlugin(args[3]).
+			RemovePlugin(context.Background(), args[3]).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

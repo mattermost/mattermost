@@ -203,6 +203,7 @@ export type ClientConfig = {
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    ServiceEnvironment: string;
 };
 
 export type License = {
@@ -947,4 +948,10 @@ export enum CollapsedThreads {
     DEFAULT_ON = 'default_on',
     DEFAULT_OFF = 'default_off',
     ALWAYS_ON = 'always_on',
+}
+
+export enum ServiceEnvironment {
+    PRODUCTION = 'production',
+    TEST = 'test',
+    DEV = 'dev',
 }
