@@ -17,8 +17,12 @@ type TeamsUsage struct {
 }
 
 var InstalledIntegrationsIgnoredPlugins = map[string]struct{}{
-	PluginIdCalls: {},
-	PluginIdNPS:   {},
+	PluginIdPlaybooks:     {},
+	PluginIdFocalboard:    {},
+	PluginIdApps:          {},
+	PluginIdCalls:         {},
+	PluginIdNPS:           {},
+	PluginIdChannelExport: {},
 }
 
 type InstalledIntegration struct {
