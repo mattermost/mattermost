@@ -129,6 +129,8 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
 		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+	} else {
+		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
