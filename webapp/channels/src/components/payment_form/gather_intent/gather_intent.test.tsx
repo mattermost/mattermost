@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, act} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {
+    act,
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {GatherIntent} from './gather_intent';

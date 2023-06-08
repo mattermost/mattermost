@@ -118,6 +118,16 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction5)
 	require.Error(t, nErr, "should've failed for invalid reaction")
 
+	t.Run("channel not found", func(t *testing.T) {
+		// invalid reaction
+		reaction5 := &model.Reaction{
+			UserId:    reaction1.UserId,
+			PostId:    model.NewId(), // Unknown PostId
+			EmojiName: model.NewId(),
+		}
+		_, nErr = ss.Reaction().Save(reaction5)
+		require.Error(t, nErr, "should've failed because postId doesn't belong to a stored post")
+	})
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {

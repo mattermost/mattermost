@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 
 import {GatherIntentModal, GatherIntentModalProps} from './gather_intent_modal';
 

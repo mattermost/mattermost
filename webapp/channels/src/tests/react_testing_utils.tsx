@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {createBrowserHistory} from 'history';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
@@ -10,12 +11,16 @@ import {Router} from 'react-router-dom';
 
 import {DeepPartial} from '@mattermost/types/utilities';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+
 import configureStore from 'store';
 
 import mockStore from 'tests/test_store';
 
 import {GlobalState} from 'types/store';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+
+export * from '@testing-library/react';
+export {userEvent};
 
 export const renderWithIntl = (component: React.ReactNode | React.ReactNodeArray, locale = 'en') => {
     return render(<IntlProvider locale={locale}>{component}</IntlProvider>);
