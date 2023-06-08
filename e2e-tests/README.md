@@ -23,9 +23,9 @@ Instructions, detailed:
 4. `make stop`: tears down the server (and the dashboard, if running), then cleans up the env placeholder files
 
 Notes:
-- Aside from some exceptions (e.g. `TEST_FILTER`), most of the variables in `.ci/env` must be set before the `make start-server` command is run. Modifting that file afterwards has no effect, because the containers' env files are generated in that step.
+- Aside from some exceptions (e.g. `TEST_FILTER`), most of the variables in `.ci/env` must be set before the `make start-server` command is run. Modifying that file afterwards has no effect, because the containers' env files are generated in that step.
 - If you restart the dashboard at any point, you must also restart the server containers, so that it picks up the new IP of the dashboard from the newly generated `.env.dashboard` file
-- If you started the dashboard locally in the past, but want to point to another dasbhoard later, you can run `make clean-env-placeholders` to remove references to the local dasbhoard (you'll likely need to restart the server)
+- If you started the dashboard locally in the past, but want to point to another dashboard later, you can run `make clean-env-placeholders` to remove references to the local dashboard (you'll likely need to restart the server)
 - Dynamically set variables for the server or cypress should be managed within the `.env.*` files, rather than in the docker-compose files, to streamline their management.
 
 ##### How to control which tests to run
