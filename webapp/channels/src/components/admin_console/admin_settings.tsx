@@ -63,7 +63,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
 
     protected abstract renderSettings(): React.ReactElement;
 
-    protected handleSaved?: ((config: AdminConfig) => React.ReactElement);
+    protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
 
     protected canSave?: () => boolean;
 
