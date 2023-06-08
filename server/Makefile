@@ -351,12 +351,12 @@ store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
 
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
-	$(GO) install github.com/mattermost/morph/cmd/morph@master
+	$(GO) install github.com/mattermost/morph/cmd/morph@1e0640c
 	@echo "Generating new migration for mysql"
-	$(GOBIN)/morph generate $(name) --driver mysql --dir channels/db/migrations --sequence
+	$(GOBIN)/morph new script $(name) --driver mysql --dir channels/db/migrations --sequence
 
 	@echo "Generating new migration for postgres"
-	$(GOBIN)/morph generate $(name) --driver postgres --dir channels/db/migrations --sequence
+	$(GOBIN)/morph new script $(name) --driver postgres --dir channels/db/migrations --sequence
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
