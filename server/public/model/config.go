@@ -1336,19 +1336,16 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
@@ -1401,18 +1398,16 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
@@ -1470,18 +1465,16 @@ func (s *NotificationLogSettings) SetDefaults() {
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
-		// copy any non-empty AdvancedLoggingConfig (deprecated) to the new field.
-		if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-			s.AdvancedLoggingJSON = utils.StringPtrToJSON(s.AdvancedLoggingConfig)
-		} else {
-			s.AdvancedLoggingJSON = []byte("{}")
-		}
+		s.AdvancedLoggingJSON = []byte("{}")
 	}
-	s.AdvancedLoggingConfig = nil
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precident over the deprecated AdvancedLoggingConfig.
+// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
@@ -2844,14 +2837,18 @@ type CloudSettings struct {
 
 func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil {
-		s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSURL = NewString(CloudSettingsDefaultCwsURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSURL = NewString(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 	if s.CWSAPIURL == nil {
-		s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
-		if !isProdLicensePublicKey {
+		switch GetServiceEnvironment() {
+		case ServiceEnvironmentProduction:
+			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURL)
+		case ServiceEnvironmentTest, ServiceEnvironmentDev:
 			s.CWSAPIURL = NewString(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
@@ -2863,6 +2860,7 @@ func (s *CloudSettings) SetDefaults() {
 
 type ProductSettings struct {
 	EnablePublicSharedBoards *bool
+	EnablePlaybooks          *bool
 }
 
 func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
@@ -2872,6 +2870,9 @@ func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
 		} else {
 			s.EnablePublicSharedBoards = NewBool(false)
 		}
+	}
+	if s.EnablePlaybooks == nil {
+		s.EnablePlaybooks = NewBool(true)
 	}
 }
 

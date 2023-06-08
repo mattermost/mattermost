@@ -10,7 +10,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import Markdown from 'components/markdown';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';

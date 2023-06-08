@@ -260,7 +260,7 @@ Cypress.Commands.add('apiCreateUser', ({
         cy.apiSaveDraftsTourTipPreference(createdUser.id, true);
 
         if (bypassTutorial) {
-            cy.apiSaveTutorialStep(createdUser.id, '999');
+            cy.apiDisableTutorials(createdUser.id);
         }
 
         if (hideActionsMenu) {

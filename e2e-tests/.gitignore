@@ -6,6 +6,3 @@
 
 # Plugin
 *.tar.gz
-
-# node
-*.lock

@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import './no_internet_connection.scss';
 import NoInternetConnectionSvg from './no-internet-connection-svg';

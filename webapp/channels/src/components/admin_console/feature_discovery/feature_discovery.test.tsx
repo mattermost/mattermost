@@ -2,17 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Provider as ReduxProvider} from 'react-redux';
 
 import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
+
+import store from 'stores/redux_store';
+
+import {
+    renderWithIntl,
+    screen,
+    userEvent,
+    waitFor,
+} from 'tests/react_testing_utils';
 
 import {LicenseSkus} from 'utils/constants';
 
 import SamlSVG from './features/images/saml_svg';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {screen, waitFor} from '@testing-library/react';
-import {Provider as ReduxProvider} from 'react-redux';
-import store from 'stores/redux_store';
-import userEvent from '@testing-library/user-event';
 
 describe('components/feature_discovery', () => {
     describe('FeatureDiscovery', () => {

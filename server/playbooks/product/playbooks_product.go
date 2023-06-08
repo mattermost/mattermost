@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
@@ -54,10 +53,16 @@ const (
 
 const ServerKey product.ServiceKey = "server"
 
-// These credentials for Rudder need to be replaced at build-time.
 const (
-	rudderDataplaneURL = "placeholder_rudder_dataplane_url"
-	rudderWriteKey     = "placeholder_playbooks_rudder_key"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1ag0Mv7LPf5uJNhcnKomqg0ENFd"
+	rudderKeyTest      = "1Zu3mOF6U6M9zeaJsfmmhYigWLt"
+
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_playbooks_rudder_key"
 )
 
 var errServiceTypeAssert = errors.New("type assertion failed")
@@ -334,14 +339,23 @@ func (pp *playbooksProduct) Start() error {
 
 	pp.handler = api.NewHandler(pp.config)
 
-	if strings.HasPrefix(rudderWriteKey, "placeholder_") {
+	rudderWriteKey := ""
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction:
+		rudderWriteKey = rudderKeyProd
+	case model.ServiceEnvironmentTest:
+		rudderWriteKey = rudderKeyTest
+	case model.ServiceEnvironmentDev:
+	}
+
+	if rudderWriteKey == "" {
 		logrus.Warn("Rudder credentials are not set. Disabling analytics.")
 		pp.telemetryClient = &telemetry.NoopTelemetry{}
 	} else {
 		logrus.Info("Rudder credentials are set. Enabling analytics.")
 		diagnosticID := pp.serviceAdapter.GetDiagnosticID()
 		serverVersion := pp.serviceAdapter.GetServerVersion()
-		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, model.BuildHash, serverVersion)
+		pp.telemetryClient, err = telemetry.NewRudder(rudderDataplaneURL, rudderWriteKey, diagnosticID, serverVersion)
 		if err != nil {
 			return errors.Wrapf(err, "failed init telemetry client")
 		}

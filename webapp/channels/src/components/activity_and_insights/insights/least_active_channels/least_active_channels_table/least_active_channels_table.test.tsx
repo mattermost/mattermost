@@ -4,14 +4,13 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {act} from '@testing-library/react';
-
 import {ReactWrapper} from 'enzyme';
 
 import {BrowserRouter} from 'react-router-dom';
 
 import {TimeFrames} from '@mattermost/types/insights';
 
+import {act} from 'tests/react_testing_utils';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 

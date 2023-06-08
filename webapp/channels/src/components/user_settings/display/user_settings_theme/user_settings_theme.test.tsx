@@ -5,13 +5,13 @@ import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
-import {render, fireEvent, screen} from '@testing-library/react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import UserSettingsTheme from 'components/user_settings/display/user_settings_theme/user_settings_theme';
-
+import {render, fireEvent, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
+
+import UserSettingsTheme from './user_settings_theme';
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),

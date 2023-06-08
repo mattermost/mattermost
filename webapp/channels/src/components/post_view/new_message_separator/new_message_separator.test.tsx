@@ -3,9 +3,9 @@
 
 import React from 'react';
 
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+
 import NewMessageSeparator from './new_message_separator';
-import {screen} from '@testing-library/react';
-import {renderWithIntl} from 'tests/react_testing_utils';
 
 describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
