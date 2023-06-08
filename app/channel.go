@@ -419,7 +419,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 	}
 
 	if channel != nil {
-		return channel, nil
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "conflict.dm", nil, "", http.StatusConflict)
 	}
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
@@ -602,7 +602,7 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 	channel, err := a.createGroupChannel(c, userIDs)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
-			return channel, nil
+			return nil, model.NewAppError("CreateGroupChannel", "conflict.gm", nil, "", http.StatusConflict)
 		}
 		return nil, err
 	}
