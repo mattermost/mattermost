@@ -4250,7 +4250,7 @@
   "onboarding_wizard.plugins.jira": "Jira",
   "onboarding_wizard.plugins.jira.tooltip": "Create Jira tickets from messages in Mattermost, get notified of important updates in Jira",
   "onboarding_wizard.plugins.marketplace": "More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>",
-  "onboarding_wizard.plugins.servicenow": "Service Now",
+  "onboarding_wizard.plugins.servicenow": "ServiceNow",
   "onboarding_wizard.plugins.servicenow.tooltip": "This plugin serves as an integration between Mattermost and ServiceNow.",
   "onboarding_wizard.plugins.zoom": "Zoom",
   "onboarding_wizard.plugins.zoom.tooltip": "Start Zoom audio and video conferencing calls in Mattermost with a single click",

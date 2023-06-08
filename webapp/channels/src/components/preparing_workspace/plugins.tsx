@@ -136,11 +136,11 @@ const Plugins = (props: Props) => {
                                     onClick: () => props.setOption('servicenow'),
                                     icon: <ServiceNowSVG/>,
                                     id: t('onboarding_wizard.plugins.servicenow'),
-                                    defaultMessage: 'Service Now',
+                                    defaultMessage: 'ServiceNow',
                                     checked: props.options.servicenow,
                                     tooltip: formatMessage({
                                         id: 'onboarding_wizard.plugins.servicenow.tooltip',
-                                        defaultMessage: 'Service Now tooltip',
+                                        defaultMessage: 'ServiceNow tooltip',
                                     }),
                                 },
                             ]}
