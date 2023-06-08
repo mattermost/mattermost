@@ -74,8 +74,12 @@ import (
 	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
 )
 
-// declaring this as var to allow overriding in tests
-var SentryDSN = "placeholder_sentry_dsn"
+var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
+
+// This is a placeholder to allow the existing release pipelines to run without failing to insert
+// the key that's now hard-coded above. Remove this once we converge on the unified delivery
+// pipeline in GitHub.
+var _ = "placeholder_sentry_dsn"
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -294,9 +298,10 @@ func NewServer(options ...Option) (*Server, error) {
 	// -------------------------------------------------------------------------
 
 	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
-		if strings.Contains(SentryDSN, "placeholder") {
-			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
-		} else {
+		switch model.GetServiceEnvironment() {
+		case model.ServiceEnvironmentDev:
+			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
+		case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
 			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
@@ -424,6 +429,7 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_date", model.BuildDate),
 		mlog.String("build_hash", model.BuildHash),
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
 		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
@@ -907,11 +913,15 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
-		sentryHandler := sentryhttp.New(sentryhttp.Options{
-			Repanic: true,
-		})
-		handler = sentryHandler.Handle(handler)
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
+		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+			sentryHandler := sentryhttp.New(sentryhttp.Options{
+				Repanic: true,
+			})
+			handler = sentryHandler.Handle(handler)
+		}
+	case model.ServiceEnvironmentDev:
 	}
 
 	if allowedOrigins := *s.platform.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {

@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -37,7 +38,7 @@ func CreateTestEnvironmentWithTeams(a *app.App, c request.CTX, client *model.Cli
 		if err != nil {
 			return TestEnvironment{}, err
 		}
-		client.LoginById(randomUser.Id, UserPassword)
+		client.LoginById(context.Background(), randomUser.Id, UserPassword)
 		teamEnvironment, err := CreateTestEnvironmentInTeam(a, c, client, team, rangeChannels, rangeUsers, rangePosts, fuzzy)
 		if err != nil {
 			return TestEnvironment{}, err
@@ -77,12 +78,12 @@ func CreateTestEnvironmentInTeam(a *app.App, c request.CTX, client *model.Client
 	// Have every user join every channel
 	for _, user := range users {
 		for _, channel := range channels {
-			_, _, err := client.LoginById(user.Id, UserPassword)
+			_, _, err := client.LoginById(context.Background(), user.Id, UserPassword)
 			if err != nil {
 				return TeamEnvironment{}, err
 			}
 
-			_, _, err = client.AddChannelMember(channel.Id, user.Id)
+			_, _, err = client.AddChannelMember(context.Background(), channel.Id, user.Id)
 			if err != nil {
 				return TeamEnvironment{}, err
 			}
@@ -93,7 +94,7 @@ func CreateTestEnvironmentInTeam(a *app.App, c request.CTX, client *model.Client
 	numImages := utils.RandIntFromRange(rangePosts) / 4
 	for j := 0; j < numPosts; j++ {
 		user := users[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(users) - 1})]
-		_, _, err := client.LoginById(user.Id, UserPassword)
+		_, _, err := client.LoginById(context.Background(), user.Id, UserPassword)
 		if err != nil {
 			return TeamEnvironment{}, err
 		}

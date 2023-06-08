@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"time"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
@@ -41,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPost(replyToArg, "").
+			GetPost(context.Background(), replyToArg, "").
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
@@ -62,13 +63,13 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DoAPIPost("/posts?set_online=false", data).
+			DoAPIPost(context.Background(), "/posts?set_online=false", data).
 			Return(nil, errors.New("some-error")).
 			Times(1)
 
@@ -89,13 +90,13 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DoAPIPost("/posts?set_online=false", data).
+			DoAPIPost(context.Background(), "/posts?set_online=false", data).
 			Return(nil, nil).
 			Times(1)
 
@@ -121,19 +122,19 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPost(replyToArg, "").
+			GetPost(context.Background(), replyToArg, "").
 			Return(&mockReplyTo, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DoAPIPost("/posts?set_online=false", data).
+			DoAPIPost(context.Background(), "/posts?set_online=false", data).
 			Return(nil, nil).
 			Times(1)
 
@@ -160,7 +161,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -185,19 +186,19 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsForChannel(channelID, 0, 1, "", false, false).
+			GetPostsForChannel(context.Background(), channelID, 0, 1, "", false, false).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(userID, "").
+			GetUser(context.Background(), userID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -233,19 +234,19 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsSince(channelID, sinceTimeMillis, false).
+			GetPostsSince(context.Background(), channelID, sinceTimeMillis, false).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(userID, "").
+			GetUser(context.Background(), userID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
