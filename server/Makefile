@@ -470,9 +470,15 @@ test-server-race: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
-	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
-	$(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
-	$(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
+ifeq ($(IS_CI),true)
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+else
+	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+	$(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
+endif
 
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
@@ -557,7 +563,7 @@ inject-test-data: # add test data to the local instance.
 	@echo ========================================================================
 
 test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-test-mmctl-unit: test-mmctl-pre
+test-mmctl-unit:
 	@echo Running mmctl unit tests
 	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
 
