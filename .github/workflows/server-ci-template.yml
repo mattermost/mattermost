@@ -230,6 +230,7 @@ jobs:
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml
     with:
+      name: Postgres with binary parameters
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
@@ -238,6 +239,7 @@ jobs:
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml
     with:
+      name: Postgres
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: postgres-server-test-logs
@@ -246,6 +248,7 @@ jobs:
     needs: check-mattermost-vet
     uses: ./.github/workflows/server-test-template.yml
     with:
+      name: MySQL
       datasource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304
       drivername: mysql
       logsartifact: mysql-server-test-logs
