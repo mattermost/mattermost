@@ -8,6 +8,9 @@ on:
       drivername:
         required: true
         type: string
+      logsartifact:
+        required: true
+        type: string
 env:
   go-version: "1.19.5"
 jobs:
@@ -54,7 +57,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: server-test-logs
+          name: ${{ inputs.logsartifact }}
           path: |
             server/gotestsum.json
             server/report.xml
