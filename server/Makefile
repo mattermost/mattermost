@@ -566,7 +566,7 @@ test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-unit:
+test-mmctl-unit: gotestsum
 	@echo Running mmctl unit tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
@@ -574,17 +574,17 @@ test-mmctl-e2e: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
-test-mmctl-e2e: start-docker
+test-mmctl-e2e: gotestsum start-docker
 	@echo Running mmctl e2e tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-test-mmctl: start-docker
+test-mmctl: gotestsum start-docker
 	@echo Running all mmctl tests
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
-test-mmctl-coverage: start-docker
+test-mmctl-coverage: gotestsum start-docker
 	@echo Running all mmctl tests with coverage
 	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
 	$(GO) tool cover -html=mmctlcover.out
