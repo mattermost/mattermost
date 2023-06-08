@@ -28,7 +28,7 @@ import {
     getAllTeamsUnreadChannelIds,
 } from 'mattermost-redux/selectors/entities/channels';
 
-import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled, insightsAreEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     getCurrentTeamId,
@@ -70,14 +70,6 @@ const ThreadsChannel: FakeChannel = {
     name: 'threads',
     display_name: 'Threads',
     type: Constants.THREADS,
-    delete_at: 0,
-};
-
-const InsightsChannel: FakeChannel = {
-    id: 'insights',
-    name: 'activity-and-insights',
-    display_name: 'Insights',
-    type: Constants.INSIGHTS,
     delete_at: 0,
 };
 
@@ -181,12 +173,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         icon = (
             <span className='suggestion-list__icon suggestion-list__icon--large'>
                 <i className='icon icon-message-text-outline'/>
-            </span>
-        );
-    } else if (channel.type === Constants.INSIGHTS) {
-        icon = (
-            <span className='suggestion-list__icon suggestion-list__icon--large'>
-                <i className='icon icon-chart-line'/>
             </span>
         );
     } else if (channel.type === Constants.GM_CHANNEL) {
@@ -457,7 +443,7 @@ export default class SwitchChannelProvider extends Provider {
             // Dispatch suggestions for local data (filter out deleted and archived channels from local store data)
             const channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
             const users = searchProfilesMatchingWithTerm(getState(), channelPrefix, false);
-            const formattedData = this.formatList(channelPrefix, [ThreadsChannel, InsightsChannel, ...channels], users, true, true);
+            const formattedData = this.formatList(channelPrefix, [ThreadsChannel, ...channels], users, true, true);
             if (formattedData) {
                 resultsCallback(formattedData);
             }
@@ -510,7 +496,7 @@ export default class SwitchChannelProvider extends Provider {
         // filter out deleted and archived channels from local store data
         const localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
         const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
-        const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, InsightsChannel, ...localChannelData], localUserData);
+        const localFormattedData = this.formatList(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
         const remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
         const remoteUserData = usersFromServer.users || [];
         const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
@@ -593,7 +579,7 @@ export default class SwitchChannelProvider extends Provider {
                 let wrappedChannel: WrappedChannel = {channel: newChannel, name: newChannel.name, deactivated: false};
                 if (members[channel.id]) {
                     wrappedChannel.last_viewed_at = members[channel.id].last_viewed_at;
-                } else if (skipNotMember && (newChannel.type !== Constants.THREADS && newChannel.type !== Constants.INSIGHTS)) {
+                } else if (skipNotMember && (newChannel.type !== Constants.THREADS)) {
                     continue;
                 }
 
@@ -611,13 +597,6 @@ export default class SwitchChannelProvider extends Provider {
                     const threadItem = this.getThreadsItem('total');
                     if (threadItem) {
                         wrappedChannel = threadItem;
-                    } else {
-                        continue;
-                    }
-                } else if (newChannel.type === Constants.INSIGHTS) {
-                    const insightsItem = this.getInsightsItem();
-                    if (insightsItem) {
-                        wrappedChannel = insightsItem;
                     } else {
                         continue;
                     }
@@ -762,27 +741,6 @@ export default class SwitchChannelProvider extends Provider {
         }
         if (collapsedThreads && ((countType === 'unread' && counts?.total_unread_threads) || (countType === 'total'))) {
             return threadsItem;
-        }
-
-        return null;
-    }
-
-    getInsightsItem() {
-        const state = getState();
-        const insightsEnabled = insightsAreEnabled(state);
-
-        // adding last viewed at equal to Date.now() to push it to the top of the list
-        const insightsItem = {
-            channel: InsightsChannel,
-            name: InsightsChannel.name,
-            unread: false,
-            unread_mentions: 0,
-            deactivated: false,
-            last_viewed_at: Date.now(),
-        };
-
-        if (insightsEnabled) {
-            return insightsItem;
         }
 
         return null;

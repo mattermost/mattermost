@@ -248,13 +248,6 @@ export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableOnboardingFlow === 'true';
 }
 
-export function insightsAreEnabled(state: GlobalState): boolean {
-    const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
-    const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';
-    const currentUserIsGuest = isGuest(getCurrentUser(state).roles);
-    return featureIsEnabled && isConfiguredForFeature && !currentUserIsGuest;
-}
-
 export function isGraphQLEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'GraphQL') === 'true';
 }

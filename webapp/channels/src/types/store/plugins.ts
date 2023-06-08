@@ -9,7 +9,6 @@ import {PluginAnalyticsRow} from '@mattermost/types/admin';
 import {FileInfo} from '@mattermost/types/files';
 import {Post, PostEmbed} from '@mattermost/types/posts';
 import {IDMappedObjects} from '@mattermost/types/utilities';
-import {TopBoardResponse} from '@mattermost/types/insights';
 import {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {WebSocketClient} from '@mattermost/client';
@@ -56,9 +55,6 @@ export type PluginsState = {
     };
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
-    };
-    insightsHandlers: {
-        [pluginId: string]: (timeRange: string, page: number, perPage: number, teamId: string, insightType: string) => Promise<TopBoardResponse>;
     };
 };
 

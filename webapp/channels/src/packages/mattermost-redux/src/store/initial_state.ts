@@ -252,10 +252,6 @@ const state: GlobalState = {
                 teamsLoaded: false,
             },
         },
-        insights: {
-            topReactions: {},
-            myTopReactions: {},
-        },
     },
     errors: [],
     requests: {

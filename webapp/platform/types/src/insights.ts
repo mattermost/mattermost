@@ -69,6 +69,7 @@ export type TopChannelActionResult = {
     error?: any;
 };
 
+// LOL
 export type TopThread = {
     channel_id: string;
     channel_display_name: string;
