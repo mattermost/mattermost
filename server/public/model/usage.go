@@ -17,10 +17,8 @@ type TeamsUsage struct {
 }
 
 var InstalledIntegrationsIgnoredPlugins = map[string]struct{}{
-	PluginIdPlaybooks:  {},
-	PluginIdFocalboard: {},
-	PluginIdCalls:      {},
-	PluginIdNPS:        {},
+	PluginIdCalls: {},
+	PluginIdNPS:   {},
 }
 
 type InstalledIntegration struct {
