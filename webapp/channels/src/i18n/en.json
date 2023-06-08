@@ -2511,7 +2511,7 @@
   "admin.team.removeBrandImage": "Remove brand image",
   "admin.team.restrict_direct_message_any": "Any user on the Mattermost server",
   "admin.team.restrict_direct_message_team": "Any member of the team",
-  "admin.team.restrictDescription": "New user accounts are restricted to the above specified email domain (e.g. \"mattermost.com\") or list of comma-separated domains (e.g. \"corp.mattermost.com, mattermost.com\"). New teams can only be created by users from the above domain(s). This setting affects email login for users. For Guest users, please add domains under Signup > Guest Access.",
+  "admin.team.restrictDescription": "New user accounts are restricted to the above specified email domain (e.g. \"mattermost.com\") or list of comma-separated domains (e.g. \"corp.mattermost.com, mattermost.com\"). New teams can only be created by users from the above domain(s). This setting affects email login for users.",
   "admin.team.restrictDirectMessage": "Enable users to open Direct Message channels with:",
   "admin.team.restrictDirectMessageDesc": "'Any user on the Mattermost server' enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. 'Any member of the team' limits the ability in the Direct Messages 'More' menu to only open Direct Message channels with users who are in the same team.\n \nNote: This setting only affects the UI, not permissions on the server.",
   "admin.team.restrictExample": "E.g.: \"corp.mattermost.com, mattermost.com\"",
