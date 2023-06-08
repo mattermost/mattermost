@@ -7368,6 +7368,14 @@
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
+    "id": "conflict.dm",
+    "translation": ""
+  },
+  {
+    "id": "conflict.gm",
+    "translation": ""
+  },
+  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -7644,6 +7652,10 @@
     "translation": "Trying to index a new batch when all the entities are completed"
   },
   {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": ""
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
@@ -7710,10 +7722,6 @@
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Failed to decode search results"
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
