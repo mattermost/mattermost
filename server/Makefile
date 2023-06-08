@@ -154,11 +154,8 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards|server/v8/cmd/mmctl')
 BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
 PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
-SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl' | grep )
+SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl')
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
-
-SUITE_PACKAGES=github.com/mattermost/mattermost-server/server/v8/channels/app/email
-EE_PACKAGES=
 
 TEMPLATES_DIR=templates
 
@@ -473,9 +470,6 @@ test-server-race: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-race: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
-ifeq ($(IS_CI),true)
-	export GOMAXPROCS=4
-endif
 	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
 	$(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
 	$(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- "-race $(GOFLAGS)" -timeout=90m
@@ -494,9 +488,6 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	bash -c 'echo "test-server"'
-	bash -c 'echo MM_SERVER_PATH=$$MM_SERVER_PATH'
-	bash -c 'echo GOTESTSUM_FORMAT=$$GOTESTSUM_FORMAT'
 	$(GOBIN)/gotestsum --packages="$(SUITE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
