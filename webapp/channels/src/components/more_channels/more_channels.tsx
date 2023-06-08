@@ -19,7 +19,7 @@ import {RhsState} from 'types/store/rhs';
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import classNames from 'classnames';
 import {localizeMessage} from 'utils/utils';
 import LoadingScreen from 'components/loading_screen';
