@@ -17,7 +17,7 @@ import {
     getChannelMember,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCallsConfig, getCalls} from 'mattermost-redux/selectors/entities/common';
-import {Action} from 'mattermost-redux/types/actions';
+import {GenericAction} from 'mattermost-redux/types/actions';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
 
@@ -135,9 +135,9 @@ type Actions = {
     getMembershipForEntities: (teamId: string, userId: string, channelId?: string) => Promise<void>;
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
+function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             closeModal,
             openDirectChannelToUserId,
             openModal,
