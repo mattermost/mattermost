@@ -382,9 +382,6 @@ export function calculateUnreadCount(
     let hasUrgent = false;
     if (crtEnabled) {
         messages = messageCount.root - member.msg_count_root;
-
-        console.log(`${messages < 0 ? 'NEGATIVE' : 'POSITIVE'} messageCount.root: ${messageCount.root} member.msg_count_root: ${member.msg_count_root}`);
-
         mentions = member.mention_count_root;
     } else {
         mentions = member.mention_count;

@@ -216,11 +216,3 @@ func minimumProfessionalLicense(c *Context) *model.AppError {
 	}
 	return nil
 }
-
-func rejectGuests(c *Context) *model.AppError {
-	if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
-		err := model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)
-		return err
-	}
-	return nil
-}

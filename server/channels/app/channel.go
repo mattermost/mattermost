@@ -8,9 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mattermost/logr/v2"
 	"net/http"
 	"strings"
+
+	"github.com/mattermost/logr/v2"
 
 	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/public/plugin"
