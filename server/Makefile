@@ -64,7 +64,7 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 
 # mmctl
 MMCTL_BUILD_TAGS =
-MMCTL_TESTFLAGS = -timeout 30m -race -v
+MMCTL_TESTFLAGS = -timeout 30m -race
 MMCTL_PKG = github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/commands
 LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
 LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
@@ -563,24 +563,30 @@ inject-test-data: # add test data to the local instance.
 	@echo ========================================================================
 
 test-mmctl-unit: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-unit: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-unit: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-unit:
 	@echo Running mmctl unit tests
-	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-e2e: export MM_SERVER_PATH := $(MM_SERVER_PATH)
+test-mmctl-e2e: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-mmctl-e2e: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-mmctl-e2e: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-mmctl-e2e: start-docker
 	@echo Running mmctl e2e tests
-	$(GO) test $(MMCTL_TESTFLAGS) -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl: start-docker
 	@echo Running all mmctl tests
-	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' $(MMCTL_TESTFLAGS)
 
 test-mmctl-coverage: export MM_SERVER_PATH := $(MM_SERVER_PATH)
 test-mmctl-coverage: start-docker
 	@echo Running all mmctl tests with coverage
-	$(GO) test $(MMCTL_TESTFLAGS) -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_PACKAGES)
+	$(GOBIN)/gotestsum --packages="$(MMCTL_PACKAGES)" -- -tags 'unit e2e $(MMCTL_BUILD_TAGS)' -coverprofile=mmctlcover.out $(MMCTL_TESTFLAGS)
 	$(GO) tool cover -html=mmctlcover.out
 
 validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
