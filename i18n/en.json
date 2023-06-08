@@ -7369,11 +7369,11 @@
   },
   {
     "id": "conflict.dm",
-    "translation": ""
+    "translation": "DM between users already exists"
   },
   {
     "id": "conflict.gm",
-    "translation": ""
+    "translation": "GM between users already exists"
   },
   {
     "id": "ent.account_migration.get_all_failed",
