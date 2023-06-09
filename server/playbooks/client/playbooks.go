@@ -136,7 +136,7 @@ func (s *PlaybooksService) Export(ctx context.Context, playbookID string) ([]byt
 		return nil, err
 	}
 
-	resp, err := s.client.client.Do(req)
+	resp, err := s.client.do(ctx, req, nil)
 	if err != nil {
 		return nil, err
 	}

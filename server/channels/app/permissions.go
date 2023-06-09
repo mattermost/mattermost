@@ -282,7 +282,7 @@ func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleNa
 
 	_, err = a.UpdateRole(roleCreated)
 	if err != nil {
-		return errors.New(fmt.Sprintf("%v: %v\n", err.Message, err.DetailedError))
+		return fmt.Errorf("%v: %v\n", err.Message, err.DetailedError)
 	}
 
 	return nil

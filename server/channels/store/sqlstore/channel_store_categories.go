@@ -110,7 +110,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 			return excludedTeamIDs
 		}
 		mapEntry := hasCategoryOfType[category]
-		if !opts.ExcludeTeam && mapEntry[opts.TeamID] {
+		if !opts.ExcludeTeam && mapEntry[opts.TeamID] { //nolint:revive
 			// continue, nothing to do since entry already exists.
 		} else {
 			for i, tID := range excludedTeamIDs {

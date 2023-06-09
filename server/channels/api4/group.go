@@ -1061,8 +1061,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		groups      = []*model.Group{}
-		canSee bool = true
+		groups = []*model.Group{}
+		canSee bool
 	)
 
 	if opts.FilterHasMember != "" {

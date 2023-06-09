@@ -88,7 +88,7 @@ func (s *SQLStore) updateCardLimitTimestamp(db sq.BaseRunner, cardLimit int) (in
 		Insert(s.tablePrefix+"system_settings").
 		Columns("id", "value")
 
-	var value interface{} = 0
+	var value any
 	if cardLimit != 0 {
 		value = s.activeCardsQuery(sq.StatementBuilder, "b.update_at", cardLimit).
 			OrderBy("b.update_at DESC").

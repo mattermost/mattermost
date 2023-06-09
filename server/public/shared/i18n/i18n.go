@@ -32,7 +32,7 @@ var T TranslateFunc
 // TDefault is the translate function using english as fallback language
 var TDefault TranslateFunc
 
-var locales map[string]string = make(map[string]string)
+var locales = make(map[string]string)
 var defaultServerLocale string
 var defaultClientLocale string
 
@@ -81,7 +81,7 @@ func initTranslationsWithDir(dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	var availableLocals map[string]string = make(map[string]string)
+	var availableLocals = make(map[string]string)
 	bundle := bundle.New()
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {

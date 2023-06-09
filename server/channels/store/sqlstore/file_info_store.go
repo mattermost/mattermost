@@ -612,7 +612,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
-		if terms == "" && excludedTerms == "" {
+		if terms == "" && excludedTerms == "" { //nolint:revive
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
 			// Parse text for wildcards

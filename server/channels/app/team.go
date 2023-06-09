@@ -234,7 +234,7 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		return nil, appErr
 	}
 
-	var template *fb_model.Board = nil
+	var template *fb_model.Board
 	for _, t := range templates {
 		v := t.Properties["trackingTemplateId"]
 		if v == welcomeToBoardsTemplateId {
