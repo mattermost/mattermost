@@ -1376,7 +1376,7 @@
   "admin.saml.enableAdminAttrTitle": "啟用管理員屬性：",
   "admin.saml.enableDescription": "啟用時，Mattermost 允許用 SAML 2.0 登入。詳細如何設定 Mattermost 和 SAML，請參閱<link>文件</link>。",
   "admin.saml.enableSyncWithLdapDescription": "啟用時，Mattermost 會定期從 AD/LDAP 同步 SAML 使用者屬性，包括使用者停用與移除。在<strong>認證 > AD/LDAP</strong>啟用與設定同步。停用時，使用者屬性會在使用者登入時更新。詳情請參閱<link>文件</link>。",
-  "admin.saml.enableSyncWithLdapIncludeAuthDescription": "啟用時，在有設定 ID 屬性下Mattermost 將用 AD/LDAP ID 屬性覆蓋 SAML ID 屬性，或在沒有 SAML ID 屬性時用AD/LDAP 電子郵件屬性覆蓋 SAML 電子郵件屬性。  這允許將使用者自動從電子郵件綁定轉移至 ID 綁定，以避免使用者改變電子郵件時產生新使用者。停用時將移除此覆蓋行為。\n \n**注意：** SAML ID 必須與 LDAP ID 符合以避免停用使用者帳號。  詳情請看[文件](!https://docs.mattermost.com/deployment/sso-saml-ldapsync.html)。",
+  "admin.saml.enableSyncWithLdapIncludeAuthDescription": "啟用時，在有設定 ID 屬性下Mattermost 將用 AD/LDAP ID 屬性覆蓋 SAML ID 屬性，或在沒有 SAML ID 屬性時用AD/LDAP 電子郵件屬性覆蓋 SAML 電子郵件屬性。  這允許將使用者自動從電子郵件綁定轉移至 ID 綁定，以避免使用者改變電子郵件時產生新使用者。停用時將移除此覆蓋行為。\n \n**注意：** SAML ID 必須與 LDAP ID 符合以避免停用使用者帳號。  詳情請看[文件](!https://docs.mattermost.com/pl/configure-override-saml-bind-data-with-ldap)。",
   "admin.saml.enableSyncWithLdapIncludeAuthTitle": "用 AD/LDAP 訊息覆蓋 SAML 綁定資料：",
   "admin.saml.enableSyncWithLdapTitle": "啟用與 AD/LDAP 同步 SAML 帳號：",
   "admin.saml.enableTitle": "啟用 SAML 2.0 登入：",

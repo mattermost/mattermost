@@ -4079,7 +4079,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href={DocLinks.AD_LDAP}
+                                            href={DocLinks.SETUP_LDAP}
                                         >
                                             {msg}
                                         </ExternalLink>
@@ -4281,7 +4281,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/onboard/ad-ldap.html'
+                                    href={DocLinks.SETUP_LDAP}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -4319,7 +4319,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/sso-saml-ldapsync.html'
+                                    href={DocLinks.CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP}
                                 >
                                     {msg}
                                 </ExternalLink>

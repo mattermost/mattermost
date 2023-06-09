@@ -98,7 +98,7 @@ const TrialBenefitsModal = ({
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/ad-ldap.html',
+            pageURL: DocLinks.SETUP_LDAP,
             buttonLabel,
         },
         {
