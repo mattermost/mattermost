@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -146,7 +147,7 @@ func prettyRole(role *model.Role) string {
 }
 
 func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(args[0])
+	role, _, err := c.GetRoleByName(context.TODO(), args[0])
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,7 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(args[0])
+	role, _, err := c.GetRoleByName(context.TODO(), args[0])
 	if err != nil {
 		return err
 	}
@@ -186,7 +187,7 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		userRoles := startingRoles
 		userRoles = append(userRoles, role.Name)
-		_, err = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+		_, err = c.UpdateUserRoles(context.TODO(), user.Id, strings.Join(userRoles, " "))
 		if err != nil {
 			return err
 		}
@@ -215,7 +216,7 @@ func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		if originalCount > len(userRoles) {
-			_, err := c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+			_, err := c.UpdateUserRoles(context.TODO(), user.Id, strings.Join(userRoles, " "))
 			if err != nil {
 				return err
 			}

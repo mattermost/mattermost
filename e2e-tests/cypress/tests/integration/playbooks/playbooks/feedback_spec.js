@@ -40,34 +40,7 @@ describe('playbooks > feedback', {testIsolation: true}, () => {
         });
     });
 
-    it('playbooks shows prompt in global header, with experimental feature flag', () => {
-        // # Enable experimental feature flag
-        cy.apiAdminLogin().then(() => {
-            cy.apiEnsureFeatureFlag('enableexperimentalfeatures', true);
-
-            // # Login as testUser
-            cy.apiLogin(testUser);
-        });
-
-        // # Visit the playbooks product
-        cy.visit('/playbooks');
-
-        // # Verify Give Feedback link is configured to open in a new tab.
-        cy.findByText('Give feedback').invoke('attr', 'target').should('eq', '_blank');
-
-        // # Verify Give Feedback link href
-        cy.findByText('Give feedback').invoke('attr', 'href').should('match', /playbooks-feedback/);
-    });
-
-    it('playbooks shows prompt in global header, without experimental feature flag', () => {
-        // # Disable experimental feature flag
-        cy.apiAdminLogin().then(() => {
-            cy.apiEnsureFeatureFlag('enableexperimentalfeatures', false);
-
-            // # Login as testUser
-            cy.apiLogin(testUser);
-        });
-
+    it('playbooks shows prompt in global header', () => {
         // # Visit the playbooks product
         cy.visit('/playbooks');
 

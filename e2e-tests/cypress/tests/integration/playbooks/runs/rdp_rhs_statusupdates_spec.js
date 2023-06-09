@@ -100,13 +100,13 @@ describe('runs > run details page > status update', {testIsolation: true}, () =>
     });
 
     describe('as viewer', () => {
-        beforeEach(() => {
-            cy.apiLogin(testViewerUser).then(() => {
-                cy.visit(`/playbooks/runs/${testRun.id}`);
-            });
-        });
-
         it('rhs can not be open when there is no updates', () => {
+            // * Log in as viewer user
+            cy.apiLogin(testViewerUser);
+
+            // * Browse to test run
+            cy.visit(`/playbooks/runs/${testRun.id}`);
+
             // * Assert that the link is not present
             cy.findByTestId('run-statusupdate-section').findByText('View all updates').should('not.exist');
         });
@@ -125,22 +125,26 @@ describe('runs > run details page > status update', {testIsolation: true}, () =>
                 });
             });
 
-            cy.apiLogin(testViewerUser).then(() => {
-                // # Click View all updates link
-                cy.findByTestId('run-statusupdate-section').findByText('View all updates').click();
+            // * Log in as viewer user
+            cy.apiLogin(testViewerUser);
 
-                // * Assert RHS is open and have the correct title/subtitle
-                getRHS().should('be.visible');
-                getRHS().findByTestId('rhs-title').contains('Status updates');
-                getRHS().findByTestId('rhs-subtitle').contains(testRun.name);
+            // * Browse to test run
+            cy.visit(`/playbooks/runs/${testRun.id}`);
 
-                // * Assert that we have both updates in reverse order
-                getStatusUpdates().should('have.length', 2);
-                getStatusUpdates().eq(0).contains('message 2');
-                getStatusUpdates().eq(0).contains(testUser.username);
-                getStatusUpdates().eq(1).contains('message 1');
-                getStatusUpdates().eq(1).contains(testUser.username);
-            });
+            // # Click View all updates link
+            cy.findByTestId('run-statusupdate-section').findByText('View all updates').click();
+
+            // * Assert RHS is open and have the correct title/subtitle
+            getRHS().should('be.visible');
+            getRHS().findByTestId('rhs-title').contains('Status updates');
+            getRHS().findByTestId('rhs-subtitle').contains(testRun.name);
+
+            // * Assert that we have both updates in reverse order
+            getStatusUpdates().should('have.length', 2);
+            getStatusUpdates().eq(0).contains('message 2');
+            getStatusUpdates().eq(0).contains(testUser.username);
+            getStatusUpdates().eq(1).contains('message 1');
+            getStatusUpdates().eq(1).contains(testUser.username);
         });
     });
 });
