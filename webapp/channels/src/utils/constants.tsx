@@ -1073,7 +1073,7 @@ export const DraggingStateTypes = {
 };
 
 export const AboutLinks = {
-    TERMS_OF_SERVICE: 'https://mattermost.com/terms-of-use/',
+    TERMS_OF_SERVICE: 'https://mattermost.com/pl/terms-of-use/',
     PRIVACY_POLICY: 'https://mattermost.com/pl/privacy-policy/',
 };
 
