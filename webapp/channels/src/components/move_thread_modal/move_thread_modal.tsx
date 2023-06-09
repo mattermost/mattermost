@@ -21,7 +21,7 @@ import {GlobalState} from 'types/store';
 import Constants from 'utils/constants';
 
 import PostMessagePreview from 'components/post_view/post_message_preview';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
 
