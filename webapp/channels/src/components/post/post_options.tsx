@@ -25,7 +25,7 @@ type Props = {
     post: Post;
     teamId: string;
     isFlagged: boolean;
-    removePostCloseRHSDeleteDraft: (post: Post) => void;
+    removePost: (post: Post) => void;
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
@@ -83,8 +83,8 @@ const PostOptions = (props: Props): JSX.Element => {
     const systemMessage = isSystemMessage(post);
     const isFromAutoResponder = fromAutoResponder(post);
 
-    function removePostCloseRHSDeleteDraft() {
-        props.removePostCloseRHSDeleteDraft(props.post);
+    function removePost() {
+        props.removePost(props.post);
     }
 
     const toggleEmojiPicker = () => {
@@ -196,7 +196,7 @@ const PostOptions = (props: Props): JSX.Element => {
             <div className='col col__remove'>
                 <button
                     className='post__remove theme color--link style--none'
-                    onClick={removePostCloseRHSDeleteDraft}
+                    onClick={removePost}
                 >
                     {'×'}
                 </button>

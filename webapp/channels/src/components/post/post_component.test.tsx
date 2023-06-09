@@ -36,7 +36,7 @@ describe('PostComponent', () => {
             setActionsMenuInitialisationState: jest.fn(),
             selectPost: jest.fn(),
             selectPostFromRightHandSideSearch: jest.fn(),
-            removePostCloseRHSDeleteDraft: jest.fn(),
+            removePost: jest.fn(),
             closeRightHandSide: jest.fn(),
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),

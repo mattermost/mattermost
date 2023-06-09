@@ -226,7 +226,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,
-            removePostCloseRHSDeleteDraft,
+            removePost: removePostCloseRHSDeleteDraft,
             closeRightHandSide,
             selectPostCard,
         }, dispatch),

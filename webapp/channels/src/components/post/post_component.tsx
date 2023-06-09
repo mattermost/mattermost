@@ -95,7 +95,7 @@ export type Props = {
         setActionsMenuInitialisationState: (viewed: Record<string, boolean>) => void;
         selectPost: (post: Post) => void;
         selectPostFromRightHandSideSearch: (post: Post) => void;
-        removePostCloseRHSDeleteDraft: (post: Post) => void;
+        removePost: (post: Post) => void;
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
@@ -622,7 +622,7 @@ const PostComponent = (props: Props): JSX.Element => {
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}
-                                removePostCloseRHSDeleteDraft={props.actions.removePostCloseRHSDeleteDraft}
+                                removePost={props.actions.removePost}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
                             />
