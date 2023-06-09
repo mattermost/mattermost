@@ -172,8 +172,8 @@ const (
 	SamlSettingsDefaultCanonicalAlgorithm = SamlSettingsCanonicalAlgorithmC14n
 
 	NativeappSettingsDefaultAppDownloadLink        = "https://mattermost.com/pl/download-apps"
-	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/mattermost-android-app/"
-	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/mattermost-ios-app/"
+	NativeappSettingsDefaultAndroidAppDownloadLink = "https://mattermost.com/pl/android-app/"
+	NativeappSettingsDefaultIosAppDownloadLink     = "https://mattermost.com/pl/ios-app/"
 
 	ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds = 5000
 

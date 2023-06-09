@@ -146,7 +146,7 @@ export default class PushSettings extends AdminSettings {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-ios-app/'
+                                href='https://mattermost.com/pl/ios-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -154,7 +154,7 @@ export default class PushSettings extends AdminSettings {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-android-app/'
+                                href='https://mattermost.com/pl/android-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -179,7 +179,7 @@ export default class PushSettings extends AdminSettings {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-ios-app/'
+                                href='https://mattermost.com/pl/ios-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -187,7 +187,7 @@ export default class PushSettings extends AdminSettings {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-android-app/'
+                                href='https://mattermost.com/pl/android-app/'
                                 location='push_settings'
                             >
                                 {msg}
