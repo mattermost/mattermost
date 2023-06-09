@@ -44,15 +44,6 @@ const UpdateRunModal = ({
         }
     }, [run, run?.channel_id]);
 
-    const header = (
-        <Header>
-            {isPlaybookRun ? formatMessage({defaultMessage: 'Link run to a different channel'}) : formatMessage({defaultMessage: 'Link checklist to a different channel'})}
-            <ModalSubheading>
-                {run?.name}
-            </ModalSubheading>
-        </Header>
-    );
-
     return (
         <StyledGenericModal
             cancelButtonText={formatMessage({defaultMessage: 'Cancel'})}
