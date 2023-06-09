@@ -10,7 +10,7 @@ import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutl
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks} from 'utils/constants';
 import {isCloudFreePlan} from 'utils/cloud_utils';
 import {isCloudLicense} from 'utils/license_utils';
 import {getSiteURL} from 'utils/url';
@@ -1295,7 +1295,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/configure/configuration-settings.html#session-lengths'
+                                    href={DocLinks.SESSION_LENGTHS}
                                 >
                                     {msg}
                                 </ExternalLink>

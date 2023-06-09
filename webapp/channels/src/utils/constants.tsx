@@ -1104,7 +1104,7 @@ export const DocLinks = {
     DATA_RETENTION_POLICY: 'https://docs.mattermost.com/comply/data-retention-policy.html',
     ELASTICSEARCH: 'https://docs.mattermost.com/scale/elasticsearch.html',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
-    SESSION_LENGTHS: 'https://docs.mattermost.com/configure/configuration-settings.html#session-lengths',
+    SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
     SITE_URL: 'https://docs.mattermost.com/configure/configuration-settings.html#site-url',
     SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
     UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
