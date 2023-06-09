@@ -5,7 +5,7 @@ import React from 'react';
 
 import Svg from 'src/components/assets/svg';
 
-const Handshake = (props: {className?: string}) => (
+const Handshake = () => (
     <Svg
         width='96'
         height='61'
