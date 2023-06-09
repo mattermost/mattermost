@@ -6,6 +6,7 @@ node_modules
 
 channels/dist
 playbooks/dist
+boards/dist
 platform/*/dist
 platform/*/lib
 
