@@ -5993,7 +5993,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href={DeveloperLinks.SETUP_OAUTH2}
+                                    href={DeveloperLinks.ENABLE_OAUTH2}
                                 >
                                     {msg}
                                 </ExternalLink>
