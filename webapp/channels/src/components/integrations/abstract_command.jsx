@@ -437,7 +437,7 @@ export default class AbstractCommand extends React.PureComponent {
                                         values={{
                                             link: (
                                                 <ExternalLink
-                                                    href='https://developers.mattermost.com/integrate/slash-commands/built-in/'
+                                                    href='https://mattermost.com/pl/built-in-slash-commands/'
                                                     location='abstract_command'
                                                 >
                                                     <FormattedMessage

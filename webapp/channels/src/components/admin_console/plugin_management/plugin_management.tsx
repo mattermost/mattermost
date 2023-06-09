@@ -674,7 +674,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                         values={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://mattermost.com/pl/default-beta-plugins/'
+                                    href='https://mattermost.com/pl/plugins/'
                                     location='plugin_management'
                                 >
                                     {msg}
@@ -875,7 +875,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://mattermost.com/pl/default-beta-plugins/'
+                                        href='https://mattermost.com/pl/plugins/'
                                         location='plugin_management'
                                     >
                                         {msg}
@@ -1021,7 +1021,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/default-beta-plugins/'
+                                href='https://mattermost.com/pl/plugins/'
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1038,7 +1038,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/default-beta-plugins/'
+                                href='https://mattermost.com/pl/plugins/'
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1055,7 +1055,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://mattermost.com/pl/default-beta-plugins/'
+                                href='https://mattermost.com/pl/plugins/'
                                 location='plugin_management'
                             >
                                 {msg}
