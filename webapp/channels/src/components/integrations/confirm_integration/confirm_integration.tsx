@@ -75,7 +75,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                href='https://mattermost.com/pl/slash-commands/'
                                 location='confirm_integration'
                             >
                                 {msg}
@@ -112,7 +112,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                href='https://mattermost.com/pl/incoming-webhooks/'
                                 location='confirm_integration'
                             >
                                 {msg}
@@ -149,7 +149,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                href='https://mattermost.com/pl/outgoing-webhooks/'
                                 location='confirm_integration'
                             >
                                 {msg}
@@ -189,7 +189,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                href='https://mattermost.com/pl/setup-oauth-2.0/'
                                 location='confirm_integration'
                             >
                                 {msg}

@@ -115,7 +115,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                         values={{
                             buildYourOwn: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href='https://mattermost.com/pl/slash-commands/'
                                     location='installed_commands'
                                 >
                                     <FormattedMessage

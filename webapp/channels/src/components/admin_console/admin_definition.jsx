@@ -5932,7 +5932,7 @@ const AdminDefinition = {
                         help_text_values: {
                             link: (msg) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                    href='https://mattermost.com/pl/incoming-webhooks/'
                                     location='admin_console'
                                 >
                                     {msg}
@@ -5953,7 +5953,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                    href='https://mattermost.com/pl/outgoing-webhooks/'
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5973,7 +5973,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href='https://mattermost.com/pl/slash-commands/'
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5993,7 +5993,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                    href='https://mattermost.com/pl/setup-oauth-2.0/'
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6032,7 +6032,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href='https://mattermost.com/pl/personal-access-tokens/'
                                 >
                                     {msg}
                                 </ExternalLink>

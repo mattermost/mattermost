@@ -167,7 +167,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                             ),
                             linkPersonalAccessTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href='https://mattermost.com/pl/personal-access-tokens/'
                                     location='manage_tokens_modal'
                                 >
                                     {msg}

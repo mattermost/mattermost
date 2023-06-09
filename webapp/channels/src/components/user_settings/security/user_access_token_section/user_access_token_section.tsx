@@ -460,7 +460,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         values={{
                             linkTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href='https://mattermost.com/pl/personal-access-tokens/'
                                     location='user_access_token_section'
                                 >
                                     {msg}
@@ -487,7 +487,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         values={{
                             linkTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href='https://mattermost.com/pl/personal-access-tokens/'
                                     location='user_access_token_section'
                                 >
                                     {msg}

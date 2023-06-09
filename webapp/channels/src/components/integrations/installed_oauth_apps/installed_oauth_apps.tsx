@@ -145,7 +145,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                         values={{
                             oauthApplications: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                    href='https://mattermost.com/pl/setup-oauth-2.0/'
                                     location='installed_oauth_apps'
                                 >
                                     <FormattedMessage
