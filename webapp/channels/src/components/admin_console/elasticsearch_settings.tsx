@@ -50,6 +50,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
         config.ElasticsearchSettings.EnableIndexing = this.state.enableIndexing;
         config.ElasticsearchSettings.EnableSearching = this.state.enableSearching;
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
+        config.ElasticsearchSettings.IgnoredPurgeIndexes = this.state.ignoredPurgeIndexes;
 
         return config;
     };
@@ -70,6 +71,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             configTested: true,
             canSave: true,
             canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing,
+            ignoredPurgeIndexes: config.ElasticsearchSettings.IgnoredPurgeIndexes,
         };
     }
 
@@ -454,6 +456,26 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Purge Indexes:'
                         />
                     )}
+                />
+                <TextSetting
+                    id='ignoredPurgeIndexes'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.ignoredPurgeIndexes'
+                            defaultMessage='Indexes to skip while purging:'
+                        />
+                    }
+                    placeholder={'E.g.: .opendistro*,.security*'}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.ignoredPurgeIndexesDescription'
+                            defaultMessage='When filled in, these indexes will be ignored during the purge, separated by commas.'
+                        />
+                    }
+                    value={this.state.ignoredPurgeIndexes}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.IgnoredPurgeIndexes')}
                 />
                 <BooleanSetting
                     id='enableSearching'
