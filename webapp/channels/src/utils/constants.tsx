@@ -1078,7 +1078,7 @@ export const AboutLinks = {
 };
 
 export const CloudLinks = {
-    BILLING_DOCS: 'https://docs.mattermost.com/cloud/cloud-billing/cloud-billing.html',
+    BILLING_DOCS: 'https://docs.mattermost.com/pl/cloud-billing',
     PRICING: 'https://mattermost.com/pl/pricing/',
     PRORATED_PAYMENT: 'https://mattermost.com/pl/mattermost-cloud-prorate-documentation',
     DEPLOYMENT_OPTIONS: 'https://mattermost.com/deploy/',
@@ -1091,7 +1091,7 @@ export const CloudLinks = {
 
 export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
-    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/pl/self-hosted-billing',
+    SELF_HOSTED_BILLING: 'https://mattermost.com/pl/self-hosted-billing',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
     SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
     DOWNLOAD: 'https://mattermost.com/download',
@@ -1107,7 +1107,7 @@ export const DocLinks = {
     SESSION_LENGTHS: 'https://docs.mattermost.com/configure/configuration-settings.html#session-lengths',
     SITE_URL: 'https://docs.mattermost.com/configure/configuration-settings.html#site-url',
     SSL_CERTIFICATE: 'https://docs.mattermost.com/onboard/ssl-client-certificate.html',
-    UPGRADE_SERVER: 'https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html',
+    UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
