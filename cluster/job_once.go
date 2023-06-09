@@ -29,11 +29,16 @@ const (
 
 	// scheduleOnceJitter is the range of jitter to add to intervals to avoid contention issues
 	scheduleOnceJitter = 100 * time.Millisecond
+
+	// propsLimit is the maximum length in bytes of the json-representation of a job's props.
+	// It exists to prevent job go rountines from consuming too much memory, as they are long running.
+	propsLimit = 10000
 )
 
 type JobOnceMetadata struct {
 	Key   string
 	RunAt time.Time
+	Props any
 }
 
 type JobOnce struct {
@@ -42,6 +47,7 @@ type JobOnce struct {
 
 	// key is the original key. It is prefixed with oncePrefix when used as a key in the KVStore
 	key      string
+	props    any
 	runAt    time.Time
 	numFails int
 
@@ -72,16 +78,26 @@ func (j *JobOnce) Cancel() {
 	})
 }
 
-func newJobOnce(pluginAPI JobPluginAPI, key string, runAt time.Time, callback *syncedCallback, jobs *syncedJobs) (*JobOnce, error) {
+func newJobOnce(pluginAPI JobPluginAPI, key string, runAt time.Time, callback *syncedCallback, jobs *syncedJobs, props any) (*JobOnce, error) {
 	mutex, err := NewMutex(pluginAPI, key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create job mutex")
+	}
+
+	propsBytes, err := json.Marshal(props)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal props")
+	}
+
+	if len(propsBytes) > propsLimit {
+		return nil, errors.Errorf("props length extends limit")
 	}
 
 	return &JobOnce{
 		pluginAPI:      pluginAPI,
 		clusterMutex:   mutex,
 		key:            key,
+		props:          props,
 		runAt:          runAt,
 		done:           make(chan bool),
 		join:           make(chan bool),
@@ -138,7 +154,7 @@ func (j *JobOnce) executeJob() {
 	j.storedCallback.mu.Lock()
 	defer j.storedCallback.mu.Unlock()
 
-	j.storedCallback.callback(j.key)
+	j.storedCallback.callback(j.key, j.props)
 }
 
 // readMetadata reads the job's stored metadata. If the caller wishes to make an atomic
@@ -169,6 +185,7 @@ func (j *JobOnce) saveMetadata() error {
 
 	metadata := JobOnceMetadata{
 		Key:   j.key,
+		Props: j.props,
 		RunAt: j.runAt,
 	}
 	data, err := json.Marshal(metadata)

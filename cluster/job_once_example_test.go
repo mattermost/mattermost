@@ -1,13 +1,15 @@
 package cluster
 
 import (
+	"log"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
-func HandleJobOnceCalls(key string) {
+func HandleJobOnceCalls(key string, props any) {
 	if key == "the key i'm watching for" {
+		log.Println(props)
 		// Work to do only once per cluster
 	}
 }
@@ -28,7 +30,7 @@ func ExampleJobOnceScheduler_ScheduleOnce() {
 	// main thread...
 
 	// add a job
-	_, _ = scheduler.ScheduleOnce("the key i'm watching for", time.Now().Add(2*time.Hour))
+	_, _ = scheduler.ScheduleOnce("the key i'm watching for", time.Now().Add(2*time.Hour), struct{ foo string }{"aasd"})
 
 	// Maybe you want to check the scheduled jobs, or cancel them. This is completely optional--there
 	// is no need to cancel jobs, even if you are shutting down. Call Cancel only when you want to

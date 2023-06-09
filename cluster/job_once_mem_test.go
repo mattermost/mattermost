@@ -34,7 +34,7 @@ func TestMemFootprint(t *testing.T) {
 			jobs[makeKey()] = new(int32)
 		}
 
-		callback := func(key string) {
+		callback := func(key string, _ any) {
 			count, ok := jobs[key]
 			if ok {
 				atomic.AddInt32(count, 1)
@@ -57,7 +57,7 @@ func TestMemFootprint(t *testing.T) {
 
 		for k := range jobs {
 			assert.Empty(t, getVal(oncePrefix+k))
-			_, err = s.ScheduleOnce(k, time.Now().Add(5*time.Minute))
+			_, err = s.ScheduleOnce(k, time.Now().Add(5*time.Minute), nil)
 			require.NoError(t, err)
 			assert.NotEmpty(t, getVal(oncePrefix+k))
 		}

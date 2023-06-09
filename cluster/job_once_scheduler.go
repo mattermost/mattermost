@@ -15,7 +15,7 @@ import (
 // called once at a time (the client does not need to worry about concurrency within the callback)
 type syncedCallback struct {
 	mu       sync.Mutex
-	callback func(string)
+	callback func(string, any)
 }
 
 type syncedJobs struct {
@@ -78,7 +78,7 @@ func (s *JobOnceScheduler) Start() error {
 
 // SetCallback sets the scheduler's callback. When a job fires, the callback will be called with
 // the job's id.
-func (s *JobOnceScheduler) SetCallback(callback func(string)) error {
+func (s *JobOnceScheduler) SetCallback(callback func(string, any)) error {
 	if callback == nil {
 		return errors.New("callback cannot be nil")
 	}
@@ -124,18 +124,18 @@ func (s *JobOnceScheduler) ListScheduledJobs() ([]JobOnceMetadata, error) {
 }
 
 // ScheduleOnce creates a scheduled job that will run once. When the clock reaches runAt, the
-// callback will be called with key as the argument.
+// callback will be called with key and props as the argument.
 //
 // If the job key already exists in the db, this will return an error. To reschedule a job, first
 // cancel the original then schedule it again.
-func (s *JobOnceScheduler) ScheduleOnce(key string, runAt time.Time) (*JobOnce, error) {
+func (s *JobOnceScheduler) ScheduleOnce(key string, runAt time.Time, props any) (*JobOnce, error) {
 	s.startedMu.RLock()
 	defer s.startedMu.RUnlock()
 	if !s.started {
 		return nil, errors.New("start the scheduler before adding jobs")
 	}
 
-	job, err := newJobOnce(s.pluginAPI, key, runAt, s.storedCallback, s.activeJobs)
+	job, err := newJobOnce(s.pluginAPI, key, runAt, s.storedCallback, s.activeJobs, props)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create new job")
 	}
@@ -188,7 +188,7 @@ func (s *JobOnceScheduler) scheduleNewJobsFromDB() error {
 	}
 
 	for _, m := range scheduled {
-		job, err := newJobOnce(s.pluginAPI, m.Key, m.RunAt, s.storedCallback, s.activeJobs)
+		job, err := newJobOnce(s.pluginAPI, m.Key, m.RunAt, s.storedCallback, s.activeJobs, m.Props)
 		if err != nil {
 			s.pluginAPI.LogError(errors.Wrap(err, "could not create new job for key: "+m.Key).Error())
 			continue
