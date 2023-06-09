@@ -134,7 +134,7 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
         expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
 
-        expect(screen.getByRole('link')).toHaveAttribute('href', 'https://docs.mattermost.com/cloud/cloud-billing/cloud-billing.html?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=billing_history&uid=current_user_id&sid=');
+        expect(screen.getByRole('link')).toHaveAttribute('href', CloudLinks.BILLING_DOCS + '?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=billing_history&uid=current_user_id&sid=');
         expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
