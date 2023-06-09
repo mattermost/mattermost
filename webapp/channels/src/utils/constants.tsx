@@ -1110,6 +1110,7 @@ export const DocLinks = {
     UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
+    ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
     DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
