@@ -5993,7 +5993,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                    href={DeveloperLinks.SETUP_OAUTH2}
                                 >
                                     {msg}
                                 </ExternalLink>

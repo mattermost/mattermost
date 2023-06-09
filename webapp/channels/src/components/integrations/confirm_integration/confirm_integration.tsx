@@ -189,7 +189,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-oauth2/'
+                                href={DeveloperLinks.SETUP_OAUTH2}
                                 location='confirm_integration'
                             >
                                 {msg}
