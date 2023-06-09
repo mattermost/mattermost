@@ -3,13 +3,16 @@
 
 import React from 'react';
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
-
 import {GlobalState} from 'types/store';
 
 import {SelfHostedSignupForm, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+    waitFor,
+} from 'tests/react_testing_utils';
 import {TestHelper as TH} from 'utils/test_helper';
 import {SelfHostedProducts, ModalIdentifiers, RecurringIntervals} from 'utils/constants';
 

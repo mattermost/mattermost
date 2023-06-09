@@ -24,7 +24,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -374,7 +373,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -724,7 +722,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <div
             className="form-group"
@@ -821,7 +818,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -1171,7 +1167,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -1523,7 +1518,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -1877,7 +1871,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -2227,7 +2220,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -2554,7 +2546,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -2904,7 +2895,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -3261,7 +3251,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -3674,7 +3663,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -4055,7 +4043,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -4436,7 +4423,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -4817,7 +4803,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}

@@ -4,6 +4,8 @@
 package slashcommands
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/server/public/model"
 	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
 )
@@ -57,7 +59,7 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, error) {
 		Type:        model.TeamOpen,
 	}
 
-	createdTeam, _, err := cfg.client.CreateTeam(team)
+	createdTeam, _, err := cfg.client.CreateTeam(context.Background(), team)
 	if err != nil {
 		return nil, err
 	}

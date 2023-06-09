@@ -2,14 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {BrowserRouter} from 'react-router-dom';
-
-import {screen} from '@testing-library/react';
-
-import mockStore from 'tests/test_store';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithFullContext, screen} from 'tests/react_testing_utils';
 
 import InsightsTitle from './insights_title';
 
@@ -31,53 +25,33 @@ describe('components/activity_and_insights/insights/insights_title', () => {
                     },
                 },
             },
-            general: {
-                config: {},
-                license: {},
-            },
             users: {
                 currentUserId: 'current_user_id',
                 profiles: {
                     current_user_id: {},
                 },
             },
-            preferences: {
-                myPreferences: {},
-            },
-            cloud: {
-                subscription: {},
-            },
         },
     };
 
-    test('should match snapshot with My insights', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <InsightsTitle
-                        {...props}
-                        filterType={'MY'}
-                    />
-                </BrowserRouter>
-            </Provider>,
+    test('should match snapshot with My insights', () => {
+        renderWithFullContext(
+            <InsightsTitle
+                {...props}
+                filterType={'MY'}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('My insights')).toBeInTheDocument();
     });
 
-    test('should match snapshot with Team insights', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <InsightsTitle
-                        {...props}
-                    />
-                </BrowserRouter>
-            </Provider>,
+    test('should match snapshot with Team insights', () => {
+        renderWithFullContext(
+            <InsightsTitle
+                {...props}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('Team insights')).toBeInTheDocument();

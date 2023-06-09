@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+
+import {fireEvent, render, screen} from 'tests/react_testing_utils';
 import {withIntl} from 'tests/helpers/intl-test-helper';
 
 import InviteMembers from './invite_members';
