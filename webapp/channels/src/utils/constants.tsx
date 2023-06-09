@@ -1100,7 +1100,7 @@ export const HostedCustomerLinks = {
 };
 
 export const DocLinks = {
-    AD_LDAP: 'https://docs.mattermost.com/configure/configuration-settings.html#ad-ldap',
+    AD_LDAP: 'https://mattermost.com/pl/setup-ldap',
     DATA_RETENTION_POLICY: 'https://mattermost.com/pl/data-retention-policy',
     ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
@@ -1111,6 +1111,7 @@ export const DocLinks = {
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
+    DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
 };
