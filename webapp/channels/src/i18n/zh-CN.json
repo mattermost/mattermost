@@ -2036,7 +2036,7 @@
   "admin.service.tlsKeyFileDescription": "使用的私钥文件。",
   "admin.service.useLetsEncrypt": "使用 Let's Encrypt：",
   "admin.service.useLetsEncryptDescription": "开启自动从 Let's Encrypt 获取证书。证书将在客户端尝试从新的域名连接时获取。此功能将可以在多域名使用。",
-  "admin.service.useLetsEncryptDescription.disabled": "开启自动从 Let's Encrypt 获取证书。证书将在客户端尝试从新的域名连接时获取。此功能将可以在多域名使用。\n \n此功能只有在[映射端口 80 到 443](#Forward80To443)设定开启时可开启。",
+  "admin.service.useLetsEncryptDescription.disabled": "开启自动从 Let's Encrypt 获取证书。证书将在客户端尝试从新的域名连接时获取。此功能将可以在多域名使用。\n \n此功能只有在[映射端口 80 到 443](#SystemSettings.Forward80To443)设定开启时可开启。",
   "admin.service.userAccessTokensDescription": "当设为是时，用户可以在<strong>个人资料 > 安全</strong>创建<link>个人访问令牌</link>。他们可以用来 API 验证并拥有完全帐号权限。\n \n 在<strong>系统控制台 > 用户管理 > 用户</strong>管理哪些用户可以创建个人访问令牌。",
   "admin.service.userAccessTokensTitle": "开启个人访问令牌： ",
   "admin.service.webhooksDescription": "设为是时，允许传入 webhooks。为了避免钓鱼攻击，所有 webhooks 的帖文会标上 BOT 标签。参见<link>文档</link>了解详情。",

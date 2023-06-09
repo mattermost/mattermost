@@ -2202,7 +2202,7 @@
   "admin.service.tlsKeyFileDescription": "Plik z kluczem prywatnym który używać.",
   "admin.service.useLetsEncrypt": "Użyj Let's Encrypt:",
   "admin.service.useLetsEncryptDescription": "Włącz automatyczne pobieranie certyfikatów z Let's Encrypt. Certyfikaty będą pobrane gdy klient spróbuje się połączyć z nowej domeny. Będzie to działało z wieloma domenami.",
-  "admin.service.useLetsEncryptDescription.disabled": "Włącz automatyczne pobieranie certyfikatów z Let's Encrypt. Certyfikat zostanie pobrany, gdy klient spróbuje połączyć się z nową domeną. To będzie działać z wieloma domenami.\n\nTo ustawienie nie może być włączone, dopóki ustawienie [Przekierowanie portu 80 na 443](#Forward80To443) jest ustawione na prawda.",
+  "admin.service.useLetsEncryptDescription.disabled": "Włącz automatyczne pobieranie certyfikatów z Let's Encrypt. Certyfikat zostanie pobrany, gdy klient spróbuje połączyć się z nową domeną. To będzie działać z wieloma domenami.\n\nTo ustawienie nie może być włączone, dopóki ustawienie [Przekierowanie portu 80 na 443](#SystemSettings.Forward80To443) jest ustawione na prawda.",
   "admin.service.userAccessTokensDescription": "Jeśli włączone, użytkownicy mogą tworzyć <link>user access tokens</link> do integracji w <strong>Profil > Bezpieczeństwo</strong>. Mogą one służyć do uwierzytelniania w interfejsie API i zapewniać pełny dostęp do konta.\n\n Aby zarządzać osobami, które mogą tworzyć osobiste tokeny dostępu lub wyszukiwać użytkowników według ID tokenów, przejdź do strony <strong>Konsola systemowa > Zarządzanie użytkownikami > Użytkownicy</strong>.",
   "admin.service.userAccessTokensTitle": "Włącz personalne tokeny dostępu: ",
   "admin.service.webSessionHours": "Długość sesji AD/LDAP i email (dni):",

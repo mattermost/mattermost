@@ -2202,7 +2202,7 @@
   "admin.service.tlsKeyFileDescription": "使用される秘密鍵ファイルです。",
   "admin.service.useLetsEncrypt": "Let's Encryptを使用する:",
   "admin.service.useLetsEncryptDescription": "Let's Encryptからの証明書自動検出を有効にします。証明書はクライアントが新しいドメインから接続しようとした場合に検出されます。これは複数のドメインで動作します。",
-  "admin.service.useLetsEncryptDescription.disabled": "Let's Encryptからの証明書自動検出を有効にします。証明書はクライアントが新しいドメインから接続しようとした場合に検出されます。\n \nこの設定は[ポート80を443へ転送する](#Forward80To443)の設定が有効になるまで有効にはできません。",
+  "admin.service.useLetsEncryptDescription.disabled": "Let's Encryptからの証明書自動検出を有効にします。証明書はクライアントが新しいドメインから接続しようとした場合に検出されます。\n \nこの設定は[ポート80を443へ転送する](#SystemSettings.Forward80To443)の設定が有効になるまで有効にはできません。",
   "admin.service.userAccessTokensDescription": "有効な場合、ユーザーは統合機能のための<link>ユーザーアクセストークン</link>を<strong>プロフィール > セキュリティ</strong> から生成できます。トークンはAPIに対する認証に利用することができ、アカウントに対して全てのリソースへのアクセス件を付与することができます。\n \n パーソナルアクセストークンを生成できるアカウントを管理したり、トークンIDでユーザーを検索したい場合は、<strong>システムコンソール > ユーザー管理 > ユーザー</strong> を確認してください。",
   "admin.service.userAccessTokensTitle": "パーソナルアクセストークンを有効にする: ",
   "admin.service.webSessionHours": "AD/LDAPと電子メールのセッション維持期間 (時間):",

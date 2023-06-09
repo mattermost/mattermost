@@ -2183,7 +2183,7 @@
   "admin.service.tlsKeyFileDescription": "Fil med privat nycker att använda.",
   "admin.service.useLetsEncrypt": "Använd Let's Encrypt:",
   "admin.service.useLetsEncryptDescription": "Aktivera automatisk hämtning av certifikat från Let's Encrypt. Certifikatet kommer hämtas när en klient försöker ansluta från en ny domän. Tillåter mutipla domäner.",
-  "admin.service.useLetsEncryptDescription.disabled": "Aktivera automatisk hämtning av certifikat från Let's Encrypt. Certifikatet kommer hämtas när en klient försöker ansluta från en ny domän. Tillåter mutipla domäner.\n\nInställningen kan endast aktiveras om [Forward port 80 to 443](#Forward80To443) är aktiverad.",
+  "admin.service.useLetsEncryptDescription.disabled": "Aktivera automatisk hämtning av certifikat från Let's Encrypt. Certifikatet kommer hämtas när en klient försöker ansluta från en ny domän. Tillåter mutipla domäner.\n\nInställningen kan endast aktiveras om [Forward port 80 to 443](#SystemSettings.Forward80To443) är aktiverad.",
   "admin.service.userAccessTokensDescription": "När aktiverad kan användare skapa <link>användartoken</link> för integrationer i <strong>Profil > Säkerhet</strong>. Dessa kan användas för att autentisera API-anslutningar och ge full åtkomst till kontot.\n\n För att hantera vem som kan skapa personliga token eller söka efter användare utifrån token, gå till <strong>Systemkonsolen > Hantera användare > Användare</strong>.",
   "admin.service.userAccessTokensTitle": "Aktivera Personliga Access-tokens: ",
   "admin.service.webSessionHours": "Sessionslängd för AD/LDAPoch e-post (timmar):",

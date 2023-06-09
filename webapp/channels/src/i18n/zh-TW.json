@@ -1533,7 +1533,7 @@
   "admin.service.tlsKeyFileDescription": "TLS 將使用的私有金鑰檔案。",
   "admin.service.useLetsEncrypt": "使用 Let's Encrypt：",
   "admin.service.useLetsEncryptDescription": "啟用自動擷取 Let's Encrypt 的憑證。將會在來自新網域的用戶端嘗試連線時擷取憑證。此功能可以跟多個網域同時運作。",
-  "admin.service.useLetsEncryptDescription.disabled": "啟用自動擷取 Let's Encrypt 的憑證。將會在來自新網域的用戶端嘗試連線時擷取憑證。\n \n此功能可以跟多個網域同時運作。 除非[將通訊埠 80 導向至 443](!#Forward80To443)被啟用否則無法啟用此功能。",
+  "admin.service.useLetsEncryptDescription.disabled": "啟用自動擷取 Let's Encrypt 的憑證。將會在來自新網域的用戶端嘗試連線時擷取憑證。\n \n此功能可以跟多個網域同時運作。 除非[將通訊埠 80 導向至 443](!#SystemSettings.Forward80To443)被啟用否則無法啟用此功能。",
   "admin.service.userAccessTokensDescription": "啟用時使用者能在<strong>帳號設定 > 安全</strong>為外部整合建立<link>個人存取 Token</link>。它們能用來與 API 認證並賦予等同該帳號的完整權限。\n \n在<strong>使用者管理 > 使用者</strong>管理哪些使用者能建立個人存取 Token 或根據 Token ID 搜尋使用者。",
   "admin.service.userAccessTokensTitle": "啟用個人存取 Token：",
   "admin.service.webhooksDescription": "啟用時，允許內送 Webhook。為了避免釣魚攻擊，所有來自 Webhook 的貼文都會被標上 BOT 標籤。請參閱[文件](!https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/)。",
