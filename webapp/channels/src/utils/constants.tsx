@@ -1100,24 +1100,25 @@ export const HostedCustomerLinks = {
 };
 
 export const DocLinks = {
+    ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
     AD_LDAP: 'https://mattermost.com/pl/setup-ldap',
     CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermmost.com/pl/configure-document-content-search',
     DATA_RETENTION_POLICY: 'https://mattermost.com/pl/data-retention-policy',
+    DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
+    DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
     ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
-    SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
-    SITE_URL: 'https://mattermost.com/pl/configure-site-url',
-    SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
-    UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
+    HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
+    ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
-    ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
-    TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
-    DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
-    ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
-    DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
-    HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
+    SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
+    SETUP_IMAGE_PROXY: 'https://mattermost.com/pl/setup-image-proxy',
+    SITE_URL: 'https://mattermost.com/pl/configure-site-url',
+    SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
+    TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
+    UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
 };
 
 export const LicenseLinks = {

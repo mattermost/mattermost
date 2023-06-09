@@ -1370,7 +1370,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deploy/image-proxy.html'
+                                    href={DocLinks.SETUP_IMAGE_PROXY}
                                 >
                                     {msg}
                                 </ExternalLink>
