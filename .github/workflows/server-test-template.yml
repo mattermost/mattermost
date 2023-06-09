@@ -30,7 +30,9 @@ jobs:
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version: ${{ env.go-version }}
-          cache-dependency-path: server/go.sum
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Run docker compose
         run: |
           cd server/build
