@@ -3177,7 +3177,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/manage/in-product-notices.html'
+                                    href={DocLinks.IN_PRODUCT_NOTICES}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3197,7 +3197,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/manage/in-product-notices.html'
+                                    href={DocLinks.IN_PRODUCT_NOTICES}
                                 >
                                     {msg}
                                 </ExternalLink>
