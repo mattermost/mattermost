@@ -4133,7 +4133,7 @@
   "start_cloud_trial.modal.failed": "ناموفق",
   "start_cloud_trial.modal.gettingTrial": "در حال دریافت دوره آزمایشی…",
   "start_cloud_trial.modal.loaded": "بارگذاری‌شده!",
-  "start_trial.modal.disclaimer": "با کلیک کردن روی «شروع آزمایشی 30 روزه»، با <linkEvaluation>موافقتنامه ارزیابی نرم افزار Mattermost،</linkEvaluation> <linkPrivacy>خط مشی رازداری،</linkPrivacy> موافقت می کنم. mattermost.com/default-privacy-policy/) و دریافت ایمیل های محصول.",
+  "start_trial.modal.disclaimer": "با کلیک کردن روی «شروع آزمایشی 30 روزه»، با <linkEvaluation>موافقتنامه ارزیابی نرم افزار Mattermost،</linkEvaluation> <linkPrivacy>خط مشی رازداری،</linkPrivacy> موافقت می کنم. و دریافت ایمیل های محصول.",
   "start_trial.modal.failed": "ناموفق",
   "start_trial.modal.gettingTrial": "در حال دریافت دوره آزمایشی...",
   "start_trial.modal.loaded": "لود شده!",
