@@ -1131,6 +1131,8 @@ export const DocLinks = {
 
 export const DeveloperLinks = {
     CUSTOM_SLASH_COMMANDS: 'https://mattermost.com/pl/custom-slash-commands',
+    INCOMING_WEBHOOKS: 'https://mattermost.com/pl/incoming-webhooks',
+    OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/outgoing-webhooks',
     PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
     PLUGINS: 'https://mattermost.com/pl/plugins',
     SETUP_CUSTOM_SLASH_COMMANDS: 'https://mattermost.com/pl/setup-custom-slash-commands',

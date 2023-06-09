@@ -5932,7 +5932,7 @@ const AdminDefinition = {
                         help_text_values: {
                             link: (msg) => (
                                 <ExternalLink
-                                    href={DeveloperLinks.SETUP_INCOMING_WEBHOOKS}
+                                    href={DeveloperLinks.INCOMING_WEBHOOKS}
                                     location='admin_console'
                                 >
                                     {msg}
@@ -5953,7 +5953,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href={DeveloperLinks.SETUP_OUTGOING_WEBHOOKS}
+                                    href={DeveloperLinks.OUTGOING_WEBHOOKS}
                                 >
                                     {msg}
                                 </ExternalLink>
