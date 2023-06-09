@@ -6032,7 +6032,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                 >
                                     {msg}
                                 </ExternalLink>
