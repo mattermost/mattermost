@@ -1086,7 +1086,7 @@ export const CloudLinks = {
     CLOUD_SIGNUP_PAGE: 'https://mattermost.com/sign-up/',
     SELF_HOSTED_SIGNUP: 'https://customers.mattermost.com/signup',
     DELINQUENCY_DOCS: 'https://docs.mattermost.com/about/cloud-subscriptions.html#failed-or-late-payments',
-    SELF_HOSTED_PRICING: 'https://mattermost.com/pricing/#self-hosted',
+    SELF_HOSTED_PRICING: 'https://mattermost.com/pl/pricing/#self-hosted',
 };
 
 export const HostedCustomerLinks = {
