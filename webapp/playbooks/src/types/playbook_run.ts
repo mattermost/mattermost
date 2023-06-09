@@ -93,10 +93,6 @@ export interface RunMetricData {
     value: number | null;
 }
 
-function isString(arg: any): arg is string {
-    return Boolean(typeof arg === 'string');
-}
-
 export function playbookRunIsActive(playbookRun: PlaybookRun): boolean {
     return playbookRun.current_status === PlaybookRunStatus.InProgress;
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import styled from 'styled-components';
 import {Scrollbars} from 'react-custom-scrollbars';
@@ -26,11 +26,17 @@ const ThumbVertical = styled.div`
 `;
 
 const MenuList = <T extends OptionTypeBase>(props: MenuListComponentProps<T, false>) => {
+    const renderThumbVertical = useCallback((thumbProps) => {
+        const thumbPropsWithoutStyle = {...thumbProps};
+        Reflect.deleteProperty(thumbPropsWithoutStyle, 'style');
+        return <ThumbVertical {...thumbPropsWithoutStyle}/>;
+    }, []);
+
     return (
         <MenuListWrapper>
             <StyledScrollbars
                 autoHeight={true}
-                renderThumbVertical={({style, ...thumbProps}) => <ThumbVertical {...thumbProps}/>}
+                renderThumbVertical={renderThumbVertical}
             >
                 {props.children}
             </StyledScrollbars>

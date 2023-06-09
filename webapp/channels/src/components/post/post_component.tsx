@@ -621,12 +621,10 @@ const PostComponent = (props: Props): JSX.Element => {
                             <PostOptions
                                 {...props}
                                 teamId={teamId}
-                                setActionsMenuInitialisationState={props.actions.setActionsMenuInitialisationState}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}
                                 removePost={props.actions.removePost}
-                                isSearchResultsItem={Boolean(isSearchResultItem)}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
                             />
