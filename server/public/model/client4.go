@@ -4171,13 +4171,13 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 }
 
 // MoveThread moves a thread based on provided post id, and channel id string.
-func (c *Client4) MoveThread(postId string, params *MoveThreadParams) (*Response, error) {
+func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThreadParams) (*Response, error) {
 	js, err := json.Marshal(params)
 	if err != nil {
 		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/move", string(js))
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/move", string(js))
 	if err != nil {
 		return BuildResponse(r), err
 	}
