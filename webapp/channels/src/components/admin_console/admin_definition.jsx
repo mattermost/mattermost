@@ -3019,7 +3019,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/messaging/formatting-text.html'
+                                    href={DocLinks.FORMAT_MESSAGES}
                                 >
                                     {msg}
                                 </ExternalLink>

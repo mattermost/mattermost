@@ -1107,6 +1107,7 @@ export const DocLinks = {
     DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
     ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
+    FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
     HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
     ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
