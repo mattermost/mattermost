@@ -3396,7 +3396,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -3425,7 +3425,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -5771,7 +5771,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/auth.html'
+                                    href={DocLinks.MULTI_FACTOR_AUTH}
                                 >
                                     {msg}
                                 </ExternalLink>
