@@ -195,7 +195,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                         values={{
                             buildYourOwn: (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-outgoing/'
+                                    href={DeveloperLinks.SETUP_OUTGOING_WEBHOOKS}
                                     location='installed_outgoing_webhooks'
                                 >
                                     <FormattedMessage

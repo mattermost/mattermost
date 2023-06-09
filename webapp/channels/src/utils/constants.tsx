@@ -1132,6 +1132,8 @@ export const DocLinks = {
 export const DeveloperLinks = {
     PLUGINS: 'https://mattermost.com/pl/plugins',
     PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
+    SETUP_INCOMING_WEBHOOKS: 'https://mattermost.com/pl/setup-incoming-webhooks',
+    SETUP_OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/setup-outgoing-webhooks',
 };
 
 export const LicenseLinks = {

@@ -16,7 +16,7 @@ import {IDMappedObjects} from '@mattermost/types/utilities';
 import BackstageList from 'components/backstage/components/backstage_list';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import Constants from 'utils/constants';
+import Constants, { DeveloperLinks } from 'utils/constants';
 import * as Utils from 'utils/utils';
 import ExternalLink from 'components/external_link';
 
@@ -136,7 +136,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                             buildYourOwn: (
                                 <ExternalLink
                                     location='installed_incoming_webhooks'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                    href={DeveloperLinks.SETUP_INCOMING_WEBHOOKS}
                                 >
                                     <FormattedMessage
                                         id='installed_incoming_webhooks.help.buildYourOwn'
