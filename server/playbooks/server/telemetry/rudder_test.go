@@ -28,7 +28,7 @@ var (
 )
 
 func TestNewRudder(t *testing.T) {
-	r, err := NewRudder("dummy_key", "dummy_url", diagnosticID, pluginVersion, serverVersion)
+	r, err := NewRudder("dummy_key", "dummy_url", diagnosticID, serverVersion)
 	require.Equal(t, r.diagnosticID, diagnosticID)
 	require.Equal(t, r.serverVersion, serverVersion)
 	require.NoError(t, err)

@@ -45,16 +45,6 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 		}
 	}
 
-	if request.Role != "" {
-		err := a.Srv().Store().System().SaveOrUpdate(&model.System{
-			Name:  model.SystemFirstAdminRole,
-			Value: request.Role,
-		})
-		if err != nil {
-			a.Log().Error("failed to save first admin role", mlog.Err(err))
-		}
-	}
-
 	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return a.markAdminOnboardingComplete(c)

@@ -177,7 +177,8 @@ function printServerDetails() {
   - BuildHash               = ${config.BuildHash}
   - BuildHashEnterprise     = ${config.BuildHashEnterprise}
   - BuildEnterpriseReady    = ${config.BuildEnterpriseReady}
-  - TelemetryId             = ${config.TelemetryId}`);
+  - TelemetryId             = ${config.TelemetryId}
+  - ServiceEnvironment      = ${config.ServiceEnvironment}`);
     });
 }
 
