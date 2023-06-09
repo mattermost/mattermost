@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
@@ -14,7 +13,7 @@ import {GlobalState} from 'types/store';
 
 import {TestHelper} from 'utils/test_helper';
 
-import {renderWithFullContext} from './react_testing_utils';
+import {renderWithFullContext, screen} from './react_testing_utils';
 
 describe('renderWithFullContext', () => {
     test('should be able to render anything', () => {

@@ -19,7 +19,7 @@ import {GlobalState} from 'types/store';
 
 import {isModalOpen} from 'selectors/views/modals';
 
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import WomanArmOnTable from 'components/common/svg_images_components/woman_arm_on_table_svg';
 import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import FileSvg from 'components/common/svg_images_components/file_svg';

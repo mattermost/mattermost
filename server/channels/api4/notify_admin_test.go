@@ -3,6 +3,7 @@
 package api4
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "Unknown plan",
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
@@ -31,7 +32,7 @@ func TestNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:      "Unknown plan",
 			RequiredFeature:   model.PaidFeatureAllProfessionalfeatures,
 			TrialNotification: true,
@@ -47,7 +48,7 @@ func TestNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: "Unknown feature",
 		})
@@ -61,7 +62,7 @@ func TestNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:      model.LicenseShortSkuProfessional,
 			RequiredFeature:   "Unknown feature",
 			TrialNotification: true,
@@ -76,7 +77,7 @@ func TestNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
@@ -84,7 +85,7 @@ func TestNotifyAdmin(t *testing.T) {
 		require.Equal(t, http.StatusOK, statusCode)
 
 		// second attempt to notify for all professional features
-		statusCode, err = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err = th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
@@ -98,7 +99,7 @@ func TestNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
@@ -115,7 +116,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = false })
 
-		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
 		require.Equal(t, ": Internal error during cloud api request.", err.Error())
@@ -129,7 +130,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
 
-		statusCode, err := th.Client.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+		statusCode, err := th.Client.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 
 		require.Error(t, err)
 		require.Equal(t, ": You do not have the appropriate permissions.", err.Error())
@@ -142,14 +143,14 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
 
-		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, statusCode)
 
-		statusCode, err = th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+		statusCode, err = th.SystemAdminClient.TriggerNotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, statusCode)
 	})

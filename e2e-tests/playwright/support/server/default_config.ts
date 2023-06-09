@@ -608,6 +608,7 @@ const defaultServerConfig: AdminConfig = {
     },
     ProductSettings: {
         EnablePublicSharedBoards: false,
+        EnablePlaybooks: true,
     },
     PluginSettings: {
         Enable: true,
@@ -674,7 +675,6 @@ const defaultServerConfig: AdminConfig = {
         InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
-        WorkTemplate: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
