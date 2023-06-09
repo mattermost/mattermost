@@ -2981,7 +2981,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/messaging/sharing-messages.html'
+                                    href={DocLinks.SHARE_LINKS_TO_MESSAGES}
                                 >
                                     {msg}
                                 </ExternalLink>

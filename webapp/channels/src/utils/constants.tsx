@@ -1117,6 +1117,7 @@ export const DocLinks = {
     SETUP_IMAGE_PROXY: 'https://mattermost.com/pl/setup-image-proxy',
     SETUP_PERFORMANCE_MONITORING: 'https://mattermost.com/pl/setup-performance-monitoring',
     SETUP_PUSH_NOTIFICATIONS: 'https://mattermost.com/pl/setup-push-notifications',
+    SHARE_LINKS_TO_MESSAGES: 'https://mattermost.com/pl/share-links-to-messages',
     SITE_URL: 'https://mattermost.com/pl/configure-site-url',
     SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
