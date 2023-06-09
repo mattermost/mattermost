@@ -500,7 +500,7 @@ const defaultServerConfig: AdminConfig = {
     },
     NativeAppSettings: {
         AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
-        AppDownloadLink: 'https://mattermost.com/download/#mattermostApps',
+        AppDownloadLink: 'https://mattermost.com/pl/download-apps',
         AndroidAppDownloadLink: 'https://mattermost.com/mattermost-android-app/',
         IosAppDownloadLink: 'https://mattermost.com/mattermost-ios-app/',
     },
