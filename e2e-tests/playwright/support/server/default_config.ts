@@ -338,7 +338,7 @@ const defaultServerConfig: AdminConfig = {
         ShowFullName: true,
     },
     SupportSettings: {
-        TermsOfServiceLink: 'https://mattermost.com/terms-of-use/',
+        TermsOfServiceLink: 'https://mattermost.com/pl/terms-of-use/',
         PrivacyPolicyLink: 'https://mattermost.com/privacy-policy/',
         AboutLink: 'https://docs.mattermost.com/about/product.html/',
         HelpLink: 'https://mattermost.com/default-help/',

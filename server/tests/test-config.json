@@ -182,8 +182,8 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "https://mattermost.com/terms-of-use/",
-        "PrivacyPolicyLink": "https://mattermost.com/privacy-policy/",
+        "TermsOfServiceLink": "https://mattermost.com/pl/terms-of-use/",
+        "PrivacyPolicyLink": "https://mattermost.com/pl/privacy-policy/",
         "AboutLink": "https://mattermost.com/default-about/",
         "HelpLink": "https://mattermost.com/default-help/",
         "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
