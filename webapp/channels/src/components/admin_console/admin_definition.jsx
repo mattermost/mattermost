@@ -4042,7 +4042,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href='https://mattermost.com/default-ldap-docs'
+                                            href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
                                         >
                                             {msg}
                                         </ExternalLink>
@@ -4079,7 +4079,7 @@ const AdminDefinition = {
                                     link: (msg) => (
                                         <ExternalLink
                                             location='admin_console'
-                                            href='https://mattermost.com/default-ldap-docs'
+                                            href={DocLinks.AD_LDAP}
                                         >
                                             {msg}
                                         </ExternalLink>

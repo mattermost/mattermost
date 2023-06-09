@@ -1103,6 +1103,7 @@ export const DocLinks = {
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
     AD_LDAP: 'https://mattermost.com/pl/setup-ldap',
     CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermmost.com/pl/configure-document-content-search',
+    CONFIGURE_AD_LDAP_QUERY_TIMEOUT: 'https://mattermost.com/pl/configure-ad-ldap-query-timeout',
     DATA_RETENTION_POLICY: 'https://mattermost.com/pl/data-retention-policy',
     DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
