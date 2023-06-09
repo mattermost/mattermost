@@ -6407,7 +6407,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/administration/compliance.html'
+                                    href={DocLinks.COMPILANCE_MONITORING}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6673,7 +6673,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/deployment/certificate-based-authentication.html'
+                                    href={DocLinks.ENABLE_CLIENT_SIDE_CERTIFICATION}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -6734,7 +6734,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/administration/config-settings.html#enable-hardened-mode-experimental'
+                                    href={DocLinks.ENABLE_HARDENED_MODE}
                                 >
                                     {msg}
                                 </ExternalLink>
