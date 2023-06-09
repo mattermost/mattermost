@@ -1919,7 +1919,7 @@
   "admin.service.extendSessionLengthActivity.label": "طول جلسه را با فعالیت بیشتر کنید: ",
   "admin.service.forward80To443": "فوروارد پورت 80 به 443:",
   "admin.service.forward80To443Description": "تمام ترافیک ناامن را از درگاه 80 به پورت امن 443 هدایت می کند. هنگام استفاده از سرور پراکسی توصیه نمی شود.",
-  "admin.service.forward80To443Description.disabled": "تمام ترافیک ناامن را از درگاه 80 به پورت امن 443 هدایت می کند. هنگام استفاده از سرور پراکسی توصیه نمی شود.\n \nاین تنظیم را نمی توان تا زمانی که سرور شما در حال [شنیدن] (#ListenAddress) در پورت 443 فعال کرد.",
+  "admin.service.forward80To443Description.disabled": "تمام ترافیک ناامن را از درگاه 80 به پورت امن 443 هدایت می کند. هنگام استفاده از سرور پراکسی توصیه نمی شود.\n \nاین تنظیم را نمی توان تا زمانی که سرور شما در حال [شنیدن] (#ServiceSettings.ListenAddress) در پورت 443 فعال کرد.",
   "admin.service.googleDescription": "این کلید را برای فعال کردن نمایش عناوین برای پیش‌نمایش ویدیوهای جاسازی شده YouTube تنظیم کنید. بدون کلید، پیش‌نمایش‌های YouTube همچنان بر اساس پیوندهایی که در پیام‌ها یا نظرات ظاهر می‌شوند ایجاد می‌شوند اما عنوان ویدیو را نشان نمی‌دهند. برای دستورالعمل‌هایی درباره نحوه دریافت کلید و افزودن YouTube Data API نسخه 3 به‌عنوان سرویس به کلید خود، <link>Google Developers Tutorial</link>  را مشاهده کنید.",
   "admin.service.googleExample": "به عنوان مثال: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "کلید Google API:",

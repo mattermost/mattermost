@@ -2051,7 +2051,7 @@
   "admin.service.extendSessionLengthActivity.label": "Extender la sesión con actividad: ",
   "admin.service.forward80To443": "Redirigir el puerto 80 a 443:",
   "admin.service.forward80To443Description": "Reenvía el tráfico inseguro desde el puerto 80 al puerto seguro 443. No se recomienda cuando se utiliza un servidor proxy.",
-  "admin.service.forward80To443Description.disabled": "Reenvía todo el tráfico inseguro desde el puerto 80 al puerto seguro 443. No se recomienda cuando se utiliza un servidor proxy.\n\nEste valor no puede ser activado hasta que el servidor esté [escuchando](#ListenAddress) en el puerto 443.",
+  "admin.service.forward80To443Description.disabled": "Reenvía todo el tráfico inseguro desde el puerto 80 al puerto seguro 443. No se recomienda cuando se utiliza un servidor proxy.\n\nEste valor no puede ser activado hasta que el servidor esté [escuchando](#ServiceSettings.ListenAddress) en el puerto 443.",
   "admin.service.googleDescription": "Establece esta clave para mostrar los títulos de los vídeos de YouTube incorporado en las previsualizaciones. Sin la clave, las previsualizaciones de YouTube igual serán creadas en base a los enlaces que aparecen en los mensajes o comentarios, pero no se mostrará el título de vídeo. Ve el <link>Tutorial para Desarrolladores de Google</link> para ver las instrucciones sobre cómo obtener una clave de Datos API v3 como servicio para tu clave.",
   "admin.service.googleExample": "Ej.: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Llave del API de Google:",

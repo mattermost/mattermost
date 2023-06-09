@@ -2132,7 +2132,7 @@
   "admin.service.extendSessionLengthActivity.label": "Extend session length with activity: ",
   "admin.service.forward80To443": "Forward port 80 to 443:",
   "admin.service.forward80To443Description": "Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.",
-  "admin.service.forward80To443Description.disabled": "Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.\n \nThis setting cannot be enabled until your server is [listening](#ListenAddress) on port 443.",
+  "admin.service.forward80To443Description.disabled": "Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.\n \nThis setting cannot be enabled until your server is [listening](#ServiceSettings.ListenAddress) on port 443.",
   "admin.service.googleDescription": "Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.",
   "admin.service.googleExample": "E.g.: '7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV'",
   "admin.service.googleTitle": "Google API Key:",

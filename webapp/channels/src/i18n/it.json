@@ -1534,7 +1534,7 @@
   "admin.service.extendSessionLengthActivity.label": "Estendi durata sessione con l'attività: ",
   "admin.service.forward80To443": "Inoltra porta 80 su 443:",
   "admin.service.forward80To443Description": "Inoltra tutto il traffico non sicuro dalla porta 80 alla porta sicura 443. Non consigliato se si utilizza un server proxy.",
-  "admin.service.forward80To443Description.disabled": "Inoltra tutto il traffico dalla porta 80 alla porta sicura 443. Non consigliato se si utilizza un server proxy.\n \nQuesta impostazione non può essere attivata se il server non è in [ascolto](#ListenAddress) sulla porta 443.",
+  "admin.service.forward80To443Description.disabled": "Inoltra tutto il traffico dalla porta 80 alla porta sicura 443. Non consigliato se si utilizza un server proxy.\n \nQuesta impostazione non può essere attivata se il server non è in [ascolto](#ServiceSettings.ListenAddress) sulla porta 443.",
   "admin.service.googleDescription": "Imposta questa chiave per abilitare la visualizzazione dei titoli incorporati nelle anteprime YouTube. Senza la chiave, le anteprime YouTube saranno basate sui collegamenti che appariranno in messaggi o commenti ma senza mostrare il titolo del video. Visualizzare il <link>Tutorial Google Developers</link> per istruzioni su come ottenere una chiave a aggiungere YouTube Data API v3 come servizio alla chiave.",
   "admin.service.googleExample": "Es.: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Chiave API Google:",

@@ -2124,7 +2124,7 @@
   "admin.service.extendSessionLengthActivity.label": "Utöka sessionen vid aktivitet: ",
   "admin.service.forward80To443": "Vidarebefordra port 80 till 443:",
   "admin.service.forward80To443Description": "Vidarebefordrar all oskyddad trafik från port 80 till den skyddade porten 443. Inte rekommenderat när en proxy-server används.",
-  "admin.service.forward80To443Description.disabled": "Vidarebefordrar all oskyddad trafik från port 80 till den skyddade porten 443. Inte rekommenderat när en proxy-server används.\n\nServern måste [lyssna](#ListenAddress) på port 443 innan inställningen kan aktiveras.",
+  "admin.service.forward80To443Description.disabled": "Vidarebefordrar all oskyddad trafik från port 80 till den skyddade porten 443. Inte rekommenderat när en proxy-server används.\n\nServern måste [lyssna](#ServiceSettings.ListenAddress) på port 443 innan inställningen kan aktiveras.",
   "admin.service.googleDescription": "Genom att ange denna nyckel kommer videotiteln visas för förhandsvisning av inbäddade YouTube-videos. Utan nyckeln kommer förhandsvisning av YouTube-videos fortfarande visas, baserade på länkar i meddelanden eller svar men titlen på videon kommer inte visas. Se en <link>Google Developers Tutorial</link> för instruktioner för hur du skaffar en nyckel och hur du lägger till YouTube Data API v3 som en tjänst till din nyckel.",
   "admin.service.googleExample": "T.ex.: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Google API Key:",

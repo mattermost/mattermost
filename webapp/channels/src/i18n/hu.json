@@ -2032,7 +2032,7 @@
   "admin.service.extendSessionLengthActivity.label": "Munkamenetek meghosszabbítása aktivitással: ",
   "admin.service.forward80To443": "80-as port továbbítása a 443-asra:",
   "admin.service.forward80To443Description": "A nem biztonságos forgalmat továbbítja a 80-as portról a 443-as biztonságos portra. Proxykiszolgáló használata esetén nem ajánlott.",
-  "admin.service.forward80To443Description.disabled": "Az összes nem biztonságos forgalmat továbbítja a 80-as portról a 443-as biztonságos portra. Proxykiszolgáló használata esetén nem ajánlott.\n \nEz a beállítás csak akkor engedélyezhető, ha a kiszolgáló [figyel](#ListenAddress) a 443-as porton.",
+  "admin.service.forward80To443Description.disabled": "Az összes nem biztonságos forgalmat továbbítja a 80-as portról a 443-as biztonságos portra. Proxykiszolgáló használata esetén nem ajánlott.\n \nEz a beállítás csak akkor engedélyezhető, ha a kiszolgáló [figyel](#ServiceSettings.ListenAddress) a 443-as porton.",
   "admin.service.googleDescription": "Ezzel a gombbal engedélyezheti a beágyazott YouTube-videók előnézeteinek címének megjelenítését. A kulcs nélkül a YouTube előnézetei továbbra is létrejönnek az üzenetekben vagy megjegyzésekben megjelenő hiperhivatkozások alapján, de nem mutatják a videó címét. Tekintse meg a <link>Google Developers Tutorial-t</link>, ahol útmutatást kaphat arról, hogyan kell kulcsot beszerezni, és a YouTube Data API v3-at szolgáltatásként hozzáadni a kulcshoz.",
   "admin.service.googleExample": "Pl.: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Google API kulcs:",

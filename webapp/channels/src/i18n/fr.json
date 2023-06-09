@@ -2012,7 +2012,7 @@
   "admin.service.extendSessionLengthActivity.label": "Prolonger la durée de session avec l'activité : ",
   "admin.service.forward80To443": "Rediriger le port 80 sur le port 443 :",
   "admin.service.forward80To443Description": "Transfère tout le trafic non sécurisé du port 80 sur le port sécurisé 443. Non recommandé lors de l'utilisation d'un serveur de proxy.",
-  "admin.service.forward80To443Description.disabled": "Transfère tout le trafic non sécurisé du port 80 sur le port sécurisé 443. Non recommandé lors de l'utilisation d'un serveur de proxy.\n\nCe paramètre ne peut être activé que si votre serveur [écoute](#ListenAddress) sur le port 443.",
+  "admin.service.forward80To443Description.disabled": "Transfère tout le trafic non sécurisé du port 80 sur le port sécurisé 443. Non recommandé lors de l'utilisation d'un serveur de proxy.\n\nCe paramètre ne peut être activé que si votre serveur [écoute](#ServiceSettings.ListenAddress) sur le port 443.",
   "admin.service.googleDescription": "Définissez cette clé pour activer l'affichage des titres pour les aperçus intégrés de vidéos YouTube. Sans clé, les aperçus YouTube sont créés à partir des liens apparaissant dans les messages ou commentaires, mais ils ne montrent pas le titre de la vidéo. Regardez un <link>tutoriel de Google Developers</link> pour savoir comment obtenir une clé et ajouter YouTube Data API v3 comme service à votre clé.",
   "admin.service.googleExample": "Ex. : « 7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV »",
   "admin.service.googleTitle": "Clé API Google :",

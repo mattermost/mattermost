@@ -1485,7 +1485,7 @@
   "admin.service.extendSessionLengthActivity.label": "活動會延長工作階段：",
   "admin.service.forward80To443": "轉送80通訊埠至443：",
   "admin.service.forward80To443Description": "將所有不安全的通訊由通訊埠 80 導向至安全的 443。使用代理伺服器時不建議啟用。",
-  "admin.service.forward80To443Description.disabled": "將所有不安全的通訊由通訊埠 80 導向至安全的 443。使用代理伺服器時不建議啟用。\n \n在伺服器[監聽](!#ListenAddress)通訊埠 443之前無法啟用此設定。",
+  "admin.service.forward80To443Description.disabled": "將所有不安全的通訊由通訊埠 80 導向至安全的 443。使用代理伺服器時不建議啟用。\n \n在伺服器[監聽](!#ServiceSettings.ListenAddress)通訊埠 443之前無法啟用此設定。",
   "admin.service.googleDescription": "設定此金鑰以啟用顯示內嵌預覽 YouTube 影片的標題。即使沒有金鑰，訊息或註解有連結一樣會建立 YouTube 影片預覽，但是這些預覽無法顯示影片標題。請看 <link>Google Developers Tutorial</link> 的指示以取得金鑰。",
   "admin.service.googleExample": "例：\"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Google API 金鑰：",

@@ -2160,7 +2160,7 @@
   "admin.service.extendSessionLengthActivity.label": "Session durch Aktivität verlängern: ",
   "admin.service.forward80To443": "Port 80 auf 443 weiterleiten:",
   "admin.service.forward80To443Description": "Leitet allen unsicheren Verkehr von Port 80 auf den sicheren Port 443 um. Nicht empfohlen bei Verwendung eines Proxy-Servers.",
-  "admin.service.forward80To443Description.disabled": "Leitet allen unsicheren Verkehr von Port 80 auf den sicheren Port 443 um. Nicht empfohlen bei Verwendung eines Proxy-Servers.\n \nDiese Einstellung kann nicht aktiviert werden, bis dein Server auf Port 443 [hört](#ListenAddress).",
+  "admin.service.forward80To443Description.disabled": "Leitet allen unsicheren Verkehr von Port 80 auf den sicheren Port 443 um. Nicht empfohlen bei Verwendung eines Proxy-Servers.\n \nDiese Einstellung kann nicht aktiviert werden, bis dein Server auf Port 443 [hört](#ServiceSettings.ListenAddress).",
   "admin.service.googleDescription": "Diesen Key setzen, um den Titel von eingebetteten YouTube-Videovorschauen anzeigen zu lassen. Ohne den Schlüssel werden YouTube-Vorschauen basierend auf den Hyperlinks in Nachrichten und Kommentaren erstellt, diese werden aber nicht den Videotitel enthalten. Sieh dir das <link>Google-Developers-Tutorial</link> an, es enthält eine Anleitung zum Erhalten eines Schlüssels und dem Hinzufügen der YouTube-Data-API-v3 als Dienst zu deinem Schlüssel.",
   "admin.service.googleExample": "Z.B.: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Google API Schlüssel:",

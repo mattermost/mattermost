@@ -1784,7 +1784,7 @@
   "admin.service.extendSessionLengthActivity.label": "Extindeți durata sesiunii cu activitatea: ",
   "admin.service.forward80To443": "Port înainte 80 la 443:",
   "admin.service.forward80To443Description": "Transmite tot traficul nesigur din portul 80 pentru a securiza portul 443. Nu este recomandat atunci când utilizați un server proxy.",
-  "admin.service.forward80To443Description.disabled": "Transmite tot traficul nesigur din portul 80 pentru a securiza portul 443. Nu este recomandat atunci când utilizați un server proxy.\n \nAceastă setare nu poate fi activată până când serverul tău nu [asculta](#ListenAddress) pe portul 443.",
+  "admin.service.forward80To443Description.disabled": "Transmite tot traficul nesigur din portul 80 pentru a securiza portul 443. Nu este recomandat atunci când utilizați un server proxy.\n \nAceastă setare nu poate fi activată până când serverul tău nu [asculta](#ServiceSettings.ListenAddress) pe portul 443.",
   "admin.service.googleDescription": "Setați această tastă pentru a permite afișarea titlurilor pentru previzualizările video încorporate YouTube. Fără cheie, previzualizările YouTube vor fi create încă pe baza unor hyperlink-uri care apar în mesaje sau comentarii, dar nu vor afișa titlul videoclipului. Consultați un <link>Tutorial pentru dezvoltatorii Google</link> pentru instrucțiuni despre cum să obțineți o cheie și să adăugați YouTube Data API v3 ca serviciu pentru cheia dvs.",
   "admin.service.googleExample": "Ex: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Cheia API-ului Google:",

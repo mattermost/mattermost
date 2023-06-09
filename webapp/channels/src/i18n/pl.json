@@ -2143,7 +2143,7 @@
   "admin.service.extendSessionLengthActivity.label": "Wydłuż długość sesji dzięki aktywności: ",
   "admin.service.forward80To443": "Przekaż port 80 do 443:",
   "admin.service.forward80To443Description": "Przenosi cały niezabezpieczony ruch z portu 80 do zabezpieczonego portu 443. Nie zalecane przy korzystaniu z serwera proxy.",
-  "admin.service.forward80To443Description.disabled": "Przenosi cały niezabezpieczony ruch z portu 80 do zabezpieczonego portu 443. Nie zaleca się używania serwera proxy.\n \nTo ustawienie nie może być włączone, dopóki Twój serwer nie będzie [nasłuchiwał](#ListenAddress) na porcie 443.",
+  "admin.service.forward80To443Description.disabled": "Przenosi cały niezabezpieczony ruch z portu 80 do zabezpieczonego portu 443. Nie zaleca się używania serwera proxy.\n \nTo ustawienie nie może być włączone, dopóki Twój serwer nie będzie [nasłuchiwał](#ServiceSettings.ListenAddress) na porcie 443.",
   "admin.service.googleDescription": "Ustaw ten klucz by włączyć wyświetlanie tytułów dla osadzonych podglądów filmów z YouTube. Podglądy będą tworzone także bez klucza, na podstawie linków w wiadomościach i komentarzach, ale nie będą widoczne tytuły filmów. Zobacz <link>Google Developers Tutorial</link>, jeśli potrzebujesz instrukcji związanej z pozyskaniem i dodaniem klucza YouTube Data API v3 jako usługa dla twojego klucza.",
   "admin.service.googleExample": "Np. \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Klucz Google API:",

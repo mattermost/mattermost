@@ -2141,7 +2141,7 @@
   "admin.service.extendSessionLengthActivity.label": "İşlem yapıldığında oturum süresi uzatılsın: ",
   "admin.service.forward80To443": "80 kapısı 443 kapısına yönlendirilsin:",
   "admin.service.forward80To443Description": "Güvenli olmayan tüm trafiği 80 numaralı kapıdan güvenli olan 443 numaralı kapıya yönlendirir. Vekil sunucu kullanılıyorsa kullanılması önerilmez.",
-  "admin.service.forward80To443Description.disabled": "Güvenli olmayan tüm trafiği 80 numaralı kapıdan güvenli olan 443 numaralı kapıya yönlendirir. Vekil sunucu kullanılıyorsa kullanılması önerilmez.\n\nSunucunuz 443 numaralı kapıyı [dinlemedikçe](#ListenAddress) bu seçenek etkinleştirilemez.",
+  "admin.service.forward80To443Description.disabled": "Güvenli olmayan tüm trafiği 80 numaralı kapıdan güvenli olan 443 numaralı kapıya yönlendirir. Vekil sunucu kullanılıyorsa kullanılması önerilmez.\n\nSunucunuz 443 numaralı kapıyı [dinlemedikçe](#ServiceSettings.ListenAddress) bu seçenek etkinleştirilemez.",
   "admin.service.googleDescription": "Gömülmüş YouTube görüntü ön izlemelerinin başlıklarının görüntülenmesi için bu anahtarı ayarlayın. Anahtar olmadan da YouTube ön izlemeleri ileti ya da yorumlardaki bağlantılara göre oluşturulabilir ancak görüntü başlığı görüntülenmez. Anahtarı almak ve anahtarınıza YouTube Data API v3 hizmetini eklemek ile ilgili ayrıntılı bilgi almak için <link>Google Developers Tutorial</link> bölümüne bakabilirsiniz.",
   "admin.service.googleExample": "Örnek: \"7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV\"",
   "admin.service.googleTitle": "Google API anahtarı:",
