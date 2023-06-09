@@ -22,6 +22,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
+	github.com/golangci/golangci-lint v1.52.2
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -47,7 +48,8 @@ require (
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
 	github.com/mattermost/mattermost-server/server/public v0.0.0-00010101000000-000000000000
-	github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56
+	github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20230314111557-61e110cc9f0b
+	github.com/mattermost/morph v1.0.5-0.20230510071908-1e0640c3ed45
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
 	github.com/mgdelacroix/foundation v0.0.0-20220812143423-0bfc18f73538
@@ -61,6 +63,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/reflog/dateconstraints v0.2.1
+	github.com/reflog/struct2interface v0.6.1
 	github.com/rivo/uniseg v0.4.4
 	github.com/rs/cors v1.8.3
 	github.com/rudderlabs/analytics-go v3.3.3+incompatible
@@ -76,6 +79,7 @@ require (
 	github.com/tylerb/graceful v1.2.15
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
+	github.com/vektra/mockery/v2 v2.23.2
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	github.com/wiggin77/merror v1.0.4
 	github.com/writeas/go-strip-markdown v2.0.1+incompatible
@@ -92,6 +96,7 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/olivere/elastic.v6 v6.2.37
 	gopkg.in/yaml.v2 v2.4.0
+	gotest.tools/gotestsum v1.7.0
 )
 
 require (
