@@ -11,7 +11,7 @@ import moment from 'moment';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ConsolePages, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
@@ -84,7 +84,7 @@ const TrialBenefitsModal = ({
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/sso-saml.html',
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {
