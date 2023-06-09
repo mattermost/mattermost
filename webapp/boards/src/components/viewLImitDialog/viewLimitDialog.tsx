@@ -16,6 +16,7 @@ import Button from 'src/widgets/buttons/button'
 import octoClient from 'src/octoClient'
 import telemetryClient, {TelemetryActions, TelemetryCategory} from 'src/telemetry/telemetryClient'
 import {getCurrentBoard} from 'src/store/boards'
+import { CloudLinks } from 'src/constants'
 
 export type PublicProps = {
     onClose: () => void
@@ -59,7 +60,7 @@ export const ViewLimitModal = (props: Props): JSX.Element => {
                 defaultMessage='Upgrade to our Professional or Enterprise plan.'
             />
             <a
-                href='https://mattermost.com/pricing/'
+                href={CloudLinks.PRICING}
                 target='_blank'
                 rel='noreferrer'
             >

@@ -23,6 +23,7 @@ import {
     CustomPostHeader,
 } from 'src/components/custom_post_styles';
 import {useOpenCloudModal} from 'src/hooks';
+import {CloudLinks} from 'src/constants';
 
 const StyledTertiaryButton = styled(TertiaryButton)`
     margin-left: 10px;
@@ -62,7 +63,7 @@ export const CloudUpgradePost = (props: Props) => {
                             <FormattedMessage defaultMessage='Upgrade now'/>
                         </PrimaryButton>
                         <StyledTertiaryButton
-                            onClick={() => window.open('https://mattermost.com/pricing-cloud')}
+                            onClick={() => window.open(CloudLinks.PRICING)}
                         >
                             <FormattedMessage defaultMessage='Learn more'/>
                         </StyledTertiaryButton>

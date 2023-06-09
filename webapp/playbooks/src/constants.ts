@@ -38,4 +38,8 @@ export const AboutLinks = {
     PRIVACY_POLICY: 'https://mattermost.com/pl/privacy-policy/',
 };
 
+export const CloudLinks = {
+    PRICING: 'https://mattermost.com/pl/pricing/',
+};
+
 export const CallsSlashCommandPrefix = '/call ';
