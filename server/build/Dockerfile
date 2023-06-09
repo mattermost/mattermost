@@ -20,6 +20,7 @@ RUN apt-get update \
   wv \
   poppler-utils \
   tidy \
+  ffmpeg \
   && rm -rf /var/lib/apt/lists/*
 
 # Set mattermost group/user and download Mattermost
