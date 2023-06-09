@@ -1115,6 +1115,8 @@ export const DocLinks = {
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
     SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
     SETUP_IMAGE_PROXY: 'https://mattermost.com/pl/setup-image-proxy',
+    SETUP_PERFORMANCE_MONITORING: 'https://mattermost.com/pl/setup-performance-monitoring',
+    SETUP_PUSH_NOTIFICATIONS: 'https://mattermost.com/pl/setup-push-notifications',
     SITE_URL: 'https://mattermost.com/pl/configure-site-url',
     SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
