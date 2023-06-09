@@ -1117,6 +1117,7 @@ export const DocLinks = {
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
     DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
+    HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
 };
 
 export const LicenseLinks = {
