@@ -1131,6 +1131,7 @@ export const DocLinks = {
 
 export const DeveloperLinks = {
     PLUGINS: 'https://mattermost.com/pl/plugins',
+    PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
 };
 
 export const LicenseLinks = {

@@ -1105,7 +1105,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                             values={{
                                                 link: (msg: React.ReactNode) => (
                                                     <ExternalLink
-                                                        href='https://mattermost.com/pl/default-plugin-signing'
+                                                        href={DeveloperLinks.PLUGIN_SIGNING}
                                                         location='plugin_management'
                                                     >
                                                         {msg}
