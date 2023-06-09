@@ -80,7 +80,7 @@ describe('useEnsureProfile', () => {
         useDispatchSpy.mockReturnValue(mockDispatchFn);
 
         const userId = 'unknown';
-        const {rerender} = renderHook(() => {
+        renderHook(() => {
             useEnsureProfile(userId);
         });
         expect(mockDispatchFn).toHaveBeenCalledTimes(1);
@@ -184,7 +184,7 @@ describe('useEnsureProfiles', () => {
         useDispatchSpy.mockReturnValue(mockDispatchFn);
 
         const userIds = ['user1', 'user2', 'unknown'];
-        const {rerender} = renderHook(() => {
+        renderHook(() => {
             useEnsureProfiles(userIds);
         });
         expect(mockDispatchFn).toHaveBeenCalledTimes(1);
