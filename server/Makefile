@@ -434,9 +434,6 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
-do-cover-file: ## Creates the test coverage report file.
-	@echo "mode: count" > cover.out
-
 go-junit-report:
 	$(GO) install github.com/jstemmer/go-junit-report@v1.0.0
 
@@ -457,7 +454,7 @@ modules-tidy:
 		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
 
-test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker go-junit-report ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -465,9 +462,9 @@ else
 endif
 
 test-server-race: test-server-pre
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -478,7 +475,7 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -488,9 +485,9 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker go-junit-report ## Runs EE tests.
 	@echo Running only EE tests
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m"
 
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
