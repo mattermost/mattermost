@@ -1129,6 +1129,10 @@ export const DocLinks = {
     UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
 };
 
+export const DeveloperLinks = {
+    PLUGINS: 'https://mattermost.com/pl/plugins',
+};
+
 export const LicenseLinks = {
     CONTACT_SALES: 'https://mattermost.com/contact-sales/',
     TRIAL_INFO_LINK: 'https://mattermost.com/trial',
