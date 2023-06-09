@@ -41,9 +41,9 @@ mme2e_wait_image ${SERVER_IMAGE} 30 60
 mme2e_log "Creating E2E containers and generating server config"
 ${MME2E_DC_SERVER} create
 ${MME2E_DC_SERVER} up -d -- utils
-${MME2E_DC_SERVER} exec -T  -- utils bash -c "apt update && apt install -y jq"
-${MME2E_DC_SERVER} exec -T -e "OUTPUT_CONFIG=/tmp/config_generated.json" -w /opt/mattermost-server/server -- utils go run scripts/config_generator/main.go
-${MME2E_DC_SERVER} exec -T -- utils bash <<EOF
+${MME2E_DC_SERVER} exec -T -w /opt/mattermost-server/server -- utils bash <<EOF
+apt update && apt install -y jq
+OUTPUT_CONFIG=/tmp/config_generated.json go run scripts/config_generator/main.go
 jq "
   .ServiceSettings.SiteURL=\"http://server:8065\"
 | .PluginSettings.Enable=true
@@ -52,6 +52,8 @@ jq "
 | .TeamSettings.EnableOpenServer=true
 | .ElasticsearchSettings.ConnectionURL=\"http://elasticsearch:9200\"
 " </tmp/config_generated.json >/opt/server-config/config.json
+echo "### Generated server config:"
+cat /opt/server-config/config.json
 EOF
 
 # Launch mattermost-server, and wait for it to be healthy
