@@ -185,7 +185,7 @@
         "TermsOfServiceLink": "https://mattermost.com/pl/terms-of-use/",
         "PrivacyPolicyLink": "https://mattermost.com/pl/privacy-policy/",
         "AboutLink": "https://mattermost.com/default-about/",
-        "HelpLink": "https://mattermost.com/default-help/",
+        "HelpLink": "https://mattermost.com/pl/help/",
         "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
         "SupportEmail": "feedback@mattermost.com"
     },

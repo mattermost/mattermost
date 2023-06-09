@@ -134,7 +134,7 @@ const (
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
 	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
-	SupportSettingsDefaultHelpLink           = "https://mattermost.com/default-help/"
+	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
 	SupportSettingsDefaultSupportEmail       = ""
 	SupportSettingsDefaultReAcceptancePeriod = 365
