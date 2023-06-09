@@ -1105,7 +1105,7 @@ export const DocLinks = {
     ELASTICSEARCH: 'https://docs.mattermost.com/scale/elasticsearch.html',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
     SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
-    SITE_URL: 'https://docs.mattermost.com/configure/configuration-settings.html#site-url',
+    SITE_URL: 'https://mattermost.com/pl/configure-site-url',
     SSL_CERTIFICATE: 'https://mattermost.com/pl/setup-ssl-client-certificate',
     UPGRADE_SERVER: 'https://mattermost.com/pl/upgrade-mattermost',
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
