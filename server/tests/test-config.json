@@ -186,7 +186,7 @@
         "PrivacyPolicyLink": "https://mattermost.com/pl/privacy-policy/",
         "AboutLink": "https://mattermost.com/default-about/",
         "HelpLink": "https://mattermost.com/pl/help/",
-        "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
+        "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {

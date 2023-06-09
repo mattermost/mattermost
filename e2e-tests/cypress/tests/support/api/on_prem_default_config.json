@@ -226,7 +226,7 @@
         "PrivacyPolicyLink": "https://mattermost.com/pl/privacy-policy/",
         "AboutLink": "https://docs.mattermost.com/pl/about-mattermost",
         "HelpLink": "https://mattermost.com/pl/help/",
-        "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
+        "ReportAProblemLink": "https://mattermost.com/pl/report-a-bug",
         "SupportEmail": "",
         "CustomTermsOfServiceEnabled": false,
         "CustomTermsOfServiceReAcceptancePeriod": 365,
