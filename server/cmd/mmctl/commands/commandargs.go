@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
@@ -19,7 +20,7 @@ func getCommandFromCommandArg(c client.Client, commandArg string) *model.Command
 
 	cmd := getCommandFromTeamTrigger(c, commandArg)
 	if cmd == nil {
-		cmd, _, _ = c.GetCommandById(commandArg)
+		cmd, _, _ = c.GetCommandById(context.TODO(), commandArg)
 	}
 	return cmd
 }
@@ -31,7 +32,7 @@ func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Comma
 		return nil
 	}
 
-	team, _, _ := c.GetTeamByName(arr[0], "")
+	team, _, _ := c.GetTeamByName(context.TODO(), arr[0], "")
 	if team == nil {
 		return nil
 	}
@@ -41,7 +42,7 @@ func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Comma
 		return nil
 	}
 
-	list, _, _ := c.ListCommands(team.Id, false)
+	list, _, _ := c.ListCommands(context.TODO(), team.Id, false)
 	if list == nil {
 		return nil
 	}
