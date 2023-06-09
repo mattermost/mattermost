@@ -9,8 +9,10 @@ env:
   go-version: "1.19.5"
 
 jobs:
-  check-mocks:
-    name: Check mocks
+  # goinstall blocks all other steps so that if the cache needs to be rebuilt, it consistently 
+  # includes all tools for all steps and future builds matching the same cache key.
+  goinstall:
+    name: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -27,12 +29,34 @@ jobs:
             server/public/go.sum
       - name: Run setup-go-work
         run: make setup-go-work
+      - name: go mod download
+        run: go mod download
+      - name: go install
+        run: make install
+  check-mocks:
+    name: Check mocks
+    needs: goinstall
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
   check-go-mod-tidy:
     name: Check go mod tidy
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -53,6 +77,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
   golangci:
     name: golangci-lint
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -74,6 +99,7 @@ jobs:
 
   check-gen-serialized:
     name: Check serialization methods for hot structs
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -94,6 +120,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
   check-mattermost-vet:
     name: Check style
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -118,6 +145,7 @@ jobs:
         run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   check-migrations:
     name: Check migration files
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -125,12 +153,20 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Extract migrations files
         run: make migrations-extract
       - name: Check migration files
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   build-api-spec:
     name: Build API specification
+    needs: goinstall
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -153,6 +189,7 @@ jobs:
           cd ../mattermost
   check-email-templates:
     name: Generate email templates
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -160,6 +197,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
       - name: Generate email templates
         run: |
           sudo npm install -g mjml@4.9.0
@@ -168,6 +212,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
   check-store-layers:
     name: Check store layers
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -188,6 +233,7 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
   check-app-layers:
     name: Check app layers
+    needs: goinstall
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -208,9 +254,10 @@ jobs:
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
   check-mmctl-docs:
     name: Check mmctl docs
+    needs: goinstall
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -227,7 +274,7 @@ jobs:
           if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
     name: Postgres with binary parameters
-    needs: check-mattermost-vet
+    needs: [goinstall, check-mattermost-vet]
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: Postgres with binary parameters
@@ -236,7 +283,7 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
   test-postgres-normal:
     name: Postgres
-    needs: check-mattermost-vet
+    needs: [goinstall, check-mattermost-vet]
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: Postgres
@@ -245,7 +292,7 @@ jobs:
       logsartifact: postgres-server-test-logs
   test-mysql:
     name: MySQL
-    needs: check-mattermost-vet
+    needs: [goinstall, check-mattermost-vet]
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: MySQL
@@ -254,7 +301,7 @@ jobs:
       logsartifact: mysql-server-test-logs
   test-mmctl:
     name: Run mmctl tests
-    needs: check-mattermost-vet
+    needs: [goinstall, check-mattermost-vet]
     uses: ./.github/workflows/mmctl-test-template.yml
     with:
       name: mmctl
@@ -263,11 +310,11 @@ jobs:
       logsartifact: mmctl-test-logs
   build-mattermost-server:
     name: Build mattermost server app
+    needs: [goinstall, check-mattermost-vet]
     runs-on: ubuntu-latest-8-cores
     defaults:
       run:
         working-directory: server
-    needs: check-mattermost-vet
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0

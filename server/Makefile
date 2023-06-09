@@ -242,6 +242,17 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
 
+install: ## Install all required tools
+	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+	$(GO) install github.com/mattermost/mattermost-govet/v2@new
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
+	$(GO) install github.com/mattermost/morph/cmd/morph@1e0640c
+	$(GO) install github.com/reflog/struct2interface@v0.6.1
+	$(GO) install github.com/tinylib/msgp@v1.1.6
+	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
+	$(GO) install gotest.tools/gotestsum@v1.7.0
+
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
 	@echo CI Build: skipping docker start
