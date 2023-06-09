@@ -1155,7 +1155,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://www.mattermost.com/file-content-extraction'
+                                    href={DocLinks.CONFIGURE_DOCUMENT_CONTENT_SEARCH}
                                 >
                                     {msg}
                                 </ExternalLink>

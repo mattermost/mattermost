@@ -1101,6 +1101,7 @@ export const HostedCustomerLinks = {
 
 export const DocLinks = {
     AD_LDAP: 'https://mattermost.com/pl/setup-ldap',
+    CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermmost.com/pl/configure-document-content-search',
     DATA_RETENTION_POLICY: 'https://mattermost.com/pl/data-retention-policy',
     ELASTICSEARCH: 'https://mattermost.com/pl/setup-elasticsearch',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
