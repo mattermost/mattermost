@@ -22,6 +22,11 @@ const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
 const PUSH_NOTIFICATIONS_LOCATION_US = 'us';
 const PUSH_NOTIFICATIONS_LOCATION_DE = 'de';
 
+const PUSH_NOTIFICATIONS_SERVER_DIC = {
+    [PUSH_NOTIFICATIONS_LOCATION_US]: Constants.MHPNS_US,
+    [PUSH_NOTIFICATIONS_LOCATION_DE]: Constants.MHPNS_DE,
+};
+
 const DROPDOWN_ID_SERVER_TYPE = 'pushNotificationServerType';
 const DROPDOWN_ID_SERVER_LOCATION = 'pushNotificationServerLocation';
 
@@ -44,7 +49,7 @@ export default class PushSettings extends AdminSettings {
 
             if (value === PUSH_NOTIFICATIONS_MHPNS) {
                 this.setState({
-                    pushNotificationServer: Constants.MHPNS_US,
+                    pushNotificationServer: PUSH_NOTIFICATIONS_SERVER_DIC[this.state.pushNotificationServerLocation],
                 });
             } else if (value === PUSH_NOTIFICATIONS_MTPNS) {
                 this.setState({
@@ -60,18 +65,10 @@ export default class PushSettings extends AdminSettings {
         }
 
         if (id === DROPDOWN_ID_SERVER_LOCATION) {
-            switch (value) {
-            case PUSH_NOTIFICATIONS_LOCATION_US:
-                this.setState({
-                    pushNotificationServer: Constants.MHPNS_US,
-                });
-                break;
-            case PUSH_NOTIFICATIONS_LOCATION_DE:
-                this.setState({
-                    pushNotificationServer: Constants.MHPNS_DE,
-                });
-                break;
-            }
+            this.setState({
+                pushNotificationServer: PUSH_NOTIFICATIONS_SERVER_DIC[value],
+                pushNotificationServerLocation: value,
+            });
         }
 
         this.handleChange(id, value);
@@ -108,16 +105,15 @@ export default class PushSettings extends AdminSettings {
         let pushNotificationServer = config.EmailSettings.PushNotificationServer;
         if (pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
             pushNotificationServer = Constants.MTPNS;
-        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS && pushNotificationServerLocation === PUSH_NOTIFICATIONS_LOCATION_US) {
-            pushNotificationServer = Constants.MHPNS_US;
-        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS && pushNotificationServerLocation === PUSH_NOTIFICATIONS_LOCATION_DE) {
-            pushNotificationServer = Constants.MHPNS_DE;
+        } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
+            pushNotificationServer = PUSH_NOTIFICATIONS_SERVER_DIC[pushNotificationServerLocation];
         }
 
         const maxNotificationsPerChannel = config.TeamSettings.MaxNotificationsPerChannel;
 
         return {
             pushNotificationServerType,
+            pushNotificationServerLocation,
             pushNotificationServer,
             maxNotificationsPerChannel,
             agree,
