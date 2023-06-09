@@ -26,6 +26,8 @@ services:
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
+    volumes:
+    - "server-config:/mattermost/config"
     ports:
       - "8065:8065"
     depends_on:
@@ -120,3 +122,7 @@ services:
     working_dir: "/opt/mattermost-server"
     volumes:
     - "../../:/opt/mattermost-server"
+    - "server-config:/opt/server-config"
+
+volumes:
+  server-config:
