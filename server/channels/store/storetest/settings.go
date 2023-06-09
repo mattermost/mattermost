@@ -182,7 +182,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
-	*settings.MigrationsStatementTimeoutSeconds = 10
+	*settings.MigrationsStatementTimeoutSeconds = 60
 
 	return settings
 }

@@ -97,7 +97,8 @@ async function printClientInfo(client: Client) {
   - BuildEnterpriseReady        = ${config.BuildEnterpriseReady}
   - FeatureFlagAppsEnabled      = ${config.FeatureFlagAppsEnabled}
   - FeatureFlagCallsEnabled     = ${config.FeatureFlagCallsEnabled}
-  - TelemetryId                 = ${config.TelemetryId}`);
+  - TelemetryId                 = ${config.TelemetryId}
+  - ServiceEnvironment          = ${config.ServiceEnvironment}`);
 }
 
 async function ensurePluginsLoaded(client: Client) {

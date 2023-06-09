@@ -198,12 +198,17 @@ func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 
 	embeddedFiles := make(map[string]io.Reader)
 	if isYearly {
-		pdf, filename, pdfErr := a.Cloud().GetInvoicePDF("", subscription.LastInvoice.ID)
-		if pdfErr != nil {
-			a.Log().Error("Error retrieving the invoice for subscription id", mlog.String("subscription", subscription.ID), mlog.Err(pdfErr))
+		lastInvoice := subscription.LastInvoice
+		if lastInvoice == nil {
+			a.Log().Error("Last invoice not defined for the subscription", mlog.String("subscription", subscription.ID))
 		} else {
-			embeddedFiles = map[string]io.Reader{
-				filename: bytes.NewReader(pdf),
+			pdf, filename, pdfErr := a.Cloud().GetInvoicePDF("", lastInvoice.ID)
+			if pdfErr != nil {
+				a.Log().Error("Error retrieving the invoice for subscription id", mlog.String("subscription", subscription.ID), mlog.Err(pdfErr))
+			} else {
+				embeddedFiles = map[string]io.Reader{
+					filename: bytes.NewReader(pdf),
+				}
 			}
 		}
 	}

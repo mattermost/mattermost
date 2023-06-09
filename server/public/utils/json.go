@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"strings"
+	"unicode"
 
 	"github.com/pkg/errors"
 )
@@ -57,7 +58,19 @@ func NewHumanizedJSONError(err error, data []byte, offset int64) *HumanizedJSONE
 }
 
 func IsEmptyJSON(j json.RawMessage) bool {
-	if len(j) == 0 || bytes.Equal(j, []byte("{}")) || bytes.Equal(j, []byte("\"\"")) || bytes.Equal(j, []byte("[]")) {
+	if len(j) == 0 {
+		return true
+	}
+
+	// remove all whitespace
+	jj := make([]byte, 0, len(j))
+	for _, b := range j {
+		if !unicode.IsSpace(rune(b)) {
+			jj = append(jj, b)
+		}
+	}
+
+	if len(jj) == 0 || bytes.Equal(jj, []byte("{}")) || bytes.Equal(jj, []byte("\"\"")) || bytes.Equal(jj, []byte("[]")) {
 		return true
 	}
 	return false
