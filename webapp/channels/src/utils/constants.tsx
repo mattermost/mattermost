@@ -1091,7 +1091,7 @@ export const CloudLinks = {
 
 export const HostedCustomerLinks = {
     BILLING_DOCS: 'https://mattermost.com/pl/how-self-hosted-billing-works',
-    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
+    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/pl/self-hosted-billing',
     TERMS_AND_CONDITIONS: 'https://mattermost.com/enterprise-edition-terms/',
     SECURITY_UPDATES: 'https://mattermost.com/security-updates/',
     DOWNLOAD: 'https://mattermost.com/download',
@@ -1111,7 +1111,7 @@ export const DocLinks = {
     ONBOARD_LDAP: 'https://docs.mattermost.com/onboard/ad-ldap.html',
     ONBOARD_SSO: 'https://docs.mattermost.com/onboard/sso-saml.html',
     TRUE_UP_REVIEW: 'https://mattermost.com/pl/true-up-documentation',
-    SELF_HOSTED_BILLING: 'https://docs.mattermost.com/manage/self-hosted-billing.html',
+    SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
 };
 

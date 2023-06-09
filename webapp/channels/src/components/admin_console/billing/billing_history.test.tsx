@@ -224,7 +224,7 @@ describe('BillingHistory -- self-hosted', () => {
         expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
         expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
 
-        expect(screen.getByRole('link')).toHaveAttribute('href', 'https://docs.mattermost.com/manage/self-hosted-billing.html?utm_source=mattermost&utm_medium=in-product&utm_content=billing_history&uid=current_user_id&sid=');
+        expect(screen.getByRole('link')).toHaveAttribute('href', HostedCustomerLinks.SELF_HOSTED_BILLING + '?utm_source=mattermost&utm_medium=in-product&utm_content=billing_history&uid=current_user_id&sid=');
         expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
