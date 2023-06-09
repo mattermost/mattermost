@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 export const FEEDBACK_EMAIL = 'test@example.com';
-export const ABOUT_LINK = 'https://docs.mattermost.com/about/product.html';
+export const ABOUT_LINK = 'https://docs.mattermost.com/pl/about-mattermost';
 export const ASK_COMMUNITY_LINK = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 export const HELP_LINK = 'https://mattermost.com/pl/help/';
 export const PRIVACY_POLICY_LINK = 'https://mattermost.com/pl/privacy-policy/';

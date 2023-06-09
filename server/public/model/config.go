@@ -133,7 +133,7 @@ const (
 
 	SupportSettingsDefaultTermsOfServiceLink = "https://mattermost.com/pl/terms-of-use/"
 	SupportSettingsDefaultPrivacyPolicyLink  = "https://mattermost.com/pl/privacy-policy/"
-	SupportSettingsDefaultAboutLink          = "https://docs.mattermost.com/about/product.html/"
+	SupportSettingsDefaultAboutLink          = "https://mattermost.com/pl/about-mattermomst"
 	SupportSettingsDefaultHelpLink           = "https://mattermost.com/pl/help/"
 	SupportSettingsDefaultReportAProblemLink = "https://mattermost.com/default-report-a-problem/"
 	SupportSettingsDefaultSupportEmail       = ""

@@ -340,7 +340,7 @@ const defaultServerConfig: AdminConfig = {
     SupportSettings: {
         TermsOfServiceLink: 'https://mattermost.com/pl/terms-of-use/',
         PrivacyPolicyLink: 'https://mattermost.com/pl/privacy-policy/',
-        AboutLink: 'https://docs.mattermost.com/about/product.html/',
+        AboutLink: 'https://docs.mattermost.com/pl/about-mattermost',
         HelpLink: 'https://mattermost.com/pl/help/',
         ReportAProblemLink: 'https://mattermost.com/default-report-a-problem/',
         SupportEmail: '',
