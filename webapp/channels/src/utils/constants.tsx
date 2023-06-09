@@ -1130,8 +1130,10 @@ export const DocLinks = {
 };
 
 export const DeveloperLinks = {
-    PLUGINS: 'https://mattermost.com/pl/plugins',
+    CUSTOM_SLASH_COMMANDS: 'https://mattermost.com/pl/custom-slash-commands',
     PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
+    PLUGINS: 'https://mattermost.com/pl/plugins',
+    SETUP_CUSTOM_SLASH_COMMANDS: 'https://mattermost.com/pl/setup-custom-slash-commands',
     SETUP_INCOMING_WEBHOOKS: 'https://mattermost.com/pl/setup-incoming-webhooks',
     SETUP_OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/setup-outgoing-webhooks',
 };

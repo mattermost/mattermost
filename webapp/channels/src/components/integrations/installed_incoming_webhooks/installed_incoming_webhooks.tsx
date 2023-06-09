@@ -16,7 +16,7 @@ import {IDMappedObjects} from '@mattermost/types/utilities';
 import BackstageList from 'components/backstage/components/backstage_list';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import Constants, { DeveloperLinks } from 'utils/constants';
+import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 import ExternalLink from 'components/external_link';
 

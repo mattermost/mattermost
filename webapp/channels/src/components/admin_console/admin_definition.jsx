@@ -5973,7 +5973,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                    href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                 >
                                     {msg}
                                 </ExternalLink>

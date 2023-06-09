@@ -75,7 +75,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{
                         link: (msg: string) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-slash-commands/'
+                                href={DeveloperLinks.SETUP_CUSTOM_SLASH_COMMANDS}
                                 location='confirm_integration'
                             >
                                 {msg}
