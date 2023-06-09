@@ -5,7 +5,7 @@ export const FEEDBACK_EMAIL = 'test@example.com';
 export const ABOUT_LINK = 'https://docs.mattermost.com/about/product.html';
 export const ASK_COMMUNITY_LINK = 'https://mattermost.com/pl/default-ask-mattermost-community/';
 export const HELP_LINK = 'https://mattermost.com/default-help/';
-export const PRIVACY_POLICY_LINK = 'https://mattermost.com/privacy-policy/';
+export const PRIVACY_POLICY_LINK = 'https://mattermost.com/pl/privacy-policy/';
 export const REPORT_A_PROBLEM_LINK = 'https://mattermost.com/default-report-a-problem/';
 export const TERMS_OF_SERVICE_LINK = 'https://mattermost.com/pl/terms-of-use/';
 
