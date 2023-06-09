@@ -33,4 +33,9 @@ export const DateTimeFormats = {
     DATE_MED_NO_YEAR: {...DateTime.DATE_MED, year: undefined},
 };
 
+// TODO: Unify from channels
+export const AboutLinks = {
+    PRIVACY_POLICY: 'https://mattermost.com/pl/privacy-policy/',
+};
+
 export const CallsSlashCommandPrefix = '/call ';

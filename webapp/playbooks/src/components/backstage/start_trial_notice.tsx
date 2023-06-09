@@ -2,6 +2,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {AboutLinks} from 'src/constants';
+
 const EXT = {target: '_blank', rel: 'noreferrer'};
 
 const AgreementLink = styled.a.attrs(() => ({
@@ -11,7 +13,7 @@ const AgreementLink = styled.a.attrs(() => ({
 
 const PrivacyLink = styled.a.attrs(() => ({
     ...EXT,
-    href: 'https://mattermost.com/privacy-policy/',
+    href: AboutLinks.PRIVACY_POLICY,
 }))``;
 
 const StartTrialNotice = () => {
