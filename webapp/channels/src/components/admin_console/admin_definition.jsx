@@ -945,7 +945,7 @@ const AdminDefinition = {
                             link: (msg) => (
                                 <ExternalLink
                                     location='admin_console'
-                                    href='https://docs.mattermost.com/install/desktop-managed-resources.html'
+                                    href={DocLinks.DESKTOP_MANAGED_RESOURCES}
                                 >
                                     {msg}
                                 </ExternalLink>

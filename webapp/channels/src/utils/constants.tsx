@@ -1115,6 +1115,7 @@ export const DocLinks = {
     DEFAULT_LDAP_GROUP_SYNC: 'https://mattermost.com/pl/default-ldap-group-sync',
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
+    DESKTOP_MANAGED_RESOURCES: 'https://mattermost.com/pl/desktop-managed-resources',
 };
 
 export const LicenseLinks = {
