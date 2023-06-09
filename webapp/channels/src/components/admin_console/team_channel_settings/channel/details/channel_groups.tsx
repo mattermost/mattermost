@@ -21,7 +21,7 @@ interface ChannelGroupsProps {
     channel: Partial<Channel>;
     onAddCallback: (groupIDs: string[]) => void;
     totalGroups: number;
-    groups: Array<Partial<Group>>;
+    groups: Group[];
     removedGroups: Array<{[key: string]: any}>;
     onGroupRemoved: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;
@@ -30,21 +30,6 @@ interface ChannelGroupsProps {
 
 export const ChannelGroups: React.FunctionComponent<ChannelGroupsProps> = (props: ChannelGroupsProps): JSX.Element => {
     const {onGroupRemoved, onAddCallback, totalGroups, groups, removedGroups, channel, synced, setNewGroupRole, isDisabled} = props;
-    const groupsItems: Group[] = props.groups.map((groupItem) => ({
-        id: groupItem.id || '',
-        name: groupItem.name || '',
-        display_name: groupItem.display_name || '',
-        description: groupItem.description || '',
-        source: groupItem.source || '',
-        remote_id: groupItem.remote_id || null,
-        create_at: groupItem.create_at || -1,
-        update_at: groupItem.update_at || -1,
-        delete_at: groupItem.delete_at || -1,
-        has_syncables: groupItem.has_syncables || false,
-        member_count: groupItem.member_count || -1,
-        scheme_admin: groupItem.scheme_admin || false,
-        allow_reference: groupItem.allow_reference || false,
-    }));
     return (
         <AdminPanel
             id='channel_groups'
@@ -77,7 +62,7 @@ export const ChannelGroups: React.FunctionComponent<ChannelGroupsProps> = (props
             {channel.id && (
                 <GroupList
                     channel={channel}
-                    groups={groupsItems}
+                    groups={groups}
                     totalGroups={totalGroups}
                     onGroupRemoved={onGroupRemoved}
                     setNewGroupRole={setNewGroupRole}
