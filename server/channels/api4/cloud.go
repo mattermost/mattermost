@@ -875,6 +875,11 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
+
 	var deleteRequest *model.WorkspaceDeletionRequest
 	if err = json.Unmarshal(bodyBytes, &deleteRequest); err != nil {
 		c.Err = model.NewAppError("Api4.selfServeDeleteWorkspace", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
