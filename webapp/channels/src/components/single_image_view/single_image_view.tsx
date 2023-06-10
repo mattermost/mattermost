@@ -125,7 +125,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         let minPreviewClass = '';
         if (
             (previewWidth < PREVIEW_IMAGE_MIN_DIMENSION ||
-            previewHeight < PREVIEW_IMAGE_MIN_DIMENSION) && !hasDisproportionateHeight
+                previewHeight < PREVIEW_IMAGE_MIN_DIMENSION) && !hasDisproportionateHeight
         ) {
             minPreviewClass = 'min-preview ';
 
@@ -219,31 +219,31 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 >
                     {fileHeader}
                     {this.props.isEmbedVisible &&
-                    <div
-                        className={classNames('image-container', permalinkClass)}
-                        style={imageContainerStyle}
-                    >
                         <div
-                            className={classNames('image-loaded', fadeInClass, svgClass)}
-                            style={styleIfSvgWithDimensions}
+                            className={classNames('image-container', permalinkClass)}
+                            style={imageContainerStyle}
                         >
-                            <div className={classNames(permalinkClass)}>
-                                <SizeAwareImage
-                                    onClick={this.handleImageClick}
-                                    className={classNames(minPreviewClass, permalinkClass)}
-                                    src={previewURL}
-                                    dimensions={this.state.dimensions}
-                                    fileInfo={this.props.fileInfo}
-                                    fileURL={fileURL}
-                                    onImageLoaded={this.imageLoaded}
-                                    showLoader={this.props.isEmbedVisible}
-                                    handleSmallImageContainer={true}
-                                    enablePublicLink={this.props.enablePublicLink}
-                                    getFilePublicLink={this.getFilePublicLink}
-                                />
+                            <div
+                                className={classNames('image-loaded', fadeInClass, svgClass)}
+                                style={styleIfSvgWithDimensions}
+                            >
+                                <div className={classNames(permalinkClass)}>
+                                    <SizeAwareImage
+                                        onClick={this.handleImageClick}
+                                        className={classNames(minPreviewClass, permalinkClass)}
+                                        src={previewURL}
+                                        dimensions={this.state.dimensions}
+                                        fileInfo={this.props.fileInfo}
+                                        fileURL={fileURL}
+                                        onImageLoaded={this.imageLoaded}
+                                        showLoader={this.props.isEmbedVisible}
+                                        handleSmallImageContainer={true}
+                                        enablePublicLink={this.props.enablePublicLink}
+                                        getFilePublicLink={this.getFilePublicLink}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
                     }
                 </div>
             </div>

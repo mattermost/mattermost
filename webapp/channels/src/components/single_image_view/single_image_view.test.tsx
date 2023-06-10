@@ -56,7 +56,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
-        wrapper.find('SizeAwareImage').at(0).simulate('click', {preventDefault: () => {}});
+        wrapper.find('SizeAwareImage').at(0).simulate('click', {preventDefault: () => { }});
         expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
@@ -84,7 +84,10 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
         expect(wrapper.state('loaded')).toEqual(false);
-        wrapper.find(SizeAwareImage).prop('onImageLoaded')();
+        const wrapperOnImageLoadedProps = wrapper.find(SizeAwareImage).prop('onImageLoaded');
+        if (wrapperOnImageLoadedProps) {
+            wrapperOnImageLoadedProps({});
+        }
         expect(wrapper.state('loaded')).toEqual(true);
         expect(wrapper).toMatchSnapshot();
     });

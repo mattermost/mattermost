@@ -14,7 +14,7 @@ export function getFormattedFileSize(file: FileInfo): string {
         ['KB', 1024],
     ];
     const size = fileSizes.find((unitAndMinBytes) => {
-        const minBytes = unitAndMinBytes[1];
+        const minBytes = unitAndMinBytes[1] as number;
         return bytes > minBytes;
     });
 
@@ -43,11 +43,13 @@ export function getFileType(file: FileInfo): string {
         'presentation',
         'patch',
     ];
-    return fileTypes.find((fileType) => {
-        const constForFileTypeExtList = `${fileType}_types`.toUpperCase();
-        const fileTypeExts = Files[constForFileTypeExtList];
-        return fileTypeExts.indexOf(fileExt) > -1;
-    }) || 'other';
+    return (
+        fileTypes.find((fileType) => {
+            const constForFileTypeExtList = `${fileType}_types`.toUpperCase();
+            const fileTypeExts = Files[constForFileTypeExtList];
+            return fileTypeExts.indexOf(fileExt) > -1;
+        }) || 'other'
+    );
 }
 
 export function getFileUrl(fileId: string): string {
@@ -66,14 +68,19 @@ export function getFilePreviewUrl(fileId: string): string {
     return `${Client4.getFileRoute(fileId)}/preview`;
 }
 
-export function getFileMiniPreviewUrl(fileInfo?: FileInfo): string | undefined {
+export function getFileMiniPreviewUrl(
+    fileInfo?: Partial<FileInfo>,
+): string | undefined {
     if (!fileInfo?.mini_preview || !fileInfo?.mime_type) {
         return undefined;
     }
     return `data:${fileInfo.mime_type};base64,${fileInfo.mini_preview}`;
 }
 
-export function sortFileInfos(fileInfos: FileInfo[] = [], locale: string = General.DEFAULT_LOCALE): FileInfo[] {
+export function sortFileInfos(
+    fileInfos: FileInfo[] = [],
+    locale: string = General.DEFAULT_LOCALE,
+): FileInfo[] {
     return fileInfos.sort((a, b) => {
         if (a.create_at !== b.create_at) {
             return a.create_at - b.create_at;
