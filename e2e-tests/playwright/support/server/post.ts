@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Post, PostMetadata} from "@mattermost/types/posts";
-
-import { getRandomId } from "@e2e-support/util";
+import {getRandomId} from "@e2e-support/util";
 
 export function createRandomPost(post?: Partial<Post>): Post {
     if (post && post.channel_id && post.user_id) {
