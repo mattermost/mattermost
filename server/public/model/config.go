@@ -2628,6 +2628,7 @@ type ElasticsearchSettings struct {
 	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2725,6 +2726,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Trace == nil {
 		s.Trace = NewString("")
+	}
+
+	if s.IgnoredPurgeIndexes == nil {
+		s.IgnoredPurgeIndexes = NewString("")
 	}
 }
 
@@ -3872,6 +3877,15 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.RequestTimeoutSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if ign := *s.IgnoredPurgeIndexes; ign != "" {
+		s := strings.Split(ign, ",")
+		for _, ix := range s {
+			if strings.HasPrefix(ix, "-") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
