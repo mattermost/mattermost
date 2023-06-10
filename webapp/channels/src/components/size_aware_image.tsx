@@ -53,7 +53,7 @@ type State = {
     linkCopyInProgress: boolean;
     isSmallImage?: boolean | number;
     error: boolean;
-    imageWidth: number;
+    imageWidth?: any;
 };
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -138,7 +138,6 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopiedRecently: false,
             linkCopyInProgress: false,
             error: false,
-            imageWidth: 0,
         };
 
         this.heightTimeout = 0;
