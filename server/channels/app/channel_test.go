@@ -2905,6 +2905,10 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	// delete offtopic, town-square, th.basicchannel channels - which interferes with 'least' active channel results
 	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
 	require.Nil(t, appErr, "Expected nil, didn't receive nil")
