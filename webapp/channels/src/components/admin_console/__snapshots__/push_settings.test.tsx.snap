@@ -15,10 +15,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         id="admin.environment.pushNotificationServer"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <DropdownSetting
         helpText={null}
         id="pushNotificationServerType"
@@ -186,10 +183,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         id="admin.environment.pushNotificationServer"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <DropdownSetting
         helpText={null}
         id="pushNotificationServerType"
