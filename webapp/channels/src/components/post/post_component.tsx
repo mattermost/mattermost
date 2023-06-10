@@ -513,7 +513,7 @@ const PostComponent = (props: Props): JSX.Element => {
             className={props.location === 'SEARCH' ? 'search-item__container' : undefined}
             data-testid={props.location === 'SEARCH' ? 'search-item-container' : undefined}
         >
-            {(isSearchResultItem || (props.location !== Locations.CENTER && props.isPinnedPosts) || props.isFlagged) && <DateSeparator date={currentPostDay}/>}
+            {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
                 role='listitem'
@@ -531,9 +531,11 @@ const PostComponent = (props: Props): JSX.Element => {
                         className='search-channel__name__container'
                         aria-hidden='true'
                     >
+                        {Boolean(isSearchResultItem) &&
                         <span className='search-channel__name'>
                             {channelDisplayName}
                         </span>
+                        }
                         {props.channelIsArchived &&
                         <span className='search-channel__archived'>
                             <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
@@ -543,7 +545,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             />
                         </span>
                         }
-                        {Boolean(props.teamDisplayName) &&
+                        {Boolean(isSearchResultItem) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
                             {props.teamDisplayName}
                         </span>
@@ -619,12 +621,10 @@ const PostComponent = (props: Props): JSX.Element => {
                             <PostOptions
                                 {...props}
                                 teamId={teamId}
-                                setActionsMenuInitialisationState={props.actions.setActionsMenuInitialisationState}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}
                                 removePost={props.actions.removePost}
-                                isSearchResultsItem={Boolean(isSearchResultItem)}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
                             />

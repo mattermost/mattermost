@@ -5,7 +5,6 @@ import React, {HTMLAttributes} from 'react';
 import classNames from 'classnames';
 
 import {ActionFunc} from 'mattermost-redux/types/actions';
-import {ExtendedPost} from 'mattermost-redux/actions/posts';
 
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -31,7 +30,6 @@ export type Props = Attrs & {
     userThread?: UserThread | null;
     channel: Channel | null;
     selected: Post | FakePost;
-    previousRhsState?: string;
     currentUserId: string;
     currentTeamId: string;
     socketConnectionStatus: boolean;
@@ -40,7 +38,6 @@ export type Props = Attrs & {
         getNewestPostThread: (rootId: string) => Promise<any>|ActionFunc;
         getPostThread: (rootId: string, fetchThreads: boolean) => Promise<any>|ActionFunc;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<any>|ActionFunc;
-        removePost: (post: ExtendedPost) => void;
         selectPostCard: (post: Post) => void;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;

@@ -5,7 +5,7 @@ import React from 'react';
 
 import Svg from 'src/components/assets/svg';
 
-const Search = (props: {className?: string}) => (
+const Search = () => (
 
     <Svg
         width='180'

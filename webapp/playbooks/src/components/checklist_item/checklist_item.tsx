@@ -280,7 +280,6 @@ export const ChecklistItem = (props: ChecklistItemProps): React.ReactElement => 
             <TaskActions
                 editable={isEditing || (!props.readOnly && !isSkipped())}
                 taskActions={taskActions}
-                playbookRunId={props.playbookRunId}
                 onTaskActionsChange={onTaskActionsChange}
             />
         );
