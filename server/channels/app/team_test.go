@@ -1772,6 +1772,10 @@ func TestGetNewTeamMembersSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	team := th.CreateTeam()
 
 	t.Run("counts team members", func(t *testing.T) {

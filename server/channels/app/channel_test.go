@@ -2805,6 +2805,10 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	channel3 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
