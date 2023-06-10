@@ -102,10 +102,9 @@ export function startPlaybookRun(teamId: string, postId?: string) {
     };
 }
 
-export function openUpdateRunNameModal(playbookRunId: string, teamId: string, type: PlaybookRunType, onSubmit: (newName: string) => void) {
+export function openUpdateRunNameModal(playbookRunId: string, onSubmit: (newName: string) => void) {
     return modals.openModal(makeUpdateRunNameModalDefinition({
         playbookRunId,
-        teamId,
         onSubmit,
     }));
 }
@@ -352,8 +351,8 @@ export const setChecklistItemsFilter = (key: string, nextState: ChecklistItemsFi
     nextState,
 });
 
-export function openTaskActionsModal(onTaskActionsChange: (newTaskActions: TaskActionType[]) => void, taskActions?: TaskActionType[] | null, playbookRunId?: string) {
-    return modals.openModal(makeTaskActionsModalDefinition(onTaskActionsChange, taskActions, playbookRunId));
+export function openTaskActionsModal(onTaskActionsChange: (newTaskActions: TaskActionType[]) => void, taskActions?: TaskActionType[] | null) {
+    return modals.openModal(makeTaskActionsModalDefinition(onTaskActionsChange, taskActions));
 }
 
 export const closeBackstageRHS = (): CloseBackstageRHS => ({
