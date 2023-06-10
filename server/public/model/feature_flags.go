@@ -93,7 +93,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NormalizeLdapDNs = false
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
-	f.InsightsEnabled = true
+	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.SendWelcomePost = true

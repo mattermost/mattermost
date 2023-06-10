@@ -41,6 +41,7 @@ type TestHelper struct {
 	LogBuffer         *mlog.Buffer
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
+	ConfigStore       *config.Store
 
 	tempWorkspace string
 }
@@ -96,6 +97,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
+		ConfigStore:       configStore,
 	}
 	th.Context.SetLogger(testLogger)
 
