@@ -15,14 +15,14 @@ import (
 	"sort"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	pUtils "github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/icrowley/fake"
 	"github.com/spf13/cobra"

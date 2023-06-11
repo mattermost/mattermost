@@ -6,7 +6,7 @@ package einterfaces
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type MessageExportInterface interface {
