@@ -808,7 +808,7 @@ const ContextMenu = (props: ContextMenuProps) => {
                 <FormattedMessage defaultMessage='Link run to a different channel'/>
             </StyledDropdownMenuItem>
             <StyledDropdownMenuItem
-                onClick={() => dispatch(openUpdateRunNameModal(props.playbookRunID, props.teamID, PlaybookRunType.Playbook, props.onUpdateName))}
+                onClick={() => dispatch(openUpdateRunNameModal(props.playbookRunID, props.onUpdateName))}
                 disabled={!props.canEditRun}
                 disabledAltText={formatMessage({defaultMessage: 'You do not have permission to edit this run'})}
             >
@@ -871,7 +871,7 @@ const ChannelChecklistContextMenu = (props: ChannelChecklistContextMenuProps) =>
                 <FormattedMessage defaultMessage='Link checklist to a different channel'/>
             </StyledDropdownMenuItem>
             <StyledDropdownMenuItem
-                onClick={() => dispatch(openUpdateRunNameModal(props.playbookRunID, props.teamID, PlaybookRunType.ChannelChecklist, props.onUpdateName))}
+                onClick={() => dispatch(openUpdateRunNameModal(props.playbookRunID, props.onUpdateName))}
                 disabled={!props.canEditRun}
                 disabledAltText={formatMessage({defaultMessage: 'You do not have permission to edit this checklist'})}
             >

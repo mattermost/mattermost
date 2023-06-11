@@ -9,13 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 
 	sq "github.com/Masterminds/squirrel"
 
-	mm_model "github.com/mattermost/mattermost-server/server/public/model"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (s *SQLStore) getTeamBoardsInsights(db sq.BaseRunner, teamID string, since int64, offset int, limit int, boardIDs []string) (*model.BoardInsightsList, error) {

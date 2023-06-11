@@ -453,7 +453,7 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type apiTimerLayer struct {
@@ -494,7 +494,7 @@ import (
 	"net/http"
 	timePkg "time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type hooksTimerLayer struct {
@@ -674,7 +674,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 }
 
 func getPluginPackageDir() string {
-	dirs, err := goList("github.com/mattermost/mattermost-server/server/public/plugin")
+	dirs, err := goList("github.com/mattermost/mattermost/server/public/plugin")
 	if err != nil {
 		panic(err)
 	} else if len(dirs) != 1 {
