@@ -118,7 +118,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                     cy.findByText('Hide Joined').click();
 
                     // # Focus on the Create Channel button and TAB three time
-                     cy.get('#createNewChannelButton').focus().tab().tab().tab();
+                    cy.get('#createNewChannelButton').focus().tab().tab().tab();
 
                     // * Verify channel name is highlighted and reader reads the channel name and channel description
                     cy.get('#moreChannelsList').within(() => {
