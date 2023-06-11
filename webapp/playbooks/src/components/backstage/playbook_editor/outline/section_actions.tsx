@@ -154,20 +154,6 @@ const LegacyActionsEdit = ({playbook}: Props) => {
         });
     };
 
-    const handleToggleCategorizePlaybookRun = () => {
-        updatePlaybook({
-            categorizeChannelEnabled: !playbook.categorize_channel_enabled,
-        });
-    };
-
-    const handleCategoryNameChange = (categoryName: string) => {
-        if (playbook.category_name !== categoryName) {
-            updatePlaybook({
-                categoryName,
-            });
-        }
-    };
-
     return (
         <>
             <StyledSection>

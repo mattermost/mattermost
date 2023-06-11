@@ -6,7 +6,6 @@ import {render, unmountComponentAtNode} from 'react-dom';
 import {Store, Unsubscribe} from 'redux';
 import {Redirect, useLocation, useRouteMatch} from 'react-router-dom';
 import {GlobalState} from '@mattermost/types/store';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
 import WebsocketEvents from 'mattermost-redux/constants/websocket';
 import {General} from 'mattermost-redux/constants';
@@ -203,7 +202,6 @@ export default class Plugin {
 
         // App Bar icon
         if (registry.registerAppBarComponent) {
-            const siteUrl = getConfig(store.getState())?.SiteURL || '';
             registry.registerAppBarComponent(appIcon, boundToggleRHSAction, ChannelHeaderTooltip);
         }
 

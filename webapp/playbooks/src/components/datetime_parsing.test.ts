@@ -69,7 +69,7 @@ describe('durationFromQuery', () => {
         Settings.defaultLocale = locale;
 
         const duration = Duration.fromObject(durationObj);
-        const [long, short, narrow] = [...queries].map((query) => durationFromQuery(locale, query));
+        const [long/*, short, narrow*/] = [...queries].map((query) => durationFromQuery(locale, query));
 
         expect(long?.toMillis()).toBe(duration.toMillis());
 
