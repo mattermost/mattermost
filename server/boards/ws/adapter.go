@@ -5,7 +5,7 @@
 package ws
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 )
 
 const (
