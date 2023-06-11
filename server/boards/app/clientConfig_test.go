@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
 )
 
 func TestGetClientConfig(t *testing.T) {

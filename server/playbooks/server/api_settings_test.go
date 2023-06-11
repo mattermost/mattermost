@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost/server/v8/playbooks/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

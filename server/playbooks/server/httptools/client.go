@@ -10,8 +10,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 )
 
 func MakeClient(api playbooks.ServicesAPI) *http.Client {
