@@ -1,0 +1,143 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GenericModal should match snapshot for base case 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop in"
+      />
+      <div
+        aria-labelledby="genericModalLabel"
+        class="fade in modal"
+        id="genericModal"
+        role="dialog"
+        style="display: block; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal GenericModal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <div
+              data-testid="sentinelStart"
+              tabindex="-1"
+            />
+            <div
+              class="GenericModal__wrapper-enter-key-press-catcher"
+              tabindex="0"
+            >
+              <div
+                class="modal-header"
+              >
+                <button
+                  aria-label="Close"
+                  class="close"
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                  >
+                    ×
+                  </span>
+                  <span
+                    class="sr-only"
+                  >
+                    Close
+                  </span>
+                </button>
+              </div>
+              <div
+                class="modal-body"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    id="genericModalLabel"
+                  >
+                    Modal Header Text
+                  </h1>
+                </div>
+                <div
+                  class="GenericModal__body padding"
+                />
+              </div>
+            </div>
+            <div
+              data-testid="sentinelEnd"
+              tabindex="-1"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;

@@ -9,12 +9,35 @@ import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import FileInfoPreview from 'components/file_info_preview';
+import {FileInfo} from '@mattermost/types/files';
 
 import {getSiteURL} from 'utils/url';
+import {PDFDocumentProxy} from 'pdfjs-dist/types/src/display/api';
 
 const INITIAL_RENDERED_PAGES = 3;
 
-export default class PDFPreview extends React.PureComponent {
+type Props = {
+    fileInfo: FileInfo;
+    fileUrl: string;
+    scale: number;
+    handleBgClose: () => void;
+};
+
+type State = {
+    pdf: PDFDocumentProxy | null;
+    pdfPages: Record<number, any>;
+    pdfPagesLoaded: Record<number, any>;
+    numPages: number;
+    loading: boolean;
+    success: boolean;
+    prevFileUrl?: string;
+};
+
+export default class PDFPreview extends React.PureComponent<Props, State> {
+    private container: React.RefObject<HTMLDivElement>;
+    private parentNode: HTMLElement | null = null;
+    private pdfPagesRendered: Record<number, boolean>;
+    private pdfCanvasRefs: Array<React.RefObject<HTMLCanvasElement>>;
     static propTypes = {
 
         /**
@@ -30,11 +53,12 @@ export default class PDFPreview extends React.PureComponent {
         handleBgClose: PropTypes.func.isRequired,
     };
 
-    constructor(props) {
+    constructor(props: Props) {
         super(props);
 
         this.pdfPagesRendered = {};
         this.container = React.createRef();
+        this.pdfCanvasRefs = [];
 
         this.state = {
             pdf: null,
@@ -50,7 +74,7 @@ export default class PDFPreview extends React.PureComponent {
         this.getPdfDocument();
         if (this.container.current) {
             this.parentNode = this.container.current.parentElement;
-            this.parentNode.addEventListener('scroll', this.handleScroll);
+            this.parentNode?.addEventListener('scroll', this.handleScroll);
         }
     }
 
@@ -60,7 +84,7 @@ export default class PDFPreview extends React.PureComponent {
         }
     }
 
-    static getDerivedStateFromProps(props, state) {
+    static getDerivedStateFromProps(props: Props, state: State) {
         if (props.fileUrl !== state.prevFileUrl) {
             return {
                 pdf: null,
@@ -75,7 +99,7 @@ export default class PDFPreview extends React.PureComponent {
         return null;
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps: Props, prevState: State) {
         if (this.props.fileUrl !== prevProps.fileUrl) {
             this.getPdfDocument();
             this.pdfPagesRendered = {};
@@ -96,16 +120,16 @@ export default class PDFPreview extends React.PureComponent {
         }
     }
 
-    downloadFile = (e) => {
-        const fileDownloadUrl = this.props.fileInfo.link || getFileDownloadUrl(this.props.fileInfo.id);
+    downloadFile = (e: any) => {
+        const fileDownloadUrl = this.props.fileInfo.link || getFileDownloadUrl(this.props.fileInfo.id || '');
         e.preventDefault();
         window.location.href = fileDownloadUrl;
     };
 
-    isInViewport = (page) => {
+    isInViewport = (page: any) => {
         const bounding = page.getBoundingClientRect();
-        const viewportTop = this.container.current.scrollTop;
-        const viewportBottom = viewportTop + this.container.current.parentElement.clientHeight;
+        const viewportTop: any = this.container?.current?.scrollTop;
+        const viewportBottom = viewportTop + this.container?.current?.parentElement?.clientHeight;
         return (
             (bounding.top >= viewportTop && bounding.top <= viewportBottom) ||
             (bounding.bottom >= viewportTop && bounding.bottom <= viewportBottom) ||
@@ -113,8 +137,8 @@ export default class PDFPreview extends React.PureComponent {
         );
     };
 
-    renderPDFPage = async (pageIndex) => {
-        const canvas = this[`pdfCanvasRef-${pageIndex}`].current;
+    renderPDFPage = async (pageIndex: number) => {
+        const canvas = this.pdfCanvasRefs[pageIndex].current;
         if (!canvas) {
             // Refs are undefined when testing
             return;
@@ -162,25 +186,25 @@ export default class PDFPreview extends React.PureComponent {
         }
     };
 
-    onDocumentLoad = (pdf) => {
+    onDocumentLoad = (pdf: PDFDocumentProxy) => {
         this.setState({pdf, numPages: pdf.numPages});
         for (let i = 0; i < pdf.numPages; i++) {
-            this[`pdfCanvasRef-${i}`] = React.createRef();
+            this.pdfCanvasRefs[i] = React.createRef();
         }
         this.setState({loading: false, success: true});
     };
 
-    onDocumentLoadError = (reason) => {
+    onDocumentLoadError = (reason: string) => {
         console.log('Unable to load PDF preview: ' + reason); //eslint-disable-line no-console
         this.setState({loading: false, success: false});
     };
 
-    loadPage = async (pdf, pageIndex) => {
+    loadPage = async (pdf: PDFDocumentProxy | null, pageIndex: number) => {
         if (this.state.pdfPagesLoaded[pageIndex]) {
             return this.state.pdfPages[pageIndex];
         }
 
-        const page = await pdf.getPage(pageIndex + 1);
+        const page = await pdf?.getPage(pageIndex + 1);
 
         const pdfPages = Object.assign({}, this.state.pdfPages);
         pdfPages[pageIndex] = page;
@@ -215,7 +239,7 @@ export default class PDFPreview extends React.PureComponent {
         if (!this.state.success) {
             return (
                 <FileInfoPreview
-                    fileInfo={this.props.fileInfo}
+                    fileInfo={this.props.fileInfo as FileInfo}
                     fileUrl={this.props.fileUrl}
                 />
             );
@@ -225,7 +249,7 @@ export default class PDFPreview extends React.PureComponent {
         for (let i = 0; i < this.state.numPages; i++) {
             pdfCanvases.push(
                 <canvas
-                    ref={this[`pdfCanvasRef-${i}`]}
+                    ref={this.pdfCanvasRefs[i]}
                     key={'previewpdfcanvas' + i}
                 />,
             );

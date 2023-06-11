@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
+import {ShallowWrapper, shallow} from 'enzyme';
 
-import PDFPreview from 'components/pdf_preview.jsx';
+import PDFPreview from 'components/pdf_preview';
 
 jest.mock('pdfjs-dist', () => ({
     getDocument: () => Promise.resolve({
         numPages: 3,
-        getPage: (i) => Promise.resolve({
+        getPage: (i: number) => Promise.resolve({
             pageIndex: i,
-            getContext: (s) => Promise.resolve({s}),
+            getContext: (s: any) => Promise.resolve({s}),
         }),
     }),
 }));
 
 describe('component/PDFPreview', () => {
     const requiredProps = {
-        fileInfo: {extension: 'pdf'},
+        fileInfo: {extension: 'pdf'} as any,
         fileUrl: 'https://pre-release.mattermost.com/api/v4/files/ips59w4w9jnfbrs3o94m1dbdie',
         scale: 1,
         handleBgClose: jest.fn(),
@@ -40,29 +40,29 @@ describe('component/PDFPreview', () => {
     });
 
     test('should update state with new value from props when prop changes', () => {
-        const wrapper = shallow(
+        const wrapper: ShallowWrapper<Record<string, any>, Record<string, any>, PDFPreview> = shallow(
             <PDFPreview {...requiredProps}/>,
         );
         const newFileUrl = 'https://some-new-url';
 
         wrapper.setProps({fileUrl: newFileUrl});
-        const {prevFileUrl} = wrapper.instance().state;
+        const {prevFileUrl} = wrapper.instance().state as any;
         expect(prevFileUrl).toEqual(newFileUrl);
     });
 
     test('should return correct state when onDocumentLoad is called', () => {
-        const wrapper = shallow(
+        const wrapper: ShallowWrapper<Record<string, any>, Record<string, any>, PDFPreview> = shallow(
             <PDFPreview {...requiredProps}/>,
         );
 
-        let pdf = {numPages: 0};
+        let pdf: any = {numPages: 0};
         wrapper.instance().onDocumentLoad(pdf);
         expect(wrapper.state('pdf')).toEqual(pdf);
         expect(wrapper.state('numPages')).toEqual(pdf.numPages);
 
         pdf = {
             numPages: 100,
-            getPage: (i) => Promise.resolve(i),
+            getPage: (i: number) => Promise.resolve(i),
         };
         wrapper.instance().onDocumentLoad(pdf);
         expect(wrapper.state('pdf')).toEqual(pdf);

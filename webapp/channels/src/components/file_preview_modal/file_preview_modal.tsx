@@ -28,7 +28,7 @@ import FilePreviewModalHeader from './file_preview_modal_header/file_preview_mod
 import PopoverBar from './popover_bar';
 import {LinkInfo, isFileInfo} from './types';
 
-const PDFPreview = React.lazy(() => import('components/pdf_preview'));
+const PDFPreview = React.lazy(() => import('components/pdf_preview') as any);
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -448,7 +448,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             >
                                 {content}
                             </div>
-                            { this.props.isMobileView &&
+                            {this.props.isMobileView &&
                                 <FilePreviewModalFooter
                                     post={this.props.post}
                                     showPublicLink={showPublicLink}

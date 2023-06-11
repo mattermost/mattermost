@@ -70,10 +70,21 @@ function CloudInvoicePreview(props: Props) {
                             extension: 'pdf',
                             size: 0,
                             name: '',
+                            id: '',
+                            user_id: '',
+                            create_at: 0,
+                            update_at: 0,
+                            delete_at: 0,
+                            mime_type: '',
+                            width: 0,
+                            height: 0,
+                            has_preview_image: false,
+                            clientId: '',
+                            archived: false,
                         }}
-                        fileUrl={props.url}
+                        fileUrl={props.url || ''}
                         scale={1.4}
-                        handleBgClose={() => {}}
+                        handleBgClose={() => { }}
                     />
                 </div>
             </Modal.Body>
