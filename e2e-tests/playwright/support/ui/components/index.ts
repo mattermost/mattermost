@@ -11,6 +11,8 @@ import {ChannelsSidebarLeft} from './channels/sidebar_left';
 import {ChannelsSidebarRight} from './channels/sidebar_right';
 import {FindChannelsModal} from './channels/find_channels_modal';
 import {GlobalHeader} from './global_header';
+import {PostOptionsMenu} from './channels/post_options_menu';
+import {DeletePostModal} from './channels/delete_post_modal';
 
 const components = {
     BoardsSidebar,
@@ -23,6 +25,8 @@ const components = {
     ChannelsSidebarRight,
     FindChannelsModal,
     GlobalHeader,
+    PostOptionsMenu,
+    DeletePostModal,
 };
 
 export {
@@ -37,4 +41,6 @@ export {
     ChannelsSidebarRight,
     FindChannelsModal,
     GlobalHeader,
+    PostOptionsMenu,
+    DeletePostModal,
 };

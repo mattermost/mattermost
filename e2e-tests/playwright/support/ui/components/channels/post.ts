@@ -8,18 +8,25 @@ export default class ChannelsPost {
 
     readonly body;
     readonly profileIcon;
-    readonly replyPostActionButton;
-    readonly replyButton;
+
+    readonly replyThreadButton;
     readonly removePostButton;
+    
+    readonly postActionReplyButton;
+    readonly postActionMoreButton;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.body = container.locator('.post__body');
+        
         this.profileIcon = container.locator('.profile-icon');
-        this.replyPostActionButton = container.getByRole('button', {name: 'reply'});
-        this.replyButton = container.locator('.ReplyButton');
+
+        this.replyThreadButton = container.locator('.ReplyButton');
         this.removePostButton = container.locator('.post__remove');
+        
+        this.postActionReplyButton = container.getByRole('button', {name: 'reply'});
+        this.postActionMoreButton = container.getByRole('button', {name: 'more'});
     }
 
     async toBeVisible() {
@@ -41,16 +48,16 @@ export default class ChannelsPost {
      */
     async openRHSWithPostOptions() {
         await this.container.hover();
-        await this.replyPostActionButton.waitFor();
-        await this.replyPostActionButton.click();
+        await this.postActionReplyButton.waitFor();
+        await this.postActionReplyButton.click();
     }
 
     /**
      * Clicks on the reply button on the post with thread.
      */
     async openRHSWithReply() {
-        await this.replyButton.waitFor();
-        await this.replyButton.click();
+        await this.replyThreadButton.waitFor();
+        await this.replyThreadButton.click();
     }
 
     /**
@@ -65,6 +72,15 @@ export default class ChannelsPost {
         await this.container.hover();
         await this.removePostButton.waitFor();
         await this.removePostButton.click();
+    }
+
+    /**
+     * Hovers over the post and clicks on the post's more button to open the post options menu
+     */
+    async openPostActionsMenu() {
+        await this.container.hover();
+        await this.postActionMoreButton.waitFor();
+        await this.postActionMoreButton.click();
     }
 
 }

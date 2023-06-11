@@ -2,15 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {PreferenceType} from '@mattermost/types/preferences';
+import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
+import {Post} from '@mattermost/types/posts';
 
 import {test, expect} from '@e2e-support/test_fixture';
-import {UserProfile} from '@mattermost/types/users';
 import {createRandomPost} from '@e2e-support/server/post';
 import {createRandomChannel} from '@e2e-support/server';
-import { Channel } from '@mattermost/types/channels';
-import { Post } from '@mattermost/types/posts';
 
-test('MM-XXX : Drafts badge doesnt get cleared when parent message is deleted and removed', async ({pw, pages}) => {
+test('MM-XXX : Gloabl Drafts link in sidebar should be hidden when another user deleted root post and user removes the deleted post ', async ({
+    pw,
+    pages,
+}) => {
     const {adminClient, team, adminUser, user, userClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -43,46 +46,48 @@ test('MM-XXX : Drafts badge doesnt get cleared when parent message is deleted an
         await adminClient.addToChannel(adminUser.id, channel.id);
 
         // # Create a post in the channel by admin
-        adminPost = await adminClient.createPost(createRandomPost({
-            channel_id: channel.id, 
-            user_id: adminUser.id
-        }));
+        adminPost = await adminClient.createPost(
+            createRandomPost({
+                channel_id: channel.id,
+                user_id: adminUser.id,
+            })
+        );
     } catch (error) {
-         throw new Error(`${error}: Failed to create channel or post`);
+        throw new Error(`${error}: Failed to create channel or post`);
     }
 
     // # Log in as user in new browser context
     const {page} = await pw.testBrowser.login(user);
 
     // # Visit default channel page
-    const userChannelPage = new pages.ChannelsPage(page);
-    await userChannelPage.goto();
-    await userChannelPage.toBeVisible();
+    const channelPage = new pages.ChannelsPage(page);
+    await channelPage.goto(team.name);
+    await channelPage.toBeVisible();
 
     // # Open the created channel
-    const lhs = userChannelPage.sidebarLeft;
-    await lhs.toBeVisible();
-    await lhs.goToItem(channel.name);
+    const sidebarLeft = channelPage.sidebarLeft;
+    await sidebarLeft.toBeVisible();
+    await sidebarLeft.goToItem(channel.name);
 
     // # Open the last post in the channel sent by admin
-    const lastPostByAdminInUsersChannel = await userChannelPage.getLastPost();
-    await lastPostByAdminInUsersChannel.openRHSWithPostOptions();
+    const lastPostByAdminInChannel = await channelPage.getLastPost();
+    await lastPostByAdminInChannel.openRHSWithPostOptions();
 
     // # Write a message as a user
-    const userRHS = userChannelPage.sidebarRight;
-    await userRHS.toBeVisible();
-    await userRHS.postMessage('Replying to a thread');
-    await userRHS.sendMessage();
+    const sidebarRight = channelPage.sidebarRight;
+    await sidebarRight.toBeVisible();
+    await sidebarRight.postMessage('Replying to a thread');
+    await sidebarRight.sendMessage();
 
     // # Write a message in the reply thread but don't send it now so that it becomes a draft
     const draftMessageByUser = 'I should be in drafts by User';
-    await userRHS.postMessage(draftMessageByUser);
+    await sidebarRight.postMessage(draftMessageByUser);
 
     // # Bring focus back to center channel textbox, so that the draft is saved
-    await userChannelPage.postMessage('');
+    await channelPage.postMessage('');
 
     // * Verify drafts link in channel sidebar is visible
-    await userChannelPage.sidebarLeft.draftsExist();
+    await channelPage.sidebarLeft.draftsExist();
 
     // # Delete the last post by admin
     try {
@@ -92,15 +97,73 @@ test('MM-XXX : Drafts badge doesnt get cleared when parent message is deleted an
     }
 
     // * Verify drafts in user's textbox is still visible
-    const rhsTextboxValue = await userRHS.getTextboxValue();
+    const rhsTextboxValue = await sidebarRight.getTextboxValue();
     expect(rhsTextboxValue).toBe(draftMessageByUser);
 
     // # Click on remove post
-    const deletedPostByAdminInRHS = await userRHS.getRHSPostById(adminPost.id);
+    const deletedPostByAdminInRHS = await sidebarRight.getRHSPostById(adminPost.id);
     await deletedPostByAdminInRHS.clickOnRemovePost();
 
     // * Verify the drafts links should also be removed from sidebar
-    await userChannelPage.sidebarLeft.draftsDoesntExist();
+    await channelPage.sidebarLeft.draftsDoesntExist();
+});
+
+test('MM-XXX : Gloabl Drafts link in sidebar should be hidden when user deletes root post ', async ({
+    pw,
+    pages,
+}) => {
+    const {team, user, userClient} = await pw.initSetup();
+
+    try {
+        // # Set preferences to disable tooltips for drafts and threads
+        await userClient.savePreferences(user.id, createNoTooltipForDraftsAndThreadsPreferences(user.id));
+    } catch (error) {
+        throw new Error('Failed to set preferences');
+    }
+
+    // # Log in as user in new browser context
+    const {page} = await pw.testBrowser.login(user);
+
+    // # Visit default channel page
+    const channelPage = new pages.ChannelsPage(page);
+    await channelPage.goto(team.name);
+    await channelPage.toBeVisible();
+
+    // # Post a message in the channel
+    await channelPage.postMessage('Message which will be deleted');
+    await channelPage.sendMessage();
+
+    // # Start a thread by clicking on reply button
+    const lastPost = await channelPage.getLastPost();
+    await lastPost.openRHSWithPostOptions();
+
+    const sidebarRight = channelPage.sidebarRight;
+    await sidebarRight.toBeVisible();
+
+    // # Write a message in the thread
+    await sidebarRight.postMessage('Replying to a thread');
+    await sidebarRight.sendMessage();
+
+    // # Write a message in the reply thread but don't send it
+    await sidebarRight.postMessage('I should be in drafts');
+
+    // # Bring focus back to center channel textbox, so that the draft in RHS is saved
+    await channelPage.postMessage('');
+
+    // * Verify drafts link in channel sidebar is visible
+    await channelPage.sidebarLeft.draftsExist();
+
+    // # Delete the last post with post options
+    await lastPost.openPostActionsMenu();
+    const postOptionsMenuOnLastPost = channelPage.postActionMenu;
+    await postOptionsMenuOnLastPost.toBeVisible();
+    await postOptionsMenuOnLastPost.click('Delete', true);
+    const deletePostModal = channelPage.deletePostModal;
+    await deletePostModal.toBeVisible();
+    await deletePostModal.confirmClick();
+
+    // * Verify drafts link in channel sidebar is visible
+    await channelPage.sidebarLeft.draftsDoesntExist();
 });
 
 function createNoTooltipForDraftsAndThreadsPreferences(userId: UserProfile['id']): PreferenceType[] {

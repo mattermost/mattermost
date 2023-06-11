@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
+
 import {components} from '@e2e-support/ui/components';
 
 export default class ChannelsSidebarRight {
