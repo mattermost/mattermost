@@ -13,7 +13,7 @@ import (
 
 	"gopkg.in/guregu/null.v4"
 
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 
 	rudder "github.com/rudderlabs/analytics-go"
 	"github.com/stretchr/testify/require"
