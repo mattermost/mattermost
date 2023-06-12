@@ -446,7 +446,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     };
 
     handleGetGroupsResponse = (response: any) => {
-        if (response.error) {
+        if (response?.error) {
             this.setState({fetchError: true});
         } else {
             this.setState({fetchError: false});
