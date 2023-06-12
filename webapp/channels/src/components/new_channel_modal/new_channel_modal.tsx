@@ -10,7 +10,7 @@ import classNames from 'classnames';
 import crypto from 'crypto';
 
 import OverlayTrigger from 'components/overlay_trigger';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import URLInput from 'components/widgets/inputs/url_input/url_input';

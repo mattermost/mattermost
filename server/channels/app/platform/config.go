@@ -17,13 +17,13 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
@@ -129,6 +129,8 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
 		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+	} else {
+		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
@@ -323,21 +325,31 @@ func (ps *PlatformService) LimitedClientConfig() map[string]string {
 }
 
 func (ps *PlatformService) IsFirstUserAccount() bool {
-	if ps.fetchUserCountForFirstUserAccountCheck.Load() {
-		ps.logger.Debug("Fetching user count for first user account check")
-		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-		if err != nil {
-			return false
-		}
-		// Avoid calling the user count query in future if we get a count > 0
-		if count > 0 {
-			ps.fetchUserCountForFirstUserAccountCheck.Store(false)
-			return false
-		}
-		return true
+	if !ps.isFirstUserAccount.Load() {
+		return false
 	}
 
-	return false
+	ps.isFirstUserAccountLock.Lock()
+	defer ps.isFirstUserAccountLock.Unlock()
+	// Retry under lock as another call might have already succeeded.
+	if !ps.isFirstUserAccount.Load() {
+		return false
+	}
+
+	ps.logger.Debug("Fetching user count for first user account check")
+	count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if err != nil {
+		return false
+	}
+
+	// Avoid calling the user count query in future if we get a count > 0
+	if count > 0 {
+		ps.isFirstUserAccount.Store(false)
+		return false
+	}
+
+	return true
+
 }
 
 func (ps *PlatformService) MaxPostSize() int {

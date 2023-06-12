@@ -14,15 +14,15 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 const (
@@ -31,8 +31,15 @@ const (
 	DBAccessAttempts    = 3
 	DBAccessTimeoutSecs = 10
 
-	RudderKey          = "placeholder_rudder_key"
-	RudderDataplaneURL = "placeholder_rudder_dataplane_url"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1aoejPqhgONMI720CsBSRWzzRQ9"
+	rudderKeyTest      = "1aoeoCDeh7OCHcbW2kseWlwUFyq"
+
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_rudder_key"
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
@@ -156,13 +163,21 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
-	if !strings.Contains(RudderKey, "placeholder") && !strings.Contains(RudderDataplaneURL, "placeholder") {
-		return RudderConfig{RudderKey, RudderDataplaneURL}
-	} else if os.Getenv("RudderKey") != "" && os.Getenv("RudderDataplaneURL") != "" {
+	// Support unit testing
+	if os.Getenv("RudderKey") != "" && os.Getenv("RudderDataplaneURL") != "" {
 		return RudderConfig{os.Getenv("RudderKey"), os.Getenv("RudderDataplaneURL")}
-	} else {
-		return RudderConfig{}
 	}
+
+	rudderKey := ""
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction:
+		rudderKey = rudderKeyProd
+	case model.ServiceEnvironmentTest:
+		rudderKey = rudderKeyTest
+	case model.ServiceEnvironmentDev:
+	}
+
+	return RudderConfig{rudderKey, rudderDataplaneURL}
 }
 
 func (ts *TelemetryService) telemetryEnabled() bool {
@@ -1333,7 +1348,7 @@ func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 		config.Endpoint = endpoint
 		config.Verbose = ts.verbose
 		// For testing
-		if endpoint != RudderDataplaneURL {
+		if endpoint != rudderDataplaneURL {
 			config.BatchSize = 1
 		}
 		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)

@@ -14,7 +14,7 @@ type Props = {
     status: UserStatus['status'];
     displayName: string;
     draft: Draft;
-    isRemote: boolean;
+    isRemote?: boolean;
 }
 
 function DraftRow({draft, user, status, displayName, isRemote}: Props) {

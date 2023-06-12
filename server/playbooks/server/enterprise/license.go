@@ -4,8 +4,8 @@
 package enterprise
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/product/pluginapi"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/playbooks/product/pluginapi"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 )
 
 type LicenseChecker struct {
