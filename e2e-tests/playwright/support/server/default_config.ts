@@ -607,7 +607,6 @@ const defaultServerConfig: AdminConfig = {
         CleanupConfigThresholdDays: -1,
     },
     ProductSettings: {
-        EnablePublicSharedBoards: false,
         EnablePlaybooks: true,
     },
     PluginSettings: {
