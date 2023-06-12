@@ -5,7 +5,7 @@ import React from 'react';
 
 import Svg from 'src/components/assets/svg';
 
-const DumpsterFire = (props: {className?: string}) => (
+const DumpsterFire = () => (
     <Svg
         width='60'
         height='72'

@@ -275,7 +275,7 @@ type SubscriptionChange struct {
 // TODO remove BoardsLimits.
 // It is not used for real.
 // Focalboard has some lingering code using this struct
-// https://github.com/mattermost/mattermost-server/server/v8/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+// https://github.com/mattermost/mattermost/server/v8/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
 // we should remove this struct once that code is removed.
 type BoardsLimits struct {
 	Cards *int `json:"cards"`
@@ -298,7 +298,7 @@ type ProductLimits struct {
 	// TODO remove Boards property.
 	// It is not used for real.
 	// Focalboard has some lingering code using this property
-	// https://github.com/mattermost/mattermost-server/server/v8/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
+	// https://github.com/mattermost/mattermost/server/v8/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
 	// we should remove this property once that code is removed.
 	Boards   *BoardsLimits   `json:"boards,omitempty"`
 	Files    *FilesLimits    `json:"files,omitempty"`

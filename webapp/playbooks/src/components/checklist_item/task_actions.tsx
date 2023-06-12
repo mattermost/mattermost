@@ -10,7 +10,6 @@ import {openTaskActionsModal} from 'src/actions';
 interface TaskActionsProps {
     taskActions?: TaskActionType[] | null
     onTaskActionsChange: (newTaskActions: TaskActionType[]) => void;
-    playbookRunId?: string;
     editable: boolean;
 }
 
@@ -33,7 +32,7 @@ const TaskActions = (props: TaskActionsProps) => {
             isPlaceholder={!(lenTasks > 0 && enabledAction)}
             onClick={() => {
                 if (props.editable) {
-                    dispatch(openTaskActionsModal(props.onTaskActionsChange, props.taskActions, props.playbookRunId));
+                    dispatch(openTaskActionsModal(props.onTaskActionsChange, props.taskActions));
                 }
             }}
         >

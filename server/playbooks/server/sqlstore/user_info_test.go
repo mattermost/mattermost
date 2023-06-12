@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	mock_app "github.com/mattermost/mattermost-server/server/v8/playbooks/server/app/mocks"
+	mock_app "github.com/mattermost/mattermost/server/v8/playbooks/server/app/mocks"
 
 	"github.com/pkg/errors"
 
@@ -16,8 +16,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 )
 
 func Test_userInfoStore_Get(t *testing.T) {
