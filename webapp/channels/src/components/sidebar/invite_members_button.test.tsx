@@ -53,8 +53,6 @@ describe('components/sidebar/invite_members_button', () => {
     };
 
     const props = {
-        onClick: jest.fn(),
-        touchedInviteMembersButton: false,
         isAdmin: false,
     };
 
@@ -90,26 +88,5 @@ describe('components/sidebar/invite_members_button', () => {
             </Provider>,
         );
         expect(wrapper.find('i').exists()).toBeFalsy();
-    });
-
-    test('should fire onClick prop on click', () => {
-        const mock = jest.fn();
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteMembersButton {...{...props, onClick: mock}}/>
-            </Provider>,
-        );
-        expect(mock).not.toHaveBeenCalled();
-        wrapper.find('i').simulate('click');
-        expect(mock).toHaveBeenCalled();
-    });
-
-    test('should not be highlighted when button has been touched/clicked', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteMembersButton {...{...props, touchedInviteMembersButton: true}}/>
-            </Provider>,
-        );
-        expect(wrapper.find('li').prop('className')).not.toContain('untouched');
     });
 });

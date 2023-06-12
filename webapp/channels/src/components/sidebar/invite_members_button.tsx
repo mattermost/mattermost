@@ -21,9 +21,7 @@ import {getAnalyticsCategory} from 'components/onboarding_tasks';
 import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
-    touchedInviteMembersButton: boolean;
     className?: string;
-    onClick: () => void;
     isAdmin: boolean;
 }
 
@@ -33,14 +31,7 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
 
     const handleButtonClick = () => {
         trackEvent(getAnalyticsCategory(props.isAdmin), 'click_sidebar_invite_members_button');
-        props.onClick();
     };
-
-    let buttonClass = 'SidebarChannelNavigator__inviteMembersLhsButton';
-
-    if (!props.touchedInviteMembersButton) {
-        buttonClass += ' SidebarChannelNavigator__inviteMembersLhsButton--untouched';
-    }
 
     if (!currentTeamId) {
         return null;
@@ -60,7 +51,7 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
                 onClick={handleButtonClick}
             >
                 <li
-                    className={buttonClass}
+                    className='SidebarChannelNavigator__inviteMembersLhsButton'
                     aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}
                 >
                     <i className='icon-plus-box'/>
