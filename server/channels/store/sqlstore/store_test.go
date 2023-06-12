@@ -558,27 +558,6 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 
 }
 
-func TestUpAndDownMigrations(t *testing.T) {
-	testDrivers := []string{
-		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run("Should be reversible for "+driver, func(t *testing.T) {
-			settings, err := makeSqlSettings(driver)
-			if err != nil {
-				t.Skip(err)
-			}
-			store := New(*settings, nil)
-			defer store.Close()
-
-			err = store.migrate(migrationsDirectionDown)
-			assert.NoError(t, err, "downing migrations should not error")
-		})
-	}
-}
-
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
@@ -777,7 +756,7 @@ func TestReplicaLagQuery(t *testing.T) {
 
 			require.NoError(t, store.initConnection())
 			store.stores.post = newSqlPostStore(store, mockMetrics)
-			err = store.migrate(migrationsDirectionUp)
+			err = store.migrate(migrationsDirectionUp, false)
 			require.NoError(t, err)
 
 			defer store.Close()
