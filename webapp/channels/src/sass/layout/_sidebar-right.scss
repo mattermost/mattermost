@@ -6,7 +6,10 @@
     }
 
     width: var(--overrideRhsWidth, 400px);
-    transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
+    body:not(.layout-animating) & {
+        transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
+    }
+
 }
 
 .sidebar--right {
@@ -16,7 +19,9 @@
     transform: translateX(100%);
 
     &.is-open {
-        transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
+        body:not(.layout-animating) & {
+            transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
+        }
     }
 
     &.expanded {
@@ -28,7 +33,9 @@
         }
 
         &.is-open {
-            transition: width 0.25s 0s ease-in, z-index 0.15s 0.1s step-start;
+            body:not(.layout-animating) & {
+                transition: width 0.25s 0s ease-in, z-index 0.15s 0.1s step-start;
+            }
         }
     }
 
