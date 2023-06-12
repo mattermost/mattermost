@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 
-	mock_app "github.com/mattermost/mattermost-server/server/v8/playbooks/server/app/mocks"
+	mock_app "github.com/mattermost/mattermost/server/v8/playbooks/server/app/mocks"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/blang/semver"
@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestMigrations(t *testing.T) {
