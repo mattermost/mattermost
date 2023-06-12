@@ -820,7 +820,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
     EnablePlaybooks: boolean;
 };
 
