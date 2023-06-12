@@ -46,37 +46,39 @@ export function tryNotificationSound(name: string) {
     audio.play();
 }
 
-let currentRing: HTMLAudioElement;
+let currentRing: HTMLAudioElement | null = null;
 export function ring(name: string) {
     if (!hasSoundOptions()) {
         return;
     }
-    currentRing?.pause();
+    stopRing();
 
     currentRing = loopNotificationRing(name);
 }
 
 export function stopRing() {
     currentRing?.pause();
+    currentRing = null;
 }
 
-let currentTryRing: HTMLAudioElement;
+let currentTryRing: HTMLAudioElement | null = null;
 let currentTimer: NodeJS.Timeout;
 export function tryNotificationRing(name: string) {
     if (!hasSoundOptions()) {
         return;
     }
-    currentTryRing?.pause();
+    stopTryNotificationRing();
     clearTimeout(currentTimer);
 
     currentTryRing = loopNotificationRing(name);
     currentTimer = setTimeout(() => {
-        currentTryRing?.pause();
+        stopTryNotificationRing();
     }, 5000);
 }
 
 export function stopTryNotificationRing() {
     currentTryRing?.pause();
+    currentTryRing = null;
 }
 
 export function loopNotificationRing(name: string) {

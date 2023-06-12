@@ -81,6 +81,9 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
             this.props.setParentState(key, value);
             Utils.a11yFocus(e.currentTarget);
         }
+        if (key === 'callsDesktopSound' && value === 'false') {
+            NotificationSounds.stopTryNotificationRing();
+        }
     };
 
     handleThreadsOnChange = (e: ChangeEvent<HTMLInputElement>): void => {
