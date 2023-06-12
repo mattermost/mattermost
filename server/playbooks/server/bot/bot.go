@@ -4,9 +4,9 @@
 package bot
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 )
 
 // Bot stores the information for the plugin configuration, and implements the Poster interfaces.
