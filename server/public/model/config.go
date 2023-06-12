@@ -2956,11 +2956,6 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
 	}
 
-	if s.PluginStates[PluginIdFocalboard] == nil {
-		// Enable the focalboard plugin by default
-		s.PluginStates[PluginIdFocalboard] = &PluginState{Enable: true}
-	}
-
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PluginSettingsDefaultEnableMarketplace)
 	}

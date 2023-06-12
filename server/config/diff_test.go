@@ -813,9 +813,6 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"focalboard": {
-							Enable: true,
-						},
 					},
 				},
 			},
@@ -848,9 +845,6 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
-						"focalboard": {
-							Enable: true,
-						},
 					},
 				},
 			},
@@ -873,9 +867,6 @@ func TestDiff(t *testing.T) {
 							Enable: true,
 						},
 						"com.mattermost.calls": {
-							Enable: true,
-						},
-						"focalboard": {
 							Enable: true,
 						},
 					},
