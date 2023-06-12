@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {localizeMessage} from 'utils/utils';
-import Constants from 'utils/constants';
+import {Constants, DeveloperLinks} from 'utils/constants';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
