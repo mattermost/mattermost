@@ -1504,7 +1504,15 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 	return s.getByName(teamId, name, false, allowFromCache)
 }
 
+func (s SqlChannelStore) GetByNamesIncludeDeleted(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	return s.getByNames(teamId, names, allowFromCache, true)
+}
+
 func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	return s.getByNames(teamId, names, allowFromCache, false)
+}
+
+func (s SqlChannelStore) getByNames(teamId string, names []string, allowFromCache, includeArchivedChannels bool) ([]*model.Channel, error) {
 	var channels []*model.Channel
 
 	if allowFromCache {
@@ -1517,7 +1525,9 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			visited[name] = struct{}{}
 			var cacheItem *model.Channel
 			if err := channelByNameCache.Get(teamId+name, &cacheItem); err == nil {
-				channels = append(channels, cacheItem)
+				if includeArchivedChannels || cacheItem.DeleteAt == 0 {
+					channels = append(channels, cacheItem)
+				}
 			} else {
 				misses = append(misses, name)
 			}
@@ -1526,15 +1536,17 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 	}
 
 	if len(names) > 0 {
+		cond := sq.And{
+			sq.Eq{"Name": names},
+		}
+		if !includeArchivedChannels {
+			cond = append(cond, sq.Eq{"DeleteAt": 0})
+		}
+
 		builder := s.getQueryBuilder().
 			Select("*").
 			From("Channels").
-			Where(
-				sq.And{
-					sq.Eq{"Name": names},
-					sq.Eq{"DeleteAt": 0},
-				},
-			)
+			Where(cond)
 
 		if teamId != "" {
 			builder = builder.Where(sq.Eq{"TeamId": teamId})
@@ -4103,34 +4115,36 @@ func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string)
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, error) {
+func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	members := []*model.ChannelMemberForExport{}
-	err := s.GetReplicaX().Select(&members, `
-		SELECT
-			ChannelMembers.ChannelId,
-			ChannelMembers.UserId,
-			ChannelMembers.Roles,
-			ChannelMembers.LastViewedAt,
-			ChannelMembers.MsgCount,
-			ChannelMembers.MentionCount,
-			ChannelMembers.MentionCountRoot,
-			COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
-			ChannelMembers.MsgCountRoot,
-			ChannelMembers.NotifyProps,
-			ChannelMembers.LastUpdateAt,
-			ChannelMembers.SchemeUser,
-			ChannelMembers.SchemeAdmin,
-			(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
-			Channels.Name as ChannelName
-		FROM
-			ChannelMembers
-		INNER JOIN
-			Channels ON ChannelMembers.ChannelId = Channels.Id
-		WHERE
-			ChannelMembers.UserId = ?
-			AND Channels.TeamId = ?
-			AND Channels.DeleteAt = 0`,
-		userId, teamId)
+	q := `
+	SELECT
+		ChannelMembers.ChannelId,
+		ChannelMembers.UserId,
+		ChannelMembers.Roles,
+		ChannelMembers.LastViewedAt,
+		ChannelMembers.MsgCount,
+		ChannelMembers.MentionCount,
+		ChannelMembers.MentionCountRoot,
+		COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
+		ChannelMembers.MsgCountRoot,
+		ChannelMembers.NotifyProps,
+		ChannelMembers.LastUpdateAt,
+		ChannelMembers.SchemeUser,
+		ChannelMembers.SchemeAdmin,
+		(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
+		Channels.Name as ChannelName
+	FROM
+		ChannelMembers
+	INNER JOIN
+		Channels ON ChannelMembers.ChannelId = Channels.Id
+	WHERE
+		ChannelMembers.UserId = ?
+		AND Channels.TeamId = ?`
+	if !includeArchivedChannel {
+		q += " AND Channels.DeleteAt = 0"
+	}
+	err := s.GetReplicaX().Select(&members, q, userId, teamId)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels for export")
 	}

@@ -1125,6 +1125,24 @@ func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetByNamesIncludeDeleted(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetByNamesIncludeDeleted")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetByNamesIncludeDeleted(team_id, names, allowFromCache)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelCounts")
@@ -1143,7 +1161,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamID string, userID st
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelMembersForExport(userID string, teamID string) ([]*model.ChannelMemberForExport, error) {
+func (s *OpenTracingLayerChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelMembersForExport")
 	s.Root.Store.SetContext(newCtx)
@@ -1152,7 +1170,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelMembersForExport(userID string,
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetChannelMembersForExport(userID, teamID)
+	result, err := s.ChannelStore.GetChannelMembersForExport(userID, teamID, includeArchivedChannel)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6152,7 +6170,7 @@ func (s *OpenTracingLayerPostStore) GetOldestEntityCreationTime() (int64, error)
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error) {
+func (s *OpenTracingLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetParentsForExportAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -6161,7 +6179,7 @@ func (s *OpenTracingLayerPostStore) GetParentsForExportAfter(limit int, afterID 
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.GetParentsForExportAfter(limit, afterID)
+	result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

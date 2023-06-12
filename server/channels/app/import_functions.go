@@ -311,13 +311,20 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 		channel.SchemeId = &scheme.Id
 	}
 
+	var chErr *model.AppError
 	if channel.Id == "" {
-		if _, err := a.CreateChannel(c, channel, false); err != nil {
-			return err
+		if _, chErr = a.CreateChannel(c, channel, false); err != nil {
+			return chErr
 		}
 	} else {
-		if _, err := a.UpdateChannel(c, channel); err != nil {
-			return err
+		if _, chErr = a.UpdateChannel(c, channel); err != nil {
+			return chErr
+		}
+	}
+
+	if data.DeletedAt != nil && *data.DeletedAt > 0 {
+		if err := a.Srv().Store().Channel().Delete(channel.Id, *data.DeletedAt); err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_channel.deleting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1374,7 +1381,7 @@ func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.Ap
 }
 
 func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*model.Channel, *model.AppError) {
-	allChannels, err := a.Srv().Store().Channel().GetByNames(teamID, names, true)
+	allChannels, err := a.Srv().Store().Channel().GetByNamesIncludeDeleted(teamID, names, true)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
