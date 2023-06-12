@@ -58,7 +58,7 @@ endif
 MM_SERVER_PATH ?= $(PWD)
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS = -timeout 30m -race -v
-MMCTL_PKG = github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/commands
+MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
 LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
 LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
 LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(BUILD_DATE)"
@@ -70,7 +70,7 @@ BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
-	MMCTL_TESTFLAGS += -ldflags '-X "$(MMCTL_PKG).EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/server/public/model.BuildEnterpriseReady=true"'
+	MMCTL_TESTFLAGS += -ldflags '-X "$(MMCTL_PKG).EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=true"'
 	MMCTL_BUILD_TAGS += enterprise
 
   ifeq ($(BUILD_ENTERPRISE),true)
@@ -117,11 +117,11 @@ GOFLAGS ?= $(GOFLAGS:)
 export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
-LDFLAGS += -X "github.com/mattermost/mattermost-server/server/public/model.BuildNumber=$(BUILD_NUMBER)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/server/public/model.BuildDate=$(BUILD_DATE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/server/public/model.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -147,8 +147,7 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards|server/v8/cmd/mmctl')
-BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
+TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/cmd/mmctl')
 PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
 SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl')
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
@@ -168,12 +167,13 @@ PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.1
+PLUGIN_PACKAGES += focalboard-v7.10.3
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -188,9 +188,9 @@ endif
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES)
 else
-  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(PLAYBOOKS_PACKAGES)
 endif
 
 all: run ## Alias for 'run'.
@@ -207,7 +207,7 @@ endif
 include config.mk
 include build/*.mk
 
-LDFLAGS += -X "github.com/mattermost/mattermost-server/server/public/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
+LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.MockCWS=$(MM_ENABLE_CWS_MOCK)"
 
 RUN_IN_BACKGROUND ?=
 ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
@@ -327,10 +327,6 @@ app-layers: ## Extract interface from App struct
 	$(GOBIN)/struct2interface -f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
-boards-gen: ## Run generators for Boards
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
-	cd boards && $(GO) generate ./...
-
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
@@ -352,12 +348,12 @@ store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
 
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
-	$(GO) install github.com/mattermost/morph/cmd/morph@master
+	$(GO) install github.com/mattermost/morph/cmd/morph@1e0640c
 	@echo "Generating new migration for mysql"
-	$(GOBIN)/morph generate $(name) --driver mysql --dir channels/db/migrations --sequence
+	$(GOBIN)/morph new script $(name) --driver mysql --dir channels/db/migrations --sequence
 
 	@echo "Generating new migration for postgres"
-	$(GOBIN)/morph generate $(name) --driver postgres --dir channels/db/migrations --sequence
+	$(GOBIN)/morph new script $(name) --driver postgres --dir channels/db/migrations --sequence
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.23.2
@@ -400,14 +396,14 @@ platform-mocks: ## Creates mocks for platform interfaces.
 
 mmctl-mocks: ## Creates mocks for mmctl
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0
-	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client Client
+	$(GOBIN)/mockgen -destination=cmd/mmctl/mocks/client_mock.go -copyright_file=cmd/mmctl/mocks/copyright.txt -package=mocks github.com/mattermost/mattermost/server/v8/cmd/mmctl/client Client
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./public/plugin
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks
 
-layers: app-layers store-layers pluginapi boards-gen
+layers: app-layers store-layers pluginapi
 
 generated: mocks layers
 
@@ -435,9 +431,6 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 
-do-cover-file: ## Creates the test coverage report file.
-	@echo "mode: count" > cover.out
-
 go-junit-report:
 	$(GO) install github.com/jstemmer/go-junit-report@v1.0.0
 
@@ -458,7 +451,7 @@ modules-tidy:
 		mv channels/imports/imports.go.orig channels/imports/imports.go; \
 	fi;
 
-test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
+test-server-pre: check-prereqs-enterprise start-docker go-junit-report ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -466,9 +459,8 @@ else
 endif
 
 test-server-race: test-server-pre
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(BOARDS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(TE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
+	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(PLAYBOOKS_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -479,7 +471,7 @@ ifneq ($(IS_CI),true)
 endif
 
 test-server: test-server-pre
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(SUITE_PACKAGES) $(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m"
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
@@ -489,9 +481,9 @@ ifneq ($(IS_CI),true)
   endif
 endif
 
-test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker go-junit-report ## Runs EE tests.
 	@echo Running only EE tests
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m"
 
 test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -579,20 +571,20 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/server/public/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/server/public/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development

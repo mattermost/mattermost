@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/xtgo/uuid"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func randomString() string {

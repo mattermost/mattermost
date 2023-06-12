@@ -566,6 +566,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',
@@ -606,7 +607,6 @@ const defaultServerConfig: AdminConfig = {
         CleanupConfigThresholdDays: -1,
     },
     ProductSettings: {
-        EnablePublicSharedBoards: false,
         EnablePlaybooks: true,
     },
     PluginSettings: {
