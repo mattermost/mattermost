@@ -15,7 +15,6 @@ const {ModuleFederationPlugin} = require('webpack').container;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest');
-const LiveReloadPlugin = require('webpack-livereload-plugin');
 
 // const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
@@ -413,9 +412,6 @@ if (DEV) {
 const env = {};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
-    if (process.env.MM_LIVE_RELOAD) {
-        config.plugins.push(new LiveReloadPlugin());
-    }
 } else {
     env.NODE_ENV = JSON.stringify('production');
 }
