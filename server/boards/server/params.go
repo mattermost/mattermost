@@ -6,14 +6,14 @@ package server
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/notify"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
-	"github.com/mattermost/mattermost-server/server/v8/boards/ws"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/notify"
+	"github.com/mattermost/mattermost/server/v8/boards/services/permissions"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/ws"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type Params struct {

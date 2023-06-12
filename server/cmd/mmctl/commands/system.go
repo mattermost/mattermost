@@ -4,13 +4,14 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 var SystemCmd = &cobra.Command{
@@ -80,7 +81,7 @@ func init() {
 func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	sbs, _, err := c.GetServerBusy()
+	sbs, _, err := c.GetServerBusy(context.TODO())
 	if err != nil {
 		return fmt.Errorf("unable to get busy state: %w", err)
 	}
@@ -96,7 +97,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("seconds must be a number > 0")
 	}
 
-	_, err = c.SetServerBusy(int(seconds))
+	_, err = c.SetServerBusy(context.TODO(), int(seconds))
 	if err != nil {
 		return fmt.Errorf("unable to set busy state: %w", err)
 	}
@@ -108,7 +109,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	_, err := c.ClearServerBusy()
+	_, err := c.ClearServerBusy(context.TODO())
 	if err != nil {
 		return fmt.Errorf("unable to clear busy state: %w", err)
 	}
@@ -122,7 +123,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	// use the initial "withClient" connection information as local
 	// mode doesn't need to log in, so we use an endpoint that will
 	// always return a valid response
-	_, resp, err := c.GetPing()
+	_, resp, err := c.GetPing(context.TODO())
 	if err != nil {
 		return fmt.Errorf("unable to fetch server version: %w", err)
 	}
@@ -134,7 +135,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	status, _, err := c.GetPingWithFullServerStatus()
+	status, _, err := c.GetPingWithFullServerStatus(context.TODO())
 	if err != nil {
 		return fmt.Errorf("unable to fetch server status: %w", err)
 	}

@@ -4,9 +4,11 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"context"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/public/model"
+
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(false, false, []string{}).
+			ResetSamlAuthDataToEmail(context.Background(), false, false, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -47,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(false, true, []string{}).
+			ResetSamlAuthDataToEmail(context.Background(), false, true, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
@@ -63,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		users := []string{"user1"}
 		s.client.
 			EXPECT().
-			ResetSamlAuthDataToEmail(false, false, users).
+			ResetSamlAuthDataToEmail(context.Background(), false, false, users).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 

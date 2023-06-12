@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/web"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -40,13 +41,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByName(channelName, teamID, "").
+			GetChannelByName(context.Background(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -68,21 +69,21 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 9999).
+			GetAllTeams(context.Background(), "", 0, 9999).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(1)
 
 		// first call is for the other team, that doesn't have the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(channelName, otherTeamID, "").
+			GetChannelByName(context.Background(), channelName, otherTeamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// second call is for the team that contains the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(channelName, teamID, "").
+			GetChannelByName(context.Background(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -102,13 +103,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByName(channelName, teamID, "").
+			GetChannelByName(context.Background(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -127,13 +128,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamID, "").
+			GetTeamByName(context.Background(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -185,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(args[0], "").
+			GetChannel(context.Background(), args[0], "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -208,13 +209,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(team, "").
+			GetTeam(context.Background(), team, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(team, "").
+			GetTeamByName(context.Background(), team, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -239,7 +240,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(args[0], "").
+			GetChannel(context.Background(), args[0], "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -264,7 +265,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(args[0], "").
+			GetChannel(context.Background(), args[0], "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
@@ -291,13 +292,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(args[0], "").
+			GetChannel(context.Background(), args[0], "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(channel.Id, model.ChannelTypeOpen).
+			UpdateChannelPrivacy(context.Background(), channel.Id, model.ChannelTypeOpen).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -326,13 +327,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(args[0], "").
+			GetChannel(context.Background(), args[0], "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(channel.Id, model.ChannelTypeOpen).
+			UpdateChannelPrivacy(context.Background(), channel.Id, model.ChannelTypeOpen).
 			Return(returnedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -361,13 +362,13 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(args[0], "").
+			GetChannel(context.Background(), args[0], "").
 			Return(channel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(channel.Id, model.ChannelTypePrivate).
+			UpdateChannelPrivacy(context.Background(), channel.Id, model.ChannelTypePrivate).
 			Return(returnedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -404,19 +405,19 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(channelID).
+			DeleteChannel(context.Background(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -436,13 +437,13 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(channelID).
+			DeleteChannel(context.Background(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -468,25 +469,25 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg1, "").
+			GetChannel(context.Background(), channelArg1, "").
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg2, "").
+			GetChannel(context.Background(), channelArg2, "").
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(channelID1).
+			DeleteChannel(context.Background(), channelID1).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			DeleteChannel(channelID2).
+			DeleteChannel(context.Background(), channelID2).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -507,13 +508,13 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamArg, "").
+			GetTeam(context.Background(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamArg, "").
+			GetTeamByName(context.Background(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -539,19 +540,19 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamArg, "").
+			GetTeam(context.Background(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelArg, teamArg, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelArg, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -574,7 +575,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -600,14 +601,14 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockErr := errors.New("mock error")
 		s.client.
 			EXPECT().
-			DeleteChannel(channelID).
+			DeleteChannel(context.Background(), channelID).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
@@ -657,13 +658,13 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamID, "").
+			GetTeamByName(context.Background(), teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -693,30 +694,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -750,37 +751,37 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -816,37 +817,37 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -884,49 +885,49 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -965,30 +966,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(userChannels, &model.Response{}, nil).
 			Times(1)
 
@@ -1015,31 +1016,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1064,30 +1065,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1112,31 +1113,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1) // falls through to GetChannelsForTeamForUser in non-local mode
 
@@ -1163,31 +1164,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(emptyChannels, &model.Response{}, mockError).
 			Times(0) // does not fall through to GetChannelsForTeamForUser in local mode
 
@@ -1215,31 +1216,31 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(team, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID, "me", false, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1275,60 +1276,60 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID1, "").
+			GetTeam(context.Background(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID2, "").
+			GetTeam(context.Background(), teamID2, "").
 			Return(nil, &model.Response{}, nil). // Team 2 not found
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(teamID2, "").
+			GetTeamByName(context.Background(), teamID2, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID1, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1367,49 +1368,49 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID1, "").
+			GetTeam(context.Background(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID1, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1417,30 +1418,30 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID2, "").
+			GetTeam(context.Background(), teamID2, "").
 			Return(team2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, mockError).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID2, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID2, "me", false, "").
 			Return(privateChannels, &model.Response{}, mockError).
 			Times(1)
 
@@ -1465,23 +1466,23 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(team1ID, "").
+			GetTeam(context.Background(), team1ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeam(team2ID, "").
+			GetTeam(context.Background(), team2ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(team1ID, "").
+			GetTeamByName(context.Background(), team1ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
-			GetTeamByName(team2ID, "").
+			GetTeamByName(context.Background(), team2ID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1519,97 +1520,97 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID1, "").
+			GetTeam(context.Background(), teamID1, "").
 			Return(team1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID1, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID1, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID1, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID2, "").
+			GetTeam(context.Background(), teamID2, "").
 			Return(team2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID2, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID2, 1, web.PerPageMaximum, "").
+			GetPublicChannelsForTeam(context.Background(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID2, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID2, 1, web.PerPageMaximum, "").
+			GetDeletedChannelsForTeam(context.Background(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID2, 1, web.PerPageMaximum, "").
+			GetPrivateChannelsForTeam(context.Background(), teamID2, 1, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelsForTeamForUser(teamID2, "me", false, "").
+			GetChannelsForTeamForUser(context.Background(), teamID2, "me", false, "").
 			Return(privateChannels, &model.Response{}, nil).
 			Times(0)
 
@@ -1663,19 +1664,19 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, teamID, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(channelID).
+			RestoreChannel(context.Background(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1695,13 +1696,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(channelID).
+			RestoreChannel(context.Background(), channelID).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1727,25 +1728,25 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg1, "").
+			GetChannel(context.Background(), channelArg1, "").
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg2, "").
+			GetChannel(context.Background(), channelArg2, "").
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(channelID1).
+			RestoreChannel(context.Background(), channelID1).
 			Return(&mockChannel1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreChannel(channelID2).
+			RestoreChannel(context.Background(), channelID2).
 			Return(&mockChannel2, &model.Response{}, nil).
 			Times(1)
 
@@ -1765,13 +1766,13 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamArg, "").
+			GetTeam(context.Background(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamArg, "").
+			GetTeamByName(context.Background(), teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1797,19 +1798,19 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamArg, "").
+			GetTeam(context.Background(), teamArg, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelArg, teamArg, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelArg, teamArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1832,7 +1833,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelArg, "").
+			GetChannel(context.Background(), channelArg, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1856,14 +1857,14 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockErr := errors.New("mock error")
 		s.client.
 			EXPECT().
-			RestoreChannel(channelID).
+			RestoreChannel(context.Background(), channelID).
 			Return(nil, &model.Response{}, mockErr).
 			Times(1)
 
@@ -1951,25 +1952,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1994,7 +1995,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2018,13 +2019,13 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2048,7 +2049,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2060,19 +2061,19 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2112,26 +2113,26 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		mockError := model.NewAppError("at-random-location.go", "mock error", nil, "mocking a random error", 0)
 		s.client.
 			EXPECT().
-			PatchChannel(foundChannel.Id, channelPatch).
+			PatchChannel(context.Background(), foundChannel.Id, channelPatch).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -2177,25 +2178,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(foundChannel.Id, channelPatch).
+			PatchChannel(context.Background(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2239,13 +2240,13 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(foundChannel.Id, channelPatch).
+			PatchChannel(context.Background(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2294,25 +2295,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(foundChannel.Id, channelPatch).
+			PatchChannel(context.Background(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2360,25 +2361,25 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchChannel(foundChannel.Id, channelPatch).
+			PatchChannel(context.Background(), foundChannel.Id, channelPatch).
 			Return(updatedChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2420,37 +2421,37 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(dstTeamName, "").
+			GetTeam(context.Background(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(dstTeamName, "").
+			GetTeamByName(context.Background(), dstTeamName, "").
 			Return(&mockTeam1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(srcTeamName, "").
+			GetTeam(context.Background(), srcTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(srcTeamName, "").
+			GetTeamByName(context.Background(), srcTeamName, "").
 			Return(&mockTeam2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, mockTeam2.Id, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, mockTeam2.Id, "").
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			MoveChannel(mockChannel.Id, mockTeam1.Id, false).
+			MoveChannel(context.Background(), mockChannel.Id, mockTeam1.Id, false).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2470,13 +2471,13 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(dstTeamName, "").
+			GetTeam(context.Background(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(dstTeamName, "").
+			GetTeamByName(context.Background(), dstTeamName, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -2501,13 +2502,13 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(dstTeamID, "").
+			GetTeam(context.Background(), dstTeamID, "").
 			Return(&mockTeam1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelID, "").
+			GetChannel(context.Background(), channelID, "").
 			Return(nil, &model.Response{}, errors.New("")).
 			Times(1)
 
@@ -2532,19 +2533,19 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetTeam(dstTeamID, "").
+			GetTeam(context.Background(), dstTeamID, "").
 			Return(&mockTeam1, &model.Response{}, errors.New("")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelID, "").
+			GetChannel(context.Background(), channelID, "").
 			Return(&model.Channel{Id: channelID, Name: "some-name"}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			MoveChannel(channelID, mockTeam1.Id, false).
+			MoveChannel(context.Background(), channelID, mockTeam1.Id, false).
 			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
@@ -2626,13 +2627,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -2670,19 +2671,19 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(foundChannel).
+			CreateChannel(context.Background(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2723,13 +2724,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(foundChannel).
+			CreateChannel(context.Background(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2776,13 +2777,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateChannel(foundChannel).
+			CreateChannel(context.Background(), foundChannel).
 			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -2821,19 +2822,19 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, teamID, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetChannel(context.Background(), channelName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2852,13 +2853,13 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			GetTeam(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamName, "").
+			GetTeamByName(context.Background(), teamName, "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -2877,19 +2878,19 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, teamID, "").
 			Return(&mockChannel, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteChannel(channelID).
+			PermanentDeleteChannel(context.Background(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -2907,7 +2908,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamID, "").
+			GetTeam(context.Background(), teamID, "").
 			Return(&mockTeam, nil, nil).
 			Times(2)
 
@@ -2916,25 +2917,25 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelNameDoesNotExist, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelNameDoesNotExist, teamID, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelNameDoesNotExist, "").
+			GetChannel(context.Background(), channelNameDoesNotExist, "").
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, teamID, "").
 			Return(&mockChannel, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PermanentDeleteChannel(channelID).
+			PermanentDeleteChannel(context.Background(), channelID).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

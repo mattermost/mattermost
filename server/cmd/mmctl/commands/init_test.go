@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/json"
 	"net"
@@ -13,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -189,7 +190,7 @@ func TestNewAPIv4Client(t *testing.T) {
 		defer os.Unsetenv("HTTP_PROXY")
 
 		client := NewAPIv4Client("http://somethingelse:"+port, false, false)
-		_, _, err = client.GetMe("")
+		_, _, err = client.GetMe(context.Background(), "")
 		require.NoError(t, err)
 	})
 }

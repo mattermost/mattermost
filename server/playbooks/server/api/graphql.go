@@ -12,9 +12,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/graph-gophers/dataloader/v7"
 	graphql "github.com/graph-gophers/graphql-go"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

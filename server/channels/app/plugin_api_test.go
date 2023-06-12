@@ -26,13 +26,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/plugin/utils"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -144,7 +144,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -831,7 +831,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -983,7 +983,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type configuration struct {
@@ -1499,7 +1499,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1540,8 +1540,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
-			"github.com/mattermost/mattermost-server/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
 			"bytes"
 			"net/http"
 			"io"
@@ -1645,8 +1645,8 @@ func TestAPIMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/server/public/model"
-		"github.com/mattermost/mattermost-server/server/public/plugin"
+		"github.com/mattermost/mattermost/server/public/model"
+		"github.com/mattermost/mattermost/server/public/plugin"
 	)
 
 	type MyPlugin struct {
@@ -2045,7 +2045,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
     import (
 	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -2113,8 +2113,8 @@ func TestPluginUploadsAPI(t *testing.T) {
 		  "fmt"
 			"bytes"
 
-      "github.com/mattermost/mattermost-server/server/public/model"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/model"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type TestPlugin struct {

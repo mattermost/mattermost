@@ -4,10 +4,12 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"context"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/public/model"
+
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -67,7 +69,7 @@ func pluginMarketplaceInstallCmdF(c client.Client, _ *cobra.Command, args []stri
 	id := args[0]
 
 	pluginRequest := &model.InstallMarketplacePluginRequest{Id: id}
-	manifest, _, err := c.InstallMarketplacePlugin(pluginRequest)
+	manifest, _, err := c.InstallMarketplacePlugin(context.TODO(), pluginRequest)
 	if err != nil {
 		return errors.Wrap(err, "couldn't install plugin from marketplace")
 	}
@@ -96,7 +98,7 @@ func pluginMarketplaceListCmdF(c client.Client, cmd *cobra.Command, _ []string) 
 			LocalOnly: localOnly,
 		}
 
-		plugins, _, err := c.GetMarketplacePlugins(pluginFilter)
+		plugins, _, err := c.GetMarketplacePlugins(context.TODO(), pluginFilter)
 		if err != nil {
 			return errors.Wrap(err, "Failed to fetch plugins")
 		}

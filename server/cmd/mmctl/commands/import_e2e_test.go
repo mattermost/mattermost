@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +68,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 			userID = "nouser"
 		}
 
-		us, _, err := c.CreateUpload(&model.UploadSession{
+		us, _, err := c.CreateUpload(context.TODO(), &model.UploadSession{
 			Filename: importName,
 			FileSize: 276051,
 			Type:     model.UploadTypeImport,
@@ -197,7 +198,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		cmd := &cobra.Command{}
 		userID := "nouser"
 		if c == s.th.SystemAdminClient {
-			user, _, err := s.th.SystemAdminClient.GetMe("")
+			user, _, err := s.th.SystemAdminClient.GetMe(context.Background(), "")
 			s.Require().NoError(err)
 			userID = user.Id
 		} else {

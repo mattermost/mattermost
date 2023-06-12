@@ -4,12 +4,13 @@
 package commands
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 var LdapCmd = &cobra.Command{
@@ -53,7 +54,7 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
 
-	resp, err := c.SyncLdap(includeRemovedMembers)
+	resp, err := c.SyncLdap(context.TODO(), includeRemovedMembers)
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	toAttribute := args[0]
-	resp, err := c.MigrateIdLdap(toAttribute)
+	resp, err := c.MigrateIdLdap(context.TODO(), toAttribute)
 	if err != nil {
 		return err
 	}

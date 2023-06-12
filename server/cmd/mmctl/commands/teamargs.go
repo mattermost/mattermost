@@ -4,13 +4,14 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 )
 
 func getTeamsFromTeamArgs(c client.Client, teamArgs []string) []*model.Team {
@@ -28,10 +29,10 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 	}
 
 	var team *model.Team
-	team, _, _ = c.GetTeam(teamArg, "")
+	team, _, _ = c.GetTeam(context.TODO(), teamArg, "")
 
 	if team == nil {
-		team, _, _ = c.GetTeamByName(teamArg, "")
+		team, _, _ = c.GetTeamByName(context.TODO(), teamArg, "")
 	}
 	return team
 }
@@ -62,7 +63,7 @@ func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	var team *model.Team
 	var response *model.Response
 	var err error
-	team, response, err = c.GetTeam(teamArg, "")
+	team, response, err = c.GetTeam(context.TODO(), teamArg, "")
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
@@ -74,7 +75,7 @@ func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	if team != nil {
 		return team, nil
 	}
-	team, response, err = c.GetTeamByName(teamArg, "")
+	team, response, err = c.GetTeamByName(context.TODO(), teamArg, "")
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError

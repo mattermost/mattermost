@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-server/server/v8
+module github.com/mattermost/mattermost/server/v8
 
 go 1.19
 
@@ -46,7 +46,7 @@ require (
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.16
-	github.com/mattermost/mattermost-server/server/public v0.0.0-00010101000000-000000000000
+	github.com/mattermost/mattermost/server/public v0.0.0-00010101000000-000000000000
 	github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
@@ -92,7 +92,6 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/olivere/elastic.v6 v6.2.37
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -232,6 +231,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
 	modernc.org/ccgo/v3 v3.16.13 // indirect
@@ -255,4 +255,4 @@ exclude (
 	github.com/willf/bitset v1.2.0
 )
 
-replace github.com/mattermost/mattermost-server/server/public => ./public
+replace github.com/mattermost/mattermost/server/public => ./public

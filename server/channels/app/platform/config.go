@@ -17,14 +17,14 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
@@ -148,6 +148,8 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
 		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+	} else {
+		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
