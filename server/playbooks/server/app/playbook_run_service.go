@@ -16,14 +16,14 @@ import (
 	"github.com/sirupsen/logrus"
 	stripmd "github.com/writeas/go-strip-markdown"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/bot"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/httptools"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/metrics"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/timeutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/bot"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/httptools"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/metrics"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/timeutils"
 )
 
 const checklistItemDescriptionCharLimit = 4000

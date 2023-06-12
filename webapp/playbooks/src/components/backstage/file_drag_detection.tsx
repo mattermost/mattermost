@@ -15,12 +15,12 @@ export const useFileDragDetection = () => {
             setIsDraggingFile(dragDepth > 0);
         };
 
-        const handleDragEnter = (e: DragEvent) => {
+        const handleDragEnter = () => {
             dragDepth++;
             updateIsDraggingFile();
         };
 
-        const handleDragLeave = (e: DragEvent) => {
+        const handleDragLeave = () => {
             dragDepth--;
             updateIsDraggingFile();
         };

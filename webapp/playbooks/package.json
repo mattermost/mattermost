@@ -107,6 +107,6 @@
     "report-unused-exports": "ts-prune",
     "start:product": "webpack --mode=development --watch",
     "deploy:product": "node scripts/deploy.js",
-    "clean": "rm -rf node_modules"
+    "clean": "rm -rf dist node_modules .eslintcache"
   }
 }
