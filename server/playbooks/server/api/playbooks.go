@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -343,6 +343,16 @@ func (h *PlaybookHandler) getPlaybooks(c *Context, w http.ResponseWriter, r *htt
 		UserID:  userID,
 		TeamID:  teamID,
 		IsAdmin: app.IsSystemAdmin(userID, h.api),
+	}
+
+	isGuest, err := app.IsGuest(userID, h.api)
+	if err != nil {
+		h.HandleErrorWithCode(w, c.logger, http.StatusForbidden, "", err)
+		return
+	}
+
+	if isGuest {
+		opts.WithMembershipOnly = true
 	}
 
 	playbookResults, err := h.playbookService.GetPlaybooksForTeam(requesterInfo, teamID, opts)

@@ -50,8 +50,7 @@ import {
 
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     Channel,
     ChannelMemberCountsByGroup,
@@ -350,7 +349,7 @@ export function makeGetChannelUnreadCount(): (state: GlobalState, channelId: str
     );
 }
 
-export function getChannelByName(state: GlobalState, channelName: string): Channel | undefined | null {
+export function getChannelByName(state: GlobalState, channelName: string): Channel | undefined {
     return getChannelByNameHelper(getAllChannels(state), channelName);
 }
 

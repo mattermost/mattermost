@@ -5,7 +5,7 @@ import React from 'react';
 
 import Svg from 'src/components/assets/svg';
 
-const Gears = (props: {className?: string}) => (
+const Gears = () => (
     <Svg
         width='74'
         height='69'

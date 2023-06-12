@@ -5,7 +5,6 @@
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "@babel",
     "mattermost",
     "import",
     "no-only-tests",
@@ -35,7 +34,6 @@
     "import/no-duplicates": 2,
     "max-nested-callbacks": ["error", 10],
     "no-unused-expressions": 0,
-    "@babel/no-unused-expressions": 2,
     "eol-last": ["error", "always"],
     "import/no-unresolved": 2,
     "import/order": [

@@ -5,7 +5,7 @@ import {AppBinding, AppCall, AppField, AppForm, AppSelectOption} from '@mattermo
 
 import {AppBindingLocations, AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import {cleanForm, cleanBinding} from './apps';
+import {cleanForm, cleanBinding, validateBindings} from './apps';
 
 describe('Apps Utils', () => {
     const basicCall: AppCall = {
@@ -1313,6 +1313,66 @@ describe('Apps Utils', () => {
 
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
+        });
+    });
+
+    describe('validateBindings', () => {
+        test('return validated binding when bindings are NOT empty', () => {
+            const outBinding: AppBinding = {
+                location: '/command',
+                bindings: [
+                    {
+                        app_id: 'app',
+                        location: '/command/loc1',
+                        label: 'loc1',
+                        bindings: [
+                            {
+                                app_id: 'app',
+                                location: '/command/loc1/loc11',
+                                label: 'same',
+                                form: {
+                                    submit: {
+                                        path: '/path',
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        app_id: 'app',
+                        location: '/command/loc2',
+                        label: 'loc2',
+                        form: {
+                            submit: {
+                                path: '/path',
+                            },
+                        },
+                    },
+                ],
+            } as AppBinding;
+
+            const bindings = validateBindings([outBinding]);
+            expect([outBinding]).toEqual(bindings);
+        });
+
+        test('return empty array when bindings are empty', () => {
+            const inBinding: AppBinding = {
+                location: '/command',
+                bindings: [] as AppBinding[],
+            } as AppBinding;
+
+            const bindings = validateBindings([inBinding]);
+            expect([]).toEqual(bindings);
+        });
+
+        test('return empty array when bindings is NULL', () => {
+            const inBinding: AppBinding = {
+                location: '/command',
+                bindings: null,
+            } as unknown as AppBinding;
+
+            const bindings = validateBindings([inBinding]);
+            expect([]).toEqual(bindings);
         });
     });
 });
