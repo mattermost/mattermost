@@ -6,9 +6,9 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {

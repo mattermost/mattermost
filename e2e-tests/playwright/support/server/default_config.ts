@@ -566,6 +566,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',

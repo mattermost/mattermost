@@ -774,6 +774,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {

@@ -8688,6 +8688,10 @@
     "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
   },
   {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignored indexes for purge should not start with dash."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
   },
