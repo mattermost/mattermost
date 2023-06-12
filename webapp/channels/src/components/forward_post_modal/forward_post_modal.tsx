@@ -26,7 +26,7 @@ import {General, Permissions} from 'mattermost-redux/constants';
 import Constants from 'utils/constants';
 
 import PostMessagePreview from 'components/post_view/post_message_preview';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {PostPreviewMetadata} from '@mattermost/types/posts';
 import {getSiteURL} from '../../utils/url';
@@ -291,7 +291,6 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
                     >
                         <PostMessagePreview
                             metadata={previewMetaData}
-                            previewPost={previewMetaData.post}
                             handleFileDropdownOpened={noop}
                             preventClickAction={true}
                             previewFooterMessage={postPreviewFooterMessage}

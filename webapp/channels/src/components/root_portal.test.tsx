@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {render} from '@testing-library/react';
+
+import {render} from 'tests/react_testing_utils';
 
 import RootPortal from './root_portal';
 

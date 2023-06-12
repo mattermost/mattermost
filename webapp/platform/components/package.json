@@ -1,6 +1,7 @@
 {
   "name": "@mattermost/components",
-  "version": "7.11.0",
+  "version": "8.0.0",
+  "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "styles": "dist/index.esm.css",
@@ -11,12 +12,7 @@
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
-    "@babel/cli": "^7.17.6",
-    "@babel/core": "^7.17.7",
     "@babel/plugin-transform-runtime": "^7.17.0",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-react": "^7.16.7",
-    "@babel/preset-typescript": "^7.16.7",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^13.1.3",
@@ -28,9 +24,6 @@
     "@types/react-redux": "^7.1.21",
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
-    "babel-loader": "^8.2.3",
-    "babel-plugin-formatjs": "10.3.14",
-    "babel-plugin-styled-components": "^2.0.6",
     "css-loader": "^6.7.1",
     "rollup": "^2.75.7",
     "rollup-plugin-auto-external": "^2.0.0",
@@ -49,7 +42,6 @@
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",
-    "@mui/system": "5.11.16",
     "@tippyjs/react": "^4.2.6",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
@@ -60,8 +52,5 @@
     "shallow-equals": "^1.0.0",
     "styled-components": "^5.3.5",
     "tippy.js": "^6.3.7"
-  },
-  "dependencies": {
-    "color-blend": "4.0.0"
   }
 }

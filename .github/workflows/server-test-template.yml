@@ -17,7 +17,7 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
@@ -51,7 +51,7 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
-            -v ~/work/mattermost-server:/mattermost-server \
-            -w /mattermost-server/mattermost-server/server \
+            -v ~/work/mattermost:/mattermost \
+            -w /mattermost/mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE= 
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID TESTFLAGS= TESTFLAGSEE=

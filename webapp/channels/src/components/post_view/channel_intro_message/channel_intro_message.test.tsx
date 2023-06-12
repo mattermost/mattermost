@@ -9,8 +9,7 @@ import {UserProfile} from '@mattermost/types/users';
 import {Channel, ChannelType} from '@mattermost/types/channels';
 
 import ChannelIntroMessage from './channel_intro_message';
-import {screen} from '@testing-library/react';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/post_view/ChannelIntroMessages', () => {

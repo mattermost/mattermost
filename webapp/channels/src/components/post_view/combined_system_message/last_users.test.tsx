@@ -5,11 +5,11 @@ import React from 'react';
 
 import {Posts} from 'mattermost-redux/constants';
 
-import LastUsers from './last_users';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-import {screen} from '@testing-library/react';
+import {renderWithIntlAndStore, screen, userEvent} from 'tests/react_testing_utils';
+
 import {TestHelper} from 'utils/test_helper';
-import userEvent from '@testing-library/user-event';
+
+import LastUsers from './last_users';
 
 describe('components/post_view/combined_system_message/LastUsers', () => {
     const formatOptions = {
