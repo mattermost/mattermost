@@ -1104,6 +1104,7 @@
   "admin.group_settings.group_row.not_linked": "Not Linked",
   "admin.group_settings.group_row.unlink_failed": "Unlink failed",
   "admin.group_settings.group_row.unlinking": "Unlinking",
+  "admin.group_settings.groups_list.groups_list_error": "Failed to retrieve LDAP groups. Please check your logs for details.",
   "admin.group_settings.groups_list.link_selected": "Link Selected Groups",
   "admin.group_settings.groups_list.mappingHeader": "Mattermost Linking",
   "admin.group_settings.groups_list.nameHeader": "Name",
