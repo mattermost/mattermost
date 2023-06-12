@@ -89,9 +89,6 @@ describe('more public channels', () => {
 
         // * Assert the moreChannelsModel is visible
         cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').within(() => {
-            // # Click hide joined checkbox
-            cy.findByText('Hide Joined').should('be.visible').click();
-
             // * Assert that the "No more channels to join" message is visible
             verifyNoChannelToJoinMessage(true);
         });

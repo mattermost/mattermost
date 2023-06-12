@@ -74,7 +74,7 @@ describe('Channel sidebar', () => {
         cy.findByText('Off-Topic').should('be.visible').click();
 
         // Verify that new channel is in the sidebar and is active
-        cy.get('#moreChannelsModal').should('not.exist');
+        cy.get('#moreChannelsModal').should('exist');
         cy.url().should('include', `/${teamName}/channels/off-topic`);
         cy.get('#channelHeaderTitle').should('contain', 'Off-Topic');
         cy.get('.SidebarChannel.active:contains(Off-Topic)').should('be.visible');
