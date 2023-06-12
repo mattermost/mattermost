@@ -86,4 +86,14 @@ func TestCountGIFFrames(t *testing.T) {
 
 		assert.Error(t, err)
 	})
+
+	t.Run("should return an error for excessively large compressed data", func(t *testing.T) {
+		b, err := readTestFile(t, "large_lzw_frame.gif")
+		require.NoError(t, err)
+
+		_, err = CountGIFFrames(bytes.NewReader(b))
+
+		assert.Error(t, err)
+		assert.Equal(t, errTooMuch, err)
+	})
 }
