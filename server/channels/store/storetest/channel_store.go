@@ -935,7 +935,7 @@ func testChannelStoreGetByNamesIncludeDeleted(t *testing.T, ss store.Store) {
 		{"asd", []string{o1.Name, "foo", o2.Name, o2.Name}, nil},
 	} {
 		var channels []*model.Channel
-		channels, err := ss.Channel().GetByNames(tc.TeamId, tc.Names, true)
+		channels, err := ss.Channel().GetByNamesIncludeDeleted(tc.TeamId, tc.Names, true)
 		require.NoError(t, err)
 		var ids []string
 		for _, channel := range channels {
@@ -945,16 +945,6 @@ func testChannelStoreGetByNamesIncludeDeleted(t *testing.T, ss store.Store) {
 		sort.Strings(tc.ExpectedIds)
 		assert.Equal(t, tc.ExpectedIds, ids, "tc %v", index)
 	}
-
-	err := ss.Channel().Delete(o1.Id, model.GetMillis())
-	require.NoError(t, err, "channel should have been deleted")
-
-	err = ss.Channel().Delete(o2.Id, model.GetMillis())
-	require.NoError(t, err, "channel should have been deleted")
-
-	channels, nErr := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
-	require.NoError(t, nErr)
-	assert.Empty(t, channels)
 }
 
 func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {

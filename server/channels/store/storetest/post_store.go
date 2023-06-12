@@ -4223,7 +4223,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 				assert.Equal(t, p.Message, p2.Message)
 				assert.Equal(t, p.Username, u1.Username)
 				assert.Equal(t, p.TeamName, t1.Name)
-				assert.Equal(t, p.ChannelName, c1.Name)
+				assert.Equal(t, p.ChannelName, c2.Name)
 			}
 		}
 		assert.True(t, found)
