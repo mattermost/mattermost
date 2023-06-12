@@ -275,7 +275,7 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 	}
 
 	var channel *model.Channel
-	if result, err := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); err == nil {
+	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); gErr == nil {
 		channel = result
 	} else {
 		channel = &model.Channel{}
@@ -313,11 +313,11 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 
 	var chErr *model.AppError
 	if channel.Id == "" {
-		if _, chErr = a.CreateChannel(c, channel, false); err != nil {
+		if _, chErr = a.CreateChannel(c, channel, false); chErr != nil {
 			return chErr
 		}
 	} else {
-		if _, chErr = a.UpdateChannel(c, channel); err != nil {
+		if _, chErr = a.UpdateChannel(c, channel); chErr != nil {
 			return chErr
 		}
 	}

@@ -862,6 +862,7 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(&o3, -1)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().Delete(o3.Id, model.GetMillis())
+	require.NoError(t, nErr)
 
 	for index, tc := range []struct {
 		TeamId      string
