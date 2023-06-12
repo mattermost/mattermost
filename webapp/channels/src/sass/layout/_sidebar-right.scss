@@ -5,12 +5,12 @@
         display: none;
     }
 
-    width: 400px;
+    width: var(--overrideRhsWidth, 400px);
     transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
 }
 
 .sidebar--right {
-    width: 400px;
+    width: var(--overrideRhsWidth, 400px);
     height: 100%;
     padding: 0;
     transform: translateX(100%);
