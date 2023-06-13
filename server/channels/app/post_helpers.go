@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type filterPostOptions struct {

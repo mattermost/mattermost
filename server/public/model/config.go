@@ -21,8 +21,8 @@ import (
 
 	"github.com/mattermost/ldap"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -2864,18 +2864,10 @@ func (s *CloudSettings) SetDefaults() {
 }
 
 type ProductSettings struct {
-	EnablePublicSharedBoards *bool
-	EnablePlaybooks          *bool
+	EnablePlaybooks *bool
 }
 
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePublicSharedBoards == nil {
-		if p, ok := plugins[PluginIdFocalboard]; ok {
-			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
-		} else {
-			s.EnablePublicSharedBoards = NewBool(false)
-		}
-	}
+func (s *ProductSettings) SetDefaults() {
 	if s.EnablePlaybooks == nil {
 		s.EnablePlaybooks = NewBool(true)
 	}
@@ -3360,7 +3352,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
+	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
