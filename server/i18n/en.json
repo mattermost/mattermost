@@ -6384,6 +6384,10 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
     "id": "app.scheme.delete.app_error",
     "translation": "Unable to delete this scheme."
   },
