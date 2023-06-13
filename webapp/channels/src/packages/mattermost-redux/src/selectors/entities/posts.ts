@@ -765,10 +765,7 @@ export function getLimitedViews(state: GlobalState): GlobalState['entities']['po
 }
 
 export function isPostPriorityEnabled(state: GlobalState) {
-    return (
-        getFeatureFlagValue(state, 'PostPriority') === 'true' &&
-        getConfig(state).PostPriority === 'true'
-    );
+    return getConfig(state).PostPriority === 'true';
 }
 
 export function isPostAcknowledgementsEnabled(state: GlobalState) {

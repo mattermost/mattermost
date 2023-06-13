@@ -97,7 +97,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.SendWelcomePost = true
-	f.PostPriority = true
 	f.PeopleProduct = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
