@@ -11,7 +11,7 @@ import General from 'mattermost-redux/constants/general';
 import {FormattedMessage} from 'react-intl';
 
 import LoadingSpinner from 'src/components/assets/loading_spinner';
-import {getAdminAnalytics, isTeamEdition} from 'src/selectors';
+import {isTeamEdition} from 'src/selectors';
 import StartTrialNotice from 'src/components/backstage/start_trial_notice';
 import ConvertEnterpriseNotice from 'src/components/backstage/convert_enterprise_notice';
 import {postMessageToAdmins} from 'src/client';
@@ -126,9 +126,6 @@ const UpgradeBanner = (props: Props) => {
     const [actionState, setActionState] = useState(ActionState.Uninitialized);
     const isServerTeamEdition = useSelector(isTeamEdition);
     const openTrialFormModal = useOpenStartTrialFormModal();
-
-    const analytics = useSelector(getAdminAnalytics);
-    const serverTotalUsers = analytics?.TOTAL_USERS || 0;
 
     const endUserMainAction = async () => {
         if (actionState === ActionState.Loading) {

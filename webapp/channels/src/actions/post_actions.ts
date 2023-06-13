@@ -299,6 +299,7 @@ export function markMostRecentPostInChannelAsUnread(channelId: string) {
     };
 }
 
+// Action called by DeletePostModal when the post is deleted
 export function deleteAndRemovePost(post: Post) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const {error} = await dispatch(PostActions.deletePost(post));

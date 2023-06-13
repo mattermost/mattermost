@@ -7,12 +7,12 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost-server/server/public/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
 	sql "database/sql"
 
-	store "github.com/mattermost/mattermost-server/server/v8/channels/store"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 
 	time "time"
 )

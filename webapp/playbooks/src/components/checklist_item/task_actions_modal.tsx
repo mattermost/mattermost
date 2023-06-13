@@ -21,11 +21,10 @@ const MarkItemAsDoneActionType = 'mark_item_as_done';
 export const makeTaskActionsModalDefinition = (
     onTaskActionsChange: (newTaskActions: TaskActionType[]) => void,
     taskActions?: TaskActionType[] | null,
-    playbookRunId?: string,
 ) => ({
     modalId: ID,
     dialogType: TaskActionsModal,
-    dialogProps: {taskActions, onTaskActionsChange, playbookRunId},
+    dialogProps: {taskActions, onTaskActionsChange},
 });
 
 type KeywordsTriggerPayload = {keywords: string[]; user_ids: string[];}
@@ -49,10 +48,9 @@ const markAsDonePayloadFromTaskAction = (taskAction: TaskActionType): MarkAsDone
 type Props = {
     onTaskActionsChange: (newTaskActions: TaskActionType[]) => void,
     taskActions?: TaskActionType[] | null,
-    playbookRunId?: string,
 } & Partial<ComponentProps<typeof GenericModal>>;
 
-const TaskActionsModal = ({onTaskActionsChange, taskActions, playbookRunId, ...modalProps}: Props) => {
+const TaskActionsModal = ({onTaskActionsChange, taskActions, ...modalProps}: Props) => {
     const {formatMessage} = useIntl();
     const emptyTask = {} as TaskActionType;
     const taskAction = (taskActions && (taskActions.length > 0)) ? taskActions[0] : emptyTask;

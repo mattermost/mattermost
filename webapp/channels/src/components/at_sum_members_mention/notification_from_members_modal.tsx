@@ -25,7 +25,7 @@ import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import MemberList from '../channel_members_rhs/member_list';
 import {ChannelMembership} from '@mattermost/types/channels';

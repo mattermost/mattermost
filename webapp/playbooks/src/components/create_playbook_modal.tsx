@@ -26,7 +26,6 @@ export const makePlaybookCreateModal = (props: PlaybookCreateModalProps) => ({
 
 export type PlaybookCreateModalProps = {
     startingName?: string
-    startingTeamId?: string
     startingTemplate?: string
     startingDescription?: string
     startingPublic?: boolean
@@ -45,7 +44,7 @@ const Body = styled.div`
 	}
 `;
 
-const PlaybookCreateModal = ({startingName, startingTeamId, startingTemplate, startingDescription, startingPublic, ...modalProps}: PlaybookCreateModalProps) => {
+const PlaybookCreateModal = ({startingName, startingTemplate, startingDescription, startingPublic, ...modalProps}: PlaybookCreateModalProps) => {
     const {formatMessage} = useIntl();
     const [name, setName] = useState(startingName);
     const teamId = useSelector(getCurrentTeamId);
