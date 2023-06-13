@@ -4,7 +4,7 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
 )
 

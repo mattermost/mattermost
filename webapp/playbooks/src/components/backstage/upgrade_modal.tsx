@@ -7,7 +7,7 @@ import GenericModal, {DefaultFooterContainer} from 'src/components/widgets/gener
 import {postMessageToAdmins} from 'src/client';
 import UpgradeModalFooter from 'src/components/backstage/upgrade_modal_footer';
 
-import {getAdminAnalytics, isCurrentUserAdmin, isTeamEdition} from 'src/selectors';
+import {isCurrentUserAdmin, isTeamEdition} from 'src/selectors';
 
 import {AdminNotificationType} from 'src/constants';
 import {isCloud} from 'src/license';
@@ -32,9 +32,6 @@ const UpgradeModal = (props: Props) => {
     const openTrialFormModal = useOpenStartTrialFormModal();
 
     const [actionState, setActionState] = useState(ModalActionState.Uninitialized);
-
-    const analytics = useSelector(getAdminAnalytics);
-    const serverTotalUsers = analytics?.TOTAL_USERS || 0;
 
     const requestLicenseSelfHosted = async () => {
         if (actionState === ModalActionState.Loading) {

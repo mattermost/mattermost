@@ -774,6 +774,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {
@@ -819,7 +820,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
     EnablePlaybooks: boolean;
 };
 

@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,13 +26,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/plugin/utils"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -143,7 +144,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {
@@ -830,7 +831,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -982,7 +983,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type configuration struct {
@@ -1498,7 +1499,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1539,8 +1540,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/server/public/plugin"
-			"github.com/mattermost/mattermost-server/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
 			"bytes"
 			"net/http"
 			"io"
@@ -1644,8 +1645,8 @@ func TestAPIMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/server/public/model"
-		"github.com/mattermost/mattermost-server/server/public/plugin"
+		"github.com/mattermost/mattermost/server/public/model"
+		"github.com/mattermost/mattermost/server/public/plugin"
 	)
 
 	type MyPlugin struct {
@@ -2044,7 +2045,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
     import (
 	  "github.com/pkg/errors"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type MyPlugin struct {
@@ -2112,8 +2113,8 @@ func TestPluginUploadsAPI(t *testing.T) {
 		  "fmt"
 			"bytes"
 
-      "github.com/mattermost/mattermost-server/server/public/model"
-      "github.com/mattermost/mattermost-server/server/public/plugin"
+      "github.com/mattermost/mattermost/server/public/model"
+      "github.com/mattermost/mattermost/server/public/plugin"
     )
 
     type TestPlugin struct {
@@ -2194,4 +2195,107 @@ func TestPluginUploadsAPI(t *testing.T) {
 	require.NoError(t, reterr)
 	require.NotNil(t, manifest)
 	require.True(t, activated)
+}
+
+//go:embed plugin_api_tests/manual.test_configuration_will_be_saved_hook/main.tmpl
+var configurationWillBeSavedHookTemplate string
+
+func TestConfigurationWillBeSavedHook(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	getPluginCode := func(hookCode string) string {
+		return fmt.Sprintf(configurationWillBeSavedHookTemplate, hookCode)
+	}
+
+	runPlugin := func(t *testing.T, code string) {
+		pluginDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		defer os.RemoveAll(pluginDir)
+		defer os.RemoveAll(webappPluginDir)
+
+		newPluginAPI := func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		}
+		env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+		require.NoError(t, err)
+
+		th.App.ch.SetPluginsEnvironment(env)
+
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		utils.CompileGo(t, code, backend)
+
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
+		require.NoError(t, reterr)
+		require.NotNil(t, manifest)
+		require.True(t, activated)
+	}
+
+	t.Run("error", func(t *testing.T) {
+		hookCode := `
+    return nil, fmt.Errorf("plugin hook failed")
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, _, appErr := th.App.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "saveConfig: An error occurred running the plugin hook on configuration save., plugin hook failed", appErr.Error())
+
+		require.Equal(t, cfg, th.App.Config())
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		hookCode := `
+    return nil, model.NewAppError("saveConfig", "custom_error", nil, "", 400)
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, _, appErr := th.App.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "custom_error", appErr.Id)
+
+		require.Equal(t, cfg, th.App.Config())
+	})
+
+	t.Run("no error, no config change", func(t *testing.T) {
+		hookCode := `
+    return nil, nil
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, newCfg, appErr := th.App.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+		require.Equal(t, cfg, newCfg)
+	})
+
+	t.Run("config change", func(t *testing.T) {
+		hookCode := `
+    cfg := newCfg.Clone()
+		cfg.PluginSettings.Plugins["custom_plugin"] = map[string]any{
+		  "custom_key": "custom_val",
+		}
+    return cfg, nil
+    `
+
+		runPlugin(t, getPluginCode(hookCode))
+
+		cfg := th.App.Config()
+		_, newCfg, appErr := th.App.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+		require.NotEqual(t, cfg, newCfg)
+		require.Equal(t, map[string]any{
+			"custom_key": "custom_val",
+		}, newCfg.PluginSettings.Plugins["custom_plugin"])
+	})
 }

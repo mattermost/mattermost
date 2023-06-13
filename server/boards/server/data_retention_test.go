@@ -11,12 +11,12 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions/localpermissions"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/store/mockstore"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/permissions/localpermissions"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store/mockstore"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type TestHelperMockStore struct {

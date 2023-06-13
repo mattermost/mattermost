@@ -17,13 +17,14 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/utils"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
@@ -74,6 +75,24 @@ func (ps *PlatformService) IsConfigReadOnly() bool {
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 // It returns both the previous and current configs.
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
+	if ps.pluginEnv != nil {
+		var hookErr error
+		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
+			var cfg *model.Config
+			cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
+			if hookErr == nil && cfg != nil {
+				newCfg = cfg
+			}
+			return hookErr == nil
+		}, plugin.ConfigurationWillBeSavedID)
+		if hookErr != nil {
+			if appErr, ok := hookErr.(*model.AppError); ok {
+				return nil, nil, appErr
+			}
+			return nil, nil, model.NewAppError("saveConfig", "app.save_config.plugin_hook_error", nil, "", http.StatusBadRequest).Wrap(hookErr)
+		}
+	}
+
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)
@@ -129,6 +148,8 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
 		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+	} else {
+		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)

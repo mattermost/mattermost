@@ -80,31 +80,7 @@ describe('Task Inbox >', {testIsolation: true}, () => {
 
     const getRHS = () => cy.get('#playbooks-backstage-sidebar-right');
 
-    it('icon in global header, with experimental feature flag', () => {
-        // # Enable experimental feature flag
-        cy.apiAdminLogin().then(() => {
-            cy.apiEnsureFeatureFlag('enableexperimentalfeatures', true);
-
-            // # Login as testUser
-            cy.apiLogin(testUser);
-        });
-
-        // # Visit the playbooks product
-        cy.visit('/playbooks');
-
-        // # Verify icon present in global header icon to open
-        cy.findByTestId('header-task-inbox-icon').click();
-    });
-
-    it('icon in global header, without experimental feature flag', () => {
-        // # Disable experimental feature flag
-        cy.apiAdminLogin().then(() => {
-            cy.apiEnsureFeatureFlag('enableexperimentalfeatures', false);
-
-            // # Login as testUser
-            cy.apiLogin(testUser);
-        });
-
+    it('icon in global header', () => {
         // # Visit the playbooks product
         cy.visit('/playbooks');
 
