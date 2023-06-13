@@ -1992,7 +1992,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
 
-	if terms == "" && excludedTerms == "" { //nolint:revive
+	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		// Parse text for wildcards

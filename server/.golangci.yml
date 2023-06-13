@@ -41,7 +41,7 @@ issues:
 
     - linters:
       - revive
-      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|context-as-argument"
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|context-as-argument|empty-block"
       # We need to fix the unused parameter issues and remove the exception.
 
     - linters:

@@ -1135,7 +1135,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	listPublic := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams)
 	limit := c.Params.PerPage
 	offset := limit * c.Params.Page
-	if listPrivate && listPublic { //nolint:revive
+	if listPrivate && listPublic {
 	} else if listPrivate {
 		opts.AllowOpenInvite = model.NewBool(false)
 	} else if listPublic {

@@ -458,9 +458,9 @@ func testRetentionPolicyStoreAddChannels(t *testing.T, ss store.Store, s SqlStor
 		err := ss.RetentionPolicy().AddChannels(policy.ID, channelIDs)
 		require.NoError(t, err)
 		// verify that the channels were actually added
-		c := copyRetentionPolicyWithTeamAndChannelIds(policy)
-		c.ChannelIDs = append(c.ChannelIDs, channelIDs...)
-		checkRetentionPolicyLikeThisExists(t, ss, c)
+		copy := copyRetentionPolicyWithTeamAndChannelIds(policy) //nolint:revive
+		copy.ChannelIDs = append(copy.ChannelIDs, channelIDs...)
+		checkRetentionPolicyLikeThisExists(t, ss, copy)
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("add channel which does not exist", func(t *testing.T) {

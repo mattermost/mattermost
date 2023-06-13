@@ -128,7 +128,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) { //nolint:revive
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) {
 		// Allow access to any bot.
 	} else if bot.OwnerId == c.AppContext.Session().UserId {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadBots) {
