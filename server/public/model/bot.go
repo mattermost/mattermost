@@ -197,8 +197,8 @@ func BotFromUser(u *User) *Bot {
 // Etag computes the etag for a list of bots.
 func (l *BotList) Etag() string {
 	id := "0"
-	var t int64 = 0
-	var delta int64 = 0
+	var t int64
+	var delta int64
 
 	for _, v := range *l {
 		if v.UpdateAt > t {

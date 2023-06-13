@@ -33,7 +33,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 		jobServer.HandleJobPanic(job)
 
 		var err error
-		var fromTS int64 = 0
+		var fromTS int64
 		var toTS int64 = model.GetMillis()
 		if fromStr, ok := job.Data["from"]; ok {
 			if fromTS, err = strconv.ParseInt(fromStr, 10, 64); err != nil {
