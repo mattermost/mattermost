@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGetAllRoles(t *testing.T) {
@@ -23,7 +23,7 @@ func TestGetAllRoles(t *testing.T) {
 	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, resp, err := client.GetAllRoles()
+		received, resp, err := client.GetAllRoles(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -31,7 +31,7 @@ func TestGetAllRoles(t *testing.T) {
 	})
 
 	t.Run("NormalClient", func(t *testing.T) {
-		_, resp, err := th.Client.GetAllRoles()
+		_, resp, err := th.Client.GetAllRoles(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -54,7 +54,7 @@ func TestGetRole(t *testing.T) {
 	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		received, _, err := client.GetRole(role.Id)
+		received, _, err := client.GetRole(context.Background(), role.Id)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
@@ -66,11 +66,11 @@ func TestGetRole(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, err := client.GetRole("1234")
+		_, resp, err := client.GetRole(context.Background(), "1234")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = client.GetRole(model.NewId())
+		_, resp, err = client.GetRole(context.Background(), model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -93,7 +93,7 @@ func TestGetRoleByName(t *testing.T) {
 	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		received, _, err := client.GetRoleByName(role.Name)
+		received, _, err := client.GetRoleByName(context.Background(), role.Name)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
@@ -105,11 +105,11 @@ func TestGetRoleByName(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp, err := client.GetRoleByName(strings.Repeat("abcdefghij", 10))
+		_, resp, err := client.GetRoleByName(context.Background(), strings.Repeat("abcdefghij", 10))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, resp, err = client.GetRoleByName(model.NewId())
+		_, resp, err = client.GetRoleByName(context.Background(), model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -155,7 +155,7 @@ func TestGetRolesByNames(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Check all three roles can be found.
-		received, _, err := client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
+		received, _, err := client.GetRolesByNames(context.Background(), []string{role1.Name, role2.Name, role3.Name})
 		require.NoError(t, err)
 
 		assert.Contains(t, received, role1)
@@ -163,25 +163,25 @@ func TestGetRolesByNames(t *testing.T) {
 		assert.Contains(t, received, role3)
 
 		// Check a list of non-existent roles.
-		_, _, err = client.GetRolesByNames([]string{model.NewId(), model.NewId()})
+		_, _, err = client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId()})
 		require.NoError(t, err)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Empty list should error.
-		_, resp, err := client.GetRolesByNames([]string{})
+		_, resp, err := client.GetRolesByNames(context.Background(), []string{})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Invalid role name should error.
-		_, resp, err := client.GetRolesByNames([]string{model.NewId(), model.NewId(), "!!!!!!"})
+		_, resp, err := client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "!!!!!!"})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		// Empty/whitespace rolenames should be ignored.
-		_, _, err = client.GetRolesByNames([]string{model.NewId(), model.NewId(), "", "    "})
+		_, _, err = client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "", "    "})
 		require.NoError(t, err)
 	})
 
@@ -214,7 +214,7 @@ func TestPatchRole(t *testing.T) {
 		assert.NoError(t, err)
 		defer th.App.Srv().Store().Job().Delete(adminRole.Id)
 
-		_, resp, err := client.PatchRole(adminRole.Id, patch)
+		_, resp, err := client.PatchRole(context.Background(), adminRole.Id, patch)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
@@ -227,7 +227,7 @@ func TestPatchRole(t *testing.T) {
 			Permissions: &[]string{model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		}
 
-		_, resp, err = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		_, resp, err = client.PatchRole(context.Background(), systemManager.Id, patchWriteSystemRoles)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
@@ -235,7 +235,7 @@ func TestPatchRole(t *testing.T) {
 			Permissions: &[]string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id},
 		}
 
-		_, resp, err = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		_, resp, err = client.PatchRole(context.Background(), systemManager.Id, patchReadSystemRoles)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
@@ -243,13 +243,13 @@ func TestPatchRole(t *testing.T) {
 			Permissions: &[]string{model.PermissionManageRoles.Id},
 		}
 
-		_, resp, err = client.PatchRole(systemManager.Id, patchManageRoles)
+		_, resp, err = client.PatchRole(context.Background(), systemManager.Id, patchManageRoles)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, _, err := client.PatchRole(role.Id, patch)
+		received, _, err := client.PatchRole(context.Background(), role.Id, patch)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
@@ -262,19 +262,19 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		// Check a no-op patch succeeds.
-		_, _, err = client.PatchRole(role.Id, patch)
+		_, _, err = client.PatchRole(context.Background(), role.Id, patch)
 		require.NoError(t, err)
 
-		_, resp, err := client.PatchRole("junk", patch)
+		_, resp, err := client.PatchRole(context.Background(), "junk", patch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
-	_, resp, err := th.Client.PatchRole(model.NewId(), patch)
+	_, resp, err := th.Client.PatchRole(context.Background(), model.NewId(), patch)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp, err = th.Client.PatchRole(role.Id, patch)
+	_, resp, err = th.Client.PatchRole(context.Background(), role.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -283,7 +283,7 @@ func TestPatchRole(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		received, _, err := client.PatchRole(role.Id, patch)
+		received, _, err := client.PatchRole(context.Background(), role.Id, patch)
 		require.NoError(t, err)
 
 		assert.Equal(t, received.Id, role.Id)
@@ -302,7 +302,7 @@ func TestPatchRole(t *testing.T) {
 
 			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
-			received, resp, err = client.PatchRole(guestRole.Id, patch)
+			received, resp, err = client.PatchRole(context.Background(), guestRole.Id, patch)
 			require.Error(t, err)
 			CheckNotImplementedStatus(t, resp)
 		})
@@ -313,7 +313,7 @@ func TestPatchRole(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
-			_, _, err = client.PatchRole(guestRole.Id, patch)
+			_, _, err = client.PatchRole(context.Background(), guestRole.Id, patch)
 			require.NoError(t, err)
 		})
 	})

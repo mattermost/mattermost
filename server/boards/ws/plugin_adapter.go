@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:generate mockgen -copyright_file=../../copyright.txt -destination=mocks/mockpluginapi.go -package mocks github.com/mattermost/mattermost-server/server/public/plugin API
+//go:generate mockgen -copyright_file=../../copyright.txt -destination=mocks/mockpluginapi.go -package mocks github.com/mattermost/mattermost/server/public/plugin API
 package ws
 
 import (
@@ -11,12 +11,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/auth"
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/auth"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 
-	mm_model "github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const websocketMessagePrefix = "custom_boards_"

@@ -6,8 +6,8 @@ package app
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
 )
 

@@ -34,7 +34,7 @@ type Props = {
     type: 'channel' | 'thread';
     user: UserProfile;
     value: PostDraft;
-    isRemote: boolean;
+    isRemote?: boolean;
 }
 
 function ChannelDraft({

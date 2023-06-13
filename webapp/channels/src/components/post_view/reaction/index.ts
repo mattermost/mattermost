@@ -4,8 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators, Dispatch} from 'redux';
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {removeReaction} from 'mattermost-redux/actions/posts';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 

@@ -8,7 +8,7 @@ import {Provider} from 'react-redux';
 import {shallow} from 'enzyme';
 
 import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/three_days_left_trial_modal';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
