@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1270,7 +1270,7 @@ func TestAddPostToTimeline(t *testing.T) {
 		e.RemoveLicence()
 
 		// Post the request with the dialog payload and verify it is not allowed
-		resp, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
+		resp, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -1280,7 +1280,7 @@ func TestAddPostToTimeline(t *testing.T) {
 		e.SetE10Licence()
 
 		// Post the request with the dialog payload and verify it is allowed
-		_, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
+		_, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
 		require.NoError(t, err)
 	})
 
@@ -1289,7 +1289,7 @@ func TestAddPostToTimeline(t *testing.T) {
 		e.SetE20Licence()
 
 		// Post the request with the dialog payload and verify it is allowed
-		_, err := e.ServerClient.DoAPIRequestBytes("POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
+		_, err := e.ServerClient.DoAPIRequestBytes(context.Background(), "POST", e.ServerClient.URL+"/plugins/"+"playbooks"+"/api/v0/runs/add-to-timeline-dialog", dialogRequestBytes, "")
 		require.NoError(t, err)
 	})
 }

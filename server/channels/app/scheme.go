@@ -7,8 +7,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {

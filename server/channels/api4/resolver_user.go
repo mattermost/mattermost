@@ -9,8 +9,8 @@ import (
 
 	"github.com/graph-gophers/dataloader/v6"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/web"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 // user is an internal graphQL wrapper struct to add resolver methods.

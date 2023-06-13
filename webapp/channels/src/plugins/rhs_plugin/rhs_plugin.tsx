@@ -4,7 +4,6 @@
 import React from 'react';
 
 import SearchResultsHeader from 'components/search_results_header';
-import {BoardsTourTip, PlaybooksTourTip} from 'components/tours/worktemplate_explore_tour';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -18,8 +17,6 @@ export type Props = {
 
 export default class RhsPlugin extends React.PureComponent<Props> {
     render() {
-        const boardsTourTip = (<BoardsTourTip/>);
-        const playbooksTourtip = (<PlaybooksTourTip/>);
         const autoLinkedBoardTourTip = (<AutoShowLinkedBoardTourTip/>);
 
         return (
@@ -38,8 +35,6 @@ export default class RhsPlugin extends React.PureComponent<Props> {
                             pluggableName='RightHandSidebarComponent'
                             pluggableId={this.props.pluggableId}
                         />
-                        {boardsTourTip}
-                        {playbooksTourtip}
                     </>
                 }
             </div>

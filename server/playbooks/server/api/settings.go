@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/config"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/config"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 )
 
 // SettingsHandler is the API handler.

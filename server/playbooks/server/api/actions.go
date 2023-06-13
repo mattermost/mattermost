@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/playbooks"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/playbooks"
 	"github.com/pkg/errors"
 
 	"github.com/gorilla/mux"

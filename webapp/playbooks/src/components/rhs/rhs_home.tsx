@@ -118,7 +118,7 @@ const RHSHome = () => {
             telemetryEventForTemplate(template.title, 'use_template_option');
         }
 
-        dispatch(displayPlaybookCreateModal({startingTemplate: template?.title, startingTeamId: currentTeamId}));
+        dispatch(displayPlaybookCreateModal({startingTemplate: template?.title}));
     };
 
     const headerContent = (

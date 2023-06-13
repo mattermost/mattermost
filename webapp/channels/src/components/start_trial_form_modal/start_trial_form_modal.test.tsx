@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, RenderResult, screen} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 import mockStore from 'tests/test_store';
 import {ModalIdentifiers} from 'utils/constants';
 import StartTrialFormModal from '.';
 import {BrowserRouter} from 'react-router-dom';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {
+    act,
+    RenderResult,
+    renderWithIntl,
+    screen,
+} from 'tests/react_testing_utils';
 import {trackEvent} from 'actions/telemetry_actions';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
