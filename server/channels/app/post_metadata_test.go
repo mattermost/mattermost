@@ -2505,7 +2505,6 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnablePermalinkPreviews = true
 			*cfg.ServiceSettings.SiteURL = server.URL
-			cfg.FeatureFlags.PermalinkPreviews = true
 		})
 
 		requestURL := server.URL + "/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
