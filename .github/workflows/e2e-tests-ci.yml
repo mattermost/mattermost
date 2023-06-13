@@ -22,7 +22,7 @@ jobs:
         with:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-smoketests
+          context: E2E Tests/smoketests
           description: E2E tests for mattermost server app
           status: pending
 
@@ -84,7 +84,7 @@ jobs:
           npm run check
 
   smoketests:
-    runs-on: ubuntu-latest-4-cores
+    runs-on: ubuntu-latest-8-cores
     needs:
       - cypress-check
       - playwright-check
@@ -116,7 +116,7 @@ jobs:
         with:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-smoketests
+          context: E2E Tests/smoketests
           description: E2E tests for mattermost server app
           status: failure
 
@@ -132,6 +132,6 @@ jobs:
         with:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-smoketests
+          context: E2E Tests/smoketests
           description: E2E tests for mattermost server app
           status: success
