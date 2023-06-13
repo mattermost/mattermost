@@ -2933,16 +2933,6 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
-		// Enable the channel export plugin by default
-		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdApps] == nil {
-		// Enable the Apps plugin by default
-		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
