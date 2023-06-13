@@ -487,10 +487,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 	s.Run("should correctly append the data", func() {
 		// First part needs to be at least 5MB for the S3 implementation to work.
 		size := 5 * 1024 * 1024
-		b := make([]byte, size)
-		for i := range b {
-			b[i] = 'A'
-		}
+		b := bytes.Repeat([]byte{'A'}, size)
 		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
