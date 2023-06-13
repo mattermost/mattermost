@@ -1821,3 +1821,49 @@ func (s *Server) Log() *mlog.Logger {
 func (s *Server) NotificationsLog() *mlog.Logger {
 	return s.platform.NotificationsLogger()
 }
+
+// StartConsoleWarnings starts a goroutine that periodically checks and displays warnings in the console.
+func (s *Server) StartConsoleWarnings() error {
+	// Check license and license feature
+	if s.License() == nil || s.License().Features.Elasticsearch == nil || !*s.License().Features.Elasticsearch {
+		return nil
+	}
+
+	// Check if elasticsearch is enabled
+	if !(s.Config().ElasticsearchSettings.EnableIndexing != nil && *s.Config().ElasticsearchSettings.EnableIndexing &&
+		s.Config().ElasticsearchSettings.EnableSearching != nil && *s.Config().ElasticsearchSettings.EnableSearching) {
+		return nil
+	}
+
+	checkElasticsearch := func() {
+		postCount, err := s.Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+		if err != nil {
+			s.Log().Error("error getting post count to display warning", mlog.Err(err))
+			return
+		}
+
+		userCount, err := s.Store().User().Count(model.UserCountOptions{})
+		if err != nil {
+			s.Log().Error("error getting user count to display warning", mlog.Err(err))
+			return
+		}
+
+		if postCount > 2000000 && userCount > 500 {
+			s.Log().Warn("Your system exceeds 2,000,000 messages. We highly recommend deploying Elasticsearch to optimize search performance in your system. Learn more at https://mattermost.com/pl/setup-elasticsearch")
+		}
+	}
+
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+
+		// Ensure it runs before the ticker
+		checkElasticsearch()
+
+		for range ticker.C {
+			checkElasticsearch()
+		}
+	}()
+
+	return nil
+}
