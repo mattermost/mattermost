@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // fixMention replaces any mentions in a post for the user with the user's real username.

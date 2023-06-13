@@ -27,14 +27,6 @@ interface DurationProps {
     truncate?: TruncateBehavior;
 }
 
-const label = (num: number, style: FormatStyle, narrow: string, singular: string, plural: string) => {
-    if (style === 'narrow') {
-        return narrow;
-    }
-
-    return num >= 2 ? plural : singular;
-};
-
 const UNITS: DurationUnit[] = ['years', 'days', 'hours', 'minutes'];
 
 export const formatDuration = (value: Duration, style: FormatStyle = 'narrow', truncate: TruncateBehavior = 'none') => {

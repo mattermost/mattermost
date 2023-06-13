@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/graph-gophers/graphql-go"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/api"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/api"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -606,4 +606,86 @@ func TestGraphQLPlaybooksMetrics(t *testing.T) {
 
 		require.Len(t, updatedPlaybook.Metrics, 1)
 	})
+}
+
+func gqlTestPlaybookUpdateGuest(e *TestEnvironment, t *testing.T, playbookID string, updates map[string]interface{}) error {
+	testPlaybookMutateQuery := `
+	mutation UpdatePlaybook($id: String!, $updates: PlaybookUpdates!) {
+	updatePlaybook(id: $id, updates: $updates)
+	}
+		`
+	var response graphql.Response
+	err := e.PlaybooksClientGuest.DoGraphql(context.Background(), &client.GraphQLInput{
+		Query:         testPlaybookMutateQuery,
+		OperationName: "UpdatePlaybook",
+		Variables:     map[string]interface{}{"id": playbookID, "updates": updates},
+	}, &response)
+
+	if err != nil {
+		return errors.Wrapf(err, "gqlTestPlaybookUpdate graphql failure")
+	}
+
+	if len(response.Errors) != 0 {
+		return errors.Errorf("gqlTestPlaybookUpdate graphql failure %+v", response.Errors)
+	}
+
+	return err
+}
+
+func TestGraphQLPlaybooksGuests(t *testing.T) {
+	e := Setup(t)
+	e.SetE20Licence()
+	e.CreateBasic()
+	e.CreateGuest()
+
+	t.Run("update playbook guest not member", func(t *testing.T) {
+		err := gqlTestPlaybookUpdateGuest(e, t, e.BasicPlaybook.ID, map[string]interface{}{"title": "mutated"})
+		require.Error(t, err)
+	})
+
+	t.Run("basic get guest not member", func(t *testing.T) {
+		testPlaybookQuery := `
+			query Playbook($id: String!) {
+				playbook(id: $id) {
+					id
+					title
+				}
+			}
+			`
+		var response graphql.Response
+		err := e.PlaybooksClientGuest.DoGraphql(context.Background(), &client.GraphQLInput{
+			Query:         testPlaybookQuery,
+			OperationName: "Playbook",
+			Variables:     map[string]interface{}{"id": e.BasicPlaybook.ID},
+		}, &response)
+		require.NoError(t, err)
+		require.NotZero(t, len(response.Errors))
+	})
+
+	t.Run("list guest", func(t *testing.T) {
+		var pbResultTest struct {
+			Data struct {
+				Playbooks []struct {
+					ID    string
+					Title string
+				}
+			}
+		}
+		testPlaybookQuery := `
+			query Playbooks {
+				playbooks {
+					id
+					title
+				}
+			}
+			`
+		err := e.PlaybooksClientGuest.DoGraphql(context.Background(), &client.GraphQLInput{
+			Query:         testPlaybookQuery,
+			OperationName: "Playbooks",
+		}, &pbResultTest)
+		require.NoError(t, err)
+
+		assert.Len(t, pbResultTest.Data.Playbooks, 0)
+	})
+
 }

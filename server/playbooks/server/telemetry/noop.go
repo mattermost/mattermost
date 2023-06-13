@@ -4,7 +4,7 @@
 package telemetry
 
 import (
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 )
 
 // NoopTelemetry satisfies the Telemetry interface with no-op implementations.

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"testing"
@@ -11,8 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 var valFalse = false
@@ -30,14 +31,14 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valFalse })
 		th.App.ReloadConfig()
 
-		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
+		_, r, err := th.Client.BootstrapSelfHostedSignup(context.Background(), model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
 
 		require.Equal(t, http.StatusNotImplemented, r.StatusCode)
 		require.Error(t, err)
@@ -54,7 +55,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
@@ -62,7 +63,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valTrue })
 		th.App.ReloadConfig()
 
-		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
+		_, r, err := th.Client.BootstrapSelfHostedSignup(context.Background(), model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
 
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 		require.Error(t, err)
@@ -79,14 +80,14 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valTrue })
 		th.App.ReloadConfig()
 
-		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
+		_, r, err := th.Client.BootstrapSelfHostedSignup(context.Background(), model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
 
 		require.Equal(t, http.StatusForbidden, r.StatusCode)
 		require.Error(t, err)
@@ -96,7 +97,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
@@ -112,7 +113,7 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		response, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
+		response, r, err := th.Client.BootstrapSelfHostedSignup(context.Background(), model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
 
 		require.Equal(t, http.StatusOK, r.StatusCode)
 		require.NoError(t, err)
@@ -129,14 +130,14 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = nil
 
-		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedPurchase = &valTrue })
 		th.App.ReloadConfig()
 
-		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
+		_, r, err := th.Client.BootstrapSelfHostedSignup(context.Background(), model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
 
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 		require.Error(t, err)

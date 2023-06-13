@@ -14,7 +14,6 @@ const ID = 'playbook_run_update';
 
 type Props = {
     playbookRunId: string;
-    teamId: string;
     onSubmit: (newName: string) => void;
 } & Partial<ComponentProps<typeof GenericModal>>;
 
@@ -26,7 +25,6 @@ export const makeModalDefinition = (props: Props) => ({
 
 const UpdateRunModal = ({
     playbookRunId,
-    teamId,
     onSubmit,
     ...modalProps
 }: Props) => {

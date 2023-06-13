@@ -4,7 +4,6 @@
   ],
   "plugins": [
     "react",
-    "babel",
     "import",
     "no-only-tests",
     "header",

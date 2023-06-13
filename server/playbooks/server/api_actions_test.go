@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/client"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/playbooks/client"
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +21,7 @@ func TestActionCreation(t *testing.T) {
 	createNewChannel := func(t *testing.T, name string) *model.Channel {
 		t.Helper()
 
-		pubChannel, _, err := e.ServerAdminClient.CreateChannel(&model.Channel{
+		pubChannel, _, err := e.ServerAdminClient.CreateChannel(context.Background(), &model.Channel{
 			DisplayName: name,
 			Name:        name,
 			Type:        model.ChannelTypeOpen,
@@ -29,7 +29,7 @@ func TestActionCreation(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		_, _, err = e.ServerAdminClient.AddChannelMember(pubChannel.Id, e.RegularUser.Id)
+		_, _, err = e.ServerAdminClient.AddChannelMember(context.Background(), pubChannel.Id, e.RegularUser.Id)
 		assert.NoError(t, err)
 
 		return pubChannel
