@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, IntlShape, injectIntl} from 'react-intl';
 
 import {ChannelCategory} from '@mattermost/types/channel_categories';
+
+import {GenericModal} from '@mattermost/components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-import {GenericModal} from '@mattermost/components';
-
-import {localizeMessage} from 'utils/utils';
 
 import '../category_modal.scss';
 
@@ -23,6 +22,7 @@ type Props = {
     categoryId?: string;
     initialCategoryName?: string;
     channelIdsToAdd?: string[];
+    intl: IntlShape;
     actions: {
         createCategory: (teamId: string, displayName: string, channelIds?: string[] | undefined) => {data: ChannelCategory};
         renameCategory: (categoryId: string, newName: string) => void;
@@ -33,7 +33,7 @@ type State = {
     categoryName: string;
 }
 
-export default class EditCategoryModal extends React.PureComponent<Props, State> {
+class EditCategoryModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -124,7 +124,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
         return (
             <GenericModal
                 id='editCategoryModal'
-                ariaLabel={localizeMessage('rename_category_modal.renameCategory', 'Rename Category')}
+                ariaLabel={this.props.intl.formatMessage({id: 'rename_category_modal.renameCategory', defaultMessage: 'Rename Category'})}
                 modalHeaderText={modalHeaderText}
                 confirmButtonText={editButtonText}
                 onExited={this.props.onExited}
@@ -132,7 +132,6 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                 handleConfirm={this.handleConfirm}
                 handleCancel={this.handleCancel}
                 isConfirmDisabled={this.isConfirmDisabled()}
-                enforceFocus={false}
             >
                 <QuickInput
                     inputComponent={MaxLengthInput}
@@ -140,7 +139,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                     className='form-control filter-textbox'
                     type='text'
                     value={this.state.categoryName}
-                    placeholder={localizeMessage('edit_category_modal.placeholder', 'Name your category')}
+                    placeholder={this.props.intl.formatMessage({id: 'edit_category_modal.placeholder', defaultMessage: 'Name your category'})}
                     clearable={true}
                     onClear={this.handleClear}
                     onChange={this.handleChange}
@@ -153,3 +152,5 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
         );
     }
 }
+
+export default injectIntl(EditCategoryModal);
