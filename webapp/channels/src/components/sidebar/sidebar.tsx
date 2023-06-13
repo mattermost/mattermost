@@ -12,6 +12,7 @@ import MoreChannels from 'components/more_channels';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import InvitationModal from 'components/invitation_modal';
 import UserSettingsModal from 'components/user_settings/modal';
+import ResizableDivider, {ResizeDirection} from 'components/resizable/resizable_divider';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -61,8 +62,10 @@ type State = {
 };
 
 export default class Sidebar extends React.PureComponent<Props, State> {
+    sidebarRef: React.RefObject<HTMLDivElement>;
     constructor(props: Props) {
         super(props);
+        this.sidebarRef = React.createRef();
         this.state = {
             showDirectChannelsModal: false,
             isDragging: false,
@@ -227,6 +230,13 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         }
     };
 
+    onResizeChange = (_: number, cssVarProp: string, cssVarValue: string) => {
+        this.sidebarRef.current?.style.setProperty(cssVarProp, cssVarValue);
+    };
+    onResizeFinally = (_: number, cssVarProp: string) => {
+        this.sidebarRef.current?.style.removeProperty(cssVarProp);
+    };
+
     render() {
         if (!this.props.teamId) {
             return (<div/>);
@@ -237,6 +247,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         return (
             <div
                 id='SidebarContainer'
+                ref={this.sidebarRef}
                 className={classNames({
                     'move--right': this.props.isOpen && this.props.isMobileView,
                     dragging: this.state.isDragging,
@@ -286,6 +297,16 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     onDragEnd={this.onDragEnd}
                 />
                 <DataPrefetch/>
+                <ResizableDivider
+                    name={'lhsResizeHandle'}
+                    globalCssVar={'overrideLhsWidth'}
+                    disabled={this.props.isMobileView}
+                    onChange={this.onResizeChange}
+                    onEnd={this.onResizeFinally}
+                    onClear={this.onResizeFinally}
+                    dir={ResizeDirection.RIGHT}
+                    containerRef={this.sidebarRef}
+                />
                 {this.renderModals()}
             </div>
         );

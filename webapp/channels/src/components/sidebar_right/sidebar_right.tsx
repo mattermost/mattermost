@@ -26,10 +26,12 @@ import PostEditHistory from 'components/post_edit_history';
 import LoadingScreen from 'components/loading_screen';
 
 import RhsPlugin from 'plugins/rhs_plugin';
+import ResizableDivider, {ResizeDirection} from 'components/resizable/resizable_divider';
 
 type Props = {
     isExpanded: boolean;
     isOpen: boolean;
+    isMobileView: boolean;
     channel: Channel;
     team: Team;
     teamId: Team['id'];
@@ -65,6 +67,7 @@ type State = {
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRight: React.RefObject<HTMLDivElement>;
+    sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
 
@@ -72,6 +75,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         super(props);
 
         this.sidebarRight = React.createRef();
+        this.sidebarRightWidthHolder = React.createRef();
         this.state = {
             isOpened: false,
         };
@@ -199,6 +203,20 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         this.focusSearchBar = focusSearchBar;
     };
 
+    onResizeStart = () => {
+        if (this.props.isExpanded) {
+            this.props.actions.setRhsExpanded(false);
+        }
+    };
+    onResizeChange = (_: number, cssVarProp: string, cssVarValue: string) => {
+        this.sidebarRight.current?.style.setProperty(cssVarProp, cssVarValue);
+        this.sidebarRightWidthHolder.current?.style.setProperty(cssVarProp, cssVarValue);
+    };
+    onResizeFinally = (_: number, cssVarProp: string) => {
+        this.sidebarRight.current?.style.removeProperty(cssVarProp);
+        this.sidebarRightWidthHolder.current?.style.removeProperty(cssVarProp);
+    };
+
     render() {
         const {
             team,
@@ -262,7 +280,10 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         return (
             <>
-                <div className={'sidebar--right sidebar--right--width-holder'}/>
+                <div
+                    className={'sidebar--right sidebar--right--width-holder'}
+                    ref={this.sidebarRightWidthHolder}
+                />
                 <div
                     className={containerClassName}
                     id='sidebar-right'
@@ -286,6 +307,17 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                             </Search>
                         )}
                     </div>
+                    <ResizableDivider
+                        name={'rhsResizeHandle'}
+                        globalCssVar={'overrideRhsWidth'}
+                        disabled={this.props.isMobileView}
+                        onStart={this.onResizeStart}
+                        onChange={this.onResizeChange}
+                        onEnd={this.onResizeFinally}
+                        onClear={this.onResizeFinally}
+                        dir={ResizeDirection.LEFT}
+                        containerRef={this.sidebarRight}
+                    />
                 </div>
             </>
         );

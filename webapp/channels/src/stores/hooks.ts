@@ -38,9 +38,10 @@ export const currentUserSuffix = createSelector('currentUserSuffix', [
 export function useGlobalState<TVal>(
     initialValue: TVal,
     name: string,
+    scopeSelector = currentUserAndTeamSuffix,
 ): [TVal, (value: TVal) => ReturnType<typeof setGlobalItem>] {
     const dispatch = useDispatch();
-    const suffix = useSelector(currentUserAndTeamSuffix);
+    const suffix = useSelector(scopeSelector);
     const storedKey = `${name}${suffix}`;
 
     const value = useSelector(makeGetGlobalItem(storedKey, initialValue), shallowEqual);

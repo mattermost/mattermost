@@ -6,8 +6,6 @@ import {bindActionCreators, Dispatch} from 'redux';
 
 import {withRouter, RouteComponentProps} from 'react-router-dom';
 
-import {memo} from 'react';
-
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -26,6 +24,7 @@ import {RHSStates} from 'utils/constants';
 import {GlobalState} from 'types/store';
 
 import {selectCurrentProductId} from 'selectors/products';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import SidebarRight from './sidebar_right';
 
@@ -42,6 +41,7 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
     return {
         isExpanded: getIsRhsExpanded(state),
         isOpen: getIsRhsOpen(state),
+        isMobileView: getIsMobileView(state),
         channel,
         postRightVisible: Boolean(selectedPostId) && rhsState !== RHSStates.EDIT_HISTORY,
         postCardVisible: Boolean(selectedPostCardId),
@@ -77,4 +77,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(memo(SidebarRight)));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SidebarRight));
