@@ -17,13 +17,11 @@ import {
 } from 'mattermost-redux/actions/groups';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
-
-import TeamDetails from './team_details';
-import {Props as TeamDetailsProps} from './team_details';
-import { GlobalState } from 'types/store';
-import { Team } from '@mattermost/types/teams';
-import { Group } from '@mattermost/types/groups';
-import { ActionFunc, GenericAction } from 'mattermost-redux/types/actions';
+import TeamDetails, {Props as TeamDetailsProps} from './team_details';
+import {GlobalState} from 'types/store';
+import {Team} from '@mattermost/types/teams';
+import {Group} from '@mattermost/types/groups';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 function mapStateToProps(state: GlobalState, props: TeamDetailsProps) {
     const teamID: string = props.teamID;
@@ -42,7 +40,7 @@ function mapStateToProps(state: GlobalState, props: TeamDetailsProps) {
     };
 }
 
-function mapDispatchToProps(dispatch:  Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, TeamDetailsProps['actions']>({
             getTeam: fetchTeam,
@@ -61,6 +59,5 @@ function mapDispatchToProps(dispatch:  Dispatch<GenericAction>) {
         }, dispatch),
     };
 }
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(TeamDetails);
