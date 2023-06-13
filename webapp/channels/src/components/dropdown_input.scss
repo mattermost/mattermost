@@ -25,6 +25,20 @@ $dropdown_input_index: 999999;
     }
 }
 
+.DropdownInput__controlContainer {
+    .DropDown__control {
+        background-color: var(--center-channel-bg);
+    }
+}
+
+.DropDown__menu {
+    background-color: var(--center-channel-bg) !important;
+}
+
+.DropDown__single-value {
+    color: var(--center-channel-color) !important;
+}
+
 .DropdownInput__indicatorsContainer {
     margin-right: 8px;
 
