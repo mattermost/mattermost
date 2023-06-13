@@ -727,7 +727,7 @@ func TestSanitizeTeam(t *testing.T) {
 	}
 
 	copyTeam := func() *model.Team {
-		copy := &model.Team{}
+		copy := &model.Team{} //nolint:revive
 		*copy = *team
 		return copy
 	}

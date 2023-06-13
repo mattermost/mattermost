@@ -504,7 +504,7 @@ func (p *playbookStore) GetPlaybooksForTeam(requesterInfo app.RequesterInfo, tea
 		return app.GetPlaybooksResults{}, errors.Wrap(err, "failed to get total count")
 	}
 
-	ids := make([]string, len(playbooks))
+	ids := make([]string, 0, len(playbooks))
 	for _, pb := range playbooks {
 		ids = append(ids, pb.ID)
 	}

@@ -271,7 +271,7 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	// prefix the nonce to the cyphertext so we don't need to keep track of it.
 	sealed := gcm.Seal(nonce, nonce, raw, nil)
 
-	return append(salt, sealed...), nil
+	return append(salt, sealed...), nil //nolint:makezero
 }
 
 func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error {
