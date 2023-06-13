@@ -38,7 +38,6 @@ const OnBoardingVideoModal = ({onExited}: Props) => {
             show={show}
             onHide={handleHide}
             onExited={onExited}
-            enforceFocus={false}
             role='dialog'
             aria-labelledby='onBoardingVideoModal'
         >

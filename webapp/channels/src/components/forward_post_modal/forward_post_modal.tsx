@@ -257,6 +257,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
             handleConfirm={handleSubmit}
             handleCancel={onHide}
             onExited={onHide}
+            enforceFocus={false}
         >
             <div
                 className={'forward-post__body'}

@@ -15,6 +15,7 @@ export {TourTip} from './tour_tip/tour_tip';
 export {TourTipBackdrop} from './tour_tip/tour_tip_backdrop';
 export {PulsatingDot} from './pulsating_dot';
 export {FocusTrap} from './focus_trap';
+export {LegacyModal} from './legacy_modal';
 
 // hooks
 export {useMeasurePunchouts} from './common/hooks/useMeasurePunchouts';

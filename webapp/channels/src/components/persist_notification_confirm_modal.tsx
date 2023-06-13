@@ -149,7 +149,6 @@ function PersistNotificationConfirmModal({
             autoCloseOnConfirmButton={true}
             compassDesign={true}
             confirmButtonText={confirmBtn}
-            enforceFocus={true}
             handleCancel={() => {}}
             handleConfirm={handleConfirm}
             handleEnterKeyPress={handleConfirm}

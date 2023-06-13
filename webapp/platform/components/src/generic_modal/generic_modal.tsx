@@ -110,7 +110,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
         this.props.handleKeydown?.(event);
     }
 
-    private handleShow = () => {
+    private handleEntered = () => {
         if (this.props.enforceFocus === false) {
             this.setState({isFocalTrapActive: true});
         }
@@ -186,8 +186,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
                 dialogClassName={classNames('a11y__modal GenericModal', {GenericModal__compassDesign: this.props.compassDesign}, this.props.className)}
                 show={this.state.show}
-                onShow={this.handleShow}
-                restoreFocus={true}
+                onEntered={this.handleEntered}
                 enforceFocus={this.props.enforceFocus}
                 onHide={this.onHide}
                 onExited={this.props.onExited}

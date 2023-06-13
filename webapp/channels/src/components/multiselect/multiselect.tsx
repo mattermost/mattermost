@@ -67,6 +67,7 @@ export type Props<T extends Value> = {
     savingEnabled?: boolean;
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
+    autoFocus?: boolean;
 }
 
 export type State = {
@@ -467,6 +468,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                                 isClearable={false}
                                 openMenuOnFocus={false}
                                 menuIsOpen={false}
+                                autoFocus={this.props.autoFocus}
                                 onInputChange={this.onInput}
                                 onKeyDown={this.onInputKeyDown as React.KeyboardEventHandler}
                                 onChange={this.onChange}

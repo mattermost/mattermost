@@ -5,24 +5,24 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
-
-import {Client4} from 'mattermost-redux/client';
 import {RelationOneToOne} from '@mattermost/types/utilities';
 import {ActionResult} from 'mattermost-redux/types/actions';
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
+import {LegacyModal} from '@mattermost/components';
 
+import {Client4} from 'mattermost-redux/client';
 import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermost-redux/utils/user_utils';
-import {localizeMessage} from 'utils/utils';
+
+import BotTag from 'components/widgets/tag/bot_tag';
 import ProfilePicture from 'components/profile_picture';
 import MultiSelect, {Value} from 'components/multiselect/multiselect';
 import AddIcon from 'components/widgets/icons/fa_add_icon';
-
 import InvitationModal from 'components/invitation_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
+import {localizeMessage} from 'utils/utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 const USERS_PER_PAGE = 50;
@@ -90,7 +90,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             show: true,
             saving: false,
             loadingUsers: true,
-        } as State;
+        };
     }
 
     private addValue = (value: UserProfileValue): void => {
@@ -275,14 +275,12 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                             {displayName}
                             {option.is_bot && <BotTag/>}
                             {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
-                            {displayName === option.username ?
-                                null :
-                                <span
-                                    className='ml-2 light'
-                                    style={{fontSize: '12px'}}
-                                >
-                                    {'@'}{option.username}
-                                </span>
+                            {displayName === option.username ? null : <span
+                                className='ml-2 light'
+                                style={{fontSize: '12px'}}
+                                                                      >
+                                {'@'}{option.username}
+                            </span>
                             }
                             <span
                                 style={{position: 'absolute', right: 20}}
@@ -413,6 +411,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 backButtonClick={closeMembersInviteModal}
                 backButtonClass={'btn-cancel tertiary-button'}
                 customNoOptionsMessage={this.props.emailInvitationsEnabled ? customNoOptionsMessage : null}
+                autoFocus={true}
             />
         );
 
@@ -426,7 +425,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         );
 
         return (
-            <Modal
+            <LegacyModal
                 id='addUsersToChannelModal'
                 dialogClassName='a11y__modal channel-invite'
                 show={this.state.show}
@@ -434,25 +433,29 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 onExited={this.props.onExited}
                 role='dialog'
                 aria-labelledby='channelInviteModalLabel'
+                enforceFocus={false}
+                onEntered={this.onModalEntered}
             >
-                <Modal.Header
-                    id='channelInviteModalLabel'
-                    closeButton={true}
-                />
-                <Modal.Body
-                    role='application'
-                    className='overflow--visible'
-                >
-                    <div className='channel-invite__header'>
-                        {header}
-                    </div>
-                    {inviteError}
-                    <div className='channel-invite__content'>
-                        {content}
-                        {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
-                    </div>
-                </Modal.Body>
-            </Modal>
+                <div>
+                    <Modal.Header
+                        id='channelInviteModalLabel'
+                        closeButton={true}
+                    />
+                    <Modal.Body
+                        role='application'
+                        className='overflow--visible'
+                    >
+                        <div className='channel-invite__header'>
+                            {header}
+                        </div>
+                        {inviteError}
+                        <div className='channel-invite__content'>
+                            {content}
+                            {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
+                        </div>
+                    </Modal.Body>
+                </div>
+            </LegacyModal>
         );
     };
 }
