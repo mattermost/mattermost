@@ -80,6 +80,7 @@ type TelemetryClient interface {
 }
 
 func init() {
+	/*
 	product.RegisterProduct(playbooksProductName, product.Manifest{
 		Initializer: newPlaybooksProduct,
 		Dependencies: map[product.ServiceKey]struct{}{
@@ -106,6 +107,7 @@ func init() {
 			product.ThreadsKey:       {},
 		},
 	})
+	*/
 }
 
 type playbooksProduct struct {

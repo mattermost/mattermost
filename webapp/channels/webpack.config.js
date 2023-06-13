@@ -275,23 +275,6 @@ var config = {
     ],
 };
 
-if (DEV) {
-    config.plugins.push({
-        apply: (compiler) => {
-            compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
-                const playbooksDist = path.resolve(__dirname, '../playbooks/dist');
-                const playbooksSymlink = './dist/products/playbooks';
-
-                fs.mkdir('./dist/products', () => {
-                    if (!fs.existsSync(playbooksSymlink)) {
-                        fs.symlinkSync(playbooksDist, playbooksSymlink, 'dir');
-                    }
-                });
-            });
-        },
-    });
-}
-
 function generateCSP() {
     let csp = 'script-src \'self\' cdn.rudderlabs.com/ js.stripe.com/v3';
 
@@ -328,9 +311,7 @@ async function initializeModuleFederation() {
     }
 
     async function getRemoteContainers() {
-        const products = [
-            {name: 'playbooks'},
-        ];
+        const products = [];
 
         const remotes = {};
         for (const product of products) {
