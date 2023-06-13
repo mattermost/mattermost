@@ -606,9 +606,6 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePlaybooks: true,
-    },
     PluginSettings: {
         Enable: true,
         EnableUploads: false,

@@ -82,7 +82,6 @@ export type ClientConfig = {
     EnableOAuthServiceProvider: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
-    EnablePlaybooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
     EnablePreviewFeatures: string;
@@ -820,7 +819,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePlaybooks: boolean;
 };
 
 export type PluginSettings = {

@@ -3,7 +3,6 @@
 
 import {Store} from 'redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
@@ -33,8 +32,8 @@ function configureClient() {
 
 function loadRemoteModules() {
     /* eslint-disable no-console */
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const config = getConfig(getState());
+    return async (/*dispatch: DispatchFunc, getState: GetStateFunc*/) => {
+        // const config = getConfig(getState());
 
         /**
          * products contains a map of product IDs to a function that will load all of their parts. Calling that
