@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -124,11 +122,11 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 }
 
 func resetCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command, app.SkipPostInitialization())
+	cfgDSN := getConfigDSN(command, config.GetEnvironment())
+	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to load configuration")
 	}
-	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -146,11 +144,11 @@ func resetCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	a.Srv().Store().DropAllTables()
-	CommandPrettyPrintln("Database successfully reset")
+	config := cfgStore.Get()
+	ss := sqlstore.New(config.SqlSettings, nil)
+	ss.DropAllTables()
 
-	auditRec := a.MakeAuditRecord("reset", audit.Success)
-	a.LogAuditRec(auditRec, nil)
+	CommandPrettyPrintln("Database successfully reset")
 
 	return nil
 }
