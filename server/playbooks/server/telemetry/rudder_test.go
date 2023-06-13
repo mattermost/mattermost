@@ -13,7 +13,7 @@ import (
 
 	"gopkg.in/guregu/null.v4"
 
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 
 	rudder "github.com/rudderlabs/analytics-go"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,7 @@ var (
 )
 
 func TestNewRudder(t *testing.T) {
-	r, err := NewRudder("dummy_key", "dummy_url", diagnosticID, pluginVersion, serverVersion)
+	r, err := NewRudder("dummy_key", "dummy_url", diagnosticID, serverVersion)
 	require.Equal(t, r.diagnosticID, diagnosticID)
 	require.Equal(t, r.serverVersion, serverVersion)
 	require.NoError(t, err)

@@ -14,15 +14,15 @@ import (
 
 	"github.com/mattermost/logr/v2"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
@@ -1332,6 +1332,14 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 
 	if desktop, exists := data[model.DesktopNotifyProp]; exists {
 		filteredProps[model.DesktopNotifyProp] = desktop
+	}
+
+	if desktop_sound, exists := data[model.DesktopSoundNotifyProp]; exists {
+		filteredProps[model.DesktopSoundNotifyProp] = desktop_sound
+	}
+
+	if desktop_notification_sound, exists := data["desktop_notification_sound"]; exists {
+		filteredProps["desktop_notification_sound"] = desktop_notification_sound
 	}
 
 	if desktop_threads, exists := data[model.DesktopThreadsNotifyProp]; exists {

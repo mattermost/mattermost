@@ -28,6 +28,22 @@ const NOTIFY_TEXT_MAX_LENGTH = 50;
 // windows notification length is based windows chrome which supports 128 characters and is the lowest length of windows browsers
 const WINDOWS_NOTIFY_TEXT_MAX_LENGTH = 120;
 
+const getSoundFromChannelMemberAndUser = (member, user) => {
+    if (member?.notify_props?.desktop_sound) {
+        return member.notify_props.desktop_sound === 'on';
+    }
+
+    return !user.notify_props || user.notify_props.desktop_sound === 'true';
+};
+
+const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
+    if (member?.notify_props?.desktop_notification_sound) {
+        return member.notify_props.desktop_notification_sound;
+    }
+
+    return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
+};
+
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -159,7 +175,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         //Play a sound if explicitly set in settings
-        const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
+        const sound = getSoundFromChannelMemberAndUser(member, user);
 
         // Notify if you're not looking in the right channel or when
         // the window itself is not active
@@ -174,7 +190,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
         notify = notify || !state.views.browser.focused;
 
-        const soundName = user.notify_props !== undefined && user.notify_props.desktop_notification_sound !== undefined ? user.notify_props.desktop_notification_sound : 'Bing';
+        const soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
 
         if (notify) {
             const updatedState = getState();

@@ -5,20 +5,28 @@ package telemetry
 
 import (
 	"os"
-	"strings"
 	"time"
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/scheduler"
+	"github.com/mattermost/mattermost/server/v8/boards/services/scheduler"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const (
-	rudderKey                  = "placeholder_boards_rudder_key"
-	rudderDataplaneURL         = "placeholder_rudder_dataplane_url"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1myWcDbTkIThnpPYyms7DKlmQWl"
+	rudderKeyTest      = "1myWYwHRDFdLDTpznQ7qFlOPQaa"
+
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_boards_rudder_key"
+
 	timeBetweenTelemetryChecks = 10 * time.Minute
 )
 
@@ -54,13 +62,21 @@ func (ts *Service) RegisterTracker(name string, f TrackerFunc) {
 }
 
 func (ts *Service) getRudderConfig() RudderConfig {
-	if !strings.Contains(rudderKey, "placeholder") && !strings.Contains(rudderDataplaneURL, "placeholder") {
-		return RudderConfig{rudderKey, rudderDataplaneURL}
-	}
+	// Support unit testing
 	if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
 		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
 	}
-	return RudderConfig{}
+
+	rudderKey := ""
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction:
+		rudderKey = rudderKeyProd
+	case model.ServiceEnvironmentTest:
+		rudderKey = rudderKeyTest
+	case model.ServiceEnvironmentDev:
+	}
+
+	return RudderConfig{rudderKey, rudderDataplaneURL}
 }
 
 func (ts *Service) sendDailyTelemetry(override bool) {

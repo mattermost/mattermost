@@ -10,9 +10,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/audit"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/audit"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 )
 
 func (a *API) registerTeamsRoutes(r *mux.Router) {
