@@ -1755,6 +1755,14 @@ export default class Client4 {
         );
     };
 
+    // todo sinan create a selector
+    getChannelsMemberCount = (channelIds: string[]) => {
+        return this.doFetch<Record<string, number>>(
+            `${this.getChannelsRoute()}/stats/member_count`,
+            {method: 'post', body: JSON.stringify(channelIds)}
+        )
+    }
+
     getChannelModerations = (channelId: string) => {
         return this.doFetch<ChannelModeration[]>(
             `${this.getChannelRoute(channelId)}/moderations`,

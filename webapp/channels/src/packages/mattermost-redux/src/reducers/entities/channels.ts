@@ -612,6 +612,7 @@ function membersInChannel(state: RelationOneToOne<Channel, Record<string, Channe
     }
 }
 
+// todo sinan do similar stuff for RECEIVED_CHANNELS_MEMBER_COUNT
 function stats(state: RelationOneToOne<Channel, ChannelStats> = {}, action: GenericAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL_STATS: {
