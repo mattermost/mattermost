@@ -473,12 +473,6 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 const existingInstallationPostsThreshold = 10
 
 func (s *Server) doFirstAdminSetupCompleteMigration() {
-	// Don't run the migration until the flag is turned on.
-
-	if !s.platform.Config().FeatureFlags.UseCaseOnboarding {
-		return
-	}
-
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(FirstAdminSetupCompleteKey); err == nil {
 		return
