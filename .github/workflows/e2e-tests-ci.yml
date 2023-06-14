@@ -14,6 +14,7 @@ defaults:
 
 jobs:
   update-initial-status:
+    if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-22.04
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main

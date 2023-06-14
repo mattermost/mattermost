@@ -9,7 +9,7 @@ jobs:
   upload-s3:
     name: cd/Upload artifacts to S3
     runs-on: ubuntu-22.04
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     steps:
       - name: cd/Configure AWS
         uses: aws-actions/configure-aws-credentials@07c2f971bac433df982ccc261983ae443861db49 # v1-node16
