@@ -215,6 +215,7 @@ const SidebarCategoryMenu = (props: Props) => {
         props.openModal({
             modalId: ModalIdentifiers.EDIT_CATEGORY,
             dialogType: EditCategoryModal,
+            dialogProps: {},
         });
         trackEvent('ui', 'ui_sidebar_category_menu_createCategory');
     }
