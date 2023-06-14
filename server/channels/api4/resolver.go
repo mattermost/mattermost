@@ -353,12 +353,9 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 			return nil, appErr
 		}
 	} else {
-		appsCategoryEnabled := c.App.Config().FeatureFlags.AppsSidebarCategory
-
 		opts := &store.SidebarCategorySearchOpts{
-			TeamID:              args.TeamID,
-			ExcludeTeam:         args.ExcludeTeam,
-			AppsCategoryEnabled: appsCategoryEnabled,
+			TeamID:      args.TeamID,
+			ExcludeTeam: args.ExcludeTeam,
 		}
 		categories, appErr = c.App.GetSidebarCategories(c.AppContext, args.UserID, opts)
 		if appErr != nil {
