@@ -21,6 +21,7 @@ import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
 import {MenuItem as ParentMenuItem, Props as MenuItemProps} from './menu_item';
+import {createMenusUniqueId, injectPropsInMenuItems} from './utils';
 
 import './sub_menu.scss';
 
@@ -36,10 +37,13 @@ interface Props {
     menuAriaLabel?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
-    children: ReactNode;
+    children: ReactNode[];
+
+    // Don't use this prop, it's only used internally, it is injected by the parent menu
+    forceCloseMenu?: () => void;
 }
 
-export function SubMenu({id, leadingElement, labels, trailingElements, isDestructive, menuId, menuAriaLabel, forceOpenOnLeft, children, ...rest}: Props) {
+export function SubMenu({id, leadingElement, labels, trailingElements, isDestructive, menuId, menuAriaLabel, forceOpenOnLeft, forceCloseMenu, children, ...rest}: Props) {
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
     const isSubMenuOpen = Boolean(anchorElement);
 
@@ -69,6 +73,11 @@ export function SubMenu({id, leadingElement, labels, trailingElements, isDestruc
 
     function handleSubMenuClose(event: MouseEvent<HTMLLIElement>) {
         event.preventDefault();
+        setAnchorElement(null);
+    }
+
+    // Handler function injected in the menu items to close the submenu
+    function forceCloseSubMenu() {
         setAnchorElement(null);
     }
 
@@ -138,8 +147,11 @@ export function SubMenu({id, leadingElement, labels, trailingElements, isDestruc
                 asSubMenu={true}
                 anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
                 transformOrigin={originOfAnchorAndTransform.transformOrigin}
-                sx={{pointerEvents: 'none'}} // disables the menu background wrapper for accessing submenu
+                sx={{pointerEvents: 'none'}}
             >
+                {/* This component is needed here to re enable pointer events for the submenu items which we had to disable above as */}
+                {/* pointer turns to default as soon as it leaves the parent menu */}
+                {/* Notice we dont use the below component in menu.tsx  */}
                 <MuiMenuList
                     id={menuId}
                     component='ul'
@@ -152,11 +164,17 @@ export function SubMenu({id, leadingElement, labels, trailingElements, isDestruc
                         paddingBottom: 0,
                     }}
                 >
-                    {children}
+                    {injectPropsInMenuItems(children, forceCloseMenu, forceCloseSubMenu)}
                 </MuiMenuList>
             </MuiMenuStyled>
         </ParentMenuItem>
     );
+}
+
+export const SUB_MENU_ITEM_KEY_PREFIX = 'SubMenuItemKey';
+
+export function createSubMenuId(menuItemName: string, ...uniqueValues: string[]) {
+    return createMenusUniqueId(SUB_MENU_ITEM_KEY_PREFIX, menuItemName, ...uniqueValues);
 }
 
 interface SubMenuModalProps {

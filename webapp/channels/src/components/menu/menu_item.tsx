@@ -1,13 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactElement, ReactNode, Children, KeyboardEvent, MouseEvent} from 'react';
+import React, {
+    ReactElement,
+    ReactNode,
+    Children,
+    KeyboardEvent,
+    MouseEvent,
+} from 'react';
 import {styled} from '@mui/material/styles';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+
+import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
+import {createMenusUniqueId} from './utils';
 
 export interface Props extends MuiMenuItemProps {
 
@@ -66,6 +75,16 @@ export interface Props extends MuiMenuItemProps {
     onClick: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
     /**
+     * Do not use this prop. These are only used internally by Menu component to close menu.
+     */
+    forceCloseMenu?: () => void;
+
+    /**
+     * Do not use this prop. These are only used internally by Menu component to close submenus.
+     */
+    forceCloseSubMenu?: () => void;
+
+    /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
@@ -73,7 +92,8 @@ export interface Props extends MuiMenuItemProps {
 
 /**
  * To be used as a child of Menu component.
- * Checkout Compass's Menu Item(compass.mattermost.com)  for terminology, styling and usage guidelines.
+ * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
+ * Please use Menu.createMenuItemId to generate unique id for each menu item.
  *
  * @example
  * <Menu.Container>
@@ -89,6 +109,8 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
+        forceCloseMenu,
+        forceCloseSubMenu,
         ...restProps
     } = props;
 
@@ -97,7 +119,16 @@ export function MenuItem(props: Props) {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            onClick(event);
+            if (forceCloseSubMenu) {
+                forceCloseSubMenu();
+            }
+            if (forceCloseMenu) {
+                forceCloseMenu();
+            }
+
+            setTimeout(() => {
+                onClick(event);
+            }, MENU_CLOSE_ANIMATION_DURATION * 1.5);
         }
     }
 
@@ -118,6 +149,12 @@ export function MenuItem(props: Props) {
             {children}
         </MenuItemStyled>
     );
+}
+
+export const MENU_ITEM_KEY_PREFIX = 'MenuItemKey';
+
+export function createMenuItemId(menuItemName: string, ...uniqueValues: string[]) {
+    return createMenusUniqueId(MENU_ITEM_KEY_PREFIX, menuItemName, ...uniqueValues);
 }
 
 interface MenuItemStyledProps extends MuiMenuItemProps {
