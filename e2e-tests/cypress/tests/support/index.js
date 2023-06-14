@@ -217,6 +217,9 @@ function sysadminSetup(user) {
     // # Deactivate test bots if any
     cy.apiDeactivateTestBots();
 
+    // # Disable welcome tours if any
+    cy.apiDisableTutorials(user.id);
+
     // # Check if default team is present; create if not found.
     cy.apiGetTeamsForUser().then(({teams}) => {
         const defaultTeam = teams && teams.length > 0 && teams.find((team) => team.name === DEFAULT_TEAM.name);

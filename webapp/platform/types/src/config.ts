@@ -119,7 +119,6 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
-    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -774,6 +773,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {
@@ -819,7 +819,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
     EnablePlaybooks: boolean;
 };
 

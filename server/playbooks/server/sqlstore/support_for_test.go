@@ -10,16 +10,16 @@ import (
 
 	"github.com/blang/semver"
 
-	mock_app "github.com/mattermost/mattermost-server/server/v8/playbooks/server/app/mocks"
+	mock_app "github.com/mattermost/mattermost/server/v8/playbooks/server/app/mocks"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest"
-	"github.com/mattermost/mattermost-server/server/v8/playbooks/server/app"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/playbooks/server/app"
 )
 
 func getDriverName() string {

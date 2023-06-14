@@ -64,10 +64,6 @@ const OwnerControlComponent = (ownProps: ControlProps<ProfileOption, boolean>) =
     return controlComponent(ownProps, 'owners');
 };
 
-const TeamControlComponent = (ownProps: ControlProps<TeamOption, boolean>) => {
-    return controlComponent(ownProps, 'teams');
-};
-
 const PlaybookControlComponent = (ownProps: ControlProps<PlaybookOption, boolean>) => {
     return controlComponent(ownProps, 'playbooks');
 };
@@ -75,7 +71,6 @@ const PlaybookControlComponent = (ownProps: ControlProps<PlaybookOption, boolean
 const Filters = ({fetchParams, setFetchParams, fixedPlaybook, fixedFinished}: Props) => {
     const {formatMessage} = useIntl();
     const [profileSelectorToggle, setProfileSelectorToggle] = useState(false);
-    const [teamSelectorToggle, setTeamSelectorToggle] = useState(false);
     const [playbookSelectorToggle, setPlaybookSelectorToggle] = useState(false);
     const currentTeamId = useSelector(getCurrentTeamId);
 
@@ -89,12 +84,6 @@ const Filters = ({fetchParams, setFetchParams, fixedPlaybook, fixedFinished}: Pr
     const setOwnerId = (user?: UserProfile) => {
         setFetchParams((oldParams) => {
             return {...oldParams, owner_user_id: user?.id, page: 0};
-        });
-    };
-
-    const setTeamId = (teamId?: string) => {
-        setFetchParams((oldParams) => {
-            return {...oldParams, team_id: teamId, page: 0};
         });
     };
 
@@ -120,11 +109,6 @@ const Filters = ({fetchParams, setFetchParams, fixedPlaybook, fixedFinished}: Pr
     const resetOwner = () => {
         setOwnerId();
         setProfileSelectorToggle(!profileSelectorToggle);
-    };
-
-    const resetTeam = () => {
-        setTeamId();
-        setTeamSelectorToggle(!teamSelectorToggle);
     };
 
     const resetPlaybook = () => {

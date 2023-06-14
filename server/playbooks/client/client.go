@@ -16,7 +16,7 @@ import (
 	"strconv"
 
 	"github.com/google/go-querystring/query"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )

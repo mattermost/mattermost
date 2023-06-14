@@ -13,9 +13,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -1238,9 +1238,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("username", mockUser.Username, "")
 		command.Flags().String("password", mockUser.Password, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Equal("Email is required: flag accessed but not defined: email", error.Error())
+		s.Require().Equal("Email is required: flag accessed but not defined: email", err.Error())
 	})
 
 	s.Run("Create user with username missing", func() {
@@ -1250,9 +1250,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Equal("Username is required: flag accessed but not defined: username", error.Error())
+		s.Require().Equal("Username is required: flag accessed but not defined: username", err.Error())
 	})
 
 	s.Run("Create user with password missing", func() {
@@ -1262,9 +1262,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("username", mockUser.Username, "")
 		command.Flags().String("email", mockUser.Email, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Equal("Password is required: flag accessed but not defined: password", error.Error())
+		s.Require().Equal("Password is required: flag accessed but not defined: password", err.Error())
 	})
 
 	s.Run("Create a regular user", func() {
@@ -1281,9 +1281,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Nil(error)
+		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -1307,9 +1307,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("password", mockUser.Password, "")
 		command.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Nil(error)
+		s.Require().Nil(err)
 		printerLines := printer.GetLines()[0]
 		printedUser := printerLines.(*model.User)
 
@@ -1332,9 +1332,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Equal("Unable to create user. Error: remote error", error.Error())
+		s.Require().Equal("Unable to create user. Error: remote error", err.Error())
 	})
 
 	s.Run("Create a sysAdmin user", func() {
@@ -1358,9 +1358,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("password", mockUser.Password, "")
 		command.Flags().Bool("system-admin", true, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Nil(error)
+		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -1386,9 +1386,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("password", mockUser.Password, "")
 		command.Flags().Bool("guest", true, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Nil(error)
+		s.Require().Nil(err)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -1414,9 +1414,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("password", mockUser.Password, "")
 		command.Flags().Bool("system-admin", true, "")
 
-		error := userCreateCmdF(s.client, &command, []string{})
+		err := userCreateCmdF(s.client, &command, []string{})
 
-		s.Require().Equal("Unable to update user roles. Error: remote error", error.Error())
+		s.Require().Equal("Unable to update user roles. Error: remote error", err.Error())
 	})
 }
 
@@ -1426,9 +1426,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		command := cobra.Command{}
 
-		error := updateUserEmailCmdF(s.client, &command, []string{})
+		err := updateUserEmailCmdF(s.client, &command, []string{})
 
-		s.Require().EqualError(error, "expected two arguments. See help text for details")
+		s.Require().EqualError(err, "expected two arguments. See help text for details")
 	})
 
 	s.Run("Invalid email provided", func() {
@@ -1438,9 +1438,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 		emailArg := "invalidEmail"
 		command := cobra.Command{}
 
-		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().EqualError(error, "invalid email: 'invalidEmail'")
+		s.Require().EqualError(err, "invalid email: 'invalidEmail'")
 	})
 
 	s.Run("User not found using email, username or id as identifier", func() {
@@ -1562,9 +1562,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
-		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().Nil(error)
+		s.Require().Nil(err)
 		s.Require().Equal(&updatedUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
