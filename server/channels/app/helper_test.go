@@ -253,12 +253,6 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) InitBasicWithAppsSidebarEnabled() *TestHelper {
-	th.App.Config().FeatureFlags.AppsSidebarCategory = true
-
-	return th.InitBasic()
-}
-
 func (th *TestHelper) DeleteBots() *TestHelper {
 	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
