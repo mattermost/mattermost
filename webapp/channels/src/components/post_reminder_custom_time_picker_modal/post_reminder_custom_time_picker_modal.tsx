@@ -75,7 +75,6 @@ function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actio
             id='PostReminderCustomTimePickerModal'
             className={'post-reminder-modal'}
             compassDesign={true}
-            enforceFocus={true}
             keyboardEscape={false}
         >
             <DateTimeInput
