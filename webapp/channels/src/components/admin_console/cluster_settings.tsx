@@ -10,7 +10,6 @@ import {Client4} from 'mattermost-redux/client';
 import * as Utils from 'utils/utils';
 
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-import {DeepPartial} from '@mattermost/types/utilities';
 
 import ExternalLink from 'components/external_link';
 
@@ -23,7 +22,7 @@ import TextSetting from './text_setting';
 export type ClusterSettingsProps = BaseProps & {
     license: ClientLicense;
 };
-type State = BaseState & ClusterSettingsType;
+type State = BaseState & { Enable: boolean; ClusterName: string; OverrideHostname: string; UseIPAddress: boolean; EnableExperimentalGossipEncryption: boolean; EnableGossipCompression: boolean; GossipPort: number; StreamingPort: number; showWarning: boolean };
 
 export default class ClusterSettings extends AdminSettings<ClusterSettingsProps, State> {
     getConfigFromState = (config: AdminConfig) => {
@@ -38,8 +37,8 @@ export default class ClusterSettings extends AdminSettings<ClusterSettingsProps,
         return config;
     };
 
-    getStateFromConfig(config: DeepPartial<AdminConfig>): Partial<State> {
-        const settings = config.ClusterSettings as ClusterSettingsType;
+    getStateFromConfig(config: ClusterSettingsProps['config']) {
+        const settings = config.ClusterSettings!;
 
         return {
             Enable: settings.Enable,
