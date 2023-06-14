@@ -3,8 +3,9 @@
 
 import React from 'react';
 
+import {render, screen} from 'tests/react_testing_utils';
+
 import PostEmoji from './post_emoji';
-import {render, screen} from '@testing-library/react';
 
 describe('PostEmoji', () => {
     const baseProps = {

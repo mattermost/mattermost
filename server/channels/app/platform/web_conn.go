@@ -20,10 +20,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vmihailenco/msgpack/v5"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -108,7 +108,7 @@ type WebConn struct {
 	// leave that as an edge-case.
 	reuseCount   int
 	sessionToken atomic.Value
-	session      atomic.Value
+	session      atomic.Pointer[model.Session]
 	connectionID atomic.Value
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
@@ -304,7 +304,7 @@ func areAllInactive(conns []*WebConn) bool {
 
 // GetSession returns the session of the connection.
 func (wc *WebConn) GetSession() *model.Session {
-	return wc.session.Load().(*model.Session)
+	return wc.session.Load()
 }
 
 // SetSession sets the session of the connection.

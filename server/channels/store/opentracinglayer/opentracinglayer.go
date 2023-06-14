@@ -10,57 +10,58 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 type OpenTracingLayer struct {
 	store.Store
-	AuditStore                store.AuditStore
-	BotStore                  store.BotStore
-	ChannelStore              store.ChannelStore
-	ChannelMemberHistoryStore store.ChannelMemberHistoryStore
-	ClusterDiscoveryStore     store.ClusterDiscoveryStore
-	CommandStore              store.CommandStore
-	CommandWebhookStore       store.CommandWebhookStore
-	ComplianceStore           store.ComplianceStore
-	DraftStore                store.DraftStore
-	EmojiStore                store.EmojiStore
-	FileInfoStore             store.FileInfoStore
-	GroupStore                store.GroupStore
-	JobStore                  store.JobStore
-	LicenseStore              store.LicenseStore
-	LinkMetadataStore         store.LinkMetadataStore
-	NotifyAdminStore          store.NotifyAdminStore
-	OAuthStore                store.OAuthStore
-	PluginStore               store.PluginStore
-	PostStore                 store.PostStore
-	PostAcknowledgementStore  store.PostAcknowledgementStore
-	PostPriorityStore         store.PostPriorityStore
-	PreferenceStore           store.PreferenceStore
-	ProductNoticesStore       store.ProductNoticesStore
-	ReactionStore             store.ReactionStore
-	RemoteClusterStore        store.RemoteClusterStore
-	RetentionPolicyStore      store.RetentionPolicyStore
-	RoleStore                 store.RoleStore
-	SchemeStore               store.SchemeStore
-	SessionStore              store.SessionStore
-	SharedChannelStore        store.SharedChannelStore
-	StatusStore               store.StatusStore
-	SystemStore               store.SystemStore
-	TeamStore                 store.TeamStore
-	TermsOfServiceStore       store.TermsOfServiceStore
-	ThreadStore               store.ThreadStore
-	TokenStore                store.TokenStore
-	TrueUpReviewStore         store.TrueUpReviewStore
-	UploadSessionStore        store.UploadSessionStore
-	UserStore                 store.UserStore
-	UserAccessTokenStore      store.UserAccessTokenStore
-	UserTermsOfServiceStore   store.UserTermsOfServiceStore
-	WebhookStore              store.WebhookStore
+	AuditStore                      store.AuditStore
+	BotStore                        store.BotStore
+	ChannelStore                    store.ChannelStore
+	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
+	ClusterDiscoveryStore           store.ClusterDiscoveryStore
+	CommandStore                    store.CommandStore
+	CommandWebhookStore             store.CommandWebhookStore
+	ComplianceStore                 store.ComplianceStore
+	DraftStore                      store.DraftStore
+	EmojiStore                      store.EmojiStore
+	FileInfoStore                   store.FileInfoStore
+	GroupStore                      store.GroupStore
+	JobStore                        store.JobStore
+	LicenseStore                    store.LicenseStore
+	LinkMetadataStore               store.LinkMetadataStore
+	NotifyAdminStore                store.NotifyAdminStore
+	OAuthStore                      store.OAuthStore
+	PluginStore                     store.PluginStore
+	PostStore                       store.PostStore
+	PostAcknowledgementStore        store.PostAcknowledgementStore
+	PostPersistentNotificationStore store.PostPersistentNotificationStore
+	PostPriorityStore               store.PostPriorityStore
+	PreferenceStore                 store.PreferenceStore
+	ProductNoticesStore             store.ProductNoticesStore
+	ReactionStore                   store.ReactionStore
+	RemoteClusterStore              store.RemoteClusterStore
+	RetentionPolicyStore            store.RetentionPolicyStore
+	RoleStore                       store.RoleStore
+	SchemeStore                     store.SchemeStore
+	SessionStore                    store.SessionStore
+	SharedChannelStore              store.SharedChannelStore
+	StatusStore                     store.StatusStore
+	SystemStore                     store.SystemStore
+	TeamStore                       store.TeamStore
+	TermsOfServiceStore             store.TermsOfServiceStore
+	ThreadStore                     store.ThreadStore
+	TokenStore                      store.TokenStore
+	TrueUpReviewStore               store.TrueUpReviewStore
+	UploadSessionStore              store.UploadSessionStore
+	UserStore                       store.UserStore
+	UserAccessTokenStore            store.UserAccessTokenStore
+	UserTermsOfServiceStore         store.UserTermsOfServiceStore
+	WebhookStore                    store.WebhookStore
 }
 
 func (s *OpenTracingLayer) Audit() store.AuditStore {
@@ -141,6 +142,10 @@ func (s *OpenTracingLayer) Post() store.PostStore {
 
 func (s *OpenTracingLayer) PostAcknowledgement() store.PostAcknowledgementStore {
 	return s.PostAcknowledgementStore
+}
+
+func (s *OpenTracingLayer) PostPersistentNotification() store.PostPersistentNotificationStore {
+	return s.PostPersistentNotificationStore
 }
 
 func (s *OpenTracingLayer) PostPriority() store.PostPriorityStore {
@@ -328,6 +333,11 @@ type OpenTracingLayerPostStore struct {
 
 type OpenTracingLayerPostAcknowledgementStore struct {
 	store.PostAcknowledgementStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerPostPersistentNotificationStore struct {
+	store.PostPersistentNotificationStore
 	Root *OpenTracingLayer
 }
 
@@ -809,7 +819,7 @@ func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(userID str
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CreateSidebarCategory")
 	s.Root.Store.SetContext(newCtx)
@@ -818,7 +828,7 @@ func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userID string, team
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory, options...)
+	result, err := s.ChannelStore.CreateSidebarCategory(userID, teamID, newCategory)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1035,24 +1045,6 @@ func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit 
 
 	defer span.Finish()
 	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerChannelStore) GetBotChannelsByUser(userID string, opts store.ChannelSearchOpts) (model.ChannelList, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetBotChannelsByUser")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.ChannelStore.GetBotChannelsByUser(userID, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1758,7 +1750,7 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategories(userID string, opts 
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string, options ...*store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+func (s *OpenTracingLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetSidebarCategoriesForTeamForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -1767,7 +1759,7 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID, options...)
+	result, err := s.ChannelStore.GetSidebarCategoriesForTeamForUser(userID, teamID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1776,7 +1768,7 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategoriesForTeamForUser(userID
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetSidebarCategory(categoryID string, options ...*store.SidebarCategorySearchOpts) (*model.SidebarCategoryWithChannels, error) {
+func (s *OpenTracingLayerChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetSidebarCategory")
 	s.Root.Store.SetContext(newCtx)
@@ -1785,7 +1777,7 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategory(categoryID string, opt
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetSidebarCategory(categoryID, options...)
+	result, err := s.ChannelStore.GetSidebarCategory(categoryID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -2618,7 +2610,7 @@ func (s *OpenTracingLayerChannelStore) UpdateMultipleMembers(members []*model.Ch
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels, options ...*store.SidebarCategorySearchOpts) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
+func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateSidebarCategories")
 	s.Root.Store.SetContext(newCtx)
@@ -2627,7 +2619,7 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userID string, te
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories, options...)
+	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6837,6 +6829,132 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Save(postID string, userID st
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) Delete(postIds []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.Delete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.Delete(postIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.DeleteByChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.DeleteByChannel(channelIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) DeleteByTeam(teamIds []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.DeleteByTeam")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.DeleteByTeam(teamIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.DeleteExpired")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.DeleteExpired(maxSentCount)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostPersistentNotificationStore.Get(params)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) GetSingle(postID string) (*model.PostPersistentNotifications, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.GetSingle")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostPersistentNotificationStore.GetSingle(postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostPersistentNotificationStore) UpdateLastActivity(postIds []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.UpdateLastActivity")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostPersistentNotificationStore.UpdateLastActivity(postIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
@@ -12942,6 +13060,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.PluginStore = &OpenTracingLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &OpenTracingLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &OpenTracingLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
+	newStore.PostPersistentNotificationStore = &OpenTracingLayerPostPersistentNotificationStore{PostPersistentNotificationStore: childStore.PostPersistentNotification(), Root: &newStore}
 	newStore.PostPriorityStore = &OpenTracingLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
 	newStore.PreferenceStore = &OpenTracingLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &OpenTracingLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}

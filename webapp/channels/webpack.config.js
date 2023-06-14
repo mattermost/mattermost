@@ -15,7 +15,6 @@ const {ModuleFederationPlugin} = require('webpack').container;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest');
-const LiveReloadPlugin = require('webpack-livereload-plugin');
 
 // const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
@@ -134,7 +133,6 @@ var config = {
         alias: {
             'mattermost-redux/test': 'packages/mattermost-redux/test',
             'mattermost-redux': 'packages/mattermost-redux/src',
-            reselect: 'packages/reselect/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
@@ -170,7 +168,6 @@ var config = {
         new CopyWebpackPlugin({
             patterns: [
                 {from: 'src/images/emoji', to: 'emoji'},
-                {from: 'src/images/worktemplates', to: 'worktemplates'},
                 {from: 'src/images/img_trans.gif', to: 'images'},
                 {from: 'src/images/logo-email.png', to: 'images'},
                 {from: 'src/images/circles.png', to: 'images'},
@@ -282,15 +279,10 @@ if (DEV) {
     config.plugins.push({
         apply: (compiler) => {
             compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
-                const boardsDist = path.resolve(__dirname, '../boards/dist');
-                const boardsSymlink = './dist/products/boards';
                 const playbooksDist = path.resolve(__dirname, '../playbooks/dist');
                 const playbooksSymlink = './dist/products/playbooks';
 
                 fs.mkdir('./dist/products', () => {
-                    if (!fs.existsSync(boardsSymlink)) {
-                        fs.symlinkSync(boardsDist, boardsSymlink, 'dir');
-                    }
                     if (!fs.existsSync(playbooksSymlink)) {
                         fs.symlinkSync(playbooksDist, playbooksSymlink, 'dir');
                     }
@@ -337,7 +329,6 @@ async function initializeModuleFederation() {
 
     async function getRemoteContainers() {
         const products = [
-            {name: 'boards'},
             {name: 'playbooks'},
         ];
 
@@ -385,7 +376,7 @@ async function initializeModuleFederation() {
 
     // Desktop specific code for remote module loading
     moduleFederationPluginOptions.exposes = {
-        './app': 'components/app.jsx',
+        './app': 'components/app',
         './store': 'stores/redux_store.jsx',
         './styles': './src/sass/styles.scss',
         './registry': 'module_registry',
@@ -412,20 +403,11 @@ if (DEV) {
     config.devtool = 'source-map';
 }
 
-const env = {
-    STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY || ''),
-};
+const env = {};
 if (DEV) {
     env.PUBLIC_PATH = JSON.stringify(publicPath);
-    env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
-    env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
-    if (process.env.MM_LIVE_RELOAD) {
-        config.plugins.push(new LiveReloadPlugin());
-    }
 } else {
     env.NODE_ENV = JSON.stringify('production');
-    env.RUDDER_KEY = JSON.stringify(process.env.RUDDER_KEY || '');
-    env.RUDDER_DATAPLANE_URL = JSON.stringify(process.env.RUDDER_DATAPLANE_URL || '');
 }
 
 config.plugins.push(new webpack.DefinePlugin({

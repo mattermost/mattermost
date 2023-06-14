@@ -1,0 +1,24 @@
+---
+name: Push mirrored docker images
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - server/scripts/mirror-docker-images.*
+
+jobs:
+  build-docker:
+    name: cd/Push mirrored docker images
+    runs-on: ubuntu-22.04
+    steps:
+      - name: cd/Login to Docker Hub
+        uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+      - name: cd/Run image upload script
+        env:
+          IMAGES_FILE: server/scripts/mirror-docker-images.json
+          DRY_RUN: no
+        run: ./server/scripts/mirror-docker-images.sh

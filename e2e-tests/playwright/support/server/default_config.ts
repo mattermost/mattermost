@@ -170,6 +170,11 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        AllowPersistentNotifications: true,
+        PersistentNotificationMaxCount: 6,
+        PersistentNotificationMaxRecipients: 5,
+        PersistentNotificationIntervalMinutes: 5,
+        AllowPersistentNotificationsForGuests: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -561,6 +566,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',
@@ -601,7 +607,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupConfigThresholdDays: -1,
     },
     ProductSettings: {
-        EnablePublicSharedBoards: false,
+        EnablePlaybooks: true,
     },
     PluginSettings: {
         Enable: true,
@@ -612,9 +618,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
@@ -668,7 +671,6 @@ const defaultServerConfig: AdminConfig = {
         InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
-        WorkTemplate: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
@@ -678,7 +680,6 @@ const defaultServerConfig: AdminConfig = {
         GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        AppsSidebarCategory: false,
         CloudReverseTrial: false,
     },
     ImportSettings: {

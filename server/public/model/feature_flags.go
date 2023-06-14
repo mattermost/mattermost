@@ -41,9 +41,6 @@ type FeatureFlags struct {
 
 	NormalizeLdapDNs bool
 
-	// Enable special onboarding flow for first admin
-	UseCaseOnboarding bool
-
 	// Enable GraphQL feature
 	GraphQL bool
 
@@ -53,8 +50,6 @@ type FeatureFlags struct {
 
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
-
-	WorkTemplate bool
 
 	PostPriority bool
 
@@ -77,8 +72,6 @@ type FeatureFlags struct {
 
 	DeprecateCloudFree bool
 
-	AppsSidebarCategory bool
-
 	CloudReverseTrial bool
 }
 
@@ -93,15 +86,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsFeatureFlags = ""
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
-	f.UseCaseOnboarding = true
 	f.GraphQL = false
-	f.InsightsEnabled = true
+	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
-	f.WorkTemplate = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = true
@@ -109,7 +100,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WysiwygEditor = false
 	f.OnboardingAutoShowLinkedBoard = false
 	f.OnboardingTourTips = true
-	f.AppsSidebarCategory = false
 	f.CloudReverseTrial = false
 }
 

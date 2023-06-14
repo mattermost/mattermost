@@ -1,6 +1,6 @@
 # Mattermost Web App
 
-This folder contains the client code for the Mattermost web app. It's broken up into multiple packages each of which either contains an area of the app (such as `playbooks` or `boards`) or shared logic used across other packages (such as the packages located in the `platform` directory). For anyone who's used to working in [the mattermost/mattermost-webapp repo](https://github.com/mattermost/mattermost-webapp), most of that is now located in `channels`.
+This folder contains the client code for the Mattermost web app. It's broken up into multiple packages each of which either contains an area of the app (such as `playbooks`) or shared logic used across other packages (such as the packages located in the `platform` directory). For anyone who's used to working in [the mattermost/mattermost-webapp repo](https://github.com/mattermost/mattermost-webapp), most of that is now located in `channels`.
 
 ## npm Workspaces
 
@@ -8,10 +8,10 @@ To interact with a workspace using npm, such as to add a dependency or run a scr
 
 ```sh
 # Add a dependency to a single package
-npm add react --workspace=boards
+npm add react --workspace=playbooks
 
 # Build multiple packages
-npm run build --workspace=packages/client --workspace=packages/components
+npm run build --workspace=platform/client --workspace=platform/components
 
 # Test all workspaces
 npm test --workspaces

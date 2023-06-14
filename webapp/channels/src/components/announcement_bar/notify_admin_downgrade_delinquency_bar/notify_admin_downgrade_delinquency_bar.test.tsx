@@ -2,11 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react';
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import * as reactRedux from 'react-redux';
 
 import configureStore from 'store';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {
+    fireEvent,
+    renderWithIntl,
+    screen,
+    waitFor,
+} from 'tests/react_testing_utils';
 import {CloudProducts, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';

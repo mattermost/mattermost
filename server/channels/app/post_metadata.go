@@ -19,12 +19,12 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"golang.org/x/net/idna"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/markdown"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/imgutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
 
 type linkMetadataCache struct {
@@ -63,7 +63,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 		list.Posts[id] = post
 	}
 
-	if a.isPostPriorityEnabled() {
+	if a.IsPostPriorityEnabled() {
 		priority, _ := a.GetPriorityForPostList(list)
 		acknowledgements, _ := a.GetAcknowledgementsForPostList(list)
 
@@ -139,7 +139,7 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 		post.Metadata.Files = fileInfos
 	}
 
-	if includePriority && a.isPostPriorityEnabled() && post.RootId == "" {
+	if includePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
 			mlog.Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))

@@ -20,6 +20,7 @@ export function globalSettingsSetDefaults(globalSettings?: Partial<GlobalSetting
     }
 
     // Strip bad values from partial
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const fixedGlobalSettings = Object.fromEntries(Object.entries(globalSettings).filter(([_, value]) => value !== null));
 
     return {...defaults, ...fixedGlobalSettings};
