@@ -234,7 +234,7 @@ func (a *App) createOnboardingLinkedBoard(c request.CTX, teamId string) (*fb_mod
 		return nil, appErr
 	}
 
-	var template *fb_model.Board = nil
+	var template *fb_model.Board
 	for _, t := range templates {
 		v := t.Properties["trackingTemplateId"]
 		if v == welcomeToBoardsTemplateId {
@@ -956,11 +956,9 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:              team.Id,
-		ExcludeTeam:         false,
-		AppsCategoryEnabled: appsCategoryEnabled,
+		TeamID:      team.Id,
+		ExcludeTeam: false,
 	}
 	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(

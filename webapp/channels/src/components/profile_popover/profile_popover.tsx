@@ -50,7 +50,7 @@ import BotTag from '../widgets/tag/bot_tag';
 import GuestTag from '../widgets/tag/guest_tag';
 import Tag from '../widgets/tag/tag';
 
-interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
+export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Popover>, 'id'> {
 
     /**
      * Source URL from the image to display in the popover
