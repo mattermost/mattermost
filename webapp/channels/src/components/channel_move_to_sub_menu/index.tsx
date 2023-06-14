@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, MouseEvent, KeyboardEvent} from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -56,9 +56,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
         return currentTeam ? getCategoryInTeamWithChannel(state, currentTeam?.id || '', props.channel.id) : undefined;
     });
 
-    function handleMoveToCategory(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>, categoryId: string) {
-        event.preventDefault();
-
+    function handleMoveToCategory(categoryId: string) {
         if (currentCategory?.id !== categoryId) {
             dispatch(addChannelsInSidebar(categoryId, props.channel.id));
             trackEvent('ui', 'ui_sidebar_channel_menu_moveToExistingCategory');
@@ -114,7 +112,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
                     leadingElement={category.type === CategoryTypes.FAVORITES ? (<StarOutlineIcon size={18}/>) : (<FolderOutlineIcon size={18}/>)}
                     labels={text}
                     trailingElements={selectedCategory}
-                    onClick={(event) => handleMoveToCategory(event, category.id)}
+                    onClick={() => handleMoveToCategory(category.id)}
                 />
             );
         });
