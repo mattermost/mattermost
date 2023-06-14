@@ -2025,6 +2025,10 @@ func TestPatchBotUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
 	bot := th.CreateBotWithSystemAdminClient()
 	patch := &model.UserPatch{}
 	patch.Email = model.NewString("Anything")
