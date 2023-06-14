@@ -13,9 +13,12 @@ import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/thre
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
+import Permissions from 'mattermost-redux/constants/permissions';
+
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
 
@@ -43,7 +46,6 @@ import {allAtMentions} from 'utils/text_formatting';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 
 import {Post} from '@mattermost/types/posts';
-import {setGlobalItem} from '../../actions/storage';
 
 import DotMenu from './dot_menu';
 
@@ -77,6 +79,8 @@ function makeMapStateToProps() {
 
         const systemMessage = isSystemMessage(post);
         const collapsedThreads = isCollapsedThreadsEnabled(state);
+        const teamId = getCurrentTeamId(state);
+        const canAddReaction = haveIChannelPermission(state, teamId, post.channel_id, Permissions.ADD_REACTION);
 
         const rootId = post.root_id || post.id;
         let threadId = rootId;
@@ -128,6 +132,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
+            canAddReaction,
         };
     };
 }
@@ -141,7 +146,6 @@ type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     markPostAsUnread: (post: Post) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-    setGlobalItem: (name: string, value: any) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
@@ -155,7 +159,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             openModal,
             markPostAsUnread,
             setThreadFollow,
-            setGlobalItem,
         }, dispatch),
     };
 }

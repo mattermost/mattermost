@@ -5,6 +5,9 @@ import React from 'react';
 import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
 
+import {UserThread} from '@mattermost/types/threads';
+import {Post} from '@mattermost/types/posts';
+
 import {
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
@@ -23,24 +26,17 @@ import {
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
-import Permissions from 'mattermost-redux/constants/permissions';
-
+import {ModalData} from 'types/actions';
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
-import DeletePostModal from 'components/delete_post_modal';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
-import * as Menu from 'components/menu';
 import * as Utils from 'utils/utils';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import {ModalData} from 'types/actions';
+import DeletePostModal from 'components/delete_post_modal';
+import * as Menu from 'components/menu';
 
-import {UserThread} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
 import ForwardPostModal from '../forward_post_modal';
-
 import {ChangeEvent, trackDotMenuEvent} from './utils';
-
 import './dot_menu.scss';
 import {PostReminderSubmenu} from './post_reminder_submenu';
 
@@ -73,6 +69,7 @@ type Props = {
     isMobileView: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
+    canAddReaction: boolean;
 
     actions: {
 
@@ -115,12 +112,6 @@ type Props = {
          * Function to set the thread as followed/unfollowed
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-
-        /**
-         * Function to set a global storage item on the store
-         */
-        setGlobalItem: (name: string, value: any) => void;
-
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -146,7 +137,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         location: Locations.CENTER,
     };
     private editDisableAction: DelayedAction;
-    private buttonRef: React.RefObject<HTMLButtonElement>;
     private canPostBeForwarded: boolean;
 
     constructor(props: Props) {
@@ -160,8 +150,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             canDelete: props.canDelete && !props.isReadOnly,
         };
 
-        this.buttonRef = React.createRef<HTMLButtonElement>();
-
         this.canPostBeForwarded = false;
     }
 
@@ -173,7 +161,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         return state;
     }
 
-    disableCanEditPostByTime(): void {
+    disableCanEditPostByTime() {
         const {post, isLicensed} = this.props;
         const {canEdit} = this.state;
 
@@ -190,32 +178,29 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         }
     }
 
-    componentDidMount(): void {
+    componentDidMount() {
         this.disableCanEditPostByTime();
     }
 
-    componentWillUnmount(): void {
+    componentWillUnmount() {
         this.editDisableAction.cancel();
     }
 
-    handleEditDisable = (): void => {
+    handleEditDisable = () => {
         this.setState({canEdit: false});
     };
 
-    handleFlagMenuItemActivated = (e: ChangeEvent): void => {
+    handleFlagMenuItemActivated = (e: ChangeEvent) => {
         if (this.props.isFlagged) {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNSAVE);
             this.props.actions.unflagPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.UNSAVE);
         } else {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
             this.props.actions.flagPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
         }
     };
 
-    // listen to clicks/taps on add reaction menu item and pass to parent handler
-    handleAddReactionMenuItemActivated = (e: ChangeEvent): void => {
-        e.preventDefault();
-
+    handleAddReactionMenuItemActivated = () => {
         // to be safe, make sure the handler function has been defined
         if (this.props.handleAddReactionClick) {
             this.props.handleAddReactionClick();
@@ -223,35 +208,31 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     copyLink = (e: ChangeEvent) => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
         Utils.copyToClipboard(`${this.props.teamUrl}/pl/${this.props.post.id}`);
+        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
     };
 
     copyText = (e: ChangeEvent) => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
         Utils.copyToClipboard(this.props.post.message);
+        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
     };
 
     handlePinMenuItemActivated = (e: ChangeEvent): void => {
         if (this.props.post.is_pinned) {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNPIN);
             this.props.actions.unpinPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.UNPIN);
         } else {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
             this.props.actions.pinPost(this.props.post.id);
+            trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
         }
     };
 
     handleMarkPostAsUnread = (e: ChangeEvent): void => {
-        e.preventDefault();
-        trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
         this.props.actions.markPostAsUnread(this.props.post, this.props.location);
+        trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
     };
 
     handleDeleteMenuItemActivated = (e: ChangeEvent): void => {
-        e.preventDefault();
-
-        trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
         const deletePostModalData = {
             modalId: ModalIdentifiers.DELETE_POST,
             dialogType: DeletePostModal,
@@ -262,6 +243,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(deletePostModalData);
+
+        trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
     };
 
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
@@ -270,8 +253,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             // since a user can always use the Shortcuts to activate the function as well
             return;
         }
-
-        e.preventDefault();
 
         trackDotMenuEvent(e, TELEMETRY_LABELS.FORWARD);
         const forwardPostModalData = {
@@ -286,7 +267,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleEditMenuItemActivated = (e: ChangeEvent): void => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
         this.props.handleDropdownOpened?.(false);
         this.props.actions.setEditingPost(
             this.props.post.id,
@@ -294,6 +274,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.post.root_id ? Utils.localizeMessage('rhs_comment.comment', 'Comment') : Utils.localizeMessage('create_post.post', 'Post'),
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
+        trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
     };
 
     handleSetThreadFollow = (e: ChangeEvent) => {
@@ -325,13 +306,11 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    isKeyboardEvent = (e: React.KeyboardEvent): any => {
-        return (e).getModifierState !== undefined;
-    };
-
     onShortcutKeyDown = (e: React.KeyboardEvent): void => {
         e.preventDefault();
-        if (!this.isKeyboardEvent(e)) {
+
+        // Check if the event is a keyboard event and not a mouse click event
+        if (e.getModifierState === undefined) {
             return;
         }
 
@@ -414,11 +393,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
-        const deleteShortcutText = (
-            <span>
-                {'delete'}
-            </span>
-        );
 
         this.canPostBeForwarded = !(isSystemMessage);
 
@@ -540,26 +514,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleForwardMenuItemActivated}
                     />
                 }
-                <ChannelPermissionGate
-                    channelId={this.props.post.channel_id}
-                    teamId={this.props.teamId}
-                    permissions={[Permissions.ADD_REACTION]}
-                >
-                    {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
-                        <Menu.Item
-                            id={`post_reaction_${this.props.post.id}`}
-                            data-testid={`post_reaction_${this.props.post.id}`}
-                            labels={
-                                <FormattedMessage
-                                    id='rhs_root.mobile.add_reaction'
-                                    defaultMessage='Add Reaction'
-                                />
-                            }
-                            leadingElement={<EmoticonPlusOutlineIcon size={18}/>}
-                            onClick={this.handleAddReactionMenuItemActivated}
+
+                {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker && this.props.canAddReaction) &&
+                <Menu.Item
+                    id={`post_reaction_${this.props.post.id}`}
+                    data-testid={`post_reaction_${this.props.post.id}`}
+                    labels={
+                        <FormattedMessage
+                            id='rhs_root.mobile.add_reaction'
+                            defaultMessage='Add Reaction'
                         />
                     }
-                </ChannelPermissionGate>
+                    leadingElement={<EmoticonPlusOutlineIcon size={18}/>}
+                    onClick={this.handleAddReactionMenuItemActivated}
+                />
+                }
                 {Boolean(
                     !isSystemMessage &&
                         this.props.isCollapsedThreadsEnabled &&
@@ -670,7 +639,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         id={`delete_post_${this.props.post.id}`}
                         data-testid={`delete_post_${this.props.post.id}`}
                         leadingElement={<TrashCanOutlineIcon size={18}/>}
-                        trailingElements={deleteShortcutText}
+                        trailingElements={<span>{'delete'}</span>}
                         labels={
                             <FormattedMessage
                                 id='post_info.del'
