@@ -956,11 +956,9 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		return nil, model.NewAppError("JoinUserToTeam", "app.user.update_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appsCategoryEnabled := a.Config().FeatureFlags.AppsSidebarCategory
 	opts := &store.SidebarCategorySearchOpts{
-		TeamID:              team.Id,
-		ExcludeTeam:         false,
-		AppsCategoryEnabled: appsCategoryEnabled,
+		TeamID:      team.Id,
+		ExcludeTeam: false,
 	}
 	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(

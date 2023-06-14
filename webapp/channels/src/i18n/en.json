@@ -5467,6 +5467,7 @@
   "user.settings.notifications.desktop.allNoSound": "For all activity, without sound",
   "user.settings.notifications.desktop.allSound": "For all activity, with sound",
   "user.settings.notifications.desktop.allSoundHidden": "For all activity",
+  "user.settings.notifications.desktop.calls_sound": "Notification sound for incoming calls",
   "user.settings.notifications.desktop.mentionsNoSound": "For mentions and direct messages, without sound",
   "user.settings.notifications.desktop.mentionsSound": "For mentions and direct messages, with sound",
   "user.settings.notifications.desktop.mentionsSoundHidden": "For mentions and direct messages",
