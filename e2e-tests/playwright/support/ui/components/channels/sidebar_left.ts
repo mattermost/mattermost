@@ -20,10 +20,10 @@ export default class ChannelsSidebarLeft {
     /**
      * Clicks on the sidebar channel link with the given name.
      * It can be any sidebar item name including channels, direct messages, or group messages, threads, etc.
-     * @param channelName 
+     * @param channelName
      */
     async goToItem(channelName: string) {
-        const channel = this.container.locator(`#sidebarItem_${channelName}`)
+        const channel = this.container.locator(`#sidebarItem_${channelName}`);
         await channel.waitFor();
         await channel.click();
     }

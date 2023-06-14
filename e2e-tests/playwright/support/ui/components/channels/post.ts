@@ -11,7 +11,7 @@ export default class ChannelsPost {
 
     readonly replyThreadButton;
     readonly removePostButton;
-    
+
     readonly postActionReplyButton;
     readonly postActionMoreButton;
 
@@ -19,12 +19,12 @@ export default class ChannelsPost {
         this.container = container;
 
         this.body = container.locator('.post__body');
-        
+
         this.profileIcon = container.locator('.profile-icon');
 
         this.replyThreadButton = container.locator('.ReplyButton');
         this.removePostButton = container.locator('.post__remove');
-        
+
         this.postActionReplyButton = container.getByRole('button', {name: 'reply'});
         this.postActionMoreButton = container.getByRole('button', {name: 'more'});
     }
@@ -66,8 +66,8 @@ export default class ChannelsPost {
      */
     async clickOnRemovePost() {
         // Verify the post is a deleted post
-        await expect(this.container).toContainText(/\(message deleted\)/)
-    
+        await expect(this.container).toContainText(/\(message deleted\)/);
+
         // Hover over the post and click on the remove post button
         await this.container.hover();
         await this.removePostButton.waitFor();
@@ -82,7 +82,6 @@ export default class ChannelsPost {
         await this.postActionMoreButton.waitFor();
         await this.postActionMoreButton.click();
     }
-
 }
 
 export {ChannelsPost};

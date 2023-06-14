@@ -32,7 +32,6 @@ export default class ChannelsSidebarRight {
 
     /**
      * Returns the value of the textbox in RHS
-     * @returns 
      */
     async getTextboxValue() {
         return await this.input.inputValue();

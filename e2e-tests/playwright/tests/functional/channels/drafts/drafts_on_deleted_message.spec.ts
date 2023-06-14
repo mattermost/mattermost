@@ -10,7 +10,7 @@ import {test, expect} from '@e2e-support/test_fixture';
 import {createRandomPost} from '@e2e-support/server/post';
 import {createRandomChannel} from '@e2e-support/server';
 
-test('MM-XXX : Gloabl Drafts link in sidebar should be hidden when another user deleted root post and user removes the deleted post ', async ({
+test('MM-T5435_1 Gloabl Drafts link in sidebar should be hidden when another user deleted root post and user removes the deleted post ', async ({
     pw,
     pages,
 }) => {
@@ -108,10 +108,7 @@ test('MM-XXX : Gloabl Drafts link in sidebar should be hidden when another user 
     await channelPage.sidebarLeft.draftsDoesntExist();
 });
 
-test('MM-XXX : Gloabl Drafts link in sidebar should be hidden when user deletes root post ', async ({
-    pw,
-    pages,
-}) => {
+test('MM-T5435_2 Gloabl Drafts link in sidebar should be hidden when user deletes root post ', async ({pw, pages}) => {
     const {team, user, userClient} = await pw.initSetup();
 
     try {
