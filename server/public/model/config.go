@@ -2864,13 +2864,9 @@ func (s *CloudSettings) SetDefaults() {
 }
 
 type ProductSettings struct {
-	EnablePlaybooks *bool
 }
 
 func (s *ProductSettings) SetDefaults() {
-	if s.EnablePlaybooks == nil {
-		s.EnablePlaybooks = NewBool(true)
-	}
 }
 
 type PluginState struct {
@@ -2936,6 +2932,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdPlaybooks] == nil {
+		// Enable the playbooks plugin by default
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

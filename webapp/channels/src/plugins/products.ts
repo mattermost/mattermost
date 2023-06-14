@@ -3,7 +3,6 @@
 
 import {Store} from 'redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
@@ -33,8 +32,8 @@ function configureClient() {
 
 function loadRemoteModules() {
     /* eslint-disable no-console */
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const config = getConfig(getState());
+    return async (/*dispatch: DispatchFunc, getState: GetStateFunc*/) => {
+        // const config = getConfig(getState());
 
         /**
          * products contains a map of product IDs to a function that will load all of their parts. Calling that
@@ -43,17 +42,7 @@ function loadRemoteModules() {
          * Note that these import paths must be statically defined or else they won't be found at runtime. They
          * can't be constructed based on the name of a product at runtime.
          */
-        let products = [
-            {
-                id: 'playbooks',
-                load: () => ({
-                    index: import('playbooks'),
-                }),
-            },
-        ];
-        if (config.EnablePlaybooks !== 'true') {
-            products = products.filter((p) => p.id !== 'playbooks');
-        }
+        const products: any[] = [ ];
 
         await Promise.all(products.map(async (product) => {
             if (!REMOTE_CONTAINERS[product.id]) {
