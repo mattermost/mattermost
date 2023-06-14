@@ -78,6 +78,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         onChange={[Function]}
         placeholder="E.g.: \\"Production\\" or \\"Staging\\""
         setByEnv={false}
+        type="input"
         value="test"
       />
       <AdminTextSetting
@@ -97,6 +98,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         onChange={[Function]}
         placeholder="E.g.: \\"app-server-01\\""
         setByEnv={false}
+        type="input"
         value=""
       />
       <BooleanSetting
@@ -209,6 +211,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         onChange={[Function]}
         placeholder="E.g.: \\"8074\\""
         setByEnv={false}
+        type="input"
         value={8074}
       />
       <AdminTextSetting
@@ -228,6 +231,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        type="input"
         value={8075}
       />
     </SettingsGroup>
@@ -352,6 +356,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"Production\\" or \\"Staging\\""
         setByEnv={false}
+        type="input"
         value="test"
       />
       <AdminTextSetting
@@ -371,6 +376,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"app-server-01\\""
         setByEnv={false}
+        type="input"
         value=""
       />
       <BooleanSetting
@@ -483,6 +489,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"8074\\""
         setByEnv={false}
+        type="input"
         value={8074}
       />
       <AdminTextSetting
@@ -502,6 +509,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        type="input"
         value={8075}
       />
     </SettingsGroup>
@@ -626,6 +634,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"Production\\" or \\"Staging\\""
         setByEnv={false}
+        type="input"
         value="test"
       />
       <AdminTextSetting
@@ -645,6 +654,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"app-server-01\\""
         setByEnv={false}
+        type="input"
         value=""
       />
       <BooleanSetting
@@ -757,6 +767,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"8074\\""
         setByEnv={false}
+        type="input"
         value={8074}
       />
       <AdminTextSetting
@@ -776,6 +787,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        type="input"
         value={8075}
       />
     </SettingsGroup>
@@ -900,6 +912,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         onChange={[Function]}
         placeholder="E.g.: \\"Production\\" or \\"Staging\\""
         setByEnv={false}
+        type="input"
         value="test"
       />
       <AdminTextSetting
@@ -919,6 +932,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         onChange={[Function]}
         placeholder="E.g.: \\"app-server-01\\""
         setByEnv={false}
+        type="input"
         value=""
       />
       <BooleanSetting
@@ -1031,6 +1045,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         onChange={[Function]}
         placeholder="E.g.: \\"8074\\""
         setByEnv={false}
+        type="input"
         value={8074}
       />
       <AdminTextSetting
@@ -1050,6 +1065,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         onChange={[Function]}
         placeholder="E.g.: \\"8075\\""
         setByEnv={false}
+        type="input"
         value={8075}
       />
     </SettingsGroup>
