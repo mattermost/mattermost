@@ -185,15 +185,6 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
-  <Connect(ChannelPermissionGate)
-    channelId=""
-    permissions={
-      Array [
-        "add_reaction",
-      ]
-    }
-    teamId="team_id_1"
-  />
   <MenuItem
     data-testid="follow_post_thread_post_id_1"
     id="follow_post_thread_post_id_1"

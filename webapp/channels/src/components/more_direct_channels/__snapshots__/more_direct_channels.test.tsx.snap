@@ -9,7 +9,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
   bsClass="modal"
   dialogClassName="a11y__modal more-modal more-direct-channels"
   dialogComponentClass={[Function]}
-  enforceFocus={false}
+  enforceFocus={true}
   id="moreDmModal"
   keyboard={true}
   manager={
@@ -289,7 +289,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
   bsClass="modal"
   dialogClassName="a11y__modal more-modal more-direct-channels"
   dialogComponentClass={[Function]}
-  enforceFocus={false}
+  enforceFocus={true}
   id="moreDmModal"
   keyboard={true}
   manager={
