@@ -24,9 +24,9 @@ type PostEmbed struct {
 	Data any `json:"data,omitempty"`
 }
 
-func (pe *PostEmbed) Auditable() map[string]interface{} {
+func (pe *PostEmbed) Auditable() map[string]any {
 	// filter out embedded content.
-	return map[string]interface{}{
+	return map[string]any{
 		"type": pe.Type,
 		"url":  pe.URL,
 	}
