@@ -2021,6 +2021,19 @@ func TestPatchUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPatchBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot := th.CreateBotWithSystemAdminClient()
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString("Anything")
+
+	_, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
+}
+
 func TestUserUnicodeNames(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

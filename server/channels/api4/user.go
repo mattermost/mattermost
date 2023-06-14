@@ -1335,6 +1335,12 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_id")
 		return
 	}
+	if ouser.IsBot {
+		c.Logger.Info("Attempt to patch bot via user patch", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
+		c.SetInvalidParam("user_id")
+		return
+	}
+
 	auditRec.AddEventPriorState(ouser)
 	auditRec.AddEventObjectType("user")
 
