@@ -607,7 +607,6 @@ const defaultServerConfig: AdminConfig = {
         CleanupConfigThresholdDays: -1,
     },
     ProductSettings: {
-        EnablePublicSharedBoards: false,
         EnablePlaybooks: true,
     },
     PluginSettings: {
@@ -619,9 +618,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },

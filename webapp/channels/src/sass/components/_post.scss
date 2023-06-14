@@ -2180,8 +2180,12 @@
 }
 
 .post-row__padding {
-    &.top > div:not(.post) {
-        padding-top: 0;
+    &.bottom .Separator {
+        padding-bottom: 1em;
+    }
+
+    &.top .Separator {
+        padding-top: 1em;
     }
 
     &.top .post {
