@@ -2201,6 +2201,53 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	return ids, nil
 }
 
+func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
+	  memberCounts := make(map[string]int64)
+
+    // Create a comma-separated string of channel IDs
+    channelIdStr := strings.Join(channelIDs, ",")
+
+    query := fmt.Sprintf(`
+        SELECT
+            ChannelMembers.ChannelId,
+            COUNT(*) AS MemberCount
+        FROM
+            ChannelMembers
+        INNER JOIN
+            Users ON ChannelMembers.UserId = Users.Id
+        WHERE
+            ChannelMembers.ChannelId IN (%s)
+            AND Users.DeleteAt = 0
+        GROUP BY
+            ChannelMembers.ChannelId
+    `, channelIdStr)
+
+    // Execute the SQL query
+    rows, err := s.GetReplicaX().Query(query)
+    if err != nil {
+        return nil, errors.Wrap(err, "failed to execute SQL query")
+    }
+    defer rows.Close()
+
+    // Iterate over the query results and populate the memberCounts map
+    for rows.Next() {
+        var channelId string
+        var count int64
+        err := rows.Scan(&channelId, &count)
+        if err != nil {
+            return nil, errors.Wrap(err, "failed to scan query result")
+        }
+
+        memberCounts[channelId] = count
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, errors.Wrap(err, "error while iterating over query results")
+    }
+
+    return memberCounts, nil
+}
+
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 	allChannelMembersNotifyPropsForChannelCache.Remove(channelId)
 	if s.metrics != nil {
