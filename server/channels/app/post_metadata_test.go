@@ -2817,3 +2817,55 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 	actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
 	assert.Nil(t, actual.Metadata.Embeds[0].Data)
 }
+
+func TestSanitizePostMetaDataForAudit(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+	})
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	referencedPost, err := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "hello world",
+	}, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	referencedPost.Metadata.Embeds = nil
+
+	link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+	previewPost, err := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   link,
+	}, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	previewPost.Metadata.Embeds = nil
+	clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, false, false, false)
+	firstEmbed := clientPost.Metadata.Embeds[0]
+	preview := firstEmbed.Data.(*model.PreviewPost)
+	require.Equal(t, referencedPost.Id, preview.PostID)
+
+	// ensure the permalink metadata is sanitized for audit logging
+	m := clientPost.Auditable()
+	metaDataI, ok := m["metadata"]
+	require.True(t, ok)
+	metaData, ok := metaDataI.(map[string]any)
+	require.True(t, ok)
+	embedsI, ok := metaData["embeds"]
+	require.True(t, ok)
+	embeds, ok := embedsI.([]map[string]any)
+	require.True(t, ok)
+	for _, pe := range embeds {
+		// ensure all the PostEmbed maps only contain `type` and `url`
+		for k := range pe {
+			if k != "type" && k != "url" {
+				require.Fail(t, "PostEmbed should only contain 'type' and 'url fields'")
+			}
+		}
+	}
+}
