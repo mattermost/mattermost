@@ -930,7 +930,7 @@ export const JobTypes = {
     BLEVE_POST_INDEXING: 'bleve_post_indexing',
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
-} as const;
+};
 
 export const JobStatuses = {
     PENDING: 'pending',

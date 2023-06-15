@@ -4,47 +4,30 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {Job} from '@mattermost/types/jobs';
-
 import {blevePurgeIndexes} from 'actions/admin_actions.jsx';
 import {JobStatuses, JobTypes} from 'utils/constants';
 import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
 
-import AdminSettings, {BaseProps, BaseState} from './admin_settings';
+import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import TextSetting from './text_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 
-type Props = BaseProps & {
-    config: AdminConfig;
-};
+export default class BleveSettings extends AdminSettings {
+    getConfigFromState = (config) => {
+        config.BleveSettings.IndexDir = this.state.indexDir;
+        config.BleveSettings.EnableIndexing = this.state.enableIndexing;
+        config.BleveSettings.EnableSearching = this.state.enableSearching;
+        config.BleveSettings.EnableAutocomplete = this.state.enableAutocomplete;
 
-type State = BaseState & {
-    indexDir: string;
-    enableIndexing: boolean;
-    enableSearching: boolean;
-    enableAutocomplete: boolean;
-    canSave: boolean;
-    canPurgeAndIndex: boolean;
-};
-
-export default class BleveSettings extends AdminSettings<Props, State> {
-    getConfigFromState = (config: Props['config']) => {
-        if (config && config.BleveSettings) {
-            config.BleveSettings.IndexDir = this.state.indexDir;
-            config.BleveSettings.EnableIndexing = this.state.enableIndexing;
-            config.BleveSettings.EnableSearching = this.state.enableSearching;
-            config.BleveSettings.EnableAutocomplete = this.state.enableAutocomplete;
-        }
         return config;
     };
 
-    getStateFromConfig(config: Props['config']) {
+    getStateFromConfig(config) {
         return {
             enableIndexing: config.BleveSettings.EnableIndexing,
             indexDir: config.BleveSettings.IndexDir,
@@ -55,7 +38,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
         };
     }
 
-    handleSettingChanged = (id: string, value: boolean) => {
+    handleSettingChanged = (id, value) => {
         if (id === 'enableIndexing') {
             if (value === false) {
                 this.setState({
@@ -84,7 +67,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
         return this.state.canSave;
     };
 
-    getExtraInfo(job: Job) {
+    getExtraInfo(job) {
         if (job.status === JobStatuses.IN_PROGRESS) {
             return (
                 <FormattedMessage
@@ -95,7 +78,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
             );
         }
 
-        return <></>;
+        return null;
     }
 
     renderTitle() {
@@ -160,7 +143,6 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('BleveSettings.IndexDir')}
                     disabled={this.props.isDisabled}
-                    type='input'
                 />
                 <div className='form-group'>
                     <label
@@ -175,7 +157,7 @@ export default class BleveSettings extends AdminSettings<Props, State> {
                         <div className='job-table-setting'>
                             <JobsTable
                                 jobType={JobTypes.BLEVE_POST_INDEXING}
-                                disabled={!this.state.canPurgeAndIndex || Boolean(this.props.isDisabled)}
+                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled}
                                 createJobButtonText={
                                     <FormattedMessage
                                         id='admin.bleve.createJob.title'

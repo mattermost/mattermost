@@ -21,7 +21,7 @@ import './table.scss';
 
 export type Props = {
     jobs: Job[];
-    getExtraInfoText?: (job: Job) => string | React.ReactElement;
+    getExtraInfoText?: (job: Job) => string;
     disabled: boolean;
     createJobHelpText: React.ReactElement;
     jobType: JobType;
