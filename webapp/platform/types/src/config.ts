@@ -118,7 +118,6 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
-    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -202,6 +201,7 @@ export type ClientConfig = {
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    ServiceEnvironment: string;
 };
 
 export type License = {
@@ -772,6 +772,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {
@@ -817,7 +818,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
 };
 
 export type PluginSettings = {
@@ -945,4 +945,10 @@ export enum CollapsedThreads {
     DEFAULT_ON = 'default_on',
     DEFAULT_OFF = 'default_off',
     ALWAYS_ON = 'always_on',
+}
+
+export enum ServiceEnvironment {
+    PRODUCTION = 'production',
+    TEST = 'test',
+    DEV = 'dev',
 }

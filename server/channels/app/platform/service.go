@@ -12,23 +12,23 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/featureflag"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/retrylayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/sqlstore"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/timerlayer"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/localcachelayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/retrylayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/timerlayer"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 // PlatformService is the service for the platform related tasks. It is
@@ -50,11 +50,13 @@ type PlatformService struct {
 	sessionCache  cache.Cache
 	sessionPool   sync.Pool
 
-	asymmetricSigningKey                   atomic.Pointer[ecdsa.PrivateKey]
-	clientConfig                           atomic.Value
-	clientConfigHash                       atomic.Value
-	limitedClientConfig                    atomic.Value
-	fetchUserCountForFirstUserAccountCheck atomic.Bool
+	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
+	clientConfig         atomic.Value
+	clientConfigHash     atomic.Value
+	limitedClientConfig  atomic.Value
+
+	isFirstUserAccountLock sync.Mutex
+	isFirstUserAccount     atomic.Bool
 
 	logger              *mlog.Logger
 	notificationsLogger *mlog.Logger
@@ -129,7 +131,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
-	ps.fetchUserCountForFirstUserAccountCheck.Store(true)
+	ps.isFirstUserAccount.Store(true)
 
 	// Step 1: Cache provider.
 	// At the moment we only have this implementation

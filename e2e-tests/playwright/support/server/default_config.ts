@@ -566,6 +566,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',
@@ -605,9 +606,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePublicSharedBoards: false,
-    },
+    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -617,9 +616,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
@@ -673,7 +669,6 @@ const defaultServerConfig: AdminConfig = {
         InsightsEnabled: true,
         CommandPalette: false,
         SendWelcomePost: true,
-        WorkTemplate: true,
         PostPriority: true,
         WysiwygEditor: false,
         PeopleProduct: false,
@@ -683,7 +678,6 @@ const defaultServerConfig: AdminConfig = {
         GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        AppsSidebarCategory: false,
         CloudReverseTrial: false,
     },
     ImportSettings: {

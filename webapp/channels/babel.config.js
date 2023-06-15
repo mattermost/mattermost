@@ -5,14 +5,12 @@ const config = {
     presets: [
         ['@babel/preset-env', {
             targets: {
-                chrome: 66,
-                firefox: 60,
-                edge: 42,
-                safari: 12,
+                chrome: 110,
+                firefox: 102,
+                edge: 110,
+                safari: 16,
             },
-            modules: 'auto',
             corejs: 3,
-            debug: false,
             useBuiltIns: 'usage',
             shippedProposals: true,
         }],
@@ -26,8 +24,6 @@ const config = {
     ],
     plugins: [
         'lodash',
-        '@babel/plugin-proposal-class-properties',
-        '@babel/plugin-proposal-object-rest-spread',
         'react-hot-loader/babel',
         'babel-plugin-typescript-to-proptypes',
         [

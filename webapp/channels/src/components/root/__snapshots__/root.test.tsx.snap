@@ -91,7 +91,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       theme={Object {}}
     >
       <Connect(ModalController) />
-      <Connect(_class) />
+      <Connect(Component) />
       <Connect(SystemNotice) />
       <GlobalHeader />
       <CloudEffectsWrapper />

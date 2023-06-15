@@ -11,7 +11,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import Carousel from 'components/common/carousel/carousel';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';

@@ -11,7 +11,7 @@ export type Coords = {
     y?: string;
 }
 
-export type PunchOutCoordsHeightAndWidth = Coords & {
+export type Props = Coords & {
     width: string;
     height: string;
 }
@@ -23,7 +23,7 @@ type PunchOutOffset = {
     height: number;
 }
 
-export const useMeasurePunchouts = (elementIds: string[], additionalDeps: any[], offset?: PunchOutOffset): PunchOutCoordsHeightAndWidth | null => {
+export const useMeasurePunchouts = (elementIds: string[], additionalDeps: any[], offset?: PunchOutOffset): Props | null => {
     const elementsAvailable = useElementAvailable(elementIds);
     const [size, setSize] = useState({x: window.innerWidth, y: window.innerHeight});
     const updateSize = throttle(() => {
