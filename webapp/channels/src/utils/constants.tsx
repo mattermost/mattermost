@@ -904,6 +904,7 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
+    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
