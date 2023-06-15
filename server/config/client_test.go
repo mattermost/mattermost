@@ -326,6 +326,19 @@ func TestGetClientConfig(t *testing.T) {
 				"ExperimentalSharedChannels": "true",
 			},
 		},
+		{
+			"Disable App Bar",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					DisableAppBar: model.NewBool(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"DisableAppBar": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
