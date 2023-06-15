@@ -28,10 +28,11 @@ import OverlayTrigger from 'components/overlay_trigger';
 import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
+import {injectPropsInMenuItems} from './utils';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
-const MENU_CLOSE_ANIMATION_DURATION = 100;
+export const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
@@ -89,8 +90,15 @@ export function Menu(props: Props) {
     const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
+    // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
+        setAnchorElement(null);
+        setDisableAutoFocusItem(false);
+    }
+
+    // Handle function injected into menu items to close the menu
+    function forceCloseMenu(): void {
         setAnchorElement(null);
         setDisableAutoFocusItem(false);
     }
@@ -127,7 +135,10 @@ export function Menu(props: Props) {
                 setAnchorElement(null);
             }
         }
-        props.menu.onKeyDown?.(event);
+
+        if (props.menu.onKeyDown) {
+            props.menu.onKeyDown(event);
+        }
     }
 
     function handleMenuButtonClick(event: SyntheticEvent<HTMLButtonElement>) {
@@ -154,13 +165,13 @@ export function Menu(props: Props) {
         }
     }
 
+    // Function to prevent focus-visible from being set on clicking menu items with the mouse
     function handleMenuButtonMouseDown() {
-        // This is needed to prevent focus-visible being set on clicking menuitems with mouse
         setDisableAutoFocusItem(true);
     }
 
+    // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
-        // We construct the menu button so we can set onClick correctly here to support both web and mobile view
         const triggerElement = (
             <button
                 id={props.menuButton.id}
@@ -236,7 +247,7 @@ export function Menu(props: Props) {
                 }}
                 width={props.menu.width}
             >
-                {props.children}
+                {injectPropsInMenuItems(props.children, forceCloseMenu)}
             </MuiMenuStyled>
         </CompassDesignProvider>
     );

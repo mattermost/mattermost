@@ -1,8 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, MouseEvent, KeyboardEvent, memo} from 'react';
+import React, {useRef, memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {DispatchFunc} from 'mattermost-redux/types/actions';
+import {ChannelCategory} from '@mattermost/types/channel_categories';
+
+import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 
 import {
     MarkAsUnreadIcon,
@@ -14,13 +23,24 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ExitToAppIcon,
+    FolderOutlineIcon,
+    FolderMoveOutlineIcon,
+    ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
+
+import {GlobalState} from 'types/store';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
+import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
+
+import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
+import {openModal} from 'actions/views/modals';
+
 import ChannelInviteModal from 'components/channel_invite_modal';
+import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
-import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
@@ -34,18 +54,145 @@ const SidebarChannelMenu = (props: Props) => {
 
     const {formatMessage} = useIntl();
 
+    const dispatch = useDispatch<DispatchFunc>();
+
+    const allChannels = useSelector(getAllChannels);
+    const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
+
+    const currentTeam = useSelector(getCurrentTeam);
+    const categories = useSelector((state: GlobalState) => {
+        return currentTeam ? getCategoriesForCurrentTeam(state) : undefined;
+    });
+    const currentCategory = useSelector((state: GlobalState) => {
+        return currentTeam ? getCategoryInTeamWithChannel(state, currentTeam?.id || '', props.channel.id) : undefined;
+    });
+
+    function handleMoveToCategory(categoryId: string) {
+        if (currentCategory?.id !== categoryId) {
+            dispatch(addChannelsInSidebar(categoryId, props.channel.id));
+            trackEvent('ui', 'ui_sidebar_channel_menu_moveToExistingCategory');
+        }
+    }
+
+    function handleMoveToNewCategory() {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.EDIT_CATEGORY,
+            dialogType: EditCategoryModal,
+            dialogProps: {
+                channelIdsToAdd: multiSelectedChannelIds.indexOf(props.channel.id) === -1 ? [props.channel.id] : multiSelectedChannelIds,
+            },
+        }));
+        trackEvent('ui', 'ui_sidebar_channel_menu_createCategory');
+    }
+
+    function createSubmenuItemsForCategoryArray(categories: ChannelCategory[], currentCategory?: ChannelCategory) {
+        const allCategories = categories.map((category: ChannelCategory) => {
+            let text = <span>{category.display_name}</span>;
+
+            if (category.type === CategoryTypes.FAVORITES) {
+                text = (
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.favorites'
+                        defaultMessage='Favorites'
+                    />
+                );
+            }
+            if (category.type === CategoryTypes.CHANNELS) {
+                text = (
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.channels'
+                        defaultMessage='Channels'
+                    />
+                );
+            }
+
+            let selectedCategory = null;
+            if (currentCategory && currentCategory.display_name === category.display_name) {
+                selectedCategory = (
+                    <CheckIcon
+                        color='var(--button-bg)'
+                        size={18}
+                    />
+                );
+            }
+
+            return (
+                <Menu.Item
+                    id={Menu.createMenuItemId('moveToCategory', props.channel.id, category.id)}
+                    key={Menu.createMenuItemId('moveToCategory', props.channel.id, category.id)}
+                    leadingElement={category.type === CategoryTypes.FAVORITES ? (<StarOutlineIcon size={18}/>) : (<FolderOutlineIcon size={18}/>)}
+                    labels={text}
+                    trailingElements={selectedCategory}
+                    onClick={() => handleMoveToCategory(category.id)}
+                />
+            );
+        });
+
+        const dividerAndNewCategory = [
+            <Menu.Separator key='ChannelMenu-moveToDivider'/>,
+            <Menu.Item
+                id={Menu.createMenuItemId('moveToNewCategory', props.channel.id)}
+                key={Menu.createMenuItemId('moveToNewCategory', props.channel.id)}
+                aria-haspopup={true}
+                leadingElement={<FolderMoveOutlineIcon size={18}/>}
+                labels={
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.moveToNewCategory'
+                        defaultMessage='New Category'
+                    />
+                }
+                onClick={handleMoveToNewCategory}
+            />,
+        ];
+
+        return [...allCategories, ...dividerAndNewCategory];
+    }
+
+    function filterCategoriesBasedOnChannelType(categories: ChannelCategory[], isDmOrGm = false) {
+        if (isDmOrGm) {
+            return categories.filter((category) => category.type !== CategoryTypes.CHANNELS);
+        }
+
+        return categories.filter((category) => category.type !== CategoryTypes.DIRECT_MESSAGES);
+    }
+
+    function getMoveToCategorySubmenuItems(categories: ChannelCategory[], currentCategory?: ChannelCategory) {
+        const isSubmenuOneOfSelectedChannels = multiSelectedChannelIds.includes(props.channel.id);
+
+        // If multiple channels are selected but the menu is open outside of those selected channels
+        if (!isSubmenuOneOfSelectedChannels) {
+            const isDmOrGm = props.channel.type === Constants.DM_CHANNEL || props.channel.type === Constants.GM_CHANNEL;
+            const filteredCategories = filterCategoriesBasedOnChannelType(categories, isDmOrGm);
+            return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
+        }
+
+        const areAllSelectedChannelsDMorGM = multiSelectedChannelIds.every((channelId) => allChannels[channelId].type === Constants.DM_CHANNEL || allChannels[channelId].type === Constants.GM_CHANNEL);
+        if (areAllSelectedChannelsDMorGM) {
+            const filteredCategories = filterCategoriesBasedOnChannelType(categories, true);
+            return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
+        }
+
+        const areAllSelectedChannelsAreNotDMorGM = multiSelectedChannelIds.every((channelId) => allChannels[channelId].type !== Constants.DM_CHANNEL && allChannels[channelId].type !== Constants.GM_CHANNEL);
+        if (areAllSelectedChannelsAreNotDMorGM) {
+            const filteredCategories = filterCategoriesBasedOnChannelType(categories, false);
+            return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
+        }
+
+        // If we have a mix of channel types, we need to filter out both the DM and Channel categories
+        const filteredCategories = categories.filter((category) => category.type !== CategoryTypes.CHANNELS && category.type !== CategoryTypes.DIRECT_MESSAGES);
+        return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
+    }
+
     let markAsReadUnreadMenuItem: JSX.Element | null = null;
     if (props.isUnread) {
-        function handleMarkAsRead(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleMarkAsRead() {
             props.markChannelAsRead(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
         markAsReadUnreadMenuItem = (
             <Menu.Item
-                id={`markAsRead-${props.channel.id}`}
+                id={Menu.createMenuItemId('markAsRead', props.channel.id)}
                 onClick={handleMarkAsRead}
                 leadingElement={<MarkAsUnreadIcon size={18}/>}
                 labels={(
@@ -58,16 +205,14 @@ const SidebarChannelMenu = (props: Props) => {
 
         );
     } else {
-        function handleMarkAsUnread(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleMarkAsUnread() {
             props.markMostRecentPostInChannelAsUnread(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsUnread');
         }
 
         markAsReadUnreadMenuItem = (
             <Menu.Item
-                id={`markAsUnread-${props.channel.id}`}
+                id={Menu.createMenuItemId('markAsUnread', props.channel.id)}
                 onClick={handleMarkAsUnread}
                 leadingElement={<MarkAsUnreadIcon size={18}/>}
                 labels={(
@@ -82,16 +227,14 @@ const SidebarChannelMenu = (props: Props) => {
 
     let favoriteUnfavoriteMenuItem: JSX.Element | null = null;
     if (props.isFavorite) {
-        function handleUnfavoriteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleUnfavoriteChannel() {
             props.unfavoriteChannel(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_unfavorite');
         }
 
         favoriteUnfavoriteMenuItem = (
             <Menu.Item
-                id={`unfavorite-${props.channel.id}`}
+                id={Menu.createMenuItemId('unfavorite', props.channel.id)}
                 onClick={handleUnfavoriteChannel}
                 leadingElement={<StarIcon size={18}/>}
                 labels={(
@@ -103,9 +246,7 @@ const SidebarChannelMenu = (props: Props) => {
             />
         );
     } else {
-        function handleFavoriteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleFavoriteChannel() {
             props.favoriteChannel(props.channel.id);
             trackEvent('ui', 'ui_sidebar_channel_menu_favorite');
         }
@@ -113,7 +254,7 @@ const SidebarChannelMenu = (props: Props) => {
         favoriteUnfavoriteMenuItem = (
 
             <Menu.Item
-                id={`favorite-${props.channel.id}`}
+                id={Menu.createMenuItemId('favorite', props.channel.id)}
                 onClick={handleFavoriteChannel}
                 leadingElement={<StarOutlineIcon size={18}/>}
                 labels={(
@@ -143,15 +284,13 @@ const SidebarChannelMenu = (props: Props) => {
             );
         }
 
-        function handleUnmuteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleUnmuteChannel() {
             props.unmuteChannel(props.currentUserId, props.channel.id);
         }
 
         muteUnmuteChannelMenuItem = (
             <Menu.Item
-                id={`unmute-${props.channel.id}`}
+                id={Menu.createMenuItemId('unmute', props.channel.id)}
                 onClick={handleUnmuteChannel}
                 leadingElement={<BellOffOutlineIcon size={18}/>}
                 labels={muteChannelText}
@@ -173,15 +312,13 @@ const SidebarChannelMenu = (props: Props) => {
             );
         }
 
-        function handleMuteChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleMuteChannel() {
             props.muteChannel(props.currentUserId, props.channel.id);
         }
 
         muteUnmuteChannelMenuItem = (
             <Menu.Item
-                id={`mute-${props.channel.id}`}
+                id={Menu.createMenuItemId('mute', props.channel.id)}
                 onClick={handleMuteChannel}
                 leadingElement={<BellOutlineIcon size={18}/>}
                 labels={muteChannelText}
@@ -191,15 +328,13 @@ const SidebarChannelMenu = (props: Props) => {
 
     let copyLinkMenuItem: JSX.Element | null = null;
     if (props.channel.type === Constants.OPEN_CHANNEL || props.channel.type === Constants.PRIVATE_CHANNEL) {
-        function handleCopyLink(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleCopyLink() {
             copyToClipboard(props.channelLink);
         }
 
         copyLinkMenuItem = (
             <Menu.Item
-                id={`copyLink-${props.channel.id}`}
+                id={Menu.createMenuItemId('copyLink', props.channel.id)}
                 onClick={handleCopyLink}
                 leadingElement={<LinkVariantIcon size={18}/>}
                 labels={(
@@ -225,7 +360,7 @@ const SidebarChannelMenu = (props: Props) => {
 
         addMembersMenuItem = (
             <Menu.Item
-                id={`addMembers-${props.channel.id}`}
+                id={Menu.createMenuItemId('addMembers', props.channel.id)}
                 onClick={handleAddMembers}
                 aria-haspopup='true'
                 leadingElement={<AccountPlusOutlineIcon size={18}/>}
@@ -256,9 +391,7 @@ const SidebarChannelMenu = (props: Props) => {
             );
         }
 
-        function handleLeaveChannel(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-            event.preventDefault();
-
+        function handleLeaveChannel() {
             if (isLeaving.current || !props.channelLeaveHandler) {
                 return;
             }
@@ -273,7 +406,7 @@ const SidebarChannelMenu = (props: Props) => {
 
         leaveChannelMenuItem = (
             <Menu.Item
-                id={`leave-${props.channel.id}`}
+                id={Menu.createMenuItemId('leave', props.channel.id)}
                 onClick={handleLeaveChannel}
                 leadingElement={<ExitToAppIcon size={18}/>}
                 labels={leaveChannelText}
@@ -305,7 +438,26 @@ const SidebarChannelMenu = (props: Props) => {
             {favoriteUnfavoriteMenuItem}
             {muteUnmuteChannelMenuItem}
             <Menu.Separator/>
-            <ChannelMoveToSubmenu channel={props.channel}/>
+            {categories && (
+                <Menu.SubMenu
+                    id={Menu.createSubMenuId('moveTo', props.channel.id)}
+                    labels={
+                        <FormattedMessage
+                            id='sidebar_left.sidebar_channel_menu.moveTo'
+                            defaultMessage='Move to...'
+                        />
+                    }
+                    leadingElement={<FolderMoveOutlineIcon size={18}/>}
+                    trailingElements={<ChevronRightIcon size={16}/>}
+                    menuId={`moveTo-${props.channel.id}-menu`}
+                    menuAriaLabel={formatMessage({
+                        id: 'sidebar_left.sidebar_channel_menu.moveTo.dropdownAriaLabel',
+                        defaultMessage: 'Move to submenu',
+                    })}
+                >
+                    {getMoveToCategorySubmenuItems(categories, currentCategory)}
+                </Menu.SubMenu>
+            )}
             {(copyLinkMenuItem || addMembersMenuItem) && <Menu.Separator/>}
             {copyLinkMenuItem}
             {addMembersMenuItem}

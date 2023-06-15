@@ -810,6 +810,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
+						"playbooks": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -839,6 +842,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
+						"playbooks": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -858,6 +864,9 @@ func TestDiff(t *testing.T) {
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
 					ActualVal: map[string]*model.PluginState{
 						"com.mattermost.calls": {
+							Enable: true,
+						},
+						"playbooks": {
 							Enable: true,
 						},
 					},
