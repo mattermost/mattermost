@@ -18,6 +18,7 @@ import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import Permissions from 'mattermost-redux/constants/permissions';
+import {addPostReminder} from 'mattermost-redux/actions/posts';
 
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
@@ -146,6 +147,7 @@ type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     markPostAsUnread: (post: Post) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+    addPostReminder: (userId: string, postId: string, timestamp: number) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
@@ -159,6 +161,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             openModal,
             markPostAsUnread,
             setThreadFollow,
+            addPostReminder,
         }, dispatch),
     };
 }
