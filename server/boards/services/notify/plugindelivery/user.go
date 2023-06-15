@@ -45,10 +45,10 @@ func (pd *PluginDelivery) UserByUsername(username string) (*mm_model.User, error
 // is a special character for usernames (dot, dash or underscore). If not, it
 // returns the same string.
 func trimUsernameSpecialChar(word string) (string, bool) {
-	len := len(word)
+	l := len(word)
 
-	if len > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (len-1) {
-		return word[:len-1], true
+	if l > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (l-1) {
+		return word[:l-1], true
 	}
 
 	return word, false

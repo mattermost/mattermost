@@ -172,7 +172,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
-		_, appErr := installPlugin(t, th, "playbooks", "0.0.1", installPluginLocallyAlways)
+		_, appErr := installPlugin(t, th, "com.mattermost.plugin-incident-response", "0.0.1", installPluginLocallyAlways)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.plugin.blocked.app_error", appErr.Id)
 		assertBundleInfoManifests(t, th, []*model.Manifest{})
