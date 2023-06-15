@@ -43,6 +43,7 @@ type Actions = {
      */
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
+    getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
 export type Props = {
@@ -96,6 +97,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         }
+        this.props.actions.getChannelsMemberCount(['123', '456'])
         this.loadComplete();
     }
 

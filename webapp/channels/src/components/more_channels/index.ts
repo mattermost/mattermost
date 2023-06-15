@@ -11,7 +11,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getChannels, getArchivedChannels, joinChannel} from 'mattermost-redux/actions/channels';
+import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
 import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 
 import {searchMoreChannels} from 'actions/channel_actions';
@@ -68,6 +68,7 @@ type Actions = {
     closeModal: (modalId: string) => void;
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
+    getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -81,6 +82,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             closeModal,
             setGlobalItem,
             closeRightHandSide,
+            getChannelsMemberCount
         }, dispatch),
     };
 }
