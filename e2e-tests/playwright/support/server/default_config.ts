@@ -606,10 +606,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePublicSharedBoards: false,
-        EnablePlaybooks: true,
-    },
+    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -619,9 +616,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
@@ -684,7 +678,6 @@ const defaultServerConfig: AdminConfig = {
         GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        AppsSidebarCategory: false,
         CloudReverseTrial: false,
     },
     ImportSettings: {

@@ -123,8 +123,8 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
 			}
-			new := strings.Replace(string(old), pathToReplace, newPath, -1)
-			if err = os.WriteFile(walkPath, []byte(new), 0); err != nil {
+			n := strings.Replace(string(old), pathToReplace, newPath, -1)
+			if err = os.WriteFile(walkPath, []byte(n), 0); err != nil {
 				return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
 			}
 		}

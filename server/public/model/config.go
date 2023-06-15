@@ -2864,21 +2864,9 @@ func (s *CloudSettings) SetDefaults() {
 }
 
 type ProductSettings struct {
-	EnablePublicSharedBoards *bool
-	EnablePlaybooks          *bool
 }
 
-func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
-	if s.EnablePublicSharedBoards == nil {
-		if p, ok := plugins[PluginIdFocalboard]; ok {
-			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
-		} else {
-			s.EnablePublicSharedBoards = NewBool(false)
-		}
-	}
-	if s.EnablePlaybooks == nil {
-		s.EnablePlaybooks = NewBool(true)
-	}
+func (s *ProductSettings) SetDefaults() {
 }
 
 type PluginState struct {
@@ -2941,19 +2929,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdNPS] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates[PluginIdChannelExport] == nil && BuildEnterpriseReady == "true" {
-		// Enable the channel export plugin by default
-		s.PluginStates[PluginIdChannelExport] = &PluginState{Enable: true}
-	}
-
-	if s.PluginStates[PluginIdApps] == nil {
-		// Enable the Apps plugin by default
-		s.PluginStates[PluginIdApps] = &PluginState{Enable: true}
-	}
-
 	if s.PluginStates[PluginIdCalls] == nil {
 		// Enable the calls plugin by default
 		s.PluginStates[PluginIdCalls] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdPlaybooks] == nil {
+		// Enable the playbooks plugin by default
+		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3360,7 +3343,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
+	o.ProductSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()

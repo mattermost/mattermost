@@ -151,9 +151,7 @@ DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/playbooks|server/v8/boards|server/v8/cmd/mmctl')
-BOARDS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/boards')
-PLAYBOOKS_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/playbooks')
+TE_PACKAGES=$(shell $(GO) list ./... | grep -vE 'server/v8/cmd/mmctl')
 SUITE_PACKAGES=$(shell $(GO) list ./...| grep -vE 'server/v8/cmd/mmctl')
 MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
 
@@ -169,14 +167,17 @@ PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.36.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.1
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.2
+PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-todo-v0.6.1
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.1
+PLUGIN_PACKAGES += focalboard-v7.10.3
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -191,9 +192,9 @@ endif
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES) $(EE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
-  ALL_PACKAGES=$(TE_PACKAGES) $(BOARDS_PACKAGES) $(PLAYBOOKS_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 all: run ## Alias for 'run'.
@@ -330,10 +331,6 @@ app-layers: ## Extract interface from App struct
 	$(GOBIN)/struct2interface -f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
-boards-gen: ## Run generators for Boards
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
-	cd boards && $(GO) generate ./...
-
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@mono-repo
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
@@ -410,7 +407,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks
 
-layers: app-layers store-layers pluginapi boards-gen
+layers: app-layers store-layers pluginapi
 
 generated: mocks layers
 
@@ -472,14 +469,9 @@ test-server-race: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-race: test-server-pre
 ifeq ($(IS_CI),true)
 	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
-	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
-	GOMAXPROCS=4 $(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
 else
 	$(GOBIN)/gotestsum --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
-	$(GOBIN)/gotestsum --packages="$(BOARDS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
-	$(GOBIN)/gotestsum --packages="$(PLAYBOOKS_PACKAGES)" -- -race $(GOFLAGS) -timeout=90m
 endif
-
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)

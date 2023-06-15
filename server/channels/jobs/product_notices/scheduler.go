@@ -14,7 +14,7 @@ type Scheduler struct {
 	*jobs.PeriodicScheduler
 }
 
-func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
+func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, _ time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	nextTime := time.Now().Add(time.Duration(*cfg.AnnouncementSettings.NoticesFetchFrequency) * time.Second)
 	return &nextTime
 }

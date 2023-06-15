@@ -120,6 +120,11 @@ type Post struct {
 }
 
 func (o *Post) Auditable() map[string]interface{} {
+	var metaData map[string]any
+	if o.Metadata != nil {
+		metaData = o.Metadata.Auditable()
+	}
+
 	return map[string]interface{}{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
@@ -139,7 +144,7 @@ func (o *Post) Auditable() map[string]interface{} {
 		"reply_count":     o.ReplyCount,
 		"last_reply_at":   o.LastReplyAt,
 		"is_following":    o.IsFollowing,
-		"metadata":        o.Metadata,
+		"metadata":        metaData,
 	}
 }
 
@@ -203,7 +208,7 @@ type AnalyticsPostCountsOptions struct {
 }
 
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
-	copy := *o
+	copy := *o //nolint:revive
 	if copy.Message != nil {
 		*copy.Message = RewriteImageURLs(*o.Message, f)
 	}
@@ -292,13 +297,13 @@ func (o *Post) ShallowCopy(dst *Post) error {
 
 // Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := &Post{}
+	copy := &Post{} //nolint:revive
 	o.ShallowCopy(copy)
 	return copy
 }
 
 func (o *Post) ToJSON() (string, error) {
-	copy := o.Clone()
+	copy := o.Clone() //nolint:revive
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(copy)
 	return string(b), err

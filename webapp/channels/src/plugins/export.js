@@ -7,6 +7,7 @@ import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 import BotTag from 'components/widgets/tag/bot_tag';
 
 import messageHtmlToComponent from 'utils/message_html_to_component';
+import * as NotificationSounds from 'utils/notification_sounds';
 import {formatText} from 'utils/text_formatting';
 import {getHistory} from 'utils/browser_history';
 
@@ -48,6 +49,7 @@ window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
 window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
+    notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),

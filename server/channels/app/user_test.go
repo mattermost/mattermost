@@ -111,24 +111,24 @@ func TestAdjustProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, err := th.App.AdjustImage(bytes.NewReader([]byte{}))
-	require.NotNil(t, err)
+	_, appErr := th.App.AdjustImage(bytes.NewReader([]byte{}))
+	require.NotNil(t, appErr)
 
 	// test image isn't the correct dimensions
 	// it should be adjusted
-	testjpg, error := testutils.ReadTestFile("testjpg.jpg")
-	require.NoError(t, error)
-	adjusted, err := th.App.AdjustImage(bytes.NewReader(testjpg))
-	require.Nil(t, err)
+	testjpg, err := testutils.ReadTestFile("testjpg.jpg")
+	require.NoError(t, err)
+	adjusted, appErr := th.App.AdjustImage(bytes.NewReader(testjpg))
+	require.Nil(t, appErr)
 	assert.True(t, adjusted.Len() > 0)
 	assert.NotEqual(t, testjpg, adjusted)
 
 	// default image should not require adjustment
 	user := th.BasicUser
-	image, err := th.App.GetDefaultProfileImage(user)
-	require.Nil(t, err)
-	image2, err := th.App.AdjustImage(bytes.NewReader(image))
-	require.Nil(t, err)
+	image, appErr := th.App.GetDefaultProfileImage(user)
+	require.Nil(t, appErr)
+	image2, appErr := th.App.AdjustImage(bytes.NewReader(image))
+	require.Nil(t, appErr)
 	assert.Equal(t, image, image2.Bytes())
 }
 
@@ -1808,6 +1808,10 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
