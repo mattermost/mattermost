@@ -108,10 +108,10 @@ export function Menu(props: Props) {
         setAnchorElement(null);
     }
 
+    // Stop sythetic events from bubbling up to the parent
+    // @see https://github.com/mui/material-ui/issues/32064
     function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         e.stopPropagation();
-        e.preventDefault();
-        setAnchorElement(null);
     }
 
     useEffect(() => {

@@ -173,6 +173,12 @@ export function SubMenu({id, leadingElement, labels, trailingElements, isDestruc
 
 export const SUB_MENU_ITEM_KEY_PREFIX = 'SubMenuItemKey';
 
+/**
+ * Creates a unique submenu item ID based on the provided parameters.
+ * @param menuItemName - The generic name of the submenu.
+ * @param uniqueValues - Additional unique values to be included in the ID.
+ * @example createSubMenuItemId('deleteFooSubMenu', 'uniqueValue1', 'uniqueValue2', 'uniqueValue3')
+ */
 export function createSubMenuId(menuItemName: string, ...uniqueValues: string[]) {
     return createMenusUniqueId(SUB_MENU_ITEM_KEY_PREFIX, menuItemName, ...uniqueValues);
 }

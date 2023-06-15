@@ -119,6 +119,7 @@ export function MenuItem(props: Props) {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
+            // Close submenu first and then menu.
             if (forceCloseSubMenu) {
                 forceCloseSubMenu();
             }
@@ -153,6 +154,12 @@ export function MenuItem(props: Props) {
 
 export const MENU_ITEM_KEY_PREFIX = 'MenuItemKey';
 
+/**
+ * Creates a unique menu item ID based on the provided parameters.
+ * @param menuItemName - The generic name of the menu item.
+ * @param uniqueValues - Additional unique values to be included in the ID.
+ * @example createMenuItemId('deleteFoo', 'uniqueValue1', 'uniqueValue2', 'uniqueValue3')
+*/
 export function createMenuItemId(menuItemName: string, ...uniqueValues: string[]) {
     return createMenusUniqueId(MENU_ITEM_KEY_PREFIX, menuItemName, ...uniqueValues);
 }
