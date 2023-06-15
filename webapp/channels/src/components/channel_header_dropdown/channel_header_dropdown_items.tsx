@@ -11,7 +11,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 
-import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
+import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -109,7 +109,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     channel={channel}
                 />
                 {/* Remove when this components is migrated to new menus */}
-                <ChannelMoveToSubMenuOld
+                <ChannelMoveToSubMenu
                     channel={channel}
                     openUp={false}
                     inHeaderDropdown={true}
