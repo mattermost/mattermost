@@ -50,6 +50,31 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           ]
         }
       />
+      <DropdownSetting
+        id="pushNotificationServerLocation"
+        isDisabled={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Push Notification Server location:"
+            id="admin.email.pushServerLocationTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+        value="us"
+        values={
+          Array [
+            Object {
+              "text": "US",
+              "value": "us",
+            },
+            Object {
+              "text": "Germany",
+              "value": "de",
+            },
+          ]
+        }
+      />
       <div
         className="form-group"
       >
@@ -69,7 +94,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             id="admin.email.agreeHPNS"
             values={
               Object {
-                "linkPricacy": [Function],
+                "linkPrivacy": [Function],
                 "linkTerms": [Function],
               }
             }
