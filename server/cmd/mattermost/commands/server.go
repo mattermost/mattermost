@@ -78,10 +78,6 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	}
 	defer server.Shutdown()
 
-	if err = server.StartConsoleWarnings(); err != nil {
-		mlog.Error(err.Error())
-	}
-
 	// We add this after shutdown so that it can be called
 	// before server shutdown happens as it can close
 	// the advanced logger and prevent the mlog call from working properly.
