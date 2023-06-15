@@ -85,8 +85,8 @@ describe('Channels', () => {
             });
         });
 
-        // # Verify that the modal is closed and it's redirected to the selected channel
-        cy.get('#moreChannelsModal').should('not.exist');
+        // # Verify that the modal is not closed
+        cy.get('#moreChannelsModal').should('exist');
         cy.url().should('include', `/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Login as channel admin and go directly to the channel
