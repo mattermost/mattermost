@@ -1,1 +1,0 @@
-ALTER TABLE IR_Incident RENAME COLUMN ExportChannelOnFinishedEnabled TO ExportChannelOnArchiveEnabled;
