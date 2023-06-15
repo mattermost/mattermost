@@ -23,3 +23,11 @@ type PostEmbed struct {
 	// Any additional data for the embedded content. Only used for OpenGraph embeds.
 	Data any `json:"data,omitempty"`
 }
+
+func (pe *PostEmbed) Auditable() map[string]any {
+	// filter out embedded content.
+	return map[string]any{
+		"type": pe.Type,
+		"url":  pe.URL,
+	}
+}
