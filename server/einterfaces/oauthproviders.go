@@ -6,7 +6,7 @@ package einterfaces
 import (
 	"io"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type OAuthProvider interface {

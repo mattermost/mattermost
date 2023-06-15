@@ -4,12 +4,13 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -71,7 +72,7 @@ func init() {
 }
 
 func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(args[0])
+	role, _, err := c.GetRoleByName(context.TODO(), args[0])
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		Permissions: &newPermissions,
 	}
 
-	if _, _, err = c.PatchRole(role.Id, &patchRole); err != nil {
+	if _, _, err = c.PatchRole(context.TODO(), role.Id, &patchRole); err != nil {
 		return err
 	}
 
@@ -100,7 +101,7 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 }
 
 func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(args[0])
+	role, _, err := c.GetRoleByName(context.TODO(), args[0])
 	if err != nil {
 		return err
 	}
@@ -131,7 +132,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		Permissions: &newPermissionSet,
 	}
 
-	if _, _, err = c.PatchRole(role.Id, &patchRole); err != nil {
+	if _, _, err = c.PatchRole(context.TODO(), role.Id, &patchRole); err != nil {
 		return err
 	}
 
@@ -139,7 +140,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 }
 
 func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, _, err := c.GetRoleByName(args[0])
+	role, _, err := c.GetRoleByName(context.TODO(), args[0])
 	if err != nil {
 		return err
 	}
@@ -153,7 +154,7 @@ func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		Permissions: &defaultRole.Permissions,
 	}
 
-	role, _, err = c.PatchRole(role.Id, &patchRole)
+	role, _, err = c.PatchRole(context.TODO(), role.Id, &patchRole)
 	if err != nil {
 		return err
 	}

@@ -4,15 +4,16 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 var TeamUsersCmd = &cobra.Command{
@@ -72,7 +73,7 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 	}
 
 	var err error
-	if _, err = c.RemoveTeamMember(team.Id, user.Id); err != nil {
+	if _, err = c.RemoveTeamMember(context.TODO(), team.Id, user.Id); err != nil {
 		err = fmt.Errorf("unable to remove '%s' from %s. Error: %w", userArg, team.Name, err)
 		printer.PrintError(err.Error())
 	}
@@ -102,7 +103,7 @@ func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if _, _, err := c.AddTeamMember(team.Id, user.Id); err != nil {
+	if _, _, err := c.AddTeamMember(context.TODO(), team.Id, user.Id); err != nil {
 		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + err.Error())
 	}
 }

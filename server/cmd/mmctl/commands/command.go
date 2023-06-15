@@ -4,17 +4,18 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 var CommandCmd = &cobra.Command{
@@ -174,7 +175,7 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		URL:              url,
 	}
 
-	createdCommand, _, err := c.CreateCommand(newCommand)
+	createdCommand, _, err := c.CreateCommand(context.TODO(), newCommand)
 	if err != nil {
 		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
 	}
@@ -187,7 +188,7 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 	if len(args) < 1 {
-		teamList, _, err := c.GetAllTeams("", 0, 10000)
+		teamList, _, err := c.GetAllTeams(context.TODO(), "", 0, 10000)
 		if err != nil {
 			return err
 		}
@@ -203,7 +204,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			errs = multierror.Append(errs, fmt.Errorf("unable to find team '%s'", args[i]))
 			continue
 		}
-		commands, _, err := c.ListCommands(team.Id, true)
+		commands, _, err := c.ListCommands(context.TODO(), team.Id, true)
 		if err != nil {
 			printer.PrintError("Unable to list commands for '" + team.Id + "'")
 			errs = multierror.Append(errs, fmt.Errorf("unable to list commands for '%s': %w", team.Id, err))
@@ -217,7 +218,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	resp, err := c.DeleteCommand(args[0])
+	resp, err := c.DeleteCommand(context.TODO(), args[0])
 	if err != nil {
 		return errors.New("Unable to archive command '" + args[0] + "' error: " + err.Error())
 	}
@@ -289,7 +290,7 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 	}
 
-	modifiedCommand, _, err := c.UpdateCommand(command)
+	modifiedCommand, _, err := c.UpdateCommand(context.TODO(), command)
 	if err != nil {
 		return fmt.Errorf("unable to modify command '%s'. %s", command.DisplayName, err.Error())
 	}
@@ -311,7 +312,7 @@ func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find command '%s'", args[1])
 	}
 
-	resp, err := c.MoveCommand(newTeam.Id, command.Id)
+	resp, err := c.MoveCommand(context.TODO(), newTeam.Id, command.Id)
 	if err != nil {
 		return fmt.Errorf("unable to move command '%s'. %s", command.Id, err.Error())
 	}

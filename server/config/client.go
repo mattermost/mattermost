@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -144,8 +144,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 
-	props["EnablePlaybooks"] = strconv.FormatBool(*c.ProductSettings.EnablePlaybooks)
-
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
@@ -234,6 +232,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHash"] = model.BuildHash
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
+	props["ServiceEnvironment"] = model.GetServiceEnvironment()
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)

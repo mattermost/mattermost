@@ -4,14 +4,15 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -70,7 +71,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
 	if replyTo != "" {
-		replyToPost, _, err := c.GetPost(replyTo, "")
+		replyToPost, _, err := c.GetPost(context.TODO(), replyTo, "")
 		if err != nil {
 			return err
 		}
@@ -96,7 +97,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not decode post: %w", err)
 	}
 
-	if _, err := c.DoAPIPost(url, data); err != nil {
+	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
 		return fmt.Errorf("could not create post: %s", err.Error())
 	}
 	return nil
@@ -124,7 +125,7 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	if usernames[post.UserId] != "" {
 		username = usernames[post.UserId]
 	} else {
-		user, _, err := c.GetUser(post.UserId, "")
+		user, _, err := c.GetUser(context.TODO(), post.UserId, "")
 		if err != nil {
 			username = post.UserId
 		} else {
@@ -149,7 +150,7 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 
 func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
 	if since == "" {
-		return client.GetPostsForChannel(channelID, 0, perPage, "", false, false)
+		return client.GetPostsForChannel(context.TODO(), channelID, 0, perPage, "", false, false)
 	}
 
 	sinceTime, err := time.Parse(ISO8601Layout, since)
@@ -158,7 +159,7 @@ func getPostList(client client.Client, channelID, since string, perPage int) (*m
 	}
 
 	sinceTimeMillis := model.GetMillisForTime(sinceTime)
-	return client.GetPostsSince(channelID, sinceTimeMillis, false)
+	return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false)
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
