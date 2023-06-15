@@ -108,10 +108,8 @@ export function Menu(props: Props) {
         setAnchorElement(null);
     }
 
-    // Callback function handler when anywhere on the menu is clicked including
-    // menu items to prevent event from bubbling up to the parent
-    function handleMenuClick(event: MouseEvent<HTMLDivElement>) {
-        event.preventDefault();
+    function handleMenuClick() {
+        setAnchorElement(null);
     }
 
     useEffect(() => {
