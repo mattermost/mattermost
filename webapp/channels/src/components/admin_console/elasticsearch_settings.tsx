@@ -11,15 +11,34 @@ import {t} from 'utils/i18n';
 
 import ExternalLink from 'components/external_link';
 
-import AdminSettings from './admin_settings';
+import AdminSettings, {BaseProps as Props, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+import {AdminConfig} from '@mattermost/types/config';
+import {Job, JobType} from '@mattermost/types/jobs';
 
-export default class ElasticsearchSettings extends AdminSettings {
-    getConfigFromState = (config) => {
+interface State extends BaseState {
+    connectionUrl: string;
+    skipTLSVerification: boolean;
+    ca: string;
+    clientCert: string;
+    clientKey: string;
+    username: string;
+    password: string;
+    sniff: boolean;
+    enableIndexing: boolean;
+    enableSearching: boolean;
+    enableAutocomplete: boolean;
+    configTested: boolean;
+    canSave: boolean;
+    canPurgeAndIndex: boolean;
+}
+
+export default class ElasticsearchSettings extends AdminSettings<Props, State> {
+    getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
         config.ElasticsearchSettings.SkipTLSVerification = this.state.skipTLSVerification;
         config.ElasticsearchSettings.CA = this.state.ca;
@@ -36,7 +55,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: AdminConfig) {
         return {
             connectionUrl: config.ElasticsearchSettings.ConnectionURL,
             skipTLSVerification: config.ElasticsearchSettings.SkipTLSVerification,
@@ -56,7 +75,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         };
     }
 
-    handleSettingChanged = (id, value) => {
+    handleSettingChanged = (id: string, value: boolean) => {
         if (id === 'enableIndexing') {
             if (value === false) {
                 this.setState({
@@ -97,7 +116,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         return this.state.canSave;
     };
 
-    doTestConfig = (success, error) => {
+    doTestConfig = (success: (arg0?: any) => void, error: (arg0: any) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -110,7 +129,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                 });
                 success();
             },
-            (err) => {
+            (err: string) => {
                 this.setState({
                     configTested: false,
                     canSave: false,
@@ -120,7 +139,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         );
     };
 
-    getExtraInfo(job) {
+    getExtraInfo(job: Job) {
         if (job.status === JobStatuses.IN_PROGRESS) {
             return (
                 <FormattedMessage
@@ -187,6 +206,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.connectionUrlExample', 'E.g.: "https://elasticsearch.example.org:9200"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.connectionUrlDescription'
@@ -220,6 +240,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.caExample', 'E.g.: "./elasticsearch/ca.pem"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.caDescription'
@@ -240,6 +261,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.clientCertExample', 'E.g.: "./elasticsearch/client-cert.pem"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientCertDescription'
@@ -260,6 +282,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.clientKeyExample', 'E.g.: "./elasticsearch/client-key.pem"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientKeyDescription'
@@ -299,6 +322,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.usernameExample', 'E.g.: "elastic"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.usernameDescription'
@@ -319,6 +343,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.password', 'E.g.: "yourpassword"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.passwordDescription'
@@ -382,7 +407,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                     <div className='col-sm-8'>
                         <div className='job-table-setting'>
                             <JobsTable
-                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING}
+                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
                                 disabled={!this.state.canPurgeAndIndex || this.props.isDisabled}
                                 createJobButtonText={
                                     <FormattedMessage
