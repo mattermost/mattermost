@@ -29,7 +29,7 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {loginById} from 'actions/views/login';
+import {loginById, loginWithDesktopToken} from 'actions/views/login';
 
 import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
@@ -54,11 +54,20 @@ import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityC
 import ExternalLink from 'components/external_link';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
+import {generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
+import {isDesktopApp} from 'utils/user_agent';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import './signup.scss';
 
 const MOBILE_SCREEN_WIDTH = 1200;
+
+enum DesktopAuthStatus {
+    None,
+    Polling,
+    Expired,
+    Complete,
+}
 
 type SignupProps = {
     onCustomizeHeader?: CustomizeHeaderType;
@@ -148,6 +157,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const {error: passwordInfo} = isValidPassword('', getPasswordConfig(config), intl);
 
+    const query = new URLSearchParams(search);
+
+    const [desktopToken, setDesktopToken] = useState('');
+    const [desktopAuthLogin, setDesktopAuthLogin] = useState(query.get('desktopAuthStatus') === 'complete' ? DesktopAuthStatus.Complete : DesktopAuthStatus.None);
+    const desktopAuthInterval = useRef<number>();
+
     const subscribeToSecurityNewsletterFunc = () => {
         try {
             Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
@@ -156,6 +171,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             console.error(error);
         }
     };
+
+    const getExternalURL = (url: string) => getExternalLoginURL(url, search, desktopToken);
 
     const getExternalSignupOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
@@ -167,7 +184,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (enableSignUpWithGitLab) {
             externalLoginOptions.push({
                 id: 'gitlab',
-                url: `${Client4.getOAuthRoute()}/gitlab/signup${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/gitlab/signup`),
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
@@ -177,7 +194,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (isLicensed && enableSignUpWithGoogle) {
             externalLoginOptions.push({
                 id: 'google',
-                url: `${Client4.getOAuthRoute()}/google/signup${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/google/signup`),
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
             });
@@ -186,7 +203,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (isLicensed && enableSignUpWithOffice365) {
             externalLoginOptions.push({
                 id: 'office365',
-                url: `${Client4.getOAuthRoute()}/office365/signup${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/office365/signup`),
                 icon: <LoginOffice365Icon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
             });
@@ -195,7 +212,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (isLicensed && enableSignUpWithOpenId) {
             externalLoginOptions.push({
                 id: 'openid',
-                url: `${Client4.getOAuthRoute()}/openid/signup${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/openid/signup`),
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
@@ -220,7 +237,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
             externalLoginOptions.push({
                 id: 'saml',
-                url: `${Client4.getUrl()}/login/sso/saml?${newSearchParam.toString()}`,
+                url: getExternalLoginURL(`${Client4.getUrl()}/login/sso/saml`, newSearchParam.toString(), desktopToken),
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
             });
@@ -295,9 +312,35 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
     }, 100);
 
+    const desktopExternalAuth = () => {
+        if (isDesktopApp()) {
+            setDesktopAuthLogin(DesktopAuthStatus.Polling);
+
+            desktopAuthInterval.current = setInterval(async () => {
+                const {error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
+
+                if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+                    if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
+                        clearInterval(desktopAuthInterval.current);
+                        setDesktopAuthLogin(DesktopAuthStatus.Expired);
+                    }
+                    return;
+                }
+
+                clearInterval(desktopAuthInterval.current);
+                setDesktopAuthLogin(DesktopAuthStatus.Complete);
+                await postSignupSuccess();
+            }, 2000) as unknown as number;
+        }
+    };
+
     useEffect(() => {
         dispatch(removeGlobalItem('team'));
         trackEvent('signup', 'signup_user_01_welcome', {...getRoleFromTrackFlow(), ...getMediumFromTrackFlow()});
+
+        if (isDesktopApp()) {
+            setDesktopToken(generateDesktopToken());
+        }
 
         onWindowResize();
 
@@ -322,6 +365,13 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         return () => {
+            if (desktopAuthInterval.current) {
+                clearInterval(desktopAuthInterval.current);
+
+                // Attempt to make a final call to log in if not already logged in
+                dispatch(loginWithDesktopToken(desktopToken));
+            }
+
             window.removeEventListener('resize', onWindowResize);
         };
     }, []);
@@ -447,6 +497,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
             return;
         }
+
+        await postSignupSuccess();
+    };
+
+    const postSignupSuccess = async () => {
+        const redirectTo = (new URLSearchParams(search)).get('redirect_to');
 
         if (graphQLEnabled) {
             await dispatch(loadMe());
@@ -658,6 +714,34 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         sendSignUpTelemetryEvents(`typed_input_${inputId}`);
     };
 
+    const getDesktopAuthScreen = () => {
+        if (desktopAuthLogin === DesktopAuthStatus.Polling) {
+            return (
+                <div>
+                    {'TODO Desktop Token: Authenticating in the browser, awaiting valid token...'}
+                </div>
+            );
+        }
+
+        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
+            return (
+                <div>
+                    {'TODO Desktop Token: You are now logged in. Returning you to the Desktop App...'}
+                </div>
+            );
+        }
+
+        if (desktopAuthLogin === DesktopAuthStatus.Expired) {
+            return (
+                <div>
+                    {'TODO Desktop Token: Something went wrong. Please log in again.'}
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
             return (
@@ -693,6 +777,10 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     )}
                 />
             );
+        }
+
+        if (desktopAuthLogin) {
+            return getDesktopAuthScreen();
         }
 
         let emailCustomLabelForInput: CustomMessageInputType = parsedEmail ? {
@@ -839,6 +927,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         <ExternalLoginButton
                                             key={option.id}
                                             direction={enableSignUpWithEmail ? undefined : 'column'}
+                                            onClick={desktopExternalAuth}
                                             {...option}
                                         />
                                     ))}

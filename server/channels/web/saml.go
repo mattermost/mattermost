@@ -59,6 +59,16 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["redirect_to"] = redirectURL
 	}
 
+	desktopToken := r.URL.Query().Get("desktop_token")
+	if desktopToken != "" {
+		desktopTokenErr := c.App.CreateDesktopToken(desktopToken)
+		if desktopTokenErr != nil {
+			c.Err = err
+			return
+		}
+		relayProps["desktop_token"] = desktopToken
+	}
+
 	relayProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
@@ -177,6 +187,26 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		mlog.Error(err.Error())
 		handleError(err)
+		return
+	}
+
+	desktopToken := relayProps["desktop_token"]
+	if desktopToken != "" {
+		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, user)
+		if desktopTokenErr != nil {
+			handleError(desktopTokenErr)
+			return
+		}
+
+		var queryString map[string]string = map[string]string{
+			"desktopAuthStatus": "complete",
+		}
+		if val, ok := relayProps["redirect_to"]; ok {
+			queryString["redirect_to"] = val
+		}
+
+		redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login", queryString)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
 

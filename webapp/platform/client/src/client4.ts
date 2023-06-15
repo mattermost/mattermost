@@ -756,6 +756,23 @@ export default class Client4 {
         return profile;
     };
 
+    loginWithDesktopToken = async (token: string) => {
+        const body: any = {
+            token,
+            deviceId: '',
+        };
+
+        const {
+            data: profile,
+            headers,
+        } = await this.doFetchWithResponse<UserProfile>(
+            `${this.getUsersRoute()}/login/desktop_token`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+
+        return profile;
+    };
+
     loginById = (id: string, password: string, token = '') => {
         this.trackEvent('api', 'api_users_login');
         const body: any = {

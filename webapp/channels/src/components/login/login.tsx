@@ -27,7 +27,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {login} from 'actions/views/login';
+import {login, loginWithDesktopToken} from 'actions/views/login';
 import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -59,8 +59,17 @@ import {setCSRFFromCookie} from 'utils/utils';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
+import {isDesktopApp} from 'utils/user_agent';
+import {generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
 
 const MOBILE_SCREEN_WIDTH = 1200;
+
+enum DesktopAuthStatus {
+    None,
+    Polling,
+    Expired,
+    Complete,
+}
 
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
@@ -145,6 +154,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
 
+    const [desktopToken, setDesktopToken] = useState('');
+    const [desktopAuthLogin, setDesktopAuthLogin] = useState(query.get('desktopAuthStatus') === 'complete' ? DesktopAuthStatus.Complete : DesktopAuthStatus.None);
+    const desktopAuthInterval = useRef<number>();
+
+    const getExternalURL = (url: string) => getExternalLoginURL(url, search, desktopToken);
+
     const getExternalLoginOptions = () => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
@@ -155,7 +170,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (enableSignUpWithGitLab) {
             externalLoginOptions.push({
                 id: 'gitlab',
-                url: `${Client4.getOAuthRoute()}/gitlab/login${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/gitlab/login`),
                 icon: <LoginGitlabIcon/>,
                 label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
                 style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
@@ -165,7 +180,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (enableSignUpWithGoogle) {
             externalLoginOptions.push({
                 id: 'google',
-                url: `${Client4.getOAuthRoute()}/google/login${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/google/login`),
                 icon: <LoginGoogleIcon/>,
                 label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
             });
@@ -174,7 +189,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (enableSignUpWithOffice365) {
             externalLoginOptions.push({
                 id: 'office365',
-                url: `${Client4.getOAuthRoute()}/office365/login${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/office365/login`),
                 icon: <LoginOffice365Icon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Office 365'}),
             });
@@ -183,7 +198,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (enableSignUpWithOpenId) {
             externalLoginOptions.push({
                 id: 'openid',
-                url: `${Client4.getOAuthRoute()}/openid/login${search}`,
+                url: getExternalURL(`${Client4.getOAuthRoute()}/openid/login`),
                 icon: <LoginOpenIDIcon/>,
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
@@ -193,13 +208,35 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (enableSignUpWithSaml) {
             externalLoginOptions.push({
                 id: 'saml',
-                url: `${Client4.getUrl()}/login/sso/saml${search}`,
+                url: getExternalURL(`${Client4.getUrl()}/login/sso/saml`),
                 icon: <LockIcon/>,
                 label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
             });
         }
 
         return externalLoginOptions;
+    };
+
+    const desktopExternalAuth = () => {
+        if (isDesktopApp()) {
+            setDesktopAuthLogin(DesktopAuthStatus.Polling);
+
+            desktopAuthInterval.current = setInterval(async () => {
+                const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
+
+                if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+                    if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
+                        clearInterval(desktopAuthInterval.current);
+                        setDesktopAuthLogin(DesktopAuthStatus.Expired);
+                    }
+                    return;
+                }
+
+                clearInterval(desktopAuthInterval.current);
+                setDesktopAuthLogin(DesktopAuthStatus.Complete);
+                await postSubmit(userProfile);
+            }, 2000) as unknown as number;
+        }
     };
 
     const dismissAlert = () => {
@@ -375,6 +412,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
 
     useEffect(() => {
+        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
+            window.location.href = `mattermost://localhost:8065${redirectTo ?? ''}`;
+            return;
+        }
+
+        if (isDesktopApp()) {
+            setDesktopToken(generateDesktopToken());
+        }
+
         if (currentUser) {
             if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                 history.push(redirectTo);
@@ -416,6 +462,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     useEffect(() => {
         return () => {
+            if (desktopAuthInterval.current) {
+                clearInterval(desktopAuthInterval.current);
+
+                // Attempt to make a final call to log in if not already logged in
+                if (!currentUser) {
+                    dispatch(loginWithDesktopToken(desktopToken));
+                }
+            }
+
             if (closeSessionExpiredNotification!.current) {
                 closeSessionExpiredNotification.current();
                 closeSessionExpiredNotification.current = undefined;
@@ -593,6 +648,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
+        await postSubmit(userProfile);
+    };
+
+    const postSubmit = async (userProfile: UserProfile) => {
         if (graphQLEnabled) {
             await dispatch(loadMe());
         } else {
@@ -703,6 +762,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         );
     };
 
+    const getDesktopAuthScreen = () => {
+        if (desktopAuthLogin === DesktopAuthStatus.Polling) {
+            return (
+                <div>
+                    {'TODO Desktop Token: Authenticating in the browser, awaiting valid token...'}
+                </div>
+            );
+        }
+
+        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
+            return (
+                <div>
+                    {'TODO Desktop Token: You are now logged in. Returning you to the Desktop App...'}
+                </div>
+            );
+        }
+
+        if (desktopAuthLogin === DesktopAuthStatus.Expired) {
+            return (
+                <div>
+                    {'TODO Desktop Token: Something went wrong. Please log in again.'}
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const getContent = () => {
         if (showMfa) {
             return (
@@ -721,6 +808,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
                 />
             );
+        }
+
+        if (desktopAuthLogin) {
+            return getDesktopAuthScreen();
         }
 
         return (
@@ -832,6 +923,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                         <ExternalLoginButton
                                             key={option.id}
                                             direction={enableBaseLogin ? undefined : 'column'}
+                                            onClick={desktopExternalAuth}
                                             {...option}
                                         />
                                     ))}
