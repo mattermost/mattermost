@@ -24,8 +24,8 @@ import {
     PinOutlineIcon,
     ReplyOutlineIcon,
     TrashCanOutlineIcon,
-    ChevronRightIcon, 
-    ClockOutlineIcon
+    ChevronRightIcon,
+    ClockOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
 import {ModalData} from 'types/actions';
@@ -415,22 +415,22 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.props.actions.openModal(postReminderCustomTimePicker);
         } else {
             const currentDate = getCurrentMomentForTimezone(
-                this.props.timezone
+                this.props.timezone,
             );
 
             let endTime = currentDate;
             if (id === PostReminders.THIRTY_MINUTES) {
                 // add 30 minutes in current time
-                endTime = currentDate.add(30, "minutes");
+                endTime = currentDate.add(30, 'minutes');
             } else if (id === PostReminders.ONE_HOUR) {
                 // add 1 hour in current time
-                endTime = currentDate.add(1, "hour");
+                endTime = currentDate.add(1, 'hour');
             } else if (id === PostReminders.TWO_HOURS) {
                 // add 2 hours in current time
-                endTime = currentDate.add(2, "hours");
+                endTime = currentDate.add(2, 'hours');
             } else if (id === PostReminders.TOMORROW) {
                 // add one day in current date
-                endTime = currentDate.add(1, "day");
+                endTime = currentDate.add(1, 'day');
             }
 
             this.props.actions.addPostReminder(this.props.userId, this.props.post.id, toUTCUnix(endTime.toDate()));
@@ -443,57 +443,55 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             if (postReminder === PostReminders.THIRTY_MINUTES) {
                 labels = (
                     <FormattedMessage
-                        id="post_info.post_reminder.sub_menu.thirty_minutes"
-                        defaultMessage="30 mins"
+                        id='post_info.post_reminder.sub_menu.thirty_minutes'
+                        defaultMessage='30 mins'
                     />
-                )
+                );
             } else if (postReminder === PostReminders.ONE_HOUR) {
                 labels = (
                     <FormattedMessage
-                        id="post_info.post_reminder.sub_menu.one_hour"
-                        defaultMessage="1 hour"
+                        id='post_info.post_reminder.sub_menu.one_hour'
+                        defaultMessage='1 hour'
                     />
-                )
+                );
             } else if (postReminder === PostReminders.TWO_HOURS) {
                 labels = (
                     <FormattedMessage
-                        id="post_info.post_reminder.sub_menu.two_hours"
-                        defaultMessage="2 hours"
+                        id='post_info.post_reminder.sub_menu.two_hours'
+                        defaultMessage='2 hours'
                     />
-                )
+                );
             } else if (postReminder === PostReminders.TOMORROW) {
                 labels = (
                     <FormattedMessage
-                        id="post_info.post_reminder.sub_menu.tomorrow"
-                        defaultMessage="Tomorrow"
+                        id='post_info.post_reminder.sub_menu.tomorrow'
+                        defaultMessage='Tomorrow'
                     />
-                )
+                );
             } else {
                 labels = (
                     <FormattedMessage
-                        id="post_info.post_reminder.sub_menu.custom"
-                        defaultMessage="Custom"
+                        id='post_info.post_reminder.sub_menu.custom'
+                        defaultMessage='Custom'
                     />
-                )
+                );
             }
 
             let trailingElements = null;
             if (postReminder === PostReminders.TOMORROW) {
-                const tomorrow = getCurrentMomentForTimezone(timezone)
-                    .add(1, "day")
-                    .toDate();
+                const tomorrow = getCurrentMomentForTimezone(timezone).add(1, 'day').toDate();
 
                 trailingElements = (
                     <span className={`postReminder-${postReminder}_timestamp`}>
                         <FormattedDate
                             value={tomorrow}
-                            weekday="short"
+                            weekday='short'
                             timeZone={timezone}
                         />
-                        {", "}
+                        {', '}
                         <FormattedTime
                             value={tomorrow}
-                            timeStyle="short"
+                            timeStyle='short'
                             hour12={!isMilitaryTime}
                             timeZone={timezone}
                         />
@@ -503,8 +501,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             return (
                 <Menu.Item
-                    id={Menu.createMenuItemId("remind_post_options",postReminder, postId)}
-                    key={Menu.createMenuItemId("remind_post_options",postReminder, postId)}
+                    id={Menu.createMenuItemId('remind_post_options', postReminder, postId)}
+                    key={Menu.createMenuItemId('remind_post_options', postReminder, postId)}
                     labels={labels}
                     trailingElements={trailingElements}
                     onClick={() => this.handlePostReminderMenuClick(postReminder)}
@@ -581,7 +579,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 defaultMessage='Pin'
             />
         );
-        
+
         const unPinPost = (
             <FormattedMessage
                 id='post_info.unpin'
@@ -660,20 +658,20 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         (this.props.location === Locations.CENTER ||
                             this.props.location === Locations.RHS_ROOT ||
                             this.props.location === Locations.RHS_COMMENT)) &&
-                    <Menu.Item
-                        id={Menu.createMenuItemId('follow', this.props.post.id)}
-                        data-testid={`follow_post_thread_${this.props.post.id}`}
-                        trailingElements={<ShortcutKey shortcutKey="F" />}
-                        labels={followPostLabel()}
-                        leadingElement={
-                            isFollowingThread ? (
-                                <MessageMinusOutlineIcon size={18} />
-                            ) : (
-                                <MessageCheckOutlineIcon size={18} />
-                            )
-                        }
-                        onClick={this.handleSetThreadFollow}
-                    />
+                            <Menu.Item
+                                id={Menu.createMenuItemId('follow', this.props.post.id)}
+                                data-testid={`follow_post_thread_${this.props.post.id}`}
+                                trailingElements={<ShortcutKey shortcutKey='F'/>}
+                                labels={followPostLabel()}
+                                leadingElement={
+                                    isFollowingThread ? (
+                                        <MessageMinusOutlineIcon size={18}/>
+                                    ) : (
+                                        <MessageCheckOutlineIcon size={18}/>
+                                    )
+                                }
+                                onClick={this.handleSetThreadFollow}
+                            />
                 }
                 {Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH) &&
                     <Menu.Item

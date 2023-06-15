@@ -31,7 +31,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     }
   >
     <SubMenu
-      id="sortDirectMessages-category_id"
+      id="SubMenuItemKey__sortDirectMessages__category_id"
       labels={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Sort"
@@ -57,7 +57,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       }
     >
       <MenuItem
-        id="sortAlphabetical-category_id"
+        id="MenuItemKey__sortDirectMessages__category_id-alpha"
         labels={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Alphabetically"
@@ -67,7 +67,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         onClick={[Function]}
       />
       <MenuItem
-        id="sortByMostRecent-category_id"
+        id="MenuItemKey__sortDirectMessages__category_id-recent"
         labels={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Recent Activity"
@@ -78,7 +78,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       />
     </SubMenu>
     <SubMenu
-      id="showMessagesCount-category_id"
+      id="SubMenuItemKey__showMessagesCount__category_id"
       labels={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Show"
@@ -103,7 +103,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       }
     >
       <MenuItem
-        id="showAllDms-category_id"
+        id="MenuItemKey__showAllDms__category_id-10000"
         labels={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="All direct messages"
@@ -114,7 +114,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       />
       <MenuItemSeparator />
       <MenuItem
-        id="showDmCount-category_id-10"
+        id="MenuItemKey__showDmCount__category_id-10"
         key="showDmCount-category_id-10"
         labels={
           <span>
@@ -124,7 +124,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         onClick={[Function]}
       />
       <MenuItem
-        id="showDmCount-category_id-15"
+        id="MenuItemKey__showDmCount__category_id-15"
         key="showDmCount-category_id-15"
         labels={
           <span>
@@ -134,7 +134,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         onClick={[Function]}
       />
       <MenuItem
-        id="showDmCount-category_id-20"
+        id="MenuItemKey__showDmCount__category_id-20"
         key="showDmCount-category_id-20"
         labels={
           <span>
@@ -144,7 +144,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
         onClick={[Function]}
       />
       <MenuItem
-        id="showDmCount-category_id-40"
+        id="MenuItemKey__showDmCount__category_id-40"
         key="showDmCount-category_id-40"
         labels={
           <span>
@@ -156,7 +156,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     </SubMenu>
     <MenuItemSeparator />
     <MenuItem
-      id="openDirectMessage-category_id"
+      id="MenuItemKey__openDirectMessage__category_id"
       labels={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Open a direct message"

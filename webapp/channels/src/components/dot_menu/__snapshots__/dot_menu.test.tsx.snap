@@ -140,7 +140,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
 >
   <MenuItem
     data-testid="reply_to_post_post_id_1"
-    id="reply_to_post_post_id_1"
+    id="MenuItemKey__reply__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Reply"
@@ -161,7 +161,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   />
   <MenuItem
     data-testid="forward_post_post_id_1"
-    id="forward_post_post_id_1"
+    id="MenuItemKey__forward__post_id_1"
     isLabelsRowLayout={true}
     labels={
       <span
@@ -187,7 +187,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   />
   <MenuItem
     data-testid="follow_post_thread_post_id_1"
-    id="follow_post_thread_post_id_1"
+    id="MenuItemKey__follow__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Follow message"
@@ -208,7 +208,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   />
   <MenuItem
     data-testid="unread_post_post_id_1"
-    id="unread_post_post_id_1"
+    id="MenuItemKey__unread__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Mark as Unread"
@@ -227,40 +227,114 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
-  <PostReminderSubmenu
-    isMilitaryTime={false}
-    post={
-      Object {
-        "channel_id": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "edit_at": 0,
-        "hashtags": "",
-        "id": "post_id_1",
-        "is_pinned": false,
-        "message": "post message",
-        "metadata": Object {
-          "embeds": Array [],
-          "emojis": Array [],
-          "files": Array [],
-          "images": Object {},
-          "reactions": Array [],
-        },
-        "original_id": "",
-        "pending_post_id": "",
-        "props": Object {},
-        "reply_count": 0,
-        "root_id": "",
-        "type": "",
-        "update_at": 0,
-        "user_id": "user_id",
-      }
+  <SubMenu
+    id="SubMenuItemKey__remind_post__post_id_1"
+    labels={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remind"
+        id="post_info.post_reminder.menu"
+      />
     }
-    userId="user_id_1"
-  />
+    leadingElement={
+      <ClockOutlineIcon
+        size={18}
+      />
+    }
+    menuId="remind_post_post_id_1-menu"
+    trailingElements={
+      <span
+        className="dot-menu__item-trailing-icon"
+      >
+        <ChevronRightIcon
+          size={16}
+        />
+      </span>
+    }
+  >
+    <h5
+      className="dot-menu__post-reminder-menu-header"
+    >
+      Set a reminder for:
+    </h5>
+    <MenuItem
+      id="MenuItemKey__remind_post_options__thirty_minutes-post_id_1"
+      key="MenuItemKey__remind_post_options__thirty_minutes-post_id_1"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="30 mins"
+          id="post_info.post_reminder.sub_menu.thirty_minutes"
+        />
+      }
+      onClick={[Function]}
+      trailingElements={null}
+    />
+    <MenuItem
+      id="MenuItemKey__remind_post_options__one_hour-post_id_1"
+      key="MenuItemKey__remind_post_options__one_hour-post_id_1"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="1 hour"
+          id="post_info.post_reminder.sub_menu.one_hour"
+        />
+      }
+      onClick={[Function]}
+      trailingElements={null}
+    />
+    <MenuItem
+      id="MenuItemKey__remind_post_options__two_hours-post_id_1"
+      key="MenuItemKey__remind_post_options__two_hours-post_id_1"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="2 hours"
+          id="post_info.post_reminder.sub_menu.two_hours"
+        />
+      }
+      onClick={[Function]}
+      trailingElements={null}
+    />
+    <MenuItem
+      id="MenuItemKey__remind_post_options__tomorrow-post_id_1"
+      key="MenuItemKey__remind_post_options__tomorrow-post_id_1"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Tomorrow"
+          id="post_info.post_reminder.sub_menu.tomorrow"
+        />
+      }
+      onClick={[Function]}
+      trailingElements={
+        <span
+          className="postReminder-tomorrow_timestamp"
+        >
+          <FormattedDate
+            value={2023-06-16T12:02:08.405Z}
+            weekday="short"
+          />
+          , 
+          <FormattedTime
+            hour12={true}
+            timeStyle="short"
+            value={2023-06-16T12:02:08.405Z}
+          />
+        </span>
+      }
+    />
+    <MenuItem
+      id="MenuItemKey__remind_post_options__custom-post_id_1"
+      key="MenuItemKey__remind_post_options__custom-post_id_1"
+      labels={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Custom"
+          id="post_info.post_reminder.sub_menu.custom"
+        />
+      }
+      onClick={[Function]}
+      trailingElements={null}
+    />
+  </SubMenu>
   <MenuItem
     data-testid="save_post_post_id_1"
-    id="save_post_post_id_1"
+    id="MenuItemKey__save__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Save"
@@ -281,7 +355,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   />
   <MenuItem
     data-testid="pin_post_post_id_1"
-    id="pin_post_post_id_1"
+    id="MenuItemKey__pinUnpin__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Pin"
@@ -303,7 +377,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   <MenuItemSeparator />
   <MenuItem
     data-testid="permalink_post_id_1"
-    id="permalink_post_id_1"
+    id="MenuItemKey__copyLink__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Copy Link"
@@ -325,7 +399,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   <MenuItemSeparator />
   <MenuItem
     data-testid="edit_post_post_id_1"
-    id="edit_post_post_id_1"
+    id="MenuItemKey__edit__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Edit"
@@ -346,7 +420,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   />
   <MenuItem
     data-testid="copy_post_id_1"
-    id="copy_post_id_1"
+    id="MenuItemKey__copyText__post_id_1"
     labels={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Copy Text"
