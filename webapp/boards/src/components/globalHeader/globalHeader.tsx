@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 //
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {History} from 'history'
 
@@ -14,6 +14,7 @@ import GlobalHeaderSettingsMenu from './globalHeaderSettingsMenu'
 
 import './globalHeader.scss'
 
+import ItpTimeViewer from '../itpTimeRecorder/itpTimeViewer'
 type HeaderItemProps = {
     history: History<unknown>
 }
@@ -24,6 +25,7 @@ const HeaderItems = (props: HeaderItemProps) => {
     return (
         <div className='GlobalHeaderComponent'>
             <span className='spacer'/>
+            <ItpTimeViewer board={'test'}/>
             <a
                 href={helpUrl}
                 target='_blank'

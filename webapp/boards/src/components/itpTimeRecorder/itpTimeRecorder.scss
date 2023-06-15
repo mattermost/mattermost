@@ -1,0 +1,47 @@
+.startBtn {
+    width: 100%;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+.stopBtn {
+    color: #fff;
+    width: 150px;
+
+    &:hover {
+        background-color: #990030 !important;
+      }
+  }
+
+  .stopBtnMenu {
+    color: #fff;
+    background-color: #990030 !important;
+  }
+
+  .parent {
+    display: flex;
+  }
+  
+  .child {
+    flex: 1;
+  }
+
+  .totalTime{
+    font-family: "Open Sans", sans-serif;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    border-radius: var(--default-rad);
+    min-width: 20px;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    transition: all 100ms ease-out 0s;
+    color: inherit;
+    height: 32px;
+    padding: 0 10px;
+    font-weight: 600;
+}
+  

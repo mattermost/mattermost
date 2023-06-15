@@ -18,6 +18,7 @@ import {reducer as clientConfigReducer} from './clientConfig'
 import {reducer as sidebarReducer} from './sidebar'
 import {reducer as limitsReducer} from './limits'
 import {reducer as attachmentsReducer} from './attachments'
+import {reducer as itpTimeRecorderReducer} from './itpTimeRecorderStore'
 
 const store = configureStore({
     reducer: {
@@ -36,6 +37,7 @@ const store = configureStore({
         sidebar: sidebarReducer,
         limits: limitsReducer,
         attachments: attachmentsReducer,
+        itpTimeRecorder: itpTimeRecorderReducer,
     },
 })
 
