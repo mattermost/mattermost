@@ -15,11 +15,6 @@ import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
-const PUSH_NOTIFICATIONS_OFF = 'off';
-const PUSH_NOTIFICATIONS_MHPNS = 'mhpns';
-const PUSH_NOTIFICATIONS_MTPNS = 'mtpns';
-const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
-
 type Props = BaseProps & {
     config: AdminConfig;
     license: ClientLicense;
@@ -28,9 +23,25 @@ type Props = BaseProps & {
 type State = BaseState & {
     pushNotificationServer: string;
     pushNotificationServerType: EmailSettings['PushNotificationServerType'];
+    pushNotificationServerLocation: EmailSettings['PushNotificationServerLocation'];
     agree: boolean;
     maxNotificationsPerChannel: number;
 };
+
+const PUSH_NOTIFICATIONS_OFF = 'off';
+const PUSH_NOTIFICATIONS_MHPNS = 'mhpns';
+const PUSH_NOTIFICATIONS_MTPNS = 'mtpns';
+const PUSH_NOTIFICATIONS_CUSTOM = 'custom';
+const PUSH_NOTIFICATIONS_LOCATION_US = 'us';
+const PUSH_NOTIFICATIONS_LOCATION_DE = 'de';
+
+const PUSH_NOTIFICATIONS_SERVER_DIC = {
+    [PUSH_NOTIFICATIONS_LOCATION_US]: Constants.MHPNS_US,
+    [PUSH_NOTIFICATIONS_LOCATION_DE]: Constants.MHPNS_DE,
+};
+
+const DROPDOWN_ID_SERVER_TYPE = 'pushNotificationServerType';
+const DROPDOWN_ID_SERVER_LOCATION = 'pushNotificationServerLocation';
 
 export default class PushSettings extends AdminSettings<Props, State> {
     canSave = () => {
@@ -43,15 +54,15 @@ export default class PushSettings extends AdminSettings<Props, State> {
         });
     };
 
-    handleDropdownChange = (id: string, value: State['pushNotificationServerType']) => {
-        if (id === 'pushNotificationServerType') {
+    handleDropdownChange = (id: string, value: EmailSettings['PushNotificationServerType'] | EmailSettings['PushNotificationServerLocation']) => {
+        if (id === DROPDOWN_ID_SERVER_TYPE) {
             this.setState({
                 agree: false,
             });
 
             if (value === PUSH_NOTIFICATIONS_MHPNS) {
                 this.setState({
-                    pushNotificationServer: Constants.MHPNS,
+                    pushNotificationServer: PUSH_NOTIFICATIONS_SERVER_DIC[this.state.pushNotificationServerLocation],
                 });
             } else if (value === PUSH_NOTIFICATIONS_MTPNS) {
                 this.setState({
@@ -64,6 +75,13 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     pushNotificationServer: '',
                 });
             }
+        }
+
+        if (id === DROPDOWN_ID_SERVER_LOCATION) {
+            this.setState({
+                pushNotificationServer: PUSH_NOTIFICATIONS_SERVER_DIC[value as EmailSettings['PushNotificationServerLocation']],
+                pushNotificationServerLocation: value as EmailSettings['PushNotificationServerLocation'],
+            });
         }
 
         this.handleChange(id, value);
@@ -80,11 +98,18 @@ export default class PushSettings extends AdminSettings<Props, State> {
     getStateFromConfig(config: Props['config']) {
         let pushNotificationServerType: EmailSettings['PushNotificationServerType'] = PUSH_NOTIFICATIONS_CUSTOM;
         let agree = false;
+        let pushNotificationServerLocation: EmailSettings['PushNotificationServerLocation'] = PUSH_NOTIFICATIONS_LOCATION_US;
         if (!config.EmailSettings.SendPushNotifications) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_OFF;
-        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS &&
+        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS_US &&
             this.props.license.IsLicensed === 'true' && this.props.license.MHPNS === 'true') {
             pushNotificationServerType = PUSH_NOTIFICATIONS_MHPNS;
+            pushNotificationServerLocation = PUSH_NOTIFICATIONS_LOCATION_US;
+            agree = true;
+        } else if (config.EmailSettings.PushNotificationServer === Constants.MHPNS_DE &&
+            this.props.license.IsLicensed === 'true' && this.props.license.MHPNS === 'true') {
+            pushNotificationServerType = PUSH_NOTIFICATIONS_MHPNS;
+            pushNotificationServerLocation = PUSH_NOTIFICATIONS_LOCATION_DE;
             agree = true;
         } else if (config.EmailSettings.PushNotificationServer === Constants.MTPNS) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_MTPNS;
@@ -94,13 +119,14 @@ export default class PushSettings extends AdminSettings<Props, State> {
         if (pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
             pushNotificationServer = Constants.MTPNS;
         } else if (pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
-            pushNotificationServer = Constants.MHPNS;
+            pushNotificationServer = PUSH_NOTIFICATIONS_SERVER_DIC[pushNotificationServerLocation];
         }
 
         const maxNotificationsPerChannel = config.TeamSettings.MaxNotificationsPerChannel;
 
         return {
             pushNotificationServerType,
+            pushNotificationServerLocation,
             pushNotificationServer,
             maxNotificationsPerChannel,
             agree,
@@ -260,7 +286,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                                         {msg}
                                     </ExternalLink>
                                 ),
-                                linkPricacy: (msg) => (
+                                linkPrivacy: (msg) => (
                                     <ExternalLink
                                         href='https://mattermost.com/data-processing-addendum/'
                                         location='push_settings'
@@ -275,10 +301,35 @@ export default class PushSettings extends AdminSettings<Props, State> {
             );
         }
 
+        let locationDropdown;
+        if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
+            const pushNotificationServerLocations = [
+                {value: PUSH_NOTIFICATIONS_LOCATION_US, text: Utils.localizeMessage('admin.email.pushServerLocationUS', 'US')},
+                {value: PUSH_NOTIFICATIONS_LOCATION_DE, text: Utils.localizeMessage('admin.email.pushServerLocationDE', 'Germany')},
+            ];
+
+            locationDropdown = (
+                <DropdownSetting
+                    id={DROPDOWN_ID_SERVER_LOCATION}
+                    values={pushNotificationServerLocations}
+                    label={
+                        <FormattedMessage
+                            id='admin.email.pushServerLocationTitle'
+                            defaultMessage='Push Notification Server location:'
+                        />
+                    }
+                    value={this.state.pushNotificationServerLocation}
+                    onChange={this.handleDropdownChange}
+                    setByEnv={this.isPushNotificationServerSetByEnv()}
+                    disabled={this.props.isDisabled}
+                />
+            );
+        }
+
         return (
             <SettingsGroup>
                 <DropdownSetting
-                    id='pushNotificationServerType'
+                    id={DROPDOWN_ID_SERVER_TYPE}
                     values={pushNotificationServerTypes}
                     label={
                         <FormattedMessage
@@ -292,6 +343,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     setByEnv={this.isPushNotificationServerSetByEnv()}
                     disabled={this.props.isDisabled}
                 />
+                {locationDropdown}
                 {tosCheckbox}
                 <TextSetting
                     id='pushNotificationServer'

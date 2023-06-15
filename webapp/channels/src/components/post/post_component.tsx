@@ -82,7 +82,7 @@ export type Props = {
     channelType?: string;
     a11yIndex?: number;
     isBot: boolean;
-    hasReplies?: boolean;
+    hasReplies: boolean;
     isFirstReply?: boolean;
     previousPostIsComment?: boolean;
     matches?: string[];
@@ -509,10 +509,7 @@ const PostComponent = (props: Props): JSX.Element => {
     }
 
     return (
-        <div
-            className={props.location === 'SEARCH' ? 'search-item__container' : undefined}
-            data-testid={props.location === 'SEARCH' ? 'search-item-container' : undefined}
-        >
+        <>
             {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
             <PostAriaLabelDiv
                 ref={postRef}
@@ -621,12 +618,10 @@ const PostComponent = (props: Props): JSX.Element => {
                             <PostOptions
                                 {...props}
                                 teamId={teamId}
-                                setActionsMenuInitialisationState={props.actions.setActionsMenuInitialisationState}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}
                                 removePost={props.actions.removePost}
-                                isSearchResultsItem={Boolean(isSearchResultItem)}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
                             />
@@ -667,7 +662,7 @@ const PostComponent = (props: Props): JSX.Element => {
                     </div>
                 </div>
             </PostAriaLabelDiv>
-        </div>
+        </>
     );
 };
 

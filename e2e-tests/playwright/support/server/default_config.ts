@@ -313,6 +313,7 @@ const defaultServerConfig: AdminConfig = {
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
         PushNotificationServerType: 'custom',
+        PushNotificationServerLocation: 'us',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -567,6 +568,7 @@ const defaultServerConfig: AdminConfig = {
         ClientCert: '',
         ClientKey: '',
         Trace: '',
+        IgnoredPurgeIndexes: '',
     },
     BleveSettings: {
         IndexDir: '',
@@ -606,10 +608,7 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {
-        EnablePublicSharedBoards: false,
-        EnablePlaybooks: true,
-    },
+    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -619,9 +618,6 @@ const defaultServerConfig: AdminConfig = {
         ClientDirectory: './client/plugins',
         Plugins: {},
         PluginStates: {
-            'com.mattermost.apps': {
-                Enable: true,
-            },
             'com.mattermost.calls': {
                 Enable: true,
             },
@@ -684,7 +680,6 @@ const defaultServerConfig: AdminConfig = {
         GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        AppsSidebarCategory: false,
         CloudReverseTrial: false,
     },
     ImportSettings: {

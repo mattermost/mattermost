@@ -6,7 +6,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, ProductsIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
@@ -63,7 +63,7 @@ import CustomDataRetentionForm from './data_retention_settings/custom_policy_for
 import MessageExportSettings from './message_export_settings.jsx';
 import DatabaseSettings from './database_settings.jsx';
 import ElasticSearchSettings from './elasticsearch_settings.jsx';
-import BleveSettings from './bleve_settings.jsx';
+import BleveSettings from './bleve_settings';
 import FeatureFlags from './feature_flags.tsx';
 import ClusterSettings from './cluster_settings.jsx';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
@@ -3249,6 +3249,10 @@ const AdminDefinition = {
                         help_text_default: 'New user accounts are restricted to the above specified email domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com"). New teams can only be created by users from the above domain(s). This setting only affects email login for users.',
                         placeholder: t('admin.team.restrictExample'),
                         placeholder_default: 'E.g.: "corp.mattermost.com, mattermost.com"',
+                        isHidden: it.all(
+                            it.licensed,
+                            it.not(it.licensedForSku('starter')),
+                        ),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                     },
                     {
@@ -5859,42 +5863,6 @@ const AdminDefinition = {
             schema: {
                 id: 'CustomPluginSettings',
                 component: CustomPluginSettings,
-            },
-        },
-    },
-    products: {
-        icon: (
-            <ProductsIcon
-                size={16}
-                className={'category-icon fa'}
-                color={'currentColor'}
-            />
-        ),
-        sectionTitle: t('admin.sidebar.products'),
-        sectionTitleDefault: 'Products',
-        isHidden: it.any(
-            it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
-        ),
-        boards: {
-            url: 'products/boards',
-            title: t('admin.sidebar.boards'),
-            title_default: 'Boards',
-            isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-            schema: {
-                id: 'BoardsSettings',
-                name: t('admin.site.boards'),
-                name_default: 'Boards',
-                settings: [
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ProductSettings.EnablePublicSharedBoards',
-                        label: t('admin.customization.enablePublicSharedBoardsTitle'),
-                        label_default: 'Enable Public Shared Boards:',
-                        help_text: t('admin.customization.enablePublicSharedBoardsDesc'),
-                        help_text_default: 'This allows board editors to share boards that can be accessed by anyone with the link.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-                    },
-                ],
             },
         },
     },

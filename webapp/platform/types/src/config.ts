@@ -82,7 +82,6 @@ export type ClientConfig = {
     EnableOAuthServiceProvider: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
-    EnablePlaybooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
     EnablePreviewFeatures: string;
@@ -119,7 +118,6 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
-    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -529,6 +527,7 @@ export type EmailSettings = {
     SendPushNotifications: boolean;
     PushNotificationServer: string;
     PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
+    PushNotificationServerLocation: 'us' | 'de';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -775,6 +774,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {
@@ -820,8 +820,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
-    EnablePlaybooks: boolean;
 };
 
 export type PluginSettings = {
