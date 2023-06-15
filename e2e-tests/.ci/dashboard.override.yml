@@ -3,7 +3,7 @@ version: '3.1'
 
 services:
     dashboard:
-        image: node:16.17.0
+        image: mattermostdevelopment/mirrored-node:16.17.0
         environment:
           PG_URI: postgres://mmuser:mostest@db:5432/automation_dashboard_db
           JWT_SECRET: s8gGBA3ujKRohSw1L8HLOY7Jjnu2ZYv8 # Generated with e.g. `dd if=/dev/urandom count=24 bs=1 2>/dev/null | base64 -w0`
