@@ -42,7 +42,7 @@ function loadRemoteModules() {
          * Note that these import paths must be statically defined or else they won't be found at runtime. They
          * can't be constructed based on the name of a product at runtime.
          */
-        const products: any[] = [ ];
+        const products: any[] = [];
 
         await Promise.all(products.map(async (product) => {
             if (!REMOTE_CONTAINERS[product.id]) {
