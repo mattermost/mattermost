@@ -2547,6 +2547,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 }
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
+// For any changes, accordingly update the markdown maxLen here - markdown/inspect.go.
 func (s *SqlPostStore) GetMaxPostSize() int {
 	s.maxPostSizeOnce.Do(func() {
 		s.maxPostSizeCached = s.determineMaxPostSize()

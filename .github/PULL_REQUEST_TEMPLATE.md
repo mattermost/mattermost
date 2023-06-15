@@ -14,7 +14,7 @@ A description of what this pull request does, as well as QA test steps (if appli
 <!--
 If this pull request addresses a Help Wanted ticket, please link the relevant GitHub issue, e.g.
 
-  Fixes https://github.com/mattermost/mattermost-server/issues/XXXXX
+  Fixes https://github.com/mattermost/mattermost/issues/XXXXX
 
 Otherwise, link the JIRA ticket.
 -->
