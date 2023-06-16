@@ -47,7 +47,7 @@ describe('channels > channel header', {testIsolation: true}, () => {
     describe('App Bar enabled', () => {
         it('webapp should hide the Playbook channel header button', () => {
             cy.apiAdminLogin();
-            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: true}});
+            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: false}});
 
             // # Login as testUser
             cy.apiLogin(testUser);
@@ -65,7 +65,7 @@ describe('channels > channel header', {testIsolation: true}, () => {
     describe('App Bar disabled', () => {
         beforeEach(() => {
             cy.apiAdminLogin();
-            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: false}});
+            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: true}});
 
             // # Login as testUser
             cy.apiLogin(testUser);

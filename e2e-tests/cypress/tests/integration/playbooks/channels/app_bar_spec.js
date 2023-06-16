@@ -26,7 +26,7 @@ describe('channels > App Bar', {testIsolation: true}, () => {
 
     describe('App Bar disabled', () => {
         it('should not show the Playbook App Bar icon', () => {
-            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: false}});
+            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: true}});
 
             // # Login as testUser
             cy.apiLogin(testUser);
@@ -41,7 +41,7 @@ describe('channels > App Bar', {testIsolation: true}, () => {
 
     describe('App Bar enabled', () => {
         beforeEach(() => {
-            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: true}});
+            cy.apiUpdateConfig({ExperimentalSettings: {DisableAppBar: false}});
 
             // # Login as testUser
             cy.apiLogin(testUser);
