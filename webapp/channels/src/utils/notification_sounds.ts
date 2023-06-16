@@ -57,8 +57,12 @@ export function ring(name: string) {
 }
 
 export function stopRing() {
-    currentRing?.pause();
-    currentRing = null;
+    if (currentRing) {
+        currentRing.pause();
+        currentRing.src = '';
+        currentRing.remove();
+        currentRing = null;
+    }
 }
 
 let currentTryRing: HTMLAudioElement | null = null;
@@ -77,8 +81,12 @@ export function tryNotificationRing(name: string) {
 }
 
 export function stopTryNotificationRing() {
-    currentTryRing?.pause();
-    currentTryRing = null;
+    if (currentTryRing) {
+        currentTryRing.pause();
+        currentTryRing.src = '';
+        currentTryRing.remove();
+        currentTryRing = null;
+    }
 }
 
 export function loopNotificationRing(name: string) {
