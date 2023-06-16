@@ -54,6 +54,9 @@ export function ring(name: string) {
     stopRing();
 
     currentRing = loopNotificationRing(name);
+    currentRing.addEventListener('pause', () => {
+        stopRing();
+    });
 }
 
 export function stopRing() {
@@ -75,6 +78,10 @@ export function tryNotificationRing(name: string) {
     clearTimeout(currentTimer);
 
     currentTryRing = loopNotificationRing(name);
+    currentTryRing.addEventListener('pause', () => {
+        stopTryNotificationRing();
+    });
+
     currentTimer = setTimeout(() => {
         stopTryNotificationRing();
     }, 5000);
