@@ -7,7 +7,7 @@ PLAYBOOKS_SRC = playbooks
 
 build: build-v4
 
-build-v4: .npminstall playbooks
+build-v4: node_modules playbooks
 	@echo Building mattermost openapi yaml for v4
 
 	@if [ -r $(PLAYBOOKS_SRC)/merged-tags.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-tags.yaml > $(V4_YAML); else cat $(V4_SRC)/introduction.yaml > $(V4_YAML); fi
@@ -56,7 +56,7 @@ build-v4: .npminstall playbooks
 	@node_modules/.bin/redoc-cli -t ./v4/html/ssr_template.hbs build ./v4/html/static/mattermost-openapi-v4.yaml -o ./v4/html/index.html --options.noAutoAuth  --options.suppressWarnings
 	@echo Complete
 
-.npminstall:
+node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
 
 	npm install
@@ -70,7 +70,6 @@ run:
 clean:
 	@echo Cleaning
 
-	rm -f .npminstall
 	rm -rf node_modules
 
 playbooks:
