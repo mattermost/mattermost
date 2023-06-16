@@ -381,6 +381,7 @@ func (ps *PlatformService) ShutdownConfig() error {
 
 func (ps *PlatformService) SetTelemetryId(id string) {
 	ps.telemetryId = id
+	ps.regenerateClientConfig()
 }
 
 func (ps *PlatformService) SetLogger(logger *mlog.Logger) {
