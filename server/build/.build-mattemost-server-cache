@@ -1,0 +1,1 @@
+# This file exists only to create a distinct cache for the build-mattermost-server job in ../../.github/workflows/server-ci-template.yml
