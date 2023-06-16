@@ -680,7 +680,6 @@ const defaultServerConfig: AdminConfig = {
         ReduceOnBoardingTaskList: false,
         OnboardingAutoShowLinkedBoard: false,
         ThreadsEverywhere: false,
-        GlobalDrafts: true,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
         AppsSidebarCategory: false,

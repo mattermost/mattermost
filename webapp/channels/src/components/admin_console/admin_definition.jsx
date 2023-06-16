@@ -3068,12 +3068,6 @@ const AdminDefinition = {
                         help_text: t('admin.customization.allowSyncedDraftsDesc'),
                         help_text_default: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.',
                         help_text_markdown: false,
-                        isHidden: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
-                        isDisabled: it.any(
-                            it.configIsFalse('FeatureFlags', 'GlobalDrafts'),
-                        ),
                     },
                 ],
             },
