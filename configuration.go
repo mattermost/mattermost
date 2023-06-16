@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/pkg/errors"
 )
 
@@ -41,8 +41,8 @@ func (c *ConfigurationService) GetUnsanitizedConfig() *model.Config {
 // SaveConfig sets the given config and persists the changes
 //
 // Minimum server version: 5.2
-func (c *ConfigurationService) SaveConfig(config *model.Config) error {
-	return normalizeAppErr(c.api.SaveConfig(config))
+func (c *ConfigurationService) SaveConfig(cfg *model.Config) error {
+	return normalizeAppErr(c.api.SaveConfig(cfg))
 }
 
 // GetPluginConfig fetches the currently persisted config of plugin
@@ -55,8 +55,8 @@ func (c *ConfigurationService) GetPluginConfig() map[string]interface{} {
 // SavePluginConfig sets the given config for plugin and persists the changes
 //
 // Minimum server version: 5.6
-func (c *ConfigurationService) SavePluginConfig(config map[string]interface{}) error {
-	return normalizeAppErr(c.api.SavePluginConfig(config))
+func (c *ConfigurationService) SavePluginConfig(cfg map[string]interface{}) error {
+	return normalizeAppErr(c.api.SavePluginConfig(cfg))
 }
 
 // CheckRequiredServerConfiguration checks if the server is configured according to
@@ -70,12 +70,11 @@ func (c *ConfigurationService) CheckRequiredServerConfiguration(req *model.Confi
 
 	cfg := c.api.GetConfig()
 
-	mc, err := utils.Merge(cfg, req, nil)
+	mergedCfg, err := config.Merge(cfg, req, nil)
 	if err != nil {
 		return false, errors.Wrap(err, "could not merge configurations")
 	}
 
-	mergedCfg := mc.(model.Config)
 	mergedCfgJSON, err := json.Marshal(mergedCfg)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to marshal merged config")

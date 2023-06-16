@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 func HandleJobOnceCalls(key string, props any) {
