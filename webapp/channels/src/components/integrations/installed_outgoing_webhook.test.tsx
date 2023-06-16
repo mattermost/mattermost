@@ -7,18 +7,27 @@ import {Link} from 'react-router-dom';
 
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
+import {OutgoingWebhook} from '@mattermost/types/integrations';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {Channel} from '@mattermost/types/channels';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/InstalledOutgoingWebhook', () => {
-    const team = {
+    const team: Team = TestHelper.getTeamMock({
         id: 'testteamid',
         name: 'test',
-    };
-    const channel = {
+    });
+
+    const channel: Channel = TestHelper.getChannelMock({
         id: '1jiw9kphbjrntfyrm7xpdcya4o',
         name: 'town-square',
         display_name: 'Town Square',
-    };
-    const outgoingWebhook = {
+    });
+
+    const userProfile: UserProfile = TestHelper.getUserMock();
+
+    const outgoingWebhook: OutgoingWebhook = TestHelper.getOutgoingWebhookMock({
         callback_urls: ['http://adsfdasd.com'],
         channel_id: 'mdpzfpfcxi85zkkqkzkch4b85h',
         content_type: 'application/x-www-form-urlencoded',
@@ -32,16 +41,17 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         token: 'xoxz1z7c3tgi9xhrfudn638q9r',
         trigger_when: 0,
         trigger_words: ['build'],
-        0: 'asdf',
         update_at: 1508329149618,
-    };
+        username: 'hook_user_name',
+
+    });
 
     const baseProps = {
         outgoingWebhook,
         onRegenToken: () => {}, //eslint-disable-line no-empty-function
         onDelete: () => {}, //eslint-disable-line no-empty-function
         filter: '',
-        creator: {username: 'username'},
+        creator: userProfile,
         canChange: true,
         team,
         channel,
@@ -83,7 +93,7 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
     });
 
     test('Should not display description as it is null', () => {
-        const newOutgoingWebhook = {...outgoingWebhook, description: null};
+        const newOutgoingWebhook = TestHelper.getOutgoingWebhookMock({...outgoingWebhook, description: undefined});
         const props = {...baseProps, outgoingWebhook: newOutgoingWebhook};
         const wrapper = shallow(
             <InstalledOutgoingWebhook {...props}/>,
@@ -145,32 +155,33 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
             <InstalledOutgoingWebhook {...baseProps}/>,
         );
 
+        const instance = wrapper.instance() as InstalledOutgoingWebhook;
+
         // displays webhook's display name
-        expect(wrapper.instance().makeDisplayName({display_name: 'hook display name'}, {})).toMatchSnapshot();
+        expect(instance.makeDisplayName(TestHelper.getOutgoingWebhookMock({display_name: 'hook display name'}), TestHelper.getChannelMock())).toMatchSnapshot();
 
         // displays channel's display name
-        expect(wrapper.instance().makeDisplayName({}, {display_name: 'channel display name'})).toMatchSnapshot();
+        expect(instance.makeDisplayName(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock({display_name: 'channel display name'}))).toMatchSnapshot();
 
         // displays a private hook
-        expect(wrapper.instance().makeDisplayName({})).toMatchSnapshot();
+        expect(instance.makeDisplayName(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock())).toMatchSnapshot();
     });
 
     test('Should match result when matchesFilter is called', () => {
-        expect(matchesFilter({}, {}, 'word')).toEqual(false);
-        expect(matchesFilter({display_name: null}, {}, 'word')).toEqual(false);
-        expect(matchesFilter({description: null}, {}, 'word')).toEqual(false);
-        expect(matchesFilter({trigger_words: null}, {}, 'word')).toEqual(false);
-        expect(matchesFilter({}, {name: null}, 'channel')).toEqual(false);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock(), 'word')).toEqual(false);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({display_name: undefined}), TestHelper.getChannelMock(), 'word')).toEqual(false);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({description: undefined}), TestHelper.getChannelMock(), 'word')).toEqual(false);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({trigger_words: undefined}), TestHelper.getChannelMock(), 'word')).toEqual(false);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock({name: undefined}), 'channel')).toEqual(false);
 
-        expect(matchesFilter({}, {}, '')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock(), '')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({display_name: 'Word'}), TestHelper.getChannelMock(), 'word')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({display_name: 'word'}), TestHelper.getChannelMock(), 'word')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({description: 'Trigger description'}), TestHelper.getChannelMock(), 'description')).toEqual(true);
 
-        expect(matchesFilter({display_name: 'Word'}, {}, 'word')).toEqual(true);
-        expect(matchesFilter({display_name: 'word'}, {}, 'word')).toEqual(true);
-        expect(matchesFilter({description: 'Trigger description'}, {}, 'description')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({trigger_words: ['Trigger']}), TestHelper.getChannelMock(), 'trigger')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({trigger_words: ['word', 'Trigger']}), TestHelper.getChannelMock(), 'trigger')).toEqual(true);
 
-        expect(matchesFilter({trigger_words: ['Trigger']}, {}, 'trigger')).toEqual(true);
-        expect(matchesFilter({trigger_words: ['word', 'Trigger']}, {}, 'trigger')).toEqual(true);
-
-        expect(matchesFilter({}, {name: 'channel_name'}, 'channel')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock({name: 'channel_name'}), 'channel')).toEqual(true);
     });
 });
