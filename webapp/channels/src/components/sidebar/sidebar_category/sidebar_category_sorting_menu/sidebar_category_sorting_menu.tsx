@@ -61,7 +61,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
 
     const sortDirectMessagesMenuItem = (
         <Menu.SubMenu
-            id={Menu.createSubMenuId('sortDirectMessages', props.category.id)}
+            id={`sortDirectMessages-${props.category.id}`}
             leadingElement={sortDirectMessagesIcon}
             labels={(
                 <FormattedMessage
@@ -78,7 +78,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
             menuId={`sortDirectMessages-${props.category.id}-menu`}
         >
             <Menu.Item
-                id={Menu.createMenuItemId('sortDirectMessages', props.category.id, CategorySorting.Alphabetical)}
+                id={`sortAlphabetical-${props.category.id}`}
                 labels={(
                     <FormattedMessage
                         id='user.settings.sidebar.sortAlpha'
@@ -88,7 +88,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
             />
             <Menu.Item
-                id={Menu.createMenuItemId('sortDirectMessages', props.category.id, CategorySorting.Recency)}
+                id={`sortByMostRecent-${props.category.id}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
@@ -122,7 +122,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
 
     const showMessagesCountMenuItem = (
         <Menu.SubMenu
-            id={Menu.createSubMenuId('showMessagesCount', props.category.id)}
+            id={`showMessagesCount-${props.category.id}`}
             leadingElement={<AccountMultipleOutlineIcon size={18}/>}
             labels={(
                 <FormattedMessage
@@ -139,7 +139,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
             menuId={`showMessagesCount-${props.category.id}-menu`}
         >
             <Menu.Item
-                id={Menu.createMenuItemId('showAllDms', props.category.id, `${Constants.HIGHEST_DM_SHOW_COUNT}`)}
+                id={`showAllDms-${props.category.id}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.allDirectMessages'
@@ -151,7 +151,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
             <Menu.Separator/>
             {Constants.DM_AND_GM_SHOW_COUNTS.map((dmGmShowCount) => (
                 <Menu.Item
-                    id={Menu.createMenuItemId('showDmCount', props.category.id, `${dmGmShowCount}`)}
+                    id={`showDmCount-${props.category.id}-${dmGmShowCount}`}
                     key={`showDmCount-${props.category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
@@ -163,7 +163,7 @@ const SidebarCategorySortingMenu = (props: Props) => {
 
     const openDirectMessageMenuItem = (
         <Menu.Item
-            id={Menu.createMenuItemId('openDirectMessage', props.category.id)}
+            id={`openDirectMessage-${props.category.id}`}
             onClick={props.handleOpenDirectMessagesModal}
             leadingElement={<AccountPlusOutlineIcon size={18}/>}
             labels={(

@@ -50,7 +50,7 @@ const SidebarCategoryMenu = (props: Props) => {
 
         muteUnmuteCategoryMenuItem = (
             <Menu.Item
-                id={Menu.createMenuItemId('mute', props.category.id)}
+                id={`mute-${props.category.id}`}
                 onClick={toggleCategoryMute}
                 leadingElement={<BellOutlineIcon size={18}/>}
                 labels={
@@ -85,7 +85,7 @@ const SidebarCategoryMenu = (props: Props) => {
 
         deleteCategoryMenuItem = (
             <Menu.Item
-                id={Menu.createMenuItemId('delete', props.category.id)}
+                id={`delete-${props.category.id}`}
                 isDestructive={true}
                 aria-haspopup={true}
                 onClick={handleDeleteCategory}
@@ -112,7 +112,7 @@ const SidebarCategoryMenu = (props: Props) => {
 
         renameCategoryMenuItem = (
             <Menu.Item
-                id={Menu.createMenuItemId('rename', props.category.id)}
+                id={`rename-${props.category.id}`}
                 onClick={handleRenameCategory}
                 aria-haspopup={true}
                 leadingElement={<PencilOutlineIcon size={18}/>}
@@ -158,7 +158,7 @@ const SidebarCategoryMenu = (props: Props) => {
 
     const sortChannelsMenuItem = (
         <Menu.SubMenu
-            id={Menu.createSubMenuId('sortChannels', props.category.id)}
+            id={`sortChannels-${props.category.id}`}
             leadingElement={sortChannelsIcon}
             labels={(
                 <FormattedMessage
@@ -176,7 +176,7 @@ const SidebarCategoryMenu = (props: Props) => {
             menuAriaLabel={formatMessage({id: 'sidebar_left.sidebar_category_menu.sort.dropdownAriaLabel', defaultMessage: 'Sort submenu'})}
         >
             <Menu.Item
-                id={Menu.createMenuItemId('sortAplhabetical', props.category.id)}
+                id={`sortAplhabetical-${props.category.id}`}
                 labels={(
                     <FormattedMessage
                         id='user.settings.sidebar.sortAlpha'
@@ -186,7 +186,7 @@ const SidebarCategoryMenu = (props: Props) => {
                 onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
             />
             <Menu.Item
-                id={Menu.createMenuItemId('sortByMostRecent', props.category.id)}
+                id={`sortByMostRecent-${props.category.id}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
@@ -196,7 +196,7 @@ const SidebarCategoryMenu = (props: Props) => {
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
             />
             <Menu.Item
-                id={Menu.createMenuItemId('sortManually', props.category.id)}
+                id={`sortManual-${props.category.id}`}
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedManually'
@@ -212,14 +212,13 @@ const SidebarCategoryMenu = (props: Props) => {
         props.openModal({
             modalId: ModalIdentifiers.EDIT_CATEGORY,
             dialogType: EditCategoryModal,
-            dialogProps: {},
         });
         trackEvent('ui', 'ui_sidebar_category_menu_createCategory');
     }
 
     const createNewCategoryMenuItem = (
         <Menu.Item
-            id={Menu.createMenuItemId('create', props.category.id)}
+            id={`create-${props.category.id}`}
             onClick={handleCreateCategory}
             aria-haspopup={true}
             leadingElement={<FolderPlusOutlineIcon size={18}/>}

@@ -24,7 +24,6 @@ import {isKeyPressed} from 'utils/keyboard';
 
 import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
 import {MenuContext, SubMenuContext} from './menu_context';
-import {createMenusUniqueId} from './utils';
 
 const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.5;
 
@@ -194,16 +193,6 @@ export function MenuItem(props: Props) {
 }
 
 export const MENU_ITEM_KEY_PREFIX = 'MenuItemKey';
-
-/**
- * Creates a unique menu item ID based on the provided parameters.
- * @param menuItemName - The generic name of the menu item.
- * @param uniqueValues - Additional unique values to be included in the ID.
- * @example createMenuItemId('deleteFoo', 'uniqueValue1', 'uniqueValue2', 'uniqueValue3')
-*/
-export function createMenuItemId(menuItemName: string, ...uniqueValues: string[]) {
-    return createMenusUniqueId(MENU_ITEM_KEY_PREFIX, menuItemName, ...uniqueValues);
-}
 
 interface MenuItemStyledProps extends MuiMenuItemProps {
     isDestructive?: boolean;

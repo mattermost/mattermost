@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
 
 import {UserThread} from '@mattermost/types/threads';
@@ -24,25 +24,24 @@ import {
     PinOutlineIcon,
     ReplyOutlineIcon,
     TrashCanOutlineIcon,
-    ChevronRightIcon,
-    ClockOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
+import Permissions from 'mattermost-redux/constants/permissions';
+
 import {ModalData} from 'types/actions';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
-import {toUTCUnix} from 'utils/datetime';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import PostReminderCustomTimePicker from 'components/post_reminder_custom_time_picker_modal';
+import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import DeletePostModal from 'components/delete_post_modal';
+import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 
-import ForwardPostModal from '../forward_post_modal';
 import {ChangeEvent, trackDotMenuEvent} from './utils';
+import PostReminderSubMenu from './post_reminder_submenu';
 import './dot_menu.scss';
 
 type ShortcutKeyProps = {
@@ -74,7 +73,6 @@ type Props = {
     isMobileView: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
-    canAddReaction: boolean;
 
     actions: {
 
@@ -117,7 +115,6 @@ type Props = {
          * Function to set the thread as followed/unfollowed
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-        addPostReminder: (userId: string, postId: string, timestamp: number) => void;
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -134,14 +131,6 @@ type State = {
     canEdit: boolean;
     canDelete: boolean;
 }
-
-const PostReminders = {
-    THIRTY_MINUTES: 'thirty_minutes',
-    ONE_HOUR: 'one_hour',
-    TWO_HOURS: 'two_hours',
-    TOMORROW: 'tomorrow',
-    CUSTOM: 'custom',
-} as const;
 
 export class DotMenuClass extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
@@ -318,13 +307,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)): void => {
+    handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)) => {
         event.preventDefault();
-
-        // Check if the event is a keyboard event and not a mouse click event
-        if (event.getModifierState === undefined) {
-            return;
-        }
 
         if (!forceCloseMenu) {
             return;
@@ -396,115 +380,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
     handleMenuToggle = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
-    };
-
-    handlePostReminderMenuClick = (id: string): void => {
-        if (id === PostReminders.CUSTOM) {
-            const postReminderCustomTimePicker = {
-                modalId: ModalIdentifiers.POST_REMINDER_CUSTOM_TIME_PICKER,
-                dialogType: PostReminderCustomTimePicker,
-                dialogProps: {
-                    postId: this.props.post.id,
-                },
-            };
-
-            this.props.actions.openModal(postReminderCustomTimePicker);
-        } else {
-            const currentDate = getCurrentMomentForTimezone(
-                this.props.timezone,
-            );
-
-            let endTime = currentDate;
-            if (id === PostReminders.THIRTY_MINUTES) {
-                // add 30 minutes in current time
-                endTime = currentDate.add(30, 'minutes');
-            } else if (id === PostReminders.ONE_HOUR) {
-                // add 1 hour in current time
-                endTime = currentDate.add(1, 'hour');
-            } else if (id === PostReminders.TWO_HOURS) {
-                // add 2 hours in current time
-                endTime = currentDate.add(2, 'hours');
-            } else if (id === PostReminders.TOMORROW) {
-                // add one day in current date
-                endTime = currentDate.add(1, 'day');
-            }
-
-            this.props.actions.addPostReminder(this.props.userId, this.props.post.id, toUTCUnix(endTime.toDate()));
-        }
-    };
-
-    renderPostReminderMenuItems = (timezone: Props['timezone'], isMilitaryTime: Props['isMilitaryTime'], postId: Props['post']['id']) => {
-        return Object.values(PostReminders).map((postReminder) => {
-            let labels = null;
-            if (postReminder === PostReminders.THIRTY_MINUTES) {
-                labels = (
-                    <FormattedMessage
-                        id='post_info.post_reminder.sub_menu.thirty_minutes'
-                        defaultMessage='30 mins'
-                    />
-                );
-            } else if (postReminder === PostReminders.ONE_HOUR) {
-                labels = (
-                    <FormattedMessage
-                        id='post_info.post_reminder.sub_menu.one_hour'
-                        defaultMessage='1 hour'
-                    />
-                );
-            } else if (postReminder === PostReminders.TWO_HOURS) {
-                labels = (
-                    <FormattedMessage
-                        id='post_info.post_reminder.sub_menu.two_hours'
-                        defaultMessage='2 hours'
-                    />
-                );
-            } else if (postReminder === PostReminders.TOMORROW) {
-                labels = (
-                    <FormattedMessage
-                        id='post_info.post_reminder.sub_menu.tomorrow'
-                        defaultMessage='Tomorrow'
-                    />
-                );
-            } else {
-                labels = (
-                    <FormattedMessage
-                        id='post_info.post_reminder.sub_menu.custom'
-                        defaultMessage='Custom'
-                    />
-                );
-            }
-
-            let trailingElements = null;
-            if (postReminder === PostReminders.TOMORROW) {
-                const tomorrow = getCurrentMomentForTimezone(timezone).add(1, 'day').toDate();
-
-                trailingElements = (
-                    <span className={`postReminder-${postReminder}_timestamp`}>
-                        <FormattedDate
-                            value={tomorrow}
-                            weekday='short'
-                            timeZone={timezone}
-                        />
-                        {', '}
-                        <FormattedTime
-                            value={tomorrow}
-                            timeStyle='short'
-                            hour12={!isMilitaryTime}
-                            timeZone={timezone}
-                        />
-                    </span>
-                );
-            }
-
-            return (
-                <Menu.Item
-                    id={Menu.createMenuItemId('remind_post_options', postReminder, postId)}
-                    key={Menu.createMenuItemId('remind_post_options', postReminder, postId)}
-                    labels={labels}
-                    trailingElements={trailingElements}
-                    onClick={() => this.handlePostReminderMenuClick(postReminder)}
-                />
-            );
-        });
     };
 
     render(): JSX.Element {
@@ -609,7 +484,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             >
                 {!isSystemMessage && this.props.location === Locations.CENTER &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('reply', this.props.post.id)}
+                        id={`reply_to_post_${this.props.post.id}`}
                         data-testid={`reply_to_post_${this.props.post.id}`}
                         labels={
                             <FormattedMessage
@@ -624,7 +499,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {this.canPostBeForwarded &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('forward', this.props.post.id)}
+                        id={`forward_post_${this.props.post.id}`}
                         data-testid={`forward_post_${this.props.post.id}`}
                         labels={forwardPostItemText}
                         isLabelsRowLayout={true}
@@ -633,20 +508,26 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleForwardMenuItemActivated}
                     />
                 }
-                {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker && this.props.canAddReaction) &&
-                    <Menu.Item
-                        id={Menu.createMenuItemId('reaction', this.props.post.id)}
-                        data-testid={`post_reaction_${this.props.post.id}`}
-                        labels={
-                            <FormattedMessage
-                                id='rhs_root.mobile.add_reaction'
-                                defaultMessage='Add Reaction'
-                            />
-                        }
-                        leadingElement={<EmoticonPlusOutlineIcon size={18}/>}
-                        onClick={this.handleAddReactionMenuItemActivated}
-                    />
-                }
+                <ChannelPermissionGate
+                    channelId={this.props.post.channel_id}
+                    teamId={this.props.teamId}
+                    permissions={[Permissions.ADD_REACTION]}
+                >
+                    {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
+                        <Menu.Item
+                            id={`post_reaction_${this.props.post.id}`}
+                            data-testid={`post_reaction_${this.props.post.id}`}
+                            labels={
+                                <FormattedMessage
+                                    id='rhs_root.mobile.add_reaction'
+                                    defaultMessage='Add Reaction'
+                                />
+                            }
+                            leadingElement={<EmoticonPlusOutlineIcon size={18}/>}
+                            onClick={this.handleAddReactionMenuItemActivated}
+                        />
+                    }
+                </ChannelPermissionGate>
                 {Boolean(
                     !isSystemMessage &&
                         this.props.isCollapsedThreadsEnabled &&
@@ -654,7 +535,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             this.props.location === Locations.RHS_ROOT ||
                             this.props.location === Locations.RHS_COMMENT)) &&
                             <Menu.Item
-                                id={Menu.createMenuItemId('follow', this.props.post.id)}
+                                id={`follow_post_thread_${this.props.post.id}`}
                                 data-testid={`follow_post_thread_${this.props.post.id}`}
                                 trailingElements={<ShortcutKey shortcutKey='F'/>}
                                 labels={followPostLabel()}
@@ -670,7 +551,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH) &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('unread', this.props.post.id)}
+                        id={`unread_post_${this.props.post.id}`}
                         data-testid={`unread_post_${this.props.post.id}`}
                         labels={
                             <FormattedMessage
@@ -684,30 +565,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {!isSystemMessage &&
-                    <Menu.SubMenu
-                        id={Menu.createSubMenuId('remind_post', this.props.post.id)}
-                        labels={
-                            <FormattedMessage
-                                id='post_info.post_reminder.menu'
-                                defaultMessage='Remind'
-                            />
-                        }
-                        leadingElement={<ClockOutlineIcon size={18}/>}
-                        trailingElements={<span className={'dot-menu__item-trailing-icon'}><ChevronRightIcon size={16}/></span>}
-                        menuId={`remind_post_${this.props.post.id}-menu`}
-                    >
-                        <h5 className={'dot-menu__post-reminder-menu-header'}>
-                            {formatMessage(
-                                {id: 'post_info.post_reminder.sub_menu.header',
-                                    defaultMessage: 'Set a reminder for:'},
-                            )}
-                        </h5>
-                        {this.renderPostReminderMenuItems(this.props.timezone, this.props.isMilitaryTime, this.props.post.id)}
-                    </Menu.SubMenu>
+                    <PostReminderSubMenu
+                        userId={this.props.userId}
+                        post={this.props.post}
+                        isMilitaryTime={this.props.isMilitaryTime}
+                        timezone={this.props.timezone}
+                    />
                 }
                 {!isSystemMessage &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('save', this.props.post.id)}
+                        id={`save_post_${this.props.post.id}`}
                         data-testid={`save_post_${this.props.post.id}`}
                         labels={this.props.isFlagged ? removeFlag : saveFlag}
                         leadingElement={this.props.isFlagged ? <BookmarkIcon size={18}/> : <BookmarkOutlineIcon size={18}/>}
@@ -717,7 +584,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {Boolean(!isSystemMessage && !this.props.isReadOnly) &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('pinUnpin', this.props.post.id)}
+                        id={`${this.props.post.is_pinned ? 'unpin' : 'pin'}_post_${this.props.post.id}`}
                         data-testid={`pin_post_${this.props.post.id}`}
                         labels={this.props.post.is_pinned ? unPinPost : pinPost}
                         leadingElement={this.props.post.is_pinned ? <PinIcon size={18}/> : <PinOutlineIcon size={18}/>}
@@ -728,7 +595,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
                 {!isSystemMessage &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('copyLink', this.props.post.id)}
+                        id={`permalink_${this.props.post.id}`}
                         data-testid={`permalink_${this.props.post.id}`}
                         labels={
                             <FormattedMessage
@@ -743,7 +610,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 {!isSystemMessage && <Menu.Separator/>}
                 {this.state.canEdit &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('edit', this.props.post.id)}
+                        id={`edit_post_${this.props.post.id}`}
                         data-testid={`edit_post_${this.props.post.id}`}
                         labels={
                             <FormattedMessage
@@ -757,7 +624,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {!isSystemMessage &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('copyText', this.props.post.id)}
+                        id={`copy_${this.props.post.id}`}
                         data-testid={`copy_${this.props.post.id}`}
                         labels={
                             <FormattedMessage
@@ -771,7 +638,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {this.state.canDelete &&
                     <Menu.Item
-                        id={Menu.createMenuItemId('delete', this.props.post.id)}
+                        id={`delete_post_${this.props.post.id}`}
                         data-testid={`delete_post_${this.props.post.id}`}
                         leadingElement={<TrashCanOutlineIcon size={18}/>}
                         trailingElements={<span>{'delete'}</span>}

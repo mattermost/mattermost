@@ -13,13 +13,9 @@ import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/thre
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {addPostReminder} from 'mattermost-redux/actions/posts';
-
 import {ModalData} from 'types/actions';
 import {GlobalState} from 'types/store';
 
@@ -80,8 +76,6 @@ function makeMapStateToProps() {
 
         const systemMessage = isSystemMessage(post);
         const collapsedThreads = isCollapsedThreadsEnabled(state);
-        const teamId = getCurrentTeamId(state);
-        const canAddReaction = haveIChannelPermission(state, teamId, post.channel_id, Permissions.ADD_REACTION);
 
         const rootId = post.root_id || post.id;
         let threadId = rootId;
@@ -133,7 +127,6 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
-            canAddReaction,
         };
     };
 }
@@ -147,7 +140,6 @@ type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     markPostAsUnread: (post: Post) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-    addPostReminder: (userId: string, postId: string, timestamp: number) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
@@ -161,7 +153,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             openModal,
             markPostAsUnread,
             setThreadFollow,
-            addPostReminder,
         }, dispatch),
     };
 }
