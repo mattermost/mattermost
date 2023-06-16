@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
+import {notifyMe} from 'actions/notification_actions';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -47,6 +48,7 @@ window.StyledComponents = require('styled-components');
 window.PostUtils = {formatText, messageHtmlToComponent};
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
+window.sendDesktopNotificationToMe = notifyMe;
 window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
