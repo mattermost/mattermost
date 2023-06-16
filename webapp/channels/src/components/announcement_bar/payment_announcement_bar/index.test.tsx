@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import * as cloudActions from 'mattermost-redux/actions/cloud';
 
 import {CloudProducts} from 'utils/constants';

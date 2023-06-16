@@ -35,11 +35,9 @@ import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_short
 import {GlobalState} from 'types/store';
 
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
-import WorkTemplateModal from 'components/work_templates';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {Permissions} from 'mattermost-redux/constants';
 import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
-import {areWorkTemplatesEnabled} from 'selectors/work_template';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
@@ -140,15 +138,6 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
 
             dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));
             return {data: true};
-        case '/templates': {
-            const workTemplateEnabled = areWorkTemplatesEnabled(state);
-            if (!workTemplateEnabled) {
-                return {error: {message: localizeMessage('templates_command.disabled', 'Templates are disabled. Please contact your System Administrator for details.')}};
-            }
-
-            dispatch(openModal({modalId: ModalIdentifiers.WORK_TEMPLATE, dialogType: WorkTemplateModal}));
-            return {data: true};
-        }
         case '/collapse':
         case '/expand':
             dispatch(PostActions.resetEmbedVisibility());

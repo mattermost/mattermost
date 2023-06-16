@@ -11,10 +11,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/web"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
 func (api *API) InitCloud() {
@@ -874,6 +874,11 @@ func selfServeDeleteWorkspace(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 	defer r.Body.Close()
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
 
 	var deleteRequest *model.WorkspaceDeletionRequest
 	if err = json.Unmarshal(bodyBytes, &deleteRequest); err != nil {
