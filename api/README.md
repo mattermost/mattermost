@@ -10,12 +10,12 @@ All documentation is available under the terms of a [Creative Commons License](h
 
 We're accepting pull requests! See something that could be documented better or is missing documentation? Make a PR and we'll gladly accept it.
 
-All the documentation is written in YAML and found in the [v4/source](https://github.com/mattermost/mattermost-api-reference/tree/master/v4/source) directories. APIv4 documentation is in the [v4 directory](https://github.com/mattermost/mattermost-api-reference/tree/master/v4).
+All the documentation is written in YAML and found in the [v4/source](v4/source) directories. APIv4 documentation is in the [v4 directory](v4).
 APIs for [Playbooks](https://github.com/mattermost/mattermost-plugin-playbooks) are retrieved from GitHub at build time and integrated into the final YAML file.
 
-* When adding a new route, please add it to the correct file. For example, a channel route will go in [channels.yaml](https://github.com/mattermost/mattermost-api-reference/blob/master/v4/source/channels.yaml).
-* To add a new tag, please do so in [introduction.yaml](https://github.com/mattermost/mattermost-api-reference/blob/master/v4/source/introduction.yaml)
-* Definitions should be added to [definitions.yaml](https://github.com/mattermost/mattermost-api-reference/blob/master/v4/source/definitions.yaml)
+* When adding a new route, please add it to the correct file. For example, a channel route will go in [channels.yaml](v4/source/channels.yaml).
+* To add a new tag, please do so in [introduction.yaml](v4/source/introduction.yaml)
+* Definitions should be added to [definitions.yaml](v4/source/definitions.yaml)
 
 There is no strict style guide but please try to follow the example of the existing documentation.
 

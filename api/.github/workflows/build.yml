@@ -12,6 +12,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
 
     steps:
     - name: Checkout code
@@ -29,4 +32,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: mattermost-api-reference
-        path: v4/html
+        path: api/v4/html
