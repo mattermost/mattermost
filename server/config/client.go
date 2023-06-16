@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -55,7 +55,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
 
-	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
+	props["DisableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.DisableAppBar)
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
@@ -152,9 +152,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["WranglerMoveThreadFromDirectMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromDirectMessageChannelEnable)
 	props["WranglerMoveThreadFromGroupMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromGroupMessageChannelEnable)
 
-	props["EnablePlaybooks"] = strconv.FormatBool(*c.ProductSettings.EnablePlaybooks)
-
-	if license != nil {
+  if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
 		if *license.Features.LDAP {

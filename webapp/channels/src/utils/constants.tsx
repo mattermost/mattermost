@@ -157,7 +157,6 @@ export const Preferences = {
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
 export const Touched = {
-    INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
 };
 
@@ -909,6 +908,7 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
+    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
@@ -1940,7 +1940,8 @@ export const Constants = {
     EMOJI_PATH: '/static/emoji',
     RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
-    MHPNS: 'https://push.mattermost.com',
+    MHPNS_US: 'https://push.mattermost.com',
+    MHPNS_DE: 'https://hpns-de.mattermost.com',
     MTPNS: 'https://push-test.mattermost.com',
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes

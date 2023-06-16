@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-server/server/public
+module github.com/mattermost/mattermost/server/public
 
 go 1.19
 

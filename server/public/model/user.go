@@ -17,8 +17,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
 )
 
 const (
