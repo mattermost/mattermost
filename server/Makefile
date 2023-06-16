@@ -434,7 +434,6 @@ endif
 
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
-
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.7.0
 
