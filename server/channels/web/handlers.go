@@ -30,6 +30,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 )
 
+const (
+	frameAncestors = "'self' *.mattermost.com douglauder.com teams.microsoft.com"
+)
+
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
 	handlerName := runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
 	pos := strings.LastIndex(handlerName, ".")
@@ -241,7 +245,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
+			"frame-ancestors %s; script-src 'self' cdn.rudderlabs.com%s%s%s",
+			frameAncestors,
 			cloudCSP,
 			h.cspShaDirective,
 			devCSP,
