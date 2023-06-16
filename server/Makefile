@@ -86,18 +86,6 @@ endif
 
 # Webapp
 BUILD_WEBAPP_DIR ?= ../webapp
-BUILD_CLIENT = false
-BUILD_HASH_CLIENT = independent
-ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-  ifeq ($(BUILD_CLIENT),true)
-    BUILD_CLIENT = true
-    BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-  else
-    BUILD_CLIENT = false
-  endif
-else
-    BUILD_CLIENT = false
-endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
 # as root and mess up file permissions for devs. When running like this HOME will be blank
