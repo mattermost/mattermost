@@ -131,7 +131,6 @@ type Props = {
 }
 
 type State = {
-    closeMenuManually: boolean;
     canEdit: boolean;
     canDelete: boolean;
 }
@@ -159,7 +158,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
         this.state = {
-            closeMenuManually: false,
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
@@ -320,87 +318,84 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    onShortcutKeyDown = (e: React.KeyboardEvent, closeMenu): void => {
-        e.preventDefault();
+    handleMenuKeydown = (event: React.KeyboardEvent<HTMLDivElement>, forceCloseMenu?: (() => void)): void => {
+        event.preventDefault();
 
         // Check if the event is a keyboard event and not a mouse click event
-        if (e.getModifierState === undefined) {
+        if (event.getModifierState === undefined) {
             return;
         }
 
-        const isShiftKeyPressed = e.shiftKey;
+        if (!forceCloseMenu) {
+            return;
+        }
+
+        const isShiftKeyPressed = event.shiftKey;
 
         switch (true) {
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.R):
-            this.handleCommentClick(e);
-            closeMenu();
-            // this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.R):
+            forceCloseMenu();
+            this.handleCommentClick(event);
             break;
 
             // edit post
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.E):
-            this.handleEditMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
+            forceCloseMenu();
+            this.handleEditMenuItemActivated(event);
             break;
 
             // follow thread
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.F) && !isShiftKeyPressed:
-            this.handleSetThreadFollow(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
+            forceCloseMenu();
+            this.handleSetThreadFollow(event);
             break;
 
             // forward post
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.F) && isShiftKeyPressed:
-            this.handleForwardMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && isShiftKeyPressed:
+            forceCloseMenu();
+            this.handleForwardMenuItemActivated(event);
             break;
 
             // copy link
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.K):
-            this.copyLink(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.K):
+            forceCloseMenu();
+            this.copyLink(event);
             break;
 
             // copy text
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.C):
-            this.copyText(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.C):
+            forceCloseMenu();
+            this.copyText(event);
             break;
 
             // delete post
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.DELETE):
-            this.handleDeleteMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
+            forceCloseMenu();
+            this.handleDeleteMenuItemActivated(event);
             break;
 
             // pin / unpin
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.P):
-            this.handlePinMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
+            forceCloseMenu();
+            this.handlePinMenuItemActivated(event);
             break;
 
             // save / unsave
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.S):
-            this.handleFlagMenuItemActivated(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.S):
+            forceCloseMenu();
+            this.handleFlagMenuItemActivated(event);
             break;
 
             // mark as unread
-        case Keyboard.isKeyPressed(e, Constants.KeyCodes.U):
-            this.handleMarkPostAsUnread(e);
-            this.handleDropdownOpened(false);
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.U):
+            forceCloseMenu();
+            this.handleMarkPostAsUnread(event);
             break;
         }
-    };
-
-    handleDropdownOpened = (open: boolean) => {
-        this.props.handleDropdownOpened?.(open);
-        this.setState({closeMenuManually: true});
     };
 
     handleMenuToggle = (open: boolean) => {
         this.props.handleDropdownOpened?.(open);
-        this.setState({closeMenuManually: false});
     };
 
     handlePostReminderMenuClick = (id: string): void => {
@@ -602,10 +597,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,
                     'aria-label': formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
-                    onKeyDown: this.onShortcutKeyDown,
+                    onKeyDown: this.handleMenuKeydown,
                     width: '264px',
                     onToggle: this.handleMenuToggle,
-                    closeMenuManually: this.state.closeMenuManually,
                 }}
                 menuButtonTooltip={{
                     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,

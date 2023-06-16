@@ -8,7 +8,6 @@ import React, {
     useEffect,
     KeyboardEvent,
     SyntheticEvent,
-    KeyboardEventHandler,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import MuiMenuList from '@mui/material/MenuList';
@@ -57,8 +56,7 @@ type MenuProps = {
      * @warning Make the styling of your components such a way that they dont need this handler
      */
     onToggle?: (isOpen: boolean) => void;
-    closeMenuManually?: boolean; // TODO: Remove this when we have a better solution for the menu
-    onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
+    onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
 }
 
@@ -98,6 +96,7 @@ export function Menu(props: Props) {
     }
 
     // Handle function injected into menu items to close the menu
+    // Also passed on to keydown handler for menu items, in case they want to close the menu
     function closeMenu(): void {
         setAnchorElement(null);
         setDisableAutoFocusItem(false);
@@ -113,16 +112,6 @@ export function Menu(props: Props) {
     function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         e.stopPropagation();
     }
-
-    // TODO: Remove this when we have a better solution for the menu
-    useEffect(() => {
-        if (props.menu.closeMenuManually) {
-            setAnchorElement(null);
-            if (isMobileView) {
-                handleMenuModalClose(props.menu.id);
-            }
-        }
-    }, [props.menu.closeMenuManually]);
 
     function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
         if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
@@ -262,7 +251,7 @@ interface MenuModalProps {
     menuAriaLabel: MenuProps['aria-label'];
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
-    onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
+    onKeyDown?: MenuProps['onKeyDown'];
 }
 
 function MenuModal(props: MenuModalProps) {
@@ -284,11 +273,12 @@ function MenuModal(props: MenuModalProps) {
             }
         }
     }
-    function handleKeydown(event?: React.KeyboardEvent<HTMLDivElement>) {
-        if (event && props.onKeyDown) {
-            props.onKeyDown(event);
-        }
-    }
+
+    // function handleKeydown(event?: React.KeyboardEvent<HTMLDivElement>) {
+    //     if (event && props.onKeyDown) {
+    //         props.onKeyDown(event);
+    //     }
+    // }
 
     return (
         <CompassDesignProvider theme={theme}>
@@ -299,7 +289,8 @@ function MenuModal(props: MenuModalProps) {
                 ariaLabel={props.menuAriaLabel}
                 onExited={handleModalExited}
                 enforceFocus={false}
-                handleKeydown={handleKeydown}
+
+                // handleKeydown={handleKeydown}
             >
                 <MuiMenuList // serves as backdrop for modals
                     component='div'
