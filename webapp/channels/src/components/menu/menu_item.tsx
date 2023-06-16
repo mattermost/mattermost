@@ -92,7 +92,6 @@ export interface Props extends MuiMenuItemProps {
 /**
  * To be used as a child of Menu component.
  * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
- * Please use Menu.createMenuItemId to generate unique id for each menu item.
  *
  * @example
  * <Menu.Container>
@@ -191,8 +190,6 @@ export function MenuItem(props: Props) {
         </MenuItemStyled>
     );
 }
-
-export const MENU_ITEM_KEY_PREFIX = 'MenuItemKey';
 
 interface MenuItemStyledProps extends MuiMenuItemProps {
     isDestructive?: boolean;

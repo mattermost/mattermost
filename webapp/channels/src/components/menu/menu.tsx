@@ -96,7 +96,6 @@ export function Menu(props: Props) {
     }
 
     // Handle function injected into menu items to close the menu
-    // Also passed on to keydown handler for menu items, in case they want to close the menu
     function closeMenu(): void {
         setAnchorElement(null);
         setDisableAutoFocusItem(false);
@@ -127,6 +126,9 @@ export function Menu(props: Props) {
         }
 
         if (props.menu.onKeyDown) {
+            // We need to pass the closeMenu function to the onKeyDown handler so that the menu can be closed manually
+            // This is helpful for cases when menu needs to be closed after certain keybindings are pressed in components which uses menu
+            // This however is not the case for mouse events as they are handled/closed by menu item click handlers
             props.menu.onKeyDown(event, closeMenu);
         }
     }

@@ -44,7 +44,7 @@ interface Props {
     menuAriaLabel?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
-    children: ReactNode[];
+    children: ReactNode;
 }
 
 export function SubMenu(props: Props) {
@@ -187,8 +187,6 @@ export function SubMenu(props: Props) {
         </MenuItem>
     );
 }
-
-export const SUB_MENU_ITEM_KEY_PREFIX = 'SubMenuItemKey';
 
 interface SubMenuModalProps {
     menuId: Props['menuId'];
