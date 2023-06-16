@@ -12,14 +12,18 @@ import React, {
     useEffect,
 } from 'react';
 import {styled} from '@mui/material/styles';
+import {useSelector} from 'react-redux';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {cloneDeep} from 'lodash';
 
-import Constants from 'utils/constants';
+import {getIsMobileView} from 'selectors/views/browser';
+
+import Constants, {EventTypes} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
-import {MenuContext, SubmenuContext} from './menu_context';
+import {MenuContext, SubMenuContext} from './menu_context';
 import {createMenusUniqueId} from './utils';
 
 const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.5;
@@ -78,7 +82,7 @@ export interface Props extends MuiMenuItemProps {
      */
     isDestructive?: boolean;
 
-    onClick: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
@@ -109,7 +113,9 @@ export function MenuItem(props: Props) {
     } = props;
 
     const menuContext = useContext(MenuContext);
-    const subMenuContext = useContext(SubmenuContext);
+    const subMenuContext = useContext(SubMenuContext);
+
+    const isMobileView = useSelector(getIsMobileView);
 
     const onClickEventRef = useRef<MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>>();
 
@@ -125,8 +131,15 @@ export function MenuItem(props: Props) {
                 menuContext.close();
             }
 
-            // We set the ref of event here, see the `useEffect` hook below for more details.
-            onClickEventRef.current = event;
+            if (onClick) {
+                if (isMobileView) {
+                    // If the menu is in mobile view, we execute the click event immediately.
+                    onClick(event);
+                } else {
+                    // We set the ref of event here, see the `useEffect` hook below for more details.
+                    onClickEventRef.current = cloneDeep(event);
+                }
+            }
         }
     }
 
@@ -136,23 +149,25 @@ export function MenuItem(props: Props) {
     // After the conditions are met the delay is introduced to allow the menu to animate out properly before executing the click event.
     // This delay also improves percieved UX as it gives the user a chance to see the menu close before the click event is executed. (eg in case of opening a modal)
     useEffect(() => {
-        let shouldExecuteOnClick = false;
+        let shouldExecuteClick = false;
 
-        // This means that the menu item is a submenu item and both menu and submenu are closed.
         if (subMenuContext.close) {
-            shouldExecuteOnClick = subMenuContext.isOpen === false && menuContext.isOpen === false && Boolean(onClickEventRef.current);
+            // This means that the menu item is a submenu item and both menu and submenu are closed.
+            shouldExecuteClick = subMenuContext.isOpen === false && menuContext.isOpen === false && Boolean(onClickEventRef.current);
         } else {
-            shouldExecuteOnClick = menuContext.isOpen === false && Boolean(onClickEventRef.current);
+            shouldExecuteClick = menuContext.isOpen === false && Boolean(onClickEventRef.current);
         }
 
-        if (shouldExecuteOnClick) {
-            const delayExecution = MENU_CLOSE_ANIMATION_DURATION * DELAY_CLICK_EVENT_EXECUTION_MODIFIER;
+        if (shouldExecuteClick) {
+            const delayExecutionTimeout = MENU_CLOSE_ANIMATION_DURATION * DELAY_CLICK_EVENT_EXECUTION_MODIFIER;
 
             setTimeout(() => {
-                // The "non-null assertion operator" is safe here because we are checking for the value's existence in the previous line
-                onClick(onClickEventRef.current!);
+                if (onClick && onClickEventRef.current) {
+                    onClick(onClickEventRef.current);
+                }
+
                 onClickEventRef.current = undefined;
-            }, delayExecution);
+            }, delayExecutionTimeout);
         }
     }, [menuContext.isOpen, subMenuContext.isOpen, subMenuContext.close, onClick]);
 
@@ -309,14 +324,14 @@ const MenuItemStyled = styled(MuiMenuItem, {
  * @returns true if the menu item was pressed by mouse's "Primary" key or keyboard's "Space" or "Enter" key
  **/
 function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
-    if (event.type === 'keydown') {
+    if (event.type === EventTypes.KEY_DOWN) {
         const keyboardEvent = event as KeyboardEvent<HTMLLIElement>;
         if (isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE)) {
             return true;
         }
 
         return false;
-    } else if (event.type === 'mousedown') {
+    } else if (event.type === EventTypes.MOUSE_DOWN) {
         const mouseEvent = event as MouseEvent<HTMLLIElement>;
         if (mouseEvent.button === 0) {
             return true;

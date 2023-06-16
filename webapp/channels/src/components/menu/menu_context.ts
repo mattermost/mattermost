@@ -13,8 +13,8 @@ export const MenuContext = createContext<MenuSubmenuContextType>({
 });
 MenuContext.displayName = 'MenuContext';
 
-export const SubmenuContext = createContext<MenuSubmenuContextType>({
+export const SubMenuContext = createContext<MenuSubmenuContextType>({
     isOpen: false,
 });
-SubmenuContext.displayName = 'SubmenuContext';
+SubMenuContext.displayName = 'SubMenuContext';
 

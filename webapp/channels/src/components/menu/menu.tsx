@@ -257,7 +257,7 @@ interface MenuModalProps {
 function MenuModal(props: MenuModalProps) {
     const theme = useSelector(getTheme);
 
-    function handleModalExited() {
+    function closeMenuModal() {
         props.onModalClose(props.menuId);
     }
 
@@ -267,18 +267,18 @@ function MenuModal(props: MenuModalProps) {
                 if (currentElement.contains(event.target as Node) && !currentElement.ariaHasPopup) {
                     // We check for property ariaHasPopup because we don't want to close the menu
                     // if the user clicks on a submenu item or menu item which open modal. And let submenu component handle the click.
-                    handleModalExited();
+                    closeMenuModal();
                     break;
                 }
             }
         }
     }
 
-    // function handleKeydown(event?: React.KeyboardEvent<HTMLDivElement>) {
-    //     if (event && props.onKeyDown) {
-    //         props.onKeyDown(event);
-    //     }
-    // }
+    function handleKeydown(event?: React.KeyboardEvent<HTMLDivElement>) {
+        if (event && props.onKeyDown) {
+            props.onKeyDown(event, closeMenuModal);
+        }
+    }
 
     return (
         <CompassDesignProvider theme={theme}>
@@ -287,10 +287,9 @@ function MenuModal(props: MenuModalProps) {
                 className='menuModal'
                 backdrop={true}
                 ariaLabel={props.menuAriaLabel}
-                onExited={handleModalExited}
+                onExited={closeMenuModal}
                 enforceFocus={false}
-
-                // handleKeydown={handleKeydown}
+                handleKeydown={handleKeydown}
             >
                 <MuiMenuList // serves as backdrop for modals
                     component='div'
