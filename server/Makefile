@@ -34,12 +34,6 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
-# treestate
-GIT_TREESTATE = clean
-DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
-ifeq ($(DIFF), 1)
-    GIT_TREESTATE = dirty
-endif
 
 # Docker
 export COMPOSE_PROJECT_NAME=mattermost-server
@@ -66,9 +60,6 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS = -timeout 30m -race
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
-LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(BUILD_HASH)"
-LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(GIT_TREESTATE)"
-LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(BUILD_DATE)"
 
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../../enterprise
