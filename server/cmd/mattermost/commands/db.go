@@ -122,11 +122,11 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 }
 
 func resetCmdF(command *cobra.Command, args []string) error {
-	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	ss, err := initStoreCommandContextCobra(command)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return errors.Wrap(err, "could not initialize store")
 	}
+	defer ss.Close()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -144,8 +144,6 @@ func resetCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	config := cfgStore.Get()
-	ss := sqlstore.New(config.SqlSettings, nil)
 	ss.DropAllTables()
 
 	CommandPrettyPrintln("Database successfully reset")
@@ -279,19 +277,15 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 }
 
 func dbVersionCmdF(command *cobra.Command, args []string) error {
-	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	ss, err := initStoreCommandContextCobra(command)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return errors.Wrap(err, "could not initialize store")
 	}
-	config := cfgStore.Get()
-
-	store := sqlstore.New(config.SqlSettings, nil)
-	defer store.Close()
+	defer ss.Close()
 
 	allFlag, _ := command.Flags().GetBool("all")
 	if allFlag {
-		applied, err2 := store.GetAppliedMigrations()
+		applied, err2 := ss.GetAppliedMigrations()
 		if err2 != nil {
 			return errors.Wrap(err2, "failed to get applied migrations")
 		}
@@ -301,7 +295,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 		return nil
 	}
 
-	v, err := store.GetDBSchemaVersion()
+	v, err := ss.GetDBSchemaVersion()
 	if err != nil {
 		return errors.Wrap(err, "failed to get schema version")
 	}
