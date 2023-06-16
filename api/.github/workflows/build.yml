@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16.2.0'
+
+    - name: Run build
+      run: |
+        mkdir -p node_modules
+        make build
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: mattermost-api-reference
+        path: v4/html

@@ -1,0 +1,1110 @@
+  /api/v4/groups:
+    get:
+      tags:
+        - groups
+      summary: Get groups
+      description: >
+        Retrieve a list of all groups not associated to a particular channel or
+        team.
+
+
+        `not_associated_to_team` **OR** `not_associated_to_channel` is required.
+
+
+        If you use `not_associated_to_team`, you must be a team admin for that particular team (permission to manage that team).
+
+
+        If you use `not_associated_to_channel`, you must be a channel admin for that particular channel (permission to manage that channel).
+
+
+        __Minimum server version__: 5.11
+      operationId: GetGroups
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of groups per page.
+          schema:
+            type: integer
+            default: 60
+        - name: q
+          in: query
+          description: String to pattern match the `name` and `display_name` field. Will
+            return all groups whose `name` and `display_name` field match any of
+            the text.
+          schema:
+            type: string
+        - name: include_member_count
+          in: query
+          description: Boolean which adds the `member_count` attribute to each group JSON
+            object
+          schema:
+            type: boolean
+        - name: not_associated_to_team
+          in: query
+          description: Team GUID which is used to return all the groups not associated to
+            this team
+          required: true
+          schema:
+            type: string
+        - name: not_associated_to_channel
+          in: query
+          description: Group GUID which is used to return all the groups not associated to
+            this channel
+          required: true
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: >
+            Only return groups that have been modified since the given Unix
+            timestamp (in milliseconds). All modified groups, including deleted
+            and created groups, will be returned.
+
+            __Minimum server version__: 5.24
+          schema:
+            type: integer
+        - name: filter_allow_reference
+          in: query
+          description: Boolean which filters the group entries with the `allow_reference` attribute set.
+          schema:
+            type: boolean
+            default: false            
+      responses:
+        "200":
+          description: Group list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    post:
+      tags:
+        - groups
+      summary: Create a custom group
+      description: |
+        Create a `custom` type group.
+
+        #### Permission
+        Must have `create_custom_group` permission.
+
+        __Minimum server version__: 6.3
+      operationId: CreateGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - group
+                - user_ids
+              properties:
+                group:
+                  type: object
+                  required:
+                    - name
+                    - display_name
+                    - source
+                    - allow_reference
+                  description: Group object to create.
+                  properties:
+                    name: 
+                      type: string
+                      description: The unique group name used for at-mentioning.
+                    display_name: 
+                      type: string
+                      description: The display name of the group which can include spaces.
+                    source:
+                      type: string
+                      description: Must be `custom`
+                    allow_reference:
+                      type: boolean
+                      description: Must be true
+                user_ids:
+                  type: array
+                  description: The user ids of the group members to add.
+                  items:
+                    type: string
+        description: Group object and initial members.
+        required: true
+      responses:
+        "501":
+          description: |
+            Group has an invalid `source`, or
+            `allow_reference` is not `true`, or
+            group has a `remote_id`.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "201":
+          description: Group creation and memberships successful.
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/groups/{group_id}":
+    get:
+      tags:
+        - groups
+      summary: Get a group
+      description: |
+        Get group from the provided group id string
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroup
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Group retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - groups
+      summary: Deletes a custom group
+      description: |
+        Soft deletes a custom group.
+
+        ##### Permissions
+        Must have `custom_group_delete` permission for the given group.
+
+        __Minimum server version__: 6.3
+      operationId: DeleteGroup
+      parameters:
+        - name: group_id
+          in: path
+          description: The ID of the group.
+          required: true
+          schema:
+            type: string
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          description: The group doesn't have a `source` value of `custom`.
+        "404":
+          description: Group is already deleted or doesn't exist.
+        "200":
+          description: Successfully deleted the group.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+  "/api/v4/groups/{group_id}/patch":
+    put:
+      tags:
+        - groups
+      summary: Patch a group
+      description: >
+        Partially update a group by providing only the fields you want to
+        update. Omitted fields will not be updated. The fields that can be
+        updated are defined in the request body, all other provided fields will
+        be ignored.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.11
+      operationId: PatchGroup
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                display_name:
+                  type: string
+                description:
+                  type: string
+        description: Group object that is to be updated
+        required: true
+      responses:
+        "200":
+          description: Group patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/teams/{team_id}/link":
+    post:
+      tags:
+        - groups
+      summary: Link a team to a group
+      description: |
+        Link a team to a group
+        ##### Permissions
+        Must have `manage_team` permission.
+
+        __Minimum server version__: 5.11
+      operationId: LinkGroupSyncableForTeam
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Team successfully linked to group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSyncableTeam"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - groups
+      summary: Delete a link from a team to a group
+      description: |
+        Delete a link from a team to a group
+        ##### Permissions
+        Must have `manage_team` permission.
+
+        __Minimum server version__: 5.11
+      operationId: UnlinkGroupSyncableForTeam
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully deleted link between team and group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/channels/{channel_id}/link":
+    post:
+      tags:
+        - groups
+      summary: Link a channel to a group
+      description: >
+        Link a channel to a group
+
+        ##### Permissions
+
+        If the channel is private, you must have `manage_private_channel_members` permission.
+
+        Otherwise, you must have the `manage_public_channel_members` permission.
+
+
+        __Minimum server version__: 5.11
+      operationId: LinkGroupSyncableForChannel
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Channel successfully linked to group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSyncableChannel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - groups
+      summary: Delete a link from a channel to a group
+      description: >
+        Delete a link from a channel to a group
+
+        ##### Permissions
+
+        If the channel is private, you must have `manage_private_channel_members` permission.
+
+        Otherwise, you must have the `manage_public_channel_members` permission.
+
+
+        __Minimum server version__: 5.11
+      operationId: UnlinkGroupSyncableForChannel
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully deleted link between channel and group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/teams/{team_id}":
+    get:
+      tags:
+        - groups
+      summary: Get GroupSyncable from Team ID
+      description: |
+        Get the GroupSyncable object with group_id and team_id from params
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupSyncableForTeamId
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: GroupSyncable object retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSyncableTeam"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/channels/{channel_id}":
+    get:
+      tags:
+        - groups
+      summary: Get GroupSyncable from channel ID
+      description: |
+        Get the GroupSyncable object with group_id and channel_id from params
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupSyncableForChannelId
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: GroupSyncable object retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSyncableChannel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/teams":
+    get:
+      tags:
+        - groups
+      summary: Get group teams
+      description: |
+        Retrieve the list of teams associated to the group
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupSyncablesTeams
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Teams list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupSyncableTeams"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/channels":
+    get:
+      tags:
+        - groups
+      summary: Get group channels
+      description: |
+        Retrieve the list of channels associated to the group
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupSyncablesChannels
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupSyncableChannels"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/teams/{team_id}/patch":
+    put:
+      tags:
+        - groups
+      summary: Patch a GroupSyncable associated to Team
+      description: >
+        Partially update a GroupSyncable by providing only the fields you want
+        to update. Omitted fields will not be updated. The fields that can be
+        updated are defined in the request body, all other provided fields will
+        be ignored.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.11
+      operationId: PatchGroupSyncableForTeam
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+          description: GroupSyncable object that is to be updated
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auto_add:
+                    type: boolean
+
+      responses:
+        "200":
+          description: GroupSyncable patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSyncableTeam"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/channels/{channel_id}/patch":
+    put:
+      tags:
+        - groups
+      summary: Patch a GroupSyncable associated to Channel
+      description: >
+        Partially update a GroupSyncable by providing only the fields you want
+        to update. Omitted fields will not be updated. The fields that can be
+        updated are defined in the request body, all other provided fields will
+        be ignored.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.11
+      operationId: PatchGroupSyncableForChannel
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+          description: GroupSyncable object that is to be updated
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auto_add:
+                    type: boolean
+      responses:
+        "200":
+          description: GroupSyncable patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSyncableChannel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/groups/{group_id}/members":
+    get:
+      tags:
+        - groups
+      summary: Get group users
+      description: |
+        Retrieve the list of users associated with a given group.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupUsers
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of groups per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: User list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  total_member_count:
+                    type: integer
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - groups
+      summary: Removes members from a custom group
+      description: |
+        Soft deletes a custom group members.
+
+        ##### Permissions
+        Must have `custom_group_manage_members` permission for the given group.
+
+        __Minimum server version__: 6.3
+      operationId: DeleteGroupMembers
+      parameters:
+        - name: group_id
+          in: path
+          description: The ID of the group to delete.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: An object containing the user ids of the members to remove.
+              properties:
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          description: If the group does not have a `source` value of `custom`.
+        "404":
+          description: Can't find the group.
+        "200":
+          description: Successfully deleted the group members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+    post:
+      tags:
+        - groups
+      summary: Adds members to a custom group
+      description: |
+        Adds members to a custom group.
+
+        ##### Permissions
+        Must have `custom_group_manage_members` permission for the given group.
+
+        __Minimum server version__: 6.3
+      operationId: AddGroupMembers
+      parameters:
+        - name: group_id
+          in: path
+          description: The ID of the group.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: An object containing the user ids of the members to add.
+              properties:
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          description: If the group does not have a `source` value of `custom`.
+        "404":
+          description: Can't find the group.
+        "200":
+          description: Successfully added the group members.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+  "/api/v4/groups/{group_id}/stats":
+    get:
+      tags:
+        - groups
+      summary: Get group stats
+      description: |
+        Retrieve the stats of a given group.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.26
+      operationId: GetGroupStats
+      parameters:
+        - name: group_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Group stats retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_id:
+                    type: string
+                  total_member_count:
+                    type: integer
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/channels/{channel_id}/groups":
+    get:
+      tags:
+        - groups
+      summary: Get channel groups
+      description: |
+        Retrieve the list of groups associated with a given channel.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupsByChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of groups per page.
+          schema:
+            type: integer
+            default: 60
+        - name: filter_allow_reference
+          in: query
+          description: Boolean which filters the group entries with the `allow_reference` attribute set.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Group list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/teams/{team_id}/groups":
+    get:
+      tags:
+        - groups
+      summary: Get team groups
+      description: |
+        Retrieve the list of groups associated with a given team.
+
+        __Minimum server version__: 5.11
+      operationId: GetGroupsByTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of groups per page.
+          schema:
+            type: integer
+            default: 60
+        - name: filter_allow_reference
+          in: query
+          description: Boolean which filters in the group entries with the `allow_reference` attribute set.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Group list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/teams/{team_id}/groups_by_channels":
+      get:
+        tags:
+          - groups
+        summary: Get team groups by channels
+        description: |
+          Retrieve the set of groups associated with the channels in the given team grouped by channel.
+
+          ##### Permissions
+          Must have `manage_system` permission or can access only for current user
+
+          __Minimum server version__: 5.11
+        operationId: GetGroupsAssociatedToChannelsByTeam
+        parameters:
+          - name: team_id
+            in: path
+            description: Team GUID
+            required: true
+            schema:
+              type: string
+          - name: page
+            in: query
+            description: The page to select.
+            schema:
+              type: integer
+              default: 0
+          - name: per_page
+            in: query
+            description: The number of groups per page.
+            schema:
+              type: integer
+              default: 60
+          - name: filter_allow_reference
+            in: query
+            description: Boolean which filters in the group entries with the `allow_reference` attribute set.
+            schema:
+              type: boolean
+              default: false
+          - name: paginate
+            in: query
+            description: Boolean to determine whether the pagination should be applied or not
+            schema:
+              type: boolean
+              default: false              
+        responses:
+          "200":
+            description: Group list retrieval successful
+            content:
+              application/json:
+                schema:
+                  type: object
+                  items:
+                    $ref: "#/components/schemas/GroupsAssociatedToChannels"
+          "400":
+            $ref: "#/components/responses/BadRequest"
+          "401":
+            $ref: "#/components/responses/Unauthorized"
+          "403":
+            $ref: "#/components/responses/Forbidden"
+          "500":
+            $ref: "#/components/responses/InternalServerError"
+          "501":
+            $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/groups":
+    get:
+      tags:
+        - groups
+      summary: Get groups for a userId
+      description: |
+        Retrieve the list of groups associated to the user
+
+        __Minimum server version__: 5.24
+      operationId: GetGroupsByUserId
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Group list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

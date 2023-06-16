@@ -1,0 +1,17 @@
+ports:
+  - port: 8080
+    onOpen: open-browser
+
+tasks:
+  - name: Docs
+    init: |
+      make build
+    command: |
+      make run
+  - name: Notice
+    command: |
+      clear
+      echo "Once the docs server is running, go to the following URL to view the docs:
+
+      $(gp url 8080)"
+    openMode: split-right
