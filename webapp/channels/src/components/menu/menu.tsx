@@ -28,7 +28,7 @@ import OverlayTrigger from 'components/overlay_trigger';
 import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
-import {injectPropsInMenuItems} from './utils';
+import {MenuContext} from './menu_context';
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
@@ -57,7 +57,7 @@ type MenuProps = {
      * @warning Make the styling of your components such a way that they dont need this handler
      */
     onToggle?: (isOpen: boolean) => void;
-    closeMenuManually?: boolean;
+    closeMenuManually?: boolean; // TODO: Remove this when we have a better solution for the menu
     onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
     width?: string;
 }
@@ -98,7 +98,7 @@ export function Menu(props: Props) {
     }
 
     // Handle function injected into menu items to close the menu
-    function forceCloseMenu(): void {
+    function closeMenu(): void {
         setAnchorElement(null);
         setDisableAutoFocusItem(false);
     }
@@ -114,6 +114,7 @@ export function Menu(props: Props) {
         e.stopPropagation();
     }
 
+    // TODO: Remove this when we have a better solution for the menu
     useEffect(() => {
         if (props.menu.closeMenuManually) {
             setAnchorElement(null);
@@ -137,7 +138,7 @@ export function Menu(props: Props) {
         }
 
         if (props.menu.onKeyDown) {
-            props.menu.onKeyDown(event);
+            props.menu.onKeyDown(event, closeMenu);
         }
     }
 
@@ -232,6 +233,7 @@ export function Menu(props: Props) {
                 onClick={handleMenuClick}
                 onKeyDown={handleMenuKeyDown}
                 className={A11yClassNames.POPUP}
+                width={props.menu.width}
                 disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                 MenuListProps={{
                     id: props.menu.id,
@@ -245,9 +247,10 @@ export function Menu(props: Props) {
                         exit: MENU_CLOSE_ANIMATION_DURATION,
                     },
                 }}
-                width={props.menu.width}
             >
-                {injectPropsInMenuItems(props.children, forceCloseMenu)}
+                <MenuContext.Provider value={{close: closeMenu, isOpen: isMenuOpen}}>
+                    {props.children}
+                </MenuContext.Provider>
             </MuiMenuStyled>
         </CompassDesignProvider>
     );

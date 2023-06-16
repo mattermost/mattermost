@@ -7,6 +7,9 @@ import React, {
     Children,
     KeyboardEvent,
     MouseEvent,
+    useContext,
+    useRef,
+    useEffect,
 } from 'react';
 import {styled} from '@mui/material/styles';
 import MuiMenuItem from '@mui/material/MenuItem';
@@ -16,7 +19,10 @@ import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
+import {MenuContext, SubmenuContext} from './menu_context';
 import {createMenusUniqueId} from './utils';
+
+const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.5;
 
 export interface Props extends MuiMenuItemProps {
 
@@ -75,16 +81,6 @@ export interface Props extends MuiMenuItemProps {
     onClick: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
     /**
-     * Do not use this prop. These are only used internally by Menu component to close menu.
-     */
-    forceCloseMenu?: () => void;
-
-    /**
-     * Do not use this prop. These are only used internally by Menu component to close submenus.
-     */
-    forceCloseSubMenu?: () => void;
-
-    /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
@@ -109,29 +105,59 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
-        forceCloseMenu,
-        forceCloseSubMenu,
         ...restProps
     } = props;
 
-    // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    const menuContext = useContext(MenuContext);
+    const subMenuContext = useContext(SubmenuContext);
+
+    const onClickEventRef = useRef<MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>>();
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            // Close submenu first and then menu.
-            if (forceCloseSubMenu) {
-                forceCloseSubMenu();
-            }
-            if (forceCloseMenu) {
-                forceCloseMenu();
+            // close submenu first if it is open
+            if (subMenuContext.close) {
+                subMenuContext.close();
             }
 
-            setTimeout(() => {
-                onClick(event);
-            }, MENU_CLOSE_ANIMATION_DURATION * 1.5);
+            // And then close the menu
+            if (menuContext.close) {
+                menuContext.close();
+            }
+
+            // We set the ref of event here, see the `useEffect` hook below for more details.
+            onClickEventRef.current = event;
         }
     }
+
+    // This `useEffect` hook is responsible for executing a click event (`onClick`).
+    // 1. If MenuItem was part of submenu then both menu and submenu should be closed before executing the click event.
+    // 2. If MenuItem was part of only Menu then only should be closed before executing the click event.
+    // After the conditions are met the delay is introduced to allow the menu to animate out properly before executing the click event.
+    // This delay also improves percieved UX as it gives the user a chance to see the menu close before the click event is executed. (eg in case of opening a modal)
+    useEffect(() => {
+        let shouldExecuteOnClick = false;
+
+        // This means that the menu item is a submenu item and both menu and submenu are closed.
+        if (subMenuContext.close) {
+            shouldExecuteOnClick = subMenuContext.isOpen === false && menuContext.isOpen === false && Boolean(onClickEventRef.current);
+        } else {
+            shouldExecuteOnClick = menuContext.isOpen === false && Boolean(onClickEventRef.current);
+        }
+
+        if (shouldExecuteOnClick) {
+            const delayExecution = MENU_CLOSE_ANIMATION_DURATION * DELAY_CLICK_EVENT_EXECUTION_MODIFIER;
+
+            setTimeout(() => {
+                // The "non-null assertion operator" is safe here because we are checking for the value's existence in the previous line
+                onClick(onClickEventRef.current!);
+                onClickEventRef.current = undefined;
+            }, delayExecution);
+        }
+    }, [menuContext.isOpen, subMenuContext.isOpen, subMenuContext.close, onClick]);
+
+    // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
+    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
 
     return (
         <MenuItemStyled

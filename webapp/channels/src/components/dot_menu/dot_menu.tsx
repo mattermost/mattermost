@@ -320,7 +320,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleCommentClick?.(e);
     };
 
-    onShortcutKeyDown = (e: React.KeyboardEvent): void => {
+    onShortcutKeyDown = (e: React.KeyboardEvent, closeMenu): void => {
         e.preventDefault();
 
         // Check if the event is a keyboard event and not a mouse click event
@@ -333,7 +333,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         switch (true) {
         case Keyboard.isKeyPressed(e, Constants.KeyCodes.R):
             this.handleCommentClick(e);
-            this.handleDropdownOpened(false);
+            closeMenu();
+            // this.handleDropdownOpened(false);
             break;
 
             // edit post

@@ -21,7 +21,8 @@ import {GenericModal} from '@mattermost/components';
 
 import {MuiMenuStyled} from './menu_styled';
 import {MenuItem as ParentMenuItem, Props as MenuItemProps} from './menu_item';
-import {createMenusUniqueId, injectPropsInMenuItems} from './utils';
+import {SubmenuContext} from './menu_context';
+import {createMenusUniqueId} from './utils';
 
 import './sub_menu.scss';
 
@@ -38,17 +39,13 @@ interface Props {
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
     children: ReactNode[];
-
-    // Don't use this prop, it's only used internally, it is injected by the parent menu
-    forceCloseMenu?: () => void;
 }
 
-export function SubMenu({id, leadingElement, labels, trailingElements, isDestructive, menuId, menuAriaLabel, forceOpenOnLeft, forceCloseMenu, children, ...rest}: Props) {
+export function SubMenu({id, leadingElement, labels, trailingElements, isDestructive, menuId, menuAriaLabel, forceOpenOnLeft, children, ...rest}: Props) {
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
     const isSubMenuOpen = Boolean(anchorElement);
 
     const isMobileView = useSelector(getIsMobileView);
-
     const anyModalOpen = useSelector(isAnyModalOpen);
 
     const dispatch = useDispatch();
@@ -164,7 +161,9 @@ export function SubMenu({id, leadingElement, labels, trailingElements, isDestruc
                         paddingBottom: 0,
                     }}
                 >
-                    {injectPropsInMenuItems(children, forceCloseMenu, forceCloseSubMenu)}
+                    <SubmenuContext.Provider value={{close: forceCloseSubMenu, isOpen: isSubMenuOpen}}>
+                        {children}
+                    </SubmenuContext.Provider>
                 </MuiMenuList>
             </MuiMenuStyled>
         </ParentMenuItem>
