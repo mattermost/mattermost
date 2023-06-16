@@ -69,8 +69,6 @@ type FeatureFlags struct {
 
 	ThreadsEverywhere bool
 
-	GlobalDrafts bool
-
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
