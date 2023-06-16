@@ -635,30 +635,6 @@ func (_m *UserStore) GetEtagForProfilesNotInTeam(teamID string) string {
 	return r0
 }
 
-// GetFirstSystemAdminID provides a mock function with given fields:
-func (_m *UserStore) GetFirstSystemAdminID() (string, error) {
-	ret := _m.Called()
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (string, error)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetForLogin provides a mock function with given fields: loginID, allowSignInWithUsername, allowSignInWithEmail
 func (_m *UserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 	ret := _m.Called(loginID, allowSignInWithUsername, allowSignInWithEmail)
