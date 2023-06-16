@@ -41,6 +41,7 @@ export type Props = {
     bodyPadding?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
+    headerButton?: React.ReactNode;
 };
 
 type State = {
@@ -161,6 +162,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 <h1 id='genericModalLabel'>
                     {this.props.modalHeaderText}
                 </h1>
+                {this.props.headerButton}
             </div>
         );
 
