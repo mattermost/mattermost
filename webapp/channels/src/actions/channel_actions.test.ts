@@ -167,7 +167,7 @@ describe('Actions.Channel', () => {
             }],
         }];
 
-        await testStore.dispatch(searchMoreChannels('', false));
+        await testStore.dispatch(searchMoreChannels('', false, true));
         expect(testStore.getActions()).toEqual(expectedActions);
     });
 
