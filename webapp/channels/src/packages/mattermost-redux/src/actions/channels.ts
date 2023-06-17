@@ -1088,12 +1088,14 @@ export function getChannelsMemberCount(channelIds: string[]): ActionFunc {
         let channelsMemberCount;
 
         try {
-            channelsMemberCount = Client4.getChannelsMemberCount(channelIds)
+            channelsMemberCount = await Client4.getChannelsMemberCount(channelIds)
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
+
+        console.log("resp> ", channelsMemberCount)
 
         dispatch({
             type: ChannelTypes.RECEIVED_CHANNELS_MEMBER_COUNT,

@@ -97,7 +97,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         }
-        this.props.actions.getChannelsMemberCount(['123', '456'])
+        if (this.props.channels.length > 0) {
+            // todo sinan replace with all channels
+            console.log("all channels: ", this.props.channels)
+            this.props.actions.getChannelsMemberCount([this.props.channels[0].id, this.props.channels[1].id])
+        }
         this.loadComplete();
     }
 
@@ -284,11 +288,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
+                {createNewChannelButton('primaryButton', <i className='icon-plus' />)}
             </>
         );
 
-        const body = this.state.loading ? <LoadingScreen/> : (
+        const body = this.state.loading ? <LoadingScreen /> : (
             <React.Fragment>
                 <SearchableChannelList
                     channels={this.activeChannels}

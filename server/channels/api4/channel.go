@@ -692,7 +692,17 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
-	channelsMemberCount, err :=c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
+
+	channelsMemberCount, err := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(channelsMemberCount); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
