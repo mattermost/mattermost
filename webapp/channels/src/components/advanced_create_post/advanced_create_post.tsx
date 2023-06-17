@@ -78,15 +78,6 @@ function isDraftEmpty(draft: PostDraft): boolean {
     return !draft || (!draft.message && draft.fileInfos.length === 0);
 }
 
-// Temporary fix for IE-11, see MM-13423
-function trimRight(str: string) {
-    if (String.prototype.trimRight as any) {
-        return str.trimRight();
-    }
-
-    return str.replace(/\s*$/, '');
-}
-
 type TextboxElement = HTMLInputElement | HTMLTextAreaElement;
 
 type Props = {
@@ -717,7 +708,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return;
         }
 
-        if (trimRight(this.state.message) === '/header') {
+        if (this.state.message.trimEnd() === '/header') {
             const editChannelHeaderModalData = {
                 modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
                 dialogType: EditChannelHeaderModal,
@@ -731,7 +722,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return;
         }
 
-        if (!isDirectOrGroup && trimRight(this.state.message) === '/purpose') {
+        if (!isDirectOrGroup && this.state.message.trimEnd() === '/purpose') {
             const editChannelPurposeModalData = {
                 modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
                 dialogType: EditChannelPurposeModal,
@@ -945,15 +936,17 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
         event.preventDefault();
 
+        const message = this.state.message;
+
         // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
         if (shouldApplyLinkMarkdown) {
-            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message: this.state.message, clipboardData});
+            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
             execCommandInsertText(formattedLink);
         } else if (shouldApplyGithubCodeBlock) {
-            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message: this.state.message, clipboardData});
+            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
             execCommandInsertText(formattedCodeBlock);
         } else {
-            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, this.state.message, this.state.caretPosition);
+            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
             execCommandInsertText(formattedMarkdown);
         }
     };
