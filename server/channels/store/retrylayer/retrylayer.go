@@ -1406,11 +1406,11 @@ func (s *RetryLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIds []string) (map[string]int, error) {
+func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetChannelsMemberCount(channelIds)
+		result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
 		if err == nil {
 			return result, nil
 		}

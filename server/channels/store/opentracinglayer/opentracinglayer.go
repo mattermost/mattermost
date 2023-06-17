@@ -1269,7 +1269,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByUser(userID string, includeD
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelsMemberCount(channelIds []string) (map[string]int, error) {
+func (s *OpenTracingLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsMemberCount")
 	s.Root.Store.SetContext(newCtx)
@@ -1278,7 +1278,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsMemberCount(channelIds []strin
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetChannelsMemberCount(channelIds)
+	result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

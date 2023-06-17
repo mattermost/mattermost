@@ -1184,10 +1184,10 @@ func (s *TimerLayerChannelStore) GetChannelsByUser(userID string, includeDeleted
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsMemberCount(channelIds []string) (map[string]int, error) {
+func (s *TimerLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetChannelsMemberCount(channelIds)
+	result, err := s.ChannelStore.GetChannelsMemberCount(channelIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

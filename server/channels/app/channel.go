@@ -1831,7 +1831,7 @@ func (a *App) GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel,
 	return channels, nil
 }
 
-func (a *App) GetChannelsMemberCount(c request.CTX, channelIDs []string) (map[string]int, *model.AppError) {
+func (a *App) GetChannelsMemberCount(c request.CTX, channelIDs []string) (map[string]int64, *model.AppError) {
 	channelsCount, err := a.Srv().Store().Channel().GetChannelsMemberCount(channelIDs)
 	if err != nil {
 		var nfErr *store.ErrNotFound
