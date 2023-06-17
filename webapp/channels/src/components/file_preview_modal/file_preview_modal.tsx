@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {ComponentType} from 'react';
 import {Modal} from 'react-bootstrap';
 
 import classNames from 'classnames';
@@ -27,8 +27,11 @@ import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_mod
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import PopoverBar from './popover_bar';
 import {LinkInfo, isFileInfo} from './types';
+import {PropsFromPDFPreview} from 'components/pdf_preview';
 
-const PDFPreview = React.lazy(() => import('components/pdf_preview') as any);
+const PDFPreview = React.lazy(() => import('components/pdf_preview') as Promise<{
+    default: ComponentType<PropsFromPDFPreview>;
+}>);
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -323,7 +326,10 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                         >
                             <React.Suspense fallback={null}>
                                 <PDFPreview
-                                    fileInfo={fileInfo}
+
+                                    // typecasting needed here since fileInfo can be either FileInfo or LinkInfo
+                                    // and based on fileType check in if statement this should be FileInfo
+                                    fileInfo={fileInfo as FileInfo}
                                     fileUrl={fileUrl}
                                     scale={this.state.scale[this.state.imageIndex]}
                                     handleBgClose={this.handleBgClose}

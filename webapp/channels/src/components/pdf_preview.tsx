@@ -16,11 +16,11 @@ import {PDFDocumentProxy} from 'pdfjs-dist/types/src/display/api';
 
 const INITIAL_RENDERED_PAGES = 3;
 
-type Props = {
+export type PropsFromPDFPreview = {
     fileInfo: FileInfo;
     fileUrl: string;
     scale: number;
-    handleBgClose: () => void;
+    handleBgClose: (e: React.MouseEvent) => void;
 };
 
 type State = {
@@ -33,7 +33,7 @@ type State = {
     prevFileUrl?: string;
 };
 
-export default class PDFPreview extends React.PureComponent<Props, State> {
+export default class PDFPreview extends React.PureComponent<PropsFromPDFPreview, State> {
     private container: React.RefObject<HTMLDivElement>;
     private parentNode: HTMLElement | null = null;
     private pdfPagesRendered: Record<number, boolean>;
@@ -53,7 +53,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         handleBgClose: PropTypes.func.isRequired,
     };
 
-    constructor(props: Props) {
+    constructor(props: PropsFromPDFPreview) {
         super(props);
 
         this.pdfPagesRendered = {};
@@ -83,7 +83,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         }
     }
 
-    static getDerivedStateFromProps(props: Props, state: State) {
+    static getDerivedStateFromProps(props: PropsFromPDFPreview, state: State) {
         if (props.fileUrl !== state.prevFileUrl) {
             return {
                 pdf: null,
@@ -98,7 +98,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         return null;
     }
 
-    componentDidUpdate(prevProps: Props, prevState: State) {
+    componentDidUpdate(prevProps: PropsFromPDFPreview, prevState: State) {
         if (this.props.fileUrl !== prevProps.fileUrl) {
             this.getPdfDocument();
             this.pdfPagesRendered = {};
