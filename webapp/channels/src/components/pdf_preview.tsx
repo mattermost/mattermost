@@ -37,7 +37,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
     private container: React.RefObject<HTMLDivElement>;
     private parentNode: HTMLElement | null = null;
     private pdfPagesRendered: Record<number, boolean>;
-    private pdfCanvasRefs: Array<React.RefObject<HTMLCanvasElement>>;
+    private pdfCanvasRefs: Array<React.RefObject<HTMLCanvasElement>> = [];
     static propTypes = {
 
         /**
@@ -58,7 +58,6 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
 
         this.pdfPagesRendered = {};
         this.container = React.createRef();
-        this.pdfCanvasRefs = [];
 
         this.state = {
             pdf: null,
@@ -120,20 +119,25 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         }
     }
 
-    downloadFile = (e: any) => {
+    downloadFile = (e: Event) => {
         const fileDownloadUrl = this.props.fileInfo.link || getFileDownloadUrl(this.props.fileInfo.id || '');
         e.preventDefault();
         window.location.href = fileDownloadUrl;
     };
 
-    isInViewport = (page: any) => {
+    isInViewport = (page: HTMLElement) => {
         const bounding = page.getBoundingClientRect();
-        const viewportTop: any = this.container?.current?.scrollTop;
-        const viewportBottom = viewportTop + this.container?.current?.parentElement?.clientHeight;
+        const container: HTMLElement | null = this.container?.current;
+        const viewportTop: number | undefined = container?.scrollTop ?? 0;
+        const viewportBottom: number | undefined = viewportTop + (container?.parentElement?.clientHeight ?? 0);
+
         return (
-            (bounding.top >= viewportTop && bounding.top <= viewportBottom) ||
-            (bounding.bottom >= viewportTop && bounding.bottom <= viewportBottom) ||
-            (bounding.top <= viewportTop && bounding.bottom >= viewportBottom)
+            bounding &&
+            (
+                (bounding.top >= viewportTop && bounding.top <= viewportBottom) ||
+                (bounding.bottom >= viewportTop && bounding.bottom <= viewportBottom) ||
+                (bounding.top <= viewportTop && bounding.bottom >= viewportBottom)
+            )
         );
     };
 
@@ -239,7 +243,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         if (!this.state.success) {
             return (
                 <FileInfoPreview
-                    fileInfo={this.props.fileInfo as FileInfo}
+                    fileInfo={this.props.fileInfo}
                     fileUrl={this.props.fileUrl}
                 />
             );
