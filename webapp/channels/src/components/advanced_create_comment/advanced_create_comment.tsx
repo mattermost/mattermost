@@ -34,14 +34,20 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isTextUrl} from 'utils/paste';
-import EmojiMap from 'utils/emoji_map';
 import {
-    applyLinkMarkdown,
-    ApplyLinkMarkdownOptions,
+    getHtmlTable,
+    hasHtmlLink,
+    formatMarkdownMessage,
+    isGitHubCodeBlock,
+    formatGithubCodePaste,
+    isTextUrl,
+    formatMarkdownLinkMessage,
+} from 'utils/paste';
+import {
     applyMarkdown,
     ApplyMarkdownOptions,
 } from 'utils/markdown/apply_markdown';
+import {execCommandInsertText} from 'utils/exec_commands';
 
 import NotifyConfirmModal from 'components/notify_confirm_modal';
 import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
@@ -180,13 +186,11 @@ type Props = {
     getChannelMemberCountsByGroup: (channelID: string, isTimezoneEnabled: boolean) => void;
     groupsWithAllowReference: Map<string, Group> | null;
     channelMemberCountsByGroup: ChannelMemberCountsByGroup;
-    onHeightChange?: (height: number, maxHeight: number) => void;
     focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     useCustomGroupMentions: boolean;
-    emojiMap: EmojiMap;
     isFormattingBarHidden: boolean;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }
@@ -421,66 +425,41 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         });
     };
 
-    pasteHandler = (e: ClipboardEvent) => {
-        // we need to cast the TextboxElement type onto the EventTarget here since the ClipboardEvent is not generic
-        if (!e.clipboardData || !e.clipboardData.items || (e.target as TextboxElement).id !== 'reply_textbox') {
+    pasteHandler = (event: ClipboardEvent) => {
+        const {clipboardData, target} = event;
+
+        if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== 'reply_textbox') {
             return;
         }
 
-        const {clipboardData} = e;
-
-        const target = e.target as TextboxElement;
-
-        const {selectionStart, selectionEnd, value} = target;
+        const {selectionStart, selectionEnd} = target as TextboxElement;
 
         const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-        const clipboardText = clipboardData.getData('text/plain');
         const hasTextUrl = isTextUrl(clipboardData);
+        const hasHTMLLinks = hasHtmlLink(clipboardData);
+        const htmlTable = getHtmlTable(clipboardData);
         const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+        const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
 
-        const hasLinks = hasHtmlLink(clipboardData);
-        let table = getHtmlTable(clipboardData);
-        if (!table && !hasLinks && !shouldApplyLinkMarkdown) {
+        if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
             return;
         }
 
-        e.preventDefault();
+        event.preventDefault();
 
+        const message = this.state.draft?.message ?? '';
+
+        // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
         if (shouldApplyLinkMarkdown) {
-            this.applyLinkMarkdownWhenPaste({
-                selectionStart,
-                selectionEnd,
-                message: value,
-                url: clipboardText,
-            });
-
-            return;
-        }
-
-        table = table as HTMLTableElement;
-
-        const draft = this.state.draft!;
-        let message = draft.message;
-
-        const caretPosition = this.state.caretPosition || 0;
-        if (table && isGitHubCodeBlock(table.className)) {
-            const selectionStart = (e.target as any).selectionStart;
-            const selectionEnd = (e.target as any).selectionEnd;
-            const {formattedMessage, formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
-            const newCaretPosition = caretPosition + formattedCodeBlock.length;
-            message = formattedMessage;
-            this.setCaretPosition(newCaretPosition);
+            const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+            execCommandInsertText(formattedLink);
+        } else if (shouldApplyGithubCodeBlock) {
+            const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
+            execCommandInsertText(formattedCodeBlock);
         } else {
-            const originalSize = draft.message.length;
-            message = formatMarkdownMessage(clipboardData, draft.message.trim(), this.state.caretPosition).formattedMessage;
-            const newCaretPosition = message.length - (originalSize - caretPosition);
-            this.setCaretPosition(newCaretPosition);
+            const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, this.state.caretPosition);
+            execCommandInsertText(formattedMarkdown);
         }
-
-        const updatedDraft = {...draft, message};
-
-        this.handleDraftChange(updatedDraft);
-        this.setState({draft: updatedDraft});
     };
 
     handleNotifyAllConfirmation = () => {
@@ -1041,25 +1020,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
         }, () => {
             const textbox = this.textboxRef.current?.getInputBox();
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
-        });
-    };
-
-    applyLinkMarkdownWhenPaste = (params: ApplyLinkMarkdownOptions) => {
-        const res = applyLinkMarkdown(params);
-
-        const draft = this.state.draft!;
-        const modifiedDraft = {
-            ...draft,
-            message: res.message,
-        };
-
-        this.handleDraftChange(modifiedDraft);
-
-        this.setState({
-            draft: modifiedDraft,
-        }, () => {
-            const textbox = this.textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionEnd + 1, res.selectionEnd + 1);
         });
     };
 
