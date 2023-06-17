@@ -24,11 +24,11 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-var hookNameToId map[string]int = make(map[string]int)
+var hookNameToId = make(map[string]int)
 
 type hooksRPCClient struct {
 	client      *rpc.Client

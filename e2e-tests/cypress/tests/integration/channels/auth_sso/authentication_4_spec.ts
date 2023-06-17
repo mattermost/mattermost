@@ -145,7 +145,7 @@ describe('Authentication', () => {
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type('Hossein_Is_The_Best_PROGRAMMER@BestInTheWorld.com');
+        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
         cy.get('#input_password-input').type('Test123456!');
 
@@ -154,6 +154,7 @@ describe('Authentication', () => {
             cy.findByText('Create Account').click();
 
             // * Assert the error is what is expected;
+            cy.get('.Input___error').scrollIntoView().should('be.visible');
             cy.findByText('Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.').should('be.visible');
         });
     });
@@ -176,11 +177,11 @@ describe('Authentication', () => {
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`Hossein_Is_The_Best_PROGRAMMER${getRandomId()}@BestInTheWorld.com`);
+        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
         cy.get('#input_password-input').type('Test123456!');
 
-        cy.get('#input_name').clear().type(`HosseinIs2Cool${getRandomId()}`);
+        cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
         cy.findByText('Create Account').click();
 
@@ -207,15 +208,16 @@ describe('Authentication', () => {
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`Hossein_Is_The_Best_PROGRAMMER${getRandomId()}@BestInTheWorld.com`);
+        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
         cy.get('#input_password-input').type('Test123456!');
 
-        cy.get('#input_name').clear().type(`HosseinIs2Cool${getRandomId()}`);
+        cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
         cy.findByText('Create Account').click();
 
         // * Make sure account was not created successfully and we are on the team joining page
+        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
         cy.findByText('User sign-up with email is disabled.').should('be.visible').and('exist');
     });
 
@@ -239,15 +241,16 @@ describe('Authentication', () => {
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`Hossein_Is_The_Best_PROGRAMMER${getRandomId()}@BestInTheWorld.com`);
+        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
         cy.get('#input_password-input').type('Test123456!');
 
-        cy.get('#input_name').clear().type(`HosseinIs2Cool${getRandomId()}`);
+        cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
         cy.findByText('Create Account').click();
 
         // * Make sure account was not created successfully
+        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
         cy.findByText('The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.').should('be.visible').and('exist');
     });
 
@@ -261,6 +264,7 @@ describe('Authentication', () => {
         });
 
         cy.visit('/');
+        cy.postMessage('hello');
 
         // # Open team menu and click on "Invite People"
         cy.uiOpenTeamMenu('Invite People');
@@ -269,7 +273,7 @@ describe('Authentication', () => {
         cy.findByText('Copy invite link').click();
 
         // # Input email, select member
-        cy.findByText('Enter a name or email address').type('HosseinTheBestProgrammer@Mattermost.com{downarrow}{downarrow}{enter}');
+        cy.findByLabelText('Add or Invite People').type(`test-${getRandomId()}@mattermost.com{downarrow}{downarrow}{enter}`, {force: true});
 
         // # Click invite members button
         cy.findByRole('button', {name: 'Invite'}).click({force: true});

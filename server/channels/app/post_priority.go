@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.AppError) {

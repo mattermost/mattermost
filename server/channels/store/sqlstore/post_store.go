@@ -17,12 +17,12 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/searchlayer"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type SqlPostStore struct {
@@ -2552,6 +2552,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 }
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
+// For any changes, accordingly update the markdown maxLen here - markdown/inspect.go.
 func (s *SqlPostStore) GetMaxPostSize() int {
 	s.maxPostSizeOnce.Do(func() {
 		s.maxPostSizeCached = s.determineMaxPostSize()
@@ -2910,6 +2911,30 @@ func (s *SqlPostStore) deleteThread(transaction *sqlxTxWrapper, postId string, d
 	_, err = transaction.Exec(queryString, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to mark thread for root post %s as deleted", postId)
+	}
+
+	return s.deleteThreadFiles(transaction, postId, deleteAtTime)
+}
+
+func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID string, deleteAtTime int64) error {
+	var query sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = s.getQueryBuilder().Update("FileInfo").
+			Set("DeleteAt", deleteAtTime).
+			From("Posts")
+	} else {
+		query = s.getQueryBuilder().Update("FileInfo", "Posts").
+			Set("FileInfo.DeleteAt", deleteAtTime)
+	}
+
+	query = query.Where(sq.And{
+		sq.Expr("FileInfo.PostId = Posts.Id"),
+		sq.Eq{"Posts.RootId": postID},
+	})
+
+	_, err := transaction.ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to mark files of thread post %s as deleted", postID)
 	}
 
 	return nil

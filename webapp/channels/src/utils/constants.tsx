@@ -18,7 +18,6 @@ import pdfIcon from 'images/icons/pdf.svg';
 import pptIcon from 'images/icons/ppt.svg';
 import videoIcon from 'images/icons/video.svg';
 import wordIcon from 'images/icons/word.svg';
-import logoImage from 'images/logo_compact.png';
 import githubIcon from 'images/themes/code_themes/github.png';
 import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
@@ -157,7 +156,6 @@ export const Preferences = {
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
 export const Touched = {
-    INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
 };
 
@@ -450,7 +448,6 @@ export const ModalIdentifiers = {
     CLOUD_LIMITS_DOWNGRADE: 'cloud_limits_downgrade',
     PERSIST_NOTIFICATION_CONFIRM_MODAL: 'persist_notification_confirm_modal',
     AIR_GAPPED_SELF_HOSTED_PURCHASE: 'air_gapped_self_hosted_purchase',
-    WORK_TEMPLATE: 'work_template',
     DOWNGRADE_MODAL: 'downgrade_modal',
     PURCHASE_IN_PROGRESS: 'purchase_in_progress',
     DELETE_WORKSPACE: 'delete_workspace',
@@ -764,7 +761,6 @@ export const TELEMETRY_CATEGORIES = {
     WORKSPACE_OPTIMIZATION_DASHBOARD: 'workspace_optimization_dashboard',
     REQUEST_BUSINESS_EMAIL: 'request_business_email',
     TRUE_UP_REVIEW: 'true_up_review',
-    WORK_TEMPLATES: 'work_templates',
 };
 
 export const TELEMETRY_LABELS = {
@@ -908,6 +904,7 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
+    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
@@ -997,6 +994,11 @@ export const NotificationLevels = {
     ALL: 'all',
     MENTION: 'mention',
     NONE: 'none',
+} as const;
+
+export const DesktopSound = {
+    ON: 'on',
+    OFF: 'off',
 } as const;
 
 export const IgnoreChannelMentions = {
@@ -1508,7 +1510,6 @@ export const Constants = {
     MENTION_NAME_PADDING_LEFT: 2.4,
     AVATAR_WIDTH: 24,
     AUTO_RESPONDER: 'system_auto_responder',
-    SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
         'signup',
         'login',
@@ -1935,7 +1936,8 @@ export const Constants = {
     EMOJI_PATH: '/static/emoji',
     RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
-    MHPNS: 'https://push.mattermost.com',
+    MHPNS_US: 'https://push.mattermost.com',
+    MHPNS_DE: 'https://hpns-de.mattermost.com',
     MTPNS: 'https://push-test.mattermost.com',
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
@@ -1973,8 +1975,6 @@ export const Constants = {
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
     ANIMATION_TIMEOUT: 1000,
     SEARCH_TIMEOUT_MILLISECONDS: 100,
-    TELEMETRY_RUDDER_KEY: 'placeholder_rudder_key',
-    TELEMETRY_RUDDER_DATAPLANE_URL: 'placeholder_rudder_dataplane_url',
     TEAMMATE_NAME_DISPLAY: {
         SHOW_USERNAME: 'username',
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',

@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
 import {CloudProducts, RecurringIntervals} from 'utils/constants';
 
 import {ToYearlyNudgeBanner, ToYearlyNudgeBannerDismissable} from './to_yearly_nudge_banner';

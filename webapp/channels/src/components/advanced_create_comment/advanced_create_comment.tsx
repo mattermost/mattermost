@@ -4,17 +4,24 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-
-import {ModalData} from 'types/actions.js';
-
 import {isNil} from 'lodash';
 
+import {PreferenceType} from '@mattermost/types/preferences';
+import {Group, GroupSource} from '@mattermost/types/groups';
+import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
+import {Emoji} from '@mattermost/types/emojis';
+import {ServerError} from '@mattermost/types/errors';
+import {FileInfo} from '@mattermost/types/files';
+
+import {ActionResult} from 'mattermost-redux/types/actions';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import * as GlobalActions from 'actions/global_actions';
 
+import {PostDraft} from 'types/store/draft';
+import {ModalData} from 'types/actions';
+
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
-import {PreferenceType} from '@mattermost/types/preferences';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -27,19 +34,7 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isTextUrl} from 'utils/paste';
-
-import NotifyConfirmModal from 'components/notify_confirm_modal';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import PostDeletedModal from 'components/post_deleted_modal';
-import {PostDraft} from 'types/store/draft';
-import {Group, GroupSource} from '@mattermost/types/groups';
-import {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import {Emoji} from '@mattermost/types/emojis';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
+import {getTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
 import EmojiMap from 'utils/emoji_map';
 import {
     applyLinkMarkdown,
@@ -47,10 +42,14 @@ import {
     applyMarkdown,
     ApplyMarkdownOptions,
 } from 'utils/markdown/apply_markdown';
-import AdvancedTextEditor from '../advanced_text_editor/advanced_text_editor';
-import {TextboxClass, TextboxElement} from '../textbox';
 
-import FileLimitStickyBanner from '../file_limit_sticky_banner';
+import NotifyConfirmModal from 'components/notify_confirm_modal';
+import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import PostDeletedModal from 'components/post_deleted_modal';
+import {FilePreviewInfo} from 'components/file_preview/file_preview';
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import {TextboxClass, TextboxElement} from 'components/textbox';
+import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -350,7 +349,7 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
     };
 
     saveDraftOnUnmount = () => {
-        if (!this.isDraftEdited || !this.state.draft) {
+        if (!this.isDraftEdited || !this.state.draft || this.props.rootDeleted) {
             return;
         }
 

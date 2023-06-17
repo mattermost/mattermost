@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 import * as reactRedux from 'react-redux';
 
 import {CloudProducts, ModalIdentifiers, Preferences} from 'utils/constants';
@@ -10,7 +9,7 @@ import * as StorageSelectors from 'selectors/storage';
 import configureStore from 'store';
 import {TestHelper} from 'utils/test_helper';
 import ModalController from 'components/modal_controller';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
 import * as cloudActions from 'mattermost-redux/actions/cloud';
 
 import DelinquencyModalController from './index';

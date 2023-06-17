@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 type nilReadSeeker struct {
@@ -172,7 +172,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
-		_, appErr := installPlugin(t, th, "playbooks", "0.0.1", installPluginLocallyAlways)
+		_, appErr := installPlugin(t, th, "com.mattermost.plugin-incident-response", "0.0.1", installPluginLocallyAlways)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.plugin.blocked.app_error", appErr.Id)
 		assertBundleInfoManifests(t, th, []*model.Manifest{})

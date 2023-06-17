@@ -63,7 +63,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       >
         <SettingsGroup
           container={false}
-          show={true}
         >
           <AdminTextSetting
             disabled={false}

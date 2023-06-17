@@ -12,9 +12,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/morph/models"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // EnsureSchemaMigrationFormat checks the schema migrations table
