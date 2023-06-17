@@ -34,7 +34,7 @@ import {
     groupsMentionedInText,
     mentionsMinusSpecialMentionsInText,
 } from 'utils/post_utils';
-import {getTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isHttpProtocol, isHttpsProtocol} from 'utils/paste';
+import {getHtmlTable, hasHtmlLink, formatMarkdownMessage, isGitHubCodeBlock, formatGithubCodePaste, isTextUrl} from 'utils/paste';
 import EmojiMap from 'utils/emoji_map';
 import {
     applyLinkMarkdown,

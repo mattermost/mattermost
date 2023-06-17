@@ -47,7 +47,8 @@ import {
     formatGithubCodePaste,
     isGitHubCodeBlock,
     formatMarkdownLinkMessage,
-    isTextUrl} from 'utils/paste';
+    isTextUrl,
+} from 'utils/paste';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 import EmojiMap from 'utils/emoji_map';
