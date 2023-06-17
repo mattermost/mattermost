@@ -118,6 +118,7 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     }
 
     //TODO: Add support for (url) paste for already a link here
+    // like github ](url) paste paste the link in url
 
     const url = clipboardData.getData('text/plain');
     const markdownLink = `[${selectedText}](${url})`;
