@@ -68,6 +68,7 @@ type Actions = {
     closeModal: (modalId: string) => void;
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
+    // todo sinan implement selector
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 

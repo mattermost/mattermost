@@ -96,11 +96,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
+            // todo sinan allso get archived channels member count
         }
         if (this.props.channels.length > 0) {
-            // todo sinan replace with all channels
             console.log("all channels: ", this.props.channels)
-            this.props.actions.getChannelsMemberCount([this.props.channels[0].id, this.props.channels[1].id])
+            this.props.actions.getChannelsMemberCount(this.props.channels.map((channel) => channel.id))
         }
         this.loadComplete();
     }
