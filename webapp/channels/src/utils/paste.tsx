@@ -130,6 +130,7 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
             const textAfter = message.slice(selectionEnd, selectionEnd + FORMATTED_LINK_URL_SUFFIX.length);
 
             // We check "](" "url" ")" to see if user is trying to paste inside of a markdown link
+            // and selection is on "url"
             if (textBefore === FORMATTED_LINK_URL_PREFIX && textAfter === FORMATTED_LINK_URL_SUFFIX) {
                 return clipboardUrl;
             }
