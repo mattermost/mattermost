@@ -344,7 +344,15 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 	var retrievedGroup model.Group
-	if err := s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", group.Id); err != nil {
+	queryString, args, err := s.getQueryBuilder().
+		Select("UserGroups").
+		Where(sq.Eq{"Id": group.Id}).
+		ToSql()
+	if err != nil {
+		return &retrievedGroup, err
+	}
+
+	if err := s.GetReplicaX().Get(&retrievedGroup, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", group.Id)
 		}
@@ -364,10 +372,21 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 		return nil, err
 	}
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE UserGroups
-		SET Name=:Name, DisplayName=:DisplayName, Description=:Description, Source=:Source,
-		RemoteId=:RemoteId, CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, AllowReference=:AllowReference
-		WHERE Id=:Id`, group)
+	updateQueryString, args, err := s.getQueryBuilder().
+		Update("UserGroups").
+		Set("Name", group.Name).
+		Set("DisplayName", group.DisplayName).
+		Set("Description", group.Description).
+		Set("Source", group.Source).
+		Set("RemoteID", group.RemoteId).
+		Set("CreateAt", group.CreateAt).
+		Set("UpdateAt", group.UpdateAt).
+		Set("DeleteAt", group.DeleteAt).
+		Set("AllowReference", group.AllowReference).
+		Where(sq.Eq{"Id": group.Id}).
+		ToSql()
+
+	res, err := s.GetMasterX().NamedExec(updateQueryString, args)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
 			return nil, store.NewErrUniqueConstraint("Name")
@@ -384,7 +403,18 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 
 func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt = 0", groupID); err != nil {
+	queryString, args, err := s.getQueryBuilder().
+		Select("UserGroups").
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.Eq{"DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return &group, err
+	}
+
+	if err := s.GetReplicaX().Get(&group, queryString, args); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
@@ -403,7 +433,18 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 
 func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
+	queryString, args, err := s.getQueryBuilder().
+		Select("UserGroups").
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.NotEq{"DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return &group, err
+	}
+
+	if err := s.GetReplicaX().Get(&group, queryString, args); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupID)
 		}
@@ -411,9 +452,21 @@ func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
 	}
 
 	time := model.GetMillis()
-	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
-		SET DeleteAt=0, UpdateAt=?
-		WHERE Id=? AND DeleteAt!=0`, time, groupID); err != nil {
+
+	updateQueryString, args, err := s.getQueryBuilder().
+		Update("UserGroups").
+		Set("DeleteAt", 0).
+		Set("UpdateAt", time).
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.NotEq{"DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return &group, err
+	}
+
+	if _, err := s.GetMasterX().Exec(updateQueryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
