@@ -107,9 +107,9 @@ export function formatGithubCodePaste({message, clipboardData, selectionStart, s
 /**
  * Formats the incoming link paste into a markdown link.
  * This function assumes that the clipboardData contains a link.
- * @returns {string} The resulting markdown link from the clipboard data.
+ * @returns The resulting markdown link from the clipboard data.
  */
-export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): string {
+export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams) {
     const isTextSelected = selectionStart !== selectionEnd;
 
     let selectedText = '';
