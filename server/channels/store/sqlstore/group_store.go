@@ -281,7 +281,15 @@ func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE RemoteId = ? AND Source = ?", remoteID, groupSource); err != nil {
+	selectRemoteIDQuery, selectRemoteIDArgs, err := s.getQueryBuilder().
+		Select("UserGroups").
+		Where(sq.Eq{"RemoteId": remoteID, "Source": groupSource}).
+		ToSql()
+	if err != nil {
+		return &group, err
+	}
+
+	if err := s.GetReplicaX().Get(&group, selectRemoteIDQuery, selectRemoteIDArgs...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", fmt.Sprintf("remoteId=%s", remoteID))
 		}
