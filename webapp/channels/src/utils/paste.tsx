@@ -3,13 +3,7 @@
 
 import turndownService from 'utils/turndown';
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
-
-type FormatMarkdownParams = {
-    message: string;
-    clipboardData: DataTransfer;
-    selectionStart: number | null;
-    selectionEnd: number | null;
-};
+import {DEFAULT_PLACEHOLDER_URL} from 'utils/markdown/apply_markdown';
 
 export function parseHtmlTable(html: string): HTMLTableElement | null {
     return new DOMParser().parseFromString(html, 'text/html').querySelector('table');
@@ -83,6 +77,13 @@ export function formatMarkdownMessage(clipboardData: DataTransfer, message?: str
     return {formattedMessage, formattedMarkdown};
 }
 
+type FormatGithubCodePasteParams = {
+    message: string;
+    clipboardData: DataTransfer;
+    selectionStart: number | null;
+    selectionEnd: number | null;
+};
+
 /**
  * Format the incoming github code paste into a markdown code block.
  * This function assumes that the clipboardData contains a code block.
@@ -90,7 +91,7 @@ export function formatMarkdownMessage(clipboardData: DataTransfer, message?: str
  * @property {string} formattedMessage - The complete formatted message including the code block.
  * @property {string} formattedCodeBlock - The resulting code block from the clipboard data.
 */
-export function formatGithubCodePaste({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): {formattedMessage: string; formattedCodeBlock: string} {
+export function formatGithubCodePaste({message, clipboardData, selectionStart, selectionEnd}: FormatGithubCodePasteParams): {formattedMessage: string; formattedCodeBlock: string} {
     const isTextSelected = selectionStart !== selectionEnd;
     const {firstPiece, lastPiece} = isTextSelected ? splitMessageBasedOnTextSelection(selectionStart ?? message.length, selectionEnd ?? message.length, message) : splitMessageBasedOnCaretPosition(selectionStart ?? message.length, message);
 
@@ -104,21 +105,39 @@ export function formatGithubCodePaste({message, clipboardData, selectionStart, s
     return {formattedMessage, formattedCodeBlock};
 }
 
+type FormatMarkdownLinkMessage = {
+    message: string;
+    clipboardData: DataTransfer;
+    selectionStart: number;
+    selectionEnd: number;
+};
+
 /**
  * Formats the incoming link paste into a markdown link.
  * This function assumes that the clipboardData contains a link.
  * @returns {string} The resulting markdown link from the clipboard data.
  */
-export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownParams): string {
-    const isTextSelected = selectionStart !== selectionEnd;
+export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownLinkMessage): string {
+    const selectedText = message.slice(selectionStart, selectionEnd);
+    const clipboardUrl = clipboardData.getData('text/plain');
 
-    let selectedText = '';
-    if (isTextSelected) {
-        selectedText = message.slice(selectionStart || 0, selectionEnd || 0);
+    if (selectedText === DEFAULT_PLACEHOLDER_URL) {
+        if (message.length > DEFAULT_PLACEHOLDER_URL.length) {
+            const FORMATTED_LINK_URL_PREFIX = '](';
+            const FORMATTED_LINK_URL_SUFFIX = ')';
+
+            const textBefore = message.slice(selectionStart - FORMATTED_LINK_URL_PREFIX.length, selectionStart);
+            const textAfter = message.slice(selectionEnd, selectionEnd + FORMATTED_LINK_URL_SUFFIX.length);
+
+            // We check "](" "url" ")" to see if user is trying to paste inside of a markdown link
+            // and selection is on "url"
+            if (textBefore === FORMATTED_LINK_URL_PREFIX && textAfter === FORMATTED_LINK_URL_SUFFIX) {
+                return clipboardUrl;
+            }
+        }
     }
 
-    const url = clipboardData.getData('text/plain');
-    const markdownLink = `[${selectedText}](${url})`;
+    const markdownLink = `[${selectedText}](${clipboardUrl})`;
 
     return markdownLink;
 }
