@@ -215,7 +215,15 @@ func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []str
 
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
 	var group model.Group
-	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ?", groupId); err != nil {
+	selectUserGroupQuery, selectUserGroupArgs, err := s.getQueryBuilder().
+		Select("UserGroups").
+		Where(sq.Eq{"Id": groupId}).
+		ToSql()
+	if err != nil {
+		return &group, err
+	}
+
+	if err := s.GetReplicaX().Get(&group, selectUserGroupQuery, selectUserGroupArgs...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Group", groupId)
 		}
