@@ -24,8 +24,11 @@ exports[`components/channel_notifications_modal/NotificationSection should match
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
+  onReset={[Function]}
   onSubmit={[Function]}
   section="desktop"
   serverError=""
@@ -47,8 +50,11 @@ exports[`components/channel_notifications_modal/NotificationSection should match
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
+  onReset={[Function]}
   onSubmit={[Function]}
   section="markUnread"
   serverError=""
@@ -70,8 +76,11 @@ exports[`components/channel_notifications_modal/NotificationSection should match
   memberNotifyLevel="all"
   memberThreadsNotifyLevel="all"
   onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
   onChangeThreads={[Function]}
   onCollapseSection={[Function]}
+  onReset={[Function]}
   onSubmit={[Function]}
   section="push"
   serverError=""

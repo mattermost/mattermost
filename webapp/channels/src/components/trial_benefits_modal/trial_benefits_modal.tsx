@@ -19,7 +19,7 @@ import {isModalOpen} from 'selectors/views/modals';
 import {GlobalState} from 'types/store';
 
 import Carousel from 'components/common/carousel/carousel';
-import GenericModal from 'components/generic_modal';
+import {GenericModal} from '@mattermost/components';
 import HandsSvg from 'components/common/svg_images_components/hands_svg';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';

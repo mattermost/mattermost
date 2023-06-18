@@ -4,7 +4,7 @@
 package model
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 
 	"github.com/vmihailenco/msgpack/v5"
 )

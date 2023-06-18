@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AdminConfig, ServiceSettings} from '@mattermost/types/config';
+import {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import * as Utils from 'utils/utils';
@@ -21,7 +21,7 @@ interface SessionLengthSettingsState extends BaseState {
     sessionLengthSSOInHours: ServiceSettings['SessionLengthSSOInHours'];
     sessionCacheInMinutes: ServiceSettings['SessionCacheInMinutes'];
     sessionIdleTimeoutInMinutes: ServiceSettings['SessionIdleTimeoutInMinutes'];
-    sessionIdleTimeoutMobileInMinutes: number;
+    sessionIdleTimeoutMobileInMinutes: ClientLicense['SessionIdleTimeoutMobileInMinutes'];
 }
 
 interface SessionLengthSettingsProps extends BaseProps {

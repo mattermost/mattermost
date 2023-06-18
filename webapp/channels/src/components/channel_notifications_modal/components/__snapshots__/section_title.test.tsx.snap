@@ -1,10 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on DESKTOP 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Send desktop notifications"
-  id="channel_notifications.sendDesktop"
-/>
+<div
+  className="SectionTitle__wrapper"
+>
+  <MemoizedFormattedMessage
+    defaultMessage="Desktop notifications"
+    id="channel_notifications.desktopNotifications"
+  />
+</div>
 `;
 
 exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on MARK_UNREAD 1`] = `
@@ -15,8 +19,12 @@ exports[`components/channel_notifications_modal/ExtraInfo should match snapshot,
 `;
 
 exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on PUSH 1`] = `
-<MemoizedFormattedMessage
-  defaultMessage="Send mobile push notifications"
-  id="channel_notifications.push"
-/>
+<div
+  className="SectionTitle__wrapper"
+>
+  <MemoizedFormattedMessage
+    defaultMessage="Mobile push notifications"
+    id="channel_notifications.push"
+  />
+</div>
 `;
