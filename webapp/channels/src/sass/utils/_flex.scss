@@ -18,6 +18,10 @@
     -ms-flex-preferred-size: 0;
 }
 
+.flex-auto {
+    flex: 0 0 auto;
+}
+
 .flex-wrap {
     flex-wrap: wrap;
 }

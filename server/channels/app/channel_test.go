@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -2482,6 +2482,10 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	// add a bot post to ensure it's not counted
@@ -2594,6 +2598,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	// add a bot post to ensure it's not counted
@@ -2671,6 +2679,10 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 func TestPostCountsByDuration(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
@@ -2793,6 +2805,10 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	channel3 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
@@ -2888,6 +2904,10 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	// delete offtopic, town-square, th.basicchannel channels - which interferes with 'least' active channel results
 	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)

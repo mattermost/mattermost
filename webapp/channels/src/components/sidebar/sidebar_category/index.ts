@@ -8,10 +8,8 @@ import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions
 import {GenericAction} from 'mattermost-redux/types/actions';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {ChannelCategory} from '@mattermost/types/channel_categories';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
-import {Preferences, Touched} from 'utils/constants';
 
 import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
 import {GlobalState} from 'types/store';
@@ -29,7 +27,6 @@ function makeMapStateToProps() {
         return {
             channelIds: getChannelIdsForCategory(state, ownProps.category),
             draggingState: getDraggingState(state),
-            touchedInviteMembersButton: getBool(state, Preferences.TOUCHED, Touched.INVITE_MEMBERS),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),
         };

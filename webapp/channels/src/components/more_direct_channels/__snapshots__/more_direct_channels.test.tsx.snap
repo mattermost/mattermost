@@ -88,6 +88,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -125,6 +126,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -162,6 +164,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -199,6 +202,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -236,6 +240,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -368,6 +373,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -405,6 +411,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -442,6 +449,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -484,6 +492,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",
@@ -523,6 +532,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             "mfa_active": false,
             "nickname": "",
             "notify_props": Object {
+              "calls_desktop_sound": "true",
               "channel": "false",
               "comments": "never",
               "desktop": "default",

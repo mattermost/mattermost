@@ -14,15 +14,15 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/plugin"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 const (
@@ -780,7 +780,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
+		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
@@ -880,10 +880,6 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
-	})
-
-	ts.SendTelemetry(TrackConfigProducts, map[string]any{
-		"enable_public_shared_boards": *cfg.ProductSettings.EnablePublicSharedBoards,
 	})
 
 	// Convert feature flags to map[string]any for sending
