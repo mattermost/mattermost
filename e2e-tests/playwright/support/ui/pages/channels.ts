@@ -18,7 +18,7 @@ export default class ChannelsPage {
     readonly appBar;
     readonly sidebarLeft;
     readonly sidebarRight;
-    readonly postActionMenu;
+    readonly postDotMenu;
     readonly deletePostModal;
 
     constructor(page: Page) {
@@ -31,7 +31,7 @@ export default class ChannelsPage {
         this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
-        this.postActionMenu = new components.PostOptionsMenu(page.getByRole('menu', {name: 'Post extra options'}));
+        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
     }
 

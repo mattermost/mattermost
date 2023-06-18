@@ -31,7 +31,7 @@ export default class ChannelsSidebarLeft {
     /**
      * Verifies 'Drafts' as a sidebar link exists in LHS.
      */
-    async draftsExist() {
+    async draftsVisible() {
         const draftSidebarLink = this.container.getByText('Drafts', {exact: true});
         await draftSidebarLink.waitFor();
         await expect(draftSidebarLink).toBeVisible();
@@ -40,7 +40,7 @@ export default class ChannelsSidebarLeft {
     /**
      * Verifies 'Drafts' as a sidebar link does not exist in LHS.
      */
-    async draftsDoesntExist() {
+    async draftsNotVisible() {
         const channel = this.container.getByText('Drafts', {exact: true});
         await expect(channel).not.toBeVisible();
     }

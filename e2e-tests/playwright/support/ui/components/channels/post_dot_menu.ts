@@ -3,23 +3,25 @@
 
 import {expect, Locator} from '@playwright/test';
 
-export default class PostOptionsMenu {
+export default class PostDotMenu {
     readonly container: Locator;
+
+    readonly deleteMenuItem;
 
     constructor(container: Locator) {
         this.container = container;
+
+        this.deleteMenuItem = this.container.getByText('Delete', {exact: true});   
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
 
-    async click(option: string | RegExp, exact = false) {
-        const optionLocator = this.container.getByText(option, {exact});
-        await optionLocator.waitFor();
-
-        await optionLocator.click();
+    async delete() {
+        await this.deleteMenuItem.waitFor();
+        await this.deleteMenuItem.click();
     }
 }
 
-export {PostOptionsMenu};
+export {PostDotMenu};

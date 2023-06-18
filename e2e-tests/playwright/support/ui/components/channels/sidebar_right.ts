@@ -9,13 +9,16 @@ export default class ChannelsSidebarRight {
     readonly container: Locator;
 
     readonly input;
-    readonly sendButton: Locator;
+    readonly sendMessageButton;
+    readonly closeButton;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.input = container.getByTestId('reply_textbox');
-        this.sendButton = container.getByTestId('SendMessageButton');
+        this.sendMessageButton = container.getByTestId('SendMessageButton');
+
+        this.closeButton = container.locator('#rhsCloseButton');
     }
 
     async toBeVisible() {
@@ -27,13 +30,13 @@ export default class ChannelsSidebarRight {
     }
 
     async sendMessage() {
-        await this.sendButton.click();
+        await this.sendMessageButton.click();
     }
 
     /**
      * Returns the value of the textbox in RHS
      */
-    async getTextboxValue() {
+    async getInputValue() {
         return await this.input.inputValue();
     }
 
@@ -45,6 +48,16 @@ export default class ChannelsSidebarRight {
         const rhsPostId = `rhsPost_${postId}`;
         const postLocator = this.container.locator(`#${rhsPostId}`);
         return new components.ChannelsPost(postLocator);
+    }
+
+    /**
+     * Closes the RHS
+     */
+    async close() {
+        await this.closeButton.waitFor();
+        await this.closeButton.click();
+
+        await expect(this.container).not.toBeVisible();
     }
 }
 

@@ -3,17 +3,18 @@
 
 import {expect, Locator} from '@playwright/test';
 
+import {components} from '@e2e-support/ui/components';
+
 export default class ChannelsPost {
     readonly container: Locator;
 
     readonly body;
     readonly profileIcon;
 
-    readonly replyThreadButton;
     readonly removePostButton;
 
-    readonly postActionReplyButton;
-    readonly postActionMoreButton;
+    readonly postMenu;
+    readonly threadFooter;
 
     constructor(container: Locator) {
         this.container = container;
@@ -22,15 +23,21 @@ export default class ChannelsPost {
 
         this.profileIcon = container.locator('.profile-icon');
 
-        this.replyThreadButton = container.locator('.ReplyButton');
         this.removePostButton = container.locator('.post__remove');
 
-        this.postActionReplyButton = container.getByRole('button', {name: 'reply'});
-        this.postActionMoreButton = container.getByRole('button', {name: 'more'});
+        this.postMenu = new components.PostMenu(container.locator('.post-menu'));
+        this.threadFooter = new components.ThreadFooter(container.locator('.ThreadFooter'));
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    /**
+     * Hover over the post. Can be used for post menu to appear.
+     */
+    async hover() {
+        await this.container.hover();
     }
 
     async getId() {
@@ -44,27 +51,10 @@ export default class ChannelsPost {
     }
 
     /**
-     * Hover over the post and click on the reply button from post options.
-     */
-    async openRHSWithPostOptions() {
-        await this.container.hover();
-        await this.postActionReplyButton.waitFor();
-        await this.postActionReplyButton.click();
-    }
-
-    /**
-     * Clicks on the reply button on the post with thread.
-     */
-    async openRHSWithReply() {
-        await this.replyThreadButton.waitFor();
-        await this.replyThreadButton.click();
-    }
-
-    /**
      * Clicks on the deleted post's remove 'x' button.
      * Also verifies that the post is a deleted post.
      */
-    async clickOnRemovePost() {
+    async remove() {
         // Verify the post is a deleted post
         await expect(this.container).toContainText(/\(message deleted\)/);
 
@@ -72,15 +62,6 @@ export default class ChannelsPost {
         await this.container.hover();
         await this.removePostButton.waitFor();
         await this.removePostButton.click();
-    }
-
-    /**
-     * Hovers over the post and clicks on the post's more button to open the post options menu
-     */
-    async openPostActionsMenu() {
-        await this.container.hover();
-        await this.postActionMoreButton.waitFor();
-        await this.postActionMoreButton.click();
     }
 }
 
