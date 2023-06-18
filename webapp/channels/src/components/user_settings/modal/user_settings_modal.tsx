@@ -20,6 +20,7 @@ import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import ConfirmModal from 'components/confirm_modal';
+import * as NotificationSounds from 'utils/notification_sounds';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
@@ -160,6 +161,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             this.showConfirmModal(() => this.handleHide());
             return;
         }
+
+        // Cancel any ongoing notification sound, if any (from DesktopNotificationSettings)
+        NotificationSounds.stopTryNotificationRing();
 
         this.setState({
             show: false,

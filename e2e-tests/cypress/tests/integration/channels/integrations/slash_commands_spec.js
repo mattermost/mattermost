@@ -188,7 +188,7 @@ describe('Integrations', () => {
         cy.getLastPost().should('contain', 'Image links now expand by default').and('contain', 'System');
 
         // # Post message
-        cy.postMessage('https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/png-image-file.png');
+        cy.postMessage('https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/png-image-file.png');
         cy.getLastPostId().as('postID');
 
         cy.get('@postID').then((postID) => {
@@ -208,7 +208,7 @@ describe('Integrations', () => {
         cy.visit(offTopicUrl1);
 
         // # Post message
-        cy.postMessage('https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/png-image-file.png');
+        cy.postMessage('https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/png-image-file.png');
         cy.getLastPostId().as('postID');
 
         // # Open RHS
@@ -244,6 +244,7 @@ describe('Integrations', () => {
     it('MM-T705 Ephemeral message', () => {
         cy.apiAdminLogin();
         cy.visit(offTopicUrl1);
+        cy.postMessage('hello');
 
         // # Navigate to slash commands and create the slash command
         cy.uiOpenProductMenu('Integrations');

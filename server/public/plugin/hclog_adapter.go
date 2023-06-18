@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type hclogAdapter struct {

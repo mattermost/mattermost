@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mysql:5.7-1
+    image: mattermostdevelopment/mirrored-mysql:5.7.12
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
@@ -23,7 +23,7 @@ services:
           - mysql
 
   start_dependencies:
-    image: ${CI_REGISTRY}/mattermost/ci/images/mattermost-wait-for-dep:latest-1
+    image: mattermost/mattermost-wait-for-dep:latest
     depends_on:
       - mysql
     command: mysql:3306
