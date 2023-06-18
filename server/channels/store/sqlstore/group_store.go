@@ -68,10 +68,22 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO UserGroups
-		(Id, Name, DisplayName, Description, Source, RemoteId, CreateAt, UpdateAt, DeleteAt, AllowReference)
-		VALUES
-		(:Id, :Name, :DisplayName, :Description, :Source, :RemoteId, :CreateAt, :UpdateAt, :DeleteAt, :AllowReference)`, group); err != nil {
+	txn, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(txn, &err)
+
+	groupInsertQuery, groupInsertArgs, err := s.getQueryBuilder().
+		Insert("UserGroups").
+		Columns("Id", "Name", "DisplayName", "Description", "Source", "RemoteId", "CreateAt", "UpdateAt", "DeleteAt", "AllowReference").
+		Values(group.Id, group.Name, group.DisplayName, group.Description, group.Source, group.RemoteId, group.CreateAt, group.UpdateAt, group.DeleteAt, group.AllowReference).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
 			return nil, errors.Wrapf(err, "Group with name %s already exists", *group.Name)
 		}
