@@ -5,6 +5,8 @@ import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
 
 import {connect} from 'react-redux';
 
+import {GlobalState} from 'types/store';
+
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
@@ -15,21 +17,19 @@ import {
     unlinkGroupSyncable,
     patchGroupSyncable,
 } from 'mattermost-redux/actions/groups';
+import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
+
 import TeamDetails, {Props as TeamDetailsProps} from './team_details';
-import {GlobalState} from 'types/store';
-import {Team} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 function mapStateToProps(state: GlobalState, props: TeamDetailsProps) {
     const teamID: string = props.teamID;
-    const team: Team = getTeam(state, teamID);
-    const groups: Group[] = getGroupsAssociatedToTeam(state, teamID);
-    const allGroups: Record<string, Group> = getAllGroups(state);
-    const totalGroups: number = groups.length;
-    const isLicensedForLDAPGroups: boolean = state.entities.general.license.LDAPGroups === 'true';
+    const team = getTeam(state, teamID);
+    const groups = getGroupsAssociatedToTeam(state, teamID);
+    const allGroups = getAllGroups(state);
+    const totalGroups = groups.length;
+    const isLicensedForLDAPGroups = state.entities.general.license.LDAPGroups === 'true';
     return {
         team,
         groups,
