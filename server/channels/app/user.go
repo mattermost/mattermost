@@ -217,19 +217,6 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
-func (a *App) IsFirstAdmin(user *model.User) bool {
-	if !user.IsSystemAdmin() {
-		return false
-	}
-
-	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
-	if err != nil {
-		return false
-	}
-
-	return adminID == user.Id
-}
-
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
