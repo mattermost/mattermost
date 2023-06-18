@@ -934,9 +934,8 @@ func (s *MattermostAuthLayer) boardsFromRows(rows *sql.Rows, removeDuplicates bo
 		if removeDuplicates {
 			if _, ok := idMap[board.ID]; ok {
 				continue
-			} else {
-				idMap[board.ID] = struct{}{}
 			}
+			idMap[board.ID] = struct{}{}
 		}
 
 		err = json.Unmarshal(propertiesBytes, &board.Properties)

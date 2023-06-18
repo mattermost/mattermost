@@ -315,7 +315,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 }
 
 var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(filenames []string, channelID, userID string) [][]string {

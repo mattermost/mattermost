@@ -22,13 +22,11 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
-	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/graph-gophers/dataloader/v6 v6.0.0
-	github.com/graph-gophers/dataloader/v7 v7.1.0
 	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
@@ -54,7 +52,6 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/minio/minio-go/v7 v7.0.51
-	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/run v1.1.0
 	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 	github.com/opentracing/opentracing-go v1.2.0
@@ -78,17 +75,14 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	github.com/wiggin77/merror v1.0.4
-	github.com/writeas/go-strip-markdown v2.0.1+incompatible
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.5.4
 	golang.org/x/crypto v0.8.0
 	golang.org/x/image v0.7.0
 	golang.org/x/net v0.10.0
-	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sync v0.2.0
 	golang.org/x/term v0.8.0
 	golang.org/x/tools v0.9.1
-	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/olivere/elastic.v6 v6.2.37
 	gopkg.in/yaml.v2 v2.4.0
@@ -178,6 +172,7 @@ require (
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
@@ -224,7 +219,6 @@ require (
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
