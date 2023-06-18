@@ -385,6 +385,9 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 		Set("AllowReference", group.AllowReference).
 		Where(sq.Eq{"Id": group.Id}).
 		ToSql()
+	if err != nil {
+		return group, err
+	}
 
 	res, err := s.GetMasterX().NamedExec(updateQueryString, args)
 	if err != nil {
@@ -422,9 +425,20 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	}
 
 	time := model.GetMillis()
-	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
-		SET DeleteAt=?, UpdateAt=?
-		WHERE Id=? AND DeleteAt=0`, time, time, groupID); err != nil {
+	updateQueryString, args, err := s.getQueryBuilder().
+		Update("UserGroups").
+		Set("DeleteAt", time).
+		Set("UpdateAt", time).
+		Where(sq.And{
+			sq.Eq{"Id": groupID},
+			sq.Eq{"DeleteAt": 0},
+		}).
+		ToSql()
+	if err != nil {
+		return &group, err
+	}
+
+	if _, err := s.GetMasterX().Exec(updateQueryString, args); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
 	}
 
@@ -579,7 +593,15 @@ func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPa
 func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	if err := s.GetReplicaX().Get(&model.Group{}, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
+	selectByGroupIDQueryString, args, err := s.getQueryBuilder().
+		Select("UserGroups").
+		Where(sq.Eq{"Id": groupID}).
+		ToSql()
+	if err != nil {
+		return groupMembers, err
+	}
+
+	if err := s.GetReplicaX().Get(&model.Group{}, selectByGroupIDQueryString, args...); err != nil {
 		return nil, errors.Wrap(err, "GetNonMemberUsersPage")
 	}
 
@@ -724,7 +746,16 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) (*model.Grou
 }
 
 func (s *SqlGroupStore) PermanentDeleteMembersByUser(userId string) error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM GroupMembers WHERE UserId = ?", userId); err != nil {
+	query, args, err := s.getQueryBuilder().
+		Delete("GroupMembers").
+		Where(sq.Eq{
+			"UserId": userId,
+		}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	if _, err := s.GetMasterX().Exec(query, args); err != nil {
 		return errors.Wrapf(err, "failed to permanent delete GroupMember with userId=%s", userId)
 	}
 	return nil
