@@ -36,7 +36,7 @@ import ExternalLink from 'components/external_link';
 
 import OpenIdConvert from './openid_convert';
 import Audits from './audits';
-import CustomURLSchemesSetting from './custom_url_schemes_setting.jsx';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import LicenseSettings from './license_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
@@ -6953,11 +6953,11 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.EnableAppBar',
-                        label: t('admin.experimental.enableAppBar.title'),
-                        label_default: 'Enable App Bar:',
-                        help_text: t('admin.experimental.enableAppBar.desc'),
-                        help_text_default: 'When true, all integrations move from the channel header to the App Bar. Channel header plugin icons that haven\'t explicitly registered an App Bar icon will be moved to the App Bar which may result in rendering issues. [See the documentation to learn more](https://docs.mattermost.com/welcome/what-changed-in-v70.html).',
+                        key: 'ExperimentalSettings.DisableAppBar',
+                        label: t('admin.experimental.disableAppBar.title'),
+                        label_default: 'Disable Apps Bar:',
+                        help_text: t('admin.experimental.disableAppBar.desc'),
+                        help_text_default: 'When false, all integrations move from the channel header to the Apps Bar. Channel header plugin icons that haven\'t explicitly registered an Apps Bar icon will be moved to the Apps Bar which may result in rendering issues.',
                         help_text_markdown: true,
                         isHidden: it.licensedForFeature('Cloud'),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),

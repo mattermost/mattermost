@@ -370,7 +370,7 @@
         "LinkMetadataTimeoutMilliseconds": 5000,
         "RestrictSystemAdmin": false,
         "UseNewSAMLLibrary": false,
-        "EnableAppBar": true
+        "DisableAppBar": false
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
