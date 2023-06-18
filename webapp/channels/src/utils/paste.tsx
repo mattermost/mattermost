@@ -115,9 +115,9 @@ type FormatMarkdownLinkMessage = {
 /**
  * Formats the incoming link paste into a markdown link.
  * This function assumes that the clipboardData contains a link.
- * @returns {string} The resulting markdown link from the clipboard data.
+ * @returns The resulting markdown link from the clipboard data.
  */
-export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownLinkMessage): string {
+export function formatMarkdownLinkMessage({message, clipboardData, selectionStart, selectionEnd}: FormatMarkdownLinkMessage) {
     const selectedText = message.slice(selectionStart, selectionEnd);
     const clipboardUrl = clipboardData.getData('text/plain');
 
