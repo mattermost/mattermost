@@ -2202,50 +2202,44 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 }
 
 func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
-	  memberCounts := make(map[string]int64)
+	memberCounts := make(map[string]int64)
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.ChannelId,COUNT(*) AS Count").
+		From("ChannelMembers").
+		InnerJoin("Users ON ChannelMembers.UserId = Users.Id").
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.ChannelId": channelIDs},
+			sq.Eq{"Users.DeleteAt": 0},
+		}).
+		GroupBy("ChannelMembers.ChannelId")
 
-    // Create a comma-separated string of channel IDs
-    channelIdStr := strings.Join(channelIDs, ",")
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channels_member_count_tosql")
+	}
 
-    query := fmt.Sprintf(`
-        SELECT
-            ChannelMembers.ChannelId,
-            COUNT(*) AS MemberCount
-        FROM
-            ChannelMembers
-        INNER JOIN
-            Users ON ChannelMembers.UserId = Users.Id
-        WHERE
-            ChannelMembers.ChannelId IN (%s)
-            AND Users.DeleteAt = 0
-        GROUP BY
-            ChannelMembers.ChannelId
-    `, channelIdStr)
+	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
 
-    // Execute the SQL query
-    rows, err := s.GetReplicaX().Query(query)
-    if err != nil {
-        return nil, errors.Wrap(err, "failed to execute SQL query")
-    }
-    defer rows.Close()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch member counts")
+	}
+	defer rows.Close()
 
-    // Iterate over the query results and populate the memberCounts map
-    for rows.Next() {
-        var channelId string
-        var count int64
-        err := rows.Scan(&channelId, &count)
-        if err != nil {
-            return nil, errors.Wrap(err, "failed to scan query result")
-        }
+	for rows.Next() {
+		var channelID string
+		var count int64
+		err := rows.Scan(&channelID, &count)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan row")
+		}
+		memberCounts[channelID] = count
+	}
 
-        memberCounts[channelId] = count
-    }
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error while iterating rows")
+	}
 
-    if err := rows.Err(); err != nil {
-        return nil, errors.Wrap(err, "error while iterating over query results")
-    }
-
-    return memberCounts, nil
+	return memberCounts, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
