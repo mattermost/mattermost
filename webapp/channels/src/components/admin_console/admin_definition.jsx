@@ -36,7 +36,7 @@ import ExternalLink from 'components/external_link';
 
 import OpenIdConvert from './openid_convert';
 import Audits from './audits';
-import CustomURLSchemesSetting from './custom_url_schemes_setting.jsx';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import LicenseSettings from './license_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';

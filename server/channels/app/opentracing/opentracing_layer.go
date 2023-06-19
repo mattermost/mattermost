@@ -12047,23 +12047,6 @@ func (a *OpenTracingAppLayer) IsConfigReadOnly() bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) IsFirstAdmin(user *model.User) bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsFirstAdmin")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.IsFirstAdmin(user)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) IsFirstUserAccount() bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsFirstUserAccount")
