@@ -6,7 +6,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, ProductsIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
@@ -36,7 +36,7 @@ import ExternalLink from 'components/external_link';
 
 import OpenIdConvert from './openid_convert';
 import Audits from './audits';
-import CustomURLSchemesSetting from './custom_url_schemes_setting.jsx';
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import LicenseSettings from './license_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
@@ -3249,6 +3249,10 @@ const AdminDefinition = {
                         help_text_default: 'New user accounts are restricted to the above specified email domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com"). New teams can only be created by users from the above domain(s). This setting only affects email login for users.',
                         placeholder: t('admin.team.restrictExample'),
                         placeholder_default: 'E.g.: "corp.mattermost.com, mattermost.com"',
+                        isHidden: it.all(
+                            it.licensed,
+                            it.not(it.licensedForSku('starter')),
+                        ),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                     },
                     {
@@ -5862,42 +5866,6 @@ const AdminDefinition = {
             },
         },
     },
-    products: {
-        icon: (
-            <ProductsIcon
-                size={16}
-                className={'category-icon fa'}
-                color={'currentColor'}
-            />
-        ),
-        sectionTitle: t('admin.sidebar.products'),
-        sectionTitleDefault: 'Products',
-        isHidden: it.any(
-            it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.PRODUCTS)),
-        ),
-        boards: {
-            url: 'products/boards',
-            title: t('admin.sidebar.boards'),
-            title_default: 'Boards',
-            isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-            schema: {
-                id: 'BoardsSettings',
-                name: t('admin.site.boards'),
-                name_default: 'Boards',
-                settings: [
-                    {
-                        type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ProductSettings.EnablePublicSharedBoards',
-                        label: t('admin.customization.enablePublicSharedBoardsTitle'),
-                        label_default: 'Enable Public Shared Boards:',
-                        help_text: t('admin.customization.enablePublicSharedBoardsDesc'),
-                        help_text_default: 'This allows board editors to share boards that can be accessed by anyone with the link.',
-                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.PRODUCTS.BOARDS)),
-                    },
-                ],
-            },
-        },
-    },
     integrations: {
         icon: (
             <SitemapIcon
@@ -6985,11 +6953,11 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_BOOL,
-                        key: 'ExperimentalSettings.EnableAppBar',
-                        label: t('admin.experimental.enableAppBar.title'),
-                        label_default: 'Enable App Bar:',
-                        help_text: t('admin.experimental.enableAppBar.desc'),
-                        help_text_default: 'When true, all integrations move from the channel header to the App Bar. Channel header plugin icons that haven\'t explicitly registered an App Bar icon will be moved to the App Bar which may result in rendering issues. [See the documentation to learn more](https://docs.mattermost.com/welcome/what-changed-in-v70.html).',
+                        key: 'ExperimentalSettings.DisableAppBar',
+                        label: t('admin.experimental.disableAppBar.title'),
+                        label_default: 'Disable Apps Bar:',
+                        help_text: t('admin.experimental.disableAppBar.desc'),
+                        help_text_default: 'When false, all integrations move from the channel header to the Apps Bar. Channel header plugin icons that haven\'t explicitly registered an Apps Bar icon will be moved to the Apps Bar which may result in rendering issues.',
                         help_text_markdown: true,
                         isHidden: it.licensedForFeature('Cloud'),
                         isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),

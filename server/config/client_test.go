@@ -327,17 +327,16 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"Default Playbooks Enabled",
+			"Disable App Bar",
 			&model.Config{
-				ProductSettings: model.ProductSettings{},
+				ExperimentalSettings: model.ExperimentalSettings{
+					DisableAppBar: model.NewBool(true),
+				},
 			},
 			"",
-			&model.License{
-				Features:     &model.Features{},
-				SkuShortName: "other",
-			},
+			nil,
 			map[string]string{
-				"EnablePlaybooks": "true",
+				"DisableAppBar": "true",
 			},
 		},
 	}

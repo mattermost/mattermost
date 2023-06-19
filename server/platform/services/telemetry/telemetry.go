@@ -780,7 +780,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
+		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
@@ -880,10 +880,6 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
-	})
-
-	ts.SendTelemetry(TrackConfigProducts, map[string]any{
-		"enable_public_shared_boards": *cfg.ProductSettings.EnablePublicSharedBoards,
 	})
 
 	// Convert feature flags to map[string]any for sending
