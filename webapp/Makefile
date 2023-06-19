@@ -51,18 +51,11 @@ check-types: node_modules ## Checks TS file for TypeScript confirmity
 
 	npm run check-types
 
-.PHONY: build
-build: node_modules ## Builds all web app packages
-	@echo Building Web App and related packages
-
-	npm run build
-
 .PHONY: dist
-dist: build ## Builds all web app packages and copies Playbooks files into Channels dist folder
+dist: node_modules ## Builds all web app packages
 	@echo Packaging Mattermost Web App
 
-	mkdir -p channels/dist/products/playbooks
-	cp -R playbooks/dist/* channels/dist/products/playbooks
+	npm run build
 
 node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
