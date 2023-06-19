@@ -46,6 +46,7 @@ type Actions = {
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
+// todo sinan rename based on feedback on previous email
 export type Props = {
     channels: Channel[];
     archivedChannels: Channel[];
