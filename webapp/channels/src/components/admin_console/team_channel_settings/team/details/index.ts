@@ -8,7 +8,6 @@ import {connect} from 'react-redux';
 import {GlobalState} from 'types/store';
 
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-
 import {getTeam as fetchTeam, membersMinusGroupMembers, patchTeam, removeUserFromTeam, updateTeamMemberSchemeRoles, addUserToTeam, deleteTeam, unarchiveTeam} from 'mattermost-redux/actions/teams';
 import {getAllGroups, getGroupsAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {
@@ -23,8 +22,16 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 
 import TeamDetails, {Props as TeamDetailsProps} from './team_details';
 
-function mapStateToProps(state: GlobalState, props: TeamDetailsProps) {
-    const teamID: string = props.teamID;
+type OwnProps = {
+    match: {
+        params: {
+            teamID: string;
+        };
+    };
+}
+
+function mapStateToProps(state: GlobalState, props: OwnProps) {
+    const teamID = props.match.params.teamID;
     const team = getTeam(state, teamID);
     const groups = getGroupsAssociatedToTeam(state, teamID);
     const allGroups = getAllGroups(state);
