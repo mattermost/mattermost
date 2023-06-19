@@ -367,6 +367,13 @@ func (ps *PlatformService) ShutdownConfig() error {
 
 func (ps *PlatformService) SetTelemetryId(id string) {
 	ps.telemetryId = id
+
+	ps.PostTelemetryIdHook()
+}
+
+// PostTelemetryIdHook triggers necessary events to propagate telemtery ID
+func (ps *PlatformService) PostTelemetryIdHook() {
+	ps.regenerateClientConfig()
 }
 
 func (ps *PlatformService) SetLogger(logger *mlog.Logger) {

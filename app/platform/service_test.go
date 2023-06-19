@@ -175,3 +175,19 @@ func TestShutdown(t *testing.T) {
 		require.Zero(t, atomic.LoadInt32(&th.Service.goroutineCount))
 	})
 }
+
+func TestSetTelemetryId(t *testing.T) {
+	t.Run("ensure client config is regenerated after setting the telemetry id", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		clientConfig := th.Service.LimitedClientConfig()
+		require.Empty(t, clientConfig["DiagnosticId"])
+
+		id := model.NewId()
+		th.Service.SetTelemetryId(id)
+
+		clientConfig = th.Service.LimitedClientConfig()
+		require.Equal(t, clientConfig["DiagnosticId"], id)
+	})
+}
