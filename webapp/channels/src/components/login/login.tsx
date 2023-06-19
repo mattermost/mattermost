@@ -107,6 +107,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         CustomDescriptionText,
         SiteName,
         ExperimentalPrimaryTeam,
+        SiteURL,
     } = useSelector(getConfig);
     const {IsLicensed} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
@@ -412,8 +413,13 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
 
     useEffect(() => {
-        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
-            window.location.href = `mattermost://localhost:8065${redirectTo ?? ''}`;
+        if (desktopAuthLogin === DesktopAuthStatus.Complete && SiteURL) {
+            const url = new URL(SiteURL);
+            if (redirectTo) {
+                url.pathname += redirectTo;
+            }
+            url.protocol = 'mattermost';
+            window.location.href = url.toString();
             return;
         }
 
