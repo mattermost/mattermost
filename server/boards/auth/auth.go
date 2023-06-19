@@ -7,11 +7,11 @@ package auth
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/boards/model"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/config"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/permissions"
-	"github.com/mattermost/mattermost-server/server/v8/boards/services/store"
-	"github.com/mattermost/mattermost-server/server/v8/boards/utils"
+	"github.com/mattermost/mattermost/server/v8/boards/model"
+	"github.com/mattermost/mattermost/server/v8/boards/services/config"
+	"github.com/mattermost/mattermost/server/v8/boards/services/permissions"
+	"github.com/mattermost/mattermost/server/v8/boards/services/store"
+	"github.com/mattermost/mattermost/server/v8/boards/utils"
 )
 
 type AuthInterface interface {

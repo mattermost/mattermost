@@ -4,11 +4,11 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/client"
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
