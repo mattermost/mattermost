@@ -7,7 +7,7 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {ConsolePages, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {ConsolePages, DocLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import Carousel from 'components/common/carousel/carousel';
 import {GenericModal} from '@mattermost/components';
@@ -129,7 +129,7 @@ const LearnMoreTrialModal = (
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/sso-saml.html',
+            pageURL: DocLinks.SETUP_SAML,
             buttonLabel,
         },
         {
@@ -143,7 +143,7 @@ const LearnMoreTrialModal = (
                     height={180}
                 />
             ),
-            pageURL: 'https://docs.mattermost.com/onboard/ad-ldap.html',
+            pageURL: DocLinks.SETUP_LDAP,
             buttonLabel,
         },
         {
