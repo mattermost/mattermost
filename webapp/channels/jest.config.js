@@ -30,7 +30,6 @@ const config = {
             'identity-obj-proxy',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
-        '^bundle-loader\\?lazy\\!(.*)$': '$1',
     },
     moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

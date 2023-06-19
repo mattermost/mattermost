@@ -12,7 +12,7 @@ import GithubSVG from 'components/common/svg_images_components/github_svg';
 import GitlabSVG from 'components/common/svg_images_components/gitlab_svg';
 import JiraSVG from 'components/common/svg_images_components/jira_svg';
 import ZoomSVG from 'components/common/svg_images_components/zoom_svg';
-import TodoSVG from 'components/common/svg_images_components/todo_svg';
+import ServiceNowSVG from 'components/common/svg_images_components/servicenow_svg';
 import ExternalLink from 'components/external_link';
 
 import {Animations, mapAnimationReasonToClass, Form, PreparingWorkspacePageProps} from './steps';
@@ -133,37 +133,39 @@ const Plugins = (props: Props) => {
                                     }),
                                 },
                                 {
-                                    onClick: () => props.setOption('todo'),
-                                    icon: <TodoSVG/>,
-                                    id: t('onboarding_wizard.plugins.todo'),
-                                    defaultMessage: 'To do',
-                                    checked: props.options.todo,
+                                    onClick: () => props.setOption('servicenow'),
+                                    icon: <ServiceNowSVG/>,
+                                    id: t('onboarding_wizard.plugins.servicenow'),
+                                    defaultMessage: 'ServiceNow',
+                                    checked: props.options.servicenow,
                                     tooltip: formatMessage({
-                                        id: 'onboarding_wizard.plugins.todo.tooltip',
-                                        defaultMessage: 'To do tooltip',
+                                        id: 'onboarding_wizard.plugins.servicenow.tooltip',
+                                        defaultMessage: 'ServiceNow tooltip',
                                     }),
                                 },
                             ]}
                         />
-                        <div className='Plugins__marketplace'>
-                            <FormattedMessage
-                                id='onboarding_wizard.plugins.marketplace'
-                                defaultMessage='More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>'
-                                values={{
-                                    a: (chunks: React.ReactNode | React.ReactNodeArray) => (
-                                        <strong>
-                                            <ExternalLink
-                                                href='https://mattermost.com/marketplace/'
-                                                location='preparing_workspace_plugins'
-                                                onClick={props.handleVisitMarketPlaceClick}
-                                            >
-                                                {chunks}
-                                            </ExternalLink>
-                                        </strong>
-                                    ),
-                                }}
-                            />
-                        </div>
+                        {props.isSelfHosted && (
+                            <div className='Plugins__marketplace'>
+                                <FormattedMessage
+                                    id='onboarding_wizard.plugins.marketplace'
+                                    defaultMessage='More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>'
+                                    values={{
+                                        a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                                            <strong>
+                                                <ExternalLink
+                                                    href='https://mattermost.com/marketplace/'
+                                                    location='preparing_workspace_plugins'
+                                                    onClick={props.handleVisitMarketPlaceClick}
+                                                >
+                                                    {chunks}
+                                                </ExternalLink>
+                                            </strong>
+                                        ),
+                                    }}
+                                />
+                            </div>
+                        )}
                     </PageBody>
                     <div>
                         <button
