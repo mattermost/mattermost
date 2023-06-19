@@ -61,7 +61,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/login/desktop_token", api.APIHandler(loginWithDesktopToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewInt(2), MaxBurst: model.NewInt(1)})).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods("POST")
@@ -1969,8 +1969,6 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJSON(r.Body)
 	token := props["token"]
 	deviceId := props["device_id"]
-
-	// TODO Desktop Token: Add rate limiting
 
 	user, err := c.App.ValidateDesktopToken(token)
 	if err != nil {
