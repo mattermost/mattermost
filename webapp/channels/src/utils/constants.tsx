@@ -156,7 +156,6 @@ export const Preferences = {
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
 export const Touched = {
-    INVITE_MEMBERS: 'invite_members',
     ADD_CHANNELS_CTA: 'add_channels_cta',
 };
 
@@ -905,6 +904,7 @@ export const StoragePrefixes = {
     CHANNEL_CATEGORY_COLLAPSED: 'channelCategoryCollapsed_',
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
+    HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
 };
 
 export const LandingPreferenceTypes = {
@@ -1923,7 +1923,7 @@ export const Constants = {
     MAX_EMAIL_LENGTH: 128,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
-    MAX_NICKNAME_LENGTH: 22,
+    MAX_NICKNAME_LENGTH: 64,
     MIN_PASSWORD_LENGTH: 5,
     MAX_PASSWORD_LENGTH: 64,
     MAX_POSITION_LENGTH: 128,

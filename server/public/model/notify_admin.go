@@ -26,13 +26,13 @@ const (
 	PluginFeature                      = MattermostFeature("mattermost.feature.plugin")
 )
 
-var validSKUs map[string]struct{} = map[string]struct{}{
+var validSKUs = map[string]struct{}{
 	LicenseShortSkuProfessional: {},
 	LicenseShortSkuEnterprise:   {},
 }
 
 // These are the features a non admin would typically ping an admin about
-var paidFeatures map[MattermostFeature]struct{} = map[MattermostFeature]struct{}{
+var paidFeatures = map[MattermostFeature]struct{}{
 	PaidFeatureGuestAccounts:           {},
 	PaidFeatureCustomUsergroups:        {},
 	PaidFeatureCreateMultipleTeams:     {},

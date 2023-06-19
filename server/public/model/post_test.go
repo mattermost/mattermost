@@ -925,7 +925,7 @@ func TestPostForPlugin(t *testing.T) {
 
 	t.Run("non post type custom_up_notification for plugin should have requested features prop", func(t *testing.T) {
 		p := &Post{
-			Type: PostTypeWelcomePost,
+			Type: PostTypeReminder,
 		}
 		props := make(StringInterface)
 		props["requested_features"] = "test_requested_features_map"

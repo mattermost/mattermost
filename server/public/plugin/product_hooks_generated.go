@@ -11,7 +11,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type OnConfigurationChangeIFace interface {
@@ -136,6 +136,10 @@ type GetCollectionMetadataByIdsIFace interface {
 
 type GetTopicMetadataByIdsIFace interface {
 	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
+}
+
+type ConfigurationWillBeSavedIFace interface {
+	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
 }
 
 type HooksAdapter struct {
@@ -430,6 +434,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has GetTopicMetadataByIds method but does not implement plugin.GetTopicMetadataByIds interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements ConfigurationWillBeSaved interface.
+	tt = reflect.TypeOf((*ConfigurationWillBeSavedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ConfigurationWillBeSavedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ConfigurationWillBeSaved"); ok {
+		return nil, errors.New("hook has ConfigurationWillBeSaved method but does not implement plugin.ConfigurationWillBeSaved interface")
+	}
+
 	return a, nil
 }
 
@@ -709,5 +722,14 @@ func (a *HooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topic
 	}
 
 	return a.productHooks.(GetTopicMetadataByIdsIFace).GetTopicMetadataByIds(c, topicType, topicIds)
+
+}
+
+func (a *HooksAdapter) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
+	if _, ok := a.implemented[ConfigurationWillBeSavedID]; !ok {
+		panic("product hooks must implement ConfigurationWillBeSaved")
+	}
+
+	return a.productHooks.(ConfigurationWillBeSavedIFace).ConfigurationWillBeSaved(newCfg)
 
 }
