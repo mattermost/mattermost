@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"sort"
 	"strings"
@@ -585,7 +584,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 			if a.IsCRTEnabledForUser(c, uid) {
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil, "")
+				// message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil, "")
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
 					tm, err := a.Srv().Store().Thread().GetMembershipForUser(uid, post.RootId)
@@ -597,23 +596,23 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					}
 					threadMembership = tm
 				}
-				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
+				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, false, a.isPostPriorityEnabled())
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
 				if userThread != nil {
-					previousUnreadMentions := int64(0)
-					previousUnreadReplies := int64(0)
+					// previousUnreadMentions := int64(0)
+					// previousUnreadReplies := int64(0)
 
 					// if it's not a newly followed thread, calculate previous unread values.
-					if !newParticipants[uid] {
-						previousUnreadMentions = userThread.UnreadMentions
-						previousUnreadReplies = max(userThread.UnreadReplies-1, 0)
+					// if !newParticipants[uid] {
+					// 	previousUnreadMentions = userThread.UnreadMentions
+					// 	previousUnreadReplies = max(userThread.UnreadReplies-1, 0)
 
-						if mentions.isUserMentioned(uid) {
-							previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
-						}
-					}
+					// 	if mentions.isUserMentioned(uid) {
+					// 		previousUnreadMentions = max(userThread.UnreadMentions-1, 0)
+					// 	}
+					// }
 
 					// set LastViewed to now for commenter
 					if uid == post.UserId {
@@ -628,24 +627,24 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
 					}
-					a.sanitizeProfiles(userThread.Participants, false)
-					userThread.Post.SanitizeProps()
+					// a.sanitizeProfiles(userThread.Participants, false)
+					// userThread.Post.SanitizeProps()
 
-					sanitizedPost, err := a.SanitizePostMetadataForUser(c, userThread.Post, uid)
-					if err != nil {
-						return nil, err
-					}
-					userThread.Post = sanitizedPost
+					// sanitizedPost, err := a.SanitizePostMetadataForUser(c, userThread.Post, uid)
+					// if err != nil {
+					// 	return nil, err
+					// }
+					// userThread.Post = sanitizedPost
 
-					payload, jsonErr := json.Marshal(userThread)
-					if jsonErr != nil {
-						mlog.Warn("Failed to encode thread to JSON")
-					}
-					message.Add("thread", string(payload))
-					message.Add("previous_unread_mentions", previousUnreadMentions)
-					message.Add("previous_unread_replies", previousUnreadReplies)
+					// payload, jsonErr := json.Marshal(userThread)
+					// if jsonErr != nil {
+					// 	mlog.Warn("Failed to encode thread to JSON")
+					// }
+					// message.Add("thread", string(payload))
+					// message.Add("previous_unread_mentions", previousUnreadMentions)
+					// message.Add("previous_unread_replies", previousUnreadReplies)
 
-					a.Publish(message)
+					// a.Publish(message)
 				}
 			}
 		}
