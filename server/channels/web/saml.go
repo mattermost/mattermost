@@ -198,7 +198,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var queryString map[string]string = map[string]string{
+		queryString := map[string]string{
 			"desktopAuthStatus": "complete",
 		}
 		if val, ok := relayProps["redirect_to"]; ok {
