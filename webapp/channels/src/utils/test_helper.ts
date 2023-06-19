@@ -279,7 +279,7 @@ export class TestHelper {
             channel_id: '',
             team_id: '',
             trigger_words: [],
-            trigger_when: 1,
+            trigger_when: 0,
             callback_urls: [],
             display_name: '',
             description: '',
