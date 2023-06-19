@@ -12,7 +12,7 @@ import {Action, ActionResult} from 'mattermost-redux/types/actions';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount} from 'mattermost-redux/actions/channels';
-import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
 
 import {searchMoreChannels} from 'actions/channel_actions';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -56,6 +56,7 @@ function mapStateToProps(state: GlobalState) {
         shouldHideJoinedChannels: getGlobalItem(state) === 'true',
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
+        channelsMemberCount: getChannelsMemberCountSelector(state),
     };
 }
 
@@ -68,7 +69,6 @@ type Actions = {
     closeModal: (modalId: string) => void;
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
-    // todo sinan implement selector
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
 }
 
@@ -83,7 +83,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             closeModal,
             setGlobalItem,
             closeRightHandSide,
-            getChannelsMemberCount
+            getChannelsMemberCount,
         }, dispatch),
     };
 }

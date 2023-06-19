@@ -59,6 +59,7 @@ export type Props = {
     shouldHideJoinedChannels: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    channelsMemberCount?: Record<string, number>;
     actions: Actions;
 }
 
@@ -96,13 +97,19 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
         if (this.props.canShowArchivedChannels) {
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2);
-            // todo sinan allso get archived channels member count
         }
-        if (this.props.channels.length > 0) {
-            console.log("all channels: ", this.props.channels)
-            this.props.actions.getChannelsMemberCount(this.props.channels.map((channel) => channel.id))
+        if (this.props.channels.length > 0 || this.props.archivedChannels.length > 0) {
+            const allChannelIds = this.props.channels.map((channel) => channel.id).concat(this.props.archivedChannels.map((channel) => channel.id));
+            this.props.actions.getChannelsMemberCount(allChannelIds);
         }
         this.loadComplete();
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        if (this.props.channels.length !== prevProps.channels.length || this.props.archivedChannels.length !== prevProps.archivedChannels.length) {
+            const allChannelIds = this.props.channels.map((channel) => channel.id).concat(this.props.archivedChannels.map((channel) => channel.id));
+            this.props.actions.getChannelsMemberCount(allChannelIds);
+        }
     }
 
     loadComplete = () => {
@@ -217,9 +224,6 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
         this.props.actions.setGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, shouldHideJoinedChannels.toString());
     };
 
-    otherChannelsWithoutJoined = this.props.channels.filter((channel) => !this.isMemberOfChannel(channel.id));
-    archivedChannelsWithoutJoined = this.props.archivedChannels.filter((channel) => !this.isMemberOfChannel(channel.id));
-
     render() {
         const {
             channels,
@@ -288,11 +292,11 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primaryButton', <i className='icon-plus' />)}
+                {createNewChannelButton('primaryButton', <i className='icon-plus'/>)}
             </>
         );
 
-        const body = this.state.loading ? <LoadingScreen /> : (
+        const body = this.state.loading ? <LoadingScreen/> : (
             <React.Fragment>
                 <SearchableChannelList
                     channels={this.activeChannels}
@@ -310,6 +314,7 @@ export default class MoreChannels extends React.PureComponent<Props, State> {
                     closeModal={this.props.actions.closeModal}
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
                     rememberHideJoinedChannelsChecked={shouldHideJoinedChannels}
+                    channelsMemberCount={this.props.channelsMemberCount}
                 />
                 {serverError}
             </React.Fragment>
