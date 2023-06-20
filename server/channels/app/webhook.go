@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -163,7 +164,9 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := a.HTTPService().MakeClient(false).Do(req)
+	client := a.HTTPService().MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

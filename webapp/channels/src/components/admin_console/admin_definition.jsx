@@ -5972,6 +5972,50 @@ const AdminDefinition = {
                         isHidden: it.licensedForFeature('Cloud'),
                     },
                     {
+                        type: Constants.SettingsTypes.TYPE_NUMBER,
+                        key: 'ServiceSettings.OutgoingIntegrationRequestsTimeout',
+                        label: t('admin.service.integrationRequestTitle'),
+                        label_default: 'Integration request timeout: ',
+                        help_text: t('admin.service.integrationRequestDesc'),
+                        help_text_default: 'The number of seconds to wait for Integration requests. That includes <slashCommands>Slash Commands</slashCommands>, <outgoingWebhooks>Outgoing Webhooks</outgoingWebhooks>, <interactiveMessages>Interative Messages</interactiveMessages> and <interactiveDialogs>Interative Dialogs</interactiveDialogs>.',
+                        help_text_values: {
+                            slashCommands: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href={DeveloperLinks.CUSTOM_SLASH_COMMANDS}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                            outgoingWebhooks: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href={DeveloperLinks.OUTGOING_WEBHOOKS}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                            interactiveMessages: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href={DeveloperLinks.INTERACTIVE_MESSAGES}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                            interactiveDialogs: (msg) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href={DeveloperLinks.INTERACTIVE_DIALOGS}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        },
+                        help_text_markdown: false,
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                    },
+                    {
                         type: Constants.SettingsTypes.TYPE_BOOL,
                         key: 'ServiceSettings.EnablePostUsernameOverride',
                         label: t('admin.service.overrideTitle'),

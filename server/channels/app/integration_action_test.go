@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -71,16 +72,15 @@ func TestPostActionInvalidURL(t *testing.T) {
 }
 
 func TestPostActionEmptyResponse(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
 	t.Run("Empty response on post action", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		channel := th.BasicChannel
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
-		})
-
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 		defer ts.Close()
 
@@ -120,6 +120,55 @@ func TestPostActionEmptyResponse(t *testing.T) {
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.Nil(t, err)
+	})
+
+	t.Run("Empty response on post action, timeout", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(2 * time.Second)
+		}))
+		defer ts.Close()
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     channel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Integration: &model.PostActionIntegration{
+									Context: model.StringInterface{
+										"s": "foo",
+										"n": 3,
+									},
+									URL: ts.URL,
+								},
+								Name:       "action",
+								Type:       "some_type",
+								DataSource: "some_source",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+		require.Nil(t, err)
+
+		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		require.True(t, ok)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+		})
+
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
+		require.Error(t, err)
+		assert.Contains(t, err.DetailedError, "Client.Timeout exceeded")
 	})
 }
 

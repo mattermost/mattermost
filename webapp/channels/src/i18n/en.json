@@ -2179,6 +2179,8 @@
   "admin.service.iconTitle": "Enable integrations to override profile picture icons:",
   "admin.service.insecureTlsDesc": "When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.",
   "admin.service.insecureTlsTitle": "Enable Insecure Outgoing Connections: ",
+  "admin.service.integrationRequestDesc": "The number of seconds to wait for Integration requests. That includes <slashCommands>Slash Commands</slashCommands>, <outgoingWebhooks>Outgoing Webhooks</outgoingWebhooks>, <interactiveMessages>Interative Messages</interactiveMessages> and <interactiveDialogs>Interative Dialogs</interactiveDialogs>.",
+  "admin.service.integrationRequestTitle": "Integration request timeout: ",
   "admin.service.internalConnectionsDesc": "A whitelist of local network addresses that can be requested by the Mattermost server on behalf of a client. Care should be used when configuring this setting to prevent unintended access to your local network. See <link>documentation</link> to learn more. Changing this requires a server restart before taking effect.",
   "admin.service.internalConnectionsEx": "webhooks.internal.example.com 127.0.0.1 10.0.16.0/28",
   "admin.service.internalConnectionsTitle": "Allow untrusted internal connections to: ",

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -175,41 +176,62 @@ func TestOpenDialog(t *testing.T) {
 		},
 	}
 
-	_, err := client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with valid request", func(t *testing.T) {
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	// Should fail on bad trigger ID
-	request.TriggerId = "junk"
-	resp, err := client.OpenInteractiveDialog(context.Background(), request)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("Should fail on bad trigger ID", func(t *testing.T) {
+		request.TriggerId = "junk"
+		resp, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	// URL is required
-	request.TriggerId = triggerId
-	request.URL = ""
-	resp, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("URL is required", func(t *testing.T) {
+		request.TriggerId = triggerId
+		request.URL = ""
+		resp, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	// Should pass with markdown formatted introduction text
-	request.URL = "http://localhost:8065"
-	request.Dialog.IntroductionText = "**Some** _introduction text"
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with markdown formatted introduction text", func(t *testing.T) {
+		request.URL = "http://localhost:8065"
+		request.Dialog.IntroductionText = "**Some** _introduction text"
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	// Should pass with empty introduction text
-	request.Dialog.IntroductionText = ""
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with empty introduction text", func(t *testing.T) {
+		request.Dialog.IntroductionText = ""
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	// Should pass with no elements
-	request.Dialog.Elements = nil
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with nil elements slice", func(t *testing.T) {
+		request.Dialog.Elements = nil
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
 
-	request.Dialog.Elements = []model.DialogElement{}
-	_, err = client.OpenInteractiveDialog(context.Background(), request)
-	require.NoError(t, err)
+	t.Run("Should pass with empty elements slice", func(t *testing.T) {
+		request.Dialog.Elements = []model.DialogElement{}
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.NoError(t, err)
+	})
+
+	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+		})
+
+		time.Sleep(1 * time.Second)
+
+		_, err := client.OpenInteractiveDialog(context.Background(), request)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Trigger ID for interactive dialog is expired.")
+	})
 }
 
 func TestSubmitDialog(t *testing.T) {
