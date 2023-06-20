@@ -40,12 +40,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
-	return a.DoPostActionWithCookie(c, postID, actionId, userID, selectedOption, nil)
-}
-
 func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
-
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire

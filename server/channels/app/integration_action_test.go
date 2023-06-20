@@ -65,7 +65,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "missing protocol scheme"))
 }
@@ -118,7 +118,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.Nil(t, err)
 	})
 }
@@ -258,16 +258,16 @@ func TestPostAction(t *testing.T) {
 			require.NotEmpty(t, attachments2[0].Actions)
 			require.NotEmpty(t, attachments2[0].Actions[0].Id)
 
-			clientTriggerId, err := th.App.DoPostAction(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "")
+			clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
 			assert.Equal(t, http.StatusNotFound, err.StatusCode)
 			assert.True(t, clientTriggerId == "")
 
-			clientTriggerId, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+			clientTriggerId, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.Nil(t, err)
 			assert.True(t, len(clientTriggerId) == 26)
 
-			clientTriggerId, err = th.App.DoPostAction(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected")
+			clientTriggerId, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil)
 			require.Nil(t, err)
 			assert.True(t, len(clientTriggerId) == 26)
 
@@ -275,7 +275,7 @@ func TestPostAction(t *testing.T) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
 			})
 
-			_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
 			require.True(t, strings.Contains(err.Error(), "address forbidden"))
 
@@ -313,14 +313,14 @@ func TestPostAction(t *testing.T) {
 			attachmentsPlugin, ok := postplugin.GetProp("attachments").([]*model.SlackAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 			})
 
-			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -361,7 +361,7 @@ func TestPostAction(t *testing.T) {
 			attachmentsSiteURL, ok := postSiteURL.GetProp("attachments").([]*model.SlackAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostAction(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
 			require.False(t, strings.Contains(err.Error(), "address forbidden"))
 
@@ -403,7 +403,7 @@ func TestPostAction(t *testing.T) {
 			attachmentsSubpath, ok := postSubpath.GetProp("attachments").([]*model.SlackAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostAction(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
+			_, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.Nil(t, err)
 
 		})
@@ -478,7 +478,7 @@ func TestPostActionProps(t *testing.T) {
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
 
-	clientTriggerId, err := th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
@@ -662,7 +662,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
 	})
 
@@ -702,7 +702,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
 	})
 
@@ -742,7 +742,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
 
 	})
@@ -783,7 +783,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
 	})
 
@@ -823,7 +823,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
 	})
 }
@@ -900,7 +900,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.NotNil(t, err)
 	})
 
@@ -940,7 +940,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.Nil(t, err)
 	})
 
@@ -980,7 +980,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.Nil(t, err)
 	})
 
@@ -1020,7 +1020,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 		require.Nil(t, err)
 	})
 }

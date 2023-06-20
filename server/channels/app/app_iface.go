@@ -557,7 +557,6 @@ type AppIface interface {
 	DoGuestRolesCreationMigration()
 	DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError)
 	DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError
-	DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError)
 	DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSystemConsoleRolesCreationMigration()
 	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)

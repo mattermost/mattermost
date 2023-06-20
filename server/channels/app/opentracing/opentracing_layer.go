@@ -3850,28 +3850,6 @@ func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DoPostAction(c *request.Context, postID string, actionId string, userID string, selectedOption string) (string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPostAction")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DoPostAction(c, postID, actionId, userID, selectedOption)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) DoPostActionWithCookie(c *request.Context, postID string, actionId string, userID string, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPostActionWithCookie")
