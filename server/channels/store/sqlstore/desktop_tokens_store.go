@@ -89,16 +89,17 @@ func (s *SqlDesktopTokensStore) SetUserId(desktopToken string, minCreatedAt int6
 		return errors.Wrap(err, "set_userid_desktoptokens_tosql")
 	}
 
-	if result, err := s.GetMasterX().Exec(query, args...); err != nil {
+	result, err := s.GetMasterX().Exec(query, args...)
+	if err != nil {
 		return errors.Wrap(err, "failed to update token row")
-	} else {
-		num, err := result.RowsAffected()
-		if err != nil {
-			return errors.Wrap(err, "nothing updated")
-		}
-		if num == 0 {
-			return errors.New("no rows updated")
-		}
+	}
+
+	num, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "nothing updated")
+	}
+	if num == 0 {
+		return errors.New("no rows updated")
 	}
 
 	return nil
