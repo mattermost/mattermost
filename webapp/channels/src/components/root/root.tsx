@@ -87,8 +87,6 @@ import {UserProfile} from '@mattermost/types/users';
 
 import {ActionResult} from 'mattermost-redux/types/actions';
 
-import WelcomePostRenderer from 'components/welcome_post_renderer';
-
 import {applyLuxonDefaults} from './effects';
 
 import RootProvider from './root_provider';
@@ -442,7 +440,6 @@ export default class Root extends React.PureComponent<Props, State> {
         // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
         this.props.actions.registerCustomPostRenderer('custom_up_notification', OpenPricingModalPost, 'upgrade_post_message_renderer');
         this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
-        this.props.actions.registerCustomPostRenderer('system_welcome_post', WelcomePostRenderer, 'welcome_post_renderer');
 
         if (this.desktopMediaQuery.addEventListener) {
             this.desktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
