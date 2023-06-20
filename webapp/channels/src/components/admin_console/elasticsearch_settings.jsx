@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {elasticsearchPurgeIndexes, elasticsearchTest} from 'actions/admin_actions.jsx';
-import {JobStatuses, JobTypes} from 'utils/constants';
+import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 
@@ -162,7 +162,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                                 documentationLink: (
                                     <ExternalLink
                                         location='elasticsearch_settings'
-                                        href='https://docs.mattermost.com/scale/elasticsearch.html'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         <FormattedMessage
                                             id='admin.elasticsearch.enableIndexingDescription.documentationLinkText'
@@ -195,7 +195,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                                 documentationLink: (
                                     <ExternalLink
                                         location='elasticsearch_settings'
-                                        href='https://docs.mattermost.com/scale/elasticsearch.html'
+                                        href={DocLinks.ELASTICSEARCH}
                                     >
                                         <FormattedMessage
                                             id='admin.elasticsearch.connectionUrlExample.documentationLinkText'
