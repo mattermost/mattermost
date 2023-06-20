@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -324,7 +325,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else if desktopToken != "" {
-		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, user)
+		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, time.Now().Add(-model.DesktopTokenTTL).Unix(), user)
 		if desktopTokenErr != nil {
 			desktopTokenErr.Translate(c.AppContext.T)
 			c.LogErrorByCode(desktopTokenErr)
@@ -380,7 +381,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := r.URL.Query().Get("redirect_to")
 	desktopToken := r.URL.Query().Get("desktop_token")
 	if desktopToken != "" {
-		desktopTokenErr := c.App.CreateDesktopToken(desktopToken)
+		desktopTokenErr := c.App.CreateDesktopToken(desktopToken, time.Now().Unix())
 
 		if desktopTokenErr != nil {
 			c.Err = desktopTokenErr
@@ -458,7 +459,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 	if desktopToken != "" {
-		desktopTokenErr := c.App.CreateDesktopToken(desktopToken)
+		desktopTokenErr := c.App.CreateDesktopToken(desktopToken, time.Now().Unix())
 
 		if desktopTokenErr != nil {
 			c.Err = desktopTokenErr

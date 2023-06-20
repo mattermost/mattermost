@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -61,7 +62,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 	if desktopToken != "" {
-		desktopTokenErr := c.App.CreateDesktopToken(desktopToken)
+		desktopTokenErr := c.App.CreateDesktopToken(desktopToken, time.Now().Unix())
 		if desktopTokenErr != nil {
 			c.Err = err
 			return
@@ -192,7 +193,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := relayProps["desktop_token"]
 	if desktopToken != "" {
-		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, user)
+		desktopTokenErr := c.App.AuthenticateDesktopToken(desktopToken, time.Now().Add(-model.DesktopTokenTTL).Unix(), user)
 		if desktopTokenErr != nil {
 			handleError(desktopTokenErr)
 			return

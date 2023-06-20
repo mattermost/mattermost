@@ -5,16 +5,11 @@ package app
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const (
-	desktopTokenTTL = 3 * time.Minute
-)
-
-func (a *App) CreateDesktopToken(token string) *model.AppError {
+func (a *App) CreateDesktopToken(token string, createdAt int64) *model.AppError {
 	// Check if the token already exists in the database somehow
 	// If so return an error
 	_, getErr := a.Srv().Store().DesktopTokens().GetUserId(token, 0)
@@ -23,7 +18,7 @@ func (a *App) CreateDesktopToken(token string) *model.AppError {
 	}
 
 	// Create token in the database
-	err := a.Srv().Store().DesktopTokens().Insert(token, time.Now().Unix(), nil)
+	err := a.Srv().Store().DesktopTokens().Insert(token, createdAt, nil)
 	if err != nil {
 		return model.NewAppError("CreateDesktopToken", "app.desktop_token.create.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -31,9 +26,8 @@ func (a *App) CreateDesktopToken(token string) *model.AppError {
 	return nil
 }
 
-func (a *App) AuthenticateDesktopToken(token string, user *model.User) *model.AppError {
+func (a *App) AuthenticateDesktopToken(token string, expiryTime int64, user *model.User) *model.AppError {
 	// Check if token is expired
-	expiryTime := time.Now().Add(-desktopTokenTTL).Unix()
 	_, err := a.Srv().Store().DesktopTokens().GetUserId(token, expiryTime)
 	if err != nil {
 		// Delete the token if it is expired
@@ -52,9 +46,8 @@ func (a *App) AuthenticateDesktopToken(token string, user *model.User) *model.Ap
 	return nil
 }
 
-func (a *App) ValidateDesktopToken(token string) (*model.User, *model.AppError) {
+func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
 	// Check if token is expired
-	expiryTime := time.Now().Add(-desktopTokenTTL).Unix()
 	userId, err := a.Srv().Store().DesktopTokens().GetUserId(token, expiryTime)
 	if err != nil {
 		// Delete the token if it is expired

@@ -771,7 +771,7 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(c *request.Context, w http.Re
 	a.app.AttachSessionCookies(c, w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateDesktopToken(token string, user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) AuthenticateDesktopToken(token string, expiryTime int64, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateDesktopToken")
 
@@ -783,7 +783,7 @@ func (a *OpenTracingAppLayer) AuthenticateDesktopToken(token string, user *model
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.AuthenticateDesktopToken(token, user)
+	resultVar0 := a.app.AuthenticateDesktopToken(token, expiryTime, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -2064,7 +2064,7 @@ func (a *OpenTracingAppLayer) CreateDefaultMemberships(c *request.Context, param
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CreateDesktopToken(token string) *model.AppError {
+func (a *OpenTracingAppLayer) CreateDesktopToken(token string, createdAt int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDesktopToken")
 
@@ -2076,7 +2076,7 @@ func (a *OpenTracingAppLayer) CreateDesktopToken(token string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CreateDesktopToken(token)
+	resultVar0 := a.app.CreateDesktopToken(token, createdAt)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -18742,7 +18742,7 @@ func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ValidateDesktopToken(token string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateDesktopToken")
 
@@ -18754,7 +18754,7 @@ func (a *OpenTracingAppLayer) ValidateDesktopToken(token string) (*model.User, *
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ValidateDesktopToken(token)
+	resultVar0, resultVar1 := a.app.ValidateDesktopToken(token, expiryTime)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

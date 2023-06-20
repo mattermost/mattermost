@@ -1970,7 +1970,7 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	token := props["token"]
 	deviceId := props["device_id"]
 
-	user, err := c.App.ValidateDesktopToken(token)
+	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
 		c.Err = err
 		return
