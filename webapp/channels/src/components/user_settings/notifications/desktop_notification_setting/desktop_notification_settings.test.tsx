@@ -33,7 +33,7 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         threads: NotificationLevels.ALL,
         callsSelectedSound: 'Dynamic',
         callsSound: 'false',
-        isCallsEnabled: false,
+        isCallsRingingEnabled: false,
     };
 
     test('should match snapshot, on max setting', () => {
