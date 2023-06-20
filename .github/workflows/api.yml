@@ -23,7 +23,8 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '16.2.0'
-
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
     - name: Run build
       run: |
         make build
