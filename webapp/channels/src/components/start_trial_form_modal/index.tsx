@@ -21,7 +21,7 @@ import {makeAsyncComponent} from 'components/async_load';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import {COUNTRIES} from 'utils/countries';
 
-import {LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import DropdownInput from 'components/dropdown_input';
@@ -344,7 +344,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                             ),
                             privacypolicy: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://mattermost.com/privacy-policy/'
+                                    href={AboutLinks.PRIVACY_POLICY}
                                     location='start_trial_form_modal'
                                 >
                                     {msg}

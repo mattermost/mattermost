@@ -82,7 +82,6 @@ export type ClientConfig = {
     EnableOAuthServiceProvider: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
-    EnablePlaybooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
     EnablePreviewFeatures: string;
@@ -119,7 +118,6 @@ export type ClientConfig = {
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
-    FeatureFlagAppsSidebarCategory: string;
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
@@ -193,7 +191,7 @@ export type ClientConfig = {
     WebsocketSecurePort: string;
     WebsocketURL: string;
     ExperimentalSharedChannels: string;
-    EnableAppBar: string;
+    DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
     ReduceOnBoardingTaskList: string;
@@ -740,7 +738,7 @@ export type ExperimentalSettings = {
     UseNewSAMLLibrary: boolean;
     EnableSharedChannels: boolean;
     EnableRemoteClusterService: boolean;
-    EnableAppBar: boolean;
+    DisableAppBar: boolean;
     DisableRefetchingOnBrowserFocus: boolean;
     DelayChannelAutocomplete: boolean;
 };
@@ -774,6 +772,7 @@ export type ElasticsearchSettings = {
     ClientCert: string;
     ClientKey: string;
     Trace: string;
+    IgnoredPurgeIndexes: string;
 };
 
 export type BleveSettings = {
@@ -819,8 +818,6 @@ export type JobSettings = {
 };
 
 export type ProductSettings = {
-    EnablePublicSharedBoards: boolean;
-    EnablePlaybooks: boolean;
 };
 
 export type PluginSettings = {
