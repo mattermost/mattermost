@@ -5,7 +5,7 @@ import React from 'react';
 
 import Setting from './setting';
 
-export type InputTypes = 'input' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password'
+export type InputTypes = 'input' | 'textarea' | 'number' | 'email' | 'tel' | 'url' | 'password' | undefined
 
 export type WidgetTextSettingProps = {
     id: string;
@@ -20,7 +20,7 @@ export type WidgetTextSettingProps = {
     resizable?: boolean;
     onChange(name: string, value: any): void;
     disabled?: boolean;
-    type: InputTypes;
+    type?: InputTypes;
     autoFocus?: boolean;
 }
 
