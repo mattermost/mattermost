@@ -146,7 +146,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	var err error
 
 	for i := 0; i < DBAccessAttempts; i++ {
-		ts.log.Info("Ensuring the telemetry ID", mlog.String("id", id))
+		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
 		if err != nil {
@@ -156,6 +156,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 		}
 
 		ts.TelemetryID = systemID.Value
+		ts.log.Info("telemetry ID is set", mlog.String("id", ts.TelemetryID))
 		return nil
 	}
 
@@ -780,7 +781,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                      *cfg.ExperimentalSettings.EnableAppBar,
+		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
 		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
 		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
