@@ -37,6 +37,7 @@ describe('components/KeyboardShortcutsModal', () => {
                     ...initialState.plugins.plugins,
                     [suitePluginIds.calls]: {
                         id: suitePluginIds.calls,
+                        version: '0.15.0',
                     },
                 },
             },

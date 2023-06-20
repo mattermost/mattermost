@@ -153,6 +153,11 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                             userID={user.id}
                             emojiSize={16}
                             showTooltip={true}
+                            spanStyle={{
+                                display: 'flex',
+                                flex: '0 0 auto',
+                                alignItems: 'center',
+                            }}
                         />
                     </CustomStatus>
 

@@ -23,7 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
-var coverprofileCounters map[string]int = make(map[string]int)
+var coverprofileCounters = make(map[string]int)
 
 var mainHelper *testlib.MainHelper
 

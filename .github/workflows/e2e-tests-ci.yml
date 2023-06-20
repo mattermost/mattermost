@@ -23,7 +23,7 @@ jobs:
         with:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-tests
+          context: E2E Tests/smoketests
           description: E2E tests for mattermost server app
           status: pending
 
@@ -85,7 +85,7 @@ jobs:
           npm run check
 
   smoketests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest-8-cores
     needs:
       - cypress-check
       - playwright-check
@@ -105,9 +105,9 @@ jobs:
           echo "Cypress run completed with $CYPRESS_FAILURES failures"
           [ "$CYPRESS_FAILURES" = "0" ]
 
-  update-final-status:
+  update-failure-final-status:
     runs-on: ubuntu-22.04
-    if: always()
+    if: failure() || cancelled()
     needs:
       - smoketests
     steps:
@@ -117,6 +117,22 @@ jobs:
         with:
           repository_full_name: ${{ github.repository }}
           commit_sha: ${{ inputs.commit_sha || github.sha }}
-          context: ci/e2e-tests
+          context: E2E Tests/smoketests
           description: E2E tests for mattermost server app
-          status: ${{ job.status }}
+          status: failure
+
+  update-success-final-status:
+    runs-on: ubuntu-22.04
+    if: success()
+    needs:
+      - smoketests
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha || github.sha }}
+          context: E2E Tests/smoketests
+          description: E2E tests for mattermost server app
+          status: success

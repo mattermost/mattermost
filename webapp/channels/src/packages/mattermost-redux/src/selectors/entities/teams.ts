@@ -190,13 +190,8 @@ export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<U
     },
 );
 
-export function getTeamMember(state: GlobalState, teamId: string, userId: string) {
-    const members = getMembersInTeams(state)[teamId];
-    if (members) {
-        return members[userId];
-    }
-
-    return null;
+export function getTeamMember(state: GlobalState, teamId: string, userId: string): TeamMembership | undefined {
+    return getMembersInTeams(state)[teamId]?.[userId];
 }
 
 export const getListableTeamIds: (state: GlobalState) => Array<Team['id']> = createIdsSelector(

@@ -13,6 +13,8 @@ jobs:
     if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: cd/Login to Docker Hub
         uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
         with:
