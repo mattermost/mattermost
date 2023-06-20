@@ -1,9 +1,9 @@
 name: ESR Upgrade
 on:
-  pull_request:
-    paths:
-      - 'server/scripts/esrupgrades/*'
-      - '.github/workflows/esr*'
+  # pull_request:
+  #   paths:
+  #     - 'server/scripts/esrupgrades/*'
+  #     - '.github/workflows/esr*'
   push:
     branches:
       # - master
