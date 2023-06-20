@@ -24,7 +24,7 @@ jobs:
       with:
         node-version: '16.2.0'
         cache: 'npm'
-        cache-dependency-path: package-lock.json
+        cache-dependency-path: api/package-lock.json
     - name: Run build
       run: |
         make build
