@@ -6,7 +6,7 @@ on:
       - '.github/workflows/esr*'
   push:
     branches:
-      - master
+      # - master
       - cloud
       - release-*
 jobs:
