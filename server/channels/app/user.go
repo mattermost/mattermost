@@ -1576,6 +1576,16 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 		return nil, err
 	}
 
+	if user.IsSystemAdmin() {
+		count, err := a.Srv().Store().User().AnalyticsGetSystemAdminCount()
+		if err != nil {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.countAdmins.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if count < 2 {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.Roles = newRoles
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
