@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
-import Constants from 'utils/constants';
+import {Constants, DocLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import AdminSettings, {BaseProps, BaseState} from './admin_settings';
@@ -168,7 +168,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     values={{
                         link: (msg) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/deploy/mobile-hpns.html'
+                                href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
                             >
                                 {msg}
@@ -185,7 +185,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-ios-app/'
+                                href='https://mattermost.com/pl/ios-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -193,7 +193,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-android-app/'
+                                href='https://mattermost.com/pl/android-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -201,7 +201,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                         ),
                         linkHPNS: (msg) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/deploy/mobile-hpns.html'
+                                href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
                             >
                                 {msg}
@@ -218,7 +218,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-ios-app/'
+                                href='https://mattermost.com/pl/ios-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -226,7 +226,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                         ),
                         linkAndroid: (msg) => (
                             <ExternalLink
-                                href='https://mattermost.com/mattermost-android-app/'
+                                href='https://mattermost.com/pl/android-app/'
                                 location='push_settings'
                             >
                                 {msg}
@@ -234,7 +234,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                         ),
                         linkHPNS: (msg) => (
                             <ExternalLink
-                                href='https://docs.mattermost.com/deploy/mobile-hpns.html'
+                                href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
                             >
                                 {msg}
