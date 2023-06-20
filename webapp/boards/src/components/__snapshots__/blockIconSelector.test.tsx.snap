@@ -1,0 +1,199 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/blockIconSelector return an icon correctly 1`] = `
+<div>
+  <div
+    class="IconSelector"
+  >
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <div
+        class="octo-icon size-l"
+      >
+        <span>
+          👍
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blockIconSelector return menu on click 1`] = `
+<div>
+  <div
+    class="IconSelector"
+  >
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper override menuOpened"
+      role="button"
+    >
+      <div
+        class="octo-icon size-l"
+      >
+        <span>
+          👍
+        </span>
+      </div>
+      <div
+        class="Menu noselect bottom "
+      >
+        <div
+          class="menu-contents"
+        >
+          <div
+            class="menu-options"
+          >
+            <div>
+              <div
+                aria-label="Random"
+                class="MenuOption TextOption menu-option"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-shuffle-variant"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Random
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+            <div>
+              <div
+                class="MenuOption SubMenuOption menu-option"
+                id="pick"
+              >
+                <div
+                  class="menu-option__icon"
+                >
+                  <svg
+                    class="EmojiIcon Icon"
+                    viewBox="0 0 496 512"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 448c-110.3 0-200-89.7-200-200S137.7 56 248 56s200 89.7 200 200-89.7 200-200 200zm-80-216c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32zm160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32zm4 72.6c-20.8 25-51.5 39.4-84 39.4s-63.2-14.3-84-39.4c-8.5-10.2-23.7-11.5-33.8-3.1-10.2 8.5-11.5 23.6-3.1 33.8 30 36 74.1 56.6 120.9 56.6s90.9-20.6 120.9-56.6c8.5-10.2 7.1-25.3-3.1-33.8-10.1-8.4-25.3-7.1-33.8 3.1z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="menu-name"
+                >
+                  Pick icon
+                </div>
+                <i
+                  class="CompassIcon icon-chevron-right"
+                />
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Remove icon"
+                class="MenuOption TextOption menu-option"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Remove icon
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="menu-spacer hideOnWidescreen"
+          />
+          <div
+            class="menu-options hideOnWidescreen"
+          >
+            <div
+              aria-label="Cancel"
+              class="MenuOption TextOption menu-option menu-cancel"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Cancel
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blockIconSelector return no element with no icon 1`] = `<div />`;
+
+exports[`components/blockIconSelector return no icon after click on remove menu 1`] = `<div />`;
+
+exports[`components/blockIconSelector return no menu in readonly 1`] = `
+<div>
+  <div
+    class="IconSelector"
+  >
+    <div
+      class="octo-icon size-m readonly"
+    >
+      <span>
+        👍
+      </span>
+    </div>
+  </div>
+</div>
+`;

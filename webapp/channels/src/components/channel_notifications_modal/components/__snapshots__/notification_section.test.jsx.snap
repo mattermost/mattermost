@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot on server error 1`] = `
+<CollapseView
+  globalNotifyLevel="default"
+  memberNotifyLevel="all"
+  onExpandSection={[Function]}
+  section="desktop"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, DESKTOP on collapsed view 1`] = `
+<CollapseView
+  globalNotifyLevel="default"
+  memberNotifyLevel="all"
+  onExpandSection={[Function]}
+  section="desktop"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, DESKTOP on expanded view 1`] = `
+<ExpandView
+  globalNotifyLevel="default"
+  memberNotifyLevel="all"
+  memberThreadsNotifyLevel="all"
+  onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
+  onChangeThreads={[Function]}
+  onCollapseSection={[Function]}
+  onReset={[Function]}
+  onSubmit={[Function]}
+  section="desktop"
+  serverError=""
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on collapsed view 1`] = `
+<CollapseView
+  globalNotifyLevel={null}
+  memberNotifyLevel="all"
+  onExpandSection={[Function]}
+  section="markUnread"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, MARK_UNREAD on expanded view 1`] = `
+<ExpandView
+  globalNotifyLevel={null}
+  memberNotifyLevel="all"
+  memberThreadsNotifyLevel="all"
+  onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
+  onChangeThreads={[Function]}
+  onCollapseSection={[Function]}
+  onReset={[Function]}
+  onSubmit={[Function]}
+  section="markUnread"
+  serverError=""
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, PUSH on collapsed view 1`] = `
+<CollapseView
+  globalNotifyLevel="default"
+  memberNotifyLevel="all"
+  onExpandSection={[Function]}
+  section="push"
+/>
+`;
+
+exports[`components/channel_notifications_modal/NotificationSection should match snapshot, PUSH on expanded view 1`] = `
+<ExpandView
+  globalNotifyLevel="default"
+  memberNotifyLevel="all"
+  memberThreadsNotifyLevel="all"
+  onChange={[Function]}
+  onChangeDesktopSound={[Function]}
+  onChangeNotificationSound={[Function]}
+  onChangeThreads={[Function]}
+  onCollapseSection={[Function]}
+  onReset={[Function]}
+  onSubmit={[Function]}
+  section="push"
+  serverError=""
+/>
+`;

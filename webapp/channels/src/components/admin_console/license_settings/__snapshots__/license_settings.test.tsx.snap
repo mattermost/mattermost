@@ -1,0 +1,1840 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/license_settings/LicenseSettings load screen after upgrading 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <TeamEdition
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              openEELicenseModal={[Function]}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(TeamEditionRightPanel)
+              handleRestart={[Function]}
+              handleUpgrade={[Function]}
+              openEEModal={[Function]}
+              restartError={null}
+              restarting={false}
+              setClickNormalUpgradeBtn={[Function]}
+              upgradeError={null}
+              upgradingPercentage={100}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings load screen while upgrading 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <TeamEdition
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              openEELicenseModal={[Function]}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(TeamEditionRightPanel)
+              handleRestart={[Function]}
+              handleUpgrade={[Function]}
+              openEEModal={[Function]}
+              restartError={null}
+              restarting={false}
+              setClickNormalUpgradeBtn={[Function]}
+              upgradeError={null}
+              upgradingPercentage={42}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with E10 license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E10",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E10",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E10",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with E20 license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with Enterprise license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "enterprise",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "enterprise",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "enterprise",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with license and isDisabled set to true 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={true}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={true}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with license and upgraded from TE 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={true}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build with trial license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <TrialLicenseCard
+          license={
+            Object {
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1617714643650",
+              "StartsAt": "1617714643650",
+            }
+          }
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={true}
+              license={
+                Object {
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1617714643650",
+                  "StartsAt": "1617714643650",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={true}
+              license={
+                Object {
+                  "ExpiresAt": "1620335443650",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1617714643650",
+                  "StartsAt": "1617714643650",
+                }
+              }
+            />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build without license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <Component
+          enterpriseReady={true}
+          gettingTrial={false}
+          gettingTrialError={null}
+          gettingTrialResponseCode={null}
+          handleRestart={[Function]}
+          handleUpgrade={[Function]}
+          isDisabled={false}
+          openEEModal={[Function]}
+          restartError={null}
+          restarting={false}
+          upgradeError={null}
+          upgradingPercentage={0}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterLeftPanel)
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              openEELicenseModal={[Function]}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterRightPanel) />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot enterprise build without license and upgrade from TE 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <Component
+          enterpriseReady={true}
+          gettingTrial={false}
+          gettingTrialError={null}
+          gettingTrialResponseCode={null}
+          handleRestart={[Function]}
+          handleUpgrade={[Function]}
+          isDisabled={false}
+          openEEModal={[Function]}
+          restartError={null}
+          restarting={false}
+          upgradeError={null}
+          upgradingPercentage={0}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterLeftPanel)
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              openEELicenseModal={[Function]}
+              upgradedFromTE={true}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterRightPanel) />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot team edition build with license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620335443650",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <TeamEdition
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              openEELicenseModal={[Function]}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(TeamEditionRightPanel)
+              handleRestart={[Function]}
+              handleUpgrade={[Function]}
+              openEEModal={[Function]}
+              restartError={null}
+              restarting={false}
+              setClickNormalUpgradeBtn={[Function]}
+              upgradeError={null}
+              upgradingPercentage={0}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot team edition build without license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <Component
+          enterpriseReady={false}
+          gettingTrial={false}
+          gettingTrialError={null}
+          gettingTrialResponseCode={null}
+          handleRestart={[Function]}
+          handleUpgrade={[Function]}
+          isDisabled={false}
+          openEEModal={[Function]}
+          restartError={null}
+          restarting={false}
+          upgradeError={null}
+          upgradingPercentage={0}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <TeamEdition
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              openEELicenseModal={[Function]}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(TeamEditionRightPanel)
+              handleRestart={[Function]}
+              handleUpgrade={[Function]}
+              openEEModal={[Function]}
+              restartError={null}
+              restarting={false}
+              setClickNormalUpgradeBtn={[Function]}
+              upgradeError={null}
+              upgradingPercentage={0}
+            />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot team edition with expired trial in the past 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      />
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterLeftPanel)
+              currentPlan={
+                <div
+                  className="current-plan-legend"
+                >
+                  <i
+                    className="icon-check-circle"
+                  />
+                  Current Plan
+                </div>
+              }
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              openEELicenseModal={[Function]}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(StarterRightPanel) />
+          </div>
+          <div
+            className="compare-plans-text"
+          >
+            Curious about upgrading? 
+            <ExternalLink
+              href="https://mattermost.com/pricing/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Compare Plans
+            </ExternalLink>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot with cloud expiring license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      />
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Cloud": "true",
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620993600000",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Cloud": "true",
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620993600000",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/license_settings/LicenseSettings should match snapshot with expiring license 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="Edition and License"
+      id="admin.license.title"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="admin-console__banner_section"
+      >
+        <RenewLicenseCard
+          isDisabled={false}
+          isLicenseExpired={false}
+          license={
+            Object {
+              "Company": "Mattermost Inc.",
+              "ExpiresAt": "1620993600000",
+              "IsLicensed": "true",
+              "IssuedAt": "1517714643650",
+              "Name": "LicenseName",
+              "SkuShortName": "E20",
+              "StartsAt": "1517714643650",
+              "Users": "100",
+            }
+          }
+          totalUsers={10}
+        />
+      </div>
+      <div
+        className="top-wrapper"
+      >
+        <div
+          className="left-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionLeftPanel)
+              fileInputRef={
+                Object {
+                  "current": null,
+                }
+              }
+              handleChange={[Function]}
+              handleRemove={[Function]}
+              isDisabled={false}
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620993600000",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+              openEELicenseModal={[Function]}
+              removing={false}
+              statsActiveUsers={10}
+              upgradedFromTE={false}
+            />
+          </div>
+          <div
+            className="terms-and-policy"
+          >
+            See also 
+            <ExternalLink
+              href="https://mattermost.com/terms-of-use/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Enterprise Edition Terms of Use
+            </ExternalLink>
+             and 
+            <ExternalLink
+              href="https://mattermost.com/privacy-policy/"
+              id="privacyLink"
+              location="license_settings"
+            >
+              Privacy Policy
+            </ExternalLink>
+          </div>
+        </div>
+        <div
+          className="right-panel"
+        >
+          <div
+            className="panel-card"
+          >
+            <Memo(EnterpriseEditionRightPanel)
+              isTrialLicense={false}
+              license={
+                Object {
+                  "Company": "Mattermost Inc.",
+                  "ExpiresAt": "1620993600000",
+                  "IsLicensed": "true",
+                  "IssuedAt": "1517714643650",
+                  "Name": "LicenseName",
+                  "SkuShortName": "E20",
+                  "StartsAt": "1517714643650",
+                  "Users": "100",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

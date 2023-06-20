@@ -1,0 +1,315 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/select_team/components/SelectTeamItem should match snapshot, on loading 1`] = `
+<div
+  className="signup-team-dir"
+>
+  <a
+    className=""
+    href="#"
+    id="team_display_name"
+    onClick={[Function]}
+  >
+    <span
+      className="signup-team-dir__name"
+    >
+      team_display_name
+    </span>
+    <LocalizedIcon
+      className="fa fa-refresh fa-spin right signup-team__icon"
+      component="span"
+      title={
+        Object {
+          "defaultMessage": "Loading Icon",
+          "id": "generic_icons.loading",
+        }
+      }
+    />
+  </a>
+</div>
+`;
+
+exports[`components/select_team/components/SelectTeamItem should match snapshot, on private joinable 1`] = `
+<div
+  className="signup-team-dir"
+>
+  <a
+    className=""
+    href="#"
+    id="team_display_name"
+    onClick={[Function]}
+  >
+    <span
+      className="signup-team-dir__name"
+    >
+      team_display_name
+    </span>
+    <LocalizedIcon
+      className="fa fa-lock light"
+      title={
+        Object {
+          "defaultMessage": "Private team",
+          "id": "select_team.private.icon",
+        }
+      }
+    />
+    <LocalizedIcon
+      className="fa fa-angle-right right signup-team__icon"
+      component="span"
+      title={
+        Object {
+          "defaultMessage": "Join Team Icon",
+          "id": "select_team.join.icon",
+        }
+      }
+    />
+  </a>
+</div>
+`;
+
+exports[`components/select_team/components/SelectTeamItem should match snapshot, on private not joinable 1`] = `
+<div
+  className="signup-team-dir"
+>
+  <a
+    className="disabled"
+    href="#"
+    id="team_display_name"
+  >
+    <span
+      className="signup-team-dir__name"
+    >
+      team_display_name
+    </span>
+    <LocalizedIcon
+      className="fa fa-lock light"
+      title={
+        Object {
+          "defaultMessage": "Private team",
+          "id": "select_team.private.icon",
+        }
+      }
+    />
+  </a>
+</div>
+`;
+
+exports[`components/select_team/components/SelectTeamItem should match snapshot, on public joinable 1`] = `
+<div
+  className="signup-team-dir"
+>
+  <a
+    className=""
+    href="#"
+    id="team_display_name"
+    onClick={[Function]}
+  >
+    <span
+      className="signup-team-dir__name"
+    >
+      team_display_name
+    </span>
+    <LocalizedIcon
+      className="fa fa-angle-right right signup-team__icon"
+      component="span"
+      title={
+        Object {
+          "defaultMessage": "Join Team Icon",
+          "id": "select_team.join.icon",
+        }
+      }
+    />
+  </a>
+</div>
+`;
+
+exports[`components/select_team/components/SelectTeamItem should match snapshot, on public not joinable 1`] = `
+<div
+  className="signup-team-dir"
+>
+  <a
+    className="disabled"
+    href="#"
+    id="team_display_name"
+  >
+    <span
+      className="signup-team-dir__name"
+    >
+      team_display_name
+    </span>
+  </a>
+</div>
+`;
+
+exports[`components/select_team/components/SelectTeamItem should match snapshot, with description 1`] = `
+<div
+  className="signup-team-dir"
+>
+  <OverlayTrigger
+    container={
+      SelectTeamItem {
+        "context": Object {},
+        "handleTeamClick": [Function],
+        "props": Object {
+          "canJoinPrivateTeams": false,
+          "canJoinPublicTeams": true,
+          "loading": false,
+          "onTeamClick": [MockFunction],
+          "team": Object {
+            "allow_open_invite": true,
+            "description": "description",
+            "display_name": "team_display_name",
+          },
+        },
+        "refs": Object {},
+        "renderDescriptionTooltip": [Function],
+        "setState": [Function],
+        "state": null,
+        "updater": Updater {
+          "_callbacks": Array [],
+          "_renderer": ReactShallowRenderer {
+            "_context": Object {},
+            "_didScheduleRenderPhaseUpdate": false,
+            "_dispatcher": Object {
+              "readContext": [Function],
+              "useCallback": [Function],
+              "useContext": [Function],
+              "useDebugValue": [Function],
+              "useDeferredValue": [Function],
+              "useEffect": [Function],
+              "useId": [Function],
+              "useImperativeHandle": [Function],
+              "useInsertionEffect": [Function],
+              "useLayoutEffect": [Function],
+              "useMemo": [Function],
+              "useReducer": [Function],
+              "useRef": [Function],
+              "useResponder": [Function],
+              "useState": [Function],
+              "useSyncExternalStore": [Function],
+              "useTransition": [Function],
+            },
+            "_element": <SelectTeamItem
+              canJoinPrivateTeams={false}
+              canJoinPublicTeams={true}
+              loading={false}
+              onTeamClick={[MockFunction]}
+              team={
+                Object {
+                  "allow_open_invite": true,
+                  "description": "description",
+                  "display_name": "team_display_name",
+                }
+              }
+            />,
+            "_firstWorkInProgressHook": null,
+            "_forcedUpdate": false,
+            "_idCounter": 0,
+            "_instance": [Circular],
+            "_isReRender": false,
+            "_newState": null,
+            "_numberOfReRenders": 0,
+            "_renderPhaseUpdates": null,
+            "_rendered": <div
+              className="signup-team-dir"
+            >
+              <OverlayTrigger
+                container={[Circular]}
+                defaultOverlayShown={false}
+                delayShow={1000}
+                overlay={
+                  <Tooltip
+                    id="team-description__tooltip"
+                  >
+                    description
+                  </Tooltip>
+                }
+                placement="top"
+                rootClose={true}
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <TeamInfoIcon
+                  className="icon icon--info"
+                />
+              </OverlayTrigger>
+              <a
+                className=""
+                href="#"
+                id="team_display_name"
+                onClick={[Function]}
+              >
+                <span
+                  className="signup-team-dir__name"
+                >
+                  team_display_name
+                </span>
+                <LocalizedIcon
+                  className="fa fa-angle-right right signup-team__icon"
+                  component="span"
+                  title={
+                    Object {
+                      "defaultMessage": "Join Team Icon",
+                      "id": "select_team.join.icon",
+                    }
+                  }
+                />
+              </a>
+            </div>,
+            "_rendering": false,
+            "_updater": [Circular],
+            "_workInProgressHook": null,
+          },
+        },
+      }
+    }
+    defaultOverlayShown={false}
+    delayShow={1000}
+    overlay={
+      <Tooltip
+        id="team-description__tooltip"
+      >
+        description
+      </Tooltip>
+    }
+    placement="top"
+    rootClose={true}
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <TeamInfoIcon
+      className="icon icon--info"
+    />
+  </OverlayTrigger>
+  <a
+    className=""
+    href="#"
+    id="team_display_name"
+    onClick={[Function]}
+  >
+    <span
+      className="signup-team-dir__name"
+    >
+      team_display_name
+    </span>
+    <LocalizedIcon
+      className="fa fa-angle-right right signup-team__icon"
+      component="span"
+      title={
+        Object {
+          "defaultMessage": "Join Team Icon",
+          "id": "select_team.join.icon",
+        }
+      }
+    />
+  </a>
+</div>
+`;

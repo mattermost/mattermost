@@ -1,0 +1,175 @@
+@import 'src/styles/z-index';
+
+.BoardTemplateSelector__container {
+    @include z-index(modal-permissions-label);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-height: 900) {
+        padding: 80px;
+    }
+}
+
+.BoardTemplateSelector__container--page {
+    position: absolute;
+    padding: 0;
+
+    .BoardTemplateSelector {
+        max-width: 100%;
+        max-height: 100%;
+    }
+}
+
+.BoardTemplateSelector__backdrop {
+    background-color: rgba(0, 0, 0, 0.56);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.BoardTemplateSelector {
+    @include z-index(board-template-selector);
+    position: relative;
+    background-color: rgb(var(--center-channel-bg-rgb));
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    max-width: 1600px;
+    max-height: 1200px;
+
+    .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        padding: 20px;
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+
+    .header {
+        width: 100%;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 32px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+        .title {
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .description {
+            max-width: 640px;
+            text-align: center;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            padding-left: 8px;
+            margin: 0 0 0 8px;
+        }
+    }
+
+    .templates-sidebar {
+        flex: 0 0 294px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .templates-sidebar__footer {
+        display: flex;
+        align-items: center;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        padding: 24px;
+        height: 89px;
+
+        button {
+            width: 100%;
+        }
+    }
+
+    .templates__empty-board {
+        color: rgb(var(--button-bg-rgb));
+        padding: 0;
+        border: 0;
+        display: flex;
+        align-items: center;
+        background: transparent;
+        font-weight: 600;
+        gap: 10px;
+
+        i {
+            font-size: 16px;
+        }
+    }
+
+    .templates {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        flex: 1;
+        overflow: hidden;
+
+        .templates-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+
+            .new-template {
+                width: 100%;
+                justify-content: flex-start;
+                padding-left: 14px;
+                margin-bottom: 16px;
+            }
+        }
+    }
+
+    .templates-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .buttons {
+        display: flex;
+        padding: 24px;
+        justify-content: flex-end;
+        height: 89px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background-color: rgb(var(--center-channel-bg-rgb));
+    }
+
+    .template-preview-box {
+        padding: 32px 32px 0;
+        position: relative;
+        background-color: rgb(var(--center-channel-bg-rgb));
+        width: 100%;
+        flex: 1;
+        overflow: hidden;
+        overflow-y: auto;
+
+        .empty-board {
+            background-color: rgb(var(--center-channel-bg-rgb));
+        }
+    }
+}

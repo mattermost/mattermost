@@ -1,0 +1,47 @@
+.MarkdownEditorInput {
+    div[role=option] {
+        display: flex;
+        align-items: center;
+    }
+
+    span[data-testid='mentionText'] {
+        background: rgba(var(--button-bg-rgb), 0.16);
+        border-radius: 4px;
+        color: inherit;
+    }
+}
+
+.DraftEditor-root + div {
+    background: rgba(var(--center-channel-bg-rgb), 1);
+    box-shadow: var(--elevation-1);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+
+    > div {
+        > div {
+            height: 40px;
+            padding: 0 20px;
+
+            &[aria-selected='true'] {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+
+            &:active {
+                background: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            .Badge {
+                margin-left: 12px;
+            }
+        }
+    }
+
+    .code-block {
+        background-color: unset;
+        border: 0;
+    }
+}

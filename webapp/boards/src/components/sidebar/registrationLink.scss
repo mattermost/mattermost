@@ -1,0 +1,32 @@
+.RegistrationLink {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    color: rgb(var(--center-channel-color-rgb));
+    font-weight: normal;
+    line-height: normal;
+
+    > .row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 0 0 10px;
+    }
+
+    > .row:last-child {
+        margin-bottom: 0;
+    }
+
+    .spacer {
+        flex-grow: 1;
+    }
+
+    a.shareUrl {
+        max-width: 320px;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 5px;
+    }
+}

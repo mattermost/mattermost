@@ -1,0 +1,36 @@
+.StripeElement {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding-top: 8px;
+    padding-bottom: 2px !important;
+    padding-left: 12px;
+    background-color: var(--center-channel-bg);
+    background-image: none;
+    border-radius: 4px;
+    box-shadow: none;
+    color: var(--center-channel-color);
+    font-family: 'Open Sans';
+    font-size: 14px;
+    line-height: 23px;
+    outline: none;
+}
+
+.StripeElement--invalid {
+    color: var(--error-text);
+}
+
+.StripeElement::placeholder {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 14px;
+    opacity: 0.5;
+}
+
+.StripeElement:focus::placeholder {
+    color: 'transparent';
+}
+
+.StripeElement:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--button-bg);
+}

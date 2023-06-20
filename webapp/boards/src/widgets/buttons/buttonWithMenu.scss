@@ -1,0 +1,40 @@
+.ButtonWithMenu {
+    display: flex;
+    align-items: stretch;
+    min-width: 20px;
+    cursor: pointer;
+    overflow: visible;
+    padding: 0;
+
+    .button-text {
+        padding: 3px 10px;
+        background-color: rgb(var(--button-bg-rgb));
+        color: rgb(var(--button-color-rgb));
+        border-radius: 5px 0 0 5px;
+        transition: background 100ms ease-out 0s;
+        height: 100%;
+
+        &:hover {
+            background-color: rgba(var(--button-bg-rgb), 0.8);
+        }
+    }
+
+    .button-dropdown {
+        background-color: rgb(var(--button-bg-rgb));
+        border-left: 1px solid rgba(var(--button-color-rgb), 0.2);
+        display: flex;
+        padding: 0 3px;
+        align-items: center;
+        border-radius: 0 5px 5px 0;
+        transition: background 100ms ease-out 0s;
+        height: 100%;
+
+        &:hover {
+            background-color: rgba(var(--button-bg-rgb), 0.8);
+        }
+
+        .DropdownIcon {
+            color: rgb(var(--button-color-rgb));
+        }
+    }
+}

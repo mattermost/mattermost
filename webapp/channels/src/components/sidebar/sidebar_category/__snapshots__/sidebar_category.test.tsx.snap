@@ -1,0 +1,488 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/sidebar_category should match snapshot 1`] = `
+<div
+  className="SidebarChannelGroup a11y__section"
+>
+  <Connect(Droppable)
+    direction="vertical"
+    droppableId="category1"
+    getContainerForClone={[Function]}
+    ignoreContainerClipping={false}
+    isCombineEnabled={false}
+    isDropDisabled={false}
+    mode="standard"
+    renderClone={null}
+    type="SIDEBAR_CHANNEL"
+  >
+    <Component />
+  </Connect(Droppable)>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
+<div
+  className=""
+>
+  <SidebarCategoryHeader
+    displayName="custom_category_1"
+    isCollapsed={false}
+    isCollapsible={true}
+    isDragging={false}
+    isDraggingOver={false}
+    muted={false}
+    onClick={[Function]}
+  >
+    <Connect(Component)
+      category={
+        Object {
+          "channel_ids": Array [
+            "channel_id",
+          ],
+          "collapsed": false,
+          "display_name": "custom_category_1",
+          "id": "category1",
+          "muted": false,
+          "sorting": "alpha",
+          "team_id": "team1",
+          "type": "custom",
+          "user_id": "",
+        }
+      }
+    />
+  </SidebarCategoryHeader>
+  <div
+    className="SidebarChannelGroup_content"
+  >
+    <ul
+      className="NavGroupContent"
+      role="list"
+    >
+      <Connect(SidebarChannel)
+        channelId="channel_id"
+        channelIndex={0}
+        isAutoSortedCategory={true}
+        isCategoryCollapsed={false}
+        isCategoryDragged={false}
+        isDraggable={true}
+        key="channel_id"
+        setChannelRef={[MockFunction]}
+      />
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when collapsed 1`] = `
+<div
+  className="SidebarChannelGroup a11y__section isCollapsed"
+>
+  <Connect(Droppable)
+    direction="vertical"
+    droppableId="category1"
+    getContainerForClone={[Function]}
+    ignoreContainerClipping={false}
+    isCombineEnabled={false}
+    isDropDisabled={false}
+    mode="standard"
+    renderClone={null}
+    type="SIDEBAR_CHANNEL"
+  >
+    <Component />
+  </Connect(Droppable)>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when collapsed 2`] = `
+<div
+  className=""
+>
+  <SidebarCategoryHeader
+    displayName="custom_category_1"
+    isCollapsed={true}
+    isCollapsible={true}
+    isDragging={false}
+    isDraggingOver={false}
+    muted={false}
+    onClick={[Function]}
+  >
+    <Connect(Component)
+      category={
+        Object {
+          "channel_ids": Array [
+            "channel_id",
+          ],
+          "collapsed": true,
+          "display_name": "custom_category_1",
+          "id": "category1",
+          "muted": false,
+          "sorting": "alpha",
+          "team_id": "team1",
+          "type": "custom",
+          "user_id": "",
+        }
+      }
+    />
+  </SidebarCategoryHeader>
+  <div
+    className="SidebarChannelGroup_content"
+  >
+    <ul
+      className="NavGroupContent"
+      role="list"
+    >
+      <Connect(SidebarChannel)
+        channelId="channel_id"
+        channelIndex={0}
+        isAutoSortedCategory={true}
+        isCategoryCollapsed={true}
+        isCategoryDragged={false}
+        isDraggable={true}
+        key="channel_id"
+        setChannelRef={[MockFunction]}
+      />
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when isNewCategory 1`] = `
+<div
+  className="SidebarChannelGroup a11y__section"
+>
+  <Connect(Droppable)
+    direction="vertical"
+    droppableId="category1"
+    getContainerForClone={[Function]}
+    ignoreContainerClipping={false}
+    isCombineEnabled={false}
+    isDropDisabled={false}
+    mode="standard"
+    renderClone={null}
+    type="SIDEBAR_CHANNEL"
+  >
+    <Component />
+  </Connect(Droppable)>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when isNewCategory 2`] = `
+<div
+  className=""
+>
+  <SidebarCategoryHeader
+    displayName="custom_category_1"
+    isCollapsed={false}
+    isCollapsible={true}
+    isDragging={false}
+    isDraggingOver={false}
+    muted={false}
+    onClick={[Function]}
+  >
+    <div
+      className="SidebarCategory_newLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="new"
+        id="sidebar_left.sidebar_category.newLabel"
+      />
+    </div>
+    <Connect(Component)
+      category={
+        Object {
+          "channel_ids": Array [],
+          "collapsed": false,
+          "display_name": "custom_category_1",
+          "id": "category1",
+          "muted": false,
+          "sorting": "alpha",
+          "team_id": "team1",
+          "type": "custom",
+          "user_id": "",
+        }
+      }
+    />
+  </SidebarCategoryHeader>
+  <div
+    className="SidebarChannelGroup_content"
+  >
+    <ul
+      className="NavGroupContent"
+      role="list"
+    >
+      <PublicDraggable
+        draggableId="NEW_CHANNEL_SPACER__category1"
+        index={0}
+        isDragDisabled={true}
+      >
+        <Component />
+      </PublicDraggable>
+      <div
+        className="SidebarCategory_newDropBox"
+      >
+        <div
+          className="SidebarCategory_newDropBox-content"
+          onTransitionEnd={[Function]}
+        >
+          <i
+            className="icon-hand-right"
+          />
+          <span
+            className="SidebarCategory_newDropBox-label"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Drag channels here..."
+              id="sidebar_left.sidebar_category.newDropBoxLabel"
+            />
+          </span>
+        </div>
+      </div>
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when sorting is set to by recency 1`] = `
+<div
+  className="SidebarChannelGroup a11y__section"
+>
+  <Connect(Droppable)
+    direction="vertical"
+    droppableId="category1"
+    getContainerForClone={[Function]}
+    ignoreContainerClipping={false}
+    isCombineEnabled={false}
+    isDropDisabled={false}
+    mode="standard"
+    renderClone={null}
+    type="SIDEBAR_CHANNEL"
+  >
+    <Component />
+  </Connect(Droppable)>
+  <InviteMembersButton
+    className="followingSibling"
+    isAdmin={false}
+  />
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when sorting is set to by recency 2`] = `
+<div
+  className=""
+>
+  <SidebarCategoryHeader
+    displayName="custom_category_1"
+    isCollapsed={false}
+    isCollapsible={true}
+    isDragging={false}
+    isDraggingOver={false}
+    muted={false}
+    onClick={[Function]}
+  >
+    <Connect(Component)
+      category={
+        Object {
+          "channel_ids": Array [
+            "channel_id",
+          ],
+          "collapsed": false,
+          "display_name": "custom_category_1",
+          "id": "category1",
+          "muted": false,
+          "sorting": "recent",
+          "team_id": "team1",
+          "type": "direct_messages",
+          "user_id": "",
+        }
+      }
+      handleOpenDirectMessagesModal={[Function]}
+    />
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="new-group-tooltip"
+        >
+          Create new direct message
+          <Memo(KeyboardShortcutSequence)
+            hideDescription={true}
+            isInsideTooltip={true}
+            shortcut={
+              Object {
+                "default": Object {
+                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu",
+                },
+                "mac": Object {
+                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu.mac",
+                },
+              }
+            }
+          />
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <button
+        aria-label="Create new direct message"
+        className="SidebarChannelGroupHeader_addButton"
+        onClick={[Function]}
+      >
+        <i
+          className="icon-plus"
+        />
+      </button>
+    </OverlayTrigger>
+  </SidebarCategoryHeader>
+  <div
+    className="SidebarChannelGroup_content"
+  >
+    <ul
+      className="NavGroupContent"
+      role="list"
+    >
+      <Connect(SidebarChannel)
+        channelId="channel_id"
+        channelIndex={0}
+        isAutoSortedCategory={true}
+        isCategoryCollapsed={false}
+        isCategoryDragged={false}
+        isDraggable={true}
+        key="channel_id"
+        setChannelRef={[MockFunction]}
+      />
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when the category is DM and there are no DMs to display 1`] = `
+<div
+  className="SidebarChannelGroup a11y__section"
+>
+  <Connect(Droppable)
+    direction="vertical"
+    droppableId="category1"
+    getContainerForClone={[Function]}
+    ignoreContainerClipping={false}
+    isCombineEnabled={false}
+    isDropDisabled={false}
+    mode="standard"
+    renderClone={null}
+    type="SIDEBAR_CHANNEL"
+  >
+    <Component />
+  </Connect(Droppable)>
+  <InviteMembersButton
+    className="followingSibling"
+    isAdmin={false}
+  />
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when the category is DM and there are no DMs to display 2`] = `
+<div
+  className=""
+>
+  <SidebarCategoryHeader
+    displayName="custom_category_1"
+    isCollapsed={false}
+    isCollapsible={false}
+    isDragging={false}
+    isDraggingOver={false}
+    muted={false}
+    onClick={[Function]}
+  >
+    <Connect(Component)
+      category={
+        Object {
+          "channel_ids": Array [
+            "channel_id",
+          ],
+          "collapsed": false,
+          "display_name": "custom_category_1",
+          "id": "category1",
+          "muted": false,
+          "sorting": "recent",
+          "team_id": "team1",
+          "type": "direct_messages",
+          "user_id": "",
+        }
+      }
+      handleOpenDirectMessagesModal={[Function]}
+    />
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="new-group-tooltip"
+        >
+          Create new direct message
+          <Memo(KeyboardShortcutSequence)
+            hideDescription={true}
+            isInsideTooltip={true}
+            shortcut={
+              Object {
+                "default": Object {
+                  "defaultMessage": "Direct messages menu:	Ctrl|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu",
+                },
+                "mac": Object {
+                  "defaultMessage": "Direct messages menu:	⌘|Shift|K",
+                  "id": "shortcuts.nav.direct_messages_menu.mac",
+                },
+              }
+            }
+          />
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <button
+        aria-label="Create new direct message"
+        className="SidebarChannelGroupHeader_addButton"
+        onClick={[Function]}
+      >
+        <i
+          className="icon-plus"
+        />
+      </button>
+    </OverlayTrigger>
+  </SidebarCategoryHeader>
+  <div
+    className="SidebarChannelGroup_content"
+  >
+    <ul
+      className="NavGroupContent"
+      role="list"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category should match snapshot when there are no channels to display 1`] = `
+<PublicDraggable
+  disableInteractiveElementBlocking={true}
+  draggableId="category1"
+  index={0}
+>
+  <Component />
+</PublicDraggable>
+`;

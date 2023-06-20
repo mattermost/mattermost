@@ -1,0 +1,343 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <SuccessModal>
+    <injectIntl(FullScreenModal)
+      onClose={[Function]}
+      overrideTargetEvent={true}
+      show={true}
+    >
+      <injectIntl(FullScreenModal)
+        forwardedRef={null}
+        onClose={[Function]}
+        overrideTargetEvent={true}
+        show={true}
+      >
+        <FullScreenModal
+          forwardedRef={null}
+          intl={
+            Object {
+              "$t": [Function],
+              "defaultFormats": Object {},
+              "defaultLocale": "en",
+              "defaultRichTextElements": undefined,
+              "fallbackOnEmptyString": true,
+              "formatDate": [Function],
+              "formatDateTimeRange": [Function],
+              "formatDateToParts": [Function],
+              "formatDisplayName": [Function],
+              "formatList": [Function],
+              "formatListToParts": [Function],
+              "formatMessage": [Function],
+              "formatNumber": [Function],
+              "formatNumberToParts": [Function],
+              "formatPlural": [Function],
+              "formatRelativeTime": [Function],
+              "formatTime": [Function],
+              "formatTimeToParts": [Function],
+              "formats": Object {},
+              "formatters": Object {
+                "getDateTimeFormat": [Function],
+                "getDisplayNames": [Function],
+                "getListFormat": [Function],
+                "getMessageFormat": [Function],
+                "getNumberFormat": [Function],
+                "getPluralRules": [Function],
+                "getRelativeTimeFormat": [Function],
+              },
+              "locale": "en",
+              "messages": Object {},
+              "onError": [Function],
+              "onWarn": [Function],
+              "textComponent": "span",
+              "timeZone": "Etc/UTC",
+              "wrapRichTextChunksInFragment": undefined,
+            }
+          }
+          onClose={[Function]}
+          overrideTargetEvent={true}
+          show={true}
+        >
+          <CSSTransition
+            appear={true}
+            classNames="FullScreenModal"
+            in={true}
+            mountOnEnter={true}
+            timeout={100}
+            unmountOnExit={true}
+          >
+            <Transition
+              appear={true}
+              enter={true}
+              exit={true}
+              in={true}
+              mountOnEnter={true}
+              onEnter={[Function]}
+              onEntered={[Function]}
+              onEntering={[Function]}
+              onExit={[Function]}
+              onExited={[Function]}
+              onExiting={[Function]}
+              timeout={100}
+              unmountOnExit={true}
+            >
+              <div
+                aria-modal={true}
+                className="FullScreenModal"
+                role="dialog"
+                tabIndex={-1}
+              >
+                <button
+                  aria-label="Close"
+                  className="close-x"
+                  onClick={[Function]}
+                >
+                  <CloseIcon
+                    id="closeIcon"
+                  >
+                    <span
+                      id="closeIcon"
+                    >
+                      <svg
+                        aria-label="Close Icon"
+                        height="24px"
+                        role="img"
+                        viewBox="0 0 24 24"
+                        width="24px"
+                      >
+                        <path
+                          d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+                          fillRule="nonzero"
+                        />
+                      </svg>
+                    </span>
+                  </CloseIcon>
+                </button>
+                <div
+                  className="cloud_subscribe_result_modal"
+                >
+                  <IconMessage
+                    buttonHandler={[Function]}
+                    className="success"
+                    date=""
+                    error={false}
+                    formattedButtonText={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Return to workspace"
+                        id="success_modal.return_to_workspace"
+                      />
+                    }
+                    formattedSubtitle={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Your final bill will be prorated. Your workspace now has {plan} limits."
+                        id="success_modal.subtitle"
+                        values={
+                          Object {
+                            "plan": undefined,
+                          }
+                        }
+                      />
+                    }
+                    formattedTitle={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="You are now subscribed to {selectedProductName}"
+                        id="admin.billing.subscription.proratedPayment.title"
+                        values={
+                          Object {
+                            "selectedProductName": undefined,
+                          }
+                        }
+                      />
+                    }
+                    icon={
+                      <PaymentSuccessStandardSvg
+                        height={313}
+                        width={444}
+                      />
+                    }
+                    subtitle=""
+                  >
+                    <div
+                      className="IconMessage"
+                      id="payment_complete_header"
+                    >
+                      <div
+                        className="content success"
+                      >
+                        <div
+                          className="IconMessage__svg-wrapper"
+                        >
+                          <PaymentSuccessStandardSvg
+                            height={313}
+                            width={444}
+                          >
+                            <svg
+                              fill="none"
+                              height="313"
+                              viewBox="0 0 312 257"
+                              width="444"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g
+                                clipPath="url(#clip_payment_success)"
+                              >
+                                <path
+                                  d="M22.6373 196.797H232.466C234.01 196.775 235.483 196.143 236.562 195.038C237.64 193.934 238.237 192.447 238.222 190.904V50.7664C238.237 49.2229 237.64 47.7363 236.562 46.6319C235.483 45.5274 234.01 44.8952 232.466 44.8735H22.6373C21.094 44.8973 19.6227 45.5303 18.5445 46.6342C17.4663 47.7382 16.8686 49.2236 16.8818 50.7664V190.912C16.8708 192.454 17.4694 193.937 18.5474 195.039C19.6254 196.141 21.0954 196.773 22.6373 196.797Z"
+                                  fill="#24262E"
+                                />
+                                <path
+                                  d="M0.0098877 217.376C0.0098877 224.445 5.76538 231.513 12.746 231.513H242.242C248.82 231.513 254.97 224.461 254.97 217.376H0.0098877Z"
+                                  fill="#24262E"
+                                />
+                                <path
+                                  d="M233.724 196.796H21.2559L0.0098877 217.376H254.97L233.724 196.796Z"
+                                  fill="#D1D4DB"
+                                />
+                                <path
+                                  d="M226.703 198.432H28.401L21.3218 207.087H233.79L226.703 198.432Z"
+                                  fill="#AFB3C0"
+                                />
+                                <path
+                                  d="M149.357 210.892H105.755L102.483 215.215H152.621L149.357 210.892Z"
+                                  fill="#24262E"
+                                />
+                                <path
+                                  d="M225.288 57.6704H29.8234V184.001H225.288V57.6704Z"
+                                  fill="#DDDFE4"
+                                />
+                                <path
+                                  d="M153.186 90.751L113.343 134.562L101.779 125.806H95.3497L113.343 155.016L159.615 90.751H153.186Z"
+                                  fill="#339970"
+                                />
+                                <path
+                                  d="M127.552 48.1526C128.202 48.1526 128.838 48.3454 129.379 48.7066C129.92 49.0679 130.341 49.5813 130.59 50.182C130.839 50.7827 130.904 51.4437 130.777 52.0814C130.651 52.7192 130.337 53.3049 129.877 53.7647C129.417 54.2245 128.831 54.5376 128.193 54.6644C127.555 54.7913 126.894 54.7261 126.293 54.4773C125.692 54.2285 125.179 53.8071 124.817 53.2665C124.456 52.7259 124.263 52.0903 124.263 51.4401C124.263 50.5682 124.609 49.732 125.226 49.1155C125.843 48.4989 126.68 48.1526 127.552 48.1526Z"
+                                  fill="#DDDFE4"
+                                />
+                                <path
+                                  d="M145.838 226.581H109.15C107.884 226.581 104.538 226.581 104.538 222.307H150.475C150.475 226.581 147.03 226.581 145.838 226.581Z"
+                                  fill="#3F4350"
+                                />
+                              </g>
+                              <path
+                                d="M307.836 95.9331C311.392 99.4834 312.126 104.864 309.445 107.979L247.319 180.211C243.548 184.598 236.935 184.715 232.639 180.412L179.605 127.366C175.296 123.056 175.419 116.456 179.799 112.685L252.031 50.5654C255.146 47.8913 260.519 48.6182 264.075 52.1815L307.836 95.9331Z"
+                                fill="#BABEC9"
+                              />
+                              <path
+                                d="M283.016 71.231L202.947 151.039L184.295 132.192L267.629 55.6836L283.016 71.231Z"
+                                fill="#363A45"
+                              />
+                              <path
+                                d="M279.947 87.0945L223.559 144.847L238.672 160.013L293.112 100.299L279.947 87.0945Z"
+                                fill="white"
+                              />
+                              <path
+                                d="M247.841 139.774C244.735 136.785 246.576 131.177 247.708 128.122C249.461 123.387 251.308 132.473 251.397 133.882C251.694 138.499 251.306 143.137 250.245 147.63C249.65 150.15 248.78 152.591 247.651 154.904C246.973 156.332 246.001 157.585 244.804 158.574C241.831 160.452 239.939 158.627 239.174 153.112C239.483 151.426 240.257 149.872 241.401 148.641C245.285 143.596 251.428 141.05 255.952 137.135C256.395 136.745 255.686 136.018 255.249 136.395C249.866 141.07 238.8 144.925 238.168 154.163C237.712 160.266 243.64 161.576 246.816 158.177C250.947 153.76 252.004 145.712 252.358 139.661C252.567 136.15 253.421 126.436 248.486 125.259C248.391 125.227 248.289 125.229 248.195 125.267C248.102 125.304 248.024 125.374 247.974 125.464C246.019 129.055 243.223 136.58 247.265 140.481C247.305 140.543 247.358 140.595 247.42 140.632C247.482 140.669 247.551 140.69 247.623 140.695C247.694 140.699 247.765 140.686 247.831 140.657C247.896 140.627 247.955 140.582 248.001 140.526C248.047 140.469 248.08 140.401 248.097 140.329C248.115 140.257 248.115 140.181 248.1 140.108C248.084 140.035 248.053 139.967 248.008 139.909C247.963 139.851 247.906 139.805 247.841 139.774Z"
+                                fill="#505667"
+                              />
+                              <path
+                                d="M255.236 137.171C259.742 139.71 260.856 129.601 260.27 126.845C260.249 126.763 260.208 126.688 260.151 126.626C260.094 126.565 260.023 126.519 259.944 126.493C259.865 126.467 259.782 126.461 259.7 126.477C259.619 126.492 259.542 126.528 259.478 126.582C257.116 128.509 256.697 133.587 258.706 136.54C258.745 136.616 258.804 136.679 258.876 136.723C258.948 136.767 259.031 136.79 259.114 136.79C259.198 136.79 259.281 136.767 259.353 136.723C259.425 136.679 259.484 136.616 259.523 136.54C260.818 133.802 261.914 130.971 262.8 128.068C263.199 126.845 264.235 127.127 265.053 126.279C266.714 124.556 268.329 122.806 269.958 121.096C272.011 118.925 272.719 116.064 274.618 113.861C277.039 111.085 279.369 109.743 280.579 105.922C280.856 105.047 280.875 103.021 279.401 102.909C276.569 102.686 274.078 108.829 277.863 108.224C282.491 107.507 286.643 102.001 289.643 99.0745C290.003 98.7259 289.34 98.055 288.999 98.4167C287.505 99.8704 285.973 101.317 284.383 102.712C283.117 103.83 281.793 104.88 280.418 105.856C279.716 106.349 274.425 108.737 277.785 104.725L279.575 106.145C279.388 106.651 279.173 107.145 278.931 107.625C278.479 108.515 277.949 109.36 277.348 110.151C276.24 111.697 274.483 112.598 273.228 114.032C271.631 115.86 271.007 118.472 269.301 120.379C268.548 121.221 264.428 126.601 262.961 125.963C262.867 125.929 262.765 125.932 262.673 125.971C262.581 126.01 262.507 126.082 262.465 126.174C261.989 127.562 261.525 128.963 261.055 130.37C260.888 130.883 258.931 134.882 258.989 135.02C258.25 132.883 258.305 130.542 259.143 128.443C259.418 128.958 259.582 129.527 259.625 130.112C259.668 130.697 259.59 131.285 259.394 131.837C259.066 134.33 257.824 135.823 255.68 136.283C255.623 136.254 255.561 136.236 255.497 136.23C255.433 136.225 255.369 136.233 255.308 136.253C255.247 136.273 255.191 136.305 255.142 136.348C255.093 136.39 255.053 136.442 255.024 136.5C254.995 136.559 254.977 136.622 254.972 136.688C254.967 136.753 254.974 136.819 254.994 136.881C255.014 136.943 255.045 137.001 255.087 137.051C255.128 137.101 255.179 137.142 255.236 137.171Z"
+                                fill="#505667"
+                              />
+                              <defs>
+                                <clipPath
+                                  id="clip_payment_success"
+                                >
+                                  <rect
+                                    fill="white"
+                                    height="217.226"
+                                    transform="translate(0.0098877 14.2778)"
+                                    width="254.96"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg>
+                          </PaymentSuccessStandardSvg>
+                        </div>
+                        <h3
+                          className="IconMessage-h3"
+                        >
+                          <FormattedMessage
+                            defaultMessage="You are now subscribed to {selectedProductName}"
+                            id="admin.billing.subscription.proratedPayment.title"
+                            values={
+                              Object {
+                                "selectedProductName": undefined,
+                              }
+                            }
+                          >
+                            <span>
+                              You are now subscribed to 
+                            </span>
+                          </FormattedMessage>
+                        </h3>
+                        <div
+                          className="IconMessage-sub"
+                        >
+                          <FormattedMessage
+                            defaultMessage="Your final bill will be prorated. Your workspace now has {plan} limits."
+                            id="success_modal.subtitle"
+                            values={
+                              Object {
+                                "plan": undefined,
+                              }
+                            }
+                          >
+                            <span>
+                              Your final bill will be prorated. Your workspace now has  limits.
+                            </span>
+                          </FormattedMessage>
+                        </div>
+                        <div
+                          className="IconMessage-buttons"
+                        >
+                          <div
+                            className="IconMessage-button"
+                          >
+                            <button
+                              className="btn btn-primary Form-btn"
+                              onClick={[Function]}
+                            >
+                              <FormattedMessage
+                                defaultMessage="Return to workspace"
+                                id="success_modal.return_to_workspace"
+                              >
+                                <span>
+                                  Return to workspace
+                                </span>
+                              </FormattedMessage>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </IconMessage>
+                </div>
+              </div>
+              <div
+                style={
+                  Object {
+                    "display": "none",
+                  }
+                }
+                tabIndex={0}
+              />
+            </Transition>
+          </CSSTransition>
+        </FullScreenModal>
+      </injectIntl(FullScreenModal)>
+    </injectIntl(FullScreenModal)>
+  </SuccessModal>
+</Provider>
+`;

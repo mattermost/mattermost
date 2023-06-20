@@ -1,0 +1,1 @@
+DELETE FROM {{.prefix}}category_boards WHERE delete_at > 0;

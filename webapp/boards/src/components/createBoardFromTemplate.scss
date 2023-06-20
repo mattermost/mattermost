@@ -1,0 +1,78 @@
+.CreateBoardFromTemplate {
+    width: 100%;
+
+    .add-board-to-channel {
+        display: flex;
+        margin-top: 24px;
+        padding-bottom: 5px;
+        flex-direction: column;
+
+        label {
+            display: flex;
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+            cursor: pointer;
+            font-weight: 400;
+
+            input[type=checkbox] {
+                margin-top: 0 !important;
+                -moz-appearance: none;
+                -webkit-appearance: none;
+                -o-appearance: none;
+                content: none;
+                outline: none;
+            }
+
+            input[type=checkbox]::before {
+                display: block;
+                width: 15px;
+                height: 15px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+                margin-right: 7px;
+                background: var(--center-channel-bg);
+                border-radius: 2px;
+                color: transparent !important;
+                content: "\f00c";
+                font-family: "FontAwesome";
+                font-size: 12px;
+            }
+
+            input[type=checkbox]:checked::before {
+                background: var(--button-bg);
+                color: var(--center-channel-bg) !important;
+            }
+
+            span {
+                margin-top: -3px;
+            }
+        }
+
+        i.icon-information-outline {
+            color: rgba(var(--center-channel-color-rgb), 0.7);
+            margin-top: -3px;
+            margin-left: 3px;
+            font-size: 18px;
+        }
+    }
+
+    .templates-selector {
+        margin-top: 15px;
+    }
+}
+
+.CreateBoardFromTemplate--templates-selector__menu-portal {
+    &__option {
+        &__icon {
+            display: inline-block;
+            width: 19px;
+        }
+        &__title {
+            margin-left: 10px;
+        }
+        &__description {
+            display: block;
+            font-size: 12px;
+            margin-left: 29px;
+            color: rgba(var(--center-channel-color-rgb), 0.5);
+        }
+    }
+}

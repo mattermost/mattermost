@@ -1,0 +1,11 @@
+# env, cert, key, license
+.env*
+*.crt
+*.key
+*.license
+
+# Plugin
+*.tar.gz
+
+# node
+*.lock

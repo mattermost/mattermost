@@ -1,0 +1,1600 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelHeaderDropdown should match snapshot with no plugin items 1`] = `
+<Fragment>
+  <Connect(ToggleInfo)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
+        "id": "test-channel-id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    show={true}
+  />
+  <Memo(ChannelMoveToSubMenu)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
+        "id": "test-channel-id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    inHeaderDropdown={true}
+    openUp={false}
+  />
+  <MenuGroup>
+    <Connect(ToggleFavoriteChannel)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      isFavorite={false}
+      show={false}
+    />
+    <Connect(ViewPinnedPosts)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      show={false}
+    />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+          "currentUser": Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "test-user-id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some-user",
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="channelNotificationPreferences"
+      modalId="channel_notifications"
+      show={true}
+      text="Notification Preferences"
+    />
+    <Connect(MenuItemToggleMuteChannel)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      id="channelToggleMuteChannel"
+      isMuted={false}
+      user={
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "test-user-id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "calls_desktop_sound": "true",
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        }
+      }
+    />
+  </MenuGroup>
+  <MenuGroup>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_public_channel_members",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelAddMembers"
+        modalId="channel_invite"
+        show={true}
+        text="Add Members"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "isExistingChannel": true,
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelAddMembers"
+        modalId="create_dm_channel"
+        show={false}
+        text="Add Members"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(ToggleChannelMembersRHS)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      id="channelViewMembers"
+      show={false}
+      text="View Members"
+    />
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_public_channel_members",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelAddGroups"
+        modalId="add_groups_to_channel"
+        show={false}
+        text="Add Groups"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channelID": "test-channel-id",
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelManageGroups"
+        modalId="manage_channel_groups"
+        show={false}
+        text="Manage Groups"
+      />
+      <Connect(ToggleChannelMembersRHS)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+        editMembers={true}
+        id="channelManageMembers"
+        show={true}
+        text="Manage Members"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      invert={true}
+      permissions={
+        Array [
+          "manage_public_channel_members",
+        ]
+      }
+      teamId="team_id"
+    >
+      <Connect(ToggleChannelMembersRHS)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+        id="channelViewMembers"
+        show={true}
+        text="View Members"
+      />
+    </Connect(ChannelPermissionGate)>
+  </MenuGroup>
+  <MenuGroup>
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="channelEditHeader"
+      modalId="edit_channel_header"
+      show={false}
+      text="Edit Conversation Header"
+    />
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_public_channel_properties",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelEditHeader"
+        modalId="edit_channel_header"
+        show={true}
+        text="Edit Channel Header"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelEditPurpose"
+        modalId="edit_channel_purpose"
+        show={true}
+        text="Edit Channel Purpose"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelRename"
+        modalId="rename_channel"
+        show={true}
+        text="Rename Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "convert_public_channel_to_private",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channelDisplayName": "name",
+            "channelId": "test-channel-id",
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelConvertToPrivate"
+        modalId="convert_channel"
+        show={true}
+        text="Convert to Private Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(LeaveChannel)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      id="channelLeaveChannel"
+      isDefault={false}
+      isGuestUser={false}
+    />
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "delete_public_channel",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        className="MenuItem__dangerous"
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+            "penultimateViewedChannelName": "test-channel",
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelArchiveChannel"
+        modalId="delete_channel"
+        show={true}
+        text="Archive Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(CloseMessage)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      currentUser={
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "test-user-id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "calls_desktop_sound": "true",
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        }
+      }
+      id="channelCloseMessage"
+    />
+    <Connect(CloseChannel)
+      isArchived={false}
+    />
+  </MenuGroup>
+  <MenuGroup />
+  <MenuGroup>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_team",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelUnarchiveChannel"
+        modalId="unarchive_channel"
+        show={false}
+        text="Unarchive Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+  </MenuGroup>
+</Fragment>
+`;
+
+exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`] = `
+<Fragment>
+  <Connect(ToggleInfo)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
+        "id": "test-channel-id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    show={true}
+  />
+  <Memo(ChannelMoveToSubMenu)
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
+        "id": "test-channel-id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    inHeaderDropdown={true}
+    openUp={false}
+  />
+  <MenuGroup>
+    <Connect(ToggleFavoriteChannel)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      isFavorite={false}
+      show={false}
+    />
+    <Connect(ViewPinnedPosts)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      show={false}
+    />
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+          "currentUser": Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "test-user-id",
+            "is_bot": false,
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some-user",
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="channelNotificationPreferences"
+      modalId="channel_notifications"
+      show={true}
+      text="Notification Preferences"
+    />
+    <Connect(MenuItemToggleMuteChannel)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      id="channelToggleMuteChannel"
+      isMuted={false}
+      user={
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "test-user-id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "calls_desktop_sound": "true",
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        }
+      }
+    />
+  </MenuGroup>
+  <MenuGroup>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_public_channel_members",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelAddMembers"
+        modalId="channel_invite"
+        show={true}
+        text="Add Members"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "isExistingChannel": true,
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelAddMembers"
+        modalId="create_dm_channel"
+        show={false}
+        text="Add Members"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(ToggleChannelMembersRHS)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      id="channelViewMembers"
+      show={false}
+      text="View Members"
+    />
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_public_channel_members",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelAddGroups"
+        modalId="add_groups_to_channel"
+        show={false}
+        text="Add Groups"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channelID": "test-channel-id",
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelManageGroups"
+        modalId="manage_channel_groups"
+        show={false}
+        text="Manage Groups"
+      />
+      <Connect(ToggleChannelMembersRHS)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+        editMembers={true}
+        id="channelManageMembers"
+        show={true}
+        text="Manage Members"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      invert={true}
+      permissions={
+        Array [
+          "manage_public_channel_members",
+        ]
+      }
+      teamId="team_id"
+    >
+      <Connect(ToggleChannelMembersRHS)
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+        id="channelViewMembers"
+        show={true}
+        text="View Members"
+      />
+    </Connect(ChannelPermissionGate)>
+  </MenuGroup>
+  <MenuGroup>
+    <MenuItemToggleModalRedux
+      dialogProps={
+        Object {
+          "channel": Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "test-channel-id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_id": "team_id",
+            "type": "O",
+            "update_at": 0,
+          },
+        }
+      }
+      dialogType={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "WrappedComponent": [Function],
+          "compare": null,
+          "type": [Function],
+        }
+      }
+      id="channelEditHeader"
+      modalId="edit_channel_header"
+      show={false}
+      text="Edit Conversation Header"
+    />
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_public_channel_properties",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelEditHeader"
+        modalId="edit_channel_header"
+        show={true}
+        text="Edit Channel Header"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelEditPurpose"
+        modalId="edit_channel_purpose"
+        show={true}
+        text="Edit Channel Purpose"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelRename"
+        modalId="rename_channel"
+        show={true}
+        text="Rename Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "convert_public_channel_to_private",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channelDisplayName": "name",
+            "channelId": "test-channel-id",
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelConvertToPrivate"
+        modalId="convert_channel"
+        show={true}
+        text="Convert to Private Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(LeaveChannel)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      id="channelLeaveChannel"
+      isDefault={false}
+      isGuestUser={false}
+    />
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "delete_public_channel",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        className="MenuItem__dangerous"
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+            "penultimateViewedChannelName": "test-channel",
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelArchiveChannel"
+        modalId="delete_channel"
+        show={true}
+        text="Archive Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+    <Connect(CloseMessage)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      currentUser={
+        Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "test-user-id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "calls_desktop_sound": "true",
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        }
+      }
+      id="channelCloseMessage"
+    />
+    <Connect(CloseChannel)
+      isArchived={false}
+    />
+  </MenuGroup>
+  <MenuGroup>
+    <MenuItemAction
+      id="plugin-1_pluginmenuitem"
+      key="plugin-1_pluginmenuitem"
+      onClick={[Function]}
+      show={true}
+      text="plugin-1-text"
+    />
+    <MenuItemAction
+      id="plugin-2_pluginmenuitem"
+      key="plugin-2_pluginmenuitem"
+      onClick={[Function]}
+      show={true}
+      text="plugin-2-text"
+    />
+  </MenuGroup>
+  <MenuGroup>
+    <Connect(ChannelPermissionGate)
+      channelId="test-channel-id"
+      permissions={
+        Array [
+          "manage_team",
+        ]
+      }
+      teamId="team_id"
+    >
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "channel": Object {
+              "create_at": 0,
+              "creator_id": "id",
+              "delete_at": 0,
+              "display_name": "name",
+              "group_constrained": false,
+              "header": "header",
+              "id": "test-channel-id",
+              "last_post_at": 0,
+              "last_root_post_at": 0,
+              "name": "DN",
+              "purpose": "purpose",
+              "scheme_id": "id",
+              "team_id": "team_id",
+              "type": "O",
+              "update_at": 0,
+            },
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        id="channelUnarchiveChannel"
+        modalId="unarchive_channel"
+        show={false}
+        text="Unarchive Channel"
+      />
+    </Connect(ChannelPermissionGate)>
+  </MenuGroup>
+</Fragment>
+`;

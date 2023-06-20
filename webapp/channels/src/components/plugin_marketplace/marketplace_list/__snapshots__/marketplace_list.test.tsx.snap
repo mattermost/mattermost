@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/marketplace/marketplace_list should render default 1`] = `
+<div
+  className="no_plugins"
+>
+  <PluginIcon
+    className="icon__plugin"
+  />
+  <div
+    className="no_plugins__message"
+  />
+</div>
+`;

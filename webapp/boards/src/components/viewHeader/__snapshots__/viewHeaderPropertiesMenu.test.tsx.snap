@@ -1,0 +1,381 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu 1`] = `
+<div>
+  <div
+    aria-label="Properties menu"
+    class="MenuWrapper override menuOpened"
+    role="button"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Properties
+      </span>
+    </button>
+    <div
+      class="Menu noselect bottom "
+    >
+      <div
+        class="menu-contents"
+      >
+        <div
+          class="menu-options"
+        >
+          <div />
+          <div>
+            <div
+              aria-label="Status"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Status
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Property 1
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Property 2
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Property 3
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Comments and description"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Comments and description
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="menu-spacer hideOnWidescreen"
+        />
+        <div
+          class="menu-options hideOnWidescreen"
+        >
+          <div
+            aria-label="Cancel"
+            class="MenuOption TextOption menu-option menu-cancel"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Cancel
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu with gallery typeview 1`] = `
+<div>
+  <div
+    aria-label="Properties menu"
+    class="MenuWrapper override menuOpened"
+    role="button"
+  >
+    <button
+      class="Button"
+      type="button"
+    >
+      <span>
+        Properties
+      </span>
+    </button>
+    <div
+      class="Menu noselect bottom "
+    >
+      <div
+        class="menu-contents"
+      >
+        <div
+          class="menu-options"
+        >
+          <div>
+            <div
+              aria-label="Title"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Title
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Status"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Status
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Property 1
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Property 2
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Property 3
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Comments and description"
+              class="MenuOption SwitchOption menu-option"
+              role="button"
+            >
+              <div
+                class="noicon"
+              />
+              <div
+                class="menu-name"
+              >
+                Comments and description
+              </div>
+              <div
+                class="Switch override-main size--small"
+              >
+                <div
+                  class="octo-switch-inner"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="menu-spacer hideOnWidescreen"
+        />
+        <div
+          class="menu-options hideOnWidescreen"
+        >
+          <div
+            aria-label="Cancel"
+            class="MenuOption TextOption menu-option menu-cancel"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Cancel
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

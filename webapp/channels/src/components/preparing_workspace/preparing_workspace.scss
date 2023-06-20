@@ -1,0 +1,157 @@
+@import 'utils/variables';
+@import 'utils/mixins';
+@import 'mixins';
+
+.PreparingWorkspace {
+    width: 100vw;
+
+    &__logo {
+        position: fixed;
+        z-index: 1;
+        top: 32px;
+        right: 32px;
+    }
+
+    &__previous {
+        display: inline-flex;
+        align-items: center;
+        padding-right: 2px;
+        margin-bottom: 25px;
+        color: var(--button-bg);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+
+        :first-child {
+            margin-right: 5px;
+        }
+    }
+
+    &__submit-error {
+        position: fixed;
+        z-index: 1;
+        bottom: 24px;
+        left: calc(50vw - 202px);
+        display: flex;
+        width: 404px;
+        align-items: center;
+        padding: 10px;
+        background-color: var(--dnd-indicator);
+        border-radius: 4px;
+        box-shadow: $elevation-3;
+        color: var(--center-channel-bg);
+        font-size: 14px;
+        font-weight: 600;
+
+        .icon-close {
+            cursor: pointer;
+        }
+    }
+
+    &__submit-error-message {
+        flex-grow: 1;
+        flex-shrink: 0;
+        padding-left: 9px;
+    }
+
+    .tertiary-button {
+        @include tertiary-button;
+        @include button-medium;
+
+        margin-left: 16px;
+    }
+
+    .primary-button {
+        @include primary-button;
+        @include button-medium;
+
+        box-sizing: border-box;
+        border: 2px solid var(--button-bg);
+    }
+
+    .primary-button[disabled] {
+        box-sizing: border-box;
+        border: 2px solid rgba(var(--center-channel-color-rgb), 0.01);
+    }
+
+    .link-style {
+        @include link;
+
+        background: transparent;
+        font-size: 14px;
+    }
+
+    .child-page {
+        // needed for smooth cross-page transition;
+        position: absolute;
+        height: 100vh;
+    }
+
+    &__invite-members-illustration {
+        position: absolute;
+        top: 25%;
+        right: -651px;
+        animation-duration: 0.3s;
+        animation-fill-mode: forwards;
+        animation-timing-function: ease-in-out;
+
+        @include sideIllustrationKeyframe(invitation, 651);
+
+        &.enter {
+            animation-name: invitationSlideInRight;
+        }
+
+        &.exit {
+            animation-name: invitationSlideOutRight;
+        }
+    }
+
+    &__roles-illustration {
+        position: absolute;
+        right: -295px;
+        bottom: 0;
+        animation-duration: 0.3s;
+        animation-fill-mode: forwards;
+        animation-timing-function: ease-in-out;
+
+        @include sideIllustrationKeyframe(roles, 295);
+
+        &.enter {
+            animation-name: rolesSlideInRight;
+        }
+
+        &.exit {
+            animation-name: rolesSlideOutRight;
+        }
+    }
+}
+
+.PreparingWorkspacePageContainer {
+
+    // needed so that channel preview can be positioned relative to this div
+    position: relative;
+    max-width: 1030px;
+    padding: 0 10px;
+
+    // centering
+    margin: 0 auto;
+    margin-left: 300px;
+}
+
+@media screen and (max-width: 768px) {
+    #root {
+        overflow-y: visible;
+    }
+
+    .PreparingWorkspacePageContainer .Plugins-body {
+        padding-top: 200px;
+        overflow-y: visible;
+    }
+}
+
+@media screen and (max-width: 1199px) {
+    .PreparingWorkspace__roles-illustration,
+    .PreparingWorkspace__invite-members-illustration {
+        display: none;
+    }
+}

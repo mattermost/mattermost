@@ -1,0 +1,41 @@
+{
+  "name": "@mattermost/types",
+  "version": "8.0.0",
+  "description": "Shared type definitions used by the Mattermost web app",
+  "keywords": [
+    "mattermost"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/types#readme",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    "./*": "./lib/*.js"
+  },
+  "typesVersions": {
+    ">=3.1": {
+      "*": [
+        "./lib/*.d.ts"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "github:mattermost/mattermost-server",
+    "directory": "webapp/platform/types"
+  },
+  "peerDependencies": {
+    "typescript": "^4.3"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --verbose",
+    "run": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf tsconfig.tsbuildinfo ./lib"
+  }
+}

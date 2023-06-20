@@ -1,0 +1,555 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/cardDetail/CardDetail should render hidden view if limited 1`] = `
+<div>
+  <div
+    class="CardDetail  CardDetail--is-limited"
+  >
+    <div
+      class="IconSelector"
+    >
+      <div
+        class="octo-icon size-l readonly"
+      >
+        <span>
+          i
+        </span>
+      </div>
+    </div>
+    <div
+      class="EditableAreaWrap"
+    >
+      <textarea
+        class="EditableArea Editable readonly title"
+        height="0"
+        placeholder="Untitled"
+        readonly=""
+        rows="1"
+        spellcheck="true"
+        title="title"
+      >
+        title
+      </textarea>
+      <div
+        class="EditableAreaContainer"
+      >
+        <textarea
+          aria-hidden="true"
+          class="EditableAreaReference Editable readonly title"
+          dir="auto"
+          disabled=""
+          rows="1"
+        >
+          title
+        </textarea>
+      </div>
+    </div>
+    <div
+      class="CardDetail__limited-wrapper"
+    >
+      <span
+        class="CardDetail__limited-bg"
+      >
+        <svg
+          fill="none"
+          height="521"
+          viewBox="0 0 468 521"
+          width="468"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="156"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="296"
+            x="172"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="156"
+            y="48"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="296"
+            x="172"
+            y="48"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="156"
+            y="96"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="296"
+            x="172"
+            y="96"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="156"
+            y="144"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="296"
+            x="172"
+            y="144"
+          />
+          <rect
+            fill="#3D3C40"
+            fill-opacity="0.16"
+            height="1"
+            width="468"
+            y="192"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="468"
+            y="209"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="32"
+            rx="4"
+            width="468"
+            y="257"
+          />
+          <rect
+            fill="#3D3C40"
+            fill-opacity="0.16"
+            height="1"
+            width="468"
+            y="305"
+          />
+          <rect
+            fill="#3F4350"
+            fill-opacity="0.08"
+            height="199"
+            rx="4"
+            width="468"
+            y="322"
+          />
+        </svg>
+      </span>
+      <p
+        class="CardDetail__limited-title"
+      >
+        This card is hidden
+      </p>
+      <p
+        class="CardDetail__limited-body"
+      >
+        Upgrade to our Professional or Enterprise plan.
+        <br />
+        <a
+          class="CardDetail__limited-link"
+          role="button"
+        >
+          Learn more about our plans.
+        </a>
+      </p>
+      <button
+        class="Button emphasis--primary size--large CardDetail__limited-button"
+        type="button"
+      >
+        <span>
+          Upgrade
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box AddCommentTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="right-end"
+  data-reference-hidden=""
+  data-state="visible"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 250ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="visible"
+    style="transition-duration: 250ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Add comments
+          </h4>
+          <button
+            class="IconButton tutorial-tour-tip__header__close size--small"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          You can comment on issues, and even @mention your fellow Mattermost users to get their attention.
+        </div>
+        <div
+          class="tutorial-tour-tip__image"
+        >
+          <img
+            alt="tutorial tour tip product image"
+            src="test-file-stub"
+          />
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            >
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="0"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
+              >
+                <a
+                  class="tutorial-tour-tip__circle active"
+                  data-screen="1"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="2"
+                  href="#"
+                />
+              </div>
+            </div>
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            >
+              <button
+                class="Button emphasis--tertiary size--small"
+                title="Previous"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-chevron-left icon"
+                />
+                <span>
+                  Previous
+                </span>
+              </button>
+              <button
+                class="Button filled size--small tipNextButton"
+                type="button"
+              >
+                <span>
+                  Next
+                </span>
+                <i
+                  class="CompassIcon icon-chevron-right icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; top: 0px; transform: translate(0px, 3px);"
+  />
+</div>
+`;
+
+exports[`components/cardDetail/CardDetail should show add description tour tip 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box AddDescriptionTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="top-start"
+  data-reference-hidden=""
+  data-state="visible"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 250ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="visible"
+    style="transition-duration: 250ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Add description
+          </h4>
+          <button
+            class="IconButton tutorial-tour-tip__header__close size--small"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          Add a description to your card so your teammates know what the card is about.
+        </div>
+        <div
+          class="tutorial-tour-tip__image"
+        >
+          <img
+            alt="tutorial tour tip product image"
+            src="test-file-stub"
+          />
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            >
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="0"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="1"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
+              >
+                <a
+                  class="tutorial-tour-tip__circle active"
+                  data-screen="2"
+                  href="#"
+                />
+              </div>
+            </div>
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            >
+              <button
+                class="Button emphasis--tertiary size--small"
+                title="Previous"
+                type="button"
+              >
+                <i
+                  class="CompassIcon icon-chevron-left icon"
+                />
+                <span>
+                  Previous
+                </span>
+              </button>
+              <button
+                class="Button filled size--small tipNextButton"
+                type="button"
+              >
+                <span>
+                  Done
+                </span>
+                
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; left: 0px; transform: translate(3px, 0px);"
+  />
+</div>
+`;
+
+exports[`components/cardDetail/CardDetail should show add properties tour tip 1`] = `
+<div
+  class="tippy-box tutorial-tour-tip__box AddPropertiesTourStep"
+  data-animation="scale-subtle"
+  data-escaped=""
+  data-placement="right-end"
+  data-reference-hidden=""
+  data-state="visible"
+  role="tooltip"
+  style="max-width: 320px; transition-duration: 250ms;"
+  tabindex="-1"
+>
+  <div
+    class="tippy-content"
+    data-state="visible"
+    style="transition-duration: 250ms;"
+  >
+    <div>
+      <div>
+        <div
+          class="tutorial-tour-tip__header"
+        >
+          <h4
+            class="tutorial-tour-tip__header__title"
+          >
+            Add properties
+          </h4>
+          <button
+            class="IconButton tutorial-tour-tip__header__close size--small"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
+        </div>
+        <div
+          class="tutorial-tour-tip__body"
+        >
+          Add various properties to cards to make them more powerful.
+        </div>
+        <div
+          class="tutorial-tour-tip__image"
+        >
+          <img
+            alt="tutorial tour tip product image"
+            src="test-file-stub"
+          />
+        </div>
+        <div
+          class="tutorial-tour-tip__footer"
+        >
+          <div
+            class="tutorial-tour-tip__footer-buttons"
+          >
+            <div
+              class="tutorial-tour-tip__circles-ctr"
+            >
+              <div
+                class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
+              >
+                <a
+                  class="tutorial-tour-tip__circle active"
+                  data-screen="0"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="1"
+                  href="#"
+                />
+              </div>
+              <div
+                class="tutorial-tour-tip__circular-ring"
+              >
+                <a
+                  class="tutorial-tour-tip__circle"
+                  data-screen="2"
+                  href="#"
+                />
+              </div>
+            </div>
+            <div
+              class="tutorial-tour-tip__btn-ctr"
+            >
+              <button
+                class="Button filled size--small tipNextButton"
+                type="button"
+              >
+                <span>
+                  Next
+                </span>
+                <i
+                  class="CompassIcon icon-chevron-right icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="tippy-arrow"
+    style="position: absolute; top: 0px; transform: translate(0px, 3px);"
+  />
+</div>
+`;

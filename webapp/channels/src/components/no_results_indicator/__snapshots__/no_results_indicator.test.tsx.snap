@@ -1,0 +1,239 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/no_results_indicator should match snapshot when expanded 1`] = `
+<div
+  className="no-results__holder"
+>
+  <div
+    className="no-results__wrapper"
+  >
+    <div
+      className="no-results__variant-wrapper"
+    >
+      <SearchIcon
+        className="no-results__icon"
+      />
+    </div>
+    <div
+      className="no-results__text-container"
+    >
+      <h3
+        className="no-results__title"
+      >
+        <MemoizedFormattedMessage
+          id="no_results.channel_search.title"
+        />
+      </h3>
+      <div
+        className="no-results__subtitle"
+      >
+        <MemoizedFormattedMessage
+          id="no_results.channel_search.subtitle"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with default props 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div
+    className="no-results__text-container"
+  />
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with horizontal layout 1`] = `
+<div
+  className="no-results__wrapper horizontal-layout"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      Test
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      Subtitle
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with variant ChannelFiles 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.channel_files.title"
+      />
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.channel_files.subtitle"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with variant ChannelFilesFiltered 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.channel_files_filtered.title"
+      />
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.channel_files_filtered.subtitle"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with variant ChannelSearch 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.channel_search.title"
+      />
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.channel_search.subtitle"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with variant FlaggedPosts 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.flagged_posts.title"
+      />
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.flagged_posts.subtitle"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with variant Mentions 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.mentions.title"
+      />
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.mentions.subtitle"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/no_results_indicator should match snapshot with variant PinnedPosts 1`] = `
+<div
+  className="no-results__wrapper"
+>
+  <div>
+    Test
+  </div>
+  <div
+    className="no-results__text-container"
+  >
+    <h3
+      className="no-results__title"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.pinned_posts.title"
+      />
+    </h3>
+    <div
+      className="no-results__subtitle"
+    >
+      <MemoizedFormattedMessage
+        id="no_results.pinned_posts.subtitle"
+      />
+    </div>
+  </div>
+</div>
+`;

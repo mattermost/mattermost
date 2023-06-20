@@ -6,7 +6,7 @@ on:
     branches: [ master ]
   schedule:
     - cron: '30 5,17 * * *'
-    
+
 permissions:
   contents: read
 
@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'go' ]
+        language: [ 'go', 'javascript' ]
 
     steps:
     - name: Checkout repository
@@ -32,13 +32,26 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         debug: false
-        config-file: ./.github/codeql/codeql-config.yml              
-    
-    - name: Build
+        config-file: ./.github/codeql/codeql-config.yml
+
+    - name: Build JavaScript
+      uses: github/codeql-action/autobuild@v2
+      if: ${{ matrix.language  == 'javascript' }}
+
+    - name: Setup go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.20'
+      if: ${{ matrix.language == 'go' }}
+
+
+    - name: Build Golang
       run: |
+        cd server
         make setup-go-work
         make build-linux-amd64
+      if: ${{ matrix.language == 'go' }}
 
     # Perform Analysis
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2    
+      uses: github/codeql-action/analyze@v2

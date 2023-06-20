@@ -1,0 +1,249 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  onToggle={[Function]}
+  open={true}
+>
+  <OverlayTrigger
+    className="hidden-xs"
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        bsClass="tooltip"
+        className="hidden-xs"
+        id="actions-menu-icon-tooltip"
+        placement="right"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Message actions"
+          id="post_info.tooltip.actions"
+        />
+      </Tooltip>
+    }
+    placement="top"
+    rootClose={true}
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      aria-expanded="false"
+      aria-label="actions"
+      className="post-menu__item post-menu__item--active"
+      id="center_actions_button_post_id_1"
+      key="more-actions-button"
+      type="button"
+    >
+      <i
+        className="icon icon-apps"
+      />
+    </button>
+  </OverlayTrigger>
+  <Menu
+    ariaLabel="Post extra options"
+    id="center_actions_dropdown_post_id_1"
+    key="center_actions_dropdown_post_id_1"
+    openLeft={true}
+    openUp={false}
+  >
+    <MenuItemAction
+      key="the_component_id_pluginmenuitem"
+      onClick={[Function]}
+      show={true}
+    />
+    <Connect(Pluggable)
+      key="post_id_1pluggable"
+      pluggableName="PostDropdownMenuItem"
+      postId="post_id_1"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  onToggle={[Function]}
+  open={true}
+>
+  <OverlayTrigger
+    className="hidden-xs"
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        bsClass="tooltip"
+        className="hidden-xs"
+        id="actions-menu-icon-tooltip"
+        placement="right"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Message actions"
+          id="post_info.tooltip.actions"
+        />
+      </Tooltip>
+    }
+    placement="top"
+    rootClose={true}
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      aria-expanded="false"
+      aria-label="actions"
+      className="post-menu__item post-menu__item--active"
+      id="center_actions_button_post_id_1"
+      key="more-actions-button"
+      type="button"
+    >
+      <i
+        className="icon icon-apps"
+      />
+    </button>
+  </OverlayTrigger>
+  <Menu
+    ariaLabel="Post extra options"
+    id="center_actions_dropdown_post_id_1"
+    key="center_actions_dropdown_post_id_1"
+    openLeft={true}
+    openUp={false}
+  >
+    <MenuItemAction
+      key="the_component_id_pluginmenuitem"
+      onClick={[Function]}
+      show={true}
+    />
+    <Connect(Pluggable)
+      key="post_id_1pluggable"
+      pluggableName="PostDropdownMenuItem"
+      postId="post_id_1"
+    />
+    <li
+      className="MenuItem__divider"
+      id="divider_post_post_id_1_marketplace"
+      role="menuitem"
+    />
+    <MenuItemAction
+      icon={
+        <span
+          className="icon-view-grid-plus-outline MenuItem__compass-icon"
+        />
+      }
+      id="marketplace_icon_post_id_1"
+      key="marketplace_post_id_1"
+      onClick={[Function]}
+      show={true}
+      text="App Marketplace"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `""`;
+
+exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should show visit marketplace 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  onToggle={[Function]}
+  open={true}
+>
+  <OverlayTrigger
+    className="hidden-xs"
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        bsClass="tooltip"
+        className="hidden-xs"
+        id="actions-menu-icon-tooltip"
+        placement="right"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Message actions"
+          id="post_info.tooltip.actions"
+        />
+      </Tooltip>
+    }
+    placement="top"
+    rootClose={true}
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      aria-expanded="false"
+      aria-label="actions"
+      className="post-menu__item post-menu__item--active"
+      id="center_actions_button_post_id_1"
+      key="more-actions-button"
+      type="button"
+    >
+      <i
+        className="icon icon-apps"
+      />
+    </button>
+  </OverlayTrigger>
+  <Menu
+    ariaLabel="Post extra options"
+    id="center_actions_dropdown_post_id_1"
+    key="center_actions_dropdown_post_id_1"
+    openLeft={true}
+    openUp={false}
+  >
+    <Connect(SystemPermissionGate)
+      key="visit-marketplace-permissions"
+      permissions={
+        Array [
+          "manage_system",
+        ]
+      }
+    >
+      <div
+        className="visit-marketplace-text"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="No Actions currently\\\\nconfigured for this server"
+          id="post_info.actions.noActions"
+        />
+      </div>
+      <div
+        className="visit-marketplace"
+      >
+        <button
+          className="btn btn-primary visit-marketplace-button"
+          id="marketPlaceButton"
+          onClick={[Function]}
+        >
+          <span
+            className="icon-view-grid-plus-outline visit-marketplace-button-icon MenuItem__compass-icon"
+          />
+          <span
+            className="visit-marketplace-button-text"
+          >
+            <FormattedMarkdownMessage
+              defaultMessage="Visit the Marketplace"
+              id="post_info.actions.visitMarketplace"
+            />
+          </span>
+        </button>
+      </div>
+    </Connect(SystemPermissionGate)>
+  </Menu>
+</MenuWrapper>
+`;

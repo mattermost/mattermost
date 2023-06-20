@@ -1,0 +1,1111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMaximizedSetting 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="user.settings.notifications.desktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="all"
+                id="desktopNotificationAllActivity"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For all activity"
+                id="user.settings.notifications.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopActivity"
+                data-value="mention"
+                id="desktopNotificationMentions"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Only for mentions and direct messages"
+                id="user.settings.notifications.onlyMentions"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="none"
+                id="desktopNotificationNever"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.info"
+            />
+          </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sound"
+              id="user.settings.notifications.desktop.sound"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopSound"
+                data-value="true"
+                id="soundOn"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="On"
+                id="user.settings.notifications.on"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopSound"
+                data-value="false"
+                id="soundOff"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Off"
+                id="user.settings.notifications.off"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.sounds_info"
+            />
+          </div>
+        </fieldset>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMaximizedSetting 2`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="user.settings.notifications.desktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="all"
+                id="desktopNotificationAllActivity"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For all activity"
+                id="user.settings.notifications.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="mention"
+                id="desktopNotificationMentions"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Only for mentions and direct messages"
+                id="user.settings.notifications.onlyMentions"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopActivity"
+                data-value="none"
+                id="desktopNotificationNever"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.info"
+            />
+          </div>
+        </fieldset>
+        <hr />
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="For mentions and direct messages, without sound"
+      id="user.settings.notifications.desktop.mentionsNoSound"
+    />
+  }
+  section="desktop"
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 2`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Off"
+      id="user.settings.notifications.off"
+    />
+  }
+  section="desktop"
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on max setting 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="user.settings.notifications.desktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="all"
+                id="desktopNotificationAllActivity"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For all activity"
+                id="user.settings.notifications.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopActivity"
+                data-value="mention"
+                id="desktopNotificationMentions"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Only for mentions and direct messages"
+                id="user.settings.notifications.onlyMentions"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="none"
+                id="desktopNotificationNever"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.info"
+            />
+          </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sound"
+              id="user.settings.notifications.desktop.sound"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopSound"
+                data-value="true"
+                id="soundOn"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="On"
+                id="user.settings.notifications.on"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopSound"
+                data-value="false"
+                id="soundOff"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Off"
+                id="user.settings.notifications.off"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.sounds_info"
+            />
+          </div>
+        </fieldset>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on max setting with Calls enabled 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="user.settings.notifications.desktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="all"
+                id="desktopNotificationAllActivity"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For all activity"
+                id="user.settings.notifications.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopActivity"
+                data-value="mention"
+                id="desktopNotificationMentions"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Only for mentions and direct messages"
+                id="user.settings.notifications.onlyMentions"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="none"
+                id="desktopNotificationNever"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.info"
+            />
+          </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sound"
+              id="user.settings.notifications.desktop.sound"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopSound"
+                data-value="true"
+                id="soundOn"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="On"
+                id="user.settings.notifications.on"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopSound"
+                data-value="false"
+                id="soundOff"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Off"
+                id="user.settings.notifications.off"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.sounds_info"
+            />
+          </div>
+        </fieldset>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sound for incoming calls"
+                id="user.settings.notifications.desktop.calls_sound"
+              />
+            </legend>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  data-key="callsDesktopSound"
+                  data-value="true"
+                  id="callsSoundOn"
+                  name="callsNotificationSounds"
+                  onChange={[Function]}
+                  type="radio"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="On"
+                  id="user.settings.notifications.on"
+                />
+              </label>
+              <br />
+            </div>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={true}
+                  data-key="callsDesktopSound"
+                  data-value="false"
+                  id="soundOff"
+                  name="callsNotificationSounds"
+                  onChange={[Function]}
+                  type="radio"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Off"
+                  id="user.settings.notifications.off"
+                />
+              </label>
+              <br />
+            </div>
+          </fieldset>
+        </React.Fragment>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on max setting with Calls enabled, calls sound true 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="user.settings.notifications.desktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="all"
+                id="desktopNotificationAllActivity"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For all activity"
+                id="user.settings.notifications.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopActivity"
+                data-value="mention"
+                id="desktopNotificationMentions"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Only for mentions and direct messages"
+                id="user.settings.notifications.onlyMentions"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="none"
+                id="desktopNotificationNever"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.info"
+            />
+          </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sound"
+              id="user.settings.notifications.desktop.sound"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopSound"
+                data-value="true"
+                id="soundOn"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="On"
+                id="user.settings.notifications.on"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopSound"
+                data-value="false"
+                id="soundOff"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Off"
+                id="user.settings.notifications.off"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.sounds_info"
+            />
+          </div>
+        </fieldset>
+        <React.Fragment>
+          <hr />
+          <fieldset>
+            <legend
+              className="form-legend"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Notification sound for incoming calls"
+                id="user.settings.notifications.desktop.calls_sound"
+              />
+            </legend>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={true}
+                  data-key="callsDesktopSound"
+                  data-value="true"
+                  id="callsSoundOn"
+                  name="callsNotificationSounds"
+                  onChange={[Function]}
+                  type="radio"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="On"
+                  id="user.settings.notifications.on"
+                />
+              </label>
+              <br />
+            </div>
+            <div
+              className="radio"
+            >
+              <label>
+                <input
+                  checked={false}
+                  data-key="callsDesktopSound"
+                  data-value="false"
+                  id="soundOff"
+                  name="callsNotificationSounds"
+                  onChange={[Function]}
+                  type="radio"
+                />
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Off"
+                  id="user.settings.notifications.off"
+                />
+              </label>
+              <br />
+            </div>
+            <div
+              className="pt-2"
+            >
+              <StateManager
+                className="react-select notification-sound-dropdown"
+                classNamePrefix="react-select"
+                clearable={false}
+                defaultInputValue=""
+                defaultMenuIsOpen={false}
+                defaultValue={null}
+                id="displayCallsSoundNotification"
+                isSearchable={false}
+                onChange={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": "Dynamic",
+                      "value": "Dynamic",
+                    },
+                    Object {
+                      "label": "Calm",
+                      "value": "Calm",
+                    },
+                    Object {
+                      "label": "Urgent",
+                      "value": "Urgent",
+                    },
+                    Object {
+                      "label": "Cheerful",
+                      "value": "Cheerful",
+                    },
+                  ]
+                }
+                value={
+                  Object {
+                    "label": "Dynamic",
+                    "value": "Dynamic",
+                  }
+                }
+              />
+            </div>
+          </fieldset>
+        </React.Fragment>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on max setting with sound enabled 1`] = `
+<SettingItemMax
+  containerStyle=""
+  infoPosition="bottom"
+  inputs={
+    Array [
+      <div>
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Send desktop notifications"
+              id="user.settings.notifications.desktop"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="all"
+                id="desktopNotificationAllActivity"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="For all activity"
+                id="user.settings.notifications.allActivity"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopActivity"
+                data-value="mention"
+                id="desktopNotificationMentions"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Only for mentions and direct messages"
+                id="user.settings.notifications.onlyMentions"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopActivity"
+                data-value="none"
+                id="desktopNotificationNever"
+                name="desktopNotificationLevel"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Never"
+                id="user.settings.notifications.never"
+              />
+            </label>
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.info"
+            />
+          </div>
+        </fieldset>
+        <hr />
+        <fieldset>
+          <legend
+            className="form-legend"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sound"
+              id="user.settings.notifications.desktop.sound"
+            />
+          </legend>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={true}
+                data-key="desktopSound"
+                data-value="true"
+                id="soundOn"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="On"
+                id="user.settings.notifications.on"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="radio"
+          >
+            <label>
+              <input
+                checked={false}
+                data-key="desktopSound"
+                data-value="false"
+                id="soundOff"
+                name="notificationSounds"
+                onChange={[Function]}
+                type="radio"
+              />
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Off"
+                id="user.settings.notifications.off"
+              />
+            </label>
+            <br />
+          </div>
+          <div
+            className="pt-2"
+          >
+            <StateManager
+              className="react-select notification-sound-dropdown"
+              classNamePrefix="react-select"
+              clearable={false}
+              defaultInputValue=""
+              defaultMenuIsOpen={false}
+              defaultValue={null}
+              id="displaySoundNotification"
+              isSearchable={false}
+              onChange={[Function]}
+              options={
+                Array [
+                  Object {
+                    "label": "Bing",
+                    "value": "Bing",
+                  },
+                  Object {
+                    "label": "Crackle",
+                    "value": "Crackle",
+                  },
+                  Object {
+                    "label": "Down",
+                    "value": "Down",
+                  },
+                  Object {
+                    "label": "Hello",
+                    "value": "Hello",
+                  },
+                  Object {
+                    "label": "Ripple",
+                    "value": "Ripple",
+                  },
+                  Object {
+                    "label": "Upstairs",
+                    "value": "Upstairs",
+                  },
+                ]
+              }
+              value={
+                Object {
+                  "label": "Bing",
+                  "value": "Bing",
+                }
+              }
+            />
+          </div>
+          <div
+            className="mt-5"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps."
+              id="user.settings.notifications.sounds_info"
+            />
+          </div>
+        </fieldset>
+      </div>,
+    ]
+  }
+  saving={false}
+  section=""
+  serverError=""
+  submit={[MockFunction]}
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;
+
+exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on min setting 1`] = `
+<Connect(SettingItemMin)
+  describe={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="For mentions and direct messages, without sound"
+      id="user.settings.notifications.desktop.mentionsNoSound"
+    />
+  }
+  section="desktop"
+  title="Desktop Notifications"
+  updateSection={[Function]}
+/>
+`;

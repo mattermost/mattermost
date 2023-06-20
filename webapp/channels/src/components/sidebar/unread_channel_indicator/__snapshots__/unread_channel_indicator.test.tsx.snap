@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UnreadChannelIndicator should match snapshot 1`] = `
+<div
+  className="nav-pills__unread-indicator"
+  id="unreadIndicatorundefined"
+  onClick={[MockFunction]}
+>
+  <UnreadBelowIcon
+    className="icon icon__unread"
+  />
+</div>
+`;
+
+exports[`UnreadChannelIndicator should match snapshot when content is an element 1`] = `
+<div
+  className="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
+  id="unreadIndicatorundefined"
+  onClick={[MockFunction]}
+>
+  <UnreadBelowIcon
+    className="icon icon__unread"
+  />
+  <div>
+    foo
+  </div>
+</div>
+`;
+
+exports[`UnreadChannelIndicator should match snapshot when content is text 1`] = `
+<div
+  className="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
+  id="unreadIndicatorundefined"
+  onClick={[MockFunction]}
+>
+  <UnreadBelowIcon
+    className="icon icon__unread"
+  />
+  foo
+</div>
+`;
+
+exports[`UnreadChannelIndicator should match snapshot when show is set 1`] = `
+<div
+  className="nav-pills__unread-indicator nav-pills__unread-indicator--visible"
+  id="unreadIndicatorundefined"
+  onClick={[MockFunction]}
+>
+  <UnreadBelowIcon
+    className="icon icon__unread"
+  />
+</div>
+`;

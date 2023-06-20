@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/ThreadViewer should match snapshot 1`] = `
+<Fragment>
+  <div
+    className="ThreadViewer"
+  >
+    <div
+      className="post-right-comments-container"
+    >
+      <FileUploadOverlay
+        overlayType="right"
+      />
+      <DeferredRenderWrapper
+        channel={
+          Object {
+            "create_at": 0,
+            "creator_id": "",
+            "delete_at": 0,
+            "display_name": "",
+            "group_constrained": false,
+            "header": "",
+            "id": "channel_id",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "",
+            "purpose": "",
+            "scheme_id": "",
+            "status": "",
+            "team_id": "team_id",
+            "teammate_id": "",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+        isThreadView={false}
+        key="id"
+        onCardClick={[Function]}
+        postIds={
+          Array [
+            "id",
+          ]
+        }
+        selected={
+          Object {
+            "channel_id": "channel_id",
+            "create_at": 1502715365009,
+            "delete_at": 0,
+            "edit_at": 0,
+            "hashtags": "",
+            "id": "id",
+            "is_following": true,
+            "is_pinned": false,
+            "message": "post message",
+            "metadata": Object {
+              "embeds": Array [],
+              "emojis": Array [],
+              "files": Array [],
+              "images": Object {},
+              "reactions": Array [],
+            },
+            "original_id": "",
+            "pending_post_id": "",
+            "props": Object {},
+            "reply_count": 3,
+            "root_id": "",
+            "type": "system_add_remove",
+            "update_at": 1502715372443,
+            "user_id": "user_id",
+          }
+        }
+        useRelativeTimestamp={false}
+      />
+    </div>
+  </div>
+</Fragment>
+`;

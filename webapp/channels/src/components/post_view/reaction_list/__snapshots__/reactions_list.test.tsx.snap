@@ -1,0 +1,115 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ReactionList should render nothing when no reactions 1`] = `""`;
+
+exports[`components/ReactionList should render when there are reactions 1`] = `
+<div
+  aria-label="reactions"
+  className="post-reaction-list"
+>
+  <Connect(Reaction)
+    emojiName="expressionless"
+    key="expressionless"
+    post={
+      Object {
+        "channel_id": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "edit_at": 0,
+        "hashtags": "",
+        "id": "post_id",
+        "is_pinned": false,
+        "message": "post message",
+        "metadata": Object {
+          "embeds": Array [],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {},
+          "reactions": Array [],
+        },
+        "original_id": "",
+        "pending_post_id": "",
+        "props": Object {},
+        "reply_count": 0,
+        "root_id": "",
+        "type": "system_add_remove",
+        "update_at": 0,
+        "user_id": "user_id",
+      }
+    }
+    reactions={
+      Array [
+        Object {
+          "create_at": 1542994995740,
+          "emoji_name": "expressionless",
+          "post_id": "xbqfo5qb4bb4ffmj9hqfji6fiw",
+          "user_id": "1rj9fokoeffrigu7sk5uc8aiih",
+        },
+      ]
+    }
+  />
+  <div
+    className="post-add-reaction"
+  >
+    <span
+      className="emoji-picker__container"
+    >
+      <EmojiPickerOverlay
+        enableGifPicker={false}
+        onEmojiClick={[Function]}
+        onHide={[Function]}
+        rightOffset={15}
+        show={false}
+        spaceRequiredAbove={476}
+        spaceRequiredBelow={497}
+        target={[Function]}
+        topOffset={-5}
+      />
+      <Connect(ChannelPermissionGate)
+        channelId=""
+        permissions={
+          Array [
+            "add_reaction",
+          ]
+        }
+        teamId="teamId"
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              id="addReactionTooltip"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Add a reaction"
+                id="reaction_list.addReactionTooltip"
+              />
+            </Tooltip>
+          }
+          placement="top"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <button
+            aria-label="Add a reaction"
+            className="Reaction"
+            onClick={[Function]}
+          >
+            <span
+              className="Reaction__add"
+              id="addReaction-post_id"
+            >
+              <AddReactionIcon />
+            </span>
+          </button>
+        </OverlayTrigger>
+      </Connect(ChannelPermissionGate)>
+    </span>
+  </div>
+</div>
+`;

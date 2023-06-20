@@ -1,0 +1,49 @@
+@import 'src/styles/z-index';
+
+.Menu .menu-options .SubMenuOption {
+    &.menu-option {
+        padding-right: 16px;
+    }
+}
+
+.SubMenuOption {
+    position: relative;
+
+    .SubMenu {
+        @include z-index(sub-menu-option-sub-menu);
+        position: absolute;
+        min-width: 180px;
+        background-color: rgb(var(--center-channel-bg-rgb));
+        color: rgb(var(--center-channel-color-rgb));
+        margin: 0 !important;
+
+        border-radius: var(--default-rad);
+        box-shadow: var(--elevation-4);
+        left: 100%;
+
+        &.top {
+            bottom: 0;
+        }
+
+        &.bottom {
+            top: 0;
+        }
+
+        &.left {
+            left: -100%;
+            right: 100%;
+        }
+
+        &.left-bottom {
+            left: -100%;
+            right: 100%;
+            top: 0;
+        }
+    }
+
+    @media screen and (max-width: 430px) {
+        .SubMenu {
+            background-color: rgba(var(--center-channel-color-rgb), 0.8) !important;
+        }
+    }
+}

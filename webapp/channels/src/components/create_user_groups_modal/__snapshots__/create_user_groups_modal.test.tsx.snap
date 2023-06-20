@@ -1,0 +1,253 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/create_user_groups_modal should match snapshot with back button 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="createUserGroupsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal user-groups-modal-create"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="createUserGroupsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <button
+      aria-label="Back"
+      className="modal-header-back-button btn-icon"
+      onClick={[Function]}
+      type="button"
+    >
+      <LocalizedIcon
+        ariaLabel={
+          Object {
+            "defaultMessage": "Back",
+            "id": "user_groups_modal.goBackLabel",
+          }
+        }
+        className="icon icon-arrow-left"
+      />
+    </button>
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="createGroupsModalTitleWithBack"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Create Group"
+        id="user_groups_modal.createTitle"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="user-groups-modal__content"
+    >
+      <div
+        className="group-name-input-wrapper"
+      >
+        <ForwardRef
+          autoFocus={true}
+          customMessage={
+            Object {
+              "type": "error",
+              "value": "",
+            }
+          }
+          data-testid="nameInput"
+          maxLength={64}
+          onChange={[Function]}
+          placeholder="Name"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        className="group-mention-input-wrapper"
+      >
+        <ForwardRef
+          customMessage={
+            Object {
+              "type": "error",
+              "value": "",
+            }
+          }
+          data-testid="mentionInput"
+          maxLength={64}
+          onChange={[Function]}
+          placeholder="Mention"
+          type="text"
+          value=""
+        />
+      </div>
+      <h2>
+        <MemoizedFormattedMessage
+          defaultMessage="Add People"
+          id="user_groups_modal.addPeople"
+        />
+      </h2>
+      <div
+        className="group-add-user"
+      >
+        <Connect(AddUserToGroupMultiSelect)
+          addUserCallback={[Function]}
+          backButtonClass="multiselect-back"
+          backButtonClick={[Function]}
+          backButtonText="Cancel"
+          deleteUserCallback={[Function]}
+          focusOnLoad={false}
+          multilSelectKey="addUsersToGroupKey"
+          onSubmitCallback={[Function]}
+          saving={false}
+          savingEnabled={false}
+        />
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`component/create_user_groups_modal should match snapshot without back button 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="createUserGroupsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal user-groups-modal-create"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="createUserGroupsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="createGroupsModalTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Create Group"
+        id="user_groups_modal.createTitle"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="user-groups-modal__content"
+    >
+      <div
+        className="group-name-input-wrapper"
+      >
+        <ForwardRef
+          autoFocus={true}
+          customMessage={
+            Object {
+              "type": "error",
+              "value": "",
+            }
+          }
+          data-testid="nameInput"
+          maxLength={64}
+          onChange={[Function]}
+          placeholder="Name"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        className="group-mention-input-wrapper"
+      >
+        <ForwardRef
+          customMessage={
+            Object {
+              "type": "error",
+              "value": "",
+            }
+          }
+          data-testid="mentionInput"
+          maxLength={64}
+          onChange={[Function]}
+          placeholder="Mention"
+          type="text"
+          value=""
+        />
+      </div>
+      <h2>
+        <MemoizedFormattedMessage
+          defaultMessage="Add People"
+          id="user_groups_modal.addPeople"
+        />
+      </h2>
+      <div
+        className="group-add-user"
+      >
+        <Connect(AddUserToGroupMultiSelect)
+          addUserCallback={[Function]}
+          backButtonClass="multiselect-back"
+          backButtonClick={[Function]}
+          backButtonText="Cancel"
+          deleteUserCallback={[Function]}
+          focusOnLoad={false}
+          multilSelectKey="addUsersToGroupKey"
+          onSubmitCallback={[Function]}
+          saving={false}
+          savingEnabled={false}
+        />
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;

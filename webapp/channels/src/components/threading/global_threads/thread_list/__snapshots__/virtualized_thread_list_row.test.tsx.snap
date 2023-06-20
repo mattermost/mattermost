@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/global_threads/thread_list/virtualized_thread_list_row should match snapshot 1`] = `
+<Connect(Component)
+  isFirstThreadInList={false}
+  isSelected={false}
+  key="2"
+  style={Object {}}
+  threadId="2"
+/>
+`;
+
+exports[`components/threading/global_threads/thread_list/virtualized_thread_list_row should support item loading indicator 1`] = `
+<LoadingScreen
+  message={<React.Fragment />}
+  style={Object {}}
+/>
+`;
+
+exports[`components/threading/global_threads/thread_list/virtualized_thread_list_row should support item search guidance  1`] = `
+<NoResultsIndicator
+  iconGraphic={<SearchHintSVG />}
+  layout={1}
+  style={
+    Object {
+      "background": "rgba(var(--center-channel-color-rgb), 0.04)",
+      "padding": "16px 16px 16px 24px",
+    }
+  }
+  subtitle={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="If you’re looking for older conversations, try searching with {searchShortcut}"
+      id="globalThreads.searchGuidance.subtitle"
+      values={
+        Object {
+          "searchShortcut": <SearchShortcut
+            className="thread-no-results-subtitle-shortcut"
+            variant="tutorialTip"
+          />,
+        }
+      }
+    />
+  }
+  subtitleClassName="thread-no-results-subtitle"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="That’s the end of the list"
+      id="globalThreads.searchGuidance.title"
+    />
+  }
+  titleClassName="thread-no-results-title"
+/>
+`;

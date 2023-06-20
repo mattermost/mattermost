@@ -1,0 +1,28 @@
+.cloud-limits-disabled {
+    pointer-events: 'none';
+}
+
+.upgrade-options-button {
+    height: 38px;
+    padding: 9px, 16px;
+    margin-left: 16px;
+    background: #1c58d9;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.disabled-overlay-wrapper {
+    display: inline-block;
+    cursor: not-allowed;
+}
+
+.tooltip-title {
+    font-weight: 600;
+}
+
+.tooltip-body {
+    font-weight: normal;
+    opacity: 56%;
+    text-align: left;
+}

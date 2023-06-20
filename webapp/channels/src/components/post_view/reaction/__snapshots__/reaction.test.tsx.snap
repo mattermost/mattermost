@@ -1,0 +1,339 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/Reaction should apply read-only class if user does not have permission to add reaction 1`] = `
+<OverlayTrigger
+  defaultOverlayShown={false}
+  delayShow={500}
+  onEnter={[Function]}
+  overlay={
+    <Tooltip
+      id="post_id-smile-reaction"
+    >
+      <Memo(Connect(ReactionTooltip))
+        canAddReactions={false}
+        canRemoveReactions={true}
+        currentUserReacted={false}
+        emojiName="smile"
+        reactions={
+          Array [
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_2",
+            },
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_3",
+            },
+          ]
+        }
+      />
+    </Tooltip>
+  }
+  placement="top"
+  shouldUpdatePosition={true}
+  trigger={
+    Array [
+      "hover",
+      "focus",
+    ]
+  }
+>
+  <button
+    aria-label="react with smile"
+    className="Reaction Reaction--unreacted Reaction--read-only"
+    id="postReaction-post_id-smile"
+    onClick={[Function]}
+  >
+    <span
+      className="d-flex align-items-center"
+    >
+      <img
+        className="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        className="Reaction__count"
+      >
+        <span
+          className="Reaction__number"
+        >
+          <span
+            className="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            className="Reaction__number--unreacted"
+            onAnimationEnd={[Function]}
+          >
+            2
+          </span>
+          <span
+            className="Reaction__number--reacted"
+          >
+            3
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</OverlayTrigger>
+`;
+
+exports[`components/post_view/Reaction should apply read-only class if user does not have permission to remove reaction 1`] = `
+<OverlayTrigger
+  defaultOverlayShown={false}
+  delayShow={500}
+  onEnter={[Function]}
+  overlay={
+    <Tooltip
+      id="post_id-smile-reaction"
+    >
+      <Memo(Connect(ReactionTooltip))
+        canAddReactions={true}
+        canRemoveReactions={false}
+        currentUserReacted={true}
+        emojiName="smile"
+        reactions={
+          Array [
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_2",
+            },
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_3",
+            },
+          ]
+        }
+      />
+    </Tooltip>
+  }
+  placement="top"
+  shouldUpdatePosition={true}
+  trigger={
+    Array [
+      "hover",
+      "focus",
+    ]
+  }
+>
+  <button
+    aria-label="react with smile"
+    className="Reaction Reaction--reacted Reaction--read-only"
+    id="postReaction-post_id-smile"
+    onClick={[Function]}
+  >
+    <span
+      className="d-flex align-items-center"
+    >
+      <img
+        className="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        className="Reaction__count"
+      >
+        <span
+          className="Reaction__number"
+        >
+          <span
+            className="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            className="Reaction__number--unreacted"
+            onAnimationEnd={[Function]}
+          >
+            1
+          </span>
+          <span
+            className="Reaction__number--reacted"
+          >
+            2
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</OverlayTrigger>
+`;
+
+exports[`components/post_view/Reaction should match snapshot 1`] = `
+<OverlayTrigger
+  defaultOverlayShown={false}
+  delayShow={500}
+  onEnter={[Function]}
+  overlay={
+    <Tooltip
+      id="post_id-smile-reaction"
+    >
+      <Memo(Connect(ReactionTooltip))
+        canAddReactions={true}
+        canRemoveReactions={true}
+        currentUserReacted={false}
+        emojiName="smile"
+        reactions={
+          Array [
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_2",
+            },
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_3",
+            },
+          ]
+        }
+      />
+    </Tooltip>
+  }
+  placement="top"
+  shouldUpdatePosition={true}
+  trigger={
+    Array [
+      "hover",
+      "focus",
+    ]
+  }
+>
+  <button
+    aria-label="react with smile"
+    className="Reaction Reaction--unreacted "
+    id="postReaction-post_id-smile"
+    onClick={[Function]}
+  >
+    <span
+      className="d-flex align-items-center"
+    >
+      <img
+        className="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        className="Reaction__count"
+      >
+        <span
+          className="Reaction__number"
+        >
+          <span
+            className="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            className="Reaction__number--unreacted"
+            onAnimationEnd={[Function]}
+          >
+            2
+          </span>
+          <span
+            className="Reaction__number--reacted"
+          >
+            3
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</OverlayTrigger>
+`;
+
+exports[`components/post_view/Reaction should match snapshot when a current user reacted to a post 1`] = `
+<OverlayTrigger
+  defaultOverlayShown={false}
+  delayShow={500}
+  onEnter={[Function]}
+  overlay={
+    <Tooltip
+      id="post_id-smile-reaction"
+    >
+      <Memo(Connect(ReactionTooltip))
+        canAddReactions={true}
+        canRemoveReactions={true}
+        currentUserReacted={true}
+        emojiName="smile"
+        reactions={
+          Array [
+            Object {
+              "create_at": 0,
+              "emoji_name": ":cry:",
+              "post_id": "post_id",
+              "user_id": "user_id_1",
+            },
+            Object {
+              "create_at": 0,
+              "emoji_name": ":smile:",
+              "post_id": "post_id",
+              "user_id": "user_id_3",
+            },
+          ]
+        }
+      />
+    </Tooltip>
+  }
+  placement="top"
+  shouldUpdatePosition={true}
+  trigger={
+    Array [
+      "hover",
+      "focus",
+    ]
+  }
+>
+  <button
+    aria-label="remove reaction smile"
+    className="Reaction Reaction--reacted "
+    id="postReaction-post_id-smile"
+    onClick={[Function]}
+  >
+    <span
+      className="d-flex align-items-center"
+    >
+      <img
+        className="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        className="Reaction__count"
+      >
+        <span
+          className="Reaction__number"
+        >
+          <span
+            className="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            className="Reaction__number--unreacted"
+            onAnimationEnd={[Function]}
+          >
+            1
+          </span>
+          <span
+            className="Reaction__number--reacted"
+          >
+            2
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</OverlayTrigger>
+`;
+
+exports[`components/post_view/Reaction should return null/empty if no emojiImageUrl 1`] = `""`;

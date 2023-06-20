@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on DESKTOP 1`] = `
+<span>
+  <MemoizedFormattedMessage
+    defaultMessage="Selecting an option other than the \\"default\\" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome."
+    id="channel_notifications.override"
+  />
+</span>
+`;
+
+exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on MARK_UNREAD 1`] = `
+<span>
+  <MemoizedFormattedMessage
+    defaultMessage="Muting turns off desktop, email and push notifications for this channel. The channel will not be marked as unread unless you are mentioned."
+    id="channel_notifications.muteChannel.help"
+  />
+</span>
+`;
+
+exports[`components/channel_notifications_modal/ExtraInfo should match snapshot, on PUSH 1`] = `
+<span>
+  <MemoizedFormattedMessage
+    defaultMessage="Selecting an option other than the \\"default\\" will override the global notification settings for mobile push notifications."
+    id="channel_notifications.overridePush"
+  />
+</span>
+`;

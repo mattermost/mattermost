@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`block tests correctly generate patches from two blocks should add fields on the new fields added and remove it in the undo 1`] = `
+[
+  {
+    "deletedFields": [],
+    "updatedFields": {
+      "newField": "new field",
+    },
+  },
+  {
+    "deletedFields": [
+      "newField",
+    ],
+    "updatedFields": {},
+  },
+]
+`;
+
+exports[`block tests correctly generate patches from two blocks should generate two empty patches for the same block 1`] = `
+[
+  {
+    "deletedFields": [],
+    "updatedFields": {},
+  },
+  {
+    "deletedFields": [],
+    "updatedFields": {},
+  },
+]
+`;
+
+exports[`block tests correctly generate patches from two blocks should remove field on the new block added and add it again in the undo 1`] = `
+[
+  {
+    "deletedFields": [
+      "test",
+    ],
+    "updatedFields": {},
+  },
+  {
+    "deletedFields": [],
+    "updatedFields": {
+      "test": "test",
+    },
+  },
+]
+`;
+
+exports[`block tests correctly generate patches from two blocks should update propertie on the main object and revert it back on the undo 1`] = `
+[
+  {
+    "deletedFields": [],
+    "parentId": "new-parent-id",
+    "updatedFields": {},
+  },
+  {
+    "deletedFields": [],
+    "parentId": "old-parent-id",
+    "updatedFields": {},
+  },
+]
+`;

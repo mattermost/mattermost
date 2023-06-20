@@ -1,0 +1,14 @@
+{
+  "extends": "stylelint-config-sass-guidelines",
+  "rules": {
+    "indentation": 4,
+    "selector-class-pattern": "[a-zA-Z_-]+",
+    "max-nesting-depth": 4,
+    "selector-max-compound-selectors": 6,
+    "selector-max-id": 1,
+    "selector-no-qualifying-type": null,
+    "order/properties-alphabetical-order": null,
+    "declaration-block-no-duplicate-properties": true,
+    "property-disallowed-list": ["z-index"]
+  }
+}

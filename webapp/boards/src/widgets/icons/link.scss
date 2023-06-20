@@ -1,0 +1,10 @@
+
+.LinkIcon {
+    color: rgba(var(--body-color), 0.5);
+    font-size: 18px;
+    width: 16px;
+
+    &::before {
+        margin: 0 !important;
+    }
+}

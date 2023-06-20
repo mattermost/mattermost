@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/RootPortal should match snapshot 1`] = `
+<div
+  id="focalboard-root-portal"
+>
+  <div>
+    <div>
+      Testing Portal
+    </div>
+  </div>
+</div>
+`;

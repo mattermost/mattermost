@@ -1,0 +1,320 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
+<div>
+  <div
+    aria-label="menuwrapper"
+    class="MenuWrapper override menuOpened"
+    role="button"
+  >
+    <button
+      class="Button active"
+      type="button"
+    >
+      <span>
+        Sort
+      </span>
+    </button>
+    <div
+      class="Menu noselect bottom "
+    >
+      <div
+        class="menu-contents"
+      >
+        <div
+          class="menu-options"
+        >
+          <div>
+            <div
+              aria-label="Manual"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Manual
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="Revert"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Revert
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="MenuOption MenuSeparator menu-separator"
+            />
+          </div>
+          <div>
+            <div
+              aria-label="Name"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Name
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Status"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Status
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 1
+                </div>
+              </div>
+              <svg
+                class="SortDownIcon Icon"
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <polyline
+                  points="50,20 50,80"
+                />
+                <polyline
+                  points="30,60 50,80 70,60"
+                />
+              </svg>
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 2
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+          <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 3
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="menu-spacer hideOnWidescreen"
+        />
+        <div
+          class="menu-options hideOnWidescreen"
+        >
+          <div
+            aria-label="Cancel"
+            class="MenuOption TextOption menu-option menu-cancel"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Cancel
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/viewHeaderSortMenu return sort menu and do Name sort 1`] = `
+<div>
+  <div
+    aria-label="menuwrapper"
+    class="MenuWrapper"
+    role="button"
+  >
+    <button
+      class="Button active"
+      type="button"
+    >
+      <span>
+        Sort
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/viewHeaderSortMenu return sort menu and do manual 1`] = `
+<div>
+  <div
+    aria-label="menuwrapper"
+    class="MenuWrapper"
+    role="button"
+  >
+    <button
+      class="Button active"
+      type="button"
+    >
+      <span>
+        Sort
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/viewHeader/viewHeaderSortMenu return sort menu and do revert 1`] = `
+<div>
+  <div
+    aria-label="menuwrapper"
+    class="MenuWrapper"
+    role="button"
+  >
+    <button
+      class="Button active"
+      type="button"
+    >
+      <span>
+        Sort
+      </span>
+    </button>
+  </div>
+</div>
+`;

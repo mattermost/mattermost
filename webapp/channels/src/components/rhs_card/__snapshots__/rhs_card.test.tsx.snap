@@ -1,0 +1,315 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defining card types 1`] = `
+<div
+  className="sidebar-right__body sidebar-right__card"
+>
+  <Connect(RhsCardHeader)
+    previousRhsState={Object {}}
+  />
+  <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
+    onScroll={[Function]}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
+  >
+    <div
+      className="post-right__scroll"
+    >
+      <div
+        className="info-card"
+      >
+        <Connect(Markdown) />
+      </div>
+      <div
+        className="d-flex post-card--info"
+      >
+        <div
+          className="post-card--post-by overflow--ellipsis"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Message by {avatar} {user}"
+            id="rhs_card.message_by"
+            values={
+              Object {
+                "avatar": <Memo(Connect(PostProfilePicture))
+                  compactDisplay={false}
+                  post={
+                    Object {
+                      "channel_id": "",
+                      "create_at": 1542994995740,
+                      "delete_at": 0,
+                      "edit_at": 0,
+                      "hashtags": "",
+                      "id": "123",
+                      "is_pinned": false,
+                      "message": "test",
+                      "metadata": Object {
+                        "embeds": Array [],
+                        "emojis": Array [],
+                        "files": Array [],
+                        "images": Object {},
+                        "reactions": Array [],
+                      },
+                      "original_id": "",
+                      "pending_post_id": "",
+                      "props": Object {},
+                      "reply_count": 0,
+                      "root_id": "",
+                      "type": "system_add_remove",
+                      "update_at": 0,
+                      "user_id": "user_id",
+                    }
+                  }
+                  userId="user_id"
+                />,
+                "user": <Memo(Connect(UserProfile))
+                  disablePopover={true}
+                  hideStatus={true}
+                  userId="user_id"
+                />,
+              }
+            }
+          />
+        </div>
+        <div
+          className="post-card--view-post"
+        >
+          <Link
+            className="post__permalink"
+            onClick={[Function]}
+            to="test-team-url/pl/123"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Jump"
+              id="rhs_card.jump"
+            />
+          </Link>
+        </div>
+      </div>
+    </div>
+  </Scrollbars>
+</div>
+`;
+
+exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining card types don't match with the post type 1`] = `
+<div
+  className="sidebar-right__body sidebar-right__card"
+>
+  <Connect(RhsCardHeader)
+    previousRhsState={Object {}}
+  />
+  <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
+    onScroll={[Function]}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
+  >
+    <div
+      className="post-right__scroll"
+    >
+      <div
+        className="info-card"
+      >
+        <Connect(Markdown) />
+      </div>
+      <div
+        className="d-flex post-card--info"
+      >
+        <div
+          className="post-card--post-by overflow--ellipsis"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Message by {avatar} {user}"
+            id="rhs_card.message_by"
+            values={
+              Object {
+                "avatar": <Memo(Connect(PostProfilePicture))
+                  compactDisplay={false}
+                  post={
+                    Object {
+                      "channel_id": "",
+                      "create_at": 1542994995740,
+                      "delete_at": 0,
+                      "edit_at": 0,
+                      "hashtags": "",
+                      "id": "123",
+                      "is_pinned": false,
+                      "message": "test",
+                      "metadata": Object {
+                        "embeds": Array [],
+                        "emojis": Array [],
+                        "files": Array [],
+                        "images": Object {},
+                        "reactions": Array [],
+                      },
+                      "original_id": "",
+                      "pending_post_id": "",
+                      "props": Object {},
+                      "reply_count": 0,
+                      "root_id": "",
+                      "type": "system_add_remove",
+                      "update_at": 0,
+                      "user_id": "user_id",
+                    }
+                  }
+                  userId="user_id"
+                />,
+                "user": <Memo(Connect(UserProfile))
+                  disablePopover={true}
+                  hideStatus={true}
+                  userId="user_id"
+                />,
+              }
+            }
+          />
+        </div>
+        <div
+          className="post-card--view-post"
+        >
+          <Link
+            className="post__permalink"
+            onClick={[Function]}
+            to="test-team-url/pl/123"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Jump"
+              id="rhs_card.jump"
+            />
+          </Link>
+        </div>
+      </div>
+    </div>
+  </Scrollbars>
+</div>
+`;
+
+exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining card types match with the post type 1`] = `
+<div
+  className="sidebar-right__body sidebar-right__card"
+>
+  <Connect(RhsCardHeader)
+    previousRhsState={Object {}}
+  />
+  <Scrollbars
+    autoHeight={false}
+    autoHeightMax={200}
+    autoHeightMin={0}
+    autoHide={true}
+    autoHideDuration={500}
+    autoHideTimeout={500}
+    hideTracksWhenNotNeeded={false}
+    onScroll={[Function]}
+    renderThumbHorizontal={[Function]}
+    renderThumbVertical={[Function]}
+    renderTrackHorizontal={[Function]}
+    renderTrackVertical={[Function]}
+    renderView={[Function]}
+    tagName="div"
+    thumbMinSize={30}
+    universal={false}
+  >
+    <div
+      className="post-right__scroll"
+    >
+      <div
+        className="info-card"
+      >
+        <Connect(Markdown) />
+      </div>
+      <div
+        className="d-flex post-card--info"
+      >
+        <div
+          className="post-card--post-by overflow--ellipsis"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Message by {avatar} {user}"
+            id="rhs_card.message_by"
+            values={
+              Object {
+                "avatar": <Memo(Connect(PostProfilePicture))
+                  compactDisplay={false}
+                  post={
+                    Object {
+                      "channel_id": "",
+                      "create_at": 1542994995740,
+                      "delete_at": 0,
+                      "edit_at": 0,
+                      "hashtags": "",
+                      "id": "123",
+                      "is_pinned": false,
+                      "message": "test",
+                      "metadata": Object {
+                        "embeds": Array [],
+                        "emojis": Array [],
+                        "files": Array [],
+                        "images": Object {},
+                        "reactions": Array [],
+                      },
+                      "original_id": "",
+                      "pending_post_id": "",
+                      "props": Object {},
+                      "reply_count": 0,
+                      "root_id": "",
+                      "type": "system_add_remove",
+                      "update_at": 0,
+                      "user_id": "user_id",
+                    }
+                  }
+                  userId="user_id"
+                />,
+                "user": <Memo(Connect(UserProfile))
+                  disablePopover={true}
+                  hideStatus={true}
+                  userId="user_id"
+                />,
+              }
+            }
+          />
+        </div>
+        <div
+          className="post-card--view-post"
+        >
+          <Link
+            className="post__permalink"
+            onClick={[Function]}
+            to="test-team-url/pl/123"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Jump"
+              id="rhs_card.jump"
+            />
+          </Link>
+        </div>
+      </div>
+    </div>
+  </Scrollbars>
+</div>
+`;
+
+exports[`comoponents/rhs_card/RhsCard should match when no post is selected 1`] = `<div />`;

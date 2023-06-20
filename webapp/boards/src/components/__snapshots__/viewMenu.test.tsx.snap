@@ -1,0 +1,897 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/components/viewMenu should match snapshot 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="ViewMenu"
+      >
+        <div
+          class="Menu noselect bottom "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  class="view-list"
+                >
+                  <div
+                    aria-label="view title"
+                    class="MenuOption TextOption menu-option"
+                    role="button"
+                  >
+                    <div
+                      class="d-flex"
+                    >
+                      <div
+                        class="menu-option__icon"
+                      >
+                        <svg
+                          class="TableIcon Icon"
+                          fill="currentColor"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g
+                            opacity="0.8"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                              fill="currentColor"
+                              fill-rule="evenodd"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <div
+                      class="menu-option__content"
+                    >
+                      <div
+                        class="menu-name"
+                      >
+                        view title
+                      </div>
+                    </div>
+                    <div
+                      class="noicon"
+                    />
+                  </div>
+                  <div
+                    aria-label="view title"
+                    class="MenuOption TextOption menu-option"
+                    role="button"
+                  >
+                    <div
+                      class="d-flex"
+                    >
+                      <div
+                        class="menu-option__icon"
+                      >
+                        <svg
+                          class="TableIcon Icon"
+                          fill="currentColor"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g
+                            opacity="0.8"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                              fill="currentColor"
+                              fill-rule="evenodd"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <div
+                      class="menu-option__content"
+                    >
+                      <div
+                        class="menu-name"
+                      >
+                        view title
+                      </div>
+                    </div>
+                    <div
+                      class="noicon"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="MenuOption MenuSeparator menu-separator"
+                />
+              </div>
+              <div>
+                <div
+                  aria-label="Duplicate view"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-content-copy content-copy"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Duplicate view
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  aria-label="Delete view"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete view
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  class="MenuOption SubMenuOption menu-option"
+                  id="__addView"
+                >
+                  <div
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-plus AddIcon"
+                    />
+                  </div>
+                  <div
+                    class="menu-name"
+                  >
+                    Add view
+                  </div>
+                  <i
+                    class="CompassIcon icon-chevron-right"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="ViewMenu"
+    >
+      <div
+        class="Menu noselect bottom "
+      >
+        <div
+          class="menu-contents"
+        >
+          <div
+            class="menu-options"
+          >
+            <div>
+              <div
+                class="view-list"
+              >
+                <div
+                  aria-label="view title"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <svg
+                        class="TableIcon Icon"
+                        fill="currentColor"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          opacity="0.8"
+                        >
+                          <path
+                            clip-rule="evenodd"
+                            d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      view title
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="view title"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <svg
+                        class="TableIcon Icon"
+                        fill="currentColor"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          opacity="0.8"
+                        >
+                          <path
+                            clip-rule="evenodd"
+                            d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      view title
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                class="MenuOption MenuSeparator menu-separator"
+              />
+            </div>
+            <div>
+              <div
+                aria-label="Duplicate view"
+                class="MenuOption TextOption menu-option"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-content-copy content-copy"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Duplicate view
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Delete view"
+                class="MenuOption TextOption menu-option"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Delete view
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+            <div>
+              <div
+                class="MenuOption SubMenuOption menu-option"
+                id="__addView"
+              >
+                <div
+                  class="menu-option__icon"
+                >
+                  <i
+                    class="CompassIcon icon-plus AddIcon"
+                  />
+                </div>
+                <div
+                  class="menu-name"
+                >
+                  Add view
+                </div>
+                <i
+                  class="CompassIcon icon-chevron-right"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="menu-spacer hideOnWidescreen"
+          />
+          <div
+            class="menu-options hideOnWidescreen"
+          >
+            <div
+              aria-label="Cancel"
+              class="MenuOption TextOption menu-option menu-cancel"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Cancel
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
+exports[`/components/viewMenu should match snapshot, read only 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="ViewMenu"
+      >
+        <div
+          class="Menu noselect bottom "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div>
+                <div
+                  class="view-list"
+                >
+                  <div
+                    aria-label="view title"
+                    class="MenuOption TextOption menu-option"
+                    role="button"
+                  >
+                    <div
+                      class="d-flex"
+                    >
+                      <div
+                        class="menu-option__icon"
+                      >
+                        <svg
+                          class="TableIcon Icon"
+                          fill="currentColor"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g
+                            opacity="0.8"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                              fill="currentColor"
+                              fill-rule="evenodd"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <div
+                      class="menu-option__content"
+                    >
+                      <div
+                        class="menu-name"
+                      >
+                        view title
+                      </div>
+                    </div>
+                    <div
+                      class="noicon"
+                    />
+                  </div>
+                  <div
+                    aria-label="view title"
+                    class="MenuOption TextOption menu-option"
+                    role="button"
+                  >
+                    <div
+                      class="d-flex"
+                    >
+                      <div
+                        class="menu-option__icon"
+                      >
+                        <svg
+                          class="TableIcon Icon"
+                          fill="currentColor"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g
+                            opacity="0.8"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                              fill="currentColor"
+                              fill-rule="evenodd"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <div
+                      class="menu-option__content"
+                    >
+                      <div
+                        class="menu-name"
+                      >
+                        view title
+                      </div>
+                    </div>
+                    <div
+                      class="noicon"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="MenuOption MenuSeparator menu-separator"
+                />
+              </div>
+              <div />
+              <div />
+              <div />
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="ViewMenu"
+    >
+      <div
+        class="Menu noselect bottom "
+      >
+        <div
+          class="menu-contents"
+        >
+          <div
+            class="menu-options"
+          >
+            <div>
+              <div
+                class="view-list"
+              >
+                <div
+                  aria-label="view title"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <svg
+                        class="TableIcon Icon"
+                        fill="currentColor"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          opacity="0.8"
+                        >
+                          <path
+                            clip-rule="evenodd"
+                            d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      view title
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="view title"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <svg
+                        class="TableIcon Icon"
+                        fill="currentColor"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          opacity="0.8"
+                        >
+                          <path
+                            clip-rule="evenodd"
+                            d="M20 4H10V8L20 8V4ZM8 4V8H4V4H8ZM4 14L4 10H8V14H4ZM4 16L4 20H8V16H4ZM10 16V20H20V16L10 16ZM20 14V10L10 10V14L20 14ZM4 2C2.89543 2 2 2.89543 2 4V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V4C22 2.89543 21.1046 2 20 2H4Z"
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      view title
+                    </div>
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                class="MenuOption MenuSeparator menu-separator"
+              />
+            </div>
+            <div />
+            <div />
+            <div />
+          </div>
+          <div
+            class="menu-spacer hideOnWidescreen"
+          />
+          <div
+            class="menu-options hideOnWidescreen"
+          >
+            <div
+              aria-label="Cancel"
+              class="MenuOption TextOption menu-option menu-cancel"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Cancel
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;

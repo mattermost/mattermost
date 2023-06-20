@@ -1,0 +1,1504 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/AbstractIncomingWebhook should call action function 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_name/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="header_id"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_incoming_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testIncomingWebhook"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_incoming_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_incoming_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={500}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your incoming webhook."
+              id="add_incoming_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_incoming_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            onChange={[Function]}
+            selectDm={false}
+            selectOpen={true}
+            selectPrivate={true}
+            value="88cxd9wpzpbpfp8pad78xj75pr"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel."
+              id="add_incoming_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelLocked"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Lock to this channel"
+            id="add_incoming_webhook.channelLocked"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="channelLocked"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If set, the incoming webhook can post only to the selected channel."
+              id="add_incoming_webhook.channelLocked.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Username"
+            id="add_incoming_webhook.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={22}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              id="add_incoming_webhook.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconURL"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Profile Picture"
+            id="add_incoming_webhook.icon_url"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconURL"
+            maxLength={1024}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used."
+              id="add_incoming_webhook.icon_url.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/team_name/integrations/incoming_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_incoming_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="footer_id"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_name/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="header_id"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_incoming_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testIncomingWebhook"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_incoming_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_incoming_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={500}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your incoming webhook."
+              id="add_incoming_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_incoming_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            onChange={[Function]}
+            selectDm={false}
+            selectOpen={true}
+            selectPrivate={true}
+            value="88cxd9wpzpbpfp8pad78xj75pr"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel."
+              id="add_incoming_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelLocked"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Lock to this channel"
+            id="add_incoming_webhook.channelLocked"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="channelLocked"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If set, the incoming webhook can post only to the selected channel."
+              id="add_incoming_webhook.channelLocked.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Username"
+            id="add_incoming_webhook.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={22}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              id="add_incoming_webhook.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconURL"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Profile Picture"
+            id="add_incoming_webhook.icon_url"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconURL"
+            maxLength={1024}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used."
+              id="add_incoming_webhook.icon_url.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/team_name/integrations/incoming_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_incoming_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="footer_id"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook should match snapshot, displays client error when no initial hook 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_name/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="header_id"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_incoming_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_incoming_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_incoming_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={500}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your incoming webhook."
+              id="add_incoming_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_incoming_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            onChange={[Function]}
+            selectDm={false}
+            selectOpen={true}
+            selectPrivate={true}
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel."
+              id="add_incoming_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelLocked"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Lock to this channel"
+            id="add_incoming_webhook.channelLocked"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="channelLocked"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If set, the incoming webhook can post only to the selected channel."
+              id="add_incoming_webhook.channelLocked.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Username"
+            id="add_incoming_webhook.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={22}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              id="add_incoming_webhook.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconURL"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Profile Picture"
+            id="add_incoming_webhook.icon_url"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconURL"
+            maxLength={1024}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used."
+              id="add_incoming_webhook.icon_url.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="A valid channel is required"
+                id="add_incoming_webhook.channelRequired"
+              />,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/team_name/integrations/incoming_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_incoming_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="footer_id"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook should match snapshot, hiding post icon url if not enabled 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_name/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="header_id"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_incoming_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testIncomingWebhook"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_incoming_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_incoming_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={500}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your incoming webhook."
+              id="add_incoming_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_incoming_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            onChange={[Function]}
+            selectDm={false}
+            selectOpen={true}
+            selectPrivate={true}
+            value="88cxd9wpzpbpfp8pad78xj75pr"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel."
+              id="add_incoming_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelLocked"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Lock to this channel"
+            id="add_incoming_webhook.channelLocked"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="channelLocked"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If set, the incoming webhook can post only to the selected channel."
+              id="add_incoming_webhook.channelLocked.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Username"
+            id="add_incoming_webhook.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={22}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              id="add_incoming_webhook.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/team_name/integrations/incoming_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_incoming_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="footer_id"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook should match snapshot, hiding post username if not enabled 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_name/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="header_id"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_incoming_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testIncomingWebhook"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_incoming_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_incoming_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={500}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your incoming webhook."
+              id="add_incoming_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_incoming_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            onChange={[Function]}
+            selectDm={false}
+            selectOpen={true}
+            selectPrivate={true}
+            value="88cxd9wpzpbpfp8pad78xj75pr"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel."
+              id="add_incoming_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelLocked"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Lock to this channel"
+            id="add_incoming_webhook.channelLocked"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="channelLocked"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If set, the incoming webhook can post only to the selected channel."
+              id="add_incoming_webhook.channelLocked.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconURL"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Profile Picture"
+            id="add_incoming_webhook.icon_url"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconURL"
+            maxLength={1024}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used."
+              id="add_incoming_webhook.icon_url.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/team_name/integrations/incoming_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_incoming_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="footer_id"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook should match snapshot, on serverError 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_name/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Header"
+      id="header_id"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_incoming_webhook.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="testIncomingWebhook"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
+              id="add_incoming_webhook.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_incoming_webhook.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={500}
+            onChange={[Function]}
+            type="text"
+            value="testing"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your incoming webhook."
+              id="add_incoming_webhook.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelId"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Channel"
+            id="add_incoming_webhook.channel"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <Connect(ChannelSelect)
+            onChange={[Function]}
+            selectDm={false}
+            selectOpen={true}
+            selectPrivate={true}
+            value="88cxd9wpzpbpfp8pad78xj75pr"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel."
+              id="add_incoming_webhook.channel.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="channelLocked"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Lock to this channel"
+            id="add_incoming_webhook.channelLocked"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="channelLocked"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If set, the incoming webhook can post only to the selected channel."
+              id="add_incoming_webhook.channelLocked.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Username"
+            id="add_incoming_webhook.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={22}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              id="add_incoming_webhook.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconURL"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Profile Picture"
+            id="add_incoming_webhook.icon_url"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconURL"
+            maxLength={1024}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used."
+              id="add_incoming_webhook.icon_url.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "serverError",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-link btn-sm"
+          to="/team_name/integrations/incoming_webhooks"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_incoming_webhook.cancel"
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          id="saveWebhook"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading"
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Footer"
+            id="footer_id"
+          />
+        </SpinnerButton>
+      </div>
+    </form>
+  </div>
+</div>
+`;

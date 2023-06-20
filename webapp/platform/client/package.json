@@ -1,0 +1,42 @@
+{
+  "name": "@mattermost/client",
+  "version": "8.0.0",
+  "description": "JavaScript/TypeScript client for Mattermost",
+  "keywords": [
+    "mattermost"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/client#readme",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "github:mattermost/mattermost-server",
+    "directory": "webapp/platform/client"
+  },
+  "dependencies": {
+    "form-data": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@mattermost/types": "*",
+    "typescript": "^4.3"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --verbose",
+    "run": "tsc --watch --preserveWatchOutput",
+    "test": "jest",
+    "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100%",
+    "clean": "rm -rf lib node_modules tsconfig.tsbuildinfo"
+  },
+  "devDependencies": {
+    "jest": "27.1.0"
+  }
+}

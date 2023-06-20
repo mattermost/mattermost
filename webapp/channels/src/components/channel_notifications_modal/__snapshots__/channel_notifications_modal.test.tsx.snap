@@ -1,0 +1,155 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelNotificationModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal settings-modal settings-modal--tabless"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="channelNotificationModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Notification Preferences for "
+        id="channel_notifications.preferences"
+      />
+      <span
+        className="name"
+      >
+        channel_display_name
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="settings-table"
+    >
+      <div
+        className="settings-content"
+      >
+        <div
+          className="user-settings"
+        >
+          <br />
+          <div
+            className="divider-dark first"
+          />
+          <NotificationSection
+            expand={false}
+            memberNotificationLevel="all"
+            onChange={[Function]}
+            onSubmit={[Function]}
+            onUpdateSection={[Function]}
+            section="markUnread"
+            serverError={null}
+          />
+          <div
+            className="divider-light"
+          />
+          <NotificationSection
+            expand={false}
+            ignoreChannelMentions="off"
+            memberNotificationLevel="all"
+            onChange={[Function]}
+            onSubmit={[Function]}
+            onUpdateSection={[Function]}
+            section="ignoreChannelMentions"
+            serverError={null}
+          />
+          <div>
+            <div
+              className="divider-light"
+            />
+            <NotificationSection
+              expand={false}
+              globalNotificationLevel="all"
+              globalNotificationSound="Bing"
+              isNotificationsSettingSameAsGlobal={true}
+              memberDesktopNotificationSound="Bing"
+              memberDesktopSound="on"
+              memberNotificationLevel="all"
+              memberThreadsNotificationLevel="all"
+              onChange={[Function]}
+              onChangeDesktopSound={[Function]}
+              onChangeNotificationSound={[Function]}
+              onChangeThreads={[Function]}
+              onReset={[Function]}
+              onSubmit={[Function]}
+              onUpdateSection={[Function]}
+              section="desktop"
+              serverError={null}
+            />
+            <div
+              className="divider-light"
+            />
+            <NotificationSection
+              expand={false}
+              isNotificationsSettingSameAsGlobal={true}
+              memberNotificationLevel="all"
+              memberThreadsNotificationLevel="all"
+              onChange={[Function]}
+              onChangeThreads={[Function]}
+              onReset={[Function]}
+              onSubmit={[Function]}
+              onUpdateSection={[Function]}
+              section="push"
+              serverError={null}
+            />
+          </div>
+          <div
+            className="divider-light"
+          />
+          <NotificationSection
+            channelAutoFollowThreads="off"
+            expand={false}
+            ignoreChannelMentions="off"
+            memberNotificationLevel="all"
+            onChange={[Function]}
+            onSubmit={[Function]}
+            onUpdateSection={[Function]}
+            section="channelAutoFollowThreads"
+            serverError={null}
+          />
+          <div
+            className="divider-dark"
+          />
+        </div>
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;

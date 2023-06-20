@@ -1,0 +1,355 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, bad integration type case 1`] = `""`;
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, commands case 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_test/integrations/commands"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Slash Commands"
+        id="slash_commands.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="integrations.add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form backstage-form__confirmation"
+  >
+    <h4
+      className="backstage-form__title"
+      id="formTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Setup Successful"
+        id="integrations.successful"
+      />
+    </h4>
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Your slash command is set up. The following token will be sent in the outgoing payload. Please use it to verify the request came from your Mattermost team (details at <link>Slash Commands</link>)."
+        id="add_command.doneHelp"
+        values={
+          Object {
+            "link": [Function],
+          }
+        }
+      />
+    </p>
+    <p
+      className="word-break--all"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**Token**: {token}"
+        id="add_command.token"
+        values={
+          Object {
+            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+          }
+        }
+      />
+      <CopyText
+        defaultMessage="Copy"
+        idMessage="integrations.copy"
+        value="jb6oyqh95irpbx8fo9zmndkp1r"
+      />
+    </p>
+    <div
+      className="backstage-form__footer"
+    >
+      <Link
+        className="btn btn-primary"
+        id="doneButton"
+        to="/team_test/integrations/commands"
+        type="submit"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Done"
+          id="integrations.done"
+        />
+      </Link>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, incomingHooks case 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_test/integrations/incoming_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Incoming Webhooks"
+        id="incoming_webhooks.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="integrations.add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form backstage-form__confirmation"
+  >
+    <h4
+      className="backstage-form__title"
+      id="formTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Setup Successful"
+        id="integrations.successful"
+      />
+    </h4>
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Your incoming webhook is set up. Please send data to the following URL (details at <link>Incoming Webhooks</link>)."
+        id="add_incoming_webhook.doneHelp"
+        values={
+          Object {
+            "link": [Function],
+          }
+        }
+      />
+    </p>
+    <p
+      className="word-break--all"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**URL**: {url}"
+        id="add_incoming_webhook.url"
+        values={
+          Object {
+            "url": "\`http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic\`",
+          }
+        }
+      />
+      <CopyText
+        defaultMessage="Copy"
+        idMessage="integrations.copy"
+        value="http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic"
+      />
+    </p>
+    <div
+      className="backstage-form__footer"
+    >
+      <Link
+        className="btn btn-primary"
+        id="doneButton"
+        to="/team_test/integrations/incoming_webhooks"
+        type="submit"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Done"
+          id="integrations.done"
+        />
+      </Link>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, oauthApps case 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_test/integrations/oauth2-apps"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="OAuth 2.0 Applications"
+        id="installed_oauth2_apps.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="integrations.add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form backstage-form__confirmation"
+  >
+    <h4
+      className="backstage-form__title"
+      id="formTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Setup Successful"
+        id="integrations.successful"
+      />
+    </h4>
+    <p
+      key="add_oauth_app.doneHelp"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>)."
+        id="add_oauth_app.doneHelp"
+        values={
+          Object {
+            "link": [Function],
+          }
+        }
+      />
+    </p>
+    <p
+      key="add_oauth_app.clientId"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**Client ID**: {id}"
+        id="add_oauth_app.clientId"
+        values={
+          Object {
+            "id": "r5tpgt4iepf45jt768jz84djic",
+          }
+        }
+      />
+      <CopyText
+        defaultMessage="Copy Client Id"
+        idMessage="integrations.copy_client_id"
+        value="r5tpgt4iepf45jt768jz84djic"
+      />
+      <br />
+      <FormattedMarkdownMessage
+        defaultMessage="**Client Secret**: {secret}"
+        id="add_oauth_app.clientSecret"
+        values={
+          Object {
+            "secret": "<==secret==>",
+          }
+        }
+      />
+      <CopyText
+        defaultMessage="Copy Client Secret"
+        idMessage="integrations.copy_client_secret"
+        value="<==secret==>"
+      />
+    </p>
+    <p
+      key="add_oauth_app.doneUrlHelp"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Here are your authorized redirect URLs."
+        id="add_oauth_app.doneUrlHelp"
+      />
+    </p>
+    <p
+      className="word-break--all"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**URL(s)**: {url}"
+        id="add_oauth_app.url"
+        values={
+          Object {
+            "url": "https://someCallback, https://anotherCallback",
+          }
+        }
+      />
+    </p>
+    <div
+      className="backstage-form__footer"
+    >
+      <Link
+        className="btn btn-primary"
+        id="doneButton"
+        to="/team_test/integrations/oauth2-apps"
+        type="submit"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Done"
+          id="integrations.done"
+        />
+      </Link>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, outgoingHooks and bad identifier case 1`] = `""`;
+
+exports[`components/integrations/ConfirmIntegration should match snapshot, outgoingHooks case 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/team_test/integrations/outgoing_webhooks"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Outgoing Webhooks"
+        id="add_outgoing_webhook.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="integrations.add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form backstage-form__confirmation"
+  >
+    <h4
+      className="backstage-form__title"
+      id="formTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Setup Successful"
+        id="integrations.successful"
+      />
+    </h4>
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Your outgoing webhook is set up. The following token will be sent in the outgoing payload. Please use it to verify that the request came from your Mattermost team (details at <link>Outgoing Webhooks</link>)."
+        id="add_outgoing_webhook.doneHelp"
+        values={
+          Object {
+            "link": [Function],
+          }
+        }
+      />
+    </p>
+    <p
+      className="word-break--all"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="**Token**: {token}"
+        id="add_outgoing_webhook.token"
+        values={
+          Object {
+            "token": "jb6oyqh95irpbx8fo9zmndkp1r",
+          }
+        }
+      />
+      <CopyText
+        defaultMessage="Copy"
+        idMessage="integrations.copy"
+        value="jb6oyqh95irpbx8fo9zmndkp1r"
+      />
+    </p>
+    <div
+      className="backstage-form__footer"
+    >
+      <Link
+        className="btn btn-primary"
+        id="doneButton"
+        to="/team_test/integrations/outgoing_webhooks"
+        type="submit"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Done"
+          id="integrations.done"
+        />
+      </Link>
+    </div>
+  </div>
+</div>
+`;

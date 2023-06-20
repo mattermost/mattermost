@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/VersionBar should match snapshot - bar rendered after build hash change 1`] = `""`;
+
+exports[`components/VersionBar should match snapshot - bar rendered after build hash change 2`] = `
+<Connect(AnnouncementBar)
+  message={
+    <React.Fragment>
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="A new version of Mattermost is available."
+        id="version_bar.new"
+      />
+      <a
+        onClick={[Function]}
+        style={
+          Object {
+            "marginLeft": ".5rem",
+          }
+        }
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Refresh the app now"
+          id="version_bar.refresh"
+        />
+      </a>
+      .
+    </React.Fragment>
+  }
+  type="announcement"
+/>
+`;

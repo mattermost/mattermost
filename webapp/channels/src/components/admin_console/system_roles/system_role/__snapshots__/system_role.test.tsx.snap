@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_role should match snapshot 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/system_roles"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="R O L E _ N A M E"
+        id="admin.permissions.roles.role_name.name"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <SystemRolePermissions
+        isLicensedForCloud={false}
+        permissionsToUpdate={Object {}}
+        readOnly={false}
+        role={
+          Object {
+            "built_in": false,
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "role_description",
+            "display_name": "role_display_name",
+            "id": "role_id",
+            "name": "role_name",
+            "permissions": Array [],
+            "scheme_managed": false,
+            "update_at": 0,
+          }
+        }
+        updatePermissions={[Function]}
+      />
+      <Connect(SystemRoleUsers)
+        key="0"
+        onAddCallback={[Function]}
+        onRemoveCallback={[Function]}
+        readOnly={false}
+        roleName="role_name"
+        usersToAdd={Object {}}
+        usersToRemove={Object {}}
+      />
+    </div>
+  </div>
+  <SaveChangesPanel
+    cancelLink="/admin_console/user_management/system_roles"
+    isDisabled={false}
+    onClick={[Function]}
+    saveNeeded={false}
+    saving={false}
+  />
+</div>
+`;
+
+exports[`admin_console/system_role should match snapshot with isLicensedForCloud = true 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader
+    withBackButton={true}
+  >
+    <div>
+      <Connect(BlockableLink)
+        className="fa fa-angle-left back"
+        to="/admin_console/user_management/system_roles"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="R O L E _ N A M E"
+        id="admin.permissions.roles.role_name.name"
+      />
+    </div>
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <SystemRolePermissions
+        isLicensedForCloud={true}
+        permissionsToUpdate={Object {}}
+        readOnly={false}
+        role={
+          Object {
+            "built_in": false,
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "role_description",
+            "display_name": "role_display_name",
+            "id": "role_id",
+            "name": "role_name",
+            "permissions": Array [],
+            "scheme_managed": false,
+            "update_at": 0,
+          }
+        }
+        updatePermissions={[Function]}
+      />
+      <Connect(SystemRoleUsers)
+        key="0"
+        onAddCallback={[Function]}
+        onRemoveCallback={[Function]}
+        readOnly={false}
+        roleName="role_name"
+        usersToAdd={Object {}}
+        usersToRemove={Object {}}
+      />
+    </div>
+  </div>
+  <SaveChangesPanel
+    cancelLink="/admin_console/user_management/system_roles"
+    isDisabled={false}
+    onClick={[Function]}
+    saveNeeded={false}
+    saving={false}
+  />
+</div>
+`;

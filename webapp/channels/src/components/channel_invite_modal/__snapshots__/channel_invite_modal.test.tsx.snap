@@ -1,0 +1,384 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_invite_modal should match snapshot for channel_invite_modal with profiles 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelInviteModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal channel-invite"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToChannelModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="channelInviteModalLabel"
+  />
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+    role="application"
+  >
+    <div
+      className="channel-invite__header"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Add people to {channel}"
+          id="channel_invite.addNewMembers"
+          values={
+            Object {
+              "channel": "testing",
+            }
+          }
+        />
+      </h1>
+    </div>
+    <div
+      className="channel-invite__content"
+    >
+      <MultiSelect
+        ariaLabelRenderer={[Function]}
+        backButtonClass="btn-cancel tertiary-button"
+        backButtonClick={[Function]}
+        backButtonText="Cancel"
+        buttonSubmitLoadingText="Adding..."
+        buttonSubmitText="Add"
+        customNoOptionsMessage={null}
+        focusOnLoad={true}
+        handleAdd={[Function]}
+        handleCancel={[Function]}
+        handleDelete={[Function]}
+        handleInput={[Function]}
+        handlePageChange={[Function]}
+        handleSubmit={[Function]}
+        key="addUsersToChannelKey"
+        loading={true}
+        optionRenderer={[Function]}
+        options={
+          Array [
+            Object {
+              "delete_at": 0,
+              "id": "user-1",
+              "label": "user-1",
+              "value": "user-1",
+            },
+            Object {
+              "delete_at": 0,
+              "id": "user-2",
+              "label": "user-2",
+              "value": "user-2",
+            },
+          ]
+        }
+        perPage={50}
+        placeholderText="Search for people"
+        saveButtonPosition="bottom"
+        saving={false}
+        savingEnabled={true}
+        selectedItemRef={
+          Object {
+            "current": null,
+          }
+        }
+        valueWithImage={true}
+        values={Array []}
+      />
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/channel_invite_modal should match snapshot for channel_invite_modal with profiles from DMs 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelInviteModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal channel-invite"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToChannelModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="channelInviteModalLabel"
+  />
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+    role="application"
+  >
+    <div
+      className="channel-invite__header"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Add people to {channel}"
+          id="channel_invite.addNewMembers"
+          values={
+            Object {
+              "channel": "testing",
+            }
+          }
+        />
+      </h1>
+    </div>
+    <div
+      className="channel-invite__content"
+    >
+      <MultiSelect
+        ariaLabelRenderer={[Function]}
+        backButtonClass="btn-cancel tertiary-button"
+        backButtonClick={[Function]}
+        backButtonText="Cancel"
+        buttonSubmitLoadingText="Adding..."
+        buttonSubmitText="Add"
+        customNoOptionsMessage={null}
+        focusOnLoad={true}
+        handleAdd={[Function]}
+        handleCancel={[Function]}
+        handleDelete={[Function]}
+        handleInput={[Function]}
+        handlePageChange={[Function]}
+        handleSubmit={[Function]}
+        key="addUsersToChannelKey"
+        loading={true}
+        optionRenderer={[Function]}
+        options={
+          Array [
+            Object {
+              "delete_at": 0,
+              "id": "user-1",
+              "label": "user-1",
+              "value": "user-1",
+            },
+            Object {
+              "delete_at": 0,
+              "id": "user-2",
+              "label": "user-2",
+              "value": "user-2",
+            },
+          ]
+        }
+        perPage={50}
+        placeholderText="Search for people"
+        saveButtonPosition="bottom"
+        saving={false}
+        savingEnabled={true}
+        selectedItemRef={
+          Object {
+            "current": null,
+          }
+        }
+        valueWithImage={true}
+        values={Array []}
+      />
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/channel_invite_modal should match snapshot for channel_invite_modal with userStatuses 1`] = `
+<div
+  className="more-modal__row clickable more-modal__row--selected"
+  onClick={[Function]}
+  onMouseMove={[Function]}
+>
+  <ProfilePicture
+    hasMention={false}
+    isEmoji={false}
+    isRHS={false}
+    popoverPlacement="right"
+    size="md"
+    src="/api/v4/users/user-1/image"
+    status="online"
+    wrapperClass=""
+  />
+  <div
+    className="more-modal__details"
+  >
+    <div
+      className="more-modal__name"
+    >
+      <span
+        className="d-flex"
+      >
+        <span />
+        <span
+          className="ml-2 light flex-auto"
+        />
+      </span>
+    </div>
+  </div>
+  <div
+    className="more-modal__actions"
+  >
+    <div
+      className="more-modal__actions--round"
+    >
+      <AddIcon />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/channel_invite_modal should match snapshot with exclude and include users 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelInviteModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal channel-invite"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToChannelModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+    id="channelInviteModalLabel"
+  />
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+    role="application"
+  >
+    <div
+      className="channel-invite__header"
+    >
+      <h1>
+        <MemoizedFormattedMessage
+          defaultMessage="Add people to {channel}"
+          id="channel_invite.addNewMembers"
+          values={
+            Object {
+              "channel": "testing",
+            }
+          }
+        />
+      </h1>
+    </div>
+    <div
+      className="channel-invite__content"
+    >
+      <MultiSelect
+        ariaLabelRenderer={[Function]}
+        backButtonClass="btn-cancel tertiary-button"
+        backButtonClick={[Function]}
+        backButtonText="Cancel"
+        buttonSubmitLoadingText="Adding..."
+        buttonSubmitText="Add"
+        customNoOptionsMessage={null}
+        focusOnLoad={true}
+        handleAdd={[Function]}
+        handleCancel={[Function]}
+        handleDelete={[Function]}
+        handleInput={[Function]}
+        handlePageChange={[Function]}
+        handleSubmit={[Function]}
+        key="addUsersToChannelKey"
+        loading={true}
+        optionRenderer={[Function]}
+        options={
+          Array [
+            Object {
+              "delete_at": 0,
+              "id": "user-2",
+              "label": "user-2",
+              "value": "user-2",
+            },
+            Object {
+              "delete_at": 0,
+              "id": "user-3",
+              "label": "user-3",
+              "value": "user-3",
+            },
+          ]
+        }
+        perPage={50}
+        placeholderText="Search for people"
+        saveButtonPosition="bottom"
+        saving={false}
+        savingEnabled={true}
+        selectedItemRef={
+          Object {
+            "current": null,
+          }
+        }
+        valueWithImage={true}
+        values={Array []}
+      />
+    </div>
+  </ModalBody>
+</Modal>
+`;

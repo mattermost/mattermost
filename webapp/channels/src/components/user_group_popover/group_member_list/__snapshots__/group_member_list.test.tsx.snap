@@ -1,0 +1,1444 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/user_group_popover/group_member_list should match snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <BrowserRouter>
+    <Router
+      history={
+        Object {
+          "action": "POP",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 1,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "undefinedundefined",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
+    >
+      <Memo(GroupMemberList)
+        actions={
+          Object {
+            "closeRightHandSide": [MockFunction],
+            "getUsersInGroup": [MockFunction],
+            "openDirectChannelToUserId": [MockFunction],
+          }
+        }
+        canManageGroup={true}
+        group={
+          Object {
+            "allow_reference": true,
+            "create_at": 1,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "group_display_name",
+            "has_syncables": false,
+            "id": "group_id",
+            "member_count": 5,
+            "name": "group_name",
+            "remote_id": "",
+            "scheme_admin": false,
+            "source": "",
+            "update_at": 1,
+          }
+        }
+        hide={[MockFunction]}
+        members={
+          Array [
+            Object {
+              "displayName": "Name0 Surname0",
+              "user": Object {
+                "auth_service": "",
+                "bot_description": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "email": "test0@test.com",
+                "first_name": "Name0",
+                "id": "id0",
+                "is_bot": false,
+                "last_activity_at": 0,
+                "last_name": "Surname0",
+                "last_password_update": 0,
+                "last_picture_update": 0,
+                "locale": "",
+                "mfa_active": false,
+                "nickname": "",
+                "notify_props": Object {
+                  "calls_desktop_sound": "true",
+                  "channel": "false",
+                  "comments": "never",
+                  "desktop": "default",
+                  "desktop_sound": "false",
+                  "email": "false",
+                  "first_name": "false",
+                  "mark_unread": "mention",
+                  "mention_keys": "",
+                  "push": "none",
+                  "push_status": "offline",
+                },
+                "password": "",
+                "position": "",
+                "props": Object {},
+                "roles": "",
+                "terms_of_service_create_at": 0,
+                "terms_of_service_id": "",
+                "update_at": 0,
+                "username": "username0",
+              },
+            },
+            Object {
+              "displayName": "Name1 Surname1",
+              "user": Object {
+                "auth_service": "",
+                "bot_description": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "email": "test1@test.com",
+                "first_name": "Name1",
+                "id": "id1",
+                "is_bot": false,
+                "last_activity_at": 0,
+                "last_name": "Surname1",
+                "last_password_update": 0,
+                "last_picture_update": 0,
+                "locale": "",
+                "mfa_active": false,
+                "nickname": "",
+                "notify_props": Object {
+                  "calls_desktop_sound": "true",
+                  "channel": "false",
+                  "comments": "never",
+                  "desktop": "default",
+                  "desktop_sound": "false",
+                  "email": "false",
+                  "first_name": "false",
+                  "mark_unread": "mention",
+                  "mention_keys": "",
+                  "push": "none",
+                  "push_status": "offline",
+                },
+                "password": "",
+                "position": "",
+                "props": Object {},
+                "roles": "",
+                "terms_of_service_create_at": 0,
+                "terms_of_service_id": "",
+                "update_at": 0,
+                "username": "username1",
+              },
+            },
+            Object {
+              "displayName": "Name2 Surname2",
+              "user": Object {
+                "auth_service": "",
+                "bot_description": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "email": "test2@test.com",
+                "first_name": "Name2",
+                "id": "id2",
+                "is_bot": false,
+                "last_activity_at": 0,
+                "last_name": "Surname2",
+                "last_password_update": 0,
+                "last_picture_update": 0,
+                "locale": "",
+                "mfa_active": false,
+                "nickname": "",
+                "notify_props": Object {
+                  "calls_desktop_sound": "true",
+                  "channel": "false",
+                  "comments": "never",
+                  "desktop": "default",
+                  "desktop_sound": "false",
+                  "email": "false",
+                  "first_name": "false",
+                  "mark_unread": "mention",
+                  "mention_keys": "",
+                  "push": "none",
+                  "push_status": "offline",
+                },
+                "password": "",
+                "position": "",
+                "props": Object {},
+                "roles": "",
+                "terms_of_service_create_at": 0,
+                "terms_of_service_id": "",
+                "update_at": 0,
+                "username": "username2",
+              },
+            },
+            Object {
+              "displayName": "Name3 Surname3",
+              "user": Object {
+                "auth_service": "",
+                "bot_description": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "email": "test3@test.com",
+                "first_name": "Name3",
+                "id": "id3",
+                "is_bot": false,
+                "last_activity_at": 0,
+                "last_name": "Surname3",
+                "last_password_update": 0,
+                "last_picture_update": 0,
+                "locale": "",
+                "mfa_active": false,
+                "nickname": "",
+                "notify_props": Object {
+                  "calls_desktop_sound": "true",
+                  "channel": "false",
+                  "comments": "never",
+                  "desktop": "default",
+                  "desktop_sound": "false",
+                  "email": "false",
+                  "first_name": "false",
+                  "mark_unread": "mention",
+                  "mention_keys": "",
+                  "push": "none",
+                  "push_status": "offline",
+                },
+                "password": "",
+                "position": "",
+                "props": Object {},
+                "roles": "",
+                "terms_of_service_create_at": 0,
+                "terms_of_service_id": "",
+                "update_at": 0,
+                "username": "username3",
+              },
+            },
+            Object {
+              "displayName": "Name4 Surname4",
+              "user": Object {
+                "auth_service": "",
+                "bot_description": "",
+                "create_at": 0,
+                "delete_at": 0,
+                "email": "test4@test.com",
+                "first_name": "Name4",
+                "id": "id4",
+                "is_bot": false,
+                "last_activity_at": 0,
+                "last_name": "Surname4",
+                "last_password_update": 0,
+                "last_picture_update": 0,
+                "locale": "",
+                "mfa_active": false,
+                "nickname": "",
+                "notify_props": Object {
+                  "calls_desktop_sound": "true",
+                  "channel": "false",
+                  "comments": "never",
+                  "desktop": "default",
+                  "desktop_sound": "false",
+                  "email": "false",
+                  "first_name": "false",
+                  "mark_unread": "mention",
+                  "mention_keys": "",
+                  "push": "none",
+                  "push_status": "offline",
+                },
+                "password": "",
+                "position": "",
+                "props": Object {},
+                "roles": "",
+                "terms_of_service_create_at": 0,
+                "terms_of_service_id": "",
+                "update_at": 0,
+                "username": "username4",
+              },
+            },
+          ]
+        }
+        searchState={0}
+        searchTerm=""
+        showUserOverlay={[MockFunction]}
+        teamUrl="team"
+      >
+        <UserList
+          role="list"
+          style={
+            Object {
+              "height": 216,
+            }
+          }
+        >
+          <div
+            className="UserList-XqScV gnsdGQ"
+            role="list"
+            style={
+              Object {
+                "height": 216,
+              }
+            }
+          >
+            <Component>
+              <InfiniteLoader
+                isItemLoaded={[Function]}
+                itemCount={5}
+                loadMoreItems={[Function]}
+                threshold={5}
+              >
+                <List
+                  direction="ltr"
+                  height={100}
+                  itemCount={5}
+                  itemSize={[Function]}
+                  layout="vertical"
+                  onItemsRendered={[Function]}
+                  overscanCount={2}
+                  useIsScrolling={false}
+                  width={100}
+                >
+                  <div
+                    onScroll={[Function]}
+                    style={
+                      Object {
+                        "WebkitOverflowScrolling": "touch",
+                        "direction": "ltr",
+                        "height": 100,
+                        "overflow": "auto",
+                        "position": "relative",
+                        "width": 100,
+                        "willChange": "transform",
+                      }
+                    }
+                  >
+                    <div
+                      style={
+                        Object {
+                          "height": 216,
+                          "pointerEvents": undefined,
+                          "width": "100%",
+                        }
+                      }
+                    >
+                      <Item
+                        index={0}
+                        key="0"
+                        style={
+                          Object {
+                            "height": undefined,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": undefined,
+                            "top": 0,
+                            "width": "100%",
+                          }
+                        }
+                      >
+                        <UserListItem
+                          className="group-member-list_item"
+                          first={true}
+                          key="id0"
+                          last={false}
+                          role="listitem"
+                          style={
+                            Object {
+                              "height": undefined,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": undefined,
+                              "top": 0,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <div
+                            className="UserListItem-iCIMiI bTPvin group-member-list_item"
+                            role="listitem"
+                            style={
+                              Object {
+                                "height": undefined,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": undefined,
+                                "top": 0,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            <UserButton
+                              aria-haspopup="dialog"
+                              onClick={[Function]}
+                            >
+                              <button
+                                aria-haspopup="dialog"
+                                className="UserButton-bZNeGd lLsMM"
+                                onClick={[Function]}
+                              >
+                                <Memo(Avatar)
+                                  className="avatar-post-preview"
+                                  size="sm"
+                                  tabIndex={-1}
+                                  url="/api/v4/users/id0/image?_=0"
+                                  username="username0"
+                                >
+                                  <img
+                                    alt="username0 profile image"
+                                    className="Avatar Avatar-sm avatar-post-preview"
+                                    loading="lazy"
+                                    onError={[Function]}
+                                    src="/api/v4/users/id0/image?_=0"
+                                    tabIndex={-1}
+                                  />
+                                </Memo(Avatar)>
+                                <Username
+                                  className="overflow--ellipsis text-nowrap"
+                                >
+                                  <span
+                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                  >
+                                    Name0 Surname0
+                                  </span>
+                                </Username>
+                                <Gap
+                                  className="group-member-list_gap"
+                                >
+                                  <span
+                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                  />
+                                </Gap>
+                              </button>
+                            </UserButton>
+                            <DMContainer
+                              className="group-member-list_dm-button"
+                            >
+                              <div
+                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                              >
+                                <SimpleTooltip
+                                  content="Send message"
+                                  id="name-id0"
+                                >
+                                  <OverlayTrigger
+                                    defaultOverlayShown={false}
+                                    delayShow={500}
+                                    overlay={
+                                      <Tooltip
+                                        className="hidden-xs"
+                                        id="name-id0"
+                                        placement="top"
+                                      >
+                                        Send message
+                                      </Tooltip>
+                                    }
+                                    placement="top"
+                                    trigger={
+                                      Array [
+                                        "hover",
+                                        "focus",
+                                      ]
+                                    }
+                                  >
+                                    <OverlayTrigger
+                                      defaultOverlayShown={false}
+                                      delayShow={500}
+                                      overlay={
+                                        <OverlayWrapper
+                                          className="hidden-xs"
+                                          id="name-id0"
+                                          intl={
+                                            Object {
+                                              "$t": [Function],
+                                              "defaultFormats": Object {},
+                                              "defaultLocale": "en",
+                                              "defaultRichTextElements": undefined,
+                                              "fallbackOnEmptyString": true,
+                                              "formatDate": [Function],
+                                              "formatDateTimeRange": [Function],
+                                              "formatDateToParts": [Function],
+                                              "formatDisplayName": [Function],
+                                              "formatList": [Function],
+                                              "formatListToParts": [Function],
+                                              "formatMessage": [Function],
+                                              "formatNumber": [Function],
+                                              "formatNumberToParts": [Function],
+                                              "formatPlural": [Function],
+                                              "formatRelativeTime": [Function],
+                                              "formatTime": [Function],
+                                              "formatTimeToParts": [Function],
+                                              "formats": Object {},
+                                              "formatters": Object {
+                                                "getDateTimeFormat": [Function],
+                                                "getDisplayNames": [Function],
+                                                "getListFormat": [Function],
+                                                "getMessageFormat": [Function],
+                                                "getNumberFormat": [Function],
+                                                "getPluralRules": [Function],
+                                                "getRelativeTimeFormat": [Function],
+                                              },
+                                              "locale": "en",
+                                              "messages": Object {},
+                                              "onError": [Function],
+                                              "onWarn": [Function],
+                                              "textComponent": "span",
+                                              "timeZone": "Etc/UTC",
+                                              "wrapRichTextChunksInFragment": undefined,
+                                            }
+                                          }
+                                          placement="top"
+                                        >
+                                          Send message
+                                        </OverlayWrapper>
+                                      }
+                                      placement="top"
+                                      trigger={
+                                        Array [
+                                          "hover",
+                                          "focus",
+                                        ]
+                                      }
+                                    >
+                                      <DMButton
+                                        aria-label="Send message to Name0 Surname0"
+                                        className="btn-icon"
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onMouseOut={[Function]}
+                                        onMouseOver={[Function]}
+                                      >
+                                        <button
+                                          aria-label="Send message to Name0 Surname0"
+                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          onBlur={[Function]}
+                                          onClick={[Function]}
+                                          onFocus={[Function]}
+                                          onMouseOut={[Function]}
+                                          onMouseOver={[Function]}
+                                        >
+                                          <SendIcon>
+                                            <svg
+                                              fill="currentColor"
+                                              height={24}
+                                              version="1.1"
+                                              viewBox="0 0 24 24"
+                                              width={24}
+                                              xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                              <path
+                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                              />
+                                            </svg>
+                                          </SendIcon>
+                                        </button>
+                                      </DMButton>
+                                    </OverlayTrigger>
+                                  </OverlayTrigger>
+                                </SimpleTooltip>
+                              </div>
+                            </DMContainer>
+                          </div>
+                        </UserListItem>
+                      </Item>
+                      <Item
+                        index={1}
+                        key="1"
+                        style={
+                          Object {
+                            "height": undefined,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": undefined,
+                            "top": 48,
+                            "width": "100%",
+                          }
+                        }
+                      >
+                        <UserListItem
+                          className="group-member-list_item"
+                          first={false}
+                          key="id1"
+                          last={false}
+                          role="listitem"
+                          style={
+                            Object {
+                              "height": undefined,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": undefined,
+                              "top": 48,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <div
+                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                            role="listitem"
+                            style={
+                              Object {
+                                "height": undefined,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": undefined,
+                                "top": 48,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            <UserButton
+                              aria-haspopup="dialog"
+                              onClick={[Function]}
+                            >
+                              <button
+                                aria-haspopup="dialog"
+                                className="UserButton-bZNeGd lLsMM"
+                                onClick={[Function]}
+                              >
+                                <Memo(Avatar)
+                                  className="avatar-post-preview"
+                                  size="sm"
+                                  tabIndex={-1}
+                                  url="/api/v4/users/id1/image?_=0"
+                                  username="username1"
+                                >
+                                  <img
+                                    alt="username1 profile image"
+                                    className="Avatar Avatar-sm avatar-post-preview"
+                                    loading="lazy"
+                                    onError={[Function]}
+                                    src="/api/v4/users/id1/image?_=0"
+                                    tabIndex={-1}
+                                  />
+                                </Memo(Avatar)>
+                                <Username
+                                  className="overflow--ellipsis text-nowrap"
+                                >
+                                  <span
+                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                  >
+                                    Name1 Surname1
+                                  </span>
+                                </Username>
+                                <Gap
+                                  className="group-member-list_gap"
+                                >
+                                  <span
+                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                  />
+                                </Gap>
+                              </button>
+                            </UserButton>
+                            <DMContainer
+                              className="group-member-list_dm-button"
+                            >
+                              <div
+                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                              >
+                                <SimpleTooltip
+                                  content="Send message"
+                                  id="name-id1"
+                                >
+                                  <OverlayTrigger
+                                    defaultOverlayShown={false}
+                                    delayShow={500}
+                                    overlay={
+                                      <Tooltip
+                                        className="hidden-xs"
+                                        id="name-id1"
+                                        placement="top"
+                                      >
+                                        Send message
+                                      </Tooltip>
+                                    }
+                                    placement="top"
+                                    trigger={
+                                      Array [
+                                        "hover",
+                                        "focus",
+                                      ]
+                                    }
+                                  >
+                                    <OverlayTrigger
+                                      defaultOverlayShown={false}
+                                      delayShow={500}
+                                      overlay={
+                                        <OverlayWrapper
+                                          className="hidden-xs"
+                                          id="name-id1"
+                                          intl={
+                                            Object {
+                                              "$t": [Function],
+                                              "defaultFormats": Object {},
+                                              "defaultLocale": "en",
+                                              "defaultRichTextElements": undefined,
+                                              "fallbackOnEmptyString": true,
+                                              "formatDate": [Function],
+                                              "formatDateTimeRange": [Function],
+                                              "formatDateToParts": [Function],
+                                              "formatDisplayName": [Function],
+                                              "formatList": [Function],
+                                              "formatListToParts": [Function],
+                                              "formatMessage": [Function],
+                                              "formatNumber": [Function],
+                                              "formatNumberToParts": [Function],
+                                              "formatPlural": [Function],
+                                              "formatRelativeTime": [Function],
+                                              "formatTime": [Function],
+                                              "formatTimeToParts": [Function],
+                                              "formats": Object {},
+                                              "formatters": Object {
+                                                "getDateTimeFormat": [Function],
+                                                "getDisplayNames": [Function],
+                                                "getListFormat": [Function],
+                                                "getMessageFormat": [Function],
+                                                "getNumberFormat": [Function],
+                                                "getPluralRules": [Function],
+                                                "getRelativeTimeFormat": [Function],
+                                              },
+                                              "locale": "en",
+                                              "messages": Object {},
+                                              "onError": [Function],
+                                              "onWarn": [Function],
+                                              "textComponent": "span",
+                                              "timeZone": "Etc/UTC",
+                                              "wrapRichTextChunksInFragment": undefined,
+                                            }
+                                          }
+                                          placement="top"
+                                        >
+                                          Send message
+                                        </OverlayWrapper>
+                                      }
+                                      placement="top"
+                                      trigger={
+                                        Array [
+                                          "hover",
+                                          "focus",
+                                        ]
+                                      }
+                                    >
+                                      <DMButton
+                                        aria-label="Send message to Name1 Surname1"
+                                        className="btn-icon"
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onMouseOut={[Function]}
+                                        onMouseOver={[Function]}
+                                      >
+                                        <button
+                                          aria-label="Send message to Name1 Surname1"
+                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          onBlur={[Function]}
+                                          onClick={[Function]}
+                                          onFocus={[Function]}
+                                          onMouseOut={[Function]}
+                                          onMouseOver={[Function]}
+                                        >
+                                          <SendIcon>
+                                            <svg
+                                              fill="currentColor"
+                                              height={24}
+                                              version="1.1"
+                                              viewBox="0 0 24 24"
+                                              width={24}
+                                              xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                              <path
+                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                              />
+                                            </svg>
+                                          </SendIcon>
+                                        </button>
+                                      </DMButton>
+                                    </OverlayTrigger>
+                                  </OverlayTrigger>
+                                </SimpleTooltip>
+                              </div>
+                            </DMContainer>
+                          </div>
+                        </UserListItem>
+                      </Item>
+                      <Item
+                        index={2}
+                        key="2"
+                        style={
+                          Object {
+                            "height": undefined,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": undefined,
+                            "top": 88,
+                            "width": "100%",
+                          }
+                        }
+                      >
+                        <UserListItem
+                          className="group-member-list_item"
+                          first={false}
+                          key="id2"
+                          last={false}
+                          role="listitem"
+                          style={
+                            Object {
+                              "height": undefined,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": undefined,
+                              "top": 88,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <div
+                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                            role="listitem"
+                            style={
+                              Object {
+                                "height": undefined,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": undefined,
+                                "top": 88,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            <UserButton
+                              aria-haspopup="dialog"
+                              onClick={[Function]}
+                            >
+                              <button
+                                aria-haspopup="dialog"
+                                className="UserButton-bZNeGd lLsMM"
+                                onClick={[Function]}
+                              >
+                                <Memo(Avatar)
+                                  className="avatar-post-preview"
+                                  size="sm"
+                                  tabIndex={-1}
+                                  url="/api/v4/users/id2/image?_=0"
+                                  username="username2"
+                                >
+                                  <img
+                                    alt="username2 profile image"
+                                    className="Avatar Avatar-sm avatar-post-preview"
+                                    loading="lazy"
+                                    onError={[Function]}
+                                    src="/api/v4/users/id2/image?_=0"
+                                    tabIndex={-1}
+                                  />
+                                </Memo(Avatar)>
+                                <Username
+                                  className="overflow--ellipsis text-nowrap"
+                                >
+                                  <span
+                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                  >
+                                    Name2 Surname2
+                                  </span>
+                                </Username>
+                                <Gap
+                                  className="group-member-list_gap"
+                                >
+                                  <span
+                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                  />
+                                </Gap>
+                              </button>
+                            </UserButton>
+                            <DMContainer
+                              className="group-member-list_dm-button"
+                            >
+                              <div
+                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                              >
+                                <SimpleTooltip
+                                  content="Send message"
+                                  id="name-id2"
+                                >
+                                  <OverlayTrigger
+                                    defaultOverlayShown={false}
+                                    delayShow={500}
+                                    overlay={
+                                      <Tooltip
+                                        className="hidden-xs"
+                                        id="name-id2"
+                                        placement="top"
+                                      >
+                                        Send message
+                                      </Tooltip>
+                                    }
+                                    placement="top"
+                                    trigger={
+                                      Array [
+                                        "hover",
+                                        "focus",
+                                      ]
+                                    }
+                                  >
+                                    <OverlayTrigger
+                                      defaultOverlayShown={false}
+                                      delayShow={500}
+                                      overlay={
+                                        <OverlayWrapper
+                                          className="hidden-xs"
+                                          id="name-id2"
+                                          intl={
+                                            Object {
+                                              "$t": [Function],
+                                              "defaultFormats": Object {},
+                                              "defaultLocale": "en",
+                                              "defaultRichTextElements": undefined,
+                                              "fallbackOnEmptyString": true,
+                                              "formatDate": [Function],
+                                              "formatDateTimeRange": [Function],
+                                              "formatDateToParts": [Function],
+                                              "formatDisplayName": [Function],
+                                              "formatList": [Function],
+                                              "formatListToParts": [Function],
+                                              "formatMessage": [Function],
+                                              "formatNumber": [Function],
+                                              "formatNumberToParts": [Function],
+                                              "formatPlural": [Function],
+                                              "formatRelativeTime": [Function],
+                                              "formatTime": [Function],
+                                              "formatTimeToParts": [Function],
+                                              "formats": Object {},
+                                              "formatters": Object {
+                                                "getDateTimeFormat": [Function],
+                                                "getDisplayNames": [Function],
+                                                "getListFormat": [Function],
+                                                "getMessageFormat": [Function],
+                                                "getNumberFormat": [Function],
+                                                "getPluralRules": [Function],
+                                                "getRelativeTimeFormat": [Function],
+                                              },
+                                              "locale": "en",
+                                              "messages": Object {},
+                                              "onError": [Function],
+                                              "onWarn": [Function],
+                                              "textComponent": "span",
+                                              "timeZone": "Etc/UTC",
+                                              "wrapRichTextChunksInFragment": undefined,
+                                            }
+                                          }
+                                          placement="top"
+                                        >
+                                          Send message
+                                        </OverlayWrapper>
+                                      }
+                                      placement="top"
+                                      trigger={
+                                        Array [
+                                          "hover",
+                                          "focus",
+                                        ]
+                                      }
+                                    >
+                                      <DMButton
+                                        aria-label="Send message to Name2 Surname2"
+                                        className="btn-icon"
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onMouseOut={[Function]}
+                                        onMouseOver={[Function]}
+                                      >
+                                        <button
+                                          aria-label="Send message to Name2 Surname2"
+                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          onBlur={[Function]}
+                                          onClick={[Function]}
+                                          onFocus={[Function]}
+                                          onMouseOut={[Function]}
+                                          onMouseOver={[Function]}
+                                        >
+                                          <SendIcon>
+                                            <svg
+                                              fill="currentColor"
+                                              height={24}
+                                              version="1.1"
+                                              viewBox="0 0 24 24"
+                                              width={24}
+                                              xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                              <path
+                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                              />
+                                            </svg>
+                                          </SendIcon>
+                                        </button>
+                                      </DMButton>
+                                    </OverlayTrigger>
+                                  </OverlayTrigger>
+                                </SimpleTooltip>
+                              </div>
+                            </DMContainer>
+                          </div>
+                        </UserListItem>
+                      </Item>
+                      <Item
+                        index={3}
+                        key="3"
+                        style={
+                          Object {
+                            "height": undefined,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": undefined,
+                            "top": 128,
+                            "width": "100%",
+                          }
+                        }
+                      >
+                        <UserListItem
+                          className="group-member-list_item"
+                          first={false}
+                          key="id3"
+                          last={false}
+                          role="listitem"
+                          style={
+                            Object {
+                              "height": undefined,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": undefined,
+                              "top": 128,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <div
+                            className="UserListItem-iCIMiI cXUsja group-member-list_item"
+                            role="listitem"
+                            style={
+                              Object {
+                                "height": undefined,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": undefined,
+                                "top": 128,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            <UserButton
+                              aria-haspopup="dialog"
+                              onClick={[Function]}
+                            >
+                              <button
+                                aria-haspopup="dialog"
+                                className="UserButton-bZNeGd lLsMM"
+                                onClick={[Function]}
+                              >
+                                <Memo(Avatar)
+                                  className="avatar-post-preview"
+                                  size="sm"
+                                  tabIndex={-1}
+                                  url="/api/v4/users/id3/image?_=0"
+                                  username="username3"
+                                >
+                                  <img
+                                    alt="username3 profile image"
+                                    className="Avatar Avatar-sm avatar-post-preview"
+                                    loading="lazy"
+                                    onError={[Function]}
+                                    src="/api/v4/users/id3/image?_=0"
+                                    tabIndex={-1}
+                                  />
+                                </Memo(Avatar)>
+                                <Username
+                                  className="overflow--ellipsis text-nowrap"
+                                >
+                                  <span
+                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                  >
+                                    Name3 Surname3
+                                  </span>
+                                </Username>
+                                <Gap
+                                  className="group-member-list_gap"
+                                >
+                                  <span
+                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                  />
+                                </Gap>
+                              </button>
+                            </UserButton>
+                            <DMContainer
+                              className="group-member-list_dm-button"
+                            >
+                              <div
+                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                              >
+                                <SimpleTooltip
+                                  content="Send message"
+                                  id="name-id3"
+                                >
+                                  <OverlayTrigger
+                                    defaultOverlayShown={false}
+                                    delayShow={500}
+                                    overlay={
+                                      <Tooltip
+                                        className="hidden-xs"
+                                        id="name-id3"
+                                        placement="top"
+                                      >
+                                        Send message
+                                      </Tooltip>
+                                    }
+                                    placement="top"
+                                    trigger={
+                                      Array [
+                                        "hover",
+                                        "focus",
+                                      ]
+                                    }
+                                  >
+                                    <OverlayTrigger
+                                      defaultOverlayShown={false}
+                                      delayShow={500}
+                                      overlay={
+                                        <OverlayWrapper
+                                          className="hidden-xs"
+                                          id="name-id3"
+                                          intl={
+                                            Object {
+                                              "$t": [Function],
+                                              "defaultFormats": Object {},
+                                              "defaultLocale": "en",
+                                              "defaultRichTextElements": undefined,
+                                              "fallbackOnEmptyString": true,
+                                              "formatDate": [Function],
+                                              "formatDateTimeRange": [Function],
+                                              "formatDateToParts": [Function],
+                                              "formatDisplayName": [Function],
+                                              "formatList": [Function],
+                                              "formatListToParts": [Function],
+                                              "formatMessage": [Function],
+                                              "formatNumber": [Function],
+                                              "formatNumberToParts": [Function],
+                                              "formatPlural": [Function],
+                                              "formatRelativeTime": [Function],
+                                              "formatTime": [Function],
+                                              "formatTimeToParts": [Function],
+                                              "formats": Object {},
+                                              "formatters": Object {
+                                                "getDateTimeFormat": [Function],
+                                                "getDisplayNames": [Function],
+                                                "getListFormat": [Function],
+                                                "getMessageFormat": [Function],
+                                                "getNumberFormat": [Function],
+                                                "getPluralRules": [Function],
+                                                "getRelativeTimeFormat": [Function],
+                                              },
+                                              "locale": "en",
+                                              "messages": Object {},
+                                              "onError": [Function],
+                                              "onWarn": [Function],
+                                              "textComponent": "span",
+                                              "timeZone": "Etc/UTC",
+                                              "wrapRichTextChunksInFragment": undefined,
+                                            }
+                                          }
+                                          placement="top"
+                                        >
+                                          Send message
+                                        </OverlayWrapper>
+                                      }
+                                      placement="top"
+                                      trigger={
+                                        Array [
+                                          "hover",
+                                          "focus",
+                                        ]
+                                      }
+                                    >
+                                      <DMButton
+                                        aria-label="Send message to Name3 Surname3"
+                                        className="btn-icon"
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onMouseOut={[Function]}
+                                        onMouseOver={[Function]}
+                                      >
+                                        <button
+                                          aria-label="Send message to Name3 Surname3"
+                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          onBlur={[Function]}
+                                          onClick={[Function]}
+                                          onFocus={[Function]}
+                                          onMouseOut={[Function]}
+                                          onMouseOver={[Function]}
+                                        >
+                                          <SendIcon>
+                                            <svg
+                                              fill="currentColor"
+                                              height={24}
+                                              version="1.1"
+                                              viewBox="0 0 24 24"
+                                              width={24}
+                                              xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                              <path
+                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                              />
+                                            </svg>
+                                          </SendIcon>
+                                        </button>
+                                      </DMButton>
+                                    </OverlayTrigger>
+                                  </OverlayTrigger>
+                                </SimpleTooltip>
+                              </div>
+                            </DMContainer>
+                          </div>
+                        </UserListItem>
+                      </Item>
+                      <Item
+                        index={4}
+                        key="4"
+                        style={
+                          Object {
+                            "height": undefined,
+                            "left": 0,
+                            "position": "absolute",
+                            "right": undefined,
+                            "top": 168,
+                            "width": "100%",
+                          }
+                        }
+                      >
+                        <UserListItem
+                          className="group-member-list_item"
+                          first={false}
+                          key="id4"
+                          last={true}
+                          role="listitem"
+                          style={
+                            Object {
+                              "height": undefined,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": undefined,
+                              "top": 168,
+                              "width": "100%",
+                            }
+                          }
+                        >
+                          <div
+                            className="UserListItem-iCIMiI krPIGz group-member-list_item"
+                            role="listitem"
+                            style={
+                              Object {
+                                "height": undefined,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": undefined,
+                                "top": 168,
+                                "width": "100%",
+                              }
+                            }
+                          >
+                            <UserButton
+                              aria-haspopup="dialog"
+                              onClick={[Function]}
+                            >
+                              <button
+                                aria-haspopup="dialog"
+                                className="UserButton-bZNeGd lLsMM"
+                                onClick={[Function]}
+                              >
+                                <Memo(Avatar)
+                                  className="avatar-post-preview"
+                                  size="sm"
+                                  tabIndex={-1}
+                                  url="/api/v4/users/id4/image?_=0"
+                                  username="username4"
+                                >
+                                  <img
+                                    alt="username4 profile image"
+                                    className="Avatar Avatar-sm avatar-post-preview"
+                                    loading="lazy"
+                                    onError={[Function]}
+                                    src="/api/v4/users/id4/image?_=0"
+                                    tabIndex={-1}
+                                  />
+                                </Memo(Avatar)>
+                                <Username
+                                  className="overflow--ellipsis text-nowrap"
+                                >
+                                  <span
+                                    className="Username-hebqVM cKlgOV overflow--ellipsis text-nowrap"
+                                  >
+                                    Name4 Surname4
+                                  </span>
+                                </Username>
+                                <Gap
+                                  className="group-member-list_gap"
+                                >
+                                  <span
+                                    className="Gap-pVXiI hWeVKL group-member-list_gap"
+                                  />
+                                </Gap>
+                              </button>
+                            </UserButton>
+                            <DMContainer
+                              className="group-member-list_dm-button"
+                            >
+                              <div
+                                className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
+                              >
+                                <SimpleTooltip
+                                  content="Send message"
+                                  id="name-id4"
+                                >
+                                  <OverlayTrigger
+                                    defaultOverlayShown={false}
+                                    delayShow={500}
+                                    overlay={
+                                      <Tooltip
+                                        className="hidden-xs"
+                                        id="name-id4"
+                                        placement="top"
+                                      >
+                                        Send message
+                                      </Tooltip>
+                                    }
+                                    placement="top"
+                                    trigger={
+                                      Array [
+                                        "hover",
+                                        "focus",
+                                      ]
+                                    }
+                                  >
+                                    <OverlayTrigger
+                                      defaultOverlayShown={false}
+                                      delayShow={500}
+                                      overlay={
+                                        <OverlayWrapper
+                                          className="hidden-xs"
+                                          id="name-id4"
+                                          intl={
+                                            Object {
+                                              "$t": [Function],
+                                              "defaultFormats": Object {},
+                                              "defaultLocale": "en",
+                                              "defaultRichTextElements": undefined,
+                                              "fallbackOnEmptyString": true,
+                                              "formatDate": [Function],
+                                              "formatDateTimeRange": [Function],
+                                              "formatDateToParts": [Function],
+                                              "formatDisplayName": [Function],
+                                              "formatList": [Function],
+                                              "formatListToParts": [Function],
+                                              "formatMessage": [Function],
+                                              "formatNumber": [Function],
+                                              "formatNumberToParts": [Function],
+                                              "formatPlural": [Function],
+                                              "formatRelativeTime": [Function],
+                                              "formatTime": [Function],
+                                              "formatTimeToParts": [Function],
+                                              "formats": Object {},
+                                              "formatters": Object {
+                                                "getDateTimeFormat": [Function],
+                                                "getDisplayNames": [Function],
+                                                "getListFormat": [Function],
+                                                "getMessageFormat": [Function],
+                                                "getNumberFormat": [Function],
+                                                "getPluralRules": [Function],
+                                                "getRelativeTimeFormat": [Function],
+                                              },
+                                              "locale": "en",
+                                              "messages": Object {},
+                                              "onError": [Function],
+                                              "onWarn": [Function],
+                                              "textComponent": "span",
+                                              "timeZone": "Etc/UTC",
+                                              "wrapRichTextChunksInFragment": undefined,
+                                            }
+                                          }
+                                          placement="top"
+                                        >
+                                          Send message
+                                        </OverlayWrapper>
+                                      }
+                                      placement="top"
+                                      trigger={
+                                        Array [
+                                          "hover",
+                                          "focus",
+                                        ]
+                                      }
+                                    >
+                                      <DMButton
+                                        aria-label="Send message to Name4 Surname4"
+                                        className="btn-icon"
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onMouseOut={[Function]}
+                                        onMouseOver={[Function]}
+                                      >
+                                        <button
+                                          aria-label="Send message to Name4 Surname4"
+                                          className="DMButton-hIFgRF ecgFEo btn-icon"
+                                          onBlur={[Function]}
+                                          onClick={[Function]}
+                                          onFocus={[Function]}
+                                          onMouseOut={[Function]}
+                                          onMouseOver={[Function]}
+                                        >
+                                          <SendIcon>
+                                            <svg
+                                              fill="currentColor"
+                                              height={24}
+                                              version="1.1"
+                                              viewBox="0 0 24 24"
+                                              width={24}
+                                              xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                              <path
+                                                d="M2,21L23,12L2,3V10L17,12L2,14V21Z"
+                                              />
+                                            </svg>
+                                          </SendIcon>
+                                        </button>
+                                      </DMButton>
+                                    </OverlayTrigger>
+                                  </OverlayTrigger>
+                                </SimpleTooltip>
+                              </div>
+                            </DMContainer>
+                          </div>
+                        </UserListItem>
+                      </Item>
+                    </div>
+                  </div>
+                </List>
+              </InfiniteLoader>
+            </Component>
+          </div>
+        </UserList>
+      </Memo(GroupMemberList)>
+    </Router>
+  </BrowserRouter>
+</Provider>
+`;

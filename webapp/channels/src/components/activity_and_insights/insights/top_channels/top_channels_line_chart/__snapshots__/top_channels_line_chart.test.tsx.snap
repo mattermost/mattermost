@@ -1,0 +1,273 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/activity_and_insights/insights/top_channels should match snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <BrowserRouter>
+    <Router
+      history={
+        Object {
+          "action": "POP",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 1,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "undefinedundefined",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
+    >
+      <Memo(TopChannelsLineChart)
+        channelLineChartData={
+          Object {
+            "2022-05-01": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 10,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 20,
+            },
+            "2022-05-02": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 20,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 40,
+            },
+            "2022-05-03": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 15,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 25,
+            },
+            "2022-05-04": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 15,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 10,
+            },
+            "2022-05-05": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 10,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 15,
+            },
+            "2022-05-06": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 20,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 50,
+            },
+            "2022-05-07": Object {
+              "4r98uzxe4b8t5g9ntt9zcdzktw": 10,
+              "4r98uzxe4b8t5gfdsdfggsdfgs": 40,
+            },
+          }
+        }
+        timeFrame="7_day"
+        timeZone="America/Toronto"
+        topChannels={
+          Array [
+            Object {
+              "display_name": "nesciunt",
+              "id": "4r98uzxe4b8t5g9ntt9zcdzktw",
+              "message_count": 100,
+              "name": "sequi-7",
+              "team_id": "team_id1",
+              "type": "P",
+            },
+            Object {
+              "display_name": "test",
+              "id": "4r98uzxe4b8t5gfdsdfggsdfgs",
+              "message_count": 200,
+              "name": "test-7",
+              "team_id": "team_id1",
+              "type": "P",
+            },
+          ]
+        }
+      >
+        <LineChart
+          data={
+            Object {
+              "datasets": Array [
+                Object {
+                  "backgroundColor": "transparent",
+                  "borderColor": "#1c58d9",
+                  "data": Array [
+                    10,
+                    20,
+                    15,
+                    15,
+                    10,
+                    20,
+                    10,
+                  ],
+                  "fillColor": "#1c58d9",
+                  "hitRadius": 10,
+                  "hoverBackgroundColor": "#1c58d9",
+                  "label": "nesciunt",
+                  "pointBackgroundColor": "#1c58d9",
+                  "pointBorderColor": "transparent",
+                  "pointRadius": 0,
+                  "tension": 0.4,
+                },
+                Object {
+                  "backgroundColor": "transparent",
+                  "borderColor": "#3db887",
+                  "data": Array [
+                    20,
+                    40,
+                    25,
+                    10,
+                    15,
+                    50,
+                    40,
+                  ],
+                  "fillColor": "#3db887",
+                  "hitRadius": 10,
+                  "hoverBackgroundColor": "#3db887",
+                  "label": "test",
+                  "pointBackgroundColor": "#3db887",
+                  "pointBorderColor": "transparent",
+                  "pointRadius": 0,
+                  "tension": 0.4,
+                },
+              ],
+              "labels": Array [
+                "May 01",
+                "May 02",
+                "May 03",
+                "May 04",
+                "May 05",
+                "May 06",
+                "May 07",
+              ],
+            }
+          }
+          height={200}
+          id="totalPostsPerChannel"
+          options={
+            Object {
+              "hover": Object {
+                "mode": "point",
+              },
+              "maintainAspectRatio": false,
+              "onHover": [Function],
+              "plugins": Object {
+                "legend": Object {
+                  "display": false,
+                },
+                "tooltip": Object {
+                  "bodyAlign": "left",
+                  "bodyFont": Object {
+                    "family": "Open Sans",
+                    "weight": "bold",
+                  },
+                  "bodySpacing": 10,
+                  "callbacks": Object {
+                    "footer": [Function],
+                    "label": [Function],
+                    "title": [Function],
+                  },
+                  "footerAlign": "center",
+                  "footerColor": "rgba(255, 255, 255, .64)",
+                  "footerFont": Object {
+                    "family": "Open Sans",
+                    "size": 11,
+                    "style": "normal",
+                  },
+                  "footerSpacing": 10,
+                  "multiKeyBackground": "transparent",
+                },
+              },
+              "responsive": true,
+              "scales": Object {
+                "xAxis": Object {
+                  "grid": Object {
+                    "drawOnChartArea": false,
+                  },
+                  "ticks": Object {
+                    "callback": [Function],
+                    "color": "rgba(63,67,80,0.72)",
+                    "font": Object {
+                      "family": "Open Sans",
+                      "size": 10,
+                    },
+                  },
+                },
+                "yAxis": Object {
+                  "beginAtZero": true,
+                  "grid": Object {
+                    "drawOnChartArea": true,
+                  },
+                  "ticks": Object {
+                    "color": "rgba(63,67,80,0.72)",
+                    "font": Object {
+                      "family": "Open Sans",
+                      "size": 10,
+                    },
+                    "maxTicksLimit": 5,
+                    "precision": 0,
+                  },
+                },
+              },
+            }
+          }
+          title={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Top Channels"
+              id="analytics.system.topChannels"
+            />
+          }
+        >
+          <div
+            className="col-sm-12"
+          >
+            <div
+              className="total-count by-day"
+            >
+              <div
+                className="title"
+              >
+                <FormattedMessage
+                  defaultMessage="Top Channels"
+                  id="analytics.system.topChannels"
+                >
+                  <span>
+                    Top Channels
+                  </span>
+                </FormattedMessage>
+              </div>
+              <div
+                className="content"
+              >
+                <canvas
+                  data-labels={
+                    Array [
+                      "May 01",
+                      "May 02",
+                      "May 03",
+                      "May 04",
+                      "May 05",
+                      "May 06",
+                      "May 07",
+                    ]
+                  }
+                  data-testid="totalPostsPerChannel"
+                  height={200}
+                />
+              </div>
+            </div>
+          </div>
+        </LineChart>
+      </Memo(TopChannelsLineChart)>
+    </Router>
+  </BrowserRouter>
+</Provider>
+`;

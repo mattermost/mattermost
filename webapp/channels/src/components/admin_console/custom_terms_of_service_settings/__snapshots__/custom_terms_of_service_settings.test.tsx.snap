@@ -1,0 +1,237 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/CustomTermsOfServiceSettings should match snapshot 1`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Terms of Service"
+        id="admin.support.termsOfServiceTitle"
+      />
+    </AdminHeader>
+    <LoadingScreen />
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass="btn-primary"
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/admin_console/CustomTermsOfServiceSettings should match snapshot 2`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Terms of Service"
+        id="admin.support.termsOfServiceTitle"
+      />
+    </AdminHeader>
+    <LoadingScreen />
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass="btn-primary"
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/admin_console/CustomTermsOfServiceSettings should match snapshot 3`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Terms of Service"
+        id="admin.support.termsOfServiceTitle"
+      />
+    </AdminHeader>
+    <LoadingScreen />
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass="btn-primary"
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`components/admin_console/CustomTermsOfServiceSettings should match snapshot 4`] = `
+<form
+  className="form-horizontal"
+  onSubmit={[Function]}
+  role="form"
+>
+  <div
+    className="wrapper--fixed"
+  >
+    <AdminHeader>
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Terms of Service"
+        id="admin.support.termsOfServiceTitle"
+      />
+    </AdminHeader>
+    <LoadingScreen />
+    <div
+      className="admin-console-save"
+    >
+      <SaveButton
+        btnClass="btn-primary"
+        defaultMessage={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Save"
+            id="save_button.save"
+          />
+        }
+        disabled={true}
+        extraClasses=""
+        onClick={[Function]}
+        saving={false}
+        savingMessage="Saving Config..."
+      />
+      <div
+        className="error-message"
+        onMouseOut={[Function]}
+        onMouseOver={[Function]}
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+        />
+      </div>
+      <Overlay
+        animation={[Function]}
+        placement="top"
+        rootClose={false}
+        show={false}
+        target={null}
+      >
+        <Tooltip
+          id="error-tooltip"
+        />
+      </Overlay>
+    </div>
+  </div>
+</form>
+`;

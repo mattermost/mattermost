@@ -1,0 +1,68 @@
+.file-preview-modal {
+    padding-left: 0 !important;
+
+    &__body {
+        height: 100vh;
+        padding: 0;
+    }
+
+    &__main-ctr {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+    }
+
+    &__title {
+        background: black;
+    }
+
+    &__content {
+        display: flex;
+        height: calc(100vh - 72px);
+        align-items: center;
+        justify-content: center;
+        padding: 48px;
+        background: rgba(0, 0, 0, 0.9);
+
+        @media screen and (max-width: 768px) {
+            height: calc(100% - 108px);
+            padding: 0;
+            background: rgb(0, 0, 0);
+        }
+    }
+
+    &__content-scrollable {
+        padding: 0;
+    }
+
+    &__scrollable {
+        overflow: auto;
+        width: 100%;
+        height: calc(100vh - 72px);
+        padding: 48px 5px 72px 0;
+        margin: 0 auto;
+        margin-right: 5px;
+        scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+        scrollbar-width: auto;
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        @media screen and (max-width: 768px) {
+            height: calc(100vh - 148px);
+            padding: 0;
+        }
+    }
+
+    &__zoom-bar {
+        .modal .modal-image & {
+            background-color: rgba(61, 60, 64, 0.56);
+        }
+    }
+
+    .modal.fade & {
+        transform: translate(0, 0);
+    }
+}

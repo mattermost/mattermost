@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/kanban/calculations/Option base case 1`] = `
+<div>
+  <div
+    class="KanbanCalculationOptions_CustomOption "
+  >
+    <span>
+      Count Unique Values
+       
+      <i
+        class="CompassIcon icon-chevron-right ChevronRightIcon"
+      />
+    </span>
+  </div>
+</div>
+`;

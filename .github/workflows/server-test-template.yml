@@ -1,0 +1,77 @@
+name: Server Test Template
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      datasource:
+        required: true
+        type: string
+      drivername:
+        required: true
+        type: string
+      logsartifact:
+        required: true
+        type: string
+env:
+  go-version: "1.19.5"
+jobs:
+  test:
+    name: ${{ inputs.name }}
+    runs-on: ubuntu-latest-8-cores
+    env:
+      COMPOSE_PROJECT_NAME: ghactions
+      BUILD_IMAGE: mattermost/mattermost-build-server:20230118_golang-1.19.5
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Setup Go
+        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ env.go-version }}
+          cache-dependency-path: server/go.sum
+      - name: Run docker compose
+        run: |
+          cd server/build
+          docker-compose --ansi never run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker-compose --ansi never ps
+      - name: Run Tests
+        run: |
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export RACE_MODE="-race"
+          fi
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=server/build/dotenv/test.env \
+            --env MM_SQLSETTINGS_DRIVERNAME="${{ inputs.drivername }}" \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            -v $(go env GOCACHE):/go/cache \
+            -e GOCACHE=/go/cache \
+            -v $PWD:/mattermost \
+            -w /mattermost/server \
+            $BUILD_IMAGE \
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+      - name: Stop docker compose
+        run: |
+          cd server/build
+          docker-compose --ansi never stop
+      - name: Archive logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: ${{ inputs.logsartifact }}
+          path: |
+            server/gotestsum.json
+            server/report.xml
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@c0e4b81aaa0067314a2d0d06e19b512c9d8af4f5 # v3.7.7
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: server/report.xml
+          check_name: ${{ inputs.name }} (Results)
+          job_name: ${{ inputs.name }}

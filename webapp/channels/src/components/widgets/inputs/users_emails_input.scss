@@ -1,0 +1,308 @@
+@import 'utils/variables';
+
+.UsersEmailsInput {
+
+    // Error state overrides to default styles
+    &.error {
+        .users-emails-input__control {
+            border-color: var(--error-text);
+
+            &--is-focused,
+            &--menu-is-open {
+                &:hover {
+                    border-color: var(--error-text);
+                }
+
+                border-color: var(--error-text);
+            }
+
+            .users-emails-input__input {
+                border-bottom: 1px dotted var(--error-text);
+
+                .a11y--focused {
+                    box-shadow: none;
+                }
+            }
+        }
+    }
+
+    &.empty {
+        .users-emails-input__control {
+            .users-emails-input__input {
+                border-bottom: 0;
+
+                .a11y--focused {
+                    box-shadow: none;
+                }
+            }
+        }
+    }
+
+    .users-emails-input__control {
+        min-height: 48px;
+        padding: 3px;
+        border-color: rgba(var(--center-channel-color-rgb), 0.2);
+        background: var(--center-channel-bg);
+        box-shadow: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        transition: none;
+
+        &--is-focused,
+        &--menu-is-open {
+            &:hover {
+                border-color: var(--button-bg);
+            }
+
+            padding: 2px;
+            border-width: 2px;
+            border-color: var(--button-bg);
+            transition: none;
+
+            .users-emails-input__value-container {
+                .users-emails-input__input {
+                    border-bottom: 0;
+
+                    .a11y--focused {
+                        box-shadow: none;
+                    }
+                }
+            }
+        }
+
+        .users-emails-input__input {
+            border-bottom: 1px dotted red;
+
+            >div {
+                width: 1px;
+            }
+        }
+    }
+
+    .users-emails-input__value-container {
+        padding: 0;
+        margin-left: 0;
+    }
+
+    .users-emails-input__placeholder {
+        margin-left: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    .users-emails-input__input {
+        margin-left: 6px;
+        color: var(--center-channel-color);
+
+        .a11y--focused {
+            box-shadow: none;
+        }
+    }
+
+    input {
+        height: inherit;
+    }
+
+    .users-emails-input__menu {
+        margin-top: 0;
+        background: var(--center-channel-bg);
+        box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
+        color: var(--center-channel-color);
+    }
+
+    .users-emails-input__menu-list {
+        padding: 0;
+    }
+
+    .users-emails-input__menu-notice {
+        display: flex;
+        height: 60px;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .users-emails-input__option {
+        display: flex;
+        height: 60px;
+        align-items: center;
+        padding: 12px;
+        cursor: pointer;
+        gap: 8px;
+
+        &--no-matches {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            text-align: center;
+
+            span {
+                width: 100%;
+            }
+
+            strong {
+                font-weight: 600;
+            }
+        }
+
+        &:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        &:last-child {
+            border-radius: 0 0 4px 4px;
+        }
+
+        &--is-focused {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &--no-matches:hover {
+            background: none;
+            cursor: default;
+        }
+
+        .fullname {
+            overflow: hidden;
+            opacity: 0.5;
+            text-overflow: ellipsis;
+
+            &::before {
+                padding: 5px;
+                content: "-";
+            }
+        }
+
+        .nickname {
+            overflow: hidden;
+            opacity: 0.5;
+            text-overflow: ellipsis;
+
+            &::before {
+                content: "(";
+                opacity: 0.5;
+            }
+
+            &::after {
+                content: ")";
+                opacity: 0.5;
+            }
+        }
+
+        .mail-plus-icon {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            padding: 3px;
+            margin-right: 8px;
+            background: var(--button-bg);
+            border-radius: 18px;
+
+            svg {
+                width: 24px;
+                height: 24px;
+                margin: 3px;
+                fill: var(--button-color);
+            }
+        }
+    }
+
+    .show {
+        display: block;
+    }
+
+    .users-emails-input__multi-value {
+        align-items: center;
+        padding: 4px;
+        margin: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 16px;
+        color: var(--center-channel-color);
+
+        &:nth-last-child(2) {
+            margin: 4px 0 4px 4px;
+        }
+    }
+
+    .users-emails-input__multi-value__label {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        color: var(--center-channel-color);
+        font-size: 1.6rem;
+
+        .mail-icon {
+            width: 24px;
+            height: 24px;
+            padding: 3px;
+            margin-right: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.56);
+            border-radius: 16px;
+
+            svg {
+                width: 18px;
+                height: 18px;
+                fill: rgba(var(--button-color-rgb), 0.88);
+            }
+        }
+
+        .Avatar {
+            margin-right: 4px;
+        }
+    }
+
+    .users-emails-input__multi-value__remove {
+        padding: 0 4px 0 8px;
+        cursor: pointer;
+
+        span {
+            display: flex;
+            width: 16px;
+            height: 16px;
+        }
+
+        &:hover {
+            background: none;
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
+            opacity: 0.6;
+
+            &:hover {
+                fill: rgba(var(--center-channel-color-rgb), 0.8);
+            }
+        }
+    }
+}
+
+.InputErrorBox {
+    display: flex;
+    width: 100%;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    background: rgba(var(--error-box-background), 0.1);
+    border-radius: 4px;
+
+    span {
+        position: relative;
+        height: 20px;
+        color: var(--error-text);
+        font-size: 16px;
+        line-height: 20px;
+        text-align: center;
+    }
+
+    button.upgradeLink {
+        padding: 0 !important;
+        border: none;
+        margin-left: 10px;
+        background: none !important;
+        font-weight: 600;
+
+        span {
+            color: var(--sys-button-bg);
+        }
+    }
+}

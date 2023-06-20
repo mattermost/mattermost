@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/GlobalHeader header menu should match snapshot 1`] = `
+<div>
+  <div
+    class="GlobalHeaderComponent"
+  >
+    <span
+      class="spacer"
+    />
+    <a
+      class="GlobalHeaderComponent__button help-button"
+      href="https://www.focalboard.com/fwlink/doc-boards.html?v=7.10.0"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <i
+        class="CompassIcon icon-help-circle-outline HelpIcon"
+      />
+    </a>
+    <div
+      class="GlobalHeaderSettingsMenu"
+    >
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper"
+        role="button"
+      >
+        <div
+          class="GlobalHeaderComponent__button menu-entry"
+        >
+          <i
+            class="CompassIcon icon-settings-outline SettingsIcon"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

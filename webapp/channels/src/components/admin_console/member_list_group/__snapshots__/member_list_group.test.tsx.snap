@@ -1,0 +1,548 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/group/GroupList should match snapshot with members 1`] = `
+<div
+  className="MemberListGroup"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.member_list_group.name"
+          />,
+        },
+      ]
+    }
+    endCount={10}
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[MockFunction]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No users found"
+        id="admin.member_list_group.notFound"
+      />
+    }
+    previousPage={[Function]}
+    rows={
+      Array [
+        Object {
+          "cells": Object {
+            "id": "id0",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test0@test.com",
+                  "first_name": "Name0",
+                  "id": "id0",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname0",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username0",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id1",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test1@test.com",
+                  "first_name": "Name1",
+                  "id": "id1",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname1",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username1",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id2",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test2@test.com",
+                  "first_name": "Name2",
+                  "id": "id2",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname2",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username2",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id3",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test3@test.com",
+                  "first_name": "Name3",
+                  "id": "id3",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname3",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username3",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id4",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test4@test.com",
+                  "first_name": "Name4",
+                  "id": "id4",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname4",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username4",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id5",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test5@test.com",
+                  "first_name": "Name5",
+                  "id": "id5",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname5",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username5",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id6",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test6@test.com",
+                  "first_name": "Name6",
+                  "id": "id6",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname6",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username6",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id7",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test7@test.com",
+                  "first_name": "Name7",
+                  "id": "id7",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname7",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username7",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id8",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test8@test.com",
+                  "first_name": "Name8",
+                  "id": "id8",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname8",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username8",
+                }
+              }
+            />,
+          },
+        },
+        Object {
+          "cells": Object {
+            "id": "id9",
+            "name": <UserGridName
+              user={
+                Object {
+                  "auth_service": "",
+                  "bot_description": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "email": "test9@test.com",
+                  "first_name": "Name9",
+                  "id": "id9",
+                  "is_bot": false,
+                  "last_activity_at": 0,
+                  "last_name": "Surname9",
+                  "last_password_update": 0,
+                  "last_picture_update": 0,
+                  "locale": "",
+                  "mfa_active": false,
+                  "nickname": "",
+                  "notify_props": Object {
+                    "calls_desktop_sound": "true",
+                    "channel": "false",
+                    "comments": "never",
+                    "desktop": "default",
+                    "desktop_sound": "false",
+                    "email": "false",
+                    "first_name": "false",
+                    "mark_unread": "mention",
+                    "mention_keys": "",
+                    "push": "none",
+                    "push_status": "offline",
+                  },
+                  "password": "",
+                  "position": "",
+                  "props": Object {},
+                  "roles": "",
+                  "terms_of_service_create_at": 0,
+                  "terms_of_service_id": "",
+                  "update_at": 0,
+                  "username": "username9",
+                }
+              }
+            />,
+          },
+        },
+      ]
+    }
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={15}
+  />
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/group/GroupList should match snapshot with no members 1`] = `
+<div
+  className="MemberListGroup"
+>
+  <DataGrid
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": <Memo(MemoizedFormattedMessage)
+            defaultMessage="Name"
+            id="admin.member_list_group.name"
+          />,
+        },
+      ]
+    }
+    endCount={0}
+    loading={true}
+    nextPage={[Function]}
+    onSearch={[MockFunction]}
+    page={0}
+    placeholderEmpty={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="No users found"
+        id="admin.member_list_group.notFound"
+      />
+    }
+    previousPage={[Function]}
+    rows={Array []}
+    searchPlaceholder=""
+    startCount={1}
+    term=""
+    total={0}
+  />
+</div>
+`;

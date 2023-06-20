@@ -1,0 +1,143 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/UserList should match default snapshot 1`] = `
+<div>
+  <div
+    className="more-modal__placeholder-row"
+    data-testid="noUsersFound"
+    key="no-users-found"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="No users found"
+        id="user_list.notFound"
+      />
+    </p>
+  </div>
+</div>
+`;
+
+exports[`components/UserList should match default snapshot when there are users 1`] = `
+<div>
+  <Connect(UserListRow)
+    actionProps={
+      Object {
+        "doEmailReset": [MockFunction],
+        "doManageRoles": [MockFunction],
+        "doManageTeams": [MockFunction],
+        "doManageTokens": [MockFunction],
+        "doPasswordReset": [MockFunction],
+        "enableUserAccessTokens": false,
+        "experimentalEnableAuthenticationTransfer": false,
+        "isDisabled": false,
+        "mfaEnabled": false,
+      }
+    }
+    actions={Array []}
+    index={0}
+    key="id1"
+    totalUsers={2}
+    user={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "",
+        "id": "id1",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "calls_desktop_sound": "true",
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "some-user",
+      }
+    }
+    userCount={0}
+  />
+  <Connect(UserListRow)
+    actionProps={
+      Object {
+        "doEmailReset": [MockFunction],
+        "doManageRoles": [MockFunction],
+        "doManageTeams": [MockFunction],
+        "doManageTokens": [MockFunction],
+        "doPasswordReset": [MockFunction],
+        "enableUserAccessTokens": false,
+        "experimentalEnableAuthenticationTransfer": false,
+        "isDisabled": false,
+        "mfaEnabled": false,
+      }
+    }
+    actions={Array []}
+    index={1}
+    key="id2"
+    totalUsers={2}
+    user={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "",
+        "id": "id2",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "calls_desktop_sound": "true",
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "some-user",
+      }
+    }
+    userCount={1}
+  />
+</div>
+`;

@@ -1,0 +1,619 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should match snapshot 1`] = `
+<div>
+  <div
+    class="GlobalHeaderSettingsMenu"
+  >
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper override menuOpened"
+      role="button"
+    >
+      <div
+        class="GlobalHeaderComponent__button menu-entry"
+      >
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+      </div>
+      <div
+        class="Menu noselect left "
+      >
+        <div
+          class="menu-contents"
+        >
+          <div
+            class="menu-options"
+          >
+            <div>
+              <div
+                class="MenuOption SubMenuOption menu-option open-left menu-option-active"
+                id="import"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Import
+                </div>
+                <i
+                  class="CompassIcon icon-chevron-right"
+                />
+                <div
+                  class="SubMenu Menu noselect left-bottom"
+                >
+                  <div
+                    class="menu-contents"
+                  >
+                    <div
+                      class="menu-options"
+                    >
+                      <div
+                        aria-label="Import archive"
+                        class="MenuOption TextOption menu-option"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Import archive
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                      <div
+                        aria-label="Trello"
+                        class="MenuOption TextOption menu-option"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Trello
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                      <div
+                        aria-label="Asana"
+                        class="MenuOption TextOption menu-option"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Asana
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                      <div
+                        aria-label="Notion"
+                        class="MenuOption TextOption menu-option"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Notion
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                      <div
+                        aria-label="Jira"
+                        class="MenuOption TextOption menu-option"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Jira
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                      <div
+                        aria-label="Todoist"
+                        class="MenuOption TextOption menu-option"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Todoist
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="menu-spacer hideOnWidescreen"
+                    />
+                    <div
+                      class="menu-options hideOnWidescreen"
+                    >
+                      <div
+                        aria-label="Cancel"
+                        class="MenuOption TextOption menu-option menu-cancel"
+                        role="button"
+                      >
+                        <div
+                          class="d-flex"
+                        >
+                          <div
+                            class="noicon"
+                          />
+                        </div>
+                        <div
+                          class="menu-option__content"
+                        >
+                          <div
+                            class="menu-name"
+                          >
+                            Cancel
+                          </div>
+                        </div>
+                        <div
+                          class="noicon"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Random icons"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Random icons
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Product tour"
+                class="MenuOption TextOption menu-option product-tour"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Product tour
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="menu-spacer hideOnWidescreen"
+          />
+          <div
+            class="menu-options hideOnWidescreen"
+          >
+            <div
+              aria-label="Cancel"
+              class="MenuOption TextOption menu-option menu-cancel"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Cancel
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should match snapshot 1`] = `
+<div>
+  <div
+    class="GlobalHeaderSettingsMenu"
+  >
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper override menuOpened"
+      role="button"
+    >
+      <div
+        class="GlobalHeaderComponent__button menu-entry"
+      >
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+      </div>
+      <div
+        class="Menu noselect left "
+      >
+        <div
+          class="menu-contents"
+        >
+          <div
+            class="menu-options"
+          >
+            <div>
+              <div
+                class="MenuOption SubMenuOption menu-option open-left"
+                id="import"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Import
+                </div>
+                <i
+                  class="CompassIcon icon-chevron-right"
+                />
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Random icons"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Random icons
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Product tour"
+                class="MenuOption TextOption menu-option product-tour"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Product tour
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="menu-spacer hideOnWidescreen"
+          />
+          <div
+            class="menu-options hideOnWidescreen"
+          >
+            <div
+              aria-label="Cancel"
+              class="MenuOption TextOption menu-option menu-cancel"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Cancel
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu closed should match snapshot 1`] = `
+<div>
+  <div
+    class="GlobalHeaderSettingsMenu"
+  >
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper"
+      role="button"
+    >
+      <div
+        class="GlobalHeaderComponent__button menu-entry"
+      >
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu open should match snapshot 1`] = `
+<div>
+  <div
+    class="GlobalHeaderSettingsMenu"
+  >
+    <div
+      aria-label="menuwrapper"
+      class="MenuWrapper override menuOpened"
+      role="button"
+    >
+      <div
+        class="GlobalHeaderComponent__button menu-entry"
+      >
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+      </div>
+      <div
+        class="Menu noselect left "
+      >
+        <div
+          class="menu-contents"
+        >
+          <div
+            class="menu-options"
+          >
+            <div>
+              <div
+                class="MenuOption SubMenuOption menu-option open-left"
+                id="import"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Import
+                </div>
+                <i
+                  class="CompassIcon icon-chevron-right"
+                />
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Random icons"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Random icons
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Product tour"
+                class="MenuOption TextOption menu-option product-tour"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Product tour
+                  </div>
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="menu-spacer hideOnWidescreen"
+          />
+          <div
+            class="menu-options hideOnWidescreen"
+          >
+            <div
+              aria-label="Cancel"
+              class="MenuOption TextOption menu-option menu-cancel"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="noicon"
+                />
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Cancel
+                </div>
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

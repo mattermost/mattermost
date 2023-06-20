@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
+<OverlayTrigger
+  defaultOverlayShown={false}
+  delayShow={1000}
+  overlay={
+    <Tooltip
+      id="file-name__tooltip"
+    >
+      test_filename
+    </Tooltip>
+  }
+  placement="top"
+  trigger={
+    Array [
+      "hover",
+      "focus",
+    ]
+  }
+>
+  <a
+    className="post-image__name"
+    href="#"
+    id="file-attachment-link"
+    onClick={[MockFunction]}
+    rel="noopener noreferrer"
+  >
+    <AttachmentIcon
+      className="icon"
+    />
+    test_filename
+  </a>
+</OverlayTrigger>
+`;
+
+exports[`components/file_attachment/FilenameOverlay should match snapshot, standard but not downloadable 1`] = `
+<span
+  className="post-image__name"
+>
+  test_filename
+</span>
+`;
+
+exports[`components/file_attachment/FilenameOverlay should match snapshot, standard display 1`] = `
+<div
+  className="post-image__name"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={1000}
+    overlay={
+      <Tooltip
+        id="file-name__tooltip"
+      >
+        Download
+      </Tooltip>
+    }
+    placement="top"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <ExternalLink
+      aria-label="download"
+      download="test_filename"
+      href="/api/v4/files/thumbnail_id?download=1"
+      location="filename_overlay"
+    >
+      test_filename
+    </ExternalLink>
+  </OverlayTrigger>
+</div>
+`;
+
+exports[`components/file_attachment/FilenameOverlay should match snapshot, with Download icon as children 1`] = `
+<div
+  className="post-image__name"
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={1000}
+    overlay={
+      <Tooltip
+        id="file-name__tooltip"
+      >
+        Download
+      </Tooltip>
+    }
+    placement="top"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <ExternalLink
+      aria-label="download"
+      download="test_filename"
+      href="/api/v4/files/thumbnail_id?download=1"
+      location="filename_overlay"
+    >
+      <AttachmentIcon />
+    </ExternalLink>
+  </OverlayTrigger>
+</div>
+`;

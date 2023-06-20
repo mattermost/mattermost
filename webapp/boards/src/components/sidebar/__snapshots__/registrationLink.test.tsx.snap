@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/RegistrationLink renders with signupToken in URL query param 1`] = `
+<div>
+  <div
+    class="Modal bottom-right"
+  >
+    <div
+      class="toolbar hideOnWidescreen"
+    >
+      <button
+        aria-label="Close"
+        class="IconButton"
+        title="Close"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-close CloseIcon"
+        />
+      </button>
+    </div>
+    <div
+      class="RegistrationLink"
+    >
+      <div
+        class="row"
+      >
+        Share this link for others to create accounts:
+      </div>
+      <div
+        class="row"
+      >
+        <a
+          class="shareUrl"
+          href="http://localhost:8065/register?t=abc123"
+          rel="noreferrer"
+          target="_blank"
+        >
+          http://localhost:8065/register?t=abc123
+        </a>
+        <button
+          class="Button filled size--small"
+          type="button"
+        >
+          <span>
+            Copy link
+          </span>
+        </button>
+      </div>
+      <div
+        class="row"
+      >
+        <button
+          class="Button emphasis--secondary size--small"
+          type="button"
+        >
+          <span>
+            Regenerate token
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

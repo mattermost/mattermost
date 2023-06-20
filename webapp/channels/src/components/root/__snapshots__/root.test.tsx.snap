@@ -1,0 +1,132 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/Root Routes Should mount public product routes 1`] = `
+<RootProvider>
+  <Switch>
+    <Route
+      component={[Function]}
+      path="/error"
+    />
+    <HFRoute
+      component={[Function]}
+      path="/login"
+    />
+    <HFRoute
+      component={[Function]}
+      path="/access_problem"
+    />
+    <HFTRoute
+      component={[Function]}
+      path="/reset_password"
+    />
+    <HFTRoute
+      component={[Function]}
+      path="/reset_password_complete"
+    />
+    <HFRoute
+      component={[Function]}
+      path="/signup_user_complete"
+    />
+    <HFRoute
+      component={[Function]}
+      path="/should_verify_email"
+    />
+    <HFRoute
+      component={[Function]}
+      path="/do_verify_email"
+    />
+    <HFTRoute
+      component={[Function]}
+      path="/claim"
+    />
+    <LoggedInRoute
+      component={[Function]}
+      path="/terms_of_service"
+    />
+    <Route
+      component={[Function]}
+      path="/landing"
+    />
+    <Route
+      path="/admin_console"
+    >
+      <Switch>
+        <LoggedInRoute
+          component={[Function]}
+          path="/admin_console"
+          theme={Object {}}
+        />
+        <Connect(RootRedirect) />
+      </Switch>
+    </Route>
+    <LoggedInHFTRoute
+      component={[Function]}
+      path="/select_team"
+    />
+    <LoggedInHFTRoute
+      component={[Function]}
+      path="/oauth/authorize"
+    />
+    <LoggedInHFTRoute
+      component={[Function]}
+      path="/create_team"
+    />
+    <LoggedInRoute
+      component={[Function]}
+      path="/mfa"
+    />
+    <LoggedInRoute
+      component={[Function]}
+      path="/preparing-workspace"
+    />
+    <Redirect
+      from="/_redirect/integrations/:subpath*"
+      to="/myTeam/integrations/:subpath*"
+    />
+    <Redirect
+      from="/_redirect/pl/:postid"
+      to="/myTeam/pl/:postid"
+    />
+    <CompassThemeProvider
+      theme={Object {}}
+    >
+      <Connect(ModalController) />
+      <Connect(Component) />
+      <Connect(SystemNotice) />
+      <GlobalHeader />
+      <CloudEffectsWrapper />
+      <withRouter(Connect(TeamSidebar)) />
+      <DelinquencyModalController />
+      <Switch>
+        <Route
+          key="productwithpublic-public"
+          path="/productwithpublic/public"
+          render={[Function]}
+        />
+        <Route
+          key="productwithpublic"
+          path="/productwithpublic"
+          render={[Function]}
+        />
+        <Route
+          key="productwithoutpublic"
+          path="/productwithoutpublic"
+          render={[Function]}
+        />
+        <LoggedInRoute
+          component={[Function]}
+          path="/:team"
+          theme={Object {}}
+        />
+        <Connect(RootRedirect) />
+      </Switch>
+      <Connect(Pluggable)
+        pluggableName="Global"
+      />
+      <withRouter(Connect(Component)) />
+      <AppBar />
+      <Connect(SidebarRightMenu) />
+    </CompassThemeProvider>
+  </Switch>
+</RootProvider>
+`;

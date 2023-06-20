@@ -1,0 +1,393 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/table/TableHeaderMenu should match snapshot, other column 1`] = `
+<div>
+  <div
+    class="Menu noselect bottom "
+  >
+    <div
+      class="menu-contents"
+    >
+      <div
+        class="menu-options"
+      >
+        <div>
+          <div
+            aria-label="Sort ascending"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Sort ascending
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Sort descending"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Sort descending
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Insert left"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Insert left
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Insert right"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Insert right
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Hide"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Hide
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            aria-label="Duplicate"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Duplicate
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            aria-label="Delete"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Delete
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="menu-spacer hideOnWidescreen"
+      />
+      <div
+        class="menu-options hideOnWidescreen"
+      >
+        <div
+          aria-label="Cancel"
+          class="MenuOption TextOption menu-option menu-cancel"
+          role="button"
+        >
+          <div
+            class="d-flex"
+          >
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            class="menu-option__content"
+          >
+            <div
+              class="menu-name"
+            >
+              Cancel
+            </div>
+          </div>
+          <div
+            class="noicon"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/table/TableHeaderMenu should match snapshot, title column 1`] = `
+<div>
+  <div
+    class="Menu noselect bottom "
+  >
+    <div
+      class="menu-contents"
+    >
+      <div
+        class="menu-options"
+      >
+        <div>
+          <div
+            aria-label="Sort ascending"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Sort ascending
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Sort descending"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Sort descending
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Insert left"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Insert left
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            aria-label="Insert right"
+            class="MenuOption TextOption menu-option"
+            role="button"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Insert right
+              </div>
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="menu-spacer hideOnWidescreen"
+      />
+      <div
+        class="menu-options hideOnWidescreen"
+      >
+        <div
+          aria-label="Cancel"
+          class="MenuOption TextOption menu-option menu-cancel"
+          role="button"
+        >
+          <div
+            class="d-flex"
+          >
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            class="menu-option__content"
+          >
+            <div
+              class="menu-name"
+            >
+              Cancel
+            </div>
+          </div>
+          <div
+            class="noicon"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

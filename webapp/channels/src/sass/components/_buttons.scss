@@ -1,0 +1,134 @@
+@charset 'UTF-8';
+
+button {
+    .unread-badge {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin: 0 0 0 40px;
+        background: #f74343;
+        border-radius: 50%;
+    }
+
+    &.style--none {
+        padding: 0;
+        border: none;
+        background: transparent;
+
+        &:focus {
+            outline: 0;
+            text-decoration: none;
+        }
+
+        &.btn {
+            padding: 6px 12px;
+        }
+
+        &.btn--block {
+            width: 100%;
+            text-align: left;
+        }
+
+        &:hover,
+        &:active {
+            text-decoration: none;
+        }
+    }
+}
+
+.btn {
+    border-radius: $border-rad;
+    transition: all 0.15s ease;
+
+    &.btn-primary {
+        border-color: transparent;
+        background: $primary-color;
+
+        &:hover,
+        &:focus,
+        &:active {
+            background: $primary-color--hover;
+        }
+    }
+
+    &.btn-danger {
+        color: $white;
+
+        .app__body & {
+            color: $white;
+
+            &:hover,
+            &:focus,
+            &:active {
+                color: $white;
+            }
+        }
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: $white;
+        }
+    }
+
+    &.btn-transparent {
+        padding: 7px 12px;
+        border: none;
+        background: transparent;
+    }
+
+    &.btn-inactive {
+        border-color: transparent;
+        background: $light-gray;
+        color: $white;
+    }
+
+    .fa {
+        margin-right: 3px;
+
+        &.margin-right {
+            margin-right: 6px;
+        }
+
+        &.margin-left {
+            margin-left: 6px;
+        }
+    }
+
+    &.btn-link {
+        &:active,
+        &:focus {
+            outline: none;
+        }
+    }
+}
+
+%btn-transition {
+    transition: all 0.15s ease;
+}
+
+.btn-icon {
+    width: 3.2rem;
+    height: 3.2rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 1.6rem;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        fill: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active,
+    &--active,
+    &--active:hover {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: v(button-bg);
+        fill: v(button-bg);
+    }
+}

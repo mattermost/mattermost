@@ -1,0 +1,61 @@
+run:
+  timeout: 10m
+  skip-dirs:
+    - channels/store/storetest/mocks
+
+linters-settings:
+  gofmt:
+    simplify: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment
+
+linters:
+  disable-all: true
+  enable:
+    - typecheck # This is to improve error reporting
+    - gofmt
+    - gosimple
+    - govet
+    - ineffassign
+    - revive
+    - exportloopref
+    - staticcheck
+    - unconvert
+    - unused
+    - misspell
+    - goimports
+    - makezero
+    # TODO: enable this later
+    # - errcheck
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "SetupEnterprise"
+
+    - linters:
+      - revive
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|context-as-argument|empty-block"
+      # We need to fix the unused parameter issues and remove the exception.
+
+    - linters:
+      - revive
+      path: "public/*" # TODO: fix this
+
+    - linters:
+      - revive
+      path: "enterprise" # TODO: fix this
+
+    - linters:
+      - misspell
+      path: "platform/shared/markdown/html_entities.go"
+
+    - linters:
+      - staticcheck
+      text: SA1019

@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/content/contentElement should match snapshot for checkbox type 1`] = `
+<div>
+  <div
+    class="CheckboxElement"
+  >
+    <input
+      id="checkbox-test-id"
+      type="checkbox"
+      value="off"
+    />
+    <input
+      class="Editable "
+      placeholder="Edit text..."
+      spellcheck="true"
+      title="test-title"
+      value="test-title"
+    />
+  </div>
+</div>
+`;

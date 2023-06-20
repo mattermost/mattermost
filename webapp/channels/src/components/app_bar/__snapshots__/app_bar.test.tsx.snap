@@ -1,0 +1,331 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/app_bar/app_bar should match snapshot on mount 1`] = `
+<AppBar>
+  <div
+    className="app-bar"
+  >
+    <div
+      className="app-bar__top"
+    >
+      <AppBarPluginComponent
+        component={
+          Object {
+            "action": [MockFunction],
+            "icon": "fallback_component",
+            "id": "the_component_id",
+            "pluginId": "playbooks",
+            "tooltipText": "Playbooks Tooltip",
+          }
+        }
+        key="the_component_id"
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              bsClass="tooltip"
+              id="pluginTooltip-app-bar-icon-playbooks"
+              placement="right"
+            >
+              <span>
+                Playbooks Tooltip
+              </span>
+            </Tooltip>
+          }
+          placement="left"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <OverlayWrapper
+                bsClass="tooltip"
+                id="pluginTooltip-app-bar-icon-playbooks"
+                intl={null}
+                placement="right"
+              >
+                <span>
+                  Playbooks Tooltip
+                </span>
+              </OverlayWrapper>
+            }
+            placement="left"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div
+              className="app-bar__icon"
+              id="app-bar-icon-playbooks"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onMouseOut={[Function]}
+              onMouseOver={[Function]}
+            >
+              <div
+                className="app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered"
+              >
+                fallback_component
+              </div>
+            </div>
+          </OverlayTrigger>
+        </OverlayTrigger>
+      </AppBarPluginComponent>
+      <hr
+        className="app-bar__divider"
+        key="divider"
+      />
+      <AppBarBinding
+        binding={
+          Object {
+            "app_id": "com.mattermost.zendesk",
+            "label": "Create Subscription",
+          }
+        }
+        key="com.mattermost.zendesk_Create Subscription"
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              bsClass="tooltip"
+              id="tooltip-app-bar-icon-com.mattermost.zendesk"
+              placement="right"
+            >
+              <span>
+                Create Subscription
+              </span>
+            </Tooltip>
+          }
+          placement="left"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <OverlayWrapper
+                bsClass="tooltip"
+                id="tooltip-app-bar-icon-com.mattermost.zendesk"
+                intl={null}
+                placement="right"
+              >
+                <span>
+                  Create Subscription
+                </span>
+              </OverlayWrapper>
+            }
+            placement="left"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div
+              aria-label="Create Subscription"
+              className="app-bar__icon"
+              id="app-bar-icon-com.mattermost.zendesk"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onMouseOut={[Function]}
+              onMouseOver={[Function]}
+            >
+              <div
+                className="app-bar__icon-inner"
+              >
+                <img />
+              </div>
+            </div>
+          </OverlayTrigger>
+        </OverlayTrigger>
+      </AppBarBinding>
+    </div>
+  </div>
+</AppBar>
+`;
+
+exports[`components/app_bar/app_bar should match snapshot on mount when App Bar is disabled 1`] = `
+<AppBar>
+  <div
+    className="app-bar"
+  >
+    <div
+      className="app-bar__top"
+    >
+      <AppBarPluginComponent
+        component={
+          Object {
+            "action": [MockFunction],
+            "icon": "fallback_component",
+            "id": "the_component_id",
+            "pluginId": "playbooks",
+            "tooltipText": "Playbooks Tooltip",
+          }
+        }
+        key="the_component_id"
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              bsClass="tooltip"
+              id="pluginTooltip-app-bar-icon-playbooks"
+              placement="right"
+            >
+              <span>
+                Playbooks Tooltip
+              </span>
+            </Tooltip>
+          }
+          placement="left"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <OverlayWrapper
+                bsClass="tooltip"
+                id="pluginTooltip-app-bar-icon-playbooks"
+                intl={null}
+                placement="right"
+              >
+                <span>
+                  Playbooks Tooltip
+                </span>
+              </OverlayWrapper>
+            }
+            placement="left"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div
+              className="app-bar__icon"
+              id="app-bar-icon-playbooks"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onMouseOut={[Function]}
+              onMouseOver={[Function]}
+            >
+              <div
+                className="app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered"
+              >
+                fallback_component
+              </div>
+            </div>
+          </OverlayTrigger>
+        </OverlayTrigger>
+      </AppBarPluginComponent>
+      <hr
+        className="app-bar__divider"
+        key="divider"
+      />
+      <AppBarBinding
+        binding={
+          Object {
+            "app_id": "com.mattermost.zendesk",
+            "label": "Create Subscription",
+          }
+        }
+        key="com.mattermost.zendesk_Create Subscription"
+      >
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              bsClass="tooltip"
+              id="tooltip-app-bar-icon-com.mattermost.zendesk"
+              placement="right"
+            >
+              <span>
+                Create Subscription
+              </span>
+            </Tooltip>
+          }
+          placement="left"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <OverlayTrigger
+            defaultOverlayShown={false}
+            delayShow={400}
+            overlay={
+              <OverlayWrapper
+                bsClass="tooltip"
+                id="tooltip-app-bar-icon-com.mattermost.zendesk"
+                intl={null}
+                placement="right"
+              >
+                <span>
+                  Create Subscription
+                </span>
+              </OverlayWrapper>
+            }
+            placement="left"
+            trigger={
+              Array [
+                "hover",
+                "focus",
+              ]
+            }
+          >
+            <div
+              aria-label="Create Subscription"
+              className="app-bar__icon"
+              id="app-bar-icon-com.mattermost.zendesk"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onMouseOut={[Function]}
+              onMouseOver={[Function]}
+            >
+              <div
+                className="app-bar__icon-inner"
+              >
+                <img />
+              </div>
+            </div>
+          </OverlayTrigger>
+        </OverlayTrigger>
+      </AppBarBinding>
+    </div>
+  </div>
+</AppBar>
+`;

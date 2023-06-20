@@ -1,0 +1,185 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/add_users_to_role_modal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addUsersToRoleModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add users to {roleName}"
+        id="add_users_to_role.title"
+        values={
+          Object {
+            "roleName": <strong>
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="role_name"
+                id="admin.permissions.roles.role_name.name"
+              />
+            </strong>,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitLoadingText="Adding..."
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addUsersToRoleKey"
+      loading={true}
+      maxValues={20}
+      numRemainingText={
+        <div
+          id="numPeopleRemaining"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
+            id="multiselect.numPeopleRemaining"
+            values={
+              Object {
+                "num": 20,
+              }
+            }
+          />
+        </div>
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "label": "some-user",
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some-user",
+            "value": "user_id",
+          },
+          Object {
+            "auth_service": "",
+            "bot_description": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "email": "",
+            "first_name": "",
+            "id": "user_id",
+            "is_bot": false,
+            "label": "some-user",
+            "last_activity_at": 0,
+            "last_name": "",
+            "last_password_update": 0,
+            "last_picture_update": 0,
+            "locale": "",
+            "mfa_active": false,
+            "nickname": "",
+            "notify_props": Object {
+              "calls_desktop_sound": "true",
+              "channel": "false",
+              "comments": "never",
+              "desktop": "default",
+              "desktop_sound": "false",
+              "email": "false",
+              "first_name": "false",
+              "mark_unread": "mention",
+              "mention_keys": "",
+              "push": "none",
+              "push_status": "offline",
+            },
+            "password": "",
+            "position": "",
+            "props": Object {},
+            "roles": "",
+            "terms_of_service_create_at": 0,
+            "terms_of_service_id": "",
+            "update_at": 0,
+            "username": "some-user",
+            "value": "user_id",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add members"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;

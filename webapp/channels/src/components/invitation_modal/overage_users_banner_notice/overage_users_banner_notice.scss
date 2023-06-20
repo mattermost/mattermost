@@ -1,0 +1,19 @@
+@import 'utils/mixins';
+
+.overage_users_banner {
+    margin-top: 16px;
+
+    &__description {
+        color: var(--center-channel-text);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__button {
+        @include link;
+
+        background: transparent;
+        font-size: 14px;
+    }
+}
