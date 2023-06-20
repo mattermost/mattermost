@@ -8,6 +8,8 @@ import React, {
     useEffect,
     KeyboardEvent,
     SyntheticEvent,
+    useMemo,
+    useCallback,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import MuiMenuList from '@mui/material/MenuList';
@@ -96,10 +98,10 @@ export function Menu(props: Props) {
     }
 
     // Handle function injected into menu items to close the menu
-    function closeMenu(): void {
+    const closeMenu = useCallback(() => {
         setAnchorElement(null);
         setDisableAutoFocusItem(false);
-    }
+    }, []);
 
     function handleMenuModalClose(modalId: MenuProps['id']) {
         dispatch(closeModal(modalId));
@@ -209,6 +211,13 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
+    const providerValue = useMemo(() => {
+        return {
+            close: closeMenu,
+            isOpen: Boolean(anchorElement),
+        };
+    }, [anchorElement, closeMenu]);
+
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
         return renderMenuButton();
@@ -239,7 +248,7 @@ export function Menu(props: Props) {
                     },
                 }}
             >
-                <MenuContext.Provider value={{close: closeMenu, isOpen: isMenuOpen}}>
+                <MenuContext.Provider value={providerValue}>
                     {props.children}
                 </MenuContext.Provider>
             </MuiMenuStyled>

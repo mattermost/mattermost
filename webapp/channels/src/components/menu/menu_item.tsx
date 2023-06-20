@@ -25,7 +25,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
 import {MenuContext, SubMenuContext} from './menu_context';
 
-const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.5;
+const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.2;
 
 export interface Props extends MuiMenuItemProps {
 

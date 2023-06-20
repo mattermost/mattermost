@@ -8,6 +8,7 @@ import React, {
     KeyboardEvent,
     useEffect,
     useMemo,
+    useCallback,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import MuiMenuList from '@mui/material/MenuList';
@@ -75,16 +76,25 @@ export function SubMenu(props: Props) {
         }
     }, [anyModalOpen, isMobileView]);
 
-    const originOfAnchorAndTransform = useMemo(() => getOriginOfAnchorAndTransform(forceOpenOnLeft, anchorElement), [anchorElement]);
+    const originOfAnchorAndTransform = useMemo(() => {
+        return getOriginOfAnchorAndTransform(forceOpenOnLeft, anchorElement);
+    }, [anchorElement, forceOpenOnLeft]);
+
+    // Handler function injected in the menu items to close the submenu
+    const closeSubMenu = useCallback(() => {
+        setAnchorElement(null);
+    }, []);
+
+    const providerValue = useMemo(() => {
+        return {
+            close: closeSubMenu,
+            isOpen: Boolean(anchorElement),
+        };
+    }, [anchorElement, closeSubMenu]);
 
     const hasSubmenuItems = Boolean(children);
     if (!hasSubmenuItems) {
         return null;
-    }
-
-    // Handler function injected in the menu items to close the submenu
-    function forceCloseSubMenu() {
-        setAnchorElement(null);
     }
 
     function handleMouseEnter(event: MouseEvent<HTMLLIElement>) {
@@ -179,7 +189,7 @@ export function SubMenu(props: Props) {
                         paddingBottom: 0,
                     }}
                 >
-                    <SubMenuContext.Provider value={{close: forceCloseSubMenu, isOpen: isSubMenuOpen}}>
+                    <SubMenuContext.Provider value={providerValue}>
                         {children}
                     </SubMenuContext.Provider>
                 </MuiMenuList>
