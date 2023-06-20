@@ -14,6 +14,7 @@ import RevokeTokenButton from 'components/admin_console/revoke_token_button';
 import LoadingScreen from 'components/loading_screen';
 import Avatar from 'components/widgets/users/avatar';
 import ExternalLink from 'components/external_link';
+import {DeveloperLinks} from 'utils/constants';
 
 export type Props = {
 
@@ -167,7 +168,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                             ),
                             linkPersonalAccessTokens: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                    href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                     location='manage_tokens_modal'
                                 >
                                     {msg}
