@@ -9,8 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
-// TODO Desktop Token
-
 func TestDesktopTokensStore(t *testing.T) {
 	StoreTestWithSqlStore(t, storetest.TestDesktopTokensStore)
 }
