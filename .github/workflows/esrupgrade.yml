@@ -1,5 +1,6 @@
 name: ESR Upgrade
 on:
+  # Uncomment after https://mattermost.atlassian.net/browse/MM-53275 is fixed
   # pull_request:
   #   paths:
   #     - 'server/scripts/esrupgrades/*'
