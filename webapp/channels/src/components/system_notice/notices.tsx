@@ -13,6 +13,7 @@ import * as UserAgent from 'utils/user_agent';
 import mattermostIcon from 'images/icon50x50.png';
 import {Notice} from 'components/system_notice/types';
 import ExternalLink from 'components/external_link';
+import {DocLinks} from 'utils/constants';
 
 // Notices are objects with the following fields:
 //  - name - string identifier
@@ -77,7 +78,7 @@ const notices: Notice[] = [
                 values={{
                     link: (msg: React.ReactNode) => (
                         <ExternalLink
-                            href='https://docs.mattermost.com/deployment/advanced-permissions.html'
+                            href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                             location='system_notices'
                         >
                             {msg}

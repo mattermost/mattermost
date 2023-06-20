@@ -48,9 +48,6 @@ type FeatureFlags struct {
 
 	CommandPalette bool
 
-	// A/B Test on posting a welcome message
-	SendWelcomePost bool
-
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
@@ -87,7 +84,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InsightsEnabled = false
 	f.CommandPalette = false
 	f.CallsEnabled = true
-	f.SendWelcomePost = true
 	f.PostPriority = true
 	f.PeopleProduct = false
 	f.ReduceOnBoardingTaskList = false
