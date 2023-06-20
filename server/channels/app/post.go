@@ -782,11 +782,6 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, err
 	}
 
-	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, 10000000)
-	if err != nil {
-		return false, err
-	}
-
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
@@ -797,27 +792,33 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	}
 
 	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, cm := range channelMembers {
-		if permalinkPreviewedPost != nil {
-			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
-		}
-
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
-
-		// Using DeepCopy here to avoid a race condition
-		// between publishing the event and setting the "post" data value below.
-		messageCopy := message.DeepCopy()
-		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = cm.UserId
-		messageCopy.SetBroadcast(broadcastCopy)
-
-		postJSON, jsonErr := postForUser.ToJSON()
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
-		}
-		messageCopy.Add("post", postJSON)
-		a.Publish(messageCopy)
+	if permalinkPreviewedPost != nil {
+		post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+	} else {
+		return false, nil
 	}
+
+	// Using DeepCopy here to avoid a race condition
+	// between publishing the event and setting the "post" data value below.
+	messageCopy := message.DeepCopy()
+	broadcastCopy := messageCopy.GetBroadcast()
+	broadcastCopy.ChannelHook = func(userID string, ev *model.WebSocketEvent) bool {
+		var postCopy *model.Post
+		if permalinkPreviewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, permalinkPreviewedChannel) {
+			postCopy = post.Clone()
+			postCopy.Metadata.Embeds[0].Data = nil
+		} else {
+			return false
+		}
+		postJSON, err := postCopy.ToJSON()
+		if err != nil {
+			mlog.Warn("Failed to encode post to JSON", mlog.Err(err))
+		}
+		ev.AddWithCopy("post", postJSON)
+		return true
+	}
+	messageCopy.SetBroadcast(broadcastCopy)
+	a.Publish(messageCopy)
 
 	return true, nil
 }
