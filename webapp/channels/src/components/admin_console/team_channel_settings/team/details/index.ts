@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ActionCreatorsMapObject, Dispatch, bindActionCreators} from 'redux';
-
+import {RouteComponentProps} from 'react-router-dom';
 import {connect} from 'react-redux';
 
 import {GlobalState} from 'types/store';
@@ -20,18 +20,16 @@ import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import TeamDetails, {Props as TeamDetailsProps} from './team_details';
+import TeamDetails, {Props} from './team_details';
 
-type OwnProps = {
-    match: {
-        params: {
-            teamID: string;
-        };
-    };
+type Params = {
+    team_id: string;
 }
 
+export type OwnProps = RouteComponentProps<Params>;
+
 function mapStateToProps(state: GlobalState, props: OwnProps) {
-    const teamID = props.match.params.teamID;
+    const teamID = props.match.params.team_id;
     const team = getTeam(state, teamID);
     const groups = getGroupsAssociatedToTeam(state, teamID);
     const allGroups = getAllGroups(state);
@@ -49,7 +47,7 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, TeamDetailsProps['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Props['actions']>({
             getTeam: fetchTeam,
             getGroups: fetchAssociatedGroups,
             patchTeam,
