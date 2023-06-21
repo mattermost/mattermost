@@ -16,8 +16,8 @@
     color: var(--sidebar-header-bg);
     font-size: 40px;
     font-weight: 600;
-    line-height: 48px;
     letter-spacing: -0.02em;
+    line-height: 48px;
 }
 
 .DesktopAuthToken__sub {
@@ -32,7 +32,7 @@
 }
 
 .DesktopAuthToken__bottom {
+    margin-top: auto;
     font-size: 16px;
     line-height: 24px;
-    margin-top: auto;
 }
