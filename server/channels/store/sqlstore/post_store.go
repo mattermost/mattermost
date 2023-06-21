@@ -924,6 +924,26 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) (err
 		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", id.RootId)
 	}
 
+	var decrementChannelPostCountQuery string
+	if id.RootId == "" {
+		// its a root reply
+		decrementChannelPostCountQuery = "UPDATE Channels SET TotalMsgCount =  TotalMsgCount - (1 + (SELECT ReplyCount FROM Threads WHERE PostId = :postid)), TotalMsgCountRoot = TotalMsgCountRoot - 1 WHERE Id = (SELECT ChannelId FROM Posts WHERE Id = :postid)"
+	} else {
+		// its a thread reply
+		decrementChannelPostCountQuery = "UPDATE Channels SET TotalMsgCount = TotalMsgCount - 1 WHERE Id = (SELECT ChannelId FROM Posts WHERE Id = :postid)"
+	}
+
+	_, err = s.GetMasterX().NamedExec(
+		decrementChannelPostCountQuery,
+		map[string]any{
+			"postid": postID,
+		},
+	)
+
+	if err != nil {
+		return errors.Wrap(err, "failed to decrement channel post counts on post deletion")
+	}
+
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
 	}
