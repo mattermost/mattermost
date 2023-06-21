@@ -798,14 +798,17 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, nil
 	}
 
+	postCopy := post.Clone()
+
+	if permalinkPreviewedChannel != nil && !a.HasPermissionToReadChannel(c, post.UserId, permalinkPreviewedChannel) {
+		post.Metadata.Embeds[0].Data = nil
+	}
 	// Using DeepCopy here to avoid a race condition
 	// between publishing the event and setting the "post" data value below.
 	messageCopy := message.DeepCopy()
 	broadcastCopy := messageCopy.GetBroadcast()
 	broadcastCopy.ChannelHook = func(userID string, ev *model.WebSocketEvent) bool {
-		var postCopy *model.Post
 		if permalinkPreviewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, permalinkPreviewedChannel) {
-			postCopy = post.Clone()
 			postCopy.Metadata.Embeds[0].Data = nil
 		} else {
 			return false
