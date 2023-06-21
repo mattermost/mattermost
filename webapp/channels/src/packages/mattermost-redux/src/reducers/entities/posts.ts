@@ -28,6 +28,7 @@ import {
 } from '@mattermost/types/utilities';
 
 import {TopThread} from '@mattermost/types/insights';
+import {isDevModeEnabled} from "../../../../../selectors/general";
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -218,7 +219,12 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
                 const newEmbeds: PostEmbed[] = [];
 
                 for (const embed of otherPost.metadata.embeds) {
-                    if (embed.type === 'permalink' && embed.data && 'post_id' in embed.data && (embed.data as PostPreviewMetadata).post_id === post.id) {
+                    if (embed.type === 'permalink' && embed.data && !('post_id' in embed.data)) {
+                        console.error('post_id missing in post embed data for permalink.');
+                        console.error(embed.data);
+                    }
+
+                    if (embed.type === 'permalink' && (embed.data as PostPreviewMetadata).post_id === post.id) {
                         // skip if the embed is the deleted post
                         continue;
                     }
