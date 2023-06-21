@@ -216,22 +216,24 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (isDesktopApp()) {
             setDesktopAuthLogin(DesktopAuthStatus.Polling);
 
-            desktopAuthInterval.current = setInterval(async () => {
-                const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
-
-                if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
-                    if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
-                        clearInterval(desktopAuthInterval.current);
-                        setDesktopAuthLogin(DesktopAuthStatus.Expired);
-                    }
-                    return;
-                }
-
-                clearInterval(desktopAuthInterval.current);
-                setDesktopAuthLogin(DesktopAuthStatus.Complete);
-                await postSubmit(userProfile);
-            }, 2000) as unknown as number;
+            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000) as unknown as number;
         }
+    };
+
+    const tryDesktopLogin = async () => {
+        const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
+
+        if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+            if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
+                clearInterval(desktopAuthInterval.current);
+                setDesktopAuthLogin(DesktopAuthStatus.Expired);
+            }
+            return;
+        }
+
+        clearInterval(desktopAuthInterval.current);
+        setDesktopAuthLogin(DesktopAuthStatus.Complete);
+        await postSubmit(userProfile);
     };
 
     const dismissAlert = () => {
@@ -397,6 +399,18 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
     }, [emailParam, extraParam]);
 
+    const openDesktopApp = () => {
+        if (!SiteURL) {
+            return;
+        }
+        const url = new URL(SiteURL);
+        if (redirectTo) {
+            url.pathname += redirectTo;
+        }
+        url.protocol = 'mattermost';
+        window.location.href = url.toString();
+    };
+
     useEffect(() => {
         if (onCustomizeHeader) {
             onCustomizeHeader({
@@ -407,13 +421,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
 
     useEffect(() => {
-        if (desktopAuthLogin === DesktopAuthStatus.Complete && SiteURL) {
-            const url = new URL(SiteURL);
-            if (redirectTo) {
-                url.pathname += redirectTo;
-            }
-            url.protocol = 'mattermost';
-            window.location.href = url.toString();
+        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
+            openDesktopApp();
             return;
         }
 
@@ -784,7 +793,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
         if (desktopAuthLogin) {
             return (
-                <DesktopAuthToken authStatus={desktopAuthLogin}/>
+                <DesktopAuthToken
+                    authStatus={desktopAuthLogin}
+                    onComplete={openDesktopApp}
+                    onLogin={tryDesktopLogin}
+                    onRestart={() => history.push('/')}
+                />
             );
         }
 

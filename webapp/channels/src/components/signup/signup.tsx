@@ -104,6 +104,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         CustomBrandText,
         TermsOfServiceLink,
         PrivacyPolicyLink,
+        SiteURL,
     } = config;
     const {IsLicensed} = useSelector(getLicense);
     const loggedIn = Boolean(useSelector(getCurrentUserId));
@@ -310,27 +311,43 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (isDesktopApp()) {
             setDesktopAuthLogin(DesktopAuthStatus.Polling);
 
-            desktopAuthInterval.current = setInterval(async () => {
-                const {error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
-
-                if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
-                    if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
-                        clearInterval(desktopAuthInterval.current);
-                        setDesktopAuthLogin(DesktopAuthStatus.Expired);
-                    }
-                    return;
-                }
-
-                clearInterval(desktopAuthInterval.current);
-                setDesktopAuthLogin(DesktopAuthStatus.Complete);
-                await postSignupSuccess();
-            }, 2000) as unknown as number;
+            desktopAuthInterval.current = setInterval(tryDesktopLogin, 2000) as unknown as number;
         }
+    };
+
+    const tryDesktopLogin = async () => {
+        const {error: loginError} = await dispatch(loginWithDesktopToken(desktopToken));
+
+        if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+            if (loginError.server_error_id === 'app.desktop_token.validate.expired') {
+                clearInterval(desktopAuthInterval.current);
+                setDesktopAuthLogin(DesktopAuthStatus.Expired);
+            }
+            return;
+        }
+
+        clearInterval(desktopAuthInterval.current);
+        setDesktopAuthLogin(DesktopAuthStatus.Complete);
+        await postSignupSuccess();
+    };
+
+    const openDesktopApp = () => {
+        if (!SiteURL) {
+            return;
+        }
+        const url = new URL(SiteURL);
+        url.protocol = 'mattermost';
+        window.location.href = url.toString();
     };
 
     useEffect(() => {
         dispatch(removeGlobalItem('team'));
         trackEvent('signup', 'signup_user_01_welcome', {...getRoleFromTrackFlow(), ...getMediumFromTrackFlow()});
+
+        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
+            openDesktopApp();
+            return () => {};
+        }
 
         if (isDesktopApp()) {
             setDesktopToken(generateDesktopToken());
@@ -747,7 +764,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
         if (desktopAuthLogin) {
             return (
-                <DesktopAuthToken authStatus={desktopAuthLogin}/>
+                <DesktopAuthToken
+                    authStatus={desktopAuthLogin}
+                    onComplete={openDesktopApp}
+                    onLogin={tryDesktopLogin}
+                    onRestart={() => history.push('/')}
+                />
             );
         }
 
