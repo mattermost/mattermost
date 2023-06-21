@@ -20,7 +20,7 @@ export type WidgetTextSettingProps = {
     resizable?: boolean;
     onChange(name: string, value: any): void;
     disabled?: boolean;
-    type: InputTypes;
+    type?: InputTypes;
     autoFocus?: boolean;
 }
 

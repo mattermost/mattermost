@@ -35,6 +35,7 @@ interface State extends BaseState {
     configTested: boolean;
     canSave: boolean;
     canPurgeAndIndex: boolean;
+    ignoredPurgeIndexes: string;
 }
 
 export default class ElasticsearchSettings extends AdminSettings<Props, State> {
@@ -116,7 +117,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
         return this.state.canSave;
     };
 
-    doTestConfig = (success: (arg0?: any) => void, error: (arg0: any) => void): void => {
+    doTestConfig = (success: (data?: any) => void, error: (error: any) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
