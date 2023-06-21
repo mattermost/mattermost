@@ -117,6 +117,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     });
                 }
             } else if (Keyboard.isKeyPressed(event, Constants.KeyCodes.A) && event.shiftKey) {
+                console.log('HARSON sidebar AAA');
                 event.preventDefault();
 
                 this.props.actions.openModal({

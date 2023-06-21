@@ -1584,35 +1584,6 @@ describe('components/advanced_create_post', () => {
         'post_textbox',
     );
 
-    /**
-     * TODO@all: move this test to advanced_text_editor.test.tsx and rewrite it according to the component
-     *
-     * it is not possible to test for this here since we only shallow render
-     *
-     * @see: https://mattermost.atlassian.net/browse/MM-44343
-     */
-    // it('should adjust selection to correct text', () => {
-    //     const value = 'Jalebi _Fafda_ and Sambharo';
-    //     const wrapper = shallow(advancedCreatePost({draft: {...draftProp, message: value}}));
-    //
-    //     const setSelectionRangeFn = jest.fn();
-    //     wrapper.instance().textboxRef = {
-    //         current: {
-    //             getInputBox: jest.fn(() => {
-    //                 return {
-    //                     focus: jest.fn(),
-    //                     setSelectionRange: setSelectionRangeFn,
-    //                 };
-    //             }),
-    //         },
-    //     };
-    //
-    //     const textbox = wrapper.find(Textbox);
-    //     const e = makeSelectionEvent(value, 7, 14);
-    //     textbox.props().onSelect(e);
-    //     expect(setSelectionRangeFn).toHaveBeenCalledWith(8, 13);
-    // });
-
     it('should match snapshot, can post; preview enabled', () => {
         const wrapper = shallow(advancedCreatePost({canPost: true, isMarkdownPreviewEnabled: true}));
 
