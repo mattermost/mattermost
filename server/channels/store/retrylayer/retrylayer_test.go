@@ -59,7 +59,7 @@ func genStore() *mocks.Store {
 	mock.On("PostAcknowledgement").Return(&mocks.PostAcknowledgementStore{})
 	mock.On("PostPersistentNotification").Return(&mocks.PostPersistentNotificationStore{})
 	mock.On("TrueUpReview").Return(&mocks.TrueUpReviewStore{})
-        mock.On("DesktopTokens").Return(&mocks.DesktopTokensStore{})
+	mock.On("DesktopTokens").Return(&mocks.DesktopTokensStore{})
 	return mock
 }
 
