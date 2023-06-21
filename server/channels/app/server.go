@@ -1245,8 +1245,7 @@ func runElasticsearchWorkspaceOptimizationJob(s *Server) {
 	doElasticsearchWorkspaceOptimizationCheck(s)
 	model.CreateRecurringTask("Elasticsearch workspace optimization check", func() {
 		doElasticsearchWorkspaceOptimizationCheck(s)
-		// }, time.Hour*24)
-	}, time.Minute*1)
+	}, time.Hour*24)
 }
 
 func (s *Server) runLicenseExpirationCheckJob() {
