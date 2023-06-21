@@ -813,6 +813,9 @@ func TestDiff(t *testing.T) {
 						"playbooks": {
 							Enable: true,
 						},
+						"focalboard": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -845,6 +848,9 @@ func TestDiff(t *testing.T) {
 						"playbooks": {
 							Enable: true,
 						},
+						"focalboard": {
+							Enable: true,
+						},
 					},
 				},
 			},
@@ -867,6 +873,9 @@ func TestDiff(t *testing.T) {
 							Enable: true,
 						},
 						"playbooks": {
+							Enable: true,
+						},
+						"focalboard": {
 							Enable: true,
 						},
 					},
