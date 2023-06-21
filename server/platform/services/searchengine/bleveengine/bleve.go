@@ -220,7 +220,7 @@ func (b *BleveEngine) Stop() *model.AppError {
 }
 
 func (b *BleveEngine) IsEnabled() bool {
-	return b.IsActive()
+	return b.IsIndexingEnabled()
 }
 
 func (b *BleveEngine) IsActive() bool {
