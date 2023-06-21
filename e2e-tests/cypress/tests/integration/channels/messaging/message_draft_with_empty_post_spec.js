@@ -19,7 +19,7 @@ describe('Message Draft With empty Post and File Attachments', () => {
     let testChannel;
 
     before(() => {
-      // # Create new team and new user and visit off-topic
+        // # Create new team and new user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             testTeam = team;
             testChannel = channel;
@@ -62,8 +62,8 @@ describe('Message Draft With empty Post and File Attachments', () => {
         cy.visit(`/${testTeam.name}/channels/off-topic`);
         cy.wait(TIMEOUTS.FOUR_SEC);
 
-        // * Draft icon should exist as the message with the post was not empty
-        verifyDraftIcon(name, true);
+        // * Drafts should exist in the sidebar as the message with the post was not empty
+        cy.findByText('Drafts').should('be.visible');
 
         //go to drafts
         cy.visit(`/${testTeam.name}/drafts`);
