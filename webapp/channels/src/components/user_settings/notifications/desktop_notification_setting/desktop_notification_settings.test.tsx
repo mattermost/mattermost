@@ -54,7 +54,7 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
     });
 
     test('should match snapshot, on max setting with Calls enabled', () => {
-        const props = {...baseProps, isCallsEnabled: true};
+        const props = {...baseProps, isCallsRingingEnabled: true};
         const wrapper = shallow(
             <DesktopNotificationSettings {...props}/>,
         );
@@ -63,7 +63,7 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
     });
 
     test('should match snapshot, on max setting with Calls enabled, calls sound true', () => {
-        const props = {...baseProps, isCallsEnabled: true, callsSound: 'true'};
+        const props = {...baseProps, isCallsRingingEnabled: true, callsSound: 'true'};
         const wrapper = shallow(
             <DesktopNotificationSettings {...props}/>,
         );
