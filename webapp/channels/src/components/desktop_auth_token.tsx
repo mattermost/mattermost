@@ -4,6 +4,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import classNames from 'classnames';
+
 import {DesktopAuthStatus} from 'utils/desktop_app/auth';
 
 import './desktop_auth_token.scss';
@@ -146,7 +148,7 @@ const DesktopAuthToken: React.FC<Props> = ({authStatus, onComplete, onLogin, onR
             <h1 className='DesktopAuthToken__main'>
                 {mainMessage}
             </h1>
-            <p className='DesktopAuthToken__sub'>
+            <p className={classNames('DesktopAuthToken__sub', {complete: authStatus === DesktopAuthStatus.Complete})}>
                 {subMessage}
             </p>
             <div className='DesktopAuthToken__bottom'>
