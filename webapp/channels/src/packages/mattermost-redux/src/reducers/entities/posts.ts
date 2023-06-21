@@ -28,7 +28,6 @@ import {
 } from '@mattermost/types/utilities';
 
 import {TopThread} from '@mattermost/types/insights';
-import {isDevModeEnabled} from "../../../../../selectors/general";
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
