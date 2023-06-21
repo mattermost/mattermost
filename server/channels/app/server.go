@@ -1342,7 +1342,7 @@ func doElasticsearchWorkspaceOptimizationCheck(s *Server) {
 
 	postCount, err := s.Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil {
-		s.Log().Error("error getting post count to display warning", mlog.Err(err))
+		s.Log().Error("error getting post count to do a search engine display", mlog.Err(err))
 		return
 	}
 
