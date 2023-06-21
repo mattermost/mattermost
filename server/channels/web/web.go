@@ -44,7 +44,7 @@ func New(srv *app.Server) *Web {
 // -1 means that the browser is not supported in any version.
 var browserMinimumSupported = map[string]int{
 	"BrowserIE":     12,
-	"BrowserSafari": 12,
+	"BrowserSafari": 15,
 }
 
 func CheckClientCompatibility(agentString string) bool {

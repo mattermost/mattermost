@@ -8,7 +8,7 @@ const config = {
                 chrome: 110,
                 firefox: 102,
                 edge: 110,
-                safari: 16,
+                safari: 15,
             },
             corejs: 3,
             useBuiltIns: 'usage',
