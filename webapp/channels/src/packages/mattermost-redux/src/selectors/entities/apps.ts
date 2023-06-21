@@ -32,7 +32,7 @@ export const appBarEnabled = createSelector(
     'appBarEnabled',
     (state: GlobalState) => getConfig(state),
     (config?: Partial<ClientConfig>) => {
-        return config?.EnableAppBar === 'true';
+        return config?.DisableAppBar === 'false';
     },
 );
 
