@@ -1347,7 +1347,7 @@ func doElasticsearchWorkspaceOptimizationCheck(s *Server) {
 
 	userCount, err := s.Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		s.Log().Error("error getting user count to display warning", mlog.Err(err))
+		s.Log().Error("error getting user count to do a search engine display", mlog.Err(err))
 		return
 	}
 
