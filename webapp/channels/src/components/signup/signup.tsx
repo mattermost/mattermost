@@ -34,6 +34,7 @@ import {loginById, loginWithDesktopToken} from 'actions/views/login';
 import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
+import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
@@ -54,20 +55,13 @@ import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityC
 import ExternalLink from 'components/external_link';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
-import {generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
+import {DesktopAuthStatus, generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
 import {isDesktopApp} from 'utils/user_agent';
 import {isValidUsername, isValidPassword, getPasswordConfig, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
 
 import './signup.scss';
 
 const MOBILE_SCREEN_WIDTH = 1200;
-
-enum DesktopAuthStatus {
-    None,
-    Polling,
-    Expired,
-    Complete,
-}
 
 type SignupProps = {
     onCustomizeHeader?: CustomizeHeaderType;
@@ -714,34 +708,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         sendSignUpTelemetryEvents(`typed_input_${inputId}`);
     };
 
-    const getDesktopAuthScreen = () => {
-        if (desktopAuthLogin === DesktopAuthStatus.Polling) {
-            return (
-                <div>
-                    {'TODO Desktop Token: Authenticating in the browser, awaiting valid token...'}
-                </div>
-            );
-        }
-
-        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
-            return (
-                <div>
-                    {'TODO Desktop Token: You are now logged in. Returning you to the Desktop App...'}
-                </div>
-            );
-        }
-
-        if (desktopAuthLogin === DesktopAuthStatus.Expired) {
-            return (
-                <div>
-                    {'TODO Desktop Token: Something went wrong. Please log in again.'}
-                </div>
-            );
-        }
-
-        return null;
-    };
-
     const getContent = () => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
             return (
@@ -780,7 +746,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         if (desktopAuthLogin) {
-            return getDesktopAuthScreen();
+            return (
+                <DesktopAuthToken authStatus={desktopAuthLogin}/>
+            );
         }
 
         let emailCustomLabelForInput: CustomMessageInputType = parsedEmail ? {

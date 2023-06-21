@@ -32,6 +32,7 @@ import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
+import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
@@ -60,16 +61,9 @@ import LoginMfa from './login_mfa';
 
 import './login.scss';
 import {isDesktopApp} from 'utils/user_agent';
-import {generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
+import {DesktopAuthStatus, generateDesktopToken, getExternalLoginURL} from 'utils/desktop_app/auth';
 
 const MOBILE_SCREEN_WIDTH = 1200;
-
-enum DesktopAuthStatus {
-    None,
-    Polling,
-    Expired,
-    Complete,
-}
 
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
@@ -768,34 +762,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         );
     };
 
-    const getDesktopAuthScreen = () => {
-        if (desktopAuthLogin === DesktopAuthStatus.Polling) {
-            return (
-                <div>
-                    {'TODO Desktop Token: Authenticating in the browser, awaiting valid token...'}
-                </div>
-            );
-        }
-
-        if (desktopAuthLogin === DesktopAuthStatus.Complete) {
-            return (
-                <div>
-                    {'TODO Desktop Token: You are now logged in. Returning you to the Desktop App...'}
-                </div>
-            );
-        }
-
-        if (desktopAuthLogin === DesktopAuthStatus.Expired) {
-            return (
-                <div>
-                    {'TODO Desktop Token: Something went wrong. Please log in again.'}
-                </div>
-            );
-        }
-
-        return null;
-    };
-
     const getContent = () => {
         if (showMfa) {
             return (
@@ -817,7 +783,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         if (desktopAuthLogin) {
-            return getDesktopAuthScreen();
+            return (
+                <DesktopAuthToken authStatus={desktopAuthLogin}/>
+            );
         }
 
         return (

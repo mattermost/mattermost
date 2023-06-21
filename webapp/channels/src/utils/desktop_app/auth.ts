@@ -5,6 +5,13 @@ import crypto from 'crypto';
 
 import {isDesktopApp} from 'utils/user_agent';
 
+export enum DesktopAuthStatus {
+    None,
+    Polling,
+    Expired,
+    Complete,
+}
+
 export const getExternalLoginURL = (url: string, search: string, token: string) => {
     const params = new URLSearchParams(search);
     if (isDesktopApp() && token) {
