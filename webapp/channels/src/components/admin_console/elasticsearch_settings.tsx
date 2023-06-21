@@ -19,7 +19,6 @@ import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 import {AdminConfig} from '@mattermost/types/config';
 import {Job, JobType} from '@mattermost/types/jobs';
-import { DeepPartial } from 'redux';
 
 interface State extends BaseState {
     connectionUrl: string;
@@ -117,7 +116,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
         return this.state.canSave;
     };
 
-    doTestConfig = (success: (data?: any) => void, error: (error: any) => void): void => {
+    doTestConfig = (success: (arg0?: any) => void, error: (arg0: any) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -207,6 +206,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.connectionUrlExample', 'E.g.: "https://elasticsearch.example.org:9200"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.connectionUrlDescription'
@@ -240,6 +240,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.caExample', 'E.g.: "./elasticsearch/ca.pem"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.caDescription'
@@ -260,6 +261,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.clientCertExample', 'E.g.: "./elasticsearch/client-cert.pem"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientCertDescription'
@@ -280,6 +282,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.clientKeyExample', 'E.g.: "./elasticsearch/client-key.pem"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientKeyDescription'
@@ -319,6 +322,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.usernameExample', 'E.g.: "elastic"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.usernameDescription'
@@ -339,6 +343,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.elasticsearch.password', 'E.g.: "yourpassword"')}
+                    type='input'
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.passwordDescription'
