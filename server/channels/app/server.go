@@ -1242,7 +1242,12 @@ func runConfigCleanupJob(s *Server) {
 }
 
 func runElasticsearchWorkspaceOptimizationJob(s *Server) {
-	doElasticsearchWorkspaceOptimizationCheck(s)
+	// Schedule startup job
+	model.CreateRecurringTaskFromNextIntervalTime("Elasticsearch workspace optimization check (startup)", func() {
+		doElasticsearchWorkspaceOptimizationCheck(s)
+	}, time.Minute*10)
+
+	// Schedule recurring job
 	model.CreateRecurringTask("Elasticsearch workspace optimization check", func() {
 		doElasticsearchWorkspaceOptimizationCheck(s)
 	}, time.Hour*24)
