@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {DesktopAuthStatus} from 'utils/desktop_app/auth';
 
+import './desktop_auth_token.scss';
+
 const BOTTOM_MESSAGE_TIMEOUT = 10000;
 
 type Props = {
@@ -141,12 +143,12 @@ const DesktopAuthToken: React.FC<Props> = ({authStatus, onComplete, onLogin, onR
 
     return (
         <div className='DesktopAuthToken'>
-            <div className='DesktopAuthToken__main'>
+            <h1 className='DesktopAuthToken__main'>
                 {mainMessage}
-            </div>
-            <div className='DesktopAuthToken__sub'>
+            </h1>
+            <p className='DesktopAuthToken__sub'>
                 {subMessage}
-            </div>
+            </p>
             <div className='DesktopAuthToken__bottom'>
                 {showBottomMessage ? bottomMessage : null}
             </div>

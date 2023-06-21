@@ -1,0 +1,34 @@
+.DesktopAuthToken {
+    display: flex;
+    width: 540px;
+    height: 80vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    text-align: center;
+}
+
+.DesktopAuthToken__main {
+    display: flex;
+    margin-top: auto;
+    margin-bottom: 14px;
+    color: var(--sidebar-header-bg);
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 48px;
+    letter-spacing: -0.02em;
+}
+
+.DesktopAuthToken__sub {
+    margin-bottom: 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.DesktopAuthToken__bottom {
+    font-size: 16px;
+    line-height: 24px;
+    margin-top: auto;
+}
