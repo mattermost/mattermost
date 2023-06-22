@@ -138,6 +138,5 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     }
 
     const markdownLink = `[${selectedText}](${clipboardUrl})`;
-
     return markdownLink;
 }

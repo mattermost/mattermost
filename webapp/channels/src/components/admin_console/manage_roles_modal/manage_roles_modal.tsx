@@ -18,6 +18,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import Avatar from 'components/widgets/users/avatar';
 import {isSuccess} from 'types/actions';
 import ExternalLink from 'components/external_link';
+import {DeveloperLinks} from 'utils/constants';
 
 export type Props = {
     show: boolean;
@@ -173,7 +174,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token/'
+                                        href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                         location='manage_roles_modal'
                                     >
                                         {msg}
@@ -253,7 +254,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                                     values={{
                                         link: (msg: React.ReactNode) => (
                                             <ExternalLink
-                                                href='https://developers.mattermost.com/integrate/admin-guide/admin-personal-access-token'
+                                                href={DeveloperLinks.PERSONAL_ACCESS_TOKENS}
                                                 location='manage_roles_modal'
                                             >
                                                 {msg}
