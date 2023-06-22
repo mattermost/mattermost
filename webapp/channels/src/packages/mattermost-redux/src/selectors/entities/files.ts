@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
-
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 
 import {FileInfo, FileSearchResultItem} from '@mattermost/types/files';

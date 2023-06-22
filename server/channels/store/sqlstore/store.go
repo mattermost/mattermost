@@ -8,33 +8,24 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
-	"log"
-	"path"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/morph"
 	sq "github.com/mattermost/squirrel"
-
-	"github.com/mattermost/morph/drivers"
-	ms "github.com/mattermost/morph/drivers/mysql"
-	ps "github.com/mattermost/morph/drivers/postgres"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/db"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type migrationDirection string
@@ -71,53 +62,54 @@ const (
 var tablesToCheckForCollation = []string{"incomingwebhooks", "preferences", "users", "uploadsessions", "channels", "publicchannels"}
 
 type SqlStoreStores struct {
-	team                 store.TeamStore
-	channel              store.ChannelStore
-	post                 store.PostStore
-	retentionPolicy      store.RetentionPolicyStore
-	thread               store.ThreadStore
-	user                 store.UserStore
-	bot                  store.BotStore
-	audit                store.AuditStore
-	cluster              store.ClusterDiscoveryStore
-	remoteCluster        store.RemoteClusterStore
-	compliance           store.ComplianceStore
-	session              store.SessionStore
-	oauth                store.OAuthStore
-	system               store.SystemStore
-	webhook              store.WebhookStore
-	command              store.CommandStore
-	commandWebhook       store.CommandWebhookStore
-	preference           store.PreferenceStore
-	license              store.LicenseStore
-	token                store.TokenStore
-	emoji                store.EmojiStore
-	status               store.StatusStore
-	fileInfo             store.FileInfoStore
-	uploadSession        store.UploadSessionStore
-	reaction             store.ReactionStore
-	job                  store.JobStore
-	userAccessToken      store.UserAccessTokenStore
-	plugin               store.PluginStore
-	channelMemberHistory store.ChannelMemberHistoryStore
-	role                 store.RoleStore
-	scheme               store.SchemeStore
-	TermsOfService       store.TermsOfServiceStore
-	productNotices       store.ProductNoticesStore
-	group                store.GroupStore
-	UserTermsOfService   store.UserTermsOfServiceStore
-	linkMetadata         store.LinkMetadataStore
-	sharedchannel        store.SharedChannelStore
-	draft                store.DraftStore
-	notifyAdmin          store.NotifyAdminStore
-	postPriority         store.PostPriorityStore
-	postAcknowledgement  store.PostAcknowledgementStore
-	trueUpReview         store.TrueUpReviewStore
+	team                       store.TeamStore
+	channel                    store.ChannelStore
+	post                       store.PostStore
+	retentionPolicy            store.RetentionPolicyStore
+	thread                     store.ThreadStore
+	user                       store.UserStore
+	bot                        store.BotStore
+	audit                      store.AuditStore
+	cluster                    store.ClusterDiscoveryStore
+	remoteCluster              store.RemoteClusterStore
+	compliance                 store.ComplianceStore
+	session                    store.SessionStore
+	oauth                      store.OAuthStore
+	system                     store.SystemStore
+	webhook                    store.WebhookStore
+	command                    store.CommandStore
+	commandWebhook             store.CommandWebhookStore
+	preference                 store.PreferenceStore
+	license                    store.LicenseStore
+	token                      store.TokenStore
+	emoji                      store.EmojiStore
+	status                     store.StatusStore
+	fileInfo                   store.FileInfoStore
+	uploadSession              store.UploadSessionStore
+	reaction                   store.ReactionStore
+	job                        store.JobStore
+	userAccessToken            store.UserAccessTokenStore
+	plugin                     store.PluginStore
+	channelMemberHistory       store.ChannelMemberHistoryStore
+	role                       store.RoleStore
+	scheme                     store.SchemeStore
+	TermsOfService             store.TermsOfServiceStore
+	productNotices             store.ProductNoticesStore
+	group                      store.GroupStore
+	UserTermsOfService         store.UserTermsOfServiceStore
+	linkMetadata               store.LinkMetadataStore
+	sharedchannel              store.SharedChannelStore
+	draft                      store.DraftStore
+	notifyAdmin                store.NotifyAdminStore
+	postPriority               store.PostPriorityStore
+	postAcknowledgement        store.PostAcknowledgementStore
+	postPersistentNotification store.PostPersistentNotificationStore
+	trueUpReview               store.TrueUpReviewStore
 }
 
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
-	// See https://github.com/mattermost/mattermost-server/server/v8/channels/pull/7281
+	// See https://github.com/mattermost/mattermost/server/v8/channels/pull/7281
 	rrCounter int64
 	srCounter int64
 
@@ -176,7 +168,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
 	}
 
-	err = store.migrate(migrationsDirectionUp)
+	err = store.migrate(migrationsDirectionUp, false)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
 	}
@@ -232,6 +224,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
+	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
@@ -1076,6 +1069,10 @@ func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
 	return ss.stores.postAcknowledgement
 }
 
+func (ss *SqlStore) PostPersistentNotification() store.PostPersistentNotificationStore {
+	return ss.stores.postPersistentNotification
+}
+
 func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
 	return ss.stores.trueUpReview
 }
@@ -1183,76 +1180,6 @@ func (ss *SqlStore) hasLicense() bool {
 	ss.licenseMutex.Unlock()
 
 	return hasLicense
-}
-
-func (ss *SqlStore) migrate(direction migrationDirection) error {
-	assets := db.Assets()
-
-	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
-	if err != nil {
-		return err
-	}
-
-	assetNamesForDriver := make([]string, len(assetsList))
-	for i, entry := range assetsList {
-		assetNamesForDriver[i] = entry.Name()
-	}
-
-	src, err := mbindata.WithInstance(&mbindata.AssetSource{
-		Names: assetNamesForDriver,
-		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	var driver drivers.Driver
-	switch ss.DriverName() {
-	case model.DatabaseDriverMysql:
-		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
-		if rErr != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
-			return rErr
-		}
-		dataSource, err = AppendMultipleStatementsFlag(dataSource)
-		if err != nil {
-			return err
-		}
-		db, err2 := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
-		if err2 != nil {
-			return err2
-		}
-		driver, err = ms.WithInstance(db)
-		defer db.Close()
-	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
-	default:
-		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
-	}
-	if err != nil {
-		return err
-	}
-
-	opts := []morph.EngineOption{
-		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
-		morph.WithLock("mm-lock-key"),
-		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
-	}
-	engine, err := morph.New(context.Background(), driver, src, opts...)
-	if err != nil {
-		return err
-	}
-	defer engine.Close()
-
-	switch direction {
-	case migrationsDirectionDown:
-		_, err = engine.ApplyDown(-1)
-		return err
-	default:
-		return engine.ApplyAll()
-	}
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {

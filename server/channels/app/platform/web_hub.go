@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/server/public/model"
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -442,7 +442,7 @@ func (h *Hub) Start() {
 					})
 					continue
 				}
-				var latestActivity int64 = 0
+				var latestActivity int64
 				for _, conn := range conns {
 					if !conn.active {
 						continue

@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/public/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 func (s *Server) initializeProducts(
@@ -80,12 +80,6 @@ func (s *Server) shouldStart(product string) bool {
 	if product == "boards" {
 		if os.Getenv("MM_DISABLE_BOARDS") == "true" {
 			s.Log().Warn("Skipping Boards start: disabled via env var")
-			return false
-		}
-	}
-	if product == "playbooks" {
-		if os.Getenv("MM_DISABLE_PLAYBOOKS") == "true" {
-			s.Log().Warn("Skipping Playbooks start: disabled via env var")
 			return false
 		}
 	}

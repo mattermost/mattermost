@@ -36,39 +36,39 @@ func TestWebSocketEvent(t *testing.T) {
 func TestWebSocketEventImmutable(t *testing.T) {
 	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil, "")
 
-	new := m.SetEvent("new_event")
-	if new == m {
+	newM := m.SetEvent("new_event")
+	if newM == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.EventType(), new.EventType())
-	require.Equal(t, new.EventType(), "new_event")
+	require.NotEqual(t, m.EventType(), newM.EventType())
+	require.Equal(t, newM.EventType(), "new_event")
 
-	new = m.SetSequence(45)
-	if new == m {
+	newM = m.SetSequence(45)
+	if newM == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.GetSequence(), new.GetSequence())
-	require.Equal(t, new.GetSequence(), int64(45))
+	require.NotEqual(t, m.GetSequence(), newM.GetSequence())
+	require.Equal(t, newM.GetSequence(), int64(45))
 
 	broadcast := &WebsocketBroadcast{}
-	new = m.SetBroadcast(broadcast)
-	if new == m {
+	newM = m.SetBroadcast(broadcast)
+	if newM == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.GetBroadcast(), new.GetBroadcast())
-	require.Equal(t, new.GetBroadcast(), broadcast)
+	require.NotEqual(t, m.GetBroadcast(), newM.GetBroadcast())
+	require.Equal(t, newM.GetBroadcast(), broadcast)
 
 	data := map[string]any{
 		"key":  "val",
 		"key2": "val2",
 	}
-	new = m.SetData(data)
-	if new == m {
+	newM = m.SetData(data)
+	if newM == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m, new)
-	require.Equal(t, new.data, data)
-	require.Equal(t, new.data, new.GetData())
+	require.NotEqual(t, m, newM)
+	require.Equal(t, newM.data, data)
+	require.Equal(t, newM.data, newM.GetData())
 
 	copy := m.Copy()
 	if copy == m {

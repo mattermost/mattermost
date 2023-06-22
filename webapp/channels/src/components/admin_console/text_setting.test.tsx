@@ -3,9 +3,9 @@
 
 import React from 'react';
 
+import {renderWithIntl, screen} from 'tests/react_testing_utils';
+
 import AdminTextSetting from './text_setting';
-import {renderWithIntl} from 'tests/react_testing_utils';
-import {screen} from '@testing-library/react';
 
 describe('components/admin_console/TextSetting', () => {
     test('render component with required props', () => {
