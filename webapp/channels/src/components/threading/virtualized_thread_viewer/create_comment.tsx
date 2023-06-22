@@ -20,7 +20,6 @@ import BasicSeparator from 'components/widgets/separator/basic-separator';
 
 type Props = {
     focusOnMount: boolean;
-    onHeightChange: (height: number, maxHeight: number) => void;
     teammate?: UserProfile;
     threadId: string;
     latestPostId: Post['id'];
@@ -29,7 +28,6 @@ type Props = {
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
     focusOnMount,
-    onHeightChange,
     teammate,
     threadId,
     latestPostId,
@@ -97,7 +95,6 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
                 focusOnMount={focusOnMount}
                 channelId={channel.id}
                 latestPostId={latestPostId}
-                onHeightChange={onHeightChange}
                 rootDeleted={rootDeleted}
                 rootId={threadId}
                 isThreadView={isThreadView}
