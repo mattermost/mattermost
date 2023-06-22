@@ -22,7 +22,7 @@ jobs:
 
     - uses: actions/setup-node@v2
       with:
-        node-version: '16.2.0'
+        node-version-file: .nvmrc
         cache: 'npm'
         cache-dependency-path: api/package-lock.json
     - name: Run build
