@@ -84,6 +84,7 @@ describe('components/MoreChannels', () => {
             closeModal: jest.fn(),
             closeRightHandSide: jest.fn(),
             setGlobalItem: jest.fn(),
+            getChannelsMemberCount: jest.fn(),
         },
     };
 
