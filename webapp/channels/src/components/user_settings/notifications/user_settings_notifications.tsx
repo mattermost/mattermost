@@ -36,7 +36,7 @@ export type Props = {
         updateMe: (user: UserProfile) => Promise<ActionResult>;
     };
     isCollapsedThreadsEnabled: boolean;
-    isCallsEnabled: boolean;
+    isCallsRingingEnabled: boolean;
 }
 
 type State = {
@@ -1058,7 +1058,7 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
                         callsSelectedSound={this.state.callsNotificationSound || 'default'}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         areAllSectionsInactive={this.props.activeSection === ''}
-                        isCallsEnabled={this.props.isCallsEnabled}
+                        isCallsRingingEnabled={this.props.isCallsRingingEnabled}
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting
