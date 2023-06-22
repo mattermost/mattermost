@@ -2355,6 +2355,8 @@
   "admin.support.enableAskCommunityTitle": "Enable Ask Community Link:",
   "admin.support.enableTermsOfServiceHelp": "When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh.\n \nTo update terms of service link displayed in account creation and login pages, go to [Site Configuration > Customization](../site_config/customization).",
   "admin.support.enableTermsOfServiceTitle": "Enable Custom Terms of Service:",
+  "admin.support.forgotPasswordDesc": "The URL for the Forgot Password link on the Mattermost login page. If this field is empty the Forgot Password link takes users to the Password Reset page.",
+  "admin.support.forgotPasswordTitle": "Forgot Password Custom Link:",
   "admin.support.helpDesc": "The URL for the Help link on the Mattermost login page, sign-up pages, and Help Menu. If this field is empty, the Help link is hidden from users.",
   "admin.support.helpTitle": "Help Link:",
   "admin.support.privacyDesc": "The URL for the Privacy link on the login and sign-up pages. If this field is empty, the Privacy link is hidden from users.",
