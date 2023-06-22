@@ -1941,8 +1941,6 @@ func TestUpdateBotUser(t *testing.T) {
 	bot := th.CreateBotWithSystemAdminClient()
 	botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
 	require.NoError(t, err)
-	patch := &model.UserPatch{}
-	patch.Email = model.NewString("Anything")
 
 	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), botUser)
 	require.Error(t, err)
@@ -2273,8 +2271,6 @@ func TestDeleteBotUser(t *testing.T) {
 	})
 
 	bot := th.CreateBotWithSystemAdminClient()
-	patch := &model.UserPatch{}
-	patch.Email = model.NewString("Anything")
 
 	_, err := th.SystemAdminClient.DeleteUser(context.Background(), bot.UserId)
 	require.Error(t, err)
