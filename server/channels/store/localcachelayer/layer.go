@@ -39,7 +39,9 @@ const (
 	ChannelPinnedPostsCountsCacheSec  = 30 * 60
 
 	ChannelMembersCountsCacheSize = model.ChannelCacheSize
+	ChannelsMemberCountCacheSize = model.ChannelCacheSize
 	ChannelMembersCountsCacheSec  = 30 * 60
+	ChannelsMemberCountCacheSec  = 30 * 60
 
 	LastPostsCacheSize  = 20000
 	LastPostsCacheSec   = 30 * 60
@@ -92,6 +94,7 @@ type LocalCacheStore struct {
 	channelGuestCountCache       cache.Cache
 	channelPinnedPostCountsCache cache.Cache
 	channelByIdCache             cache.Cache
+	channelsMemberCountCache		 cache.Cache
 
 	webhook      LocalCacheWebhookStore
 	webhookCache cache.Cache
@@ -221,6 +224,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Name:                   "ChannelMemberCounts",
 		DefaultExpiry:          ChannelMembersCountsCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelMemberCounts,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelsMemberCountCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ChannelsMemberCountCacheSize,
+		Name:                   "ChannelsMembeCount",
+		DefaultExpiry:          ChannelsMemberCountCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelsMemberCount,
 	}); err != nil {
 		return
 	}
@@ -457,4 +468,5 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
+	s.doClearCacheCluster(s.channelsMemberCountCache)
 }

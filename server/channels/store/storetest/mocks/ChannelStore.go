@@ -910,25 +910,25 @@ func (_m *ChannelStore) GetChannelsByUser(userID string, includeDeleted bool, la
 	return r0, r1
 }
 
-// GetChannelsMemberCount provides a mock function with given fields: channelIDs
-func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]int64, error) {
-	ret := _m.Called(channelIDs)
+// GetChannelsMemberCount provides a mock function with given fields: channelIDs, allowFromCache
+func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string, allowFromCache bool) (map[string]int64, error) {
+	ret := _m.Called(channelIDs, allowFromCache)
 
 	var r0 map[string]int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) (map[string]int64, error)); ok {
-		return rf(channelIDs)
+	if rf, ok := ret.Get(0).(func([]string, bool) (map[string]int64, error)); ok {
+		return rf(channelIDs, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func([]string) map[string]int64); ok {
-		r0 = rf(channelIDs)
+	if rf, ok := ret.Get(0).(func([]string, bool) map[string]int64); ok {
+		r0 = rf(channelIDs, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]int64)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(channelIDs)
+	if rf, ok := ret.Get(1).(func([]string, bool) error); ok {
+		r1 = rf(channelIDs, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}

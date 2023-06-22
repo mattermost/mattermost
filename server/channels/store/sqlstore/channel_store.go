@@ -2201,7 +2201,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	return ids, nil
 }
 
-func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
+func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string, allowFromCache bool) (_ map[string]int64, err error) {
 	memberCounts := make(map[string]int64)
 	query := s.getQueryBuilder().
 		Select("ChannelMembers.ChannelId,COUNT(*) AS Count").
