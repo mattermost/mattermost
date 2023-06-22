@@ -4,10 +4,8 @@ ports:
 
 tasks:
   - name: Docs
-    init: |
-      make build
-    command: |
-      make run
+    init: make build
+    command: make run
   - name: Notice
     command: |
       clear
