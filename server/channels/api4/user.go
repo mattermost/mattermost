@@ -1265,8 +1265,15 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
 	auditRec.AddEventPriorState(ouser)
 	auditRec.AddEventObjectType("user")
+
+	if ouser.IsBot {
+		c.Logger.Info("Attempt to update bot via user update", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
+		c.SetInvalidParam("user_id")
+		return
+	}
 
 	if c.AppContext.Session().IsOAuth {
 		if ouser.Email != user.Email {
@@ -1335,14 +1342,15 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_id")
 		return
 	}
+
+	auditRec.AddEventPriorState(ouser)
+	auditRec.AddEventObjectType("user")
+
 	if ouser.IsBot {
 		c.Logger.Info("Attempt to patch bot via user patch", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
 		c.SetInvalidParam("user_id")
 		return
 	}
-
-	auditRec.AddEventPriorState(ouser)
-	auditRec.AddEventObjectType("user")
 
 	// Cannot update a system admin unless user making request is a systemadmin also
 	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -1426,6 +1434,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(user)
 	auditRec.AddEventObjectType("user")
+
+	if user.IsBot {
+		c.Logger.Info("Attempt to delete bot via user delete", mlog.String("bot_id", c.Params.UserId), mlog.String("session user", c.AppContext.Session().UserId))
+		c.SetInvalidParam("user_id")
+		return
+	}
 
 	// Cannot update a system admin unless user making request is a systemadmin also
 	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
