@@ -312,6 +312,8 @@ const defaultServerConfig: AdminConfig = {
         ConnectionSecurity: '',
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
+        PushNotificationServerType: 'custom',
+        PushNotificationServerLocation: 'us',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
