@@ -325,17 +325,19 @@ func (s *SqlGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.
 func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 
-	query := `
-		SELECT
-			UserGroups.*
-		FROM
-			GroupMembers
-			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND UserId = ?`
+	queryString, args, err := s.getQueryBuilder().
+		Select("UserGroups.*").
+		From("GroupMembers").
+		Join("JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where(sq.And{
+			sq.Eq{"UserId": userId},
+			sq.Eq{"GroupMembers.DeleteAt": 0},
+		}).ToSql()
+	if err != nil {
+		return groups, err
+	}
 
-	if err := s.GetReplicaX().Select(&groups, query, userId); err != nil {
+	if err := s.GetReplicaX().Select(&groups, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Groups with userId=%s", userId)
 	}
 
@@ -510,18 +512,21 @@ func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, e
 func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-			AND GroupId = ?`
+	queryString, args, err := s.getQueryBuilder().
+		Select("Users.*").
+		From("GroupMembers").
+		Join("Users ON Users.Id = GroupMembers.UserId").
+		Where(sq.And{
+			sq.Eq{"GroupMembers.DeleteAt": 0},
+			sq.Eq{"Users.DeleteAt": 0},
+			sq.Eq{"GroupId": groupID},
+		}).
+		ToSql()
+	if err != nil {
+		return groupMembers, err
+	}
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID); err != nil {
+	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
@@ -778,21 +783,32 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 		if _, err := s.Team().Get(groupSyncable.SyncableId); err != nil {
 			return nil, err
 		}
-
-		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupTeams
-			(GroupId, AutoAdd, SchemeAdmin, CreateAt, DeleteAt, UpdateAt, TeamId)
-			VALUES
-			(:GroupId, :AutoAdd, :SchemeAdmin, :CreateAt, :DeleteAt, :UpdateAt, :TeamId)`, groupSyncableToGroupTeam(groupSyncable))
+		groupTeam := groupSyncableToGroupTeam(groupSyncable)
+		queryString, args, err := s.getQueryBuilder().
+			Insert("GroupTeams").
+			Columns("GroupId", "AutoAdd", "SchemeAdmin", "CreateAt", "DeleteAt", "UpdateAt", "TeamId").
+			Values(groupTeam.GroupId, groupTeam.AutoAdd, groupTeam.SchemeAdmin, groupTeam.CreateAt, groupTeam.DeleteAt, groupTeam.UpdateAt, groupTeam.TeamId).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		_, insertErr = s.GetMasterX().NamedExec(queryString, args)
 	case model.GroupSyncableTypeChannel:
 		var channel *model.Channel
 		channel, err := s.Channel().Get(groupSyncable.SyncableId, false)
 		if err != nil {
 			return nil, err
 		}
-		_, insertErr = s.GetMasterX().NamedExec(`INSERT INTO GroupChannels
-			(GroupId, AutoAdd, SchemeAdmin, CreateAt, DeleteAt, UpdateAt, ChannelId)
-			VALUES
-			(:GroupId, :AutoAdd, :SchemeAdmin, :CreateAt, :DeleteAt, :UpdateAt, :ChannelId)`, groupSyncableToGroupChannel(groupSyncable))
+		groupChannel := groupSyncableToGroupChannel(groupSyncable)
+		queryString, args, err := s.getQueryBuilder().
+			Insert("GroupChannels").
+			Columns("GroupId", "AutoAdd", "SchemeAdmin", "CreateAt", "DeleteAt", "UpdateAt", "ChannelId").
+			Values(groupChannel.GroupId, groupChannel.AutoAdd, groupChannel.SchemeAdmin, groupChannel.CreateAt, groupChannel.DeleteAt, groupChannel.UpdateAt, groupChannel.ChannelId).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		_, insertErr = s.GetMasterX().NamedExec(queryString, args)
 		groupSyncable.TeamID = channel.TeamId
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
@@ -824,11 +840,27 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
 		var team groupTeam
-		err = s.GetReplicaX().Get(&team, `SELECT * FROM GroupTeams WHERE GroupId=? AND TeamId=?`, groupID, syncableID)
+		queryString, args, _ := s.getQueryBuilder().
+			Select("*").
+			From("GroupTeams").
+			Where(sq.And{
+				sq.Eq{"GroupId": groupID},
+				sq.Eq{"TeamId": syncableID},
+			}).
+			ToSql()
+		err = s.GetReplicaX().Get(&team, queryString, args...)
 		result = &team
 	case model.GroupSyncableTypeChannel:
 		var ch groupChannel
-		err = s.GetReplicaX().Get(&ch, `SELECT * FROM GroupChannels WHERE GroupId=? AND ChannelId=?`, groupID, syncableID)
+		queryString, args, _ := s.getQueryBuilder().
+			Select("*").
+			From("GroupChannels").
+			Where(sq.And{
+				sq.Eq{"GroupId": groupID},
+				sq.Eq{"ChannelId": syncableID}},
+			).
+			ToSql()
+		err = s.GetReplicaX().Get(&ch, queryString, args...)
 		result = &ch
 	}
 
@@ -872,19 +904,18 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		sqlQuery := `
-			SELECT
-				GroupTeams.*,
-				Teams.DisplayName AS TeamDisplayName,
-				Teams.Type AS TeamType
-			FROM
-				GroupTeams
-				JOIN Teams ON Teams.Id = GroupTeams.TeamId
-			WHERE
-				GroupId = ? AND GroupTeams.DeleteAt = 0`
+		queryString, args, _ := s.getQueryBuilder().
+			Select("GroupTeams.*, Teams.DisplayName AS TeamDisplayName, Teams.Type AS TeamType").
+			From("GroupTeams").
+			Join("Teams ON Teams.Id = GroupTeams.TeamId").
+			Where(sq.And{
+				sq.Eq{"GroupId": groupID},
+				sq.Eq{"GroupTeams.DeleteAt": 0},
+			}).
+			ToSql()
 
 		results := []*groupTeamJoin{}
-		err := s.GetReplicaX().Select(&results, sqlQuery, groupID)
+		err := s.GetReplicaX().Select(&results, queryString, args...)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to find GroupTeams with groupId=%s", groupID)
 		}
@@ -904,23 +935,19 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
 	case model.GroupSyncableTypeChannel:
-		sqlQuery := `
-			SELECT
-				GroupChannels.*,
-				Channels.DisplayName AS ChannelDisplayName,
-				Teams.DisplayName AS TeamDisplayName,
-				Channels.Type As ChannelType,
-				Teams.Type As TeamType,
-				Teams.Id AS TeamId
-			FROM
-				GroupChannels
-				JOIN Channels ON Channels.Id = GroupChannels.ChannelId
-				JOIN Teams ON Teams.Id = Channels.TeamId
-			WHERE
-				GroupId = ? AND GroupChannels.DeleteAt = 0`
+		queryString, args, _ := s.getQueryBuilder().
+			Select("GroupChannels.*, Channels.DisplayName AS ChannelDisplayName, Teams.DisplayName AS TeamDisplayName, Channels.Type As ChannelType, Teams.Type As TeamType, Teams.Id AS TeamId").
+			From("GroupChannels").
+			Join("Channels ON Channels.Id = GroupChannels.ChannelId").
+			Join("Teams ON Teams.Id = Channels.TeamId").
+			Where(sq.And{
+				sq.Eq{"GroupId": groupID},
+				sq.Eq{"GroupChannels.DeleteAt": 0},
+			}).
+			ToSql()
 
 		results := []*groupChannelJoin{}
-		err := s.GetReplicaX().Select(&results, sqlQuery, groupID)
+		err := s.GetReplicaX().Select(&results, queryString, args...)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to find GroupChannels with groupId=%s", groupID)
 		}
@@ -971,10 +998,23 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		_, err = s.GetMasterX().NamedExec(`UPDATE GroupTeams
-			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
-				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
-			WHERE GroupId=:GroupId AND TeamId=:TeamId`, groupSyncableToGroupTeam(groupSyncable))
+		groupTeam := groupSyncableToGroupTeam(groupSyncable)
+		queryString, args, err := s.getQueryBuilder().
+			Update("GroupTeams").
+			Set("AutoAdd", groupTeam.AutoAdd).
+			Set("SchemeAdmin", groupTeam.SchemeAdmin).
+			Set("CreateAt", groupTeam.CreateAt).
+			Set("DeleteAt", groupTeam.DeleteAt).
+			Set("UpdateAt", groupTeam.DeleteAt).
+			Where(sq.And{
+				sq.Eq{"GroupId": groupTeam.GroupId},
+				sq.Eq{"TeamId": groupTeam.TeamId},
+			}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		_, err = s.GetMasterX().NamedExec(queryString, args)
 	case model.GroupSyncableTypeChannel:
 		// We need to get the TeamId so redux can manage channels when teams are unlinked
 		var channel *model.Channel
@@ -982,11 +1022,23 @@ func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) 
 		if channelErr != nil {
 			return nil, channelErr
 		}
-
-		_, err = s.GetMasterX().NamedExec(`UPDATE GroupChannels
-			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
-				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
-			WHERE GroupId=:GroupId AND ChannelId=:ChannelId`, groupSyncableToGroupChannel(groupSyncable))
+		groupChannel := groupSyncableToGroupChannel(groupSyncable)
+		queryString, args, err := s.getQueryBuilder().
+			Update("GroupChannels").
+			Set("AutoAdd", groupChannel.AutoAdd).
+			Set("SchemeAdmin", groupChannel.SchemeAdmin).
+			Set("CreateAt", groupChannel.CreateAt).
+			Set("DeleteAt", groupChannel.DeleteAt).
+			Set("UpdateAt", groupChannel.DeleteAt).
+			Where(sq.And{
+				sq.Eq{"GroupId": groupChannel.GroupId},
+				sq.Eq{"ChannelId": groupChannel.ChannelId},
+			}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		_, err = s.GetMasterX().NamedExec(queryString, args)
 
 		groupSyncable.TeamID = channel.TeamId
 	default:
@@ -1019,15 +1071,41 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		_, err = s.GetMasterX().NamedExec(`UPDATE GroupTeams
-			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
-				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
-			WHERE GroupId=:GroupId AND TeamId=:TeamId`, groupSyncableToGroupTeam(groupSyncable))
+		groupTeam := groupSyncableToGroupTeam(groupSyncable)
+		queryString, args, err := s.getQueryBuilder().
+			Update("GroupTeams").
+			Set("AutoAdd", groupTeam.AutoAdd).
+			Set("SchemeAdmin", groupTeam.SchemeAdmin).
+			Set("CreateAt", groupTeam.CreateAt).
+			Set("DeleteAt", groupTeam.DeleteAt).
+			Set("UpdateAt", groupTeam.DeleteAt).
+			Where(sq.And{
+				sq.Eq{"GroupId": groupTeam.GroupId},
+				sq.Eq{"TeamId": groupTeam.TeamId},
+			}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		_, err = s.GetMasterX().NamedExec(queryString, args)
 	case model.GroupSyncableTypeChannel:
-		_, err = s.GetMasterX().NamedExec(`UPDATE GroupChannels
-			SET AutoAdd=:AutoAdd, SchemeAdmin=:SchemeAdmin, CreateAt=:CreateAt,
-				DeleteAt=:DeleteAt, UpdateAt=:UpdateAt
-			WHERE GroupId=:GroupId AND ChannelId=:ChannelId`, groupSyncableToGroupChannel(groupSyncable))
+		groupChannel := groupSyncableToGroupChannel(groupSyncable)
+		queryString, args, err := s.getQueryBuilder().
+			Update("GroupChannels").
+			Set("AutoAdd", groupChannel.AutoAdd).
+			Set("SchemeAdmin", groupChannel.SchemeAdmin).
+			Set("CreateAt", groupChannel.CreateAt).
+			Set("DeleteAt", groupChannel.DeleteAt).
+			Set("UpdateAt", groupChannel.DeleteAt).
+			Where(sq.And{
+				sq.Eq{"GroupId": groupChannel.GroupId},
+				sq.Eq{"ChannelId": groupChannel.ChannelId},
+			}).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		_, err = s.GetMasterX().NamedExec(queryString, args)
 	default:
 		return nil, fmt.Errorf("invalid GroupSyncableType: %s", groupSyncable.Type)
 	}
@@ -2050,8 +2128,14 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*mode
 
 func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []any, err error) {
 	var retrievedGroup model.Group
+	queryString, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("UserGroups").
+		Where(sq.Eq{"Id": groupID}).
+		ToSql()
+
 	// Check Group exists
-	if err = s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
+	if err = s.GetReplicaX().Get(&retrievedGroup, queryString, args...); err != nil {
 		err = errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
 		return
 	}
