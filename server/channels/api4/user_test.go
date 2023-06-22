@@ -1930,6 +1930,25 @@ func TestUpdateAdminUser(t *testing.T) {
 	require.Equal(t, user.Email, u2.Email)
 }
 
+func TestUpdateBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+	require.NoError(t, err)
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString("Anything")
+
+	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), botUser)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
+}
+
 func TestPatchUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2243,6 +2262,23 @@ func TestDeleteUser(t *testing.T) {
 	})
 	_, err = th.Client.DeleteUser(context.Background(), selfDeleteUser.Id)
 	require.NoError(t, err)
+}
+
+func TestDeleteBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := th.CreateBotWithSystemAdminClient()
+	patch := &model.UserPatch{}
+	patch.Email = model.NewString("Anything")
+
+	_, err := th.SystemAdminClient.DeleteUser(context.Background(), bot.UserId)
+	require.Error(t, err)
+	require.Equal(t, err.Error(), ": Invalid or missing user_id in request body.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
