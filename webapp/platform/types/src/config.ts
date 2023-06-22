@@ -121,6 +121,7 @@ export type ClientConfig = {
     FeatureFlagBoardsProduct: string;
     FeatureFlagCallsEnabled: string;
     FeatureFlagGraphQL: string;
+    ForgotPasswordLink: string;
     GfycatAPIKey: string;
     GfycatAPISecret: string;
     GoogleDeveloperKey: string;
@@ -562,6 +563,7 @@ export type SupportSettings = {
     AboutLink: string;
     HelpLink: string;
     ReportAProblemLink: string;
+    ForgotPasswordLink: string;
     SupportEmail: string;
     CustomTermsOfServiceEnabled: boolean;
     CustomTermsOfServiceReAcceptancePeriod: number;

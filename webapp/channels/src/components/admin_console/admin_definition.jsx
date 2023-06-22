@@ -2137,6 +2137,16 @@ const AdminDefinition = {
                     },
                     {
                         type: Constants.SettingsTypes.TYPE_TEXT,
+                        key: 'SupportSettings.ForgotPasswordLink',
+                        label: t('admin.support.forgotPasswordTitle'),
+                        label_default: 'Forgot Password Custom Link:',
+                        help_text: t('admin.support.forgotPasswordDesc'),
+                        help_text_default: 'The URL for the Forgot Password link on the Mattermost login page. If this field is empty the Forgot Password link takes users to the Password Reset page.',
+                        isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    },
+                    {
+                        type: Constants.SettingsTypes.TYPE_TEXT,
                         key: 'SupportSettings.ReportAProblemLink',
                         label: t('admin.support.problemTitle'),
                         label_default: 'Report a Problem Link:',

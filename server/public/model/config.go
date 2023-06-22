@@ -1881,6 +1881,7 @@ type SupportSettings struct {
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	ForgotPasswordLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance_custom_terms_of_service"`
@@ -1926,6 +1927,14 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.ReportAProblemLink == nil {
 		s.ReportAProblemLink = NewString(SupportSettingsDefaultReportAProblemLink)
+	}
+
+	if !isSafeLink(s.ForgotPasswordLink) {
+		*s.ForgotPasswordLink = ""
+	}
+
+	if s.ForgotPasswordLink == nil {
+		s.ForgotPasswordLink = NewString("")
 	}
 
 	if s.SupportEmail == nil {
