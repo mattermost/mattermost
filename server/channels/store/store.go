@@ -487,7 +487,6 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
-	GetFirstSystemAdminID() (string, error)
 }
 
 type BotStore interface {
