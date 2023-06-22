@@ -215,8 +215,6 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                                 postId={postId}
                                 imageKey={safeSrc}
                                 onToggle={onImageHeightChanged}
-                                isExpanded={false}
-                                actions={{}}
                             >
                                 {imageElement}
                             </MarkdownImageExpand>

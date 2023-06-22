@@ -2,19 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
+
+import type {PropsFromRedux, OwnProps} from './index';
+
 import './markdown_image_expand.scss';
 
-export type Props = {
-    alt: string;
-    imageKey: string;
-    children: React.ReactNode;
-    isExpanded: boolean;
-    postId: string;
-    onToggle?: (isExpanded: boolean) => void;
-    actions: {
-        toggleInlineImageVisibility?: (postId: string, imageKey: string) => void;
-    };
-};
+type Props = PropsFromRedux & OwnProps;
 
 const MarkdownImageExpand: React.FC<Props> = ({children, alt, isExpanded, postId, actions, onToggle, imageKey}: Props) => {
     const {toggleInlineImageVisibility} = actions;
