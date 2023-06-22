@@ -9,7 +9,7 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
   bsClass="modal"
   dialogClassName="a11y__modal"
   dialogComponentClass={[Function]}
-  enforceFocus={false}
+  enforceFocus={true}
   id="deletePostModal"
   keyboard={true}
   manager={
@@ -114,7 +114,7 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
   bsClass="modal"
   dialogClassName="a11y__modal"
   dialogComponentClass={[Function]}
-  enforceFocus={false}
+  enforceFocus={true}
   id="deletePostModal"
   keyboard={true}
   manager={
@@ -228,7 +228,7 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
   bsClass="modal"
   dialogClassName="a11y__modal"
   dialogComponentClass={[Function]}
-  enforceFocus={false}
+  enforceFocus={true}
   id="deletePostModal"
   keyboard={true}
   manager={
